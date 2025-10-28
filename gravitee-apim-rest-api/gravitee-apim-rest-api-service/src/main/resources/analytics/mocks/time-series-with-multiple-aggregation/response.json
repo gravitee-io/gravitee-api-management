@@ -1,0 +1,79 @@
+{
+    "timeRange": {
+        "from": "2025-01-01T00:00:00Z",
+        "to": "2025-01-31T23:59:59Z"
+    },
+    "type": "time_series",
+    "filters": [
+        {
+            "facet": "api",
+            "operator": "eq",
+            "value": "my-api"
+        }
+    ],
+    "responses": [
+        {
+            "metrics": "gateway_response_time",
+            "filters": [
+                {
+                    "facet": "tenant",
+                    "operator": "eq",
+                    "value": "europe"
+                }
+            ],
+            "timeSeries": {
+                "interval": "1m",
+                "buckets": [
+                    {
+                        "key": "2025-01-01T00:00:00Z",
+                        "measures": {
+                            "p90": 89.9,
+                            "p95": 95.1,
+                            "p99": 123.4
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:01:00Z",
+                        "measures": {
+                            "p90": 90.1,
+                            "p95": 95.2,
+                            "p99": 123.5
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:02:00Z",
+                        "measures": {
+                            "p90": 90.2,
+                            "p95": 95.3,
+                            "p99": 123.6
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:03:00Z",
+                        "measures": {
+                            "p90": 90.3,
+                            "p95": 95.4,
+                            "p99": 123.7
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:04:00Z",
+                        "measures": {
+                            "p90": 90.4,
+                            "p95": 95.5,
+                            "p99": 123.8
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:05:00Z",
+                        "measures": {
+                            "p90": 90.5,
+                            "p95": 95.6,
+                            "p99": 123.9
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

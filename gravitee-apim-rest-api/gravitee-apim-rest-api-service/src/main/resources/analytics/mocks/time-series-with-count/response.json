@@ -1,0 +1,67 @@
+{
+    "timeRange": {
+        "from": "2025-01-01T00:00:00Z",
+        "to": "2025-01-31T23:59:59Z"
+    },
+    "type": "time_series",
+    "filters": [
+        {
+            "facet": "api",
+            "operator": "eq",
+            "value": "my-api"
+        }
+    ],
+    "responses": [
+        {
+            "metric": "http_request_count",
+            "filters": [
+                {
+                    "facet": "tenant",
+                    "operator": "eq",
+                    "value": "europe"
+                }
+            ],
+            "timeSeries": {
+                "interval": "1m",
+                "buckets": [
+                    {
+                        "key": "2025-01-01T00:00:00Z",
+                        "measures": {
+                            "count": 2984
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:01:00Z",
+                        "measures": {
+                            "count": 3000
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:02:00Z",
+                        "measures": {
+                            "count": 2888
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:03:00Z",
+                        "measures": {
+                            "count": 2999
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:04:00Z",
+                        "measures": {
+                            "count": 3001
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:05:00Z",
+                        "measures": {
+                            "count": 2984
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "timeRange": {
+        "from": "2025-01-01T00:00:00Z",
+        "to": "2025-01-31T23:59:59Z"
+    },
+    "type": "facets",
+    "filters": [
+        {
+            "facet": "api",
+            "operator": "eq",
+            "value": "my-api"
+        }
+    ],
+    "responses": [
+        {
+            "metric": "http_request_count",
+            "filters": [
+                {
+                    "facet": "tenant",
+                    "operator": "eq",
+                    "value": "europe"
+                }
+            ],
+            "facets": {
+                "by": "api",
+                "buckets": [
+                    {
+                        "key": "api-1",
+                        "measures": {
+                            "count": 1234
+                        }
+                    },
+                    {
+                        "key": "api-2",
+                        "measures": {
+                            "count": 989
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
