@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.portalpagecontents;
 
-import jakarta.annotation.Nonnull;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-public class PortalNavigationFolder extends PortalNavigationItem {
+@Component
+public class PortalPageContentTypeIndexUpgrader extends IndexUpgrader {
 
-    public PortalNavigationFolder(
-        @Nonnull PortalPageNavigationId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area
-    ) {
-        super(id, organizationId, environmentId, title, area);
+    @Override
+    protected Index buildIndex() {
+        return Index.builder()
+            .collection("portal_page_contents")
+            .key("type", ascending())
+            .name("portal_page_contents_type_idx")
+            .build();
     }
 }

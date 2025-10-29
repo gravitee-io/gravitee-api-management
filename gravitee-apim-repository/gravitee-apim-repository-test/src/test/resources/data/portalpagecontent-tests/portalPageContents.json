@@ -1,0 +1,15 @@
+[
+  {
+    "id": "page-content-1",
+    "type": "GRAVITEE_MARKDOWN",
+    "configuration": "{ \"pageId\": \"home\" }",
+    "content": "# Welcome to the portal"
+  },
+  {
+    "id": "page-content-2",
+    "type": "GRAVITEE_MARKDOWN",
+    "configuration": "{ \"pageId\": \"about\" }",
+    "content": "# About us"
+  }
+]
+

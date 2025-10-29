@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.api;
 
-public enum PortalArea {
-    HOMEPAGE,
-    TOP_NAVBAR,
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.PortalPageContent;
+import java.util.List;
+
+public interface PortalPageContentRepository extends CrudRepository<PortalPageContent, String> {
+    List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException;
+
+    PortalPageContent findByPageId(String pageId) throws TechnicalException;
+
+    void deleteByType(PortalPageContent.Type type) throws TechnicalException;
 }

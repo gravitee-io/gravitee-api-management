@@ -13,9 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-public enum PortalArea {
-    HOMEPAGE,
-    TOP_NAVBAR,
+import io.gravitee.repository.management.model.PortalPageContent;
+import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Data
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}portal_page_contents")
+public class PortalPageContentMongo {
+
+    private String id;
+    private String pageId;
+    private PortalPageContent.Type type;
+    private String configuration;
+    private String content;
 }
