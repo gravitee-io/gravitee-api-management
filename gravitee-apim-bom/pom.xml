@@ -108,6 +108,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.graviteesource.common</groupId>
+                <artifactId>gravitee-common-mcp</artifactId>
+                <version>${gravitee-common-mcp.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.connector</groupId>
                 <artifactId>gravitee-connector-api</artifactId>
                 <version>${gravitee-connector-api.version}</version>
