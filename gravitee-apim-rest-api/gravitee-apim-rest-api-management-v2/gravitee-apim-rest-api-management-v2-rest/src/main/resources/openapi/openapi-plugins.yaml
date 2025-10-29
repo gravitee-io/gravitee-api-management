@@ -389,6 +389,7 @@ paths:
                           - HTTP_PROXY
                           - HTTP_MESSAGE
                           - NATIVE_KAFKA
+                          - HTTP_MCP_PROXY
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -528,6 +529,11 @@ components:
                                   items:
                                       $ref: "#/components/schemas/FlowPhase"
                               NATIVE_KAFKA:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
+                              HTTP_MCP_PROXY:
                                   type: array
                                   uniqueItems: true
                                   items:
