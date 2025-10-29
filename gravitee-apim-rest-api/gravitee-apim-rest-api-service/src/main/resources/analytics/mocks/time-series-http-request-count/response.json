@@ -1,0 +1,52 @@
+{
+  "interval": "1m",
+  "metrics": [
+    {
+      "name": "HTTP_REQUESTS",
+      "buckets": [
+        {
+          "key": "2025-01-01T00:00:00Z",
+          "timestamp": 1735689600000,
+          "measures": {
+            "COUNT": 2984
+          }
+        },
+        {
+          "key": "2025-01-01T00:01:00Z",
+          "timestamp": 1735689660000,
+          "measures": {
+            "COUNT": 3000
+          }
+        },
+        {
+          "key": "2025-01-01T00:02:00Z",
+          "timestamp": 1735689720000,
+          "measures": {
+            "COUNT": 2888
+          }
+        },
+        {
+          "key": "2025-01-01T00:03:00Z",
+          "timestamp": 1735689780000,
+          "measures": {
+            "COUNT": 2999
+          }
+        },
+        {
+          "key": "2025-01-01T00:04:00Z",
+          "timestamp": 1735689840000,
+          "measures": {
+            "COUNT": 3001
+          }
+        },
+        {
+          "key": "2025-01-01T00:05:00Z",
+          "timestamp": 1735689900000,
+          "measures": {
+            "COUNT": 2984
+          }
+        }
+      ]
+    }
+  ]
+}
