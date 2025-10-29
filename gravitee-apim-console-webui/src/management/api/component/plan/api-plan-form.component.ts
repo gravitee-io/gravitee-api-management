@@ -60,6 +60,7 @@ import {
   ApiType,
   PlanStatus,
   ApiFederated,
+  McpSelector,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -577,13 +578,27 @@ const internalFormValueToPlanV4 = (
         ]
       : [];
 
+    // If no policy to add. do not create empty flow
+    if (isEmpty(restrictionPolicies)) {
+      return [];
+    }
+
+    const defaultSelectors = [];
+    switch (apiType) {
+      case 'LLM_PROXY':
+      case 'PROXY':
+        defaultSelectors.push({ type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH' });
+        break;
+      case 'MESSAGE':
+        defaultSelectors.push({ type: 'CHANNEL', channel: '/', channelOperator: 'STARTS_WITH' });
+        break;
+      case 'MCP_PROXY':
+        defaultSelectors.push({ type: 'MCP', methods: [] } satisfies McpSelector);
+    }
+
     return [
       {
-        selectors: [
-          apiType === 'PROXY'
-            ? { type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH' }
-            : { type: 'CHANNEL', channel: '/', channelOperator: 'STARTS_WITH' },
-        ],
+        selectors: defaultSelectors,
         enabled: true,
         request: [...restrictionPolicies],
       },

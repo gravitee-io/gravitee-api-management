@@ -1121,19 +1121,7 @@ describe('ApiCreationV4Component - Navigation', () => {
               commentRequired: false,
               description: '',
               excludedGroups: [],
-              flows: [
-                {
-                  selectors: [
-                    {
-                      type: 'CHANNEL',
-                      channel: '/',
-                      channelOperator: 'STARTS_WITH',
-                    },
-                  ],
-                  enabled: true,
-                  request: [],
-                },
-              ],
+              flows: [],
               generalConditions: '',
               name: 'Secure by ApiKey',
               mode: 'STANDARD',
