@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/theme';
+
 :host {
   display: flex;
   justify-content: center;
@@ -21,21 +23,37 @@
 .log-in {
   display: flex;
   flex-flow: column;
-  gap: 32px;
+  gap: 20px;
+  background: #{theme.$background-color};
 
   &__form {
     display: flex;
     flex-flow: column;
-    gap: 12px;
+    gap: 16px;
+
+    &__header {
+      padding: 20px 20px 0;
+    }
+
+    &__title {
+      font-size: 18px;
+      font-weight: 700;
+    }
 
     &__container {
-      width: 100%;
+      width: 400px;
       max-width: 500px;
+      border-radius: 8px;
+    }
+
+    &__content:last-child {
+        padding: 0 20px 20px;
     }
 
     &__fields {
       display: flex;
       flex-flow: column;
+      gap: 8px;
     }
 
     &__buttons {
@@ -50,7 +68,7 @@
 
     &__forgot-password {
       margin-top: 5px;
-      color: var(--mdc-outlined-button-label-text-color);
+      color: #{theme.$primary-main-color};
       font-size: 14px;
       text-align: center;
       text-decoration: none;
@@ -58,6 +76,11 @@
       &:hover {
         text-decoration: underline;
       }
+    }
+
+    &__error {
+      text-align: center;
+      font-size: 14px;
     }
   }
 
@@ -71,11 +94,12 @@
       display: flex;
       height: 30px;
       align-items: center;
-      margin: 16px 0 0;
+      margin: 20px 0 4px;
+      font-size: 14px;
 
       &__line {
         width: 100%;
-        border-top: 1px solid var(--mdc-outlined-card-outline-color);
+        border-top: 1px solid #{theme.$card-border-color};
       }
 
       &__label {
@@ -86,13 +110,18 @@
         align-items: center;
         justify-content: center;
         margin: auto;
-        background: var(--gio-app-card-background-color);
+        background: #{theme.$background-color};
         inset: 0;
       }
     }
 
     &__idp {
       width: 100%;
+      font-weight: bold;
+      color: #{theme.$button-text-text-color};
+      white-space: nowrap;
+      overflow: hidden;
+      padding: 0 18px;
 
       &__container {
         display: flex;
@@ -103,6 +132,16 @@
       &__logo {
         width: 23px;
         height: 23px;
+      }
+
+      ::ng-deep .mdc-button__label {
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      &__label {
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
