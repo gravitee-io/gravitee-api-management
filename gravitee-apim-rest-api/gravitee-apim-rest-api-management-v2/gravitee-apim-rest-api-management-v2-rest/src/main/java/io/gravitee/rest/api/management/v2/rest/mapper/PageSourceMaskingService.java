@@ -141,7 +141,6 @@ public class PageSourceMaskingService implements ApplicationContextAware {
         }
 
         try {
-            // First, try to deserialize the configuration to a map
             @SuppressWarnings("unchecked")
             Map<String, Object> configMap = objectMapper.readValue(pageSource.getConfiguration(), LinkedHashMap.class);
 
@@ -152,29 +151,21 @@ public class PageSourceMaskingService implements ApplicationContextAware {
                     FetcherConfiguration fetcherConfiguration = fetcher.getConfiguration();
                     removeSensitiveData(fetcherConfiguration);
 
-                    // Convert the configuration object back to a Map
                     @SuppressWarnings("unchecked")
                     Map<String, Object> result = objectMapper.convertValue(fetcherConfiguration, LinkedHashMap.class);
                     log.debug("Successfully masked sensitive data using fetcher plugin for type: {}", pageSource.getType());
                     return result;
                 } catch (Exception e) {
-                    log.warn("Failed to mask using fetcher plugin, falling back to pattern-based masking: {}", e.getMessage());
+                    log.error("Failed to mask sensitive data using fetcher plugin for type: {}", pageSource.getType(), e);
+                    throw new TechnicalManagementException("Failed to mask sensitive data for fetcher type: " + pageSource.getType(), e);
                 }
             } else {
-                log.debug("No fetcher plugin found for type: {}, using pattern-based masking", pageSource.getType());
+                throw new TechnicalManagementException(
+                    "Unable to mask sensitive data: no fetcher plugin available for type: " + pageSource.getType()
+                );
             }
-
-            // If fetcher is not available, we cannot mask without @Sensitive annotation
-            // Return the config as-is - this should not happen in normal operation
-            log.warn(
-                "Unable to mask sensitive data: no fetcher plugin available for type: {}. Configuration returned unmasked.",
-                pageSource.getType()
-            );
-            return configMap;
         } catch (Exception e) {
             log.error("Error while masking sensitive data in page source configuration", e);
-            // If masking fails, return null to indicate failure
-            // The caller should handle this appropriately
             throw new TechnicalManagementException("An error occurred while masking page source configuration", e);
         }
     }
