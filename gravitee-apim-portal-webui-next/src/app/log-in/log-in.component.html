@@ -17,16 +17,16 @@
 -->
 <form [formGroup]="logInForm" (ngSubmit)="logIn()" class="log-in__form__container">
   <mat-card appearance="outlined" class="log-in">
-    <mat-card-header>
-      <mat-card-title i18n="@@logInTitle">Log in</mat-card-title>
+    <mat-card-header class="log-in__form__header">
+      <mat-card-title class="log-in__form__title" i18n="@@logInTitle">Login</mat-card-title>
     </mat-card-header>
-    <mat-card-content>
+    <mat-card-content class="log-in__form__content">
       @if (isLocalLoginEnabled()) {
         <div class="log-in__form">
           <div class="log-in__form__fields">
             <mat-form-field appearance="outline" class="log-in__form__input">
               <mat-label i18n="@@logInUsername">Username</mat-label>
-              <input matInput formControlName="username" appearance="outlined" />
+              <input matInput formControlName="username" />
               @if (logInForm.controls.username.hasError('required')) {
                 <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
               }
@@ -39,7 +39,7 @@
               }
             </mat-form-field>
             @if (error() === 401) {
-              <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
+              <mat-error class="log-in__form__error" i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
             }
           </div>
           <div class="log-in__form__buttons">
@@ -48,7 +48,7 @@
               type="submit"
               mat-flat-button
               i18n="@@logInAction"
-              class="log-in__form__submit secondary-button">
+              class="log-in__form__submit primary-button">
               Log in
             </button>
             <a class="log-in__form__forgot-password" i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
@@ -71,7 +71,7 @@
             (click)="authenticateSSO(provider)">
             <div class="log-in__sso__idp__container">
               <img class="log-in__sso__idp__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
-              {{ provider.name }}
+              <span class="log-in__sso__idp__label" i18n="@@logInSsoLabelPrefix">Continue with {{ provider.name }}</span>
             </div>
           </button>
         }
