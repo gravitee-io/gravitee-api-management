@@ -20,19 +20,21 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
+import { ApiEndpointGroupsLlmComponent } from './llm/api-endpoint-groups-llm.component';
+import { ApiEndpointGroupsStandardComponent } from './standard/api-endpoint-groups-standard.component';
 
-import { ApiEndpointModule } from '../endpoint/api-endpoint.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioLicenseBannerModule } from '../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
-  declarations: [ApiEndpointGroupsComponent],
+  declarations: [ApiEndpointGroupsComponent, ApiEndpointGroupsLlmComponent, ApiEndpointGroupsStandardComponent],
   exports: [ApiEndpointGroupsComponent],
   imports: [
     CommonModule,
@@ -42,10 +44,10 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
     MatDialogModule,
     MatTableModule,
     MatTooltipModule,
+    MatIconModule,
     MatSnackBarModule,
     GioIconsModule,
 
-    ApiEndpointModule,
     GioPermissionModule,
     GioBannerModule,
     GioLicenseBannerModule,

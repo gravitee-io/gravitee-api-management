@@ -52,6 +52,7 @@ import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.com
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
+import { ApiLlmProviderComponent } from './endpoints-v4/llm-provider/api-llm-provider.component';
 import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
@@ -1128,6 +1129,30 @@ const apisRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/provider/new',
+        component: ApiLlmProviderComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/provider/:providerIndex',
+        component: ApiLlmProviderComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
