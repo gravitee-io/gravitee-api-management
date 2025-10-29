@@ -19,8 +19,10 @@ import { CommonModule } from '@angular/common';
 
 import { ApiEndpointGroupsModule } from './endpoint-groups/api-endpoint-groups.module';
 import { ApiEndpointGroupModule } from './endpoint-group/api-endpoint-group.module';
+import { ApiEndpointModule } from './endpoint/api-endpoint.module';
+import { ApiLlmProviderModule } from './llm-provider/api-llm-provider.module';
 
 @NgModule({
-  imports: [CommonModule, ApiEndpointGroupsModule, ApiEndpointGroupModule],
+  imports: [CommonModule, ApiEndpointGroupsModule, ApiEndpointGroupModule, ApiEndpointModule, ApiLlmProviderModule],
 })
 export class ApiEndpointsV4Module {}

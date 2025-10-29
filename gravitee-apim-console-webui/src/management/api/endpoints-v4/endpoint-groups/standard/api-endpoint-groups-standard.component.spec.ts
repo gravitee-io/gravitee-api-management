@@ -24,15 +24,15 @@ import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 
-import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
-import { ApiEndpointGroupsHarness } from './api-endpoint-groups.harness';
-import { ApiEndpointGroupsModule } from './api-endpoint-groups.module';
+import { ApiEndpointGroupsStandardComponent } from './api-endpoint-groups-standard.component';
+import { ApiEndpointGroupsStandardHarness } from './api-endpoint-groups-standard.harness';
 
-import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiEndpointGroupsModule } from '../api-endpoint-groups.module';
+import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
-describe('ApiEndpointGroupsComponent', () => {
+describe('ApiEndpointGroupsStandardComponent', () => {
   const API_ID = 'apiId';
   const group1: EndpointGroupV4 = {
     name: 'default-group',
@@ -139,10 +139,10 @@ describe('ApiEndpointGroupsComponent', () => {
     ],
   };
 
-  let fixture: ComponentFixture<ApiEndpointGroupsComponent>;
+  let fixture: ComponentFixture<ApiEndpointGroupsStandardComponent>;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
-  let componentHarness: ApiEndpointGroupsHarness;
+  let componentHarness: ApiEndpointGroupsStandardHarness;
 
   const initComponent = async (api: ApiV4, permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r']) => {
     TestBed.configureTestingModule({
@@ -157,9 +157,9 @@ describe('ApiEndpointGroupsComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(ApiEndpointGroupsComponent);
+    fixture = TestBed.createComponent(ApiEndpointGroupsStandardComponent);
 
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupsHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupsStandardHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
