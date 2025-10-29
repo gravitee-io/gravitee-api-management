@@ -13,9 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.model;
 
-public enum PortalArea {
-    HOMEPAGE,
-    TOP_NAVBAR,
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class PortalPageContent {
+
+    public enum Type {
+        GRAVITEE_MARKDOWN,
+    }
+
+    @EqualsAndHashCode.Include
+    private String id;
+
+    private Type type;
+
+    private String configuration;
+
+    private String content;
 }

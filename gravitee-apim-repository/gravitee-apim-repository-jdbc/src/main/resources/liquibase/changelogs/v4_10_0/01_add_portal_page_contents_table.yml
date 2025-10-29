@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.10.0_01_add_portal_page_contents_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_page_contents
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: configuration, type: nclob, constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}portal_page_contents
+            columnNames: id
+            tableName: ${gravitee_prefix}portal_page_contents
+        - addUniqueConstraint:
+            columnNames: page_id, type
+            constraintName: uk_${gravitee_prefix}portal_page_contents_page_type
+            tableName: ${gravitee_prefix}portal_page_contents
+
