@@ -285,3 +285,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/08_add_general_conditions_hrid_to_plan_table.yml
     - include:
         - file: liquibase/changelogs/v4_10_0/00_add_flow_mcp_selector.yml
+    - include:
+        - file: liquibase/changelogs/v4_10_0/01_add_portal_page_contents_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_10_0/02_add_portal_navigation_items_table.yml

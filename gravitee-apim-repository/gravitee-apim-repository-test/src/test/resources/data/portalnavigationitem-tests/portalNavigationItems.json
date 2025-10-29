@@ -1,0 +1,25 @@
+[
+  {
+    "id": "nav-item-1",
+    "organizationId": "org-1",
+    "environmentId": "env-1",
+    "title": "Home",
+    "type": "PAGE",
+    "area": "HOMEPAGE",
+    "parentId": null,
+    "order": 1,
+    "configuration": "{ \"pageId\": \"home\" }"
+  },
+  {
+    "id": "nav-item-2",
+    "organizationId": "org-1",
+    "environmentId": "env-1",
+    "title": "Docs",
+    "type": "LINK",
+    "area": "TOP_NAVBAR",
+    "parentId": null,
+    "order": 2,
+    "configuration": "{ \"url\": \"https://docs.example.com\" }"
+  }
+]
+

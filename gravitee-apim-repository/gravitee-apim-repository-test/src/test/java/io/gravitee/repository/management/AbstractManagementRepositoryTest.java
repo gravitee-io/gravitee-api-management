@@ -229,6 +229,12 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected PortalPageContextRepository portalPageContextRepository;
 
+    @Inject
+    protected PortalNavigationItemRepository portalNavigationItemRepository;
+
+    @Inject
+    protected PortalPageContentRepository portalPageContentRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -305,6 +311,12 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Cluster cluster -> clusterRepository.create(cluster);
             case PortalPage portalPage -> portalPageRepository.create(portalPage);
             case PortalPageContext portalPageContext -> portalPageContextRepository.create(portalPageContext);
+            case io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem -> portalNavigationItemRepository.create(
+                portalNavigationItem
+            );
+            case io.gravitee.repository.management.model.PortalPageContent portalPageContent -> portalPageContentRepository.create(
+                portalPageContent
+            );
             case null, default -> {}
         }
     }
