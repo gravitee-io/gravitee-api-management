@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -1092,7 +1093,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-        private static final Instant NOW = Instant.now();
+        private static final TimeProvider TIME_PROVIDER = new TimeProvider();
+        private static final Instant NOW = TIME_PROVIDER.getNow();
 
         @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
         private String searchType;
@@ -1126,14 +1128,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         @Test
         void should_return_latest_value_ignoring_keys_with_no_snapshot_at_end_time() {
             // VALUE = sum(latest per key ≤ end) → gw=1: 2 (now-1), gw=2: 0 (latest at end is 0; now+1 is excluded) ⇒ 2
-            var now = Instant.now();
-            var from = now.minus(Duration.ofMinutes(6));
-            var to = now; // excludes the NOW+1 sample
+            var from = NOW.minus(Duration.ofMinutes(6));
+            // excludes the NOW+1 sample
             Aggregation valueAgg = new Aggregation("downstream-active-connections", AggregationType.VALUE);
 
             var result = cut.searchEventAnalytics(
                 new QueryContext("DEFAULT", "DEFAULT"),
-                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, to, null)
+                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, NOW, null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
