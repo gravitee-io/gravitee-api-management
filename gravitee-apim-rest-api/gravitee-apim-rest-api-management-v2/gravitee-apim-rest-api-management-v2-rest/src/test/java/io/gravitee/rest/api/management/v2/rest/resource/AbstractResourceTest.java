@@ -32,9 +32,6 @@ import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PortalPageContextCrudServiceInMemory;
-import inmemory.PortalPageCrudServiceInMemory;
-import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -228,15 +225,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected GroupCrudServiceInMemory groupCrudServiceInMemory;
-
-    @Autowired
-    protected PortalPageContextCrudServiceInMemory portalPageContextCrudService;
-
-    @Autowired
-    protected PortalPageQueryServiceInMemory portalPageQueryService;
-
-    @Autowired
-    protected PortalPageCrudServiceInMemory portalPageCrudService;
 
     @BeforeEach
     public void setUp() {

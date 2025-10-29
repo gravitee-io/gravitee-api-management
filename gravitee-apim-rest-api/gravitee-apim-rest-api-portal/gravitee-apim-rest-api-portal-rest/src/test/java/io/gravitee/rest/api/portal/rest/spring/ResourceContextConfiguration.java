@@ -25,9 +25,6 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
-import inmemory.PortalPageContextCrudServiceInMemory;
-import inmemory.PortalPageCrudServiceInMemory;
-import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -83,9 +80,6 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
@@ -941,21 +935,6 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
         return mock(UpdateClusterGroupsUseCase.class);
-    }
-
-    @Bean
-    public PortalPageCrudService portalPageCrudService() {
-        return new PortalPageCrudServiceInMemory();
-    }
-
-    @Bean
-    public PortalPageContextCrudService portalPageContextCrudService() {
-        return new PortalPageContextCrudServiceInMemory();
-    }
-
-    @Bean
-    public PortalPageQueryService portalPageQueryService() {
-        return new PortalPageQueryServiceInMemory();
     }
 
     @Bean

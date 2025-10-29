@@ -23,7 +23,7 @@ import lombok.Setter;
 public final class PortalPage {
 
     @Nonnull
-    private final PageId id;
+    private final PortalPageNavigationId id;
 
     @Nonnull
     private GraviteeMarkdown pageContent;
@@ -36,13 +36,13 @@ public final class PortalPage {
     @Getter
     private java.util.Date updatedAt;
 
-    public PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
+    public PortalPage(@Nonnull PortalPageNavigationId id, @Nonnull GraviteeMarkdown pageContent) {
         this.id = id;
         this.pageContent = pageContent;
     }
 
     public static PortalPage create(GraviteeMarkdown pageContent) {
-        return new PortalPage(PageId.random(), pageContent);
+        return new PortalPage(PortalPageNavigationId.random(), pageContent);
     }
 
     @Override
@@ -54,7 +54,7 @@ public final class PortalPage {
     }
 
     @Nonnull
-    public PageId getId() {
+    public PortalPageNavigationId getId() {
         return id;
     }
 
