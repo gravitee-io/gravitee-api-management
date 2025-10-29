@@ -1,0 +1,61 @@
+{
+    "size": 0,
+    "query": {
+      "bool": {
+        "must": [],
+        "filter": [
+          {
+            "range": {
+              "@timestamp": {
+                "gte": "now-1h"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "aggs": {
+      "date_histogram": {
+        "auto_date_histogram": {
+          "field": "@timestamp",
+          "buckets": 10
+        },
+        "aggs": {
+          "HTTP_STATUS_CODE_GROUP": {
+            "range": {
+              "field": "status",
+              "ranges": [
+                {
+                  "key": "1xx",
+                  "from": 100,
+                  "to": 200
+                },
+                {
+                  "key": "2xx",
+                  "from": 200,
+                  "to": 300
+                },
+                {
+                  "key": "3xx",
+                  "from": 300,
+                  "to": 400
+                },
+                {
+                  "key": "4xx",
+                  "from": 400,
+                  "to": 500
+                }
+              ]
+            },
+            "aggs": {
+              "HTTP_REQUEST_COUNT": {
+                "sum": {
+                  "field": "HTTP_REQUEST_COUNT"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

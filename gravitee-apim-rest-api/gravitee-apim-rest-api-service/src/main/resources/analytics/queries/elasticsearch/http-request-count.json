@@ -1,0 +1,24 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1h"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "COUNT": {
+      "value_count": {
+        "field": "@timestamp"
+      }
+    }
+  }
+}

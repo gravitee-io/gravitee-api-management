@@ -1,0 +1,43 @@
+{
+  "metrics": [
+    {
+      "name": "HTTP_REQUEST_COUNT",
+      "buckets": [
+        {
+          "key": "9b024d99-3265-4476-9bea-760d2240d99d",
+          "buckets": [
+            {
+              "key": "8ff7124d-e927-458f-86e6-996dd5f3910c",
+              "measures": {
+                "RPS": 45.7
+              }
+            },
+            {
+              "key": "91223d08-02db-4f61-8b84-7f443f6bda8e",
+              "measures": {
+                "RPS": 34.9
+              }
+            }
+          ]
+        },
+        {
+          "key": "c147f34c-9140-45eb-8a8a-3d804a70a216",
+          "buckets": [
+            {
+              "key": "a3437e53-80a8-473f-ab81-d53c0eb1ed58",
+              "measures": {
+                "RPS": 74.3
+              }
+            },
+            {
+              "key": "f6f03431-2683-45c5-ac6e-888b2f1f81e4",
+              "measures": {
+                "RPS": 88.9
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1m"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "single_bucket": {
+      "filters": {
+        "filters": {
+          "all": {
+            "match_all": {}
+          }
+        }
+      },
+      "aggs": {
+        "success_count": {
+          "filter": {
+            "range": {
+              "status": {
+                "gte": 100,
+                "lt": 400
+              }
+            }
+          },
+          "aggs": {
+            "count": {
+              "value_count": {
+                "field": "@timestamp"
+              }
+            }
+          }
+        },
+        "error_count": {
+          "filter": {
+            "range": {
+              "status": {
+                "gte": 400,
+                "lt": 500
+              }
+            }
+          },
+          "aggs": {
+            "count": {
+              "value_count": {
+                "field": "@timestamp"
+              }
+            }
+          }
+        },
+        "error_rate": {
+          "bucket_script": {
+            "buckets_path": {
+              "success": "success_count>count",
+              "error": "error_count>count"
+            },
+            "script": {
+              "source": "(params.success + params.error) > 0 ? params.error / (params.success + params.error) : 0"
+            }
+          }
+        }
+      }
+    }
+  }
+}
