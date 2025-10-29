@@ -20,37 +20,61 @@
     <mat-card-header>
       <mat-card-title i18n="@@logInTitle">Log in</mat-card-title>
     </mat-card-header>
-    <mat-card-content class="log-in__form">
-      <div class="log-in__form__fields">
-        <mat-form-field appearance="outline" class="log-in__form__input">
-          <mat-label i18n="@@logInUsername">Username</mat-label>
-          <input matInput formControlName="username" appearance="outlined" />
-          @if (logInForm.controls.username.hasError('required')) {
-            <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
-          }
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="log-in__form__input">
-          <mat-label i18n="@@logInPassword">Password</mat-label>
-          <input type="password" matInput formControlName="password" />
-          @if (logInForm.controls.password.hasError('required')) {
-            <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
-          }
-        </mat-form-field>
-        @if (error() === 401) {
-          <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
+    <mat-card-content>
+      @if (isLocalLoginEnabled()) {
+        <div class="log-in__form">
+          <div class="log-in__form__fields">
+            <mat-form-field appearance="outline" class="log-in__form__input">
+              <mat-label i18n="@@logInUsername">Username</mat-label>
+              <input matInput formControlName="username" appearance="outlined" />
+              @if (logInForm.controls.username.hasError('required')) {
+                <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="log-in__form__input">
+              <mat-label i18n="@@logInPassword">Password</mat-label>
+              <input type="password" matInput formControlName="password" />
+              @if (logInForm.controls.password.hasError('required')) {
+                <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
+              }
+            </mat-form-field>
+            @if (error() === 401) {
+              <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
+            }
+          </div>
+          <div class="log-in__form__buttons">
+            <button
+              [disabled]="logInForm.invalid"
+              type="submit"
+              mat-flat-button
+              i18n="@@logInAction"
+              class="log-in__form__submit secondary-button">
+              Log in
+            </button>
+            <a class="log-in__form__forgot-password" i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+          </div>
+        </div>
+      }
+      <div class="log-in__sso">
+        @if (isLocalLoginEnabled() && identityProviders.length > 0) {
+          <div class="log-in__sso__separator">
+            <div class="log-in__sso__separator__line"></div>
+            <div class="log-in__sso__separator__label" i18n="@@orSeparator">OR</div>
+          </div>
         }
-      </div>
-
-      <div class="log-in__form__buttons">
-        <button
-          [disabled]="logInForm.invalid"
-          type="submit"
-          mat-flat-button
-          i18n="@@logInAction"
-          class="log-in__form__submit secondary-button">
-          Log in
-        </button>
-        <a mat-stroked-button i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+        @for (provider of identityProviders; track provider.id) {
+          <button
+            type="button"
+            mat-stroked-button
+            class="log-in__sso__idp secondary-button"
+            [style.background-color]="getProviderColor(provider)"
+            (click)="authenticateSSO(provider)">
+            <div class="log-in__sso__idp__container">
+              <img class="log-in__sso__idp__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
+              {{ provider.name }}
+            </div>
+          </button>
+        }
       </div>
     </mat-card-content>
   </mat-card>

@@ -47,5 +47,63 @@
     &__submit {
       width: 100%;
     }
+
+    &__forgot-password {
+      margin-top: 5px;
+      color: var(--mdc-outlined-button-label-text-color);
+      font-size: 14px;
+      text-align: center;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__sso {
+    display: flex;
+    flex-flow: column;
+    gap: 16px;
+
+    &__separator {
+      position: relative;
+      display: flex;
+      height: 30px;
+      align-items: center;
+      margin: 16px 0 0;
+
+      &__line {
+        width: 100%;
+        border-top: 1px solid var(--mdc-outlined-card-outline-color);
+      }
+
+      &__label {
+        position: absolute;
+        display: flex;
+        width: 40px;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+        background: var(--gio-app-card-background-color);
+        inset: 0;
+      }
+    }
+
+    &__idp {
+      width: 100%;
+
+      &__container {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      &__logo {
+        width: 23px;
+        height: 23px;
+      }
+    }
   }
 }
