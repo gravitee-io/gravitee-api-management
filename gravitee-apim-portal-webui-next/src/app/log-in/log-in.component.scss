@@ -23,8 +23,8 @@
 .log-in {
   display: flex;
   flex-flow: column;
-  gap: 20px;
   background: #{theme.$background-color};
+  gap: 20px;
 
   &__form {
     display: flex;
@@ -47,7 +47,7 @@
     }
 
     &__content:last-child {
-        padding: 0 20px 20px;
+      padding: 0 20px 20px;
     }
 
     &__fields {
@@ -79,8 +79,8 @@
     }
 
     &__error {
-      text-align: center;
       font-size: 14px;
+      text-align: center;
     }
   }
 
@@ -116,12 +116,12 @@
     }
 
     &__idp {
-      width: 100%;
-      font-weight: bold;
-      color: #{theme.$button-text-text-color};
-      white-space: nowrap;
       overflow: hidden;
+      width: 100%;
       padding: 0 18px;
+      color: #{theme.$button-text-text-color};
+      font-weight: bold;
+      white-space: nowrap;
 
       &__container {
         display: flex;
@@ -135,8 +135,8 @@
       }
 
       ::ng-deep .mdc-button__label {
-        white-space: nowrap;
         overflow: hidden;
+        white-space: nowrap;
       }
 
       &__label {

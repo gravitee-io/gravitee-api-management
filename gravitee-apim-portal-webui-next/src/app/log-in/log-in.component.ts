@@ -91,13 +91,6 @@ export class LogInComponent implements OnInit {
     this.authService.authenticateSSO(provider, this.redirectUrl);
   }
 
-  getProviderColor(provider: IdentityProvider) {
-    if (provider.type && provider.color) {
-      return provider.color;
-    }
-    return '';
-  }
-
   getProviderLogo(provider: IdentityProvider) {
     const type = provider.type ?? IdentityProviderType.OIDC;
     return `${type?.toLowerCase()}.svg`;

@@ -7477,7 +7477,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-oauth2-oidc@npm:^20.0.2":
+"angular-oauth2-oidc@npm:20.0.2":
   version: 20.0.2
   resolution: "angular-oauth2-oidc@npm:20.0.2"
   dependencies:
@@ -11484,7 +11484,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:7.18.0"
     "@typescript-eslint/parser": "npm:7.18.0"
     angular-gridster2: "npm:20.2.3"
-    angular-oauth2-oidc: "npm:^20.0.2"
+    angular-oauth2-oidc: "npm:20.0.2"
     asciidoctor: "npm:3.0.4"
     chart.js: "npm:4.3.0"
     dompurify: "npm:3.2.7"

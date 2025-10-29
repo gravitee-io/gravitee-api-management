@@ -15,9 +15,13 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { of } from 'rxjs';
 
 import { AuthService } from './auth.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { IdentityProviderService } from './identity-provider.service';
+import { IdentityProvider } from '../entities/configuration/identity-provider';
+import { AppTestingModule, IdentityProviderServiceStub, OAuthServiceStub, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -42,5 +46,37 @@ describe('AuthService', () => {
 
     expect(req.request.headers.get('Authorization')).toEqual('Basic dXNlcm5hbWU6cGFzc3dvcmQ=');
     req.flush(token);
+  });
+
+  it('should redirect for SSO', () => {
+    const idp = { id: 'google', name: 'Google' };
+    const redirectUrl = 'redirectUrl';
+
+    const storeProviderId = jest.spyOn(service, 'storeProviderId').mockReturnValue();
+    const initCodeFlow = jest.spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'initCodeFlow').mockReturnValue();
+
+    service.authenticateSSO(idp, redirectUrl);
+
+    expect(initCodeFlow).toHaveBeenCalledWith(redirectUrl);
+    expect(storeProviderId).toHaveBeenCalled();
+  });
+
+  it('should retrieve token on load from SSO provider', done => {
+    const idp = { id: 'google', name: 'Google' } as IdentityProvider;
+
+    const getProviderId = jest.spyOn(service, 'getProviderId').mockReturnValue(idp.id!);
+    const getPortalIdentityProvider = jest
+      .spyOn(TestBed.inject(IdentityProviderService) as unknown as IdentityProviderServiceStub, 'getPortalIdentityProvider')
+      .mockReturnValue(of(idp));
+    const tryLoginCodeFlow = jest
+      .spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'tryLoginCodeFlow')
+      .mockResolvedValue();
+
+    service.load().subscribe(() => {
+      expect(getProviderId).toHaveBeenCalled();
+      expect(getPortalIdentityProvider).toHaveBeenCalledWith(idp.id);
+      expect(tryLoginCodeFlow).toHaveBeenCalled();
+      done();
+    });
   });
 });

@@ -39,7 +39,9 @@
               }
             </mat-form-field>
             @if (error() === 401) {
-              <mat-error class="log-in__form__error" i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
+              <mat-error class="log-in__form__error" i18n="@@logInError401"
+                >The username or password you entered is incorrect, please try again.</mat-error
+              >
             }
           </div>
           <div class="log-in__form__buttons">
@@ -67,7 +69,6 @@
             type="button"
             mat-stroked-button
             class="log-in__sso__idp secondary-button"
-            [style.background-color]="getProviderColor(provider)"
             (click)="authenticateSSO(provider)">
             <div class="log-in__sso__idp__container">
               <img class="log-in__sso__idp__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />

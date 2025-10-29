@@ -61,7 +61,7 @@
     "@fontsource/roboto": "5.2.5",
     "@types/swagger-ui": "3.52.4",
     "angular-gridster2": "20.2.3",
-    "angular-oauth2-oidc": "^20.0.2",
+    "angular-oauth2-oidc": "20.0.2",
     "asciidoctor": "3.0.4",
     "chart.js": "4.3.0",
     "dompurify": "3.2.7",
