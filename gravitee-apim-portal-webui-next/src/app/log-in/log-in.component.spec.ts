@@ -22,22 +22,41 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { LogInComponent } from './log-in.component';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { IdentityProvider } from '../../entities/configuration/identity-provider';
+import { AuthService } from '../../services/auth.service';
+import { ConfigService } from '../../services/config.service';
+import { IdentityProviderService } from '../../services/identity-provider.service';
+import { AppTestingModule, ConfigServiceStub, IdentityProviderServiceStub, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { DivHarness } from '../../testing/div.harness';
 
 describe('LogInComponent', () => {
   let fixture: ComponentFixture<LogInComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  async function initComponent() {
+    fixture = TestBed.createComponent(LogInComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  }
+
+  function enableLocalLogin(enable: boolean) {
+    const configService = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+    configService.configuration.authentication!.localLogin!.enabled = enable;
+  }
+
+  function initSsoProviders(providers: IdentityProvider[]) {
+    const identityProviderService = TestBed.inject(IdentityProviderService) as unknown as IdentityProviderServiceStub;
+    identityProviderService.providers = providers;
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LogInComponent, AppTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(LogInComponent);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
+    await initComponent();
   });
 
   afterEach(() => {
@@ -66,6 +85,7 @@ describe('LogInComponent', () => {
 
     expect(await submitButton.isDisabled()).toEqual(true);
   });
+
   it('should not validate form with missing password', async () => {
     const submitButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Log in' }));
 
@@ -87,5 +107,82 @@ describe('LogInComponent', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-menu-links`).flush({});
+  });
+
+  it('should not display log-in form', async () => {
+    enableLocalLogin(false);
+    initSsoProviders([
+      {
+        id: 'github',
+        name: 'GitHub',
+      },
+    ]);
+
+    await initComponent();
+
+    const login = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__form' }));
+    expect(login).toBeNull();
+
+    const orSeparator = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__sso__separator' }));
+    expect(orSeparator).toBeNull();
+
+    const ssoProvider = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.log-in__sso__idp' }));
+    expect(ssoProvider).not.toBeNull();
+
+    const providerText = await ssoProvider!.getText();
+    expect(providerText).toEqual('Continue with GitHub');
+  });
+
+  it('should not display SSO providers', async () => {
+    enableLocalLogin(true);
+    initSsoProviders([]);
+
+    await initComponent();
+
+    const login = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__form' }));
+    expect(login).not.toBeNull();
+
+    const orSeparator = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__sso__separator' }));
+    expect(orSeparator).toBeNull();
+
+    const ssoProvider = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.log-in__sso__idp' }));
+    expect(ssoProvider).toBeNull();
+  });
+
+  it('should display "or" separator and identity providers', async () => {
+    const identityProviders = [
+      { id: 'github', name: 'GitHub' },
+      { id: 'google', name: 'Google' },
+      { id: 'graviteeio_am', name: 'Gravitee AM' },
+    ];
+    enableLocalLogin(true);
+    initSsoProviders(identityProviders);
+
+    await initComponent();
+
+    const orSeparator = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__sso__separator' }));
+    expect(orSeparator).not.toBeNull();
+
+    const ssoProviders = await harnessLoader.getAllHarnesses(MatButtonHarness.with({ selector: '.log-in__sso__idp' }));
+    const providerTexts = await Promise.all(ssoProviders.map(harness => harness.getText()));
+    console.log('providerTexts', providerTexts);
+
+    for (const provider of identityProviders) {
+      const found = providerTexts.find(text => text === `Continue with ${provider.name}`);
+      expect(found).toBeDefined();
+    }
+  });
+
+  it('should redirect when clicked on SSO provider', async () => {
+    enableLocalLogin(true);
+    initSsoProviders([{ id: 'google', name: 'Google' }]);
+
+    const authenticateSSO = jest.spyOn(TestBed.inject(AuthService), 'authenticateSSO').mockReturnValue();
+
+    await initComponent();
+
+    const ssoProvider = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.log-in__sso__idp' }));
+    await ssoProvider.click();
+    expect(authenticateSSO).toHaveBeenCalledWith({ id: 'google', name: 'Google' }, '');
   });
 });
