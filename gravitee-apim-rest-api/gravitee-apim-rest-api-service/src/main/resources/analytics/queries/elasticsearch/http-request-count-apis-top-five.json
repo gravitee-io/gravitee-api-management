@@ -1,0 +1,26 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1h"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "API": {
+      "terms": {
+        "field": "api-id",
+        "size": 5,
+        "order": { "_count": "desc" }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "metrics": [
+    {
+      "name": "HTTP_GATEWAY_RESPONSE_TIME",
+      "measures": {
+        "P90": "89.9",
+        "P95": "95.1",
+        "P99": "123.4"
+      }
+    }
+  ]
+}

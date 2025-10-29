@@ -1,0 +1,37 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1h"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "AVG": {
+      "avg": {
+        "field": "gateway-response-time-ms",
+        "missing": 0
+      }
+    },
+    "MIN": {
+      "min": {
+        "field": "gateway-response-time-ms",
+        "missing": 0
+      }
+    },
+    "MAX": {
+      "max": {
+        "field": "gateway-response-time-ms",
+        "missing": 0
+      }
+    }
+  }
+}

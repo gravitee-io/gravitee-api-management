@@ -4,6 +4,8 @@ info:
     description: |-
         This is the OpenAPI specification for our new version of APIM Management API.
     contact:
+        name: GraviteeSource Team
+        url: https://gravitee.io
         email: team-apim@graviteesource.com
     license:
         name: Apache 2.0
@@ -86,6 +88,7 @@ paths:
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApi
             requestBody:
+
                 content:
                     application/json:
                         schema:

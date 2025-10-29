@@ -1,0 +1,39 @@
+{
+  "metrics": [
+    {
+      "name": "HTTP_REQUEST_COUNT",
+      "buckets": [
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 1234
+          }
+        },
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 989
+          }
+        },
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 890
+          }
+        },
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 789
+          }
+        },
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 678
+          }
+        }
+      ]
+    }
+  ]
+}

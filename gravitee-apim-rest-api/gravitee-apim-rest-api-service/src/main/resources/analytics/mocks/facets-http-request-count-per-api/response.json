@@ -1,0 +1,21 @@
+{
+  "metrics": [
+    {
+      "name": "HTTP_REQUESTS",
+      "buckets": [
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 1234
+          }
+        },
+        {
+          "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
+          "measures": {
+            "COUNT": 989
+          }
+        }
+      ]
+    }
+  ]
+}

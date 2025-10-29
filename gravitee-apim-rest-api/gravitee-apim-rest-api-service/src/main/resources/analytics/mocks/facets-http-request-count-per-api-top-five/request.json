@@ -1,0 +1,32 @@
+{
+  "timeRange": {
+    "from": "2025-01-01T00:00:00Z",
+    "to": "2025-01-31T23:59:59Z"
+  },
+  "filters": [
+    {
+      "name": "API",
+      "operator": "EQ",
+      "value": "8528bd43-c264-4719-8d9e-ad8afb34ce71"
+    }
+  ],
+  "by": ["API"],
+  "aggregations": ["COUNT"],
+  "order": {
+    "measure": "COUNT",
+    "direction": "DESC"
+  },
+  "limit": 5,
+  "metrics": [
+    {
+      "name": "HTTP_REQUESTS",
+      "filters": [
+        {
+          "name": "TENANT",
+          "operator": "EQ",
+          "value": "europe"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "interval": "1m",
+  "metrics": [
+    {
+      "name": "HTTP_REQUESTS",
+
+      "buckets": [
+        {
+          "key": "2025-01-01T00:00:00Z",
+          "timestamp": 1735689600000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 1234
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 989
+              }
+            }
+          ]
+        },
+        {
+          "key": "2025-01-01T00:01:00Z",
+          "timestamp": 1735689660000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 873
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 938
+              }
+            }
+          ]
+        },
+        {
+          "key": "2025-01-01T00:02:00Z",
+          "timestamp": 1735689720000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 736
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 763
+              }
+            }
+          ]
+        },
+        {
+          "key": "2025-01-01T00:03:00Z",
+          "timestamp": 1735689780000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 938
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 2345
+              }
+            }
+          ]
+        },
+        {
+          "key": "2025-01-01T00:04:00Z",
+          "timestamp": 1735689840000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 647
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 236
+              }
+            }
+          ]
+        },
+        {
+          "key": "2025-01-01T00:05:00Z",
+          "timestamp": 1735689900000,
+          "buckets": [
+            {
+              "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
+              "measures": {
+                "COUNT": 764
+              }
+            },
+            {
+              "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
+              "measures": {
+                "COUNT": 236
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
