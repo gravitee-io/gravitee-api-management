@@ -14,40 +14,62 @@
  * limitations under the License.
  */
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAnchor, MatButtonModule } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { OAuthModule } from 'angular-oauth2-oidc';
 import { switchMap, tap } from 'rxjs';
 
+import { IdentityProvider } from '../../entities/configuration/identity-provider';
+import { IdentityProviderType } from '../../entities/configuration/identity-provider-type';
 import { AuthService } from '../../services/auth.service';
+import { ConfigService } from '../../services/config.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { IdentityProviderService } from '../../services/identity-provider.service';
 import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
 
 @Component({
   selector: 'app-log-in',
-  imports: [MatCardModule, MatFormField, MatInput, MatButtonModule, MatLabel, ReactiveFormsModule, MatError, RouterLink, MatAnchor],
+  imports: [MatCardModule, MatFormField, MatInput, MatButtonModule, MatLabel, ReactiveFormsModule, MatError, RouterLink, OAuthModule],
   templateUrl: './log-in.component.html',
   styleUrl: './log-in.component.scss',
 })
-export class LogInComponent {
+export class LogInComponent implements OnInit {
   logInForm: FormGroup<{ username: FormControl; password: FormControl }> = new FormGroup({
     username: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required]),
   });
   error = signal(200);
+  identityProviders: IdentityProvider[] = [];
+  private redirectUrl: string = '';
 
-  private destroyRef = inject(DestroyRef);
   constructor(
-    private authService: AuthService,
-    private currentUserService: CurrentUserService,
-    private portalMenuLinksService: PortalMenuLinksService,
-    private router: Router,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly currentUserService: CurrentUserService,
+    private readonly identityProviderService: IdentityProviderService,
+    private readonly portalMenuLinksService: PortalMenuLinksService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+    private readonly destroyRef: DestroyRef,
   ) {}
+
+  ngOnInit(): void {
+    this.redirectUrl = this.activatedRoute.snapshot.queryParams?.['redirectUrl'] || '';
+    this.identityProviderService.getPortalIdentityProviders().subscribe({
+      next: response => {
+        this.identityProviders = response.data ?? [];
+      },
+      error: error => {
+        console.error('Cannot retrieve identity providers: ' + error.statusText);
+      },
+    });
+  }
 
   logIn() {
     this.authService
@@ -63,5 +85,25 @@ export class LogInComponent {
           this.error.set(err.status);
         },
       });
+  }
+
+  authenticateSSO(provider: IdentityProvider) {
+    this.authService.authenticateSSO(provider, this.redirectUrl);
+  }
+
+  getProviderColor(provider: IdentityProvider) {
+    if (provider.type && provider.color) {
+      return provider.color;
+    }
+    return '';
+  }
+
+  getProviderLogo(provider: IdentityProvider) {
+    const type = provider.type ?? IdentityProviderType.OIDC;
+    return `${type?.toLowerCase()}.svg`;
+  }
+
+  isLocalLoginEnabled() {
+    return this.configService.configuration.authentication?.localLogin?.enabled;
   }
 }

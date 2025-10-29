@@ -7477,6 +7477,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"angular-oauth2-oidc@npm:^20.0.2":
+  version: 20.0.2
+  resolution: "angular-oauth2-oidc@npm:20.0.2"
+  dependencies:
+    tslib: "npm:^2.5.2"
+  peerDependencies:
+    "@angular/common": ">=20.0.0"
+    "@angular/core": ">=20.0.0"
+  checksum: 10c0/db22f23d4906dd6b413b2a01d832a35aa8f7e8db236eafc7d0c63fdf7e29e08ca3aea13241b16e7ca63d27f586d365dc6b1cce690a6fb6d6aaf3f88aeb89a21b
+  languageName: node
+  linkType: hard
+
 "ansi-colors@npm:4.1.3, ansi-colors@npm:^4.1.3":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
@@ -11472,6 +11484,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:7.18.0"
     "@typescript-eslint/parser": "npm:7.18.0"
     angular-gridster2: "npm:20.2.3"
+    angular-oauth2-oidc: "npm:^20.0.2"
     asciidoctor: "npm:3.0.4"
     chart.js: "npm:4.3.0"
     dompurify: "npm:3.2.7"
@@ -19019,7 +19032,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

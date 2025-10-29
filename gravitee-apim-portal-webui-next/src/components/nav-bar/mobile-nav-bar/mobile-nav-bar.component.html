@@ -16,11 +16,13 @@
 
 -->
 <div class="actions">
-  <button class="mobile-menu__button" mat-stroked-button i18n="@@navigationButton" (click)="isMobileMenuOpened = !isMobileMenuOpened">
-    <span class="mobile-menu__icon"
-      ><mat-icon>{{ isMobileMenuOpened ? 'close' : 'menu' }}</mat-icon></span
-    >
-  </button>
+  @if (!forceLogin() || isLoggedIn()) {
+    <button class="mobile-menu__button" mat-stroked-button i18n="@@navigationButton" (click)="isMobileMenuOpened = !isMobileMenuOpened">
+      <span class="mobile-menu__icon"
+        ><mat-icon>{{ isMobileMenuOpened ? 'close' : 'menu' }}</mat-icon></span
+      >
+    </button>
+  }
 </div>
 @if (isMobileMenuOpened) {
   <div class="mobile-menu__panel">

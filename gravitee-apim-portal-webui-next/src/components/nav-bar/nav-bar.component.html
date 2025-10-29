@@ -18,8 +18,8 @@
 <div class="nav-bar__container">
   <app-company-title [title]="siteTitle" [logo]="logo()" />
   @if (isMobile()) {
-    <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+    <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" [forceLogin]="forceLogin()" />
   } @else {
-    <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+    <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" [forceLogin]="forceLogin()" />
   }
 </div>

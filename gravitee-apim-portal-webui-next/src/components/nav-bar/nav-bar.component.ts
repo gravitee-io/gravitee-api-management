@@ -35,6 +35,7 @@ export class NavBarComponent {
 
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   currentUser: InputSignal<User> = input({});
+  forceLogin: InputSignal<boolean> = input(false);
   logo: InputSignal<string> = input('');
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 }
