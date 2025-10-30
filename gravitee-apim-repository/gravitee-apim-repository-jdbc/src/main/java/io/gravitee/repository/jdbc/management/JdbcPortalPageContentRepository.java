@@ -22,8 +22,6 @@ import io.gravitee.repository.management.model.PortalPageContent;
 import java.sql.Types;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -33,8 +31,6 @@ import org.springframework.stereotype.Repository;
 public class JdbcPortalPageContentRepository
     extends JdbcAbstractCrudRepository<PortalPageContent, String>
     implements PortalPageContentRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalPageContentRepository.class);
 
     JdbcPortalPageContentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_page_contents");
@@ -61,7 +57,7 @@ public class JdbcPortalPageContentRepository
 
     @Override
     public PortalPageContent create(PortalPageContent item) throws TechnicalException {
-        LOGGER.debug("JdbcPortalPageContentRepository.create({})", item.getId());
+        log.debug("JdbcPortalPageContentRepository.create({})", item.getId());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return this.findById(item.getId()).orElse(null);
@@ -72,35 +68,23 @@ public class JdbcPortalPageContentRepository
 
     @Override
     public List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException {
-        LOGGER.debug("JdbcPortalPageContentRepository.findAllByType({})", type);
+        log.debug("JdbcPortalPageContentRepository.findAllByType({})", type);
         try {
             final String sql = "select id, type, configuration, content from " + this.tableName + " where type = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), type.name());
         } catch (Exception ex) {
-            LOGGER.error("Failed to find portal page contents by type", ex);
-            return List.of();
-        }
-    }
-
-    @Override
-    public PortalPageContent findByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalPageContentRepository.findByPageId({})", pageId);
-        try {
-            final String sql = "select id, type, configuration, content from " + this.tableName + " where configuration like ?";
-            return jdbcTemplate.queryForObject(sql, getOrm().getRowMapper(), "%\"pageId\": \"" + pageId + "\"%");
-        } catch (Exception ex) {
-            LOGGER.error("Failed to find portal page content by pageId", ex);
-            return null;
+            log.error("Failed to find portal page contents by type", ex);
+            throw new TechnicalException("Failed to find portal page contents by type", ex);
         }
     }
 
     @Override
     public void deleteByType(PortalPageContent.Type type) throws TechnicalException {
-        LOGGER.debug("JdbcPortalPageContentRepository.deleteByType({})", type);
+        log.debug("JdbcPortalPageContentRepository.deleteByType({})", type);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where type = ?", type.name());
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete portal page contents by type", ex);
+            log.error("Failed to delete portal page contents by type", ex);
             throw new TechnicalException("Failed to delete portal page contents by type", ex);
         }
     }
