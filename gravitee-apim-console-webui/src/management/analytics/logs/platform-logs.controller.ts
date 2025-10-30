@@ -107,12 +107,6 @@ class PlatformLogsController {
     this.refresh();
   }
 
-  filterTagChange(query) {
-    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
-    this.query.query = query;
-    this.refresh();
-  }
-
   exportAsCSV() {
     this.AnalyticsService.exportLogsAsCSV(this.query).then((response) => {
       const hiddenElement = document.createElement('a');
