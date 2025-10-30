@@ -1,0 +1,77 @@
+{
+  "name" : "api key v2",
+  "crossId" : "26133db6-9861-4dd7-933d-b698619dd7e6",
+  "version" : "1",
+  "execution_mode" : "v4-emulation-engine",
+  "description" : "description of the api key v2 api",
+  "visibility" : "PUBLIC",
+  "flows" : [],
+  "gravitee" : "2.0.0",
+  "flow_mode" : "DEFAULT",
+  "resources" : [ ],
+  "properties" : [ ],
+  "labels" : [ "proxy", "v2" ],
+  "pages" : [],
+  "plans" : [],
+  "metadata" : [],
+  "id" : "875fb0a0-1ea2-3a1d-bfd6-f59f9a18bd5b",
+  "path_mappings" : [ ],
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/v2/api-key"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false,
+    "logging" : {
+      "mode" : "CLIENT_PROXY",
+      "content" : "HEADERS_PAYLOADS",
+      "scope" : "REQUEST_RESPONSE",
+      "condition" : "{(#request.params['api-key'] != null && #request.params['api-key'][0] == 'b655afe3-c8a9-44fb-808d-e45b75d8412c') || #request.headers['X-Gravitee-Api-Key'][0] == 'b655afe3-c8a9-44fb-808d-e45b75d8412c'}"
+    },
+    "groups" : [ {
+      "name" : "default group",
+      "endpoints" : [ {
+        "name" : "default",
+        "target" : "https://api.gravitee.io/echo",
+        "weight" : 1,
+        "backup" : false,
+        "tenants" : [ ],
+        "type" : "http",
+        "inherit" : true,
+        "headers" : [ ],
+        "healthcheck" : {
+          "steps" : [ ],
+          "enabled" : true,
+          "inherit" : true
+        }
+      } ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "services" : {
+        "discovery" : {
+          "enabled" : false
+        }
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAliveTimeout" : 30000,
+        "keepAlive" : true,
+        "readTimeout" : 10000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : false,
+        "maxHeaderSize" : 8192,
+        "maxChunkSize" : 8192
+      },
+      "ssl" : {
+        "trustAll" : false,
+        "hostnameVerifier" : false
+      }
+    } ]
+  },
+  "response_templates" : { },
+  "disable_membership_notifications" : false
+}
