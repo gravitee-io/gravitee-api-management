@@ -38,6 +38,11 @@
           </div>
         </div>
 
+        <gv-dashboard-filter
+          activated-route="$ctrl.activatedRoute"
+          on-filter-change="$ctrl.filterTagChange(query)"
+        ></gv-dashboard-filter>
+
         <gv-logs-filters
           context="platform"
           activated-route="$ctrl.activatedRoute"
