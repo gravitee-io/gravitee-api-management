@@ -22,8 +22,6 @@ import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.sql.Types;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -33,8 +31,6 @@ import org.springframework.stereotype.Repository;
 public class JdbcPortalNavigationItemRepository
     extends JdbcAbstractCrudRepository<PortalNavigationItem, String>
     implements PortalNavigationItemRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNavigationItemRepository.class);
 
     JdbcPortalNavigationItemRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_navigation_items");
@@ -66,7 +62,7 @@ public class JdbcPortalNavigationItemRepository
 
     @Override
     public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNavigationItemRepository.create({})", item.getId());
+        log.debug("JdbcPortalNavigationItemRepository.create({})", item.getId());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return this.findById(item.getId()).orElse(null);
@@ -78,7 +74,7 @@ public class JdbcPortalNavigationItemRepository
     @Override
     public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
         throws TechnicalException {
-        LOGGER.debug("JdbcPortalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId({}, {})", organizationId, environmentId);
+        log.debug("JdbcPortalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId({}, {})", organizationId, environmentId);
         try {
             final String sql =
                 "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
@@ -86,8 +82,8 @@ public class JdbcPortalNavigationItemRepository
                 " where organization_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), organizationId, environmentId);
         } catch (Exception ex) {
-            LOGGER.error("Failed to find portal navigation items", ex);
-            return List.of();
+            log.error("Failed to find portal navigation items", ex);
+            throw new TechnicalException("Failed to find portal navigation items", ex);
         }
     }
 
@@ -97,7 +93,7 @@ public class JdbcPortalNavigationItemRepository
         String organizationId,
         String environmentId
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcPortalNavigationItemRepository.findAllByAreaAndOrganizationIdAndEnvironmentId({}, {}, {})",
             area,
             organizationId,
@@ -110,29 +106,29 @@ public class JdbcPortalNavigationItemRepository
                 " where area = ? and organization_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), organizationId, environmentId);
         } catch (Exception ex) {
-            LOGGER.error("Failed to find portal navigation items by area", ex);
-            return List.of();
+            log.error("Failed to find portal navigation items by area", ex);
+            throw new TechnicalException("Failed to find portal navigation items by area", ex);
         }
     }
 
     @Override
     public void deleteByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNavigationItemRepository.deleteByOrganizationId({})", organizationId);
+        log.debug("JdbcPortalNavigationItemRepository.deleteByOrganizationId({})", organizationId);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete portal navigation items by organizationId", ex);
+            log.error("Failed to delete portal navigation items by organizationId", ex);
             throw new TechnicalException("Failed to delete portal navigation items by organizationId", ex);
         }
     }
 
     @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNavigationItemRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcPortalNavigationItemRepository.deleteByEnvironmentId({})", environmentId);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete portal navigation items by environmentId", ex);
+            log.error("Failed to delete portal navigation items by environmentId", ex);
             throw new TechnicalException("Failed to delete portal navigation items by environmentId", ex);
         }
     }

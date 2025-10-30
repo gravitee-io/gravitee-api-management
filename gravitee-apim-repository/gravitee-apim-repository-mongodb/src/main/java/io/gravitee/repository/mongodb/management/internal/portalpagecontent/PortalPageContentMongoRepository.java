@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.portalpagecontent;
 
 import io.gravitee.repository.management.model.PortalPageContent;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContentMongo;
-import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -26,8 +25,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PortalPageContentMongoRepository extends MongoRepository<PortalPageContentMongo, String> {
     Set<PortalPageContentMongo> findAllByType(PortalPageContent.Type type);
-
-    Optional<PortalPageContentMongo> findByPageId(String pageId);
 
     @Query(value = "{ 'type' : ?0 }", delete = true)
     void deleteByType(PortalPageContent.Type type);
