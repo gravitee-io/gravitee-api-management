@@ -94,6 +94,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
+import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
@@ -1036,5 +1037,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GetMetricFacetsUseCase getMetricFacetsUseCase(AnalyticsDefinition analyticsDefinition) {
         return new GetMetricFacetsUseCase(analyticsDefinition);
+    }
+
+    @Bean
+    public ProcessPromotionUseCase promotionUseCase() {
+        return mock(ProcessPromotionUseCase.class);
     }
 }
