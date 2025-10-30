@@ -77,7 +77,12 @@ public class LoggingHook implements InvokerHook {
             }
 
             if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
-                ((LogEndpointResponse) log.getEndpointResponse()).capture();
+                final ExecutionFailure executionFailure = ctx.getInternalAttribute(
+                    InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE
+                );
+                if (executionFailure == null) {
+                    ((LogEndpointResponse) log.getEndpointResponse()).capture();
+                }
 
                 final HttpResponseInternal response = ((HttpExecutionContextInternal) ctx).response();
                 response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
