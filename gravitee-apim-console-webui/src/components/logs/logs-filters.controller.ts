@@ -231,7 +231,11 @@ class LogsFiltersController {
   }
 
   private decodeQueryFilters(query) {
-    const filters = query.includes('status:') ? query.split('OR') : query.split('AND');
+    const filters = query
+      .split(/\s+AND\s+/) // Split by AND first
+      .map((segment) => segment.replace(/^\((.+)\)$/, '$1')) // Remove outer parentheses
+      .flatMap((segment) => segment.split(/\s+OR\s+/)); // Split OR conditions (returns original if no OR found)
+
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i].replace(/[()]/g, '');
       const k = filter.split(':')[0].trim();
