@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
@@ -53,7 +54,9 @@ import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
+import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -84,6 +87,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
@@ -114,6 +118,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnvironmentCommand, DeleteEnvironmentReply> {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final AccessPointCrudService accessPointService;
     private final AccessPointRepository accessPointRepository;
     private final AlertService alertService;
@@ -153,6 +158,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
     private final PortalPageRepository portalPageRepository;
     private final PortalPageContextRepository portalPageContextRepository;
+    private final PortalNavigationItemRepository portalNavigationItemRepository;
+    private final PortalPageContentRepository portalPageContentRepository;
     private final PromotionRepository promotionRepository;
     private final QualityRuleRepository qualityRuleRepository;
     private final RatingAnswerRepository ratingAnswerRepository;
@@ -204,6 +211,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
         @Lazy PortalPageRepository portalPageRepository,
         @Lazy PortalPageContextRepository portalPageContextRepository,
+        @Lazy PortalNavigationItemRepository portalNavigationItemRepository,
+        @Lazy PortalPageContentRepository portalPageContentRepository,
         @Lazy PromotionRepository promotionRepository,
         @Lazy QualityRuleRepository qualityRuleRepository,
         @Lazy RatingAnswerRepository ratingAnswerRepository,
@@ -268,6 +277,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
         this.portalPageRepository = portalPageRepository;
         this.portalPageContextRepository = portalPageContextRepository;
+        this.portalNavigationItemRepository = portalNavigationItemRepository;
+        this.portalPageContentRepository = portalPageContentRepository;
         this.promotionRepository = promotionRepository;
         this.qualityRuleRepository = qualityRuleRepository;
         this.ratingAnswerRepository = ratingAnswerRepository;
@@ -367,7 +378,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         parameterRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ParameterReferenceType.ENVIRONMENT);
         portalMenuLinkRepository.deleteByEnvironmentId(environment.getId());
         portalPageRepository.deleteByEnvironmentId(environment.getId());
-        portalPageContextRepository.deleteByEnvironmentId(environment.getId());
+        deletePortalNavigationItems(environment);
+        portalNavigationItemRepository.deleteByEnvironmentId(environment.getId());
         customUserFieldsRepository.deleteByReferenceIdAndReferenceType(environment.getId(), CustomUserFieldReferenceType.ENVIRONMENT);
         groupRepository
             .deleteByEnvironmentId(environment.getId())
@@ -408,6 +420,40 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
+    }
+
+    private void deletePortalNavigationItems(EnvironmentEntity environment) throws TechnicalException {
+        portalNavigationItemRepository
+            .findAllByOrganizationIdAndEnvironmentId(environment.getOrganizationId(), environment.getId())
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
+            .forEach(item -> {
+                try {
+                    var pageContentId = extractPageContentId(item.getConfiguration());
+                    if (pageContentId == null) {
+                        return;
+                    }
+                    portalPageContentRepository.delete(pageContentId);
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+            });
+        portalPageContextRepository.deleteByEnvironmentId(environment.getId());
+    }
+
+    private String extractPageContentId(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return null;
+        }
+        try {
+            var node = OBJECT_MAPPER.readTree(configuration);
+            if (node.has("pageId")) {
+                return node.get("pageId").asText();
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract pageId from configuration: {}", configuration, e);
+        }
+        return null;
     }
 
     private void deleteApis(ExecutionContext executionContext) throws TechnicalException {
