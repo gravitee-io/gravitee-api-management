@@ -24,7 +24,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class PortalPageContentMongo {
 
     private String id;
-    private String pageId;
     private PortalPageContent.Type type;
     private String configuration;
     private String content;

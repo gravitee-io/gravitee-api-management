@@ -22,7 +22,6 @@ import io.gravitee.repository.management.model.PortalPageContent;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContentMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpagecontent.PortalPageContentMongoRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -46,17 +45,6 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
         } catch (Exception ex) {
             logger.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
-        }
-    }
-
-    @Override
-    public PortalPageContent findByPageId(String pageId) throws TechnicalException {
-        try {
-            Optional<PortalPageContentMongo> maybe = internalRepo.findByPageId(pageId);
-            return maybe.map(this::map).orElse(null);
-        } catch (Exception ex) {
-            logger.error("Failed to find portal page content by pageId", ex);
-            throw new TechnicalException("Failed to find portal page content by pageId", ex);
         }
     }
 
@@ -135,7 +123,6 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     private PortalPageContentMongo map(PortalPageContent item) {
         PortalPageContentMongo mongo = new PortalPageContentMongo();
         mongo.setId(item.getId());
-        mongo.setPageId(null);
         mongo.setType(item.getType());
         mongo.setConfiguration(item.getConfiguration());
         mongo.setContent(item.getContent());
