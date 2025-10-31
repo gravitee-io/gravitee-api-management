@@ -44,8 +44,7 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
-        throws TechnicalException {
+    public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId) {
         log.debug("Find all PortalNavigationItem by organizationId [{}] and environmentId [{}]", organizationId, environmentId);
         Set<PortalNavigationItemMongo> items = internalRepo.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId);
         List<PortalNavigationItem> mapped = items.stream().map(this::map).collect(Collectors.toList());
@@ -54,22 +53,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndOrganizationIdAndEnvironmentId(
-        PortalNavigationItem.Area area,
-        String organizationId,
-        String environmentId
-    ) throws TechnicalException {
-        log.debug(
-            "Find all PortalNavigationItem by area [{}], organizationId [{}], environmentId [{}]",
-            area,
-            organizationId,
-            environmentId
-        );
-        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndOrganizationIdAndEnvironmentId(
-            area,
-            organizationId,
-            environmentId
-        );
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
+        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}]", area, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentId(area, environmentId);
         return items.stream().map(this::map).collect(Collectors.toList());
     }
 
