@@ -158,7 +158,7 @@ public class LogsServiceImpl implements LogsService {
             logResponse.setLogs(response.getLogs().stream().map(this::toApiRequestItem).collect(Collectors.toList()));
 
             // Add metadata (only if they are results)
-            if (response.getSize() > 0) {
+            if (response.getLogs() != null && !response.getLogs().isEmpty()) {
                 Map<String, Map<String, String>> metadata = new HashMap<>();
 
                 logResponse
