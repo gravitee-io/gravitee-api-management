@@ -31,7 +31,6 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
-  forceLogin: InputSignal<boolean> = input(false);
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());

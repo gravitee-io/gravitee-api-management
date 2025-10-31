@@ -23,7 +23,6 @@
 .log-in {
   display: flex;
   flex-flow: column;
-  background: #{theme.$background-color};
   gap: 20px;
 
   &__form {
@@ -35,15 +34,13 @@
       padding: 20px 20px 0;
     }
 
-    &__title {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
     &__container {
       width: 400px;
-      max-width: 500px;
       border-radius: 8px;
+
+      &--mobile {
+        max-width: 75vw;
+      }
     }
 
     &__content:last-child {
@@ -69,7 +66,6 @@
     &__forgot-password {
       margin-top: 5px;
       color: #{theme.$primary-main-color};
-      font-size: 14px;
       text-align: center;
       text-decoration: none;
 
@@ -79,70 +75,54 @@
     }
 
     &__error {
-      font-size: 14px;
       text-align: center;
     }
   }
 
-  &__sso {
+  &__or-separator {
+    position: relative;
     display: flex;
-    flex-flow: column;
-    gap: 16px;
+    height: 30px;
+    align-items: center;
+    margin: 20px 0;
 
-    &__separator {
-      position: relative;
-      display: flex;
-      height: 30px;
-      align-items: center;
-      margin: 20px 0 4px;
-      font-size: 14px;
-
-      &__line {
-        width: 100%;
-        border-top: 1px solid #{theme.$card-border-color};
-      }
-
-      &__label {
-        position: absolute;
-        display: flex;
-        width: 40px;
-        height: 100%;
-        align-items: center;
-        justify-content: center;
-        margin: auto;
-        background: #{theme.$background-color};
-        inset: 0;
-      }
+    &__line {
+      width: 100%;
+      border-top: 1px solid #{theme.$card-border-color};
     }
 
-    &__idp {
-      overflow: hidden;
-      width: 100%;
-      padding: 0 18px;
-      color: #{theme.$button-text-text-color};
-      font-weight: bold;
-      white-space: nowrap;
+    &__label {
+      position: absolute;
+      display: flex;
+      width: 40px;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      background: #{theme.$card-background-color};
+      inset: 0;
+    }
+  }
 
-      &__container {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-      }
+  &__sso-provider {
+    width: 100%;
+    padding: 0 18px;
+    margin-bottom: 16px;
+    color: #{theme.$button-text-text-color};
 
-      &__logo {
-        width: 23px;
-        height: 23px;
-      }
+    &:last-of-type {
+      margin-bottom: 0;
+    }
 
-      ::ng-deep .mdc-button__label {
-        overflow: hidden;
-        white-space: nowrap;
-      }
+    &__container {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
 
-      &__label {
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    &__logo {
+      width: 23px;
+      height: 23px;
     }
   }
 }

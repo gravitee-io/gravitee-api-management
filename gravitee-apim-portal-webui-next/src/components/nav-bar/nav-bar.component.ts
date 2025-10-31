@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, Input, input, InputSignal } from '@angular/core';
+import { Component, computed, inject, Input, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { isEmpty } from 'lodash';
 
 import { User } from '../../entities/user/user';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
@@ -38,4 +39,8 @@ export class NavBarComponent {
   forceLogin: InputSignal<boolean> = input(false);
   logo: InputSignal<string> = input('');
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+
+  protected isLoggedIn = computed(() => {
+    return !isEmpty(this.currentUser());
+  });
 }

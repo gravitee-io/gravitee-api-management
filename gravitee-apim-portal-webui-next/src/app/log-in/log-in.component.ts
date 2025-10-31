@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -23,8 +24,9 @@ import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OAuthModule } from 'angular-oauth2-oidc';
-import { switchMap, tap } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs';
 
+import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { IdentityProvider } from '../../entities/configuration/identity-provider';
 import { IdentityProviderType } from '../../entities/configuration/identity-provider-type';
 import { AuthService } from '../../services/auth.service';
@@ -35,41 +37,41 @@ import { PortalMenuLinksService } from '../../services/portal-menu-links.service
 
 @Component({
   selector: 'app-log-in',
-  imports: [MatCardModule, MatFormField, MatInput, MatButtonModule, MatLabel, ReactiveFormsModule, MatError, RouterLink, OAuthModule],
+  imports: [
+    MatCardModule,
+    MatFormField,
+    MatInput,
+    MatButtonModule,
+    MatLabel,
+    ReactiveFormsModule,
+    MatError,
+    RouterLink,
+    OAuthModule,
+    AsyncPipe,
+    MobileClassDirective,
+  ],
   templateUrl: './log-in.component.html',
   styleUrl: './log-in.component.scss',
 })
-export class LogInComponent implements OnInit {
+export class LogInComponent {
   logInForm: FormGroup<{ username: FormControl; password: FormControl }> = new FormGroup({
     username: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required]),
   });
   error = signal(200);
-  identityProviders: IdentityProvider[] = [];
-  private redirectUrl: string = '';
+  isLocalLoginEnabled = inject(ConfigService).configuration.authentication?.localLogin?.enabled ?? false;
+  identityProviders$ = inject(IdentityProviderService)
+    .getPortalIdentityProviders()
+    .pipe(map(({ data }) => data ?? []));
+  private readonly redirectUrl = toSignal(inject(ActivatedRoute).queryParams.pipe(map(params => params['redirectUrl'] || '')));
 
   constructor(
-    private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly currentUserService: CurrentUserService,
-    private readonly identityProviderService: IdentityProviderService,
     private readonly portalMenuLinksService: PortalMenuLinksService,
-    private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
   ) {}
-
-  ngOnInit(): void {
-    this.redirectUrl = this.activatedRoute.snapshot.queryParams?.['redirectUrl'] || '';
-    this.identityProviderService.getPortalIdentityProviders().subscribe({
-      next: response => {
-        this.identityProviders = response.data ?? [];
-      },
-      error: error => {
-        console.error('Cannot retrieve identity providers: ' + error.statusText);
-      },
-    });
-  }
 
   logIn() {
     this.authService
@@ -77,7 +79,7 @@ export class LogInComponent implements OnInit {
       .pipe(
         switchMap(_ => this.currentUserService.loadUser()),
         switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
-        tap(_ => this.router.navigate([''])),
+        tap(_ => this.router.navigate([this.redirectUrl()])),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -88,15 +90,11 @@ export class LogInComponent implements OnInit {
   }
 
   authenticateSSO(provider: IdentityProvider) {
-    this.authService.authenticateSSO(provider, this.redirectUrl);
+    this.authService.authenticateSSO(provider, this.redirectUrl());
   }
 
   getProviderLogo(provider: IdentityProvider) {
     const type = provider.type ?? IdentityProviderType.OIDC;
-    return `${type?.toLowerCase()}.svg`;
-  }
-
-  isLocalLoginEnabled() {
-    return this.configService.configuration.authentication?.localLogin?.enabled;
+    return `${type.toLowerCase()}.svg`;
   }
 }

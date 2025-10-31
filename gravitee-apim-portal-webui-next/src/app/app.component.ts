@@ -15,8 +15,7 @@
  */
 import { Component, effect, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { NavigationStart, Router, RouterOutlet } from '@angular/router';
-import { isEmpty } from 'lodash';
+import { RouterOutlet } from '@angular/router';
 import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { FooterComponent } from '../components/footer/footer.component';
@@ -25,12 +24,6 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
-
-const PATHS = {
-  LOGIN: '/log-in',
-  SIGNUP: '/sign-up',
-  RESET_PASSWORD: '/log-in/reset-password',
-};
 
 @Component({
   selector: 'app-root',
@@ -50,7 +43,6 @@ export class AppComponent {
     // Don't delete BreadcrumbService from here - it's responsible for correct breadcrumb navigation
     private breadcrumbService: BreadcrumbService,
     private title: Title,
-    private router: Router,
   ) {
     this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Developer Portal';
     this.title.setTitle(this.siteTitle);
@@ -59,19 +51,6 @@ export class AppComponent {
         this.updateFavicon();
       }
     });
-
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart) {
-        if (isEmpty(this.currentUser()) && !this.isInLoginOrRegistration(event.url) && this.forceLogin()) {
-          const redirectUrl = event.url;
-          this.router.navigate([PATHS.LOGIN], { replaceUrl: true, queryParams: { redirectUrl } });
-        }
-      }
-    });
-  }
-
-  isInLoginOrRegistration(url: string = this.router.routerState.snapshot.url): boolean {
-    return url.startsWith(PATHS.LOGIN) || url.startsWith(PATHS.SIGNUP) || url.startsWith(PATHS.RESET_PASSWORD);
   }
 
   forceLogin(): boolean {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +27,6 @@ import { Configuration } from '../entities/configuration/configuration';
 import { IdentityProvider } from '../entities/configuration/identity-provider';
 import { ConfigService } from '../services/config.service';
 import { IdentityProviderService } from '../services/identity-provider.service';
-import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
 export const TESTING_ACTIVATED_ROUTE = {
@@ -49,6 +49,9 @@ export class ConfigServiceStub {
     authentication: {
       localLogin: {
         enabled: true,
+      },
+      forceLogin: {
+        enabled: false,
       },
     },
   };
