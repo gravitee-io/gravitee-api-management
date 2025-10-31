@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.model.PortalPageContent;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -62,5 +63,48 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
         portalPageContentRepository.delete(content.getId());
         var maybeFound = portalPageContentRepository.findById(content.getId());
         assertThat(maybeFound.isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_update_page_content() throws Exception {
+        PortalPageContent existing = portalPageContentRepository.findById("page-content-1").orElse(null);
+        assertThat(existing).isNotNull();
+
+        PortalPageContent toUpdate = PortalPageContent.builder()
+            .id(existing.getId())
+            .type(existing.getType())
+            .configuration(existing.getConfiguration())
+            .content("# Updated content")
+            .build();
+
+        portalPageContentRepository.update(toUpdate);
+
+        PortalPageContent updated = portalPageContentRepository.findById(existing.getId()).orElse(null);
+        assertThat(updated).isNotNull();
+        assertThat(updated.getContent()).isEqualTo("# Updated content");
+    }
+
+    @Test
+    public void should_delete_all_by_type() throws Exception {
+        // Ensure there are items of the type
+        List<PortalPageContent> contentsBefore = portalPageContentRepository.findAllByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
+        assertThat(contentsBefore).isNotNull();
+        assertThat(contentsBefore).isNotEmpty();
+
+        portalPageContentRepository.deleteByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
+
+        Set<PortalPageContent> contentsAfter = portalPageContentRepository.findAll();
+        assertThat(contentsAfter).isNotNull();
+        assertThat(contentsAfter).doesNotContainAnyElementsOf(contentsBefore);
+    }
+
+    @Test
+    public void should_find_all_page_contents() throws Exception {
+        Set<PortalPageContent> all = portalPageContentRepository.findAll();
+
+        assertThat(all).isNotNull();
+        assertThat(all.size()).isGreaterThanOrEqualTo(2);
+        assertThat(all).anyMatch(c -> "page-content-1".equals(c.getId()));
+        assertThat(all).anyMatch(c -> "page-content-2".equals(c.getId()));
     }
 }
