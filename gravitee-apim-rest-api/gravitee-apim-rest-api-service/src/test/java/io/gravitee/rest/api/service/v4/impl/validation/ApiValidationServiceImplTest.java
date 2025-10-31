@@ -33,6 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -56,13 +57,11 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
-import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,12 +103,12 @@ public class ApiValidationServiceImplTest {
     private PlanValidationService planValidationService;
 
     @Mock
-    private PathParametersValidationService pathParametersValidationService;
-
-    @Mock
     private ApiServicePluginService apiServicePluginService;
 
     private ApiValidationService apiValidationService;
+
+    @Mock
+    private FlowValidationDomainService flowValidationDomainService;
 
     @Before
     public void setUp() throws Exception {
@@ -123,8 +122,8 @@ public class ApiValidationServiceImplTest {
             loggingValidationService,
             planSearchService,
             planValidationService,
-            pathParametersValidationService,
-            apiServicePluginService
+            apiServicePluginService,
+            flowValidationDomainService
         );
     }
 
@@ -150,7 +149,7 @@ public class ApiValidationServiceImplTest {
         verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
         verify(resourcesValidationService, never()).validateAndSanitize(any());
         verify(planValidationService, never()).validateAndSanitize(any(), any());
-        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
+        verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
     }
 
     @Test
@@ -179,7 +178,7 @@ public class ApiValidationServiceImplTest {
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
         verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of());
-        verify(pathParametersValidationService, times(1)).validate(eq(apiEntity.getType()), any(Stream.class), any(Stream.class));
+        verify(flowValidationDomainService, times(1)).validatePathParameters(eq(apiEntity.getType()), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)

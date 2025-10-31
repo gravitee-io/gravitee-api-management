@@ -26,6 +26,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -83,7 +84,6 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
-import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -176,7 +176,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     private FlowValidationService flowValidationService;
 
     @Autowired
-    private PathParametersValidationService pathParametersValidationService;
+    private FlowValidationDomainService flowValidationDomainService;
 
     @Autowired
     private GroupService groupService;
@@ -265,7 +265,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             .flatMap(Collection::stream);
         planFlows = Stream.concat(planFlows, newPlanFlows.stream());
 
-        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
+        flowValidationDomainService.validatePathParameters(api.getType(), apiFlows, planFlows);
     }
 
     private void validateTags(Set<String> tags, Api api) {
@@ -435,7 +435,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             })
             .flatMap(Collection::stream);
 
-        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
+        flowValidationDomainService.validatePathParameters(api.getType(), apiFlows, planFlows);
     }
 
     private void checkStatusOfGeneralConditions(Plan plan) {
