@@ -131,13 +131,13 @@ const apiRoutes: Routes = [
 export const routes: Routes = [
   {
     path: '',
-    canActivate: [redirectGuard],
+    canActivate: [redirectGuard, authGuard],
     resolve: { homepage: homepageResolver },
     component: HomepageComponent,
   },
   {
     path: 'catalog',
-    canActivateChild: [redirectGuard],
+    canActivateChild: [redirectGuard, authGuard],
     data: { breadcrumb: 'Catalog' },
     children: [
       {
@@ -178,7 +178,7 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
-    canActivateChild: [authGuard, redirectGuard],
+    canActivateChild: [redirectGuard, authGuard],
     children: [
       { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
       {
@@ -220,6 +220,7 @@ export const routes: Routes = [
   },
   {
     path: 'guides',
+    canActivate: [redirectGuard, authGuard],
     component: GuidesComponent,
     data: { breadcrumb: { label: 'Documentation', disable: true } },
     resolve: { pages: environmentPagesResolver },
@@ -252,7 +253,7 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
+  { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard] },
   { path: '404', component: NotFoundComponent },
   { path: '503', component: ServiceUnavailableComponent },
   { path: 'gravitee-md', component: GraviteeMarkdownComponent },

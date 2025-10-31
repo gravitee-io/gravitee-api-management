@@ -17,9 +17,11 @@
 -->
 <div class="nav-bar__container">
   <app-company-title [title]="siteTitle" [logo]="logo()" />
-  @if (isMobile()) {
-    <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" [forceLogin]="forceLogin()" />
-  } @else {
-    <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" [forceLogin]="forceLogin()" />
+  @if (!forceLogin() || isLoggedIn()) {
+    @if (isMobile()) {
+      <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+    } @else {
+      <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+    }
   }
 </div>

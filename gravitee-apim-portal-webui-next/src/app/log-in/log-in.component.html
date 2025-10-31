@@ -15,13 +15,14 @@
     limitations under the License.
 
 -->
-<form [formGroup]="logInForm" (ngSubmit)="logIn()" class="log-in__form__container">
+<form [formGroup]="logInForm" (ngSubmit)="logIn()" class="log-in__form__container" [appIsMobile]="'log-in__form__container--mobile'">
   <mat-card appearance="outlined" class="log-in">
     <mat-card-header class="log-in__form__header">
       <mat-card-title class="log-in__form__title" i18n="@@logInTitle">Login</mat-card-title>
     </mat-card-header>
     <mat-card-content class="log-in__form__content">
-      @if (isLocalLoginEnabled()) {
+      @let identityProviders = identityProviders$ | async;
+      @if (isLocalLoginEnabled) {
         <div class="log-in__form">
           <div class="log-in__form__fields">
             <mat-form-field appearance="outline" class="log-in__form__input">
@@ -39,44 +40,35 @@
               }
             </mat-form-field>
             @if (error() === 401) {
-              <mat-error class="log-in__form__error" i18n="@@logInError401"
+              <mat-error class="log-in__form__error m3-label-large" i18n="@@logInError401"
                 >The username or password you entered is incorrect, please try again.</mat-error
               >
             }
           </div>
           <div class="log-in__form__buttons">
-            <button
-              [disabled]="logInForm.invalid"
-              type="submit"
-              mat-flat-button
-              i18n="@@logInAction"
-              class="log-in__form__submit primary-button">
+            <button [disabled]="logInForm.invalid" type="submit" mat-flat-button i18n="@@logInAction" class="log-in__form__submit">
               Log in
             </button>
-            <a class="log-in__form__forgot-password" i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+            <a class="log-in__form__forgot-password m3-label-large" i18n="@@resetPasswordAction" routerLink="reset-password">
+              Forgot password?
+            </a>
           </div>
         </div>
-      }
-      <div class="log-in__sso">
-        @if (isLocalLoginEnabled() && identityProviders.length > 0) {
-          <div class="log-in__sso__separator">
-            <div class="log-in__sso__separator__line"></div>
-            <div class="log-in__sso__separator__label" i18n="@@orSeparator">OR</div>
+        @if ((identityProviders ?? []).length > 0) {
+          <div class="log-in__or-separator m3-label-large">
+            <div class="log-in__or-separator__line"></div>
+            <div class="log-in__or-separator__label" i18n="@@orSeparator">OR</div>
           </div>
         }
-        @for (provider of identityProviders; track provider.id) {
-          <button
-            type="button"
-            mat-stroked-button
-            class="log-in__sso__idp secondary-button"
-            (click)="authenticateSSO(provider)">
-            <div class="log-in__sso__idp__container">
-              <img class="log-in__sso__idp__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
-              <span class="log-in__sso__idp__label" i18n="@@logInSsoLabelPrefix">Continue with {{ provider.name }}</span>
-            </div>
-          </button>
-        }
-      </div>
+      }
+      @for (provider of identityProviders; track provider.id) {
+        <button type="button" mat-stroked-button class="log-in__sso-provider secondary-button" (click)="authenticateSSO(provider)">
+          <div class="log-in__sso-provider__container">
+            <img class="log-in__sso-provider__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
+            <span class="log-in__sso-provider__label m3-label-large" i18n="@@logInSsoLabelPrefix">Continue with {{ provider.name }}</span>
+          </div>
+        </button>
+      }
     </mat-card-content>
   </mat-card>
 </form>

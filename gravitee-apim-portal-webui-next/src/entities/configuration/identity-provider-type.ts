@@ -18,6 +18,6 @@ export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC
 export const IdentityProviderType = {
   GOOGLE: 'GOOGLE' as IdentityProviderType,
   GITHUB: 'GITHUB' as IdentityProviderType,
-  GRAVITEEIOAM: 'GRAVITEEIO_AM' as IdentityProviderType,
+  GRAVITEEIO_AM: 'GRAVITEEIO_AM' as IdentityProviderType,
   OIDC: 'OIDC' as IdentityProviderType,
 };

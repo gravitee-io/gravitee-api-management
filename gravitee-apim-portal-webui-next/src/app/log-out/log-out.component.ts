@@ -28,24 +28,28 @@ import { PortalMenuLinksService } from '../../services/portal-menu-links.service
   template: '',
 })
 export class LogOutComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private authService: AuthService,
-    private currentUserService: CurrentUserService,
-    private portalMenuLinksService: PortalMenuLinksService,
-    private router: Router,
+    private readonly authService: AuthService,
+    private readonly currentUserService: CurrentUserService,
+    private readonly portalMenuLinksService: PortalMenuLinksService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit() {
-    this.authService
-      .logout()
-      .pipe(
-        tap(_ => this.currentUserService.clear()),
-        switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
-        tap(_ => this.router.navigate([''])),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    if (this.currentUserService.isAuthenticated()) {
+      this.authService
+        .logout()
+        .pipe(
+          tap(_ => this.currentUserService.clear()),
+          switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
+          tap(_ => this.router.navigate([''])),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    } else {
+      this.router.navigate(['']);
+    }
   }
 }
