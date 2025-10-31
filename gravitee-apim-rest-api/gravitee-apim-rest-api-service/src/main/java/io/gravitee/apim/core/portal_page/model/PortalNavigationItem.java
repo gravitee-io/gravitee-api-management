@@ -46,6 +46,10 @@ public abstract class PortalNavigationItem {
     @Nullable
     private Integer order;
 
+    @Setter
+    @Nullable
+    private PortalPageNavigationId parentId;
+
     protected PortalNavigationItem(
         @Nonnull PortalPageNavigationId id,
         @Nonnull String organizationId,
