@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { IdentityProviderService } from '../../services/identity-provider.service';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
 
 @Component({
@@ -46,6 +47,7 @@ export class LogInComponent implements OnInit {
   });
   error = signal(200);
   identityProviders: IdentityProvider[] = [];
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   private redirectUrl: string = '';
 
   constructor(
@@ -77,7 +79,7 @@ export class LogInComponent implements OnInit {
       .pipe(
         switchMap(_ => this.currentUserService.loadUser()),
         switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
-        tap(_ => this.router.navigate([''])),
+        tap(_ => this.router.navigate([this.redirectUrl])),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({

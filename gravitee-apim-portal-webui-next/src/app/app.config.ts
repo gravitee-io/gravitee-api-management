@@ -19,8 +19,8 @@ import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 

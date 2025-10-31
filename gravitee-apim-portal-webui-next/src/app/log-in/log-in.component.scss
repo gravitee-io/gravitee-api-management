@@ -42,8 +42,11 @@
 
     &__container {
       width: 400px;
-      max-width: 500px;
       border-radius: 8px;
+
+      &.mobile {
+        max-width: 75vw;
+      }
     }
 
     &__content:last-child {
@@ -116,12 +119,10 @@
     }
 
     &__idp {
-      overflow: hidden;
       width: 100%;
       padding: 0 18px;
       color: #{theme.$button-text-text-color};
       font-weight: bold;
-      white-space: nowrap;
 
       &__container {
         display: flex;
@@ -132,16 +133,6 @@
       &__logo {
         width: 23px;
         height: 23px;
-      }
-
-      ::ng-deep .mdc-button__label {
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      &__label {
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
     }
   }
