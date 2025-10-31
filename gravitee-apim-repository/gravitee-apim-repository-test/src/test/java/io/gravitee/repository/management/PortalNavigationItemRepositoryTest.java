@@ -43,10 +43,9 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
-    public void should_find_all_navigation_items_for_area_and_org_and_env() throws Exception {
-        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByAreaAndOrganizationIdAndEnvironmentId(
+    public void should_find_all_navigation_items_for_area_and_env() throws Exception {
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByAreaAndEnvironmentId(
             PortalNavigationItem.Area.TOP_NAVBAR,
-            "org-1",
             "env-1"
         );
 
