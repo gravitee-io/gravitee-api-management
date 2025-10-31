@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -39,6 +40,37 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(items).hasSize(2);
         assertThat(items).anyMatch(i -> "nav-item-1".equals(i.getId()));
         assertThat(items).anyMatch(i -> "nav-item-2".equals(i.getId()));
+    }
+
+    @Test
+    public void should_find_all_navigation_items_for_area_and_org_and_env() throws Exception {
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByAreaAndOrganizationIdAndEnvironmentId(
+            PortalNavigationItem.Area.TOP_NAVBAR,
+            "org-1",
+            "env-1"
+        );
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getId()).isEqualTo("nav-item-2");
+    }
+
+    @Test
+    public void should_delete_all_navigation_items_for_organization() throws Exception {
+        portalNavigationItemRepository.deleteByOrganizationId("org-1");
+
+        Set<PortalNavigationItem> remaining = portalNavigationItemRepository.findAll();
+        assertThat(remaining).isNotNull();
+        assertThat(remaining).noneMatch(i -> "org-1".equals(i.getOrganizationId()));
+    }
+
+    @Test
+    public void should_delete_all_navigation_items_for_environment() throws Exception {
+        portalNavigationItemRepository.deleteByEnvironmentId("env-1");
+
+        Set<PortalNavigationItem> remaining = portalNavigationItemRepository.findAll();
+        assertThat(remaining).isNotNull();
+        assertThat(remaining).noneMatch(i -> "env-1".equals(i.getEnvironmentId()));
     }
 
     @Test
