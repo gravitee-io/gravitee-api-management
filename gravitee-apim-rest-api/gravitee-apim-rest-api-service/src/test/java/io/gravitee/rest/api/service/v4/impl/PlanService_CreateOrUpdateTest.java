@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -53,7 +54,6 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
-import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +75,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanService_CreateOrUpdateTest {
 
     private static final String PLAN_ID = UUID.randomUUID().toString();
-    private static final String ENVIRONMENT_ID = "my-environment";
     public static final String API_ID = "api-id";
 
     @Spy
@@ -116,7 +115,7 @@ public class PlanService_CreateOrUpdateTest {
     private ApiRepository apiRepository;
 
     @Mock
-    private PathParametersValidationService pathParametersValidationService;
+    private FlowValidationDomainService flowValidationDomainService;
 
     @Mock
     private TagsValidationService tagsValidationService;
@@ -153,7 +152,7 @@ public class PlanService_CreateOrUpdateTest {
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
         verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
-        verify(pathParametersValidationService, never()).validate(any(), any(), any());
+        verify(flowValidationDomainService, never()).validatePathParameters(any(), any(), any());
     }
 
     @Test
@@ -169,7 +168,7 @@ public class PlanService_CreateOrUpdateTest {
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(pathParametersValidationService, never()).validate(any(), any(), any());
+        verify(flowValidationDomainService, never()).validatePathParameters(any(), any(), any());
     }
 
     @Test
@@ -188,7 +187,7 @@ public class PlanService_CreateOrUpdateTest {
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
         verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
-        verify(pathParametersValidationService, never()).validate(any(), any(), any());
+        verify(flowValidationDomainService, never()).validatePathParameters(any(), any(), any());
     }
 
     @Test
@@ -204,7 +203,7 @@ public class PlanService_CreateOrUpdateTest {
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(pathParametersValidationService, never()).validate(any(), any(), any());
+        verify(flowValidationDomainService, never()).validatePathParameters(any(), any(), any());
     }
 
     private void mockPrivateUpdate(PlanEntity expected) throws TechnicalException {
