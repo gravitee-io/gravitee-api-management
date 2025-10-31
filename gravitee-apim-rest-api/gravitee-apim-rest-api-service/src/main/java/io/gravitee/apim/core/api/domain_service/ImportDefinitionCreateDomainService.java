@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.domain_service;
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.api.exception.ApiCreatedWithErrorException;
+import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
@@ -201,10 +201,10 @@ public class ImportDefinitionCreateDomainService {
 class ApiSubEntityCreator {
 
     private final List<Map.Entry<String, Runnable>> creationParts = new ArrayList<>();
-    private final ApiCreatedWithErrorException.ApiCreatedWithErrorExceptionBuilder apiCreatedWithErrorExceptionBuilder;
+    private final ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder apiImportedWithErrorExceptionBuilder;
 
     ApiSubEntityCreator(String apiId) {
-        this.apiCreatedWithErrorExceptionBuilder = new ApiCreatedWithErrorException.ApiCreatedWithErrorExceptionBuilder().apiId(apiId);
+        this.apiImportedWithErrorExceptionBuilder = new ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder().apiId(apiId);
     }
 
     public ApiSubEntityCreator addSubEntity(String partName, Runnable creationPart) {
@@ -212,17 +212,17 @@ class ApiSubEntityCreator {
         return this;
     }
 
-    public void createAll() throws ApiCreatedWithErrorException {
+    public void createAll() throws ApiImportedWithErrorException {
         creationParts.forEach(entry -> {
             try {
                 entry.getValue().run();
             } catch (Exception e) {
-                apiCreatedWithErrorExceptionBuilder.addError(entry.getKey(), e);
+                apiImportedWithErrorExceptionBuilder.addError(entry.getKey(), e);
             }
         });
 
-        if (apiCreatedWithErrorExceptionBuilder.hasErrors()) {
-            throw apiCreatedWithErrorExceptionBuilder.build();
+        if (apiImportedWithErrorExceptionBuilder.hasErrors()) {
+            throw apiImportedWithErrorExceptionBuilder.build();
         }
     }
 }

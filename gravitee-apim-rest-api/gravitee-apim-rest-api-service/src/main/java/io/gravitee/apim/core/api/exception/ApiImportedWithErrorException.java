@@ -19,23 +19,23 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.List;
 import java.util.Map;
 
-public class ApiCreatedWithErrorException extends ValidationDomainException {
+public class ApiImportedWithErrorException extends ValidationDomainException {
 
-    public ApiCreatedWithErrorException(String apiId, List<String> errors) {
-        super("API created with error:\n" + String.join("\n", errors), Map.of("apiId", apiId));
+    public ApiImportedWithErrorException(String apiId, List<String> errors) {
+        super("API imported with error:\n" + String.join("\n", errors), Map.of("apiId", apiId));
     }
 
-    public static class ApiCreatedWithErrorExceptionBuilder {
+    public static class ApiImportedWithErrorExceptionBuilder {
 
         private String apiId;
         private final List<String> errors = new java.util.ArrayList<>();
 
-        public ApiCreatedWithErrorExceptionBuilder apiId(String apiId) {
+        public ApiImportedWithErrorExceptionBuilder apiId(String apiId) {
             this.apiId = apiId;
             return this;
         }
 
-        public ApiCreatedWithErrorExceptionBuilder addError(String scope, Exception e) {
+        public ApiImportedWithErrorExceptionBuilder addError(String scope, Exception e) {
             this.errors.add("- (" + scope + ") " + e.getMessage());
             return this;
         }
@@ -44,8 +44,8 @@ public class ApiCreatedWithErrorException extends ValidationDomainException {
             return !errors.isEmpty();
         }
 
-        public ApiCreatedWithErrorException build() {
-            return new ApiCreatedWithErrorException(apiId, errors);
+        public ApiImportedWithErrorException build() {
+            return new ApiImportedWithErrorException(apiId, errors);
         }
     }
 }
