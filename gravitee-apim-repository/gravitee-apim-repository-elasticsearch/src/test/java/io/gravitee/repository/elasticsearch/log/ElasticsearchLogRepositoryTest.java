@@ -134,4 +134,221 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         assertThat(response).isNotNull();
         assertThat(response.getLogs().size()).isEqualTo(response.getSize());
     }
+
+    @Test
+    public void testTabular_withCombinedFilters_statusAndBody() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(10)
+                .build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isLessThanOrEqualTo(6);
+        assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
+    }
+
+    @Test
+    public void testTabular_withCombinedFilters_pagination_page1() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(3)
+                .build()
+        );
+
+        assertThat(response).isNotNull();
+        long totalSize = response.getSize();
+        assertThat(response.getLogs()).hasSizeLessThanOrEqualTo(3);
+        assertThat(totalSize).isGreaterThanOrEqualTo(response.getLogs().size());
+    }
+
+    @Test
+    public void testTabular_withCombinedFilters_pagination_page2() throws Exception {
+        TabularResponse responsePage1 = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(3)
+                .build()
+        );
+
+        TabularResponse responsePage2 = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(2)
+                .size(3)
+                .build()
+        );
+
+        assertThat(responsePage2).isNotNull();
+        assertThat(responsePage2.getSize()).isEqualTo(responsePage1.getSize());
+        int expectedPage2Size = (int) Math.max(0, responsePage1.getSize() - 3);
+        assertThat(responsePage2.getLogs()).hasSizeLessThanOrEqualTo(expectedPage2Size);
+    }
+
+    @Test
+    public void testTabular_withCombinedFilters_differentPageSizes() throws Exception {
+        TabularResponse responseSize10 = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(10)
+                .build()
+        );
+
+        TabularResponse responseSize15 = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(15)
+                .build()
+        );
+
+        TabularResponse responseSize100 = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(100)
+                .build()
+        );
+        assertThat(responseSize10.getSize()).isEqualTo(responseSize15.getSize()).isEqualTo(responseSize100.getSize());
+    }
+
+    @Test
+    public void testTabular_bodyFilterOnly_pagination_consistent() throws Exception {
+        String bodyQuery = "client-response.body:*not valid or is expired*";
+
+        TabularResponse response1 = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query(bodyQuery).page(1).size(10).build()
+        );
+
+        TabularResponse response2 = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query(bodyQuery).page(1).size(15).build()
+        );
+
+        // Total should be consistent
+        assertThat(response1.getSize()).isEqualTo(response2.getSize());
+        assertThat(response1.getSize()).isEqualTo(6);
+    }
+
+    @Test
+    public void testTabular_emptyResults_withCombinedFilters() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:999 AND client-response.body:*nonexistent-text-12345*")
+                .page(1)
+                .size(10)
+                .build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isZero();
+        assertThat(response.getLogs()).isEmpty();
+    }
+
+    @Test
+    public void testTabular_statusFilterOnly() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("status:200").page(1).size(10).build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isGreaterThan(0);
+        assertThat(response.getLogs()).isNotEmpty();
+    }
+
+    @Test
+    public void testTabular_multipleStatusFilters_withBody() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .query("status:200 AND client-response.body:*not valid or is expired*")
+                .page(1)
+                .size(10)
+                .build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
+    }
+
+    @Test
+    public void testTabular_paginationBeyondResults() throws Exception {
+        TabularResponse responsePage1 = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(10).build()
+        );
+
+        // Request page 10 when we only have 6 results
+        TabularResponse responsePage10 = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(10).size(10).build()
+        );
+
+        assertThat(responsePage10).isNotNull();
+        assertThat(responsePage10.getSize()).isEqualTo(responsePage1.getSize()); // Total should be same
+        assertThat(responsePage10.getLogs()).isEmpty(); // No results on page 10
+    }
+
+    @Test
+    public void testTabular_largePaginationSize() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(1000).build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isEqualTo(6);
+        assertThat(response.getLogs()).hasSize(6); // Should return all available results
+    }
+
+    @Test
+    public void testTabular_caseInsensitiveBodySearch() throws Exception {
+        TabularResponse responseLower = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid*").page(1).size(10).build()
+        );
+
+        TabularResponse responseUpper = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*NOT VALID*").page(1).size(10).build()
+        );
+        assertThat(responseLower).isNotNull();
+        assertThat(responseUpper).isNotNull();
+    }
+
+    @Test
+    public void testTabular_complexQuery_multipleConditions() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("status:200 AND client-response.body:*valid*").page(1).size(10).build()
+        );
+
+        assertThat(response).isNotNull();
+        assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
+    }
 }
