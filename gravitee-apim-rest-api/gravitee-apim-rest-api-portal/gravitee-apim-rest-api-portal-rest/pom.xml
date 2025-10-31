@@ -96,6 +96,7 @@
                             </supportingFilesToGenerate>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>
+                                <enumPropertyNaming>legacy</enumPropertyNaming>
                                 <useBeanValidation>true</useBeanValidation>
                             </configOptions>
                             <typeMappings>
