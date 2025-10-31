@@ -76,16 +76,23 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         log.debug("JdbcEventLatestRepository.search({})", criteriaToString(criteria));
 
         final List<Object> args = new ArrayList<>();
-        final StringBuilder builder = createSearchQueryBuilder();
-
-        appendCriteria(builder, criteria, args, "evt", "ev", "evo");
-        builder
-            .append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE)
-            .append("evt.id IN (")
-            .append(buildSelectIn(criteria, group, page, size, args))
-            .append(") ");
-        builder.append("order by evt.updated_at asc, evt.id asc ");
-        return queryEvents(builder.toString(), args);
+        var select = """
+            WITH PagedEvents AS (%s)
+            SELECT evt.*, evp.*, ev.*, evo.*
+            FROM %s evt
+                INNER JOIN PagedEvents pe ON evt.id = pe.id
+                INNER JOIN %s evp ON evt.id = evp.event_id
+                LEFT JOIN %s ev ON evt.id = ev.event_id
+                LEFT JOIN %s evo ON evt.id = evo.event_id
+            ORDER BY evt.updated_at ASC, evt.id ASC
+            """.formatted(
+                buildSelectIn(criteria, group, page, size, args),
+                tableName,
+                EVENT_PROPERTIES,
+                EVENT_ENVIRONMENTS,
+                EVENT_ORGANIZATIONS
+            );
+        return queryEvents(select, args);
     }
 
     /**
@@ -141,7 +148,16 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             return selectIn;
         }
 
-        var selectIn = "select e1.id from " + tableName + " e1 order by e1.updated_at asc, e1.id asc ";
+        var where = new StringBuilder();
+        appendCriteria(where, criteria, args, "e1", "ee1", "eo1");
+
+        var selectIn = """
+            select e1.id from %s e1
+              left join %s ee1 on e1.id = ee1.event_id
+              left join %s eo1 on e1.id = eo1.event_id
+            %s
+            order by e1.updated_at asc, e1.id asc
+            """.formatted(tableName, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
         if (page != null && size != null && size > 0) {
             final int limit = size.intValue();
             selectIn += createPagingClause(limit, (page.intValue() * limit));
