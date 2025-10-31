@@ -29,7 +29,7 @@
     <div>
       @switch (keyStoreForm.controls.type.value) {
         @case ('JKS') {
-          <mat-form-field appearance="outline" class="form__field form__field--margin">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field form__field--margin">
             <mat-label i18n="@@sslKeyStorePassword">Password</mat-label>
             <input matInput formControlName="jksPassword" type="password" name="jksPassword" autocomplete="off" required />
             <mat-hint i18n="@@sslKeyStorePasswordHint">
@@ -42,7 +42,7 @@
           </mat-form-field>
 
           <div class="path-or-content">
-            <mat-form-field appearance="outline" class="form__field">
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
               <mat-label i18n="@@sslKeyStorePath">Path</mat-label>
               <input matInput formControlName="jksPath" name="jksPath" autocomplete="off" />
               <mat-hint i18n="@@sslKeyStorePathHint">Path to the trust store file</mat-hint>
@@ -53,7 +53,7 @@
 
             <span i18n="@@sslKeyStoreOr">or</span>
 
-            <mat-form-field appearance="outline" class="form__field">
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
               <mat-label i18n="@@sslKeyStoreContent">Content</mat-label>
               <textarea matInput formControlName="jksContent" rows="1" name="jksContent"></textarea>
               <mat-hint i18n="@@sslKeyStoreContentHint">Binary content as Base64</mat-hint>
@@ -63,13 +63,13 @@
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline" class="form__field">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
             <mat-label i18n="@@sslKeyStoreAlias">Alias</mat-label>
             <input matInput formControlName="jksAlias" name="jksAlias" autocomplete="off" />
             <mat-hint i18n="@@sslKeyStoreAliasHint">Alias of the key to use in case the key store contains more than one key.</mat-hint>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="form__field">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
             <mat-label i18n="@@sslKeyStoreKeyPassword">Key password</mat-label>
             <input matInput formControlName="jksKeyPassword" name="jksKeyPassword" autocomplete="off" />
             <mat-hint i18n="@@sslKeyStoreKeyPasswordHint"
@@ -100,7 +100,7 @@
 
             <span i18n="@@sslKeyStoreOr">or</span>
 
-            <mat-form-field appearance="outline" class="form__field">
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
               <mat-label i18n="@@sslKeyStoreContent">Content</mat-label>
               <textarea matInput formControlName="pkcs12Content" rows="1" name="pkcs12Content"></textarea>
               <mat-hint i18n="@@sslKeyStoreContentHint">Binary content as Base64</mat-hint>
@@ -110,13 +110,13 @@
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline" class="form__field">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
             <mat-label i18n="@@sslKeyStoreAlias">Alias</mat-label>
             <input matInput formControlName="pkcs12Alias" name="pkcs12Alias" autocomplete="off" />
             <mat-hint i18n="@@sslKeyStoreAliasHint">Alias of the key to use in case the key store contains more than one key.</mat-hint>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="form__field">
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="form__field">
             <mat-label i18n="@@sslKeyStoreKeyPassword">Key password</mat-label>
             <input matInput formControlName="pkcs12KeyPassword" name="pkcs12KeyPassword" autocomplete="off" />
             <mat-hint i18n="@@sslKeyStoreKeyPasswordHint"
