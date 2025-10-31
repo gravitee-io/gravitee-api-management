@@ -1,0 +1,27 @@
+management:
+  type: mongodb
+  mongodb:
+    uri: mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000
+
+ratelimit:
+  type: mongodb
+  mongodb:
+    uri: mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000
+
+cluster:
+  type: hazelcast
+  hazelcast:
+    config-path: /opt/graviteeio-gateway/config/hazelcast.xml
+
+distributed-sync:
+  type: redis
+  redis:
+    host: redis-stack
+    port: 6379
+
+services:
+  sync:
+    repository:
+      enabled: true
+    distributed:
+      enabled: true
