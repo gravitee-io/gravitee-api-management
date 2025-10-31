@@ -27,6 +27,7 @@ import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -206,6 +207,38 @@ public class DeployModelCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    public void updates_migrated_v2_to_v4_api() throws InterruptedException {
+        DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        String apiId = "api#id";
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
+        var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(apiEntity);
+
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
+
+        when(
+            permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
+
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertNoErrors()
+            .assertValue(
+                reply ->
+                    reply.getCommandId().equals(command.getId()) &&
+                    reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+                    reply.getErrorDetails().equals("API migrated from v2 to v4. Update not yet supported")
+            );
     }
 
     @Test
