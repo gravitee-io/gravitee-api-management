@@ -16,10 +16,11 @@
 
 -->
 <mat-card class="card">
-  <div class="title">
-    API Request Stats
-    <mat-icon class="title__tooltip" svgIcon="gio:info" matTooltip="Excluding Websocket, Webhook and SSE" />
-  </div>
+  <mat-card-header>
+    <mat-card-title class="title"
+      >API Request Stats <mat-icon class="title__tooltip" svgIcon="gio:info" matTooltip="Excluding Websocket, Webhook and SSE"
+    /></mat-card-title>
+  </mat-card-header>
   @if (data) {
     <div class="stats">
       <div class="stats__body">
