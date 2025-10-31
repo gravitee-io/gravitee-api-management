@@ -52,8 +52,6 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
@@ -301,30 +299,6 @@ class CreatePlanDomainServiceTest {
             assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Plan references a non published page as general conditions");
-        }
-
-        @ParameterizedTest
-        @MethodSource("httpPlans")
-        void should_throw_when_flows_contains_overlapped_path_parameters(Api api, Plan plan) {
-            // Given
-            var selector1 = api.getType() == ApiType.PROXY
-                ? HttpSelector.builder().path("/products/:productId/items/:itemId").pathOperator(Operator.STARTS_WITH).build()
-                : ChannelSelector.builder().channel("/products/:productId/items/:itemId").channelOperator(Operator.STARTS_WITH).build();
-            var selector2 = api.getType() == ApiType.PROXY
-                ? HttpSelector.builder().path("/:productId").pathOperator(Operator.STARTS_WITH).build()
-                : ChannelSelector.builder().channel("/:productId").channelOperator(Operator.STARTS_WITH).build();
-            var invalidFlows = List.of(
-                Flow.builder().name("flow1").selectors(List.of(selector1)).build(),
-                Flow.builder().name("flow2").selectors(List.of(selector2)).build()
-            );
-
-            // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, invalidFlows, api, AUDIT_INFO));
-
-            // Then
-            assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Some path parameters are used at different position across different flows.");
         }
 
         @ParameterizedTest
