@@ -18,12 +18,12 @@ package io.gravitee.apim.core.api.domain_service;
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
@@ -39,10 +39,8 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,7 +101,7 @@ public class ImportDefinitionCreateDomainService {
             oneShotIndexation(auditInfo)
         );
 
-        new ApiSubEntityCreator(createdApi.getId())
+        new ImportDefinitionSubEntityProcessor(createdApi.getId())
             .addSubEntity("Metadata", () -> createMetadata(importDefinition.getMetadata(), createdApi.getId(), auditInfo))
             .addSubEntity("Pages", () -> createPages(importDefinition.getPages(), createdApi.getId(), auditInfo))
             .addSubEntity("Plans", () -> createPlans(importDefinition.getPlans(), createdApi, auditInfo))
@@ -111,7 +109,7 @@ public class ImportDefinitionCreateDomainService {
                 createMedias(importDefinition.getApiMedia(), createdApi.getId(), new ExecutionContext(organizationId, environmentId))
             )
             .addSubEntity("Members", () -> createMembers(importDefinition.getMembers(), createdApi.getId()))
-            .createAll();
+            .process();
 
         return createdApi;
     }
@@ -194,35 +192,6 @@ public class ImportDefinitionCreateDomainService {
     private void createMembers(Set<ApiMember> members, String apiId) {
         if (members != null) {
             apiImportDomainService.createMembers(members, apiId);
-        }
-    }
-}
-
-class ApiSubEntityCreator {
-
-    private final List<Map.Entry<String, Runnable>> creationParts = new ArrayList<>();
-    private final ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder apiImportedWithErrorExceptionBuilder;
-
-    ApiSubEntityCreator(String apiId) {
-        this.apiImportedWithErrorExceptionBuilder = new ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder().apiId(apiId);
-    }
-
-    public ApiSubEntityCreator addSubEntity(String partName, Runnable creationPart) {
-        creationParts.add(Map.entry(partName, creationPart));
-        return this;
-    }
-
-    public void createAll() throws ApiImportedWithErrorException {
-        creationParts.forEach(entry -> {
-            try {
-                entry.getValue().run();
-            } catch (Exception e) {
-                apiImportedWithErrorExceptionBuilder.addError(entry.getKey(), e);
-            }
-        });
-
-        if (apiImportedWithErrorExceptionBuilder.hasErrors()) {
-            throw apiImportedWithErrorExceptionBuilder.build();
         }
     }
 }
