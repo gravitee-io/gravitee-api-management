@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -51,7 +52,6 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
-import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -78,8 +78,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final AnalyticsValidationService analyticsValidationService;
     private final PlanSearchService planSearchService;
     private final PlanValidationService planValidationService;
-    private final PathParametersValidationService pathParametersValidationService;
     private final ApiServicePluginService apiServicePluginService;
+    private final FlowValidationDomainService flowValidationDomainService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -91,8 +91,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final AnalyticsValidationService loggingValidationService,
         final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
-        final PathParametersValidationService pathParametersValidationService,
-        ApiServicePluginService apiServicePluginService
+        ApiServicePluginService apiServicePluginService,
+        FlowValidationDomainService flowValidationDomainService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -103,8 +103,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.analyticsValidationService = loggingValidationService;
         this.planSearchService = planSearchService;
         this.planValidationService = planValidationService;
-        this.pathParametersValidationService = pathParametersValidationService;
         this.apiServicePluginService = apiServicePluginService;
+        this.flowValidationDomainService = flowValidationDomainService;
     }
 
     @Override
@@ -143,7 +143,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean flow
         newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
 
-        pathParametersValidationService.validate(
+        flowValidationDomainService.validatePathParameters(
             newApiEntity.getType(),
             (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
             Stream.empty()
@@ -204,7 +204,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         updateApiEntity.setPlans(planValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getPlans()));
 
         // Validate path parameters
-        pathParametersValidationService.validate(
+        flowValidationDomainService.validatePathParameters(
             updateApiEntity.getType(),
             (updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty()),
             getPlansFlows(updateApiEntity.getPlans())
@@ -258,7 +258,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         apiEntity.setPlans(planValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getPlans()));
 
         // Validate path parameters
-        pathParametersValidationService.validate(
+        flowValidationDomainService.validatePathParameters(
             apiEntity.getType(),
             (apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty()),
             getPlansFlows(apiEntity.getPlans())
