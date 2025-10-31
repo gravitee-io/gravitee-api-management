@@ -19,12 +19,12 @@ import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -36,7 +36,6 @@ import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.http.SecurityType;
-import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -74,12 +73,11 @@ public class ApiKeyAuthenticationHandlerTest {
     @Mock
     private Api api;
 
+    @Mock
+    private ComponentProvider provider;
+
     @Before
     public void init() {
-        initMocks(this);
-
-        ComponentProvider provider = mock(ComponentProvider.class);
-
         when(provider.getComponent(ApiKeyService.class)).thenReturn(apiKeyService);
         when(provider.getComponent(Api.class)).thenReturn(api);
 
@@ -104,7 +102,7 @@ public class ApiKeyAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldHandleRequestUsingHeaders() throws TechnicalException {
+    public void shouldHandleRequestUsingHeaders() {
         when(authenticationContext.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
         when(api.getId()).thenReturn("api-id");
@@ -120,7 +118,7 @@ public class ApiKeyAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldHandleRequestUsingQueryParameters() throws TechnicalException {
+    public void shouldHandleRequestUsingQueryParameters() {
         when(authenticationContext.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
         when(api.getId()).thenReturn("api-id");
@@ -153,6 +151,58 @@ public class ApiKeyAuthenticationHandlerTest {
     }
 
     @Test
+    public void shouldHandleRequestUsingCustomHeader() {
+        final String customHeader = "X-Custom-Header";
+        final String apiKey = "any-api-key";
+        final Plan firstPlan = new Plan();
+        firstPlan.setSecurity("API_KEY");
+        firstPlan.setSecurityDefinition("{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"X-Another-Custom-Header\"}");
+        final Plan secondPlan = new Plan();
+        secondPlan.setSecurity("API_KEY");
+        secondPlan.setSecurityDefinition("{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"" + customHeader + "\"}");
+        when(api.getPlans()).thenReturn(List.of(firstPlan, secondPlan));
+
+        authenticationHandler.resolve(provider);
+
+        when(authenticationContext.request()).thenReturn(request);
+        when(request.metrics()).thenReturn(metrics);
+        when(api.getId()).thenReturn("api-id");
+        HttpHeaders headers = HttpHeaders.create();
+        headers.set(customHeader, apiKey);
+        when(request.headers()).thenReturn(headers);
+        when(apiKeyService.getByApiAndKey("api-id", apiKey)).thenReturn(of(new ApiKey()));
+
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
+
+        Assert.assertTrue(handle);
+        verify(metrics).setSecurityType(SecurityType.API_KEY);
+        verify(metrics).setSecurityToken(apiKey);
+    }
+
+    @Test
+    public void shouldNotUseDefaultHeaderIfCustomIsDefined() {
+        final String apiKey = "any-api-key";
+        final Plan plan = new Plan();
+        plan.setSecurity("API_KEY");
+        plan.setSecurityDefinition("{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"X-Custom-Header\"}");
+        when(api.getPlans()).thenReturn(List.of(plan));
+
+        authenticationHandler.resolve(provider);
+
+        when(authenticationContext.request()).thenReturn(request);
+        when(api.getId()).thenReturn("api-id");
+        HttpHeaders headers = HttpHeaders.create();
+        headers.set(GraviteeHttpHeader.X_GRAVITEE_API_KEY, apiKey);
+        when(request.headers()).thenReturn(headers);
+
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
+
+        Assert.assertTrue(handle);
+        verify(metrics, never()).setSecurityType(SecurityType.API_KEY);
+        verify(metrics, never()).setSecurityToken(apiKey);
+    }
+
+    @Test
     public void shouldReturnPolicies() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
@@ -163,7 +213,7 @@ public class ApiKeyAuthenticationHandlerTest {
         Iterator<AuthenticationPolicy> policyIterator = apikeyProviderPolicies.iterator();
 
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIterator.next();
-        assertEquals(policy.name(), ApiKeyAuthenticationHandler.API_KEY_POLICY);
+        assertEquals(ApiKeyAuthenticationHandler.API_KEY_POLICY, policy.name());
     }
 
     @Test
