@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public abstract class PortalNavigationItem {
+public abstract sealed class PortalNavigationItem permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder {
 
     @Nonnull
     private final PortalNavigationItemId id;
