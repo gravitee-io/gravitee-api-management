@@ -62,6 +62,7 @@ public final class LuceneTransformerUtils {
         if (definitionVersion == DefinitionVersion.V4) {
             String type = switch (apiType) {
                 case MESSAGE -> "MESSAGE";
+                case A2A_PROXY -> "A2A_PROXY";
                 case LLM_PROXY -> "LLM_PROXY";
                 case MCP_PROXY -> "MCP_PROXY";
                 case NATIVE -> "KAFKA";

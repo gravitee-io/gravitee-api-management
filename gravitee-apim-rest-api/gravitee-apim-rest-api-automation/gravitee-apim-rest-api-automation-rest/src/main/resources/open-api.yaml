@@ -1073,6 +1073,7 @@ components:
       examples:
         - MESSAGE
       enum:
+        - A2A_PROXY
         - LLM_PROXY
         - MCP_PROXY
         - MESSAGE

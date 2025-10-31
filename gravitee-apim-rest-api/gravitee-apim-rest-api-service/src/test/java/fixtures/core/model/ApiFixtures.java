@@ -75,6 +75,54 @@ public class ApiFixtures {
             .originContext(new OriginContext.Management())
             .background("api-background");
 
+    public static Api anA2AProxyApiV4() {
+        return BASE.get()
+            .type(ApiType.A2A_PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionValue(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .id(MY_API)
+                    .name(MY_API_NAME)
+                    .apiVersion("1.0.0")
+                    .analytics(Analytics.builder().enabled(false).build())
+                    .failover(Failover.builder().enabled(false).build())
+                    .definitionVersion(DefinitionVersion.V4)
+                    .type(ApiType.A2A_PROXY)
+                    .tags(Set.of("tag1"))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(Path.builder().path("/a2a_proxy").build()))
+                                .entrypoints(List.of(Entrypoint.builder().type("a2a-proxy").configuration("{}").build()))
+                                .build()
+                        )
+                    )
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("default-group")
+                                .type("a2a-proxy")
+                                .sharedConfiguration("{}")
+                                .endpoints(
+                                    List.of(
+                                        Endpoint.builder()
+                                            .name("default-endpoint")
+                                            .type("a2a-proxy")
+                                            .inheritConfiguration(true)
+                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .flows(List.of())
+                    .flowExecution(new FlowExecution())
+                    .build()
+            )
+            .build();
+    }
+
     public static Api aLLMProxyApiV4() {
         return BASE.get()
             .type(ApiType.LLM_PROXY)
