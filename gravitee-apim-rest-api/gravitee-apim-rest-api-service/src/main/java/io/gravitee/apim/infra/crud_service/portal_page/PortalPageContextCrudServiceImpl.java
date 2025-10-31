@@ -68,4 +68,16 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
             throw new TechnicalDomainException("Something went wrong while trying to update portal page context", e);
         }
     }
+
+    @Override
+    public io.gravitee.apim.core.portal_page.model.PortalPageContext create(
+        io.gravitee.apim.core.portal_page.model.PortalPageContext portalPageContext
+    ) {
+        try {
+            PortalPageContext created = portalPageContextRepository.create(pageAdapter.map(portalPageContext));
+            return pageAdapter.fromRepository(created);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Something went wrong while trying to create portal page context", e);
+        }
+    }
 }

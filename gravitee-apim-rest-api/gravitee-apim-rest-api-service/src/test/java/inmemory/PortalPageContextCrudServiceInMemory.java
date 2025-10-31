@@ -63,6 +63,15 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
     }
 
     @Override
+    public io.gravitee.apim.core.portal_page.model.PortalPageContext create(
+        io.gravitee.apim.core.portal_page.model.PortalPageContext portalPageContext
+    ) {
+        PortalPageContext repoModel = PortalPageAdapter.INSTANCE.map(portalPageContext);
+        storage.add(repoModel);
+        return PortalPageAdapter.INSTANCE.fromRepository(repoModel);
+    }
+
+    @Override
     public void initWith(List<PortalPageContext> items) {
         this.storage = items;
     }
