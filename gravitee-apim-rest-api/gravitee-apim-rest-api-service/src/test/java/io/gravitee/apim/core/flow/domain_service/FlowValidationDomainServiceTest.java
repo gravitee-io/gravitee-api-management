@@ -18,6 +18,8 @@ package io.gravitee.apim.core.flow.domain_service;
 import static inmemory.EntrypointPluginQueryServiceInMemory.SSE_CONNECTOR_ID;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,6 +46,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
@@ -60,7 +63,6 @@ public class FlowValidationDomainServiceTest {
 
     PolicyValidationDomainService policyValidationDomainService;
     EntrypointPluginQueryService entrypointPluginQueryService = new EntrypointPluginQueryServiceInMemory();
-
     FlowValidationDomainService service;
 
     @BeforeEach
@@ -231,6 +233,116 @@ public class FlowValidationDomainServiceTest {
                 .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
                 .contains(entry("flowName", "bad_flow"), entry("invalidEntrypoints", "unknown2,unknown"));
         }
+
+        @Test
+        void should_not_throw_on_valid_openapi_with_same_hierarchy_different_param_names() {
+            // Simulate flows for the OpenAPI spec in the problem statement
+            Flow flow1 = new Flow();
+            flow1.setEnabled(true);
+            HttpSelector selector1 = new HttpSelector();
+            selector1.setPath("/factFiles/:activityId");
+            flow1.setSelectors(List.of(selector1));
+
+            Flow flow2 = new Flow();
+            flow2.setEnabled(true);
+            HttpSelector selector2 = new HttpSelector();
+            selector2.setPath("/factFiles/:activityId/:id");
+            flow2.setSelectors(List.of(selector2));
+
+            Flow flow3 = new Flow();
+            flow3.setEnabled(true);
+            HttpSelector selector3 = new HttpSelector();
+            selector3.setPath("/facts/:locationNodeId/:timeNodeId/:versionNodeId");
+            flow3.setSelectors(List.of(selector3));
+
+            Flow flow4 = new Flow();
+            flow4.setEnabled(true);
+            HttpSelector selector4 = new HttpSelector();
+            selector4.setPath("/facts/:locationNodeId/:timeNodeId/:versionNodeId/:id");
+            flow4.setSelectors(List.of(selector4));
+
+            // Add all flows to a stream
+            Stream<Flow> flows = Stream.of(flow1, flow2, flow3, flow4);
+
+            // Should not throw
+            assertThatNoException().isThrownBy(() -> service.validatePathParameters(ApiType.PROXY, flows, Stream.empty()));
+        }
+
+        @Test
+        void should_not_throw_on_different_segment_counts() {
+            Flow flow1 = new Flow();
+            flow1.setEnabled(true);
+            HttpSelector selector1 = new HttpSelector();
+            selector1.setPath("/products/:productId/items/:itemId");
+            flow1.setSelectors(List.of(selector1));
+
+            Flow flow2 = new Flow();
+            flow2.setEnabled(true);
+            HttpSelector selector2 = new HttpSelector();
+            selector2.setPath("/:productId");
+            flow2.setSelectors(List.of(selector2));
+
+            assertThatNoException().isThrownBy(() ->
+                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
+            );
+        }
+
+        @Test
+        void should_not_throw_on_static_vs_param_segment() {
+            Flow flow1 = new Flow();
+            flow1.setEnabled(true);
+            HttpSelector selector1 = new HttpSelector();
+            selector1.setPath("/products/:productId/items/:itemId");
+            flow1.setSelectors(List.of(selector1));
+
+            Flow flow2 = new Flow();
+            flow2.setEnabled(true);
+            HttpSelector selector2 = new HttpSelector();
+            selector2.setPath("/products/:productId/items/static");
+            flow2.setSelectors(List.of(selector2));
+
+            assertThatNoException().isThrownBy(() ->
+                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
+            );
+        }
+
+        @Test
+        void should_throw_on_same_structure_all_params() {
+            Flow flow1 = new Flow();
+            flow1.setEnabled(true);
+            HttpSelector selector1 = new HttpSelector();
+            selector1.setPath("/products/:productId/items/:itemId");
+            flow1.setSelectors(List.of(selector1));
+
+            Flow flow2 = new Flow();
+            flow2.setEnabled(true);
+            HttpSelector selector2 = new HttpSelector();
+            selector2.setPath("/products/:id/items/:itemId");
+            flow2.setSelectors(List.of(selector2));
+
+            assertThatThrownBy(() -> service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())).isInstanceOf(
+                ValidationDomainException.class
+            );
+        }
+
+        @Test
+        void should_not_throw_on_duplicate_paths() {
+            Flow flow1 = new Flow();
+            flow1.setEnabled(true);
+            HttpSelector selector1 = new HttpSelector();
+            selector1.setPath("/products/:productId/items/:itemId");
+            flow1.setSelectors(List.of(selector1));
+
+            Flow flow2 = new Flow();
+            flow2.setEnabled(true);
+            HttpSelector selector2 = new HttpSelector();
+            selector2.setPath("/products/:productId/items/:itemId");
+            flow2.setSelectors(List.of(selector2));
+
+            assertThatNoException().isThrownBy(() ->
+                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
+            );
+        }
     }
 
     @Nested
@@ -319,26 +431,8 @@ public class FlowValidationDomainServiceTest {
 
         public static Stream<Arguments> provideParameters() {
             return Stream.of(
-                Arguments.of("api-proxy-flows-overlap", Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))),
-                Arguments.of("api-proxy-plans-overlap", Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))),
-                Arguments.of(
-                    "api-proxy-plans-and-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
                 Arguments.of("api-proxy-no-overlap", Map.of()),
                 Arguments.of("api-proxy-no-flows", Map.of()),
-                Arguments.of(
-                    "api-message-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
-                Arguments.of(
-                    "api-message-plans-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
-                Arguments.of(
-                    "api-message-plans-and-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
                 Arguments.of("api-message-no-overlap", Map.of()),
                 Arguments.of("api-message-no-flows", Map.of()),
                 Arguments.of("api-mcp-proxy-no-flows", Map.of()),
@@ -357,8 +451,7 @@ public class FlowValidationDomainServiceTest {
 
         @NotNull
         private static Stream<Flow> getPlanFlows(Api api) {
-            return api
-                .getPlans()
+            return Objects.requireNonNull(api.getPlans())
                 .stream()
                 .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
         }

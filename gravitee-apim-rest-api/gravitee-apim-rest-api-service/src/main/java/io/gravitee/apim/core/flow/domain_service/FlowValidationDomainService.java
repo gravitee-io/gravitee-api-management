@@ -26,12 +26,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -227,7 +226,7 @@ public class FlowValidationDomainService {
         planFlows = planFlows == null ? Stream.empty() : planFlows;
         // group all flows in one stream
         final Stream<Flow> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
-        validatePathParamOverlapping(apiType, flowsWithPathParam);
+        checkOverlappingPaths(apiType, flowsWithPathParam);
     }
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
@@ -236,57 +235,120 @@ public class FlowValidationDomainService {
             .filter(flow -> containsPathParam(apiType, flow));
     }
 
-    private void validatePathParamOverlapping(ApiType apiType, Stream<Flow> flows) {
-        Map<String, Integer> paramWithPosition = new HashMap<>();
-        Map<String, List<String>> pathsByParam = new HashMap<>();
-        final AtomicBoolean hasOverlap = new AtomicBoolean(false);
+    private void checkOverlappingPaths(ApiType apiType, Stream<Flow> flows) {
+        // Extract unique, non-empty paths from enabled flows
+        List<String> uniquePaths = flows
+            .map(flow -> extractPath(apiType, flow))
+            .map(this::normalizePath) // normalize to avoid ambiguity due to slashes/case
+            .filter(path -> !path.isEmpty())
+            .distinct()
+            .toList();
 
-        flows.forEach(flow -> {
-            final String path = extractPath(apiType, flow);
-            String[] branches = SEPARATOR_SPLITTER.split(path);
-            for (int i = 0; i < branches.length; i++) {
-                final String currentBranch = branches[i];
-                if (currentBranch.startsWith(PATH_PARAM_PREFIX)) {
-                    // Store every path for a path param in a map
-                    prepareOverlapsMap(pathsByParam, path, currentBranch);
-                    if (isOverlapping(paramWithPosition, currentBranch, i)) {
-                        // Exception is thrown later to be able to provide every overlapping case to the end user
-                        hasOverlap.set(true);
-                    } else {
-                        paramWithPosition.put(currentBranch, i);
-                    }
+        Map<String, Set<String>> overlappingPaths = new HashMap<>();
+        int pathCount = uniquePaths.size();
+
+        for (int i = 0; i < pathCount; i++) {
+            String path1 = uniquePaths.get(i);
+            String[] segments1 = splitPathSegments(path1);
+
+            for (int j = i + 1; j < pathCount; j++) {
+                String path2 = uniquePaths.get(j);
+                String[] segments2 = splitPathSegments(path2);
+
+                if (segments1.length != segments2.length) continue;
+
+                if (arePathsAmbiguous(segments1, segments2)) {
+                    // Use a deterministic grouping key to avoid merging unrelated conflicts
+                    String key = buildAmbiguitySignature(segments1);
+                    Set<String> paths = overlappingPaths.computeIfAbsent(key, k -> new HashSet<>());
+                    paths.add(path1);
+                    paths.add(path2);
                 }
             }
-        });
+        }
 
-        if (hasOverlap.get()) {
-            throw new ValidationDomainException(
-                "Some path parameters are used at different position across different flows.",
-                pathsByParam
-                    .entrySet()
-                    .stream()
-                    // Only keep params with overlap
-                    .filter(entry -> entry.getValue().size() > 1)
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()))
-            );
+        if (!overlappingPaths.isEmpty()) {
+            // Sort lists for stable output
+            Map<String, String> payload = overlappingPaths
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, entry -> {
+                        List<String> sortedPaths = new ArrayList<>(entry.getValue());
+                        sortedPaths.sort(String::compareTo);
+                        return sortedPaths.toString();
+                    })
+                );
+
+            throw new ValidationDomainException("Invalid path parameters", payload);
         }
     }
 
-    private static void prepareOverlapsMap(Map<String, List<String>> pathsByParam, String path, String branches) {
-        pathsByParam.compute(branches, (key, value) -> {
-            if (value == null) {
-                value = new ArrayList<>();
-            }
-            // Add the path only once to the error message
-            if (!value.contains(path)) {
-                value.add(path);
-            }
-            return value;
-        });
+    /**
+     * Returns true if the two paths (split into segments) are ambiguous per OpenAPI 3.0:
+     * - Same number of segments
+     * - For each segment: both are parameters, or both are static and equal
+     */
+    private boolean arePathsAmbiguous(String[] segments1, String[] segments2) {
+        for (int i = 0; i < segments1.length; i++) {
+            boolean isParam1 = segments1[i].startsWith(PATH_PARAM_PREFIX);
+            boolean isParam2 = segments2[i].startsWith(PATH_PARAM_PREFIX);
+
+            if (isParam1 && isParam2) continue;
+
+            if (!isParam1 && !isParam2 && segments1[i].equals(segments2[i])) continue;
+
+            return false;
+        }
+
+        return true;
     }
 
-    private static boolean isOverlapping(Map<String, Integer> paramWithPosition, String param, Integer i) {
-        return paramWithPosition.containsKey(param) && !paramWithPosition.get(param).equals(i);
+    /**
+     * Normalize path:
+     * - Collapse multiple slashes
+     * - Remove trailing slash (except root "/")
+     * - Lowercase literals if routing is case-insensitive; keeping case as-is here
+     */
+    private String normalizePath(String raw) {
+        if (raw == null) return "";
+        String p = raw.trim();
+
+        if (p.isEmpty()) return "";
+        // Collapse multiple slashes
+        p = p.replaceAll("/{2,}", PATH_SEPARATOR);
+        // Remove trailing slash except root
+        if (p.length() > 1 && p.endsWith(PATH_SEPARATOR)) {
+            p = p.substring(0, p.length() - 1);
+        }
+        // Ensure leading slash for consistency
+        if (!p.startsWith(PATH_SEPARATOR)) {
+            p = PATH_SEPARATOR + p;
+        }
+
+        return p;
+    }
+
+    /**
+     * Split path into non-empty segments after normalization.
+     */
+    private String[] splitPathSegments(String path) {
+        return Arrays.stream(SEPARATOR_SPLITTER.split(path))
+            .filter(s -> !s.isEmpty())
+            .toArray(String[]::new);
+    }
+
+    /**
+     * Build a deterministic ambiguity signature by replacing any parameter segment with ":" and keeping literals.
+     * Example: /users/:id/orders -> /users/:/orders
+     */
+    private String buildAmbiguitySignature(String[] segments) {
+        return (
+            PATH_SEPARATOR +
+            Arrays.stream(segments)
+                .map(s -> s.startsWith(PATH_PARAM_PREFIX) ? PATH_PARAM_PREFIX : s)
+                .collect(Collectors.joining(PATH_SEPARATOR))
+        );
     }
 
     private static Boolean containsPathParam(ApiType apiType, Flow flow) {
