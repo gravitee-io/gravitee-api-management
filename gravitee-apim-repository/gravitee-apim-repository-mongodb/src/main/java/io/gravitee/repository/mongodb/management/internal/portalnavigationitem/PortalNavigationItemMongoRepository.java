@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.portalnavigationitem;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
+import jakarta.annotation.Nonnull;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -27,13 +28,10 @@ import org.springframework.stereotype.Repository;
 public interface PortalNavigationItemMongoRepository extends MongoRepository<PortalNavigationItemMongo, String> {
     Set<PortalNavigationItemMongo> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId);
 
-    Set<PortalNavigationItemMongo> findAllByAreaAndOrganizationIdAndEnvironmentId(
-        PortalNavigationItem.Area area,
-        String organizationId,
-        String environmentId
-    );
+    Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId);
 
-    Optional<PortalNavigationItemMongo> findById(String id);
+    @Nonnull
+    Optional<PortalNavigationItemMongo> findById(@Nonnull String id);
 
     @Query(value = "{ 'organizationId' : ?0 }", delete = true)
     void deleteByOrganizationId(String organizationId);

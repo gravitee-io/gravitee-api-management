@@ -64,20 +64,12 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndOrganizationIdAndEnvironmentId(
-        PortalNavigationItem.Area area,
-        String organizationId,
-        String environmentId
-    ) throws TechnicalException {
-        log.debug(
-            "JdbcPortalNavigationItemRepository.findAllByAreaAndOrganizationIdAndEnvironmentId({}, {}, {})",
-            area,
-            organizationId,
-            environmentId
-        );
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
+        throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentId({}, {})", area, environmentId);
         try {
-            final String sql = getOrm().getSelectAllSql() + " where area = ? and organization_id = ? and environment_id = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), organizationId, environmentId);
+            final String sql = getOrm().getSelectAllSql() + " where area = ? and environment_id = ?";
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
         } catch (Exception ex) {
             log.error("Failed to find portal navigation items by area", ex);
             throw new TechnicalException("Failed to find portal navigation items by area", ex);

@@ -57,22 +57,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndOrganizationIdAndEnvironmentId(
-        PortalNavigationItem.Area area,
-        String organizationId,
-        String environmentId
-    ) {
-        log.debug(
-            "Find all PortalNavigationItem by area [{}], organizationId [{}], environmentId [{}]",
-            area,
-            organizationId,
-            environmentId
-        );
-        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndOrganizationIdAndEnvironmentId(
-            area,
-            organizationId,
-            environmentId
-        );
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
+        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}]", area, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentId(area, environmentId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 
