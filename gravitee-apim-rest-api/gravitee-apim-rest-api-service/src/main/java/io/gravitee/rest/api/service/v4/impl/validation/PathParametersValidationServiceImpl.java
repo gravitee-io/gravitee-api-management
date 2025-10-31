@@ -42,6 +42,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Deprecated
 public class PathParametersValidationServiceImpl implements PathParametersValidationService {
+
     private static final String PATH_PARAM_PREFIX = ":";
     private static final String PATH_SEPARATOR = "/";
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
