@@ -73,6 +73,7 @@ public class ApiMapper {
                         reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(eventApiDefinition);
                     } else if (
                         api.getType() == ApiType.PROXY ||
+                        api.getType() == ApiType.A2A_PROXY ||
                         api.getType() == ApiType.LLM_PROXY ||
                         api.getType() == ApiType.MCP_PROXY ||
                         api.getType() == ApiType.MESSAGE

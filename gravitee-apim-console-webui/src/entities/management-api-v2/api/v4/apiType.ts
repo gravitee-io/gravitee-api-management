@@ -17,4 +17,4 @@
 /**
  * API's type.
  */
-export type ApiType = 'MESSAGE' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE';
+export type ApiType = 'MESSAGE' | 'A2A_PROXY' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE';
