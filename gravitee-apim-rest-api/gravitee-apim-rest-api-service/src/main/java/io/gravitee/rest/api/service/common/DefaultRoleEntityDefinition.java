@@ -50,10 +50,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(
-                EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.TAG.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
@@ -72,7 +69,6 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
             .build()
     );
 
