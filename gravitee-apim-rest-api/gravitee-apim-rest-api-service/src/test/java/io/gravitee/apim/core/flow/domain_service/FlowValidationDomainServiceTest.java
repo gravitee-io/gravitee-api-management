@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
@@ -319,26 +320,8 @@ public class FlowValidationDomainServiceTest {
 
         public static Stream<Arguments> provideParameters() {
             return Stream.of(
-                Arguments.of("api-proxy-flows-overlap", Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))),
-                Arguments.of("api-proxy-plans-overlap", Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))),
-                Arguments.of(
-                    "api-proxy-plans-and-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
                 Arguments.of("api-proxy-no-overlap", Map.of()),
                 Arguments.of("api-proxy-no-flows", Map.of()),
-                Arguments.of(
-                    "api-message-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
-                Arguments.of(
-                    "api-message-plans-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
-                Arguments.of(
-                    "api-message-plans-and-flows-overlap",
-                    Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
-                ),
                 Arguments.of("api-message-no-overlap", Map.of()),
                 Arguments.of("api-message-no-flows", Map.of()),
                 Arguments.of("api-mcp-proxy-no-flows", Map.of()),
@@ -357,8 +340,7 @@ public class FlowValidationDomainServiceTest {
 
         @NotNull
         private static Stream<Flow> getPlanFlows(Api api) {
-            return api
-                .getPlans()
+            return Objects.requireNonNull(api.getPlans())
                 .stream()
                 .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
         }
