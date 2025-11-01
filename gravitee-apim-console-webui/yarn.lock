@@ -9160,10 +9160,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"codemirror@npm:5.65.19":
-  version: 5.65.19
-  resolution: "codemirror@npm:5.65.19"
-  checksum: 10c0/067024d74a9a98721063bcd78373899e827914c92881c595a2d6789649a3c4e061edd892b29bca10995a5450488c9c93fc3998a3c4ed6fd19cba2e97cd23d4e1
+"codemirror@npm:5.65.20":
+  version: 5.65.20
+  resolution: "codemirror@npm:5.65.20"
+  checksum: 10c0/a1efc27d6c550f65b8ebe9c4229b7c4bb99e3856595779573597773f72aa576750f67765a598cb881d9238128d7b43be287f26e8a83bb2d42c2b2f0c0decb190
   languageName: node
   linkType: hard
 
@@ -12397,7 +12397,7 @@ __metadata:
     asciidoctor-highlight.js: "npm:0.4.0"
     chart.js: "npm:4.3.0"
     chromatic: "npm:11.27.0"
-    codemirror: "npm:5.65.19"
+    codemirror: "npm:5.65.20"
     codemirror-asciidoc: "npm:1.0.4"
     diff: "npm:3.5.0"
     diff2html: "npm:3.4.51"
