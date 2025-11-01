@@ -23,6 +23,7 @@ import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 
+import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 import { ResetPasswordService } from '../../../services/reset-password.service';
 
 @Component({
@@ -51,6 +52,7 @@ export class ResetPasswordComponent {
   });
   isSubmitted: boolean;
   error = signal(200);
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   private destroyRef = inject(DestroyRef);
 
   constructor(private resetPasswordService: ResetPasswordService) {

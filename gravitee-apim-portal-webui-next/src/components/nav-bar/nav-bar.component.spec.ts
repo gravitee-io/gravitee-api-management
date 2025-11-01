@@ -34,6 +34,22 @@ describe('NavBarComponent', () => {
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
   let httpTestingController: HttpTestingController;
+  const customLinks = [
+    {
+      id: 'link-id-1',
+      type: 'external',
+      name: 'link-name-1',
+      target: 'link-target-1',
+      order: 1,
+    },
+    {
+      id: 'link-id-2',
+      type: 'external',
+      name: 'link-name-2',
+      target: 'link-target-2',
+      order: 2,
+    },
+  ];
 
   const init = async (isMobile: boolean = false) => {
     const mockBreakpointObserver = {
@@ -69,24 +85,26 @@ describe('NavBarComponent', () => {
       expect(logInButton).toBeFalsy();
     });
 
-    it('should show custom links', async () => {
-      const customLinks = [
-        {
-          id: 'link-id-1',
-          type: 'external',
-          name: 'link-name-1',
-          target: 'link-target-1',
-          order: 1,
-        },
-        {
-          id: 'link-id-2',
-          type: 'external',
-          name: 'link-name-2',
-          target: 'link-target-2',
-          order: 2,
-        },
-      ];
+    it('should not show links if user is not connected and login is forced', async () => {
+      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('forceLogin', true);
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      expect(link1Anchor).not.toBeTruthy();
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      expect(link2Anchor).not.toBeTruthy();
+    });
 
+    it('should show links if user is connected and login is forced', async () => {
+      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('forceLogin', true);
+      componentRef.setInput('currentUser', fakeUser());
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      expect(link1Anchor).toBeTruthy();
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      expect(link2Anchor).toBeTruthy();
+    });
+
+    it('should show custom links if login is not forced', async () => {
       componentRef.setInput('customLinks', customLinks);
       const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
       expect(link1Anchor).toBeTruthy();
@@ -116,27 +134,34 @@ describe('NavBarComponent', () => {
       expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'Sign in']);
     });
 
-    it('should show custom links', async () => {
+    it('should show logout button if user connected', async () => {
+      expectHomePage();
+      componentRef.setInput('currentUser', fakeUser());
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'Applications', 'Log out']);
+    });
+
+    it('should not show menu if user is not connected and login is forced', async () => {
+      expectHomePage([]);
+      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('forceLogin', true);
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      expect(menuButton).not.toBeTruthy();
+    });
+
+    it('should show links if user is connected and login is forced', async () => {
       expectHomePage([]);
       componentRef.setInput('currentUser', fakeUser());
-
-      const customLinks = [
-        {
-          id: 'link-id-1',
-          type: 'external',
-          name: 'link-name-1',
-          target: 'link-target-1',
-          order: 1,
-        },
-        {
-          id: 'link-id-2',
-          type: 'external',
-          name: 'link-name-2',
-          target: 'link-target-2',
-          order: 2,
-        },
-      ];
       componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('forceLogin', true);
       fixture.detectChanges();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
@@ -146,6 +171,20 @@ describe('NavBarComponent', () => {
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
       expect(linkTexts).toEqual(['Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Applications', 'Log out']);
+    });
+
+    it('should show custom links if login is not forced', async () => {
+      expectHomePage([]);
+      componentRef.setInput('customLinks', customLinks);
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+      fixture.detectChanges();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Sign in']);
     });
 
     it('should close menu when clicking outside', async () => {

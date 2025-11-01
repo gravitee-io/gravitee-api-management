@@ -53,6 +53,10 @@ export class AppComponent {
     });
   }
 
+  forceLogin(): boolean {
+    return this.configService.configuration.authentication?.forceLogin?.enabled ?? false;
+  }
+
   private updateFavicon() {
     let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
     if (!link) {

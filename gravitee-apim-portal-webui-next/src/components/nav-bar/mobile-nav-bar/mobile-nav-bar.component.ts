@@ -33,6 +33,7 @@ import { PortalService } from '../../../services/portal.service';
 })
 export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
+  forceLogin: InputSignal<boolean> = input(false);
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   hasHomepage = toSignal(
     inject(PortalService)

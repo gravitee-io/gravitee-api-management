@@ -23,6 +23,7 @@ import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 import { ResetPasswordService } from '../../../../services/reset-password.service';
 import { TokenService } from '../../../../services/token.service';
 import { passwordMatchValidator } from '../../../validators/password-match.validator';
@@ -72,6 +73,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     { validators: passwordMatchValidator('password', 'confirmedPassword') },
   );
   error = signal(200);
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   private destroyRef = inject(DestroyRef);
 
   constructor(
