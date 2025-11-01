@@ -4649,6 +4649,9 @@ components:
                     type: string
                 messageCondition:
                     type: string
+                overrideContentTypeValidation:
+                  description: Regex to override content type validation
+                  type: string
                 content:
                     $ref: "#/components/schemas/LoggingContentV4"
                 phase:

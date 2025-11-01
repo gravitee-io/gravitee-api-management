@@ -20,7 +20,11 @@ import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.gateway.report.guard.LogGuardService;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Stream;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,12 +36,20 @@ import lombok.extern.slf4j.Slf4j;
 public class LoggingContext implements ConditionSupplier {
 
     private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
-        "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
+        "video.*|audio.*|image.*|application/octet-stream|application/pdf|text/event-stream";
 
     protected final Logging logging;
+
+    @Getter
     private int maxSizeLogMessage = -1;
+
+    @Setter
+    @Getter
     private String excludedResponseTypes;
+
     private Pattern excludedContentTypesPattern;
+
+    @Setter
     private LogGuardService logGuardService;
 
     @Override
@@ -93,10 +105,6 @@ public class LoggingContext implements ConditionSupplier {
         return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
     }
 
-    public int getMaxSizeLogMessage() {
-        return maxSizeLogMessage;
-    }
-
     /**
      * Define the max size of the logging (for each payload, whatever it's about the request / response / consumer / proxy)
      * Which means that if size is define to 5, it will be 5 x 4 = 20 (at most).
@@ -115,22 +123,24 @@ public class LoggingContext implements ConditionSupplier {
         }
     }
 
-    public String getExcludedResponseTypes() {
-        return excludedResponseTypes;
-    }
-
-    public void setExcludedResponseTypes(final String excludedResponseTypes) {
-        this.excludedResponseTypes = excludedResponseTypes;
-    }
-
     public boolean isContentTypeLoggable(final String contentType) {
         // init pattern
         if (excludedContentTypesPattern == null) {
-            try {
-                excludedContentTypesPattern = Pattern.compile(excludedResponseTypes);
-            } catch (Exception e) {
-                excludedContentTypesPattern = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
-            }
+            this.excludedContentTypesPattern = Stream.of(
+                logging.getOverrideContentTypeValidation(),
+                excludedResponseTypes,
+                DEFAULT_EXCLUDED_CONTENT_TYPES
+            )
+                .filter(pattern -> pattern != null && !pattern.isEmpty())
+                .flatMap(pattern -> {
+                    try {
+                        return Stream.of(Pattern.compile(pattern));
+                    } catch (PatternSyntaxException e) {
+                        return Stream.empty();
+                    }
+                })
+                .findFirst()
+                .orElse(null);
         }
 
         return contentType == null || !excludedContentTypesPattern.matcher(contentType).find();
@@ -144,9 +154,5 @@ public class LoggingContext implements ConditionSupplier {
      */
     public boolean isBodyLoggable() {
         return logGuardService == null || !logGuardService.isLogGuardActive();
-    }
-
-    public void setLogGuardService(LogGuardService logGuardService) {
-        this.logGuardService = logGuardService;
     }
 }

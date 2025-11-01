@@ -112,6 +112,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       await componentHarness.toggleHeaders();
       await componentHarness.togglePayload();
       await componentHarness.setCondition('condition');
+      await componentHarness.setOverrideContentTypeValidation('video/.*|image/.*');
 
       await componentHarness.clickOnSaveButton();
       expectApiGetRequest(api);
@@ -121,6 +122,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
           ...api.analytics,
           logging: {
             mode: { entrypoint: true, endpoint: true },
+            overrideContentTypeValidation: 'video/.*|image/.*',
             phase: { request: true, response: true },
             content: { headers: true, payload: true },
             condition: 'condition',
@@ -140,6 +142,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
             phase: { request: true, response: true },
             content: { headers: true, payload: true },
             condition: 'condition',
+            overrideContentTypeValidation: 'video/.*|image/.*',
           },
         },
       });
@@ -152,6 +155,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       expect(await componentHarness.isHeadersChecked()).toStrictEqual(true);
       expect(await componentHarness.isPayloadChecked()).toStrictEqual(true);
       expect(await componentHarness.getCondition()).toStrictEqual('condition');
+      expect(await componentHarness.getOverrideContentTypeValidation()).toStrictEqual('video/.*|image/.*');
     });
 
     it('should discard the changes', async () => {
@@ -162,6 +166,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       await componentHarness.toggleHeaders();
       await componentHarness.togglePayload();
       await componentHarness.setCondition('condition');
+      await componentHarness.setOverrideContentTypeValidation('video/.*|image/.*');
 
       expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
       expect(await componentHarness.isEndpointChecked()).toStrictEqual(true);
@@ -170,6 +175,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       expect(await componentHarness.isHeadersChecked()).toStrictEqual(true);
       expect(await componentHarness.isPayloadChecked()).toStrictEqual(true);
       expect(await componentHarness.getCondition()).toStrictEqual('condition');
+      expect(await componentHarness.getOverrideContentTypeValidation()).toStrictEqual('video/.*|image/.*');
       await checkLoggingFieldsEnabled();
 
       await componentHarness.clickOnResetButton();
@@ -183,6 +189,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       expect(await componentHarness.isHeadersChecked()).toStrictEqual(false);
       expect(await componentHarness.isPayloadChecked()).toStrictEqual(false);
       expect(await componentHarness.getCondition()).toStrictEqual('');
+      expect(await componentHarness.getOverrideContentTypeValidation()).toStrictEqual('');
       await checkLoggingFieldsDisabled();
     });
   });
@@ -263,6 +270,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
         enabled: true,
         logging: {
           mode: { entrypoint: true, endpoint: true },
+          overrideContentTypeValidation: undefined,
           phase: { request: true, response: true },
           content: { headers: true, payload: true },
           condition: 'condition',

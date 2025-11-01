@@ -51,4 +51,6 @@ public class Logging implements Serializable {
     private String condition;
 
     private String messageCondition;
+
+    private String overrideContentTypeValidation;
 }

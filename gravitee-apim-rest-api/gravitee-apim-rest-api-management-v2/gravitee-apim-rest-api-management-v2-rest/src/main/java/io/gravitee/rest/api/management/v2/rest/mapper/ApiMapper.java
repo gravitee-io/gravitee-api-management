@@ -21,7 +21,6 @@ import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -201,12 +200,11 @@ public interface ApiMapper {
     }
 
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
-        if (genericApiEntity instanceof ApiEntity asApiEntity) {
-            return mapToV4(asApiEntity);
-        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
-            return mapToV4(asNativeApiEntity);
-        }
-        return null;
+        return switch (genericApiEntity) {
+            case ApiEntity asApiEntity -> mapToV4(asApiEntity);
+            case NativeApiEntity asNativeApiEntity -> mapToV4(asNativeApiEntity);
+            case null, default -> null;
+        };
     }
 
     @Mapping(target = "definitionContext", source = "source.originContext")

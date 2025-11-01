@@ -61,8 +61,8 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
 
     @Override
     public void setHeaders(HttpHeaders headers) {
-        if (headers instanceof LogHeadersCaptor) {
-            super.setHeaders(((LogHeadersCaptor) headers).getCaptured());
+        if (headers instanceof LogHeadersCaptor logHeadersCaptor) {
+            super.setHeaders(logHeadersCaptor.getCaptured());
         } else {
             super.setHeaders(HttpHeaders.create(headers));
         }

@@ -87,6 +87,19 @@
           <input matInput formControlName="condition" />
           <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] == 'application/json' &#125;)</mat-hint>
         </mat-form-field>
+
+        <gio-banner-warning>
+          <div>Important Note</div>
+          <span gioBannerBody
+            >To ensure stable operation, avoid logging oversized or binary data. Default value is:<br />
+            <code>video.*|audio.*|image.*|application/octet-stream|application/pdf|text/event-stream</code></span
+          >
+        </gio-banner-warning>
+        <mat-form-field>
+          <mat-label>Content-Type filtering</mat-label>
+          <input matInput formControlName="overrideContentTypeValidation" />
+          <mat-hint>Regular expression to filter out queries by Content-Type; matching payloads won’t be logged.</mat-hint>
+        </mat-form-field>
       </div>
 
       <div class="settings__form-control">

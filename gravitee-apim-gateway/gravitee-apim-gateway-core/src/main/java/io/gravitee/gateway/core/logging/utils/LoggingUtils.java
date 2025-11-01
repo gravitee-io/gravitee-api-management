@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 public final class LoggingUtils {
 
     private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
-        "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
+        "video.*|audio.*|image.*|application/octet-stream|application/pdf|text/event-stream";
 
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 

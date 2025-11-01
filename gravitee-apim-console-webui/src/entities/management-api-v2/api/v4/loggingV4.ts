@@ -23,4 +23,5 @@ export interface LoggingV4 {
   content?: LoggingContentV4;
   phase?: LoggingPhase;
   mode?: LoggingModeV4;
+  overrideContentTypeValidation?: string;
 }

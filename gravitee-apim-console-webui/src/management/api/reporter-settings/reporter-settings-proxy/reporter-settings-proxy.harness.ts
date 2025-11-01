@@ -31,6 +31,9 @@ export class ReporterSettingsProxyHarness extends ComponentHarness {
   private getTracingEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingEnabled"]' }));
   private getTracingVerboseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="tracingVerbose"]' }));
   private getConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
+  private getOverrideContentTypeValidationInput = this.locatorFor(
+    MatInputHarness.with({ selector: '[formControlName="overrideContentTypeValidation"]' }),
+  );
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
   public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
@@ -56,6 +59,10 @@ export class ReporterSettingsProxyHarness extends ComponentHarness {
   public getCondition = async () => (await this.getConditionInput()).getValue();
   public isConditionDisabled = async () => (await this.getConditionInput()).isDisabled();
   public setCondition = async (condition: string) => (await this.getConditionInput()).setValue(condition);
+  public getOverrideContentTypeValidation = async () => (await this.getOverrideContentTypeValidationInput()).getValue();
+  public isOverrideContentTypeValidationDisabled = async () => (await this.getOverrideContentTypeValidationInput()).isDisabled();
+  public setOverrideContentTypeValidation = async (validation: string) =>
+    (await this.getOverrideContentTypeValidationInput()).setValue(validation);
   public clickOnSaveButton = async () => (await this.getSaveBar()).clickSubmit();
   public clickOnResetButton = async () => (await this.getSaveBar()).clickReset();
 

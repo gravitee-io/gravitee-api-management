@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, DestroyRef, inject, input, InputSignal, OnInit } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { EMPTY, merge } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -33,17 +33,24 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
-type DefaultConfiguration = {
-  entrypoint: boolean;
-  endpoint: boolean;
-  request: boolean;
-  response: boolean;
-  headers: boolean;
-  payload: boolean;
-  condition: string;
-  tracingEnabled: boolean;
-  tracingVerbose: boolean;
-};
+const BOOLEAN_CONFIG_KEYS = [
+  'enabled',
+  'entrypoint',
+  'endpoint',
+  'request',
+  'response',
+  'headers',
+  'payload',
+  'tracingEnabled',
+  'tracingVerbose',
+] as const;
+
+type BooleanConfig = (typeof BOOLEAN_CONFIG_KEYS)[number];
+
+const STRING_CONFIG_KEYS = ['condition', 'overrideContentTypeValidation'] as const;
+type StringConfig = (typeof STRING_CONFIG_KEYS)[number];
+
+type DefaultConfiguration = Record<BooleanConfig, boolean> & Record<StringConfig, string>;
 
 @Component({
   selector: 'reporter-settings-proxy',
@@ -69,7 +76,7 @@ type DefaultConfiguration = {
 })
 export class ReporterSettingsProxyComponent implements OnInit {
   api: InputSignal<ApiV4> = input.required<ApiV4>();
-  form: UntypedFormGroup;
+  form: FormGroup<Record<BooleanConfig, FormControl<boolean>> & Record<StringConfig, FormControl<string>>>;
   defaultConfiguration: DefaultConfiguration;
   private destroyRef = inject(DestroyRef);
 
@@ -95,6 +102,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
               ...api.analytics,
               enabled: configurationValues.enabled,
               logging: {
+                overrideContentTypeValidation: configurationValues.overrideContentTypeValidation,
                 condition: configurationValues.condition,
                 mode: {
                   entrypoint: configurationValues.entrypoint,
@@ -139,36 +147,40 @@ export class ReporterSettingsProxyComponent implements OnInit {
     const atLeastModeIsEnabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
     const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
 
-    this.form = new UntypedFormGroup({
-      enabled: new UntypedFormControl({ value: analyticsEnabled, disabled: isReadOnly }),
-      entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: !analyticsEnabled || isReadOnly }),
-      tracingEnabled: new UntypedFormControl({
+    this.form = new FormGroup({
+      enabled: new FormControl({ value: analyticsEnabled, disabled: isReadOnly }),
+      entrypoint: new FormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: !analyticsEnabled || isReadOnly }),
+      tracingEnabled: new FormControl({
         value: api.analytics?.tracing?.enabled ?? false,
         disabled: !analyticsEnabled || isReadOnly,
       }),
-      tracingVerbose: new UntypedFormControl({
+      tracingVerbose: new FormControl({
         value: api.analytics?.tracing?.verbose ?? false,
         disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
       }),
-      endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
-      request: new UntypedFormControl({
+      endpoint: new FormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
+      request: new FormControl({
         value: api.analytics?.logging?.phase?.request,
         disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
       }),
-      response: new UntypedFormControl({
+      response: new FormControl({
         value: api.analytics?.logging?.phase?.response,
         disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
       }),
-      headers: new UntypedFormControl({
+      headers: new FormControl({
         value: api.analytics?.logging?.content?.headers,
         disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
       }),
-      payload: new UntypedFormControl({
+      payload: new FormControl({
         value: api.analytics?.logging?.content?.payload,
         disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
       }),
-      condition: new UntypedFormControl({
+      condition: new FormControl({
         value: api.analytics?.logging?.condition,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
+      overrideContentTypeValidation: new FormControl({
+        value: api.analytics?.logging?.overrideContentTypeValidation,
         disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
       }),
     });
@@ -242,18 +254,17 @@ export class ReporterSettingsProxyComponent implements OnInit {
     this.form.get('headers').enable();
     this.form.get('payload').enable();
     this.form.get('condition').enable();
+    this.form.get('overrideContentTypeValidation').enable();
   }
 
   private clearAndDisableLoggingFormFields() {
-    this.form.get('request').setValue(false);
-    this.form.get('request').disable();
-    this.form.get('response').setValue(false);
-    this.form.get('response').disable();
-    this.form.get('headers').setValue(false);
-    this.form.get('headers').disable();
-    this.form.get('payload').setValue(false);
-    this.form.get('payload').disable();
-    this.form.get('condition').setValue('');
-    this.form.get('condition').disable();
+    ['request', 'response', 'headers', 'payload'].forEach((key) => {
+      this.form.get(key).setValue(false);
+      this.form.get(key).disable();
+    });
+    STRING_CONFIG_KEYS.forEach((key) => {
+      this.form.get(key).setValue('');
+      this.form.get(key).disable();
+    });
   }
 }

@@ -17,6 +17,7 @@ package io.gravitee.apim.integration.tests.http.logging;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,7 +94,7 @@ class LoggingV4IntegrationTest {
                 .doOnNext(log -> {
                     final String transactionAndRequestId = wiremock
                         .getAllServeEvents()
-                        .get(0)
+                        .getFirst()
                         .getRequest()
                         .getHeaders()
                         .getHeader("X-Gravitee-Transaction-Id")
@@ -174,6 +175,100 @@ class LoggingV4IntegrationTest {
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
         }
 
+        @Test
+        void should_not_log_sse(HttpClient httpClient, VertxTestContext context) throws Exception {
+            JsonObject mockResponseBody = new JsonObject().put("response", "body");
+            wiremock.stubFor(
+                get("/endpoint").willReturn(okJson(mockResponseBody.toString()).withHeader("Content-Type", "text/event-stream"))
+            );
+
+            AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
+            JsonObject requestBody = new JsonObject().put("field", "of the pelennor");
+
+            subject
+                .doOnNext(log -> {
+                    final String transactionAndRequestId = wiremock
+                        .getAllServeEvents()
+                        .getFirst()
+                        .getRequest()
+                        .getHeaders()
+                        .getHeader("X-Gravitee-Transaction-Id")
+                        .firstValue();
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEntrypointRequest().getUri()).isEqualTo("/test");
+                        soft
+                            .assertThat(log.getEntrypointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("host", requestHostAndPortRef.get()),
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            );
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEndpointRequest().getUri()).isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
+                        soft
+                            .assertThat(log.getEndpointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            )
+                            .doesNotContainKeys("host", "Host");
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointResponse().getBody()).isNullOrEmpty();
+                        soft.assertThat(log.getEndpointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEndpointResponse().getHeaders().toSingleValueMap())
+                            .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id")
+                            .contains(entry("Content-Type", "text/event-stream;charset=utf-8"));
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointResponse().getBody()).isNullOrEmpty();
+                        soft.assertThat(log.getEntrypointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEntrypointResponse().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("Content-Type", "text/event-stream;charset=utf-8")
+                            )
+                            .containsKeys("X-Gravitee-Client-Identifier");
+                    });
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.setHost("127.0.0.1");
+                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(mockResponseBody.toString());
+                    return true;
+                });
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
             entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
@@ -196,8 +291,238 @@ class LoggingV4IntegrationTest {
             analytics.setEnabled(true);
             analytics.setLogging(logging);
 
-            if (api.getDefinition() instanceof Api) {
-                ((Api) api.getDefinition()).setAnalytics(analytics);
+            if (api.getDefinition() instanceof Api apiDefinition) {
+                apiDefinition.setAnalytics(analytics);
+            }
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api.json" })
+    class ProxyApiLogCustom extends AbstractGatewayTest {
+
+        @BeforeEach
+        void setUp() {
+            subject = BehaviorSubject.create();
+
+            FakeReporter fakeReporter = getBean(FakeReporter.class);
+            fakeReporter.setReportableHandler(reportable -> {
+                if (reportable instanceof Log) {
+                    subject.onNext((Log) reportable);
+                }
+            });
+        }
+
+        @Test
+        void should_log_sse(HttpClient httpClient, VertxTestContext context) throws Exception {
+            JsonObject mockResponseBody = new JsonObject().put("response", "body");
+            wiremock.stubFor(get("/endpoint").willReturn(ok(mockResponseBody.toString()).withHeader("Content-Type", "text/event-stream")));
+
+            AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
+            JsonObject requestBody = new JsonObject().put("field", "of the pelennor");
+
+            subject
+                .doOnNext(log -> {
+                    final String transactionAndRequestId = wiremock
+                        .getAllServeEvents()
+                        .getFirst()
+                        .getRequest()
+                        .getHeaders()
+                        .getHeader("X-Gravitee-Transaction-Id")
+                        .firstValue();
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEntrypointRequest().getUri()).isEqualTo("/test");
+                        soft
+                            .assertThat(log.getEntrypointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("host", requestHostAndPortRef.get()),
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            );
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEndpointRequest().getUri()).isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
+                        soft
+                            .assertThat(log.getEndpointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            )
+                            .doesNotContainKeys("host", "Host");
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointResponse().getBody()).isEqualTo(mockResponseBody.toString());
+                        soft.assertThat(log.getEndpointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEndpointResponse().getHeaders().toSingleValueMap())
+                            .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id")
+                            .contains(entry("Content-Type", "text/event-stream"));
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointResponse().getBody()).isEqualTo(mockResponseBody.toString());
+                        soft.assertThat(log.getEntrypointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEntrypointResponse().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("Content-Type", "text/event-stream")
+                            )
+                            .containsKeys("X-Gravitee-Client-Identifier");
+                    });
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.setHost("127.0.0.1");
+                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(mockResponseBody.toString());
+                    return true;
+                });
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Test
+        void should_not_log_video(HttpClient httpClient, VertxTestContext context) throws Exception {
+            JsonObject mockResponseBody = new JsonObject().put("response", "body");
+            wiremock.stubFor(get("/endpoint").willReturn(ok(mockResponseBody.toString()).withHeader("Content-Type", "video/mp4")));
+
+            AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
+            JsonObject requestBody = new JsonObject().put("field", "of the pelennor");
+
+            subject
+                .doOnNext(log -> {
+                    final String transactionAndRequestId = wiremock
+                        .getAllServeEvents()
+                        .getFirst()
+                        .getRequest()
+                        .getHeaders()
+                        .getHeader("X-Gravitee-Transaction-Id")
+                        .firstValue();
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEntrypointRequest().getUri()).isEqualTo("/test");
+                        soft
+                            .assertThat(log.getEntrypointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("host", requestHostAndPortRef.get()),
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            );
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getEndpointRequest().getUri()).isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
+                        soft
+                            .assertThat(log.getEndpointRequest().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("content-length", String.valueOf(requestBody.toString().length()))
+                            )
+                            .doesNotContainKeys("host", "Host");
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEndpointResponse().getBody()).isNullOrEmpty();
+                        soft.assertThat(log.getEndpointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEndpointResponse().getHeaders().toSingleValueMap())
+                            .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id")
+                            .contains(entry("Content-Type", "video/mp4"));
+                    });
+
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getEntrypointResponse().getBody()).isNullOrEmpty();
+                        soft.assertThat(log.getEntrypointResponse().getStatus()).isEqualTo(200);
+                        soft
+                            .assertThat(log.getEntrypointResponse().getHeaders().toSingleValueMap())
+                            .contains(
+                                entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                entry("Content-Type", "video/mp4")
+                            )
+                            .containsKeys("X-Gravitee-Client-Identifier");
+                    });
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.setHost("127.0.0.1");
+                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(mockResponseBody.toString());
+                    return true;
+                });
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            final Logging logging = new Logging();
+            logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
+            logging.setContent(LoggingContent.builder().headers(true).payload(true).build());
+            logging.setPhase(LoggingPhase.builder().request(true).response(true).build());
+            logging.setCondition("{#response.status == 200}");
+            logging.setOverrideContentTypeValidation("video.*|audio.*|image.*|application/octet-stream|application/pdf");
+
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            analytics.setLogging(logging);
+
+            if (api.getDefinition() instanceof Api apiDefinition) {
+                apiDefinition.setAnalytics(analytics);
             }
         }
     }
