@@ -66,6 +66,7 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCa
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -88,6 +89,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
+import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
@@ -966,5 +968,10 @@ public class ResourceContextConfiguration {
     @Bean
     public CreatePromotionUseCase createPromotionUseCase() {
         return mock(CreatePromotionUseCase.class);
+    }
+
+    @Bean
+    public ProcessPromotionUseCase promotionUseCase() {
+        return mock(ProcessPromotionUseCase.class);
     }
 }

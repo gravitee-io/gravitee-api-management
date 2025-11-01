@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.infra.adapter.MediaAdapter;
 import io.gravitee.apim.infra.adapter.MemberAdapter;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.List;
@@ -36,12 +37,8 @@ public class ApiImportDomainServiceLegacyWrapper implements ApiImportDomainServi
     private final ApiImportExportService apiImportExportService;
 
     @Override
-    public void createPageAndMedia(List<Media> mediaList, String apiId) {
-        apiImportExportService.createPageAndMedia(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            MediaAdapter.INSTANCE.toEntities(mediaList)
-        );
+    public void createMedias(List<Media> mediaList, String apiId, ExecutionContext executionContext) {
+        apiImportExportService.createPageAndMedia(executionContext, apiId, MediaAdapter.INSTANCE.toEntities(mediaList));
     }
 
     @Override

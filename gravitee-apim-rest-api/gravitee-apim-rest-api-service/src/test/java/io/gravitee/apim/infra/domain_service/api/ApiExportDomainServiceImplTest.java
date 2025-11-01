@@ -25,10 +25,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.PlanFixtures;
+import fixtures.definition.FlowFixtures;
 import inmemory.FlowCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
+import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -57,6 +60,9 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -71,6 +77,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -509,7 +516,13 @@ class ApiExportDomainServiceImplTest {
 
         // Then
         assertThat(export.pages()).containsOnly(
-            PageExport.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build(),
+            PageExport.builder()
+                .id("folder-1")
+                .name("My Folder")
+                .order(1)
+                .type(Page.Type.FOLDER)
+                .visibility(Page.Visibility.PUBLIC)
+                .build(),
             PageExport.builder()
                 .name("My Title")
                 .order(1)
@@ -517,13 +530,7 @@ class ApiExportDomainServiceImplTest {
                 .visibility(Page.Visibility.PUBLIC)
                 .content("Read the doc")
                 .accessControls(Set.of(AccessControl.builder().referenceId("my-group").referenceType("GROUP").build()))
-                .build(),
-            PageExport.builder()
-                .name("My Swagger")
-                .order(1)
-                .type(Page.Type.SWAGGER)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the doc")
+                .id("markdown-1")
                 .build(),
             PageExport.builder()
                 .name("Aside")
@@ -531,6 +538,15 @@ class ApiExportDomainServiceImplTest {
                 .type(Page.Type.SYSTEM_FOLDER)
                 .visibility(Page.Visibility.PUBLIC)
                 .published(true)
+                .id("system-folder-1")
+                .build(),
+            PageExport.builder()
+                .name("My Swagger")
+                .order(1)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the doc")
+                .id("swagger-1")
                 .build(),
             PageExport.builder()
                 .name("My Link")
@@ -538,6 +554,7 @@ class ApiExportDomainServiceImplTest {
                 .type(Page.Type.LINK)
                 .visibility(Page.Visibility.PUBLIC)
                 .content("Read the doc")
+                .id("link-1")
                 .build(),
             PageExport.builder()
                 .name("My Translation")
@@ -545,6 +562,7 @@ class ApiExportDomainServiceImplTest {
                 .type(Page.Type.TRANSLATION)
                 .visibility(Page.Visibility.PUBLIC)
                 .content("Lire la documentation")
+                .id("translation-1")
                 .build(),
             PageExport.builder()
                 .name("My Template")
@@ -552,6 +570,7 @@ class ApiExportDomainServiceImplTest {
                 .type(Page.Type.MARKDOWN_TEMPLATE)
                 .visibility(Page.Visibility.PUBLIC)
                 .content("Read the doc")
+                .id("md-template-1")
                 .build(),
             PageExport.builder()
                 .name("My asciidoc")
@@ -559,6 +578,7 @@ class ApiExportDomainServiceImplTest {
                 .type(Page.Type.ASCIIDOC)
                 .visibility(Page.Visibility.PUBLIC)
                 .content("Read the asciidoc")
+                .id("asciidoc-1")
                 .build()
         );
         assertThat(export.members()).containsOnly(
@@ -597,12 +617,122 @@ class ApiExportDomainServiceImplTest {
         );
     }
 
+    @Test
+    void should_export_v4_proxy_without_ids() {
+        // Given
+        String apiId = "apiId";
+        List<Flow> flows = List.of(FlowFixtures.aProxyFlowV4().toBuilder().id("flow-id").build());
+        Api api = Api.builder()
+            .id(apiId)
+            .description("Gravitee.io")
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().flows(flows).build())
+            .build();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(flowCrudService.getApiV4Flows(anyString())).thenReturn(flows);
+        when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
+        when(planCrudService.findByApiId(anyString())).thenReturn(plans(apiId));
+
+        // When
+        GraviteeDefinition export = sut.export(
+            apiId,
+            AuditInfo.builder().environmentId("DEFAULT").build(),
+            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
+        );
+
+        // Then
+        assertThat(export.api().id()).isNull();
+        assertThat(((ApiDescriptor.ApiDescriptorV4) export.api()).flows())
+            .extracting(io.gravitee.definition.model.v4.flow.Flow::getId)
+            .allMatch(Objects::isNull);
+        assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
+        assertThat(((GraviteeDefinition.V4) export).plans()).extracting(PlanDescriptor.V4::id).allMatch(Objects::isNull);
+    }
+
+    @Test
+    void should_export_native_api_without_ids() {
+        // Given
+        String apiId = "apiId";
+        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4().toBuilder().id("flow-id").build());
+        Api api = Api.builder()
+            .id(apiId)
+            .description("Gravitee.io")
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionNativeV4(NativeApi.builder().flows(flows).build())
+            .build();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(flowCrudService.getNativeApiFlows(anyString())).thenReturn(flows);
+        when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
+        when(planCrudService.findByApiId(anyString())).thenReturn(
+            List.of(PlanFixtures.aPlanNativeV4().toBuilder().id("plan-id").apiId(apiId).build())
+        );
+
+        // When
+        GraviteeDefinition export = sut.export(
+            apiId,
+            AuditInfo.builder().environmentId("DEFAULT").build(),
+            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
+        );
+
+        // Then
+        assertThat(export.api().id()).isNull();
+        assertThat(((ApiDescriptor.Native) export.api()).flows()).extracting(NativeFlow::getId).allMatch(Objects::isNull);
+        assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
+        assertThat(((GraviteeDefinition.Native) export).plans()).extracting(PlanDescriptor.Native::id).allMatch(Objects::isNull);
+    }
+
+    @Test
+    void should_export_v2_proxy_without_ids() {
+        // Given
+        String apiId = "apiId";
+        List<io.gravitee.definition.model.flow.Flow> flows = List.of(FlowFixtures.aFlowV2().toBuilder().id("flow-id").build());
+        Api api = Api.builder()
+            .id(apiId)
+            .description("Gravitee.io")
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V2)
+            .apiDefinition(io.gravitee.definition.model.Api.builder().flows(flows).build())
+            .build();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+        when(flowCrudService.getApiV2Flows(anyString())).thenReturn(flows);
+        when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
+        when(planCrudService.findByApiId(anyString())).thenReturn(
+            List.of(PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(apiId).build())
+        );
+
+        // When
+        GraviteeDefinition export = sut.export(
+            apiId,
+            AuditInfo.builder().environmentId("DEFAULT").build(),
+            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
+        );
+
+        // Then
+        assertThat(export.api().id()).isNull();
+        assertThat(((ApiDescriptor.ApiDescriptorV2) export.api()).flows())
+            .extracting(io.gravitee.definition.model.flow.Flow::getId)
+            .allMatch(Objects::isNull);
+        assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
+        assertThat(((GraviteeDefinition.V2) export).plans()).extracting(PlanDescriptor.V2::id).allMatch(Objects::isNull);
+    }
+
     private Set<BaseUserEntity> users() {
         return Set.of(BaseUserEntity.builder().firstname("Bruce").lastname("Wayne").build());
     }
 
     List<Page> pages() {
-        Page folder = Page.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build();
+        Page folder = Page.builder()
+            .id("folder-1")
+            .name("My Folder")
+            .order(1)
+            .type(Page.Type.FOLDER)
+            .visibility(Page.Visibility.PUBLIC)
+            .build();
         Page markdownPage = Page.builder()
             .name("My Title")
             .order(1)
@@ -610,6 +740,7 @@ class ApiExportDomainServiceImplTest {
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
             .accessControls(Set.of(new AccessControl("my-group", "GROUP")))
+            .id("markdown-1")
             .build();
         Page asideFolder = Page.builder()
             .name("Aside")
@@ -617,6 +748,7 @@ class ApiExportDomainServiceImplTest {
             .published(true)
             .type(Page.Type.SYSTEM_FOLDER)
             .visibility(Page.Visibility.PUBLIC)
+            .id("system-folder-1")
             .build();
 
         Page swaggerPage = Page.builder()
@@ -625,6 +757,7 @@ class ApiExportDomainServiceImplTest {
             .type(Page.Type.SWAGGER)
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
+            .id("swagger-1")
             .build();
         Page linkPage = Page.builder()
             .name("My Link")
@@ -632,6 +765,7 @@ class ApiExportDomainServiceImplTest {
             .type(Page.Type.LINK)
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
+            .id("link-1")
             .build();
         Page translationPage = Page.builder()
             .name("My Translation")
@@ -639,6 +773,7 @@ class ApiExportDomainServiceImplTest {
             .type(Page.Type.TRANSLATION)
             .content("Lire la documentation")
             .visibility(Page.Visibility.PUBLIC)
+            .id("translation-1")
             .build();
         Page markdownTemplatePage = Page.builder()
             .name("My Template")
@@ -646,6 +781,7 @@ class ApiExportDomainServiceImplTest {
             .type(Page.Type.MARKDOWN_TEMPLATE)
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
+            .id("md-template-1")
             .build();
 
         Page asciidocPage = Page.builder()
@@ -654,6 +790,7 @@ class ApiExportDomainServiceImplTest {
             .type(Page.Type.ASCIIDOC)
             .content("Read the asciidoc")
             .visibility(Page.Visibility.PUBLIC)
+            .id("asciidoc-1")
             .build();
 
         return List.of(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage);

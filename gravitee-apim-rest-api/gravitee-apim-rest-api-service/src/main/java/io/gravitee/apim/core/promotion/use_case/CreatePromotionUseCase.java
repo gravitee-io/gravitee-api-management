@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -116,7 +117,7 @@ public class CreatePromotionUseCase {
         generateCrossIds(api);
         var apiId = api.getId();
         var authenticatedUser = userCrudService.getBaseUser(auditInfo.actor().userId());
-        var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS));
+        var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS, Excludable.IDS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 
         var promotionQuery = new PromotionQueryService.PromotionQuery(
