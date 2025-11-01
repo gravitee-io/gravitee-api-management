@@ -20,23 +20,21 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class GraviteeMarkdown extends PortalPageContent {
+public class PortalNavigationLink extends PortalNavigationItem {
 
     @Setter
     @Nonnull
-    private String content;
+    private String href;
 
-    public GraviteeMarkdown(@Nonnull PortalPageContentId id, @Nonnull String content) {
-        super(id);
-        this.content = content;
-    }
-
-    public static GraviteeMarkdown create(@Nonnull String content) {
-        return new GraviteeMarkdown(PortalPageContentId.random(), content);
-    }
-
-    @Override
-    public String toString() {
-        return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
+    public PortalNavigationLink(
+        @Nonnull PortalPageNavigationId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String title,
+        @Nonnull PortalArea area,
+        @Nonnull String href
+    ) {
+        super(id, organizationId, environmentId, title, area);
+        this.href = href;
     }
 }

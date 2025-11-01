@@ -57,7 +57,9 @@ import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
+import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -89,6 +91,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
@@ -147,6 +150,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     private static final String ERROR_ENV_ID = "error";
     private static final String SUBSCRIPTION_ID_1 = "subscription#1";
     private static final String SUBSCRIPTION_ID_2 = "subscription#2";
+    private static final String PAGE_CONTENT_ID = "page-content-id";
 
     @Mock
     private AccessPointRepository accessPointRepository;
@@ -284,6 +288,12 @@ public class DeleteEnvironmentCommandHandlerTest {
     private PortalPageContextRepository portalPageContextRepository;
 
     @Mock
+    private PortalPageContentRepository portalPageContentRepository;
+
+    @Mock
+    private PortalNavigationItemRepository portalNavigationItemRepository;
+
+    @Mock
     private PromotionRepository promotionRepository;
 
     @Mock
@@ -374,6 +384,22 @@ public class DeleteEnvironmentCommandHandlerTest {
         when(userRepository.findBySource(COCKPIT_SOURCE, COCKPIT_USER_ID, ORG_ID)).thenReturn(
             Optional.ofNullable(User.builder().id(RESOLVED_APIM_USER_ID).build())
         );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
+            List.of(
+                new PortalNavigationItem(
+                    "portal-nav-item-id",
+                    ORG_ID,
+                    ENV_ID,
+                    "title",
+                    PortalNavigationItem.Type.PAGE,
+                    PortalNavigationItem.Area.HOMEPAGE,
+                    null,
+                    13,
+                    "{\"pageId\":\"" + PAGE_CONTENT_ID + "\"}"
+                )
+            )
+        );
+
         cut = new DeleteEnvironmentCommandHandler(
             accessPointRepository,
             apiCategoryOrderRepository,
@@ -407,6 +433,8 @@ public class DeleteEnvironmentCommandHandlerTest {
             portalNotificationConfigRepository,
             portalPageRepository,
             portalPageContextRepository,
+            portalNavigationItemRepository,
+            portalPageContentRepository,
             promotionRepository,
             qualityRuleRepository,
             ratingAnswerRepository,
@@ -514,12 +542,58 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(portalMenuLinkRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageContextRepository).deleteByEnvironmentId(ENV_ID);
+
+        verify(portalPageContentRepository).delete(PAGE_CONTENT_ID);
+        verify(portalNavigationItemRepository).deleteByEnvironmentId(ENV_ID);
+
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
+    }
+
+    @Test
+    public void should_fail_when_portal_page_content_delete_throws() throws Exception {
+        org.mockito.Mockito.doThrow(new TechnicalException("delete failed")).when(portalPageContentRepository).delete(PAGE_CONTENT_ID);
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
+    }
+
+    @Test
+    public void should_skip_portal_page_content_delete_when_pageId_cannot_be_extracted() throws Exception {
+        // override navigation items to provide an item without pageId in configuration
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
+            List.of(
+                new PortalNavigationItem(
+                    "portal-nav-item-id",
+                    ORG_ID,
+                    ENV_ID,
+                    "title",
+                    PortalNavigationItem.Type.PAGE,
+                    PortalNavigationItem.Area.HOMEPAGE,
+                    null,
+                    13,
+                    "{}"
+                )
+            )
+        );
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
+
+        // page delete should not be invoked because no pageId could be extracted
+        org.mockito.Mockito.verify(portalPageContentRepository, org.mockito.Mockito.never()).delete(org.mockito.Mockito.anyString());
+        // navigation items should still be deleted
+        verify(portalNavigationItemRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     private void verifyDeleteApplications(ExecutionContext executionContext) throws TechnicalException {

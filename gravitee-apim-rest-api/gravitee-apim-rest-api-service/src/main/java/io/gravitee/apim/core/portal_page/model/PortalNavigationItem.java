@@ -15,65 +15,66 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import java.util.Objects;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
-public final class PortalPage {
+@Getter
+public abstract class PortalNavigationItem {
 
     @Nonnull
     private final PortalPageNavigationId id;
 
+    @Setter
     @Nonnull
-    private GraviteeMarkdown pageContent;
+    private String organizationId;
 
     @Setter
-    @Getter
-    private java.util.Date createdAt;
+    @Nonnull
+    private String environmentId;
 
     @Setter
-    @Getter
-    private java.util.Date updatedAt;
+    @Nonnull
+    private String title;
 
-    public PortalPage(@Nonnull PortalPageNavigationId id, @Nonnull GraviteeMarkdown pageContent) {
+    @Setter
+    @Nonnull
+    private PortalArea area;
+
+    @Setter
+    @Nullable
+    private Integer order;
+
+    protected PortalNavigationItem(
+        @Nonnull PortalPageNavigationId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String title,
+        @Nonnull PortalArea area
+    ) {
         this.id = id;
-        this.pageContent = pageContent;
-    }
-
-    public static PortalPage create(GraviteeMarkdown pageContent) {
-        return new PortalPage(PortalPageNavigationId.random(), pageContent);
+        this.organizationId = organizationId;
+        this.environmentId = environmentId;
+        this.title = title;
+        this.area = area;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PortalPage that = (PortalPage) o;
-        return id.equals(that.id) && pageContent.equals(that.pageContent);
-    }
-
-    @Nonnull
-    public PortalPageNavigationId getId() {
-        return id;
-    }
-
-    @Nonnull
-    public GraviteeMarkdown getPageContent() {
-        return pageContent;
+        PortalNavigationItem that = (PortalNavigationItem) o;
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pageContent);
+        return id.hashCode();
     }
 
     @Override
     public String toString() {
-        return "PortalPage[" + "id=" + id + ", " + "pageContent=" + pageContent + ']';
-    }
-
-    public void setContent(GraviteeMarkdown pageContent) {
-        this.pageContent = pageContent;
+        return "PortalNavigationItem[id=" + id + ", title=" + title + "]";
     }
 }

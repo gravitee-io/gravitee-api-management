@@ -13,30 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.model;
 
-import jakarta.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
-public class GraviteeMarkdown extends PortalPageContent {
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class PortalPageContent {
 
-    @Setter
-    @Nonnull
+    public enum Type {
+        GRAVITEE_MARKDOWN,
+    }
+
+    @EqualsAndHashCode.Include
+    private String id;
+
+    private Type type;
+
+    private String configuration;
+
     private String content;
-
-    public GraviteeMarkdown(@Nonnull PortalPageContentId id, @Nonnull String content) {
-        super(id);
-        this.content = content;
-    }
-
-    public static GraviteeMarkdown create(@Nonnull String content) {
-        return new GraviteeMarkdown(PortalPageContentId.random(), content);
-    }
-
-    @Override
-    public String toString() {
-        return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
-    }
 }

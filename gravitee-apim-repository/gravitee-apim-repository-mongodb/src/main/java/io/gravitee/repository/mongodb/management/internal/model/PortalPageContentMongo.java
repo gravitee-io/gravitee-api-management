@@ -13,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-import jakarta.annotation.Nonnull;
-import lombok.Getter;
-import lombok.Setter;
+import io.gravitee.repository.management.model.PortalPageContent;
+import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Getter
-public class GraviteeMarkdown extends PortalPageContent {
+@Data
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}portal_page_contents")
+public class PortalPageContentMongo {
 
-    @Setter
-    @Nonnull
+    private String id;
+    private PortalPageContent.Type type;
+    private String configuration;
     private String content;
-
-    public GraviteeMarkdown(@Nonnull PortalPageContentId id, @Nonnull String content) {
-        super(id);
-        this.content = content;
-    }
-
-    public static GraviteeMarkdown create(@Nonnull String content) {
-        return new GraviteeMarkdown(PortalPageContentId.random(), content);
-    }
-
-    @Override
-    public String toString() {
-        return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
-    }
 }
