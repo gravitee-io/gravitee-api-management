@@ -363,4 +363,57 @@ class LoggingHookTest {
         obs.assertComplete();
         verify(response, never()).setHeaders(any());
     }
+
+    @Test
+    void shouldCaptureEndpointResponseWhenExecutionFailureIsNull() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        LogEndpointResponse logEndpointResponse = mock(LogEndpointResponse.class);
+        log.setEndpointResponse(logEndpointResponse);
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(null);
+
+        TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
+
+        obs.assertComplete();
+        verify(logEndpointResponse).capture();
+    }
+
+    @Test
+    void shouldNotCaptureEndpointResponseWhenExecutionFailureIsNotNull() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        LogEndpointResponse logEndpointResponse = mock(LogEndpointResponse.class);
+        log.setEndpointResponse(logEndpointResponse);
+        ExecutionFailure executionFailure = new ExecutionFailure(500);
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(executionFailure);
+
+        TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
+
+        obs.assertComplete();
+        verify(logEndpointResponse, never()).capture();
+    }
+
+    @Test
+    void shouldNotCaptureEndpointResponseWhenExecutionFailureIsPresent() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        LogEndpointResponse logEndpointResponse = mock(LogEndpointResponse.class);
+        log.setEndpointResponse(logEndpointResponse);
+        ExecutionFailure executionFailure = new ExecutionFailure(502);
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(executionFailure);
+
+        TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
+
+        obs.assertComplete();
+        verify(logEndpointResponse, never()).capture();
+    }
 }
