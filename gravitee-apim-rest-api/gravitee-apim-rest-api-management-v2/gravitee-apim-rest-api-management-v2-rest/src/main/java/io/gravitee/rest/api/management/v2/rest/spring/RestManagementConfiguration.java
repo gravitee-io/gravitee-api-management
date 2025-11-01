@@ -19,6 +19,7 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -29,6 +30,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  */
 @Configuration
 @Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
+@ComponentScan(basePackages = { "io.gravitee.rest.api.management.v2.rest.mapper" })
 @EnableAsync
 public class RestManagementConfiguration {
 

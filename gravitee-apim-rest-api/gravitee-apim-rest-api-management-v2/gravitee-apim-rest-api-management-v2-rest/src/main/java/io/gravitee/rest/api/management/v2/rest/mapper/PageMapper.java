@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.mapstruct.Mapper;
@@ -52,10 +53,42 @@ public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
     ObjectMapper mapper = new GraviteeMapper();
 
-    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
-    Page mapPage(io.gravitee.apim.core.documentation.model.Page page);
+    @Mapping(target = "source", ignore = true)
+    Page mapPageInternal(io.gravitee.apim.core.documentation.model.Page page);
 
-    List<Page> mapPageList(List<io.gravitee.apim.core.documentation.model.Page> page);
+    default Page mapPage(io.gravitee.apim.core.documentation.model.Page page) {
+        Page mappedPage = mapPageInternal(page);
+        if (mappedPage != null && page != null && page.getSource() != null) {
+            PageSource pageSource = new PageSource();
+            pageSource.setType(page.getSource().getType());
+
+            // Use the masking service to mask sensitive fields in the configuration
+            PageSourceMaskingService maskingService = PageSourceMaskingService.getInstance();
+            if (maskingService == null) {
+                throw new TechnicalManagementException(
+                    "PageSourceMaskingService is not available. Cannot mask sensitive data in page source configuration."
+                );
+            }
+
+            Map<String, Object> maskedConfig = maskingService.maskSensitiveConfiguration(page.getSource());
+            if (maskedConfig != null && !maskedConfig.isEmpty()) {
+                pageSource.setConfiguration(maskedConfig);
+            } else {
+                // If masking returned null/empty, use regular deserialization as fallback
+                Object config = ConfigurationSerializationMapper.INSTANCE.deserializeConfiguration(page.getSource().getConfiguration());
+                pageSource.setConfiguration(config);
+            }
+            mappedPage.setSource(pageSource);
+        }
+        return mappedPage;
+    }
+
+    default List<Page> mapPageList(List<io.gravitee.apim.core.documentation.model.Page> pages) {
+        if (pages == null) {
+            return null;
+        }
+        return pages.stream().map(this::mapPage).toList();
+    }
 
     @Mapping(target = "name", source = "mediaName")
     @Mapping(target = "hash", source = "mediaHash")
