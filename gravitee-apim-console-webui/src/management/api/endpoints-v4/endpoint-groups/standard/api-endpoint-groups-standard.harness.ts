@@ -19,8 +19,8 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
-export class ApiEndpointGroupsHarness extends ComponentHarness {
-  static hostSelector = 'api-endpoint-groups';
+export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
+  static hostSelector = 'api-endpoint-groups-standard';
 
   private getDeleteEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoints group"]' }));
   private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));

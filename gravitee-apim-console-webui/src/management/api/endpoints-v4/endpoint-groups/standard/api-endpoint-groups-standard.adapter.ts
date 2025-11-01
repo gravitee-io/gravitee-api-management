@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4 } from '../../../../../entities/management-api-v2';
 
 export type EndpointGroup = {
   name: string;
@@ -28,6 +28,7 @@ export type Endpoint = {
     healthCheck: boolean;
   };
   weight: number;
+  configuration?: any;
 };
 
 export const toEndpoints = (api: ApiV4): EndpointGroup[] => {
@@ -53,6 +54,7 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
                 healthCheck: false, // TODO: check it somewhere in the group configuration
               },
               weight: endpoint.weight,
+              configuration: endpoint.configuration,
             }))
           : [],
     };
