@@ -1,0 +1,35 @@
+{
+    "size": 0,
+    "query": {
+      "bool": {
+        "filter": [
+          {
+            "range": {
+              "@timestamp": {
+                "gte": "now-1y"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "aggs": {
+      "APPLICATION": {
+        "terms": {
+          "field": "application-id",
+          "size": 5,
+          "order": {
+            "AVG": "desc" 
+          }
+        },
+        "aggs": {
+          "AVG": {
+            "avg": {
+              "field": "gateway-response-time-ms",
+              "missing": 0
+            }
+          }
+        }
+      }
+    }
+  }

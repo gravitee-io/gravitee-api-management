@@ -1,0 +1,53 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-1h"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "success_count": {
+      "filter": {
+        "range": {
+          "status": {
+            "gte": 100,
+            "lt": 400
+          }
+        }
+      },
+      "aggs": {
+        "count": {
+          "value_count": {
+            "field": "@timestamp"
+          }
+        }
+      }
+    },
+    "error_count": {
+      "filter": {
+        "range": {
+          "status": {
+            "gte": 400,
+            "lt": 500
+          }
+        }
+      },
+      "aggs": {
+        "count": {
+          "value_count": {
+            "field": "@timestamp"
+          }
+        }
+      }
+    }
+  }
+}
