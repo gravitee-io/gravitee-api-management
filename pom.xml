@@ -53,7 +53,7 @@
         <gravitee-bom.version>8.3.41</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.11.0</gravitee-cockpit-api.version>
-        <gravitee-cloud-initializer.version>2.1.1</gravitee-cloud-initializer.version>
+        <gravitee-cloud-initializer.version>2.2.0</gravitee-cloud-initializer.version>
         <gravitee-common.version>4.7.3</gravitee-common.version>
         <gravitee-common-mcp.version>1.0.0-alpha.1</gravitee-common-mcp.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
