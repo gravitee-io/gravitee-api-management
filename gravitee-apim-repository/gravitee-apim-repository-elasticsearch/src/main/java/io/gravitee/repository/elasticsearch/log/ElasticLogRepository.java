@@ -71,6 +71,8 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     @Autowired
     protected RepositoryConfiguration configuration;
 
+    private static final int MAX_RESULT_WINDOW = 10000;
+
     @Override
     public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {
         final Long from = query.timeRange().range().from();
@@ -89,8 +91,8 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             } else {
                 final TabularQuery logQuery = tabular()
                     .timeRange(query.timeRange().range(), query.timeRange().interval())
-                    .page(query.page())
-                    .size(query.size())
+                    .page(1)
+                    .size(MAX_RESULT_WINDOW)
                     .query(logQueryString)
                     .build();
                 final String sQuery = this.createElasticsearchJsonQuery(logQuery);
@@ -114,7 +116,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     final String requestQuery = isEmpty(queryString) ? logIdsQuery : format("(%s) AND (%s)", queryString, logIdsQuery);
                     final TabularQueryBuilder requestQueryBuilder = tabular()
                         .timeRange(query.timeRange().range(), query.timeRange().interval())
-                        .page(1)
+                        .page(query.page())
                         .size(query.size())
                         .sort(query.sort())
                         .query(requestQuery);
@@ -129,12 +131,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 }
 
                 SearchResponse searchResponseRequest = result.blockingGet();
-                return this.toTabularResponse(
-                    searchResponseRequest,
-                    searchResponseRequest.getSearchHits().getTotal().getValue() == query.size() || query.page() > 1
-                        ? searchResponseLog.getSearchHits().getTotal().getValue()
-                        : searchResponseRequest.getSearchHits().getTotal().getValue()
-                );
+                return this.toTabularResponse(searchResponseRequest, searchResponseRequest.getSearchHits().getTotal().getValue());
             }
         } catch (final Exception eex) {
             logger.error("Impossible to perform log request", eex);
