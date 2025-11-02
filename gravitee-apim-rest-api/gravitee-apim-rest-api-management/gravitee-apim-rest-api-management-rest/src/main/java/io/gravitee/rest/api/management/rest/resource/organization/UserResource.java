@@ -47,6 +47,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines the REST resources to manage Users.
@@ -59,6 +61,8 @@ import java.util.Set;
  */
 @Tag(name = "Users")
 public class UserResource extends AbstractResource {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
 
     @Context
     private ResourceContext resourceContext;
@@ -120,31 +124,31 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
-    public List<UserGroupEntity> getUserGroups() {
+    public List<UserGroupEntity> getUserGroups(@QueryParam("environmentId") String environmentId) {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
+        LOGGER.debug("Search groups for user: {} with query: {}", userId, environmentId);
+        Set<GroupEntity> groups = groupService.findByUserAndEnvironment(userId, environmentId);
+        List<UserGroupEntity> result = new ArrayList<>();
+        groups.forEach(groupEntity -> {
+            UserGroupEntity userGroupEntity = new UserGroupEntity();
+            userGroupEntity.setId(groupEntity.getId());
+            userGroupEntity.setName(groupEntity.getName());
+            userGroupEntity.setRoles(new HashMap<>());
+            userGroupEntity.setEnvironmentId(groupEntity.getEnvironmentId());
+            Set<RoleEntity> roles = membershipService.getRoles(
+                MembershipReferenceType.GROUP,
+                groupEntity.getId(),
+                MembershipMemberType.USER,
+                userId
+            );
+            if (!roles.isEmpty()) {
+                roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
+            }
+            result.add(userGroupEntity);
+        });
 
-        List<UserGroupEntity> groups = new ArrayList<>();
-        groupService
-            .findByUser(userId)
-            .forEach(groupEntity -> {
-                UserGroupEntity userGroupEntity = new UserGroupEntity();
-                userGroupEntity.setId(groupEntity.getId());
-                userGroupEntity.setName(groupEntity.getName());
-                userGroupEntity.setRoles(new HashMap<>());
-                Set<RoleEntity> roles = membershipService.getRoles(
-                    MembershipReferenceType.GROUP,
-                    groupEntity.getId(),
-                    MembershipMemberType.USER,
-                    userId
-                );
-                if (!roles.isEmpty()) {
-                    roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
-                }
-                groups.add(userGroupEntity);
-            });
-
-        return groups;
+        return result;
     }
 
     @GET
