@@ -26,6 +26,7 @@ public class UserGroupEntity {
     private String id;
     private String name;
     private Map<String, String> roles;
+    private String environmentId;
 
     public String getId() {
         return id;
@@ -49,5 +50,13 @@ public class UserGroupEntity {
 
     public void setRoles(Map<String, String> roles) {
         this.roles = roles;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 }
