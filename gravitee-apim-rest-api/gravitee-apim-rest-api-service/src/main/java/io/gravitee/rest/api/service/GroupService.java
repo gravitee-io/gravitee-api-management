@@ -50,6 +50,7 @@ public interface GroupService {
     List<GroupEntity> findByName(final String environmentId, String name);
 
     Set<GroupEntity> findByUser(String username);
+    Set<GroupEntity> findByUserAndEnvironment(String username, String environmentId);
     List<ApiEntity> getApis(final String environmentId, String groupId);
     List<ApplicationEntity> getApplications(String groupId);
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);
