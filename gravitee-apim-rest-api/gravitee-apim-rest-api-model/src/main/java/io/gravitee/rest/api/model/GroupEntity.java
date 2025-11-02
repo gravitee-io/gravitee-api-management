@@ -83,4 +83,6 @@ public class GroupEntity {
     private boolean primaryOwner;
 
     private String origin = OriginContext.Origin.MANAGEMENT.name();
+
+    private String environmentId;
 }
