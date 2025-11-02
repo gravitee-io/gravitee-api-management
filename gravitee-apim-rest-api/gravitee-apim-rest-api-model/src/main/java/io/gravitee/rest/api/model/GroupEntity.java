@@ -80,4 +80,6 @@ public class GroupEntity {
 
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
+
+    private String environmentId;
 }
