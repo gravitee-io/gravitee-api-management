@@ -914,6 +914,34 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
+    public Set<GroupEntity> findByUserAndEnvironment(String user, String environmentId) {
+        Set<String> userGroups = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, user, MembershipReferenceType.GROUP)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(Collectors.toSet());
+
+        try {
+            Set<Group> allGroups = groupRepository.findByIds(userGroups);
+            Set<GroupEntity> filteredGroups = allGroups
+                .stream()
+                .filter(group -> environmentId == null || environmentId.equals(group.getEnvironmentId()))
+                .map(this::map)
+                .collect(Collectors.toSet());
+
+            logger.debug(
+                "After filtering by environment '{}': {} groups remain: {}",
+                environmentId,
+                filteredGroups.size(),
+                filteredGroups.stream().map(GroupEntity::getName).collect(Collectors.toList())
+            );
+            return filteredGroups;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find user groups for environment " + environmentId, ex);
+        }
+    }
+
+    @Override
     public List<ApiEntity> getApis(final String environmentId, String groupId) {
         return apiRepository
             .search(new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(), null, ApiFieldFilter.defaultFields())
@@ -1066,6 +1094,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setEmailInvitation(group.isEmailInvitation());
         entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
         entity.setOrigin(group.getOrigin());
+        entity.setEnvironmentId(group.getEnvironmentId());
 
         return entity;
     }
