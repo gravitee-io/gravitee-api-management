@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.domain_service;
+package io.gravitee.apim.infra.domain_service.documentation;
 
-import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.Sensitive;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
+@Getter
+@Setter
+@AllArgsConstructor
+public class DummyFetcherConfiguration implements FetcherConfiguration {
 
-public interface PageSourceDomainService {
-    void setContentFromSource(Page page);
+    private String nonSensitiveData;
 
-    void removeSensitiveData(Page page);
+    @Sensitive
+    private String sensitiveData;
 }
