@@ -23,6 +23,8 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
     List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
         throws TechnicalException;
 
+    List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) throws TechnicalException;
+
     List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
         throws TechnicalException;
 

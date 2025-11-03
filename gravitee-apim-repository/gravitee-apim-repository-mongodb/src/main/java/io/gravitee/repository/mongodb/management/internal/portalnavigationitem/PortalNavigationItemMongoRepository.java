@@ -28,6 +28,8 @@ import org.springframework.stereotype.Repository;
 public interface PortalNavigationItemMongoRepository extends MongoRepository<PortalNavigationItemMongo, String> {
     Set<PortalNavigationItemMongo> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId);
 
+    Set<PortalNavigationItemMongo> findAllByParentIdAndEnvironmentId(String parentId, String environmentId);
+
     Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId);
 
     @Nonnull

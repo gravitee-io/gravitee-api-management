@@ -64,6 +64,21 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findAllByParentIdAndEnvironmentId({}, {})", parentId, environmentId);
+        try {
+            final String sql =
+                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
+                this.tableName +
+                " where parent_id = ? and environment_id = ?";
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), parentId, environmentId);
+        } catch (Exception ex) {
+            log.error("Failed to find portal navigation items by parentId", ex);
+            throw new TechnicalException("Failed to find portal navigation items by parentId", ex);
+        }
+    }
+
+    @Override
     public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
         throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentId({}, {})", area, environmentId);
