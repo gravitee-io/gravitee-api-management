@@ -16,18 +16,18 @@
 package io.gravitee.apim.infra.domain_service.documentation;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
-import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,7 @@ class PageSourceDomainServiceImplTest {
     @Test
     void should_not_fetch_content_if_no_plugin() {
         when(pluginManager.get(any())).thenReturn(null);
-        cut.setContentFromSource(Page.builder().source(httpSource()).build());
+        cut.setContentFromSource(Page.builder().source(dummySource()).build());
         verifyNoInteractions(fetcherConfigurationFactory, applicationContext);
     }
 
@@ -75,21 +75,39 @@ class PageSourceDomainServiceImplTest {
     @SuppressWarnings("unchecked")
     void should_report_build_fetcher_error() {
         var error = assertThrows(TechnicalDomainException.class, () -> {
-            when(pluginManager.get("http-fetcher")).thenReturn(fetcherPlugin);
-            cut.setContentFromSource(Page.builder().source(httpSource()).build());
+            when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+            cut.setContentFromSource(Page.builder().source(dummySource()).build());
         });
         assertThat(error).hasMessage("unable to build fetcher instance");
     }
 
-    private static PageSource httpSource() {
+    @Test
+    void should_remove_sensitive_data() throws JsonProcessingException {
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
+            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
+        );
+        when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
+        when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
+        when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(
+            new DummyFetcherConfiguration("I'm not a sensitive data", "I'm a sensitive data, I should be masked")
+        );
+        Page page = Page.builder().source(dummySource()).build();
+        cut.removeSensitiveData(page);
+        JsonNode configuration = new ObjectMapper().readTree(page.getSource().getConfiguration());
+        assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT);
+        assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo("I'm not a sensitive data");
+    }
+
+    private static PageSource dummySource() {
         return PageSource.builder()
-            .type("http-fetcher")
+            .type("dummy-fetcher")
             .configuration(
                 """
                 {
-                   "autoFetch" : true,
-                   "fetchCron" : "*/10 * * * * *",
-                   "url" : "https://raw.githubusercontent.com/a-cordier/hands-on-gko/main/README.md"
+                   "sensitiveData" : I'm a sensitive data, I should be masked,
+                   "nonSensitiveData" : "I'm not a sensitive data"
                 }
                 """
             )
