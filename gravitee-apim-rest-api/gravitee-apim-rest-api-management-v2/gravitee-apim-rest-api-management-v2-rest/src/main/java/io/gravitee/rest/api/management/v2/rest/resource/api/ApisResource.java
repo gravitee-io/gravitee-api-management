@@ -38,7 +38,6 @@ import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
-import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -157,20 +156,8 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final CreateApiV4 api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
-        var executionContext = GraviteeContext.getExecutionContext();
-        var userDetails = getAuthenticatedUserDetails();
+        AuditInfo audit = getAuditInfo();
 
-        AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
         var createdApi = api.getType() == ApiType.NATIVE
             ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
             : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
@@ -217,23 +204,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApiWithCRD(@Valid ApiCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var userDetails = getAuthenticatedUserDetails();
-
-        var input = new ImportApiCRDUseCase.Input(
-            AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build(),
-            ApiMapper.INSTANCE.map(crd)
-        );
+        var input = new ImportApiCRDUseCase.Input(getAuditInfo(), ApiMapper.INSTANCE.map(crd));
 
         return dryRun
             ? Response.ok(validateApiCRDUseCase.execute(input).status()).build()
@@ -246,19 +217,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApiFromSwagger(@Valid @NotNull ImportSwaggerDescriptor descriptor) {
         try {
-            var userDetails = getAuthenticatedUserDetails();
-            var executionContext = GraviteeContext.getExecutionContext();
-            var audit = AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build();
+            var audit = getAuditInfo();
             var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
                 .payload(descriptor.getPayload())
                 .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
@@ -294,19 +253,7 @@ public class ApisResource extends AbstractResource {
         ImportDefinition importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(apiToImport);
 
         try {
-            var userDetails = getAuthenticatedUserDetails();
-            var executionContext = GraviteeContext.getExecutionContext();
-            var audit = AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build();
+            var audit = getAuditInfo();
             ImportApiDefinitionUseCase.Output output = importApiDefinitionUseCase.execute(
                 new ImportApiDefinitionUseCase.Input(importDefinition, audit)
             );
