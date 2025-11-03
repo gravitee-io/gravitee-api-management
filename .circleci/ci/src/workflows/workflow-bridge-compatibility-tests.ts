@@ -63,9 +63,10 @@ export class BridgeCompatibilityTestsWorkflow {
           database: ['bridge'],
           apim_client_tag: [
             '4.7.x-latest',
+            'graviteeio@4.7.0',
             '4.6.x-latest',
             'graviteeio@4.6.0',
-            '4.5.x-latest',
+            'graviteeio@4.5',
             'graviteeio@4.5.0',
             'graviteeio@4.4',
             'graviteeio@4.4.2',
