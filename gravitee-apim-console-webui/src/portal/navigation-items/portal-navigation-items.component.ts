@@ -24,9 +24,9 @@ import { PortalHeaderComponent } from '../components/header/portal-header.compon
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
-  selector: 'portal-top-bar',
-  templateUrl: './portal-top-bar.component.html',
-  styleUrls: ['./portal-top-bar.component.scss'],
+  selector: 'portal-navigation-items',
+  templateUrl: './portal-navigation-items.component.html',
+  styleUrls: ['./portal-navigation-items.component.scss'],
   imports: [
     PortalHeaderComponent,
     GraviteeMarkdownEditorModule,
@@ -36,7 +36,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
     MatButton,
   ],
 })
-export class PortalTopBarComponent {
+export class PortalNavigationItemsComponent {
   contentControl = new FormControl({
     value: '',
     disabled: true,

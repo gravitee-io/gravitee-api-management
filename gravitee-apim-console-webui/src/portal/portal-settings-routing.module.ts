@@ -19,7 +19,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
 import { PortalBannerComponent } from './banner/portal-banner.component';
 import { PortalThemeComponent } from './theme/portal-theme.component';
-import { PortalTopBarComponent } from './top-bar/portal-top-bar.component';
+import { PortalNavigationItemsComponent } from './navigation-items/portal-navigation-items.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
 import { CategoryCatalogComponent } from './catalog/category/category.component';
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
@@ -39,8 +39,8 @@ const portalRoutes: Routes = [
     canActivateChild: [HasLicenseGuard, PermissionGuard.checkRouteDataPermissions],
     children: [
       {
-        path: 'top-bar',
-        component: PortalTopBarComponent,
+        path: 'navigation',
+        component: PortalNavigationItemsComponent,
         data: {
           permissions: {
             anyOf: ['environment-settings-r', 'environment-settings-u'],
@@ -125,7 +125,7 @@ const portalRoutes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'top-bar',
+        redirectTo: 'navigation',
       },
     ],
   },
