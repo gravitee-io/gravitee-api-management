@@ -73,6 +73,10 @@
 			<version>${project.version}</version>
 		</dependency>
         <dependency>
+            <groupId>io.gravitee.fetcher</groupId>
+            <artifactId>gravitee-fetcher-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
         </dependency>

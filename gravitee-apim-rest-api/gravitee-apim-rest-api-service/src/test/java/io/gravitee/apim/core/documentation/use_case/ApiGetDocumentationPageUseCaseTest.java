@@ -18,16 +18,22 @@ package io.gravitee.apim.core.documentation.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
+import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.infra.domain_service.documentation.PageSourceDomainServiceImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.List;
@@ -41,6 +47,7 @@ class ApiGetDocumentationPageUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     private ApiGetDocumentationPageUseCase useCase;
     private static final String API_ID = "api-id";
     private static final String PAGE_ID = "page-id";
@@ -48,7 +55,12 @@ class ApiGetDocumentationPageUseCaseTest {
     @BeforeEach
     void setUp() {
         ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService);
-        useCase = new ApiGetDocumentationPageUseCase(apiDocumentationDomainService, apiCrudService, pageCrudService);
+        useCase = new ApiGetDocumentationPageUseCase(
+            apiDocumentationDomainService,
+            pageSourceDomainService,
+            apiCrudService,
+            pageCrudService
+        );
     }
 
     @AfterEach
@@ -203,6 +215,20 @@ class ApiGetDocumentationPageUseCaseTest {
         );
     }
 
+    @Test
+    void should_return_fetched_page_without_sensitive_data() throws JsonProcessingException {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).source(githubSource()).build())
+        );
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        String configuration = res.getSource().getConfiguration();
+        JsonNode jsonConfiguration = new ObjectMapper().readTree(configuration);
+        assertThat(jsonConfiguration.get("personalAccessToken").textValue()).isEqualTo(
+            PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+        );
+    }
+
     private void initPageServices(List<Page> pages) {
         pageCrudService.initWith(pages);
         pageQueryService.initWith(pages);
@@ -210,5 +236,18 @@ class ApiGetDocumentationPageUseCaseTest {
 
     private void initApiServices(List<Api> apis) {
         apiCrudService.initWith(apis);
+    }
+
+    private static PageSource githubSource() {
+        return PageSource.builder()
+            .type("github-fetcher")
+            .configuration(
+                """
+                {
+                   "personalAccessToken" : I'm a sensitive data
+                }
+                """
+            )
+            .build();
     }
 }
