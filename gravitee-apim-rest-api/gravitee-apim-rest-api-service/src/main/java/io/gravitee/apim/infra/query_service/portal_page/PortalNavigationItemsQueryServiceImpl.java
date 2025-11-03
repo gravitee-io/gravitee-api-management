@@ -83,13 +83,8 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
                 case HOMEPAGE -> io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
                 case TOP_NAVBAR -> io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
             };
-            var results = portalNavigationItemRepository.findAllByAreaAndEnvironmentId(area, environmentId);
-            // Filter for top level, i.e., parentId is null
-            return results
-                .stream()
-                .filter(item -> item.getParentId() == null)
-                .map(portalNavigationItemAdapter::toEntity)
-                .collect(Collectors.toList());
+            var results = portalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
                 "An error occurred while finding top level portal navigation items by environmentId %s and area %s",

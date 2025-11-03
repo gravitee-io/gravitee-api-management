@@ -92,6 +92,22 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId)
+        throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull({}, {})", area, environmentId);
+        try {
+            final String sql =
+                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
+                this.tableName +
+                " where area = ? and environment_id = ? and parent_id is null";
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
+        } catch (Exception ex) {
+            log.error("Failed to find top level portal navigation items by area", ex);
+            throw new TechnicalException("Failed to find top level portal navigation items by area", ex);
+        }
+    }
+
+    @Override
     public void deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.deleteByOrganizationId({})", organizationId);
         try {

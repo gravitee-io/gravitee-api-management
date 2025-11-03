@@ -30,6 +30,8 @@ public interface PortalNavigationItemMongoRepository extends MongoRepository<Por
 
     Set<PortalNavigationItemMongo> findAllByParentIdAndEnvironmentId(String parentId, String environmentId);
 
+    Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId);
+
     Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId);
 
     @Nonnull

@@ -73,6 +73,13 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId) {
+        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}] and parentId is null", area, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
+        return items.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
     public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
         log.debug("Create PortalNavigationItem [{}]", item.getId());
         PortalNavigationItemMongo created = internalRepo.insert(mapper.map(item));
