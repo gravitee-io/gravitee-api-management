@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -29,15 +30,18 @@ import java.util.stream.Stream;
 public class ApiGetDocumentationPagesUseCase {
 
     private final ApiDocumentationDomainService apiDocumentationDomainService;
+    private final PageSourceDomainService pageSourceDomainService;
     private final ApiCrudService apiCrudService;
     private final PageCrudService pageCrudService;
 
     public ApiGetDocumentationPagesUseCase(
         ApiDocumentationDomainService apiDocumentationDomainService,
+        PageSourceDomainService pageSourceDomainService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService
     ) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
+        this.pageSourceDomainService = pageSourceDomainService;
         this.apiCrudService = apiCrudService;
         this.pageCrudService = pageCrudService;
     }
@@ -73,6 +77,7 @@ public class ApiGetDocumentationPagesUseCase {
             )
             .toList();
 
+        pages.forEach(this.pageSourceDomainService::removeSensitiveData);
         return new Output(pages, breadcrumbList);
     }
 
