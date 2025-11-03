@@ -23,7 +23,6 @@ import java.sql.Types;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -47,45 +46,14 @@ public class JdbcPortalPageContentRepository
     }
 
     @Override
-    protected RowMapper<PortalPageContent> getRowMapper() {
-        return (rs, rowNum) -> {
-            PortalPageContent item = new PortalPageContent();
-            getOrm().setFromResultSet(item, rs);
-            return item;
-        };
-    }
-
-    @Override
-    public PortalPageContent create(PortalPageContent item) throws TechnicalException {
-        log.debug("JdbcPortalPageContentRepository.create({})", item.getId());
-        try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
-            return this.findById(item.getId()).orElse(null);
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to create portal page content", e);
-        }
-    }
-
-    @Override
     public List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException {
         log.debug("JdbcPortalPageContentRepository.findAllByType({})", type);
         try {
-            final String sql = "select id, type, configuration, content from " + this.tableName + " where type = ?";
+            final String sql = getOrm().getSelectAllSql() + " where type = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), type.name());
         } catch (Exception ex) {
             log.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
-        }
-    }
-
-    @Override
-    public void deleteByType(PortalPageContent.Type type) throws TechnicalException {
-        log.debug("JdbcPortalPageContentRepository.deleteByType({})", type);
-        try {
-            jdbcTemplate.update("delete from " + this.tableName + " where type = ?", type.name());
-        } catch (Exception ex) {
-            log.error("Failed to delete portal page contents by type", ex);
-            throw new TechnicalException("Failed to delete portal page contents by type", ex);
         }
     }
 

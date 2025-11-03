@@ -27,7 +27,7 @@ public class PortalPageContentTypeIndexUpgrader extends IndexUpgrader {
         return Index.builder()
             .collection("portal_page_contents")
             .key("type", ascending())
-            .name("portal_page_contents_type_idx")
+            .name("t1")
             .build();
     }
 }

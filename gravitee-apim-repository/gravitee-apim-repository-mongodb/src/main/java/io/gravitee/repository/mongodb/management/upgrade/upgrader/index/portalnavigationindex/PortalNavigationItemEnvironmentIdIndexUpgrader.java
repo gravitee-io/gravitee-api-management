@@ -27,7 +27,7 @@ public class PortalNavigationItemEnvironmentIdIndexUpgrader extends IndexUpgrade
         return Index.builder()
             .collection("portal_navigation_items")
             .key("environmentId", ascending())
-            .name("portal_navigation_items_environment_idx")
+            .name("e1")
             .build();
     }
 }

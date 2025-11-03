@@ -21,6 +21,4 @@ import java.util.List;
 
 public interface PortalPageContentRepository extends CrudRepository<PortalPageContent, String> {
     List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException;
-
-    void deleteByType(PortalPageContent.Type type) throws TechnicalException;
 }

@@ -27,7 +27,7 @@ public class PortalNavigationLink extends PortalNavigationItem {
     private String href;
 
     public PortalNavigationLink(
-        @Nonnull PortalPageNavigationId id,
+        @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,

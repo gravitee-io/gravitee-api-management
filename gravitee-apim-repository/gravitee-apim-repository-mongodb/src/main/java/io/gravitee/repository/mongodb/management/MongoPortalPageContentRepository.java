@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.model.PortalPageContent;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContentMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpagecontent.PortalPageContentMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,11 +38,14 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     @Autowired
     private PortalPageContentMongoRepository internalRepo;
 
+    @Autowired
+    private GraviteeMapper mapper;
+
     @Override
     public List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException {
         try {
             Set<PortalPageContentMongo> results = internalRepo.findAllByType(type);
-            return results.stream().map(this::map).collect(Collectors.toList());
+            return results.stream().map(mapper::map).collect(Collectors.toList());
         } catch (Exception ex) {
             logger.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
@@ -51,7 +55,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     @Override
     public java.util.Optional<PortalPageContent> findById(String id) throws TechnicalException {
         try {
-            return internalRepo.findById(id).map(this::map);
+            return internalRepo.findById(id).map(mapper::map);
         } catch (Exception ex) {
             logger.error("Failed to find portal page content by id", ex);
             throw new TechnicalException("Failed to find portal page content by id", ex);
@@ -61,8 +65,8 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     @Override
     public PortalPageContent create(PortalPageContent item) throws TechnicalException {
         try {
-            PortalPageContentMongo created = internalRepo.insert(map(item));
-            return map(created);
+            PortalPageContentMongo created = internalRepo.insert(mapper.map(item));
+            return mapper.map(created);
         } catch (Exception ex) {
             logger.error("Failed to create portal page content", ex);
             throw new TechnicalException("Failed to create portal page content", ex);
@@ -72,8 +76,8 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     @Override
     public PortalPageContent update(PortalPageContent item) throws TechnicalException {
         try {
-            PortalPageContentMongo saved = internalRepo.save(map(item));
-            return map(saved);
+            PortalPageContentMongo saved = internalRepo.save(mapper.map(item));
+            return mapper.map(saved);
         } catch (Exception ex) {
             logger.error("Failed to update portal page content", ex);
             throw new TechnicalException("Failed to update portal page content", ex);
@@ -91,41 +95,13 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
     }
 
     @Override
-    public void deleteByType(PortalPageContent.Type type) throws TechnicalException {
-        try {
-            internalRepo.deleteByType(type);
-        } catch (Exception ex) {
-            logger.error("Failed to delete portal page contents by type", ex);
-            throw new TechnicalException("Failed to delete portal page contents by type", ex);
-        }
-    }
-
-    @Override
     public java.util.Set<PortalPageContent> findAll() throws TechnicalException {
         try {
             java.util.List<PortalPageContentMongo> results = internalRepo.findAll();
-            return results.stream().map(this::map).collect(Collectors.toSet());
+            return results.stream().map(mapper::map).collect(Collectors.toSet());
         } catch (Exception ex) {
             logger.error("Failed to find all portal page contents", ex);
             throw new TechnicalException("Failed to find all portal page contents", ex);
         }
-    }
-
-    private PortalPageContent map(PortalPageContentMongo mongo) {
-        PortalPageContent p = new PortalPageContent();
-        p.setId(mongo.getId());
-        p.setType(mongo.getType());
-        p.setConfiguration(mongo.getConfiguration());
-        p.setContent(mongo.getContent());
-        return p;
-    }
-
-    private PortalPageContentMongo map(PortalPageContent item) {
-        PortalPageContentMongo mongo = new PortalPageContentMongo();
-        mongo.setId(item.getId());
-        mongo.setType(item.getType());
-        mongo.setConfiguration(item.getConfiguration());
-        mongo.setContent(item.getContent());
-        return mongo;
     }
 }

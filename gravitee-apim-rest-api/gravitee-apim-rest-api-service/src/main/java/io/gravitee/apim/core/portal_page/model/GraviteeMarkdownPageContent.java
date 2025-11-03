@@ -16,5 +16,27 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
 
-public record PortalPageWithViewDetails(@Nonnull PortalPage page, @Nonnull PortalPageView viewDetails) {}
+@Getter
+public class GraviteeMarkdownPageContent extends PortalPageContent {
+
+    @Setter
+    @Nonnull
+    private String content;
+
+    public GraviteeMarkdownPageContent(@Nonnull PortalPageContentId id, @Nonnull String content) {
+        super(id);
+        this.content = content;
+    }
+
+    public static GraviteeMarkdownPageContent create(@Nonnull String content) {
+        return new GraviteeMarkdownPageContent(PortalPageContentId.random(), content);
+    }
+
+    @Override
+    public String toString() {
+        return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
+    }
+}

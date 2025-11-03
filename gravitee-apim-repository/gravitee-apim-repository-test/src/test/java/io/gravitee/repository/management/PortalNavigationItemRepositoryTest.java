@@ -94,4 +94,42 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         var maybeFound = portalNavigationItemRepository.findById(item.getId());
         assertThat(maybeFound).isEmpty();
     }
+
+    @Test
+    public void should_update_navigation_item() throws Exception {
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("update-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Original Title")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .configuration("{ \"url\": \"https://original.com\" }")
+            .build();
+
+        PortalNavigationItem created = portalNavigationItemRepository.create(item);
+        assertThat(created).isNotNull();
+        assertThat(created.getTitle()).isEqualTo("Original Title");
+
+        PortalNavigationItem updatedItem = PortalNavigationItem.builder()
+            .id("update-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Updated Title")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(2)
+            .configuration("{ \"url\": \"https://updated.com\" }")
+            .build();
+
+        PortalNavigationItem updated = portalNavigationItemRepository.update(updatedItem);
+        assertThat(updated).isNotNull();
+        assertThat(updated.getId()).isEqualTo("update-nav-item");
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getOrder()).isEqualTo(2);
+        assertThat(updated.getConfiguration()).isEqualTo("{ \"url\": \"https://updated.com\" }");
+
+        portalNavigationItemRepository.delete("update-nav-item");
+    }
 }
