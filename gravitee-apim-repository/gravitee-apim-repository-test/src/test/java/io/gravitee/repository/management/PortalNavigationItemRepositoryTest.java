@@ -56,6 +56,18 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_find_all_top_level_navigation_items_for_area_and_env() throws Exception {
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(
+            PortalNavigationItem.Area.HOMEPAGE,
+            "env-1"
+        );
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getId()).isEqualTo("nav-item-1");
+    }
+
+    @Test
     public void should_delete_all_navigation_items_for_organization() throws Exception {
         portalNavigationItemRepository.deleteByOrganizationId("org-1");
 
