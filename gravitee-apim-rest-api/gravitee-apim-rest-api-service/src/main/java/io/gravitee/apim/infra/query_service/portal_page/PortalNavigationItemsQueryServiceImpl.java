@@ -63,12 +63,8 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
     @Override
     public Collection<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalPageNavigationId parentId) {
         try {
-            var results = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(null, environmentId);
-            return results
-                .stream()
-                .filter(item -> parentId.json().equals(item.getParentId()))
-                .map(portalNavigationItemAdapter::toEntity)
-                .collect(Collectors.toList());
+            var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(parentId.json(), environmentId);
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
                 "An error occurred while finding portal navigation items by parentId %s and environmentId %s",

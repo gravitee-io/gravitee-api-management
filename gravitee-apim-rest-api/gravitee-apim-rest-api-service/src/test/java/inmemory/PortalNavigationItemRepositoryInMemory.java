@@ -49,6 +49,18 @@ public class PortalNavigationItemRepositoryInMemory implements InMemoryAlternati
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) {
+        return storage
+            .stream()
+            .filter(
+                item ->
+                    ((parentId == null && item.getParentId() == null) || (parentId != null && parentId.equals(item.getParentId()))) &&
+                    environmentId.equals(item.getEnvironmentId())
+            )
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
         return storage
             .stream()

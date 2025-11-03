@@ -37,9 +37,10 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("org-1", "env-1");
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(2);
+        assertThat(items).hasSize(3);
         assertThat(items).anyMatch(i -> "nav-item-1".equals(i.getId()));
         assertThat(items).anyMatch(i -> "nav-item-2".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "nav-item-3".equals(i.getId()));
     }
 
     @Test
@@ -92,6 +93,15 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         portalNavigationItemRepository.delete(item.getId());
         var maybeFound = portalNavigationItemRepository.findById(item.getId());
         assertThat(maybeFound).isEmpty();
+    }
+
+    @Test
+    public void should_find_all_navigation_items_for_parent_id_and_environment() throws Exception {
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId("nav-item-1", "env-1");
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(1);
+        assertThat(items.getFirst().getId()).isEqualTo("nav-item-3");
     }
 
     @Test
