@@ -63,11 +63,5 @@ public class ListPortalNavigationItemsUseCase {
 
     public record Output(List<PortalNavigationItem> items) {}
 
-    public record Input(
-        String environmentId,
-        String organizationId,
-        PortalArea portalArea,
-        Optional<PortalPageNavigationId> parentId,
-        boolean loadChildren
-    ) {}
+    public record Input(String environmentId, PortalArea portalArea, Optional<PortalPageNavigationId> parentId, boolean loadChildren) {}
 }

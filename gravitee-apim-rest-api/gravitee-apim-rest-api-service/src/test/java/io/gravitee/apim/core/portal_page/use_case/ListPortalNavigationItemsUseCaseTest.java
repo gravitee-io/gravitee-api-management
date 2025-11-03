@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ListPortalNavigationItemsUseCaseTest {
 
-    private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";
     private static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -51,9 +50,7 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data for APIs, Guides, Support
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(ENV_ID, ORG_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true)
-        );
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true));
 
         // Then
         assertThat(result.items())
@@ -71,7 +68,6 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
-                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalPageNavigationId.of(APIS_ID)),
                 false
@@ -92,13 +88,7 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // When
         var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
-                ENV_ID,
-                ORG_ID,
-                PortalArea.TOP_NAVBAR,
-                Optional.of(PortalPageNavigationId.of(APIS_ID)),
-                true
-            )
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(PortalPageNavigationId.of(APIS_ID)), true)
         );
 
         // Then
