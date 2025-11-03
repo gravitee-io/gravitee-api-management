@@ -48,14 +48,17 @@ public class CreateHttpApiUseCase {
         this.createApiDomainService = createApiDomainService;
     }
 
-    public record Input(NewHttpApi newHttpApi, AuditInfo auditInfo) {}
+    public record Input(NewHttpApi newHttpApi, AuditInfo auditInfo) {
+        public Input {
+            if (newHttpApi == null || !SUPPORTED_API_TYPES.contains(newHttpApi.getType())) {
+                throw new ApiInvalidTypeException(SUPPORTED_API_TYPES);
+            }
+        }
+    }
 
     public record Output(ApiWithFlows api) {}
 
     public Output execute(Input input) {
-        if (input.newHttpApi == null || !SUPPORTED_API_TYPES.contains(input.newHttpApi.getType())) {
-            throw new ApiInvalidTypeException(List.of(ApiType.PROXY, ApiType.MESSAGE));
-        }
         var auditInfo = input.auditInfo;
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
