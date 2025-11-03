@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.infra.domain_service.documentation.PageSourceDomainServiceImpl;
 import java.util.Map;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -33,6 +34,20 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
     public void setContentFromSource(Page page) {
         if (page.getSource() != null) {
             page.setContent(MARKDOWN);
+        }
+    }
+
+    @Override
+    public void removeSensitiveData(Page page) {
+        if (page.getSource() != null && page.getSource().getConfiguration() != null) {
+            page
+                .getSource()
+                .setConfiguration(
+                    page
+                        .getSource()
+                        .getConfiguration()
+                        .replace("I'm a sensitive data", "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"")
+                );
         }
     }
 }
