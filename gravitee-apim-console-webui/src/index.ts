@@ -98,8 +98,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
     })
     .catch((error) => {
       document.getElementById('gravitee-error').style.display = 'block';
-      document.getElementById('gravitee-error-banner-message').innerText =
-        error.message ?? 'Management API unreachable or error occurs, please check logs';
+      document.getElementById('gravitee-error-banner-message').innerText = 'Management API unreachable or error occurs, please check logs';
       document.getElementById('loader').style.display = 'none';
       throw error;
     });
