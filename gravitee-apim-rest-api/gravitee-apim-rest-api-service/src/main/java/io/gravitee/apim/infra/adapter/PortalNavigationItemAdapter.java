@@ -16,12 +16,16 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.portal_page.model.*;
+import java.util.HashMap;
+import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface PortalNavigationItemAdapter {
     PortalNavigationItemAdapter INSTANCE = Mappers.getMapper(PortalNavigationItemAdapter.class);
+
+    com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         var id = PortalPageNavigationId.of(portalNavigationItem.getId());
@@ -58,8 +62,7 @@ public interface PortalNavigationItemAdapter {
 
         String href;
         try {
-            var objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            var node = objectMapper.readTree(configurationStr);
+            var node = OBJECT_MAPPER.readTree(configurationStr);
             href = node.get("href").asText();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem LINK type", e);
@@ -87,8 +90,7 @@ public interface PortalNavigationItemAdapter {
 
         String pageId;
         try {
-            var objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            var node = objectMapper.readTree(configurationStr);
+            var node = OBJECT_MAPPER.readTree(configurationStr);
             pageId = node.get("pageId").asText();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
@@ -128,10 +130,22 @@ public interface PortalNavigationItemAdapter {
     }
 
     default String configurationOf(PortalNavigationItem portalNavigationItem) {
-        return switch (portalNavigationItem) {
-            case PortalNavigationPage page -> String.format("{\"pageId\":\"%s\"}", page.getContentId().json());
-            case PortalNavigationLink link -> String.format("{\"href\":\"%s\"}", link.getHref());
-            case PortalNavigationFolder ignored -> "{}";
-        };
+        try {
+            return switch (portalNavigationItem) {
+                case PortalNavigationPage page -> {
+                    Map<String, String> config = new HashMap<>();
+                    config.put("pageId", page.getContentId().json());
+                    yield OBJECT_MAPPER.writeValueAsString(config);
+                }
+                case PortalNavigationLink link -> {
+                    Map<String, String> config = new HashMap<>();
+                    config.put("href", link.getHref());
+                    yield OBJECT_MAPPER.writeValueAsString(config);
+                }
+                case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
+            };
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize configuration for PortalNavigationItem", e);
+        }
     }
 }
