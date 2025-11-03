@@ -19,21 +19,21 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.annotation.Nonnull;
 import java.util.UUID;
 
-public class PortalPageNavigationId {
+public class PortalNavigationItemId {
 
     @Nonnull
     private final UUID id;
 
-    private PortalPageNavigationId(@Nonnull UUID id) {
+    private PortalNavigationItemId(@Nonnull UUID id) {
         this.id = id;
     }
 
-    public static PortalPageNavigationId random() {
-        return new PortalPageNavigationId(UUID.randomUUID());
+    public static PortalNavigationItemId random() {
+        return new PortalNavigationItemId(UUID.randomUUID());
     }
 
-    public static PortalPageNavigationId of(String value) {
-        return new PortalPageNavigationId(UUID.fromString(value));
+    public static PortalNavigationItemId of(String value) {
+        return new PortalNavigationItemId(UUID.fromString(value));
     }
 
     public UUID id() {
@@ -49,8 +49,8 @@ public class PortalPageNavigationId {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PortalPageNavigationId portalPageNavigationId = (PortalPageNavigationId) o;
-        return id.equals(portalPageNavigationId.id);
+        PortalNavigationItemId portalNavigationItemId = (PortalNavigationItemId) o;
+        return id.equals(portalNavigationItemId.id);
     }
 
     @Override

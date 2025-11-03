@@ -24,7 +24,7 @@ import lombok.Setter;
 public abstract class PortalNavigationItem {
 
     @Nonnull
-    private final PortalPageNavigationId id;
+    private final PortalNavigationItemId id;
 
     @Setter
     @Nonnull
@@ -47,7 +47,7 @@ public abstract class PortalNavigationItem {
     private Integer order;
 
     protected PortalNavigationItem(
-        @Nonnull PortalPageNavigationId id,
+        @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,

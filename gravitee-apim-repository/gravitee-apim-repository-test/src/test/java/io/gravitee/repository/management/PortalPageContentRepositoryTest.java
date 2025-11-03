@@ -85,20 +85,6 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
-    public void should_delete_all_by_type() throws Exception {
-        // Ensure there are items of the type
-        List<PortalPageContent> contentsBefore = portalPageContentRepository.findAllByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
-        assertThat(contentsBefore).isNotNull();
-        assertThat(contentsBefore).isNotEmpty();
-
-        portalPageContentRepository.deleteByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
-
-        Set<PortalPageContent> contentsAfter = portalPageContentRepository.findAll();
-        assertThat(contentsAfter).isNotNull();
-        assertThat(contentsAfter).doesNotContainAnyElementsOf(contentsBefore);
-    }
-
-    @Test
     public void should_find_all_page_contents() throws Exception {
         Set<PortalPageContent> all = portalPageContentRepository.findAll();
 

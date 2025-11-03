@@ -20,7 +20,7 @@ import jakarta.annotation.Nonnull;
 public class PortalNavigationFolder extends PortalNavigationItem {
 
     public PortalNavigationFolder(
-        @Nonnull PortalPageNavigationId id,
+        @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,

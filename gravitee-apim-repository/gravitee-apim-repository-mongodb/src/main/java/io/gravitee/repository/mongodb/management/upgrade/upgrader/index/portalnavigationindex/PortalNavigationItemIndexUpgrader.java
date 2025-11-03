@@ -29,7 +29,7 @@ public class PortalNavigationItemIndexUpgrader extends IndexUpgrader {
             .collection("portal_navigation_items")
             .key("organizationId", ascending())
             .key("environmentId", ascending())
-            .name("organization_environment_idx")
+            .name("o1e1")
             .build();
     }
 }

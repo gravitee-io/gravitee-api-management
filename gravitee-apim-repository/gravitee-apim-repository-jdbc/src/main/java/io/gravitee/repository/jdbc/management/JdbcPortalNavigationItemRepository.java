@@ -23,7 +23,6 @@ import java.sql.Types;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -52,34 +51,11 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
-    protected RowMapper<PortalNavigationItem> getRowMapper() {
-        return (rs, rowNum) -> {
-            PortalNavigationItem item = new PortalNavigationItem();
-            getOrm().setFromResultSet(item, rs);
-            return item;
-        };
-    }
-
-    @Override
-    public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
-        log.debug("JdbcPortalNavigationItemRepository.create({})", item.getId());
-        try {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
-            return this.findById(item.getId()).orElse(null);
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to create portal navigation item", e);
-        }
-    }
-
-    @Override
     public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
         throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId({}, {})", organizationId, environmentId);
         try {
-            final String sql =
-                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
-                this.tableName +
-                " where organization_id = ? and environment_id = ?";
+            final String sql = getOrm().getSelectAllSql() + " where organization_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), organizationId, environmentId);
         } catch (Exception ex) {
             log.error("Failed to find portal navigation items", ex);
@@ -100,10 +76,7 @@ public class JdbcPortalNavigationItemRepository
             environmentId
         );
         try {
-            final String sql =
-                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
-                this.tableName +
-                " where area = ? and organization_id = ? and environment_id = ?";
+            final String sql = getOrm().getSelectAllSql() + " where area = ? and organization_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), organizationId, environmentId);
         } catch (Exception ex) {
             log.error("Failed to find portal navigation items by area", ex);

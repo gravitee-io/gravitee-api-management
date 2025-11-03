@@ -27,7 +27,7 @@ public class PortalNavigationPage extends PortalNavigationItem {
     private PortalPageContentId contentId;
 
     public PortalNavigationPage(
-        @Nonnull PortalPageNavigationId id,
+        @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,
