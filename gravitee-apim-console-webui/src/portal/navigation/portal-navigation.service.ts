@@ -45,9 +45,9 @@ export class PortalNavigationService {
       permissions: ['environment-category-r', 'environment-category-u'],
     },
     {
-      displayName: 'Top Bar',
-      routerLink: 'top-bar',
-      icon: 'gio:top-bar',
+      displayName: 'Navigation',
+      routerLink: 'navigation',
+      icon: 'gio:page',
       permissions: ['environment-settings-r', 'environment-settings-u'],
     },
     {
