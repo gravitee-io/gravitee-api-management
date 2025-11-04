@@ -16,50 +16,55 @@
 package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
-import inmemory.PortalNavigationItemRepositoryInMemory;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
-import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.util.List;
-import lombok.SneakyThrows;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationItemsQueryServiceImplTest {
 
-    PortalNavigationItemRepositoryInMemory repository;
+    @Mock
+    PortalNavigationItemRepository repository;
+
     PortalNavigationItemsQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        repository = new PortalNavigationItemRepositoryInMemory();
         service = new PortalNavigationItemsQueryServiceImpl(repository);
-        repository.reset();
     }
 
     @Nested
     class FindByIdAndEnvironmentId {
 
         @Test
-        @SneakyThrows
-        void should_return_item_when_found_and_environment_matches() {
+        void should_return_item_when_found_and_environment_matches() throws TechnicalException {
             // Given
             var itemId = "00000000-0000-0000-0000-000000000001";
             var environmentId = "env-id";
-            var repoItem = PortalNavigationItem.builder()
-                .id(itemId)
-                .environmentId(environmentId)
-                .title("Test Item")
-                .type(PortalNavigationItem.Type.FOLDER)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .build();
-            repository.initWith(List.of(repoItem));
+            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
+            repoItem.setId(itemId);
+            repoItem.setEnvironmentId(environmentId);
+            repoItem.setTitle("Test Item");
+            repoItem.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER);
+            repoItem.setArea(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR);
+            when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
 
             // When
             var result = service.findByIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(itemId));
@@ -67,15 +72,15 @@ class PortalNavigationItemsQueryServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getTitle()).isEqualTo("Test Item");
-            assertThat(result).isInstanceOf(PortalNavigationFolder.class);
+            assertThat(result).isInstanceOf(PortalNavigationItem.class);
         }
 
         @Test
-        @SneakyThrows
-        void should_return_null_when_item_not_found() {
+        void should_return_null_when_item_not_found() throws TechnicalException {
             // Given
             var itemId = "00000000-0000-0000-0000-000000000001";
             var environmentId = "env-id";
+            when(repository.findById(itemId)).thenReturn(Optional.empty());
 
             // When
             var result = service.findByIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(itemId));
@@ -85,19 +90,36 @@ class PortalNavigationItemsQueryServiceImplTest {
         }
 
         @Test
-        @SneakyThrows
-        void should_return_null_when_environment_does_not_match() {
+        void should_return_null_when_environment_does_not_match() throws TechnicalException {
             // Given
             var itemId = "00000000-0000-0000-0000-000000000001";
             var environmentId = "env-id";
-            var repoItem = PortalNavigationItem.builder().id(itemId).environmentId("different-env").build();
-            repository.initWith(List.of(repoItem));
+            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
+            repoItem.setId(itemId);
+            repoItem.setEnvironmentId("different-env");
+            when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
 
             // When
             var result = service.findByIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(itemId));
 
             // Then
             assertThat(result).isNull();
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            // Given
+            var itemId = "00000000-0000-0000-0000-000000000001";
+            var environmentId = "env-id";
+            when(repository.findById(itemId)).thenThrow(new TechnicalException("Database error"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.findByIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(itemId)))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage(
+                    "An error occurred while finding portal navigation item by id 00000000-0000-0000-0000-000000000001 and environmentId env-id"
+                )
+                .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 
@@ -105,29 +127,21 @@ class PortalNavigationItemsQueryServiceImplTest {
     class FindByParentIdAndEnvironmentId {
 
         @Test
-        @SneakyThrows
-        void should_return_filtered_items_by_parent_id() {
+        void should_return_filtered_items_by_parent_id() throws TechnicalException {
             // Given
             var environmentId = "env-id";
             var parentId = "00000000-0000-0000-0000-000000000002";
-            var repoItems = List.of(
-                PortalNavigationItem.builder()
-                    .id("00000000-0000-0000-0000-000000000003")
-                    .environmentId(environmentId)
-                    .parentId(parentId)
-                    .title("Item 1")
-                    .type(PortalNavigationItem.Type.PAGE)
-                    .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                    .configuration("{ \"pageId\": \"00000000-0000-0000-0001-000000000004\" }")
-                    .build(),
-                PortalNavigationItem.builder()
-                    .id("00000000-0000-0000-0000-000000000004")
-                    .environmentId(environmentId)
-                    .parentId("00000000-0000-0000-0000-000000000005")
-                    .title("Item 2")
-                    .build()
-            );
-            repository.initWith(repoItems);
+            var item1 = new io.gravitee.repository.management.model.PortalNavigationItem();
+            item1.setId("00000000-0000-0000-0000-000000000003");
+            item1.setEnvironmentId(environmentId);
+            item1.setParentId(parentId);
+            item1.setTitle("Item 1");
+            item1.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.PAGE);
+            item1.setArea(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR);
+            item1.setConfiguration("{ \"pageId\": \"00000000-0000-0000-0001-000000000004\" }");
+
+            var repoItems = List.of(item1);
+            when(repository.findAllByParentIdAndEnvironmentId(parentId, environmentId)).thenReturn(repoItems);
 
             // When
             var result = service.findByParentIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(parentId));
@@ -136,36 +150,45 @@ class PortalNavigationItemsQueryServiceImplTest {
             assertThat(result).hasSize(1);
             assertThat(result.iterator().next().getTitle()).isEqualTo("Item 1");
         }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception_for_find_by_parent_id()
+            throws TechnicalException {
+            // Given
+            var environmentId = "env-id";
+            var parentId = "00000000-0000-0000-0000-000000000002";
+            when(repository.findAllByParentIdAndEnvironmentId(parentId, environmentId)).thenThrow(new TechnicalException("Database error"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.findByParentIdAndEnvironmentId(environmentId, PortalPageNavigationId.of(parentId)))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage(
+                    "An error occurred while finding portal navigation items by parentId 00000000-0000-0000-0000-000000000002 and environmentId env-id"
+                )
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
     }
 
     @Nested
     class FindTopLevelItemsByEnvironmentId {
 
         @Test
-        @SneakyThrows
-        void should_return_top_level_items_filtered_by_area_and_no_parent() {
+        void should_return_top_level_items_filtered_by_area_and_no_parent() throws TechnicalException {
             // Given
             var environmentId = "env-id";
             var portalArea = PortalArea.TOP_NAVBAR;
             var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
-            var repoItems = List.of(
-                PortalNavigationItem.builder()
-                    .id("00000000-0000-0000-0000-000000000006")
-                    .environmentId(environmentId)
-                    .parentId(null)
-                    .title("Top Level")
-                    .type(PortalNavigationItem.Type.FOLDER)
-                    .area(repoArea)
-                    .build(),
-                PortalNavigationItem.builder()
-                    .id("00000000-0000-0000-0000-000000000007")
-                    .environmentId(environmentId)
-                    .parentId("00000000-0000-0000-0000-000000000008")
-                    .title("Child")
-                    .area(repoArea)
-                    .build()
-            );
-            repository.initWith(repoItems);
+
+            var item1 = new io.gravitee.repository.management.model.PortalNavigationItem();
+            item1.setId("00000000-0000-0000-0000-000000000006");
+            item1.setEnvironmentId(environmentId);
+            item1.setParentId(null);
+            item1.setTitle("Top Level");
+            item1.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER);
+            item1.setArea(repoArea);
+
+            var repoItems = List.of(item1);
+            when(repository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(repoArea, environmentId)).thenReturn(repoItems);
 
             // When
             var result = service.findTopLevelItemsByEnvironmentId(environmentId, portalArea);
@@ -173,6 +196,24 @@ class PortalNavigationItemsQueryServiceImplTest {
             // Then
             assertThat(result).hasSize(1);
             assertThat(result.iterator().next().getTitle()).isEqualTo("Top Level");
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception_for_find_top_level_items()
+            throws TechnicalException {
+            // Given
+            var environmentId = "env-id";
+            var portalArea = PortalArea.TOP_NAVBAR;
+            var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
+            when(repository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(repoArea, environmentId)).thenThrow(
+                new TechnicalException("Database error")
+            );
+
+            // When & Then
+            assertThatThrownBy(() -> service.findTopLevelItemsByEnvironmentId(environmentId, portalArea))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while finding top level portal navigation items by environmentId env-id and area TOP_NAVBAR")
+                .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 }
