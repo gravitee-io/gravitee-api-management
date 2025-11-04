@@ -43,6 +43,10 @@ export enum AggregationFields {
   DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL = 'downstream-subscribe-messages-total',
   UPSTREAM_SUBSCRIBE_MESSAGE_BYTES = 'upstream-subscribe-message-bytes',
   DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES = 'downstream-subscribe-message-bytes',
+  MCP_METHOD = 'additional-metrics.keyword_mcp-proxy_method',
+  MCP_TOOLS_CALL = 'additional-metrics.keyword_mcp-proxy_tools/call',
+  MCP_RESOURCES_READ = 'additional-metrics.keyword_mcp-proxy_resources/read',
+  MCP_PROMPTS_GET = 'additional-metrics.keyword_mcp-proxy_prompts/get',
 }
 
 export interface AnalyticsHistogramAggregation {

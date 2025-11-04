@@ -20,13 +20,20 @@ import { CommonModule } from '@angular/common';
 import { ApiAnalyticsMessageComponent } from './api-analytics-message/api-analytics-message.component';
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy/api-analytics-proxy.component';
 import { ApiAnalyticsNativeComponent } from './api-analytics-native/api-analytics-native.component';
+import { ApiAnalyticsMcpProxyComponent } from './api-analytics-mcp-proxy/api-analytics-mcp-proxy.component';
 
 import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-analytics',
-  imports: [CommonModule, ApiAnalyticsMessageComponent, ApiAnalyticsProxyComponent, ApiAnalyticsNativeComponent],
+  imports: [
+    CommonModule,
+    ApiAnalyticsMessageComponent,
+    ApiAnalyticsProxyComponent,
+    ApiAnalyticsNativeComponent,
+    ApiAnalyticsMcpProxyComponent,
+  ],
   template: `
     @if (api$ | async; as api) {
       @switch (api.type) {
@@ -38,6 +45,9 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
         }
         @case ('NATIVE') {
           <api-analytics-native />
+        }
+        @case ('MCP_PROXY') {
+          <api-analytics-mcp-proxy />
         }
       }
     }
