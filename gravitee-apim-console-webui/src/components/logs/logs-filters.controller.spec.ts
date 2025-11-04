@@ -111,8 +111,8 @@ describe('LogsFiltersController', () => {
 
       expect(controller.filters.api).toEqual(['api-id']);
       expect(controller.filters.method).toEqual(['GET']);
-      // status uses push(v) where v is an array, so it becomes [[...]]
-      expect(controller.filters.status).toEqual([['200']]);
+      // status now correctly pushes string values, not nested arrays
+      expect(controller.filters.status).toEqual(['200']);
     });
 
     it('should set display mode based on query filters', () => {
@@ -320,15 +320,13 @@ describe('LogsFiltersController', () => {
     });
 
     it('should decode multiple api filters with OR', () => {
-      // Note: The decodeQueryFilters processes filters sequentially and overwrites
-      // So with "api:api-1 OR api:api-2", it processes api:api-1 first (sets to ['api-1']),
-      // then processes api:api-2 (sets to ['api-2']), overwriting the first
-      // This is actually a limitation of the current implementation
+      // flatMap splits OR conditions, so each filter is processed separately
+      // Both values should be accumulated in the array
       const query = 'api:api-1 OR api:api-2';
       controller['decodeQueryFilters'](query);
 
-      // Only the last one will remain due to overwriting behavior
-      expect(controller.filters.api).toEqual(['api-2']);
+      // Both values should be accumulated
+      expect(controller.filters.api).toEqual(['api-1', 'api-2']);
     });
 
     it('should decode application filter', () => {
@@ -384,8 +382,8 @@ describe('LogsFiltersController', () => {
       controller.filters.status = [];
       controller['decodeQueryFilters'](query);
 
-      // status uses push(v) where v is an array, so it becomes [[...]]
-      expect(controller.filters.status).toEqual([['200']]);
+      // status now correctly pushes string values, not nested arrays
+      expect(controller.filters.status).toEqual(['200']);
     });
 
     it('should decode response-time filter', () => {

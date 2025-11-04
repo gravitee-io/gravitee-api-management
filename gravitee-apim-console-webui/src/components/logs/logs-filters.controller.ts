@@ -239,19 +239,16 @@ class LogsFiltersController {
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i].replace(/[()]/g, '');
       const k = filter.split(':')[0].trim();
-      const v = filter
-        .substring(filter.indexOf(':') + 1)
-        .split('OR')
-        .map((x) => x.trim());
+      const v = filter.substring(filter.indexOf(':') + 1).trim();
       switch (k) {
         case 'api':
-          this.filters.api = v;
+          this.filters.api.push(v);
           break;
         case 'application':
-          this.filters.application = v;
+          this.filters.application.push(v);
           break;
         case 'path': {
-          const value = v[0].replace(/\\"/g, '');
+          const value = v.replace(/\\"/g, '');
           if (this.api) {
             this.filters.uri = this.api.proxy.virtual_hosts[0].path + value;
           } else {
@@ -260,46 +257,74 @@ class LogsFiltersController {
           break;
         }
         case 'uri':
-          this.filters.uri = v[0].replace(/\*|\\\\/g, '');
+          this.filters.uri = v.replace(/\*|\\\\/g, '');
           break;
         case 'plan':
-          this.filters.plan = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters.plan)) {
+            this.filters.plan = [];
+          }
+          this.filters.plan.push(v);
           break;
         case 'response-time':
-          this.filters.responseTime = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters.responseTime)) {
+            this.filters.responseTime = [];
+          }
+          this.filters.responseTime.push(v);
           break;
         case 'method':
-          this.filters.method = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters.method)) {
+            this.filters.method = [];
+          }
+          this.filters.method.push(v);
           break;
         case 'status':
           this.filters.status.push(v);
           break;
         case '_id':
-          this.filters.id = v[0];
+          this.filters.id = v;
           break;
         case 'transaction':
-          this.filters.transaction = v[0];
+          this.filters.transaction = v;
           break;
         case 'tenant':
-          this.filters.tenant = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters.tenant)) {
+            this.filters.tenant = [];
+          }
+          this.filters.tenant.push(v);
           break;
         case '_exists_':
-          this.filters._exists_ = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters._exists_)) {
+            this.filters._exists_ = [];
+          }
+          this.filters._exists_.push(v);
           break;
         case '!_exists_':
-          this.filters['!_exists_'] = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters['!_exists_'])) {
+            this.filters['!_exists_'] = [];
+          }
+          this.filters['!_exists_'].push(v);
           break;
         case 'body':
-          this.filters.body = v[0].replace(/^\*(.*)\*$/g, '$1');
+          this.filters.body = v.replace(/^\*(.*)\*$/g, '$1');
           break;
         case 'endpoint':
-          this.filters.endpoint = v[0].replace(/\*|\\\\/g, '');
+          this.filters.endpoint = v.replace(/\*|\\\\/g, '');
           break;
         case 'remote-address':
-          this.filters['remote-address'] = v;
+          // Initialize as array if not already, then push the value
+          if (!Array.isArray(this.filters['remote-address'])) {
+            this.filters['remote-address'] = [];
+          }
+          this.filters['remote-address'].push(v);
           break;
         case 'host':
-          this.filters.host = v[0].replace(/\\"/g, '');
+          this.filters.host = v.replace(/\\"/g, '');
           break;
         default:
           this.$log.error('unknown filter: ', k);
