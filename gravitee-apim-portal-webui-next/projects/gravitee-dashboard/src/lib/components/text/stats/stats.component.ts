@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { Component, computed, inject, model } from '@angular/core';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { StatsConverterService } from './converter/stats-converter.service';
+import { MeasuresResponse } from '../../widget/model/response/measures-response';
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+@Component({
+  selector: 'gd-stats',
+  imports: [],
+  templateUrl: './stats.component.html',
+  styleUrl: './stats.component.scss',
+})
+export class StatsComponent {
+  data = model.required<MeasuresResponse>();
+  converter = inject(StatsConverterService);
+
+  dataFormated = computed(() => {
+    return this.converter.convert(this.data());
+  });
+}

@@ -17,18 +17,32 @@ import { Component, input } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
-import { Widget } from '../widget/widget';
+import { StatsComponent } from '../text/stats/stats.component';
+import { isFacetsResponse } from '../widget/model/response/facets-response';
+import { isMeasuresResponse } from '../widget/model/response/measures-response';
+import { Widget } from '../widget/model/widget/widget';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitleComponent, WidgetBodyComponent, PieChartComponent],
+  imports: [
+    GridsterComponent,
+    GridsterItemComponent,
+    WidgetComponent,
+    WidgetTitleComponent,
+    WidgetBodyComponent,
+    PieChartComponent,
+    StatsComponent,
+  ],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
 })
 export class GridComponent {
   items = input<Widget[]>();
   options = input<GridsterConfig>(this.getGridsterOptions());
+
+  protected readonly isFacetsResponse = isFacetsResponse;
+  protected readonly isMeasuresResponse = isMeasuresResponse;
 
   private getGridsterOptions(): GridsterConfig {
     return {

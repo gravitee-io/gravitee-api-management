@@ -17,16 +17,17 @@ import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/an
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { PieChartComponent, PieType } from './pie-chart.component';
+import { MeasureName } from '../../widget/model/request/enum/measure-name';
+import { MetricName } from '../../widget/model/request/enum/metric-name';
+import { FacetsResponse } from '../../widget/model/response/facets-response';
 
 interface PieChartStoryArgs {
   storyId?: string;
   type: PieType;
-  data: {
-    labels: string[];
-    datasets: Array<{
-      data: number[];
-    }>;
-  };
+  buckets: {
+    key: string;
+    value: number;
+  }[];
 }
 
 export default {
@@ -59,34 +60,56 @@ export default {
       options: ['pie', 'doughnut', 'polarArea'],
       description: 'Type of pie chart to display',
     },
-    data: {
-      description: 'Chart data containing labels and datasets',
+    buckets: {
+      control: { type: 'object' },
+      description: 'Array of buckets with key (label) and value',
     },
   },
-  render: args => ({
-    template: `
+  render: args => {
+    const metricsData: FacetsResponse = {
+      type: 'facets',
+      metrics: [
+        {
+          name: MetricName.HTTP_REQUESTS,
+          buckets: args.buckets.map(bucket => ({
+            key: bucket.key,
+            measures: [
+              {
+                name: MeasureName.COUNT,
+                value: bucket.value,
+              },
+            ],
+          })),
+        },
+      ],
+    };
+
+    return {
+      template: `
         <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
-          <gd-pie-chart [type]="type" [data]="data" />
+          <gd-pie-chart [type]="type" [data]="metricsData" />
         </div>
-    `,
-    props: {
-      type: args.type,
-      data: args.data,
-    },
-  }),
+      `,
+      props: {
+        type: args.type,
+        metricsData,
+      },
+    };
+  },
 } satisfies Meta<PieChartStoryArgs>;
 
 export const Default: StoryObj<PieChartStoryArgs> = {
   args: {
     storyId: 'default',
     type: 'pie' as PieType,
-    data: {
-      labels: ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa', 'Middle East', 'Oceania'],
-      datasets: [
-        {
-          data: [35, 28, 20, 8, 5, 3, 1],
-        },
-      ],
-    },
+    buckets: [
+      { key: 'North America', value: 35 },
+      { key: 'Europe', value: 28 },
+      { key: 'Asia Pacific', value: 20 },
+      { key: 'South America', value: 8 },
+      { key: 'Africa', value: 5 },
+      { key: 'Middle East', value: 3 },
+      { key: 'Oceania', value: 1 },
+    ],
   },
 };

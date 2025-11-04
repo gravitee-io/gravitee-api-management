@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { Injectable } from '@angular/core';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { Converter } from '../../../converter';
+import { MeasuresResponse } from '../../../widget/model/response/measures-response';
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+@Injectable({
+  providedIn: 'root',
+})
+export class StatsConverterService implements Converter {
+  convert(data: MeasuresResponse) {
+    return data?.metrics?.[0]?.measures?.map(({ value }) => value) ?? [];
+  }
+}

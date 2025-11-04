@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GridsterItem } from 'angular-gridster2';
+import { FacetName } from './enum/facet-name';
+import { Filter, GlobalRequest, Order } from './request';
 
-import { PieType } from '../chart/pie-chart/pie-chart.component';
-
-export type WidgetType = PieType | 'kpi' | 'top';
-
-export interface Widget {
-  id: string;
-  label: string;
-  type: WidgetType;
-  filter?: string;
-  layout: GridsterItem;
+export interface FacetsRequest extends GlobalRequest<'facets'> {
+  by: FacetName[];
+  limit?: number;
+  order?: Order;
+  filters?: Filter[];
 }
