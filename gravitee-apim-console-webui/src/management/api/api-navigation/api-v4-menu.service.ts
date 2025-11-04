@@ -380,7 +380,7 @@ export class ApiV4MenuService implements ApiMenuService {
         icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/analytics',
       };
-      if (apiType === 'PROXY') {
+      if (apiType === 'PROXY' || apiType === 'MCP_PROXY') {
         return baseMenuItem;
       } else {
         return {

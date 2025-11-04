@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface GroupByResponse {
-  analyticsType: 'GROUP_BY';
-  values: Record<string, number>;
-  metadata: Metadata;
+import { ComponentHarness } from '@angular/cdk/testing';
+
+import { ApiAnalyticsProxyFilterBarHarness } from '../components/api-analytics-proxy-filter-bar/api-analytics-proxy-filter-bar.harness';
+
+export class ApiAnalyticsMcpProxyHarness extends ComponentHarness {
+  static hostSelector = 'api-analytics-mcp-proxy';
+
+  protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
+
+  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsProxyFilterBarHarness);
+
+  async isEmptyPanelDisplayed(): Promise<boolean> {
+    return (await this.emptyPanelHarness()) !== null;
+  }
 }
-
-export type Metadata = Record<string, { name: string; unknown?: boolean; order: number }>;
-
-export type GroupByField =
-  | 'host'
-  | 'status'
-  | 'application-id'
-  | 'plan-id'
-  | 'path-info.keyword'
-  | 'additional-metrics.long_mcp-proxy_response-error-code';
