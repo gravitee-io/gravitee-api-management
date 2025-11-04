@@ -50,4 +50,22 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
                 );
         }
     }
+
+    @Override
+    public void mergeSensitiveData(Page oldPage, Page newPage) {
+        if (oldPage.getSource() == null || newPage.getSource() == null) {
+            return;
+        }
+        if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
+            return;
+        }
+
+        String newConfig = newPage.getSource().getConfiguration();
+        String oldConfig = oldPage.getSource().getConfiguration();
+        String sanitizedValue = "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"";
+
+        if (newConfig.contains(sanitizedValue) && oldConfig.contains("I'm a sensitive data")) {
+            newPage.getSource().setConfiguration(newConfig.replace(sanitizedValue, "\"I'm a sensitive data\""));
+        }
+    }
 }
