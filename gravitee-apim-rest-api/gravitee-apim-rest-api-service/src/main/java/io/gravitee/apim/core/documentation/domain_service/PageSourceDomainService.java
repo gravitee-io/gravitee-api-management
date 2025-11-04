@@ -26,4 +26,6 @@ public interface PageSourceDomainService {
     void setContentFromSource(Page page);
 
     void removeSensitiveData(Page page);
+
+    void mergeSensitiveData(Page oldPage, Page newPage);
 }
