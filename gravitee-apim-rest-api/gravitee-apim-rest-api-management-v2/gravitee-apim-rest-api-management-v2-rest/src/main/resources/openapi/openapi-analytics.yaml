@@ -24,7 +24,8 @@ info:
 tags:
   - name: computation
     description: Analytics computation operations for data processing and aggregation
-
+  - name: definition
+    description: Gravitee analytics definition containing metrics, facets and filters that can be used to query analytics data.
 servers:
   - url: "/management/v2"
     description: APIM Management API v2 - Default base URL
@@ -36,6 +37,208 @@ servers:
         default: DEFAULT
 
 paths:
+  /environments/{envId}/analytics/definition/apis:
+    get:
+      operationId: queryApiSpecs
+      summary: Query available APIs for analytics
+      description: |
+        Returns a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSpecsResponse"
+              examples:
+                apis:
+                  summary: API Specs Response
+                  value:
+                    data:
+                      - name: "HTTP_PROXY"
+                        label: "HTTP Proxy"
+                      - name: "MESSAGE"
+                        label: "Message"
+                      - name: "KAFKA"
+                        label: "Kafka"
+                      - name: "LLM"
+                        label: "LLM"
+                      - name: "MCP"
+                        label: "MCP"
+        "500":
+          description: Internal server error while getting available API specs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /environments/{envId}/analytics/definition/apis/{apiName}/metrics:
+    get:
+      operationId: queryMetricSpecs
+      summary: Query available metrics for an API type
+      description: |
+        Returns a list of available metrics for a specific API type, including their supported measures, facets, and filters.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/ApiName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available metrics for the specified API type, with their configurations including measures, facets, and filters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricSpecsResponse"
+              examples:
+                http-proxy-metrics:
+                  summary: HTTP Proxy API Metrics
+                  value:
+                    data:
+                      - name: "HTTP_REQUESTS"
+                        label: "HTTP Requests"
+                        apis: ["HTTP_PROXY", "LLM"]
+                        type: "COUNTER"
+                        measures: ["COUNT", "RPS"]
+                        facets: ["API", "APPLICATION", "GATEWAY"]
+                        filters: ["API", "APPLICATION", "HTTP_STATUS"]
+                      - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                        label: "Gateway response time"
+                        apis: ["HTTP_PROXY", "LLM"]
+                        type: "GAUGE"
+                        unit: "MILLISECONDS"
+                        measures: ["AVG", "MIN", "MAX", "P50", "P90", "P95", "P99"]
+                        facets: ["API", "APPLICATION", "GATEWAY"]
+                        filters: ["API", "APPLICATION", "HTTP_STATUS"]
+        "400":
+          description: Bad request - Invalid API name for metrics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting metric specifications.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /environments/{envId}/analytics/definition/metrics/{metricName}/filters:
+    get:
+      operationId: queryFilterSpecsForMetric
+      summary: Query available filters for a specific metric
+      description: |
+        Returns a list of available filters that can be applied to a specific metric within an API type, including their operators and value constraints.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/MetricName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available filters for the specified metric, including their supported operators, types, and optional enum values or ranges.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilterSpecsResponse"
+              examples:
+                http-requests-filters:
+                  summary: HTTP Requests Metric Filters
+                  value:
+                    data:
+                      - name: "API"
+                        label: "API"
+                        type: "KEYWORD"
+                        operators: ["EQ", "IN"]
+                      - name: "APPLICATION"
+                        label: "Application"
+                        type: "KEYWORD"
+                        operators: ["EQ", "IN"]
+                      - name: "HTTP_STATUS"
+                        label: "Status Code"
+                        type: "NUMBER"
+                        operators: ["EQ", "LTE", "GTE"]
+                        range:
+                          min: 100
+                          max: 600
+                      - name: "HTTP_STATUS_CODE_GROUP"
+                        label: "Status Code Group"
+                        type: "ENUM"
+                        operators: ["EQ", "IN"]
+                        enumValues: ["1xx", "2xx", "3xx", "4xx", "5xx"]
+        "400":
+          description: Bad request - Invalid metric name for filters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: API type or metric not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting filter specifications for the metric.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /environments/{envId}/analytics/definition/metrics/{metricName}/facets:
+    get:
+      operationId: queryFacetSpecsForMetric
+      summary: Query available facets for a specific metric
+      description: |
+        Returns a list of available facets that can be used to group data for a specific metric within an API type, including their data types.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/MetricName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available facets for the specified metric that can be used for grouping analytics data, including their data types.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacetSpecsResponse"
+              examples:
+                http-requests-facets:
+                  summary: HTTP Requests Metric Facets
+                  value:
+                    data:
+                      - name: "API"
+                        label: "API"
+                        type: "KEYWORD"
+                      - name: "APPLICATION"
+                        label: "Application"
+                        type: "KEYWORD"
+                      - name: "GATEWAY"
+                        label: "Gateway"
+                        type: "KEYWORD"
+
+        "400":
+          description: Bad request - Invalid metric name for facets.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting facet specifications for the metric.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /environments/{envId}/analytics/measures:
     post:
       operationId: queryMeasures
@@ -49,9 +252,9 @@ paths:
         - $ref: "#/components/parameters/EnvId"
       requestBody:
         description: |
-          A measures request is a request to obtain a single set of measures / aggregations, without grouping them by bucket.
+          A measures request is a request to obtain a single set of measures, without grouping them by bucket.
           
-            - Measures requests allow to return aggregated values for the specified metric and aggregations.
+            - Measures requests allow to return aggregated values for the specified metric and measures.
 
             - Available measures can change depending on the required metric.
 
@@ -72,8 +275,8 @@ paths:
                     from: "2025-01-01T00:00:00Z"
                     to: "2025-01-31T23:59:59Z"
                   metrics:
-                    - name: "HTTP_REQUEST_COUNT"
-                      aggregations: ["COUNT", "RPS"]
+                    - name: "HTTP_REQUESTS"
+                      measures: ["COUNT", "RPS"]
               multiple-metrics:
                 summary: Multiple metrics example
                 value:
@@ -81,10 +284,10 @@ paths:
                     from: "2025-01-01T00:00:00Z"
                     to: "2025-01-31T23:59:59Z"
                   metrics:
-                    - name: "HTTP_REQUEST_COUNT"
-                      aggregations: ["COUNT"]
+                    - name: "HTTP_REQUESTS"
+                      measures: ["COUNT"]
                     - name: "HTTP_GATEWAY_RESPONSE_TIME"
-                      aggregations: ["AVG"]
+                      measures: ["AVG"]
       responses:
         "200":
           description: |
@@ -98,20 +301,24 @@ paths:
                   summary: Single metric response
                   value:
                     metrics:
-                      - name: "HTTP_REQUEST_COUNT"
+                      - name: "HTTP_REQUESTS"
                         measures:
-                          COUNT: 2984
-                          RPS: 45.7
+                          - name: "COUNT"
+                            value: 2984
+                          - name: "RPS"
+                            value: 45.7
                 multiple-metrics:
                   summary: Multiple metrics response
                   value:
                     metrics:
-                      - name: "HTTP_REQUEST_COUNT"
+                      - name: "HTTP_REQUESTS"
                         measures:
-                          COUNT: 2984
+                          - name: "COUNT"
+                            value: 2984
                       - name: "HTTP_GATEWAY_RESPONSE_TIME"
                         measures:
-                          AVG: 89.5
+                          - name: "AVG"
+                            value: 89.5
         "400":
           description: Bad request - Invalid Measures Request.
           content:
@@ -157,9 +364,9 @@ paths:
               timeRange:
                 from: "2025-01-01T00:00:00Z"
                 to: "2025-01-31T23:59:59Z"
+              by: ["API"]
               metrics:
-                - name: "HTTP_REQUEST_COUNT"
-                  by: ["API"]
+                - name: "HTTP_REQUESTS"
                   limit: 1
                   order:
                     measure: "COUNT"
@@ -173,14 +380,16 @@ paths:
                 $ref: "#/components/schemas/FacetsResponse"
               example:
                 metrics:
-                  - name: "HTTP_REQUEST_COUNT"
+                  - name: "HTTP_REQUESTS"
                     buckets:
                       - key: "07ba30d4-7b42-418b-a3f9-2ad684947b82"
                         measures:
-                          COUNT: 1234
+                          - name: "COUNT"
+                            value: 1234
                       - key: "a0131e80-d886-462a-8c0b-1d205e42cc12"
                         measures:
-                          COUNT: 989
+                          - name: "COUNT"
+                            value: 989
         "400":
           description: Bad request - Invalid Facets Request.
           content:
@@ -229,7 +438,7 @@ paths:
               interval: "auto"
               by: ["API"]
               metrics:
-                - name: "HTTP_REQUEST_COUNT"
+                - name: "HTTP_REQUESTS"
       responses:
         "200":
           description: Time series analytics response
@@ -240,26 +449,30 @@ paths:
               example:
                 interval: "1m"
                 metrics:
-                  - name: "HTTP_REQUEST_COUNT"
+                  - name: "HTTP_REQUESTS"
                     buckets:
                       - key: "2025-01-01T00:00:00Z"
                         timestamp: 1735689600000
                         buckets:
                           - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
                             measures:
-                              COUNT: 1234
+                              - name: "COUNT"
+                                value: 1234
                           - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
                             measures:
-                              COUNT: 989
+                              - name: "COUNT"
+                                value: 989
                       - key: "2025-01-01T00:01:00Z"
                         timestamp: 1735689660000
                         buckets:
                           - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
                             measures:
-                              COUNT: 873
+                              - name: "COUNT"
+                                value: 873
                           - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
                             measures:
-                              COUNT: 938
+                              - name: "COUNT"
+                                value: 938
         "400":
           description: Bad request - Invalid Time Series Request
           content:
@@ -284,21 +497,48 @@ components:
         type: string
         default: DEFAULT
 
+    ApiName:
+      name: apiName
+      in: path
+      required: true
+      description: The API type identifier for which to retrieve metrics
+      schema:
+        $ref: "#/components/schemas/ApiName"
+
+    MetricName:
+      name: metricName
+      in: path
+      required: true
+      description: The metric identifier for which to retrieve filter specifications
+      schema:
+        $ref: "#/components/schemas/MetricName"
+
   schemas:
+    ApiName:
+      type: string
+      enum:
+        - HTTP_PROXY
+        - MESSAGE
+        - KAFKA
+        - LLM
+        - MCP
+      description: Available API names for analytics queries
+      example: "HTTP_PROXY"
+
     MetricName:
       type: string
       enum:
         - HTTP_REQUESTS
-        - HTTP_ERROR_RATE
+        - HTTP_ERRORS
         - HTTP_REQUEST_CONTENT_LENGTH
         - HTTP_RESPONSE_CONTENT_LENGTH
         - HTTP_ENDPOINT_RESPONSE_TIME
         - HTTP_GATEWAY_RESPONSE_TIME
         - HTTP_GATEWAY_LATENCY
         - LLM_PROMPT_TOKEN_SENT
-        - LLM_PROMPT_TOKEN_RECEIVE
+        - LLM_PROMPT_TOKEN_RECEIVED
         - LLM_PROMPT_TOKEN_SENT_COST
-        - LLM_PROMPT_TOKEN_RECEIVE_COST
+        - LLM_PROMPT_TOKEN_RECEIVED_COST
         - MESSAGE_PAYLOAD_SIZE
         - MESSAGES
         - MESSAGE_ERRORS
@@ -322,6 +562,7 @@ components:
         - SUBSCRIPTIONS
         - APIS
       description: Available metric names for analytics queries
+
     FacetName:
       type: string
       enum:
@@ -348,9 +589,10 @@ components:
         - MESSAGE_OPERATION_TYPE
         - KAFKA_TOPIC
         - API_STATE
-        - API_LIFECYCLE_STATEgst
+        - API_LIFECYCLE_STATE
         - API_VISIBILITY
       description: Available facet names for grouping analytics data
+
     FilterName:
       type: string
       enum:
@@ -388,76 +630,6 @@ components:
         - HTTP_REQUEST_CONTENT_LENGTH
         - HTTP_RESPONSE_CONTENT_LENGTH
       description: Available filter names for filtering analytics data
-    Error:
-      description: |
-        The generic error object returned by any endpoint of the Gravitee APIM API.
-      type: object
-      properties:
-        httpStatus:
-          type: integer
-          format: int32
-          description: The error code
-          example: 400
-        message:
-          type: string
-          description: A global response error message
-          example: Bad request
-        technicalCode:
-          type: string
-          description: A technical code to identify the error
-          example: invalid.import.definition
-        parameters:
-          type: object
-          description: |
-            Parameters add information about the context of the error.
-          additionalProperties:
-            type: string
-          example:
-            name: "HTTP_REQUEST_COUNT"
-            type: "TIME_SERIES"
-            interval: "-1d"
-        details:
-          type: array
-          description: A list of details about the error
-          items:
-            type: object
-            properties:
-              message:
-                type: string
-                description: A fine grained error message regarding a failing property.
-                example: Bad request
-              location:
-                type: string
-                description: The json path of the field in error.
-                example: updateApi.properties[0].key
-              invalidValue:
-                oneOf:
-                  - type: string
-                  - type: number
-                  - type: boolean
-                  - type: array
-                  - type: object
-                description: The invalid value (can be any type)
-                example: "-1d"
-          example:
-            - message: "Interval must be a positive duration (e.g., '1h', '1d', 'auto')"
-              location: "requests[0].interval"
-              invalidValue: "-1d"
-      example:
-        httpStatus: 400
-        message: "Bad request - Invalid Time Series Request"
-        technicalCode: "invalid.analytics.request"
-        parameters:
-          field: "requests[0].interval"
-          value: "-1d"
-          interval: "-1d"
-        details:
-          - message: "Invalid interval value"
-            location: "requests[0].interval"
-            invalidValue: "-1d"
-          - message: "Interval must be a positive duration (e.g., '1h', '1d', 'auto')"
-            location: "requests[0].interval"
-            invalidValue: "-1d"
 
     Operator:
       type: string
@@ -468,7 +640,7 @@ components:
         - GTE
       description: Filter operator
 
-    Aggregation:
+    MeasureName:
       type: string
       enum:
         - AVG
@@ -480,7 +652,28 @@ components:
         - P99
         - COUNT
         - RPS
-      description: Aggregation function
+        - PERCENTAGE
+      description: Measure name identifier. Represents the type of measure/aggregation applied to a metric.
+      example: "COUNT"
+
+    Measure:
+      type: object
+      required:
+        - name
+        - value
+      description: A single measure result containing the measure name and its value.
+      properties:
+        name:
+          $ref: "#/components/schemas/MeasureName"
+        value:
+          oneOf:
+            - type: number
+            - type: string
+          description: The measure value. Can be a number or a string representation of a number.
+          example: 2984
+      example:
+        name: "COUNT"
+        value: 2984
 
     OrderDirection:
       type: string
@@ -488,6 +681,279 @@ components:
         - ASC
         - DESC
       description: Sort order direction
+
+    MetricType:
+      type: string
+      enum:
+        - COUNTER
+        - GAUGE
+      description: |
+        Metric type identifier.
+        
+        - **COUNTER**: A counter metric increases monotonically, representing cumulative values over time. Counters are typically used for counting events or occurrences.
+        
+        - **GAUGE**: A gauge metric can increase and decrease over time, representing values that can go up or down. Gauges are typically used for measuring current state or instantaneous values.
+      example: "COUNTER"
+
+    UnitName:
+      type: string
+      enum:
+        - BYTES
+        - MILLISECONDS
+        - NUMBER
+      description: |
+        Unit of measurement for gauge metrics. Specifies the unit in which the metric values are expressed.
+        
+        This field is optional and only applicable for GAUGE metrics. COUNTER metrics do not have units.
+      example: "BYTES"
+
+    ApiSpec:
+      description: |
+        An API type specification. Available metrics are defined by the API type.
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/ApiName"
+        label:
+          type: string
+          description: A human-readable label for the API
+          example: "HTTP Proxy"
+      example:
+        name: "HTTP_PROXY"
+        label: "HTTP Proxy"
+
+    FacetSpec:
+      type: object
+      required:
+        - name
+        - label
+        - type
+      description: Facet specification for analytics grouping
+      properties:
+        name:
+          $ref: "#/components/schemas/FacetName"
+        label:
+          type: string
+          description: Human-readable label for the facet
+          example: "API"
+        type:
+          type: string
+          enum:
+            - STRING
+            - KEYWORD
+            - NUMBER
+          description: Data type of the facet
+          example: "KEYWORD"
+      example:
+        name: "API"
+        label: "API"
+        type: "KEYWORD"
+
+    FilterSpec:
+      type: object
+      required:
+        - name
+        - label
+        - type
+        - operators
+      description: Filter specification for filtering analytics. Available filters are defined for a specific metric.
+      properties:
+        name:
+          $ref: "#/components/schemas/FilterName"
+        label:
+          type: string
+          description: Human-readable label for the filter
+          example: "API"
+        type:
+          type: string
+          enum:
+            - KEYWORD
+            - STRING
+            - NUMBER
+            - ENUM
+          description: Data type of the filter
+          example: "KEYWORD"
+        operators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Operator"
+          description: List of supported operators for this filter
+          example: ["EQ", "IN"]
+        enumValues:
+          type: array
+          items:
+            type: string
+          description: Enum values (only applicable for enum type)
+          example: ["GET", "POST", "PUT"]
+        range:
+          type: object
+          properties:
+            min:
+              type: number
+              description: Minimum value
+              example: 100
+            max:
+              type: number
+              description: Maximum value
+              example: 600
+          description: Value range (only applicable for integer/long types)
+          example:
+            min: 100
+            max: 600
+      example:
+        name: "API"
+        label: "API"
+        type: "KEYWORD"
+        operators: ["EQ", "IN"]
+
+    MetricSpec:
+      type: object
+      required:
+        - name
+        - label
+        - apis
+        - type
+        - measures
+        - facets
+        - filters
+      description: Metric specification for analytics queries
+      properties:
+        name:
+          $ref: "#/components/schemas/MetricName"
+        label:
+          type: string
+          description: Human-readable label for the metric
+          example: "HTTP Requests"
+        apis:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiName"
+          description: List of API types this metric applies to
+          example: ["HTTP_PROXY", "LLM"]
+        type:
+          $ref: "#/components/schemas/MetricType"
+        unit:
+          $ref: "#/components/schemas/UnitName"
+        measures:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeasureName"
+          description: List of supported measures for this metric
+          example: ["COUNT", "RPS"]
+        facets:
+          type: array
+          items:
+            $ref: "#/components/schemas/FacetName"
+          description: List of facets that can be used for grouping this metric
+          example: ["API", "APPLICATION", "GATEWAY"]
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterName"
+          description: List of filters that can be applied to this metric
+          example: ["API", "APPLICATION", "HTTP_STATUS"]
+      example:
+        name: "HTTP_REQUESTS"
+        label: "HTTP Requests"
+        apis: ["HTTP_PROXY", "LLM"]
+        type: "COUNTER"
+        measures: ["COUNT", "RPS"]
+        facets: ["API", "APPLICATION", "GATEWAY"]
+        filters: ["API", "APPLICATION", "HTTP_STATUS"]
+
+    ApiSpecsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiSpec"
+      description: The response contains a list of available APIs for analytics queries.
+      example:
+        data:
+          - name: "HTTP_PROXY"
+            label: "HTTP Proxy"
+          - name: "MESSAGE"
+            label: "Message"
+          - name: "KAFKA"
+            label: "Kafka"
+          - name: "LLM"
+            label: "LLM"
+          - name: "MCP"
+            label: "MCP"
+
+    FacetSpecsResponse:
+      type: object
+      description: The response contains a list of available facets for grouping a metric.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FacetSpec"
+      example:
+        data:
+          - name: "API"
+            label: "API"
+            type: "KEYWORD"
+          - name: "APPLICATION"
+            label: "Application"
+            type: "KEYWORD"
+          - name: "GATEWAY"
+            label: "Gateway"
+            type: "KEYWORD"
+
+    FilterSpecsResponse:
+      type: object
+      description: The response contains a list of available filters for filtering analytics data.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FilterSpec"
+      example:
+        data:
+          - name: "API"
+            label: "API"
+            type: "KEYWORD"
+            operators: ["EQ", "IN"]
+          - name: "HTTP_METHOD"
+            label: "HTTP Method"
+            type: "ENUM"
+            operators: ["EQ", "IN"]
+            enumValues: ["GET", "POST", "PUT"]
+          - name: "HTTP_STATUS"
+            label: "Status Code"
+            type: "NUMBER"
+            operators: ["EQ", "LTE", "GTE"]
+            range:
+              min: 100
+              max: 600
+
+    MetricSpecsResponse:
+      type: object
+      description: The response contains a list of available metrics for a specific API type, including their supported measures, facets, and filters.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricSpec"
+      example:
+        data:
+          - name: "HTTP_REQUESTS"
+            label: "HTTP Requests"
+            apis: ["HTTP_PROXY", "LLM"]
+            type: "COUNTER"
+            measures: ["COUNT", "RPS"]
+            facets: ["API", "APPLICATION", "GATEWAY"]
+            filters: ["API", "APPLICATION", "HTTP_STATUS"]
+          - name: "HTTP_GATEWAY_RESPONSE_TIME"
+            label: "Gateway response time"
+            apis: ["HTTP_PROXY", "LLM"]
+            type: "GAUGE"
+            unit: "MILLISECONDS"
+            measures: ["AVG", "MIN", "MAX", "P50", "P90", "P95", "P99"]
+            facets: ["API", "APPLICATION", "GATEWAY"]
+            filters: ["API", "APPLICATION", "HTTP_STATUS"]
 
     Interval:
       type: string
@@ -531,6 +997,10 @@ components:
             - type: string
             - type: number
             - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: number
           items:
             oneOf:
               - type: string
@@ -571,11 +1041,11 @@ components:
             properties:
               name:
                 $ref: "#/components/schemas/MetricName"
-              aggregations:
+              measures:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Aggregation"
-                description: List of aggregations to apply
+                  $ref: "#/components/schemas/MeasureName"
+                description: List of measures to compute for this metric
               filters:
                 type: array
                 items:
@@ -592,7 +1062,7 @@ components:
             value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
         metrics:
           - name: "HTTP_GATEWAY_RESPONSE_TIME"
-            aggregations: ["P90", "P95", "P99"]
+            measures: ["P90", "P95", "P99"]
 
     FacetsRequest:
       type: object
@@ -656,7 +1126,7 @@ components:
             operator: "EQ"
             value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
         metrics:
-          - name: "HTTP_REQUEST_COUNT"
+          - name: "HTTP_REQUESTS"
 
     TimeSeriesRequest:
       type: object
@@ -705,9 +1175,10 @@ components:
             operator: "EQ"
             value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
         metrics:
-          - name: "HTTP_REQUEST_COUNT"
+          - name: "HTTP_REQUESTS"
+            measures: ["COUNT"]
           - name: "HTTP_GATEWAY_RESPONSE_TIME"
-            aggregations: ["AVG"]
+            measures: ["AVG"]
 
     MetricRequest:
       type: object
@@ -717,11 +1188,11 @@ components:
       properties:
         name:
           $ref: "#/components/schemas/MetricName"
-        aggregations:
+        measures:
           type: array
           items:
-            $ref: "#/components/schemas/Aggregation"
-          description: List of aggregations to apply
+            $ref: "#/components/schemas/MeasureName"
+          description: List of measures to compute for this metric
         filters:
           type: array
           items:
@@ -729,40 +1200,18 @@ components:
           description: Request-level filters
 
     Measures:
-      type: object
-      properties:
-        AVG:
-          type: number
-          description: Average value
-        MIN:
-          type: number
-          description: Minimum value
-        MAX:
-          type: number
-          description: Maximum value
-        P50:
-          type: number
-          description: 50th percentile value
-        P90:
-          type: number
-          description: 90th percentile value
-        P95:
-          type: number
-          description: 95th percentile value
-        P99:
-          type: number
-          description: 99th percentile value
-        COUNT:
-          type: number
-          description: Count value
-        RPS:
-          type: number
-          description: Requests per second value
-      additionalProperties: false
+      type: array
+      items:
+        $ref: "#/components/schemas/Measure"
       description: |
-        Map of aggregation name to measure value (e.g., {"COUNT": 2984, "RPS": 45.7, "P90": 89.9})
-        The measures object is always represented as the leaf node of the buckets tree for other types of analytics requests.
-        Only valid aggregation names from the Aggregation enum are allowed as keys.
+        Array of measure results. Each measure contains a name and value.
+        The measures array is always represented as the leaf node of the buckets tree for other types of analytics requests.
+        Example: [{"name": "COUNT", "value": 2984}, {"name": "RPS", "value": 45.7}]
+      example:
+        - name: "COUNT"
+          value: 2984
+        - name: "RPS"
+          value: 45.7
 
     Bucket:
       oneOf:
@@ -783,7 +1232,7 @@ components:
           properties:
             key:
               type: string
-              description: Bucket key (facet value for facet buckets, timestamp string for time series buckets)
+              description: The bucket key is the identifier of the bucket.
             buckets:
               $ref: "#/components/schemas/BucketList"
       description: A bucket can contain either measures (leaf node) or nested buckets (for grouping)
@@ -821,11 +1270,11 @@ components:
           properties:
             key:
               type: string
-              description: Bucket key (facet value for facet buckets, timestamp string for time series buckets)
+              description: The bucket key is an ISO 8601 timestamp string.
             timestamp:
               type: integer
               format: int64
-              description: Timestamp in milliseconds since Unix epoch (optional)
+              description: Timestamp in milliseconds since Unix epoch
               example: 1735689600000
             buckets:
               $ref: "#/components/schemas/BucketList"
@@ -857,9 +1306,10 @@ components:
           description: List of measure metric responses
       example:
         metrics:
-          - name: "HTTP_REQUEST_COUNT"
+          - name: "HTTP_REQUESTS"
             measures:
-              COUNT: 2984
+              - name: "COUNT"
+                value: 2984
 
     FacetsResponse:
       type: object
@@ -881,19 +1331,22 @@ components:
           description: List of facet metric responses. Each metric can have either measures or buckets for grouping.
       example:
         metrics:
-          - name: "HTTP_REQUEST_COUNT"
+          - name: "HTTP_REQUESTS"
             buckets:
               - key: "49ddd7db-35d6-497e-b497-2dc16af0cdcc"
                 buckets:
                   - key: "e65289b0-35b2-40e7-8d41-711fba7fdc96"
                     measures:
-                      RPS: 45.7
+                      - name: "RPS"
+                        value: 45.7
                   - key: "4c65d87a-008a-4a4c-b11a-a38b7a662fcc"
                     measures:
-                      RPS: 34.9
-              - key: "71091fd9-a6a9-4c7f-afdb-d837ea28058c"
-                measures:
-                  COUNT: 989
+                      - name: "RPS"
+                        value: 34.9
+                  - key: "71091fd9-a6a9-4c7f-afdb-d837ea28058c"
+                    measures:
+                      - name: "RPS"
+                        value: 989
 
     TimeSeriesResponse:
       type: object
@@ -919,24 +1372,104 @@ components:
       example:
         interval: "1m"
         metrics:
-          - name: "HTTP_REQUEST_COUNT"
+          - name: "HTTP_REQUESTS"
             buckets:
               - key: "2025-01-01T00:00:00Z"
                 timestamp: 1735689600000
                 buckets:
                   - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
                     measures:
-                      COUNT: 1234
+                      - name: "COUNT"
+                        value: 1234
                   - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
                     measures:
-                      COUNT: 989
+                      - name: "COUNT"
+                        value: 989
               - key: "2025-01-01T00:01:00Z"
                 timestamp: 1735689660000
                 buckets:
                   - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
                     measures:
-                      COUNT: 873
+                      - name: "COUNT"
+                        value: 873
                   - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
                     measures:
-                      COUNT: 938
+                      - name: "COUNT"
+                        value: 938
 
+    Error:
+      description: |
+        The generic error object returned by any endpoint of the Gravitee APIM API.
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: The error code
+          example: 400
+        message:
+          type: string
+          description: A global response error message
+          example: Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          example: invalid.import.definition
+        parameters:
+          type: object
+          description: |
+            Parameters add information about the context of the error.
+          additionalProperties:
+            type: string
+          example:
+            name: "HTTP_REQUESTS"
+            type: "TIME_SERIES"
+            interval: "-1d"
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: A fine grained error message regarding a failing property.
+                example: Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                example: updateApi.properties[0].key
+              invalidValue:
+                oneOf:
+                  - type: string
+                  - type: number
+                  - type: boolean
+                  - type: array
+                    items:
+                      oneOf:
+                        - type: string
+                        - type: number
+                        - type: boolean
+                        - type: object
+                  - type: object
+                description: The invalid value (can be any type)
+                example: "-1d"
+          example:
+            - message: "Interval must be a positive duration (e.g., '1h', '1d', 'auto')"
+              location: "requests[0].interval"
+              invalidValue: "-1d"
+      example:
+        httpStatus: 400
+        message: "Bad request - Invalid Time Series Request"
+        technicalCode: "invalid.analytics.request"
+        parameters:
+          field: "requests[0].interval"
+          value: "-1d"
+          interval: "-1d"
+        details:
+          - message: "Invalid interval value"
+            location: "requests[0].interval"
+            invalidValue: "-1d"
+          - message: "Interval must be a positive duration (e.g., '1h', '1d', 'auto')"
+            location: "requests[0].interval"
+            invalidValue: "-1d"

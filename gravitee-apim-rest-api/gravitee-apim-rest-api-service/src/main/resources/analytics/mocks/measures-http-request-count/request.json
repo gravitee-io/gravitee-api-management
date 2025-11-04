@@ -13,7 +13,9 @@
   "metrics": [
     {
       "name": "HTTP_REQUESTS",
-      "aggregations": ["COUNT"],
+      "measures": [
+        "COUNT"
+      ],
       "filters": [
         {
           "name": "TENANT",

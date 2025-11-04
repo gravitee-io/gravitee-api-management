@@ -31,6 +31,11 @@ import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.analytics.domain_service.engine.definition.AnalyticsDefinition;
+import io.gravitee.apim.core.analytics.use_case.engine.definition.GetApiMetricsUseCase;
+import io.gravitee.apim.core.analytics.use_case.engine.definition.GetApiSpecsUseCase;
+import io.gravitee.apim.core.analytics.use_case.engine.definition.GetMetricFacetsUseCase;
+import io.gravitee.apim.core.analytics.use_case.engine.definition.GetMetricFiltersUseCase;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -107,6 +112,7 @@ import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
+import io.gravitee.apim.infra.domain_service.analytics.AnalyticsDefinitionDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
@@ -966,5 +972,30 @@ public class ResourceContextConfiguration {
     @Bean
     public CreatePromotionUseCase createPromotionUseCase() {
         return mock(CreatePromotionUseCase.class);
+    }
+
+    @Bean
+    public AnalyticsDefinition analyticsDefinitionDomainService() {
+        return new AnalyticsDefinitionDomainServiceImpl();
+    }
+
+    @Bean
+    public GetApiSpecsUseCase getApiSpecsUseCase(AnalyticsDefinition analyticsDefinition) {
+        return new GetApiSpecsUseCase(analyticsDefinition);
+    }
+
+    @Bean
+    public GetApiMetricsUseCase getApiMetricsUseCase(AnalyticsDefinition analyticsDefinition) {
+        return new GetApiMetricsUseCase(analyticsDefinition);
+    }
+
+    @Bean
+    public GetMetricFiltersUseCase getMetricFiltersUseCase(AnalyticsDefinition analyticsDefinition) {
+        return new GetMetricFiltersUseCase(analyticsDefinition);
+    }
+
+    @Bean
+    public GetMetricFacetsUseCase getMetricFacetsUseCase(AnalyticsDefinition analyticsDefinition) {
+        return new GetMetricFacetsUseCase(analyticsDefinition);
     }
 }

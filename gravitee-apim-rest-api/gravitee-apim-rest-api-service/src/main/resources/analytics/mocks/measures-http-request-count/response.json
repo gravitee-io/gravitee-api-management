@@ -2,9 +2,12 @@
   "metrics": [
     {
       "name": "HTTP_REQUESTS",
-      "measures": {
-        "COUNT": 2984
-      }
+      "measures": [
+        {
+          "name": "COUNT",
+          "value": 2984
+        }
+      ]
     }
   ]
 }

@@ -13,7 +13,11 @@
   "metrics": [
     {
       "name": "HTTP_GATEWAY_RESPONSE_TIME",
-      "aggregations": ["P90", "P95", "P99"],
+      "measures": [
+        "P90",
+        "P95",
+        "P99"
+      ],
       "filters": [
         {
           "name": "TENANT",

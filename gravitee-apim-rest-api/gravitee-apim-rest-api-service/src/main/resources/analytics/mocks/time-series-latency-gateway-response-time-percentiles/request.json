@@ -21,7 +21,11 @@
           "value": "europe"
         }
       ],
-      "aggregations": ["P90", "P95", "P99"]
+      "measures": [
+        "P90",
+        "P95",
+        "P99"
+      ]
     }
   ]
 }
