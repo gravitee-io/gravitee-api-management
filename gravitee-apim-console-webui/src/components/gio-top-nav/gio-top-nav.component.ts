@@ -91,7 +91,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
       .get()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((settings) => {
-        this.portalUrl = isEmpty(settings?.portal?.url)
+        this.portalUrl = isEmpty(settings?.portal?.url) || !settings?.portalNext?.access?.enabled
           ? undefined
           : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
       });
