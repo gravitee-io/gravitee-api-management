@@ -75,6 +75,9 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         log.debug("JdbcEventLatestRepository.search({})", criteriaToString(criteria));
 
+        var pageNumber = page != null ? page : 0;
+        var pageSize = size != null ? size : 10;
+
         final List<Object> args = new ArrayList<>();
         var select = """
             WITH PagedEvents AS (%s)
@@ -86,7 +89,7 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
                 LEFT JOIN %s evo ON evt.id = evo.event_id
             ORDER BY evt.updated_at ASC, evt.id ASC
             """.formatted(
-                buildSelectIn(criteria, group, page, size, args),
+                buildSelectIn(criteria, group, pageNumber, pageSize, args),
                 tableName,
                 EVENT_PROPERTIES,
                 EVENT_ENVIRONMENTS,
