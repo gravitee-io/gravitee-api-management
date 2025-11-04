@@ -80,6 +80,49 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         });
     }
 
+    @Override
+    public void mergeSensitiveData(Page oldPage, Page newPage) {
+        if (oldPage.getSource() == null || newPage.getSource() == null) {
+            return;
+        }
+        if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
+            return;
+        }
+
+        var oldFetcherOpt = loadFetcher(oldPage);
+        var newFetcherOpt = loadFetcher(newPage);
+
+        if (oldFetcherOpt.isPresent() && newFetcherOpt.isPresent()) {
+            var oldFetcher = oldFetcherOpt.get();
+            var newFetcher = newFetcherOpt.get();
+
+            FetcherConfiguration originalFetcherConfiguration = oldFetcher.getConfiguration();
+            FetcherConfiguration updatedFetcherConfiguration = newFetcher.getConfiguration();
+            boolean updated = false;
+
+            Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if (field.isAnnotationPresent(Sensitive.class)) {
+                    boolean accessible = field.isAccessible();
+                    field.setAccessible(true);
+                    try {
+                        Object updatedValue = field.get(updatedFetcherConfiguration);
+                        if (SENSITIVE_DATA_REPLACEMENT.equals(updatedValue)) {
+                            updated = true;
+                            field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
+                        }
+                    } catch (IllegalAccessException | IllegalArgumentException e) {
+                        log.error("Error while merging original fetcher sensitive data to new fetcher", e);
+                    }
+                    field.setAccessible(accessible);
+                }
+            }
+            if (updated) {
+                newPage.getSource().setConfiguration((new ObjectMapper().valueToTree(updatedFetcherConfiguration).toString()));
+            }
+        }
+    }
+
     private void fetchContent(Fetcher fetcher, Page page) {
         if (page.getType() != Page.Type.ROOT) {
             page.setContent(readContent(fetcher, page.getSource()));
