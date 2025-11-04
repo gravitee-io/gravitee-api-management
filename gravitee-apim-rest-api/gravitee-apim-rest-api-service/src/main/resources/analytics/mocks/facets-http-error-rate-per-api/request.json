@@ -10,12 +10,14 @@
       "value": "8528bd43-c264-4719-8d9e-ad8afb34ce71"
     }
   ],
-  "interval": "auto",
+  "by": [
+    "API"
+  ],
   "metrics": [
     {
-      "name": "HTTP_REQUESTS",
+      "name": "HTTP_ERRORS",
       "measures": [
-        "COUNT"
+        "PERCENTAGE"
       ],
       "filters": [
         {

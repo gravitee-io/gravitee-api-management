@@ -3,7 +3,6 @@
   "metrics": [
     {
       "name": "HTTP_REQUESTS",
-
       "buckets": [
         {
           "key": "2025-01-01T00:00:00Z",
@@ -11,15 +10,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 1234
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 1234
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 989
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 989
+                }
+              ]
             }
           ]
         },
@@ -29,15 +34,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 873
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 873
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 938
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 938
+                }
+              ]
             }
           ]
         },
@@ -47,15 +58,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 736
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 736
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 763
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 763
+                }
+              ]
             }
           ]
         },
@@ -65,15 +82,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 938
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 938
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 2345
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 2345
+                }
+              ]
             }
           ]
         },
@@ -83,15 +106,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 647
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 647
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 236
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 236
+                }
+              ]
             }
           ]
         },
@@ -101,15 +130,21 @@
           "buckets": [
             {
               "key": "a5954f6e-1d95-463a-9a41-2442c575d022",
-              "measures": {
-                "COUNT": 764
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 764
+                }
+              ]
             },
             {
               "key": "12bff449-1556-491c-8e34-c1c93b27e1cb",
-              "measures": {
-                "COUNT": 236
-              }
+              "measures": [
+                {
+                  "name": "COUNT",
+                  "value": 236
+                }
+              ]
             }
           ]
         }

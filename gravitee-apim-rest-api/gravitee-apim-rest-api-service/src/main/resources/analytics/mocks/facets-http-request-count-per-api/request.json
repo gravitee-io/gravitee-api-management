@@ -10,12 +10,15 @@
       "value": "8528bd43-c264-4719-8d9e-ad8afb34ce71"
     }
   ],
-  "by": ["API"],
-  "aggregations": ["COUNT"],
+  "by": [
+    "API"
+  ],
   "metrics": [
     {
       "name": "HTTP_REQUESTS",
-      "aggregations": ["COUNT"],
+      "measures": [
+        "COUNT"
+      ],
       "filters": [
         {
           "name": "TENANT",

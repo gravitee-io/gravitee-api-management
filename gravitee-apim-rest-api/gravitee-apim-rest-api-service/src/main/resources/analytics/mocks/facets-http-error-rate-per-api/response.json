@@ -1,14 +1,14 @@
 {
   "metrics": [
     {
-      "name": "HTTP_REQUESTS",
+      "name": "HTTP_ERRORS",
       "buckets": [
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
           "measures": [
             {
-              "name": "COUNT",
-              "value": 1234
+              "name": "PERCENTAGE",
+              "value": 1
             }
           ]
         },
@@ -16,8 +16,8 @@
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
           "measures": [
             {
-              "name": "COUNT",
-              "value": 989
+              "name": "PERCENTAGE",
+              "value": 45.9
             }
           ]
         }

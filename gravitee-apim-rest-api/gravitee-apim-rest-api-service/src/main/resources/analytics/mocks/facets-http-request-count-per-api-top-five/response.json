@@ -1,37 +1,52 @@
 {
   "metrics": [
     {
-      "name": "HTTP_REQUEST_COUNT",
+      "name": "HTTP_REQUESTS",
       "buckets": [
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
-          "measures": {
-            "COUNT": 1234
-          }
+          "measures": [
+            {
+              "name": "COUNT",
+              "value": 1234
+            }
+          ]
         },
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
-          "measures": {
-            "COUNT": 989
-          }
+          "measures": [
+            {
+              "name": "COUNT",
+              "value": 989
+            }
+          ]
         },
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
-          "measures": {
-            "COUNT": 890
-          }
+          "measures": [
+            {
+              "name": "COUNT",
+              "value": 890
+            }
+          ]
         },
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
-          "measures": {
-            "COUNT": 789
-          }
+          "measures": [
+            {
+              "name": "COUNT",
+              "value": 789
+            }
+          ]
         },
         {
           "key": "8528bd43-c264-4719-8d9e-ad8afb34ce71",
-          "measures": {
-            "COUNT": 678
-          }
+          "measures": [
+            {
+              "name": "COUNT",
+              "value": 678
+            }
+          ]
         }
       ]
     }

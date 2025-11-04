@@ -293,7 +293,18 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation-deprecated.yaml</inputSpec>
 						</configuration>
 					</execution>
+                    <execution>
+                        <id>model-analytics</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-analytics.yaml</inputSpec>
+                            <modelPackage>${openapi.modelPackage}.analytics.engine</modelPackage>
+                        </configuration>
+                    </execution>
 				</executions>
+
 			</plugin>
         </plugins>
     </build>
