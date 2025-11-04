@@ -1165,9 +1165,9 @@ public class ApiServiceImplTest {
         when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
-        when(
-            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
-        ).thenReturn(List.of(previousPublishedEvent));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(previousPublishedEvent)
+        );
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
