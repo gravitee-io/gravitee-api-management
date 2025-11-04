@@ -69,7 +69,9 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -86,6 +88,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -286,10 +289,59 @@ class CreateHttpApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionHttpV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionValue(newApi.toApiDefinitionBuilder().id("generated-id").build())
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
+            soft.assertThat(apiCrudService.storage()).contains(expectedApi);
+            soft
+                .assertThat(indexer.storage())
+                .containsExactly(
+                    new IndexableApi(
+                        expectedApi,
+                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                        Collections.emptySet()
+                    )
+                );
+        });
+    }
+
+    @Test
+    void should_create_and_index_a_new_llm_proxy() {
+        // Given
+        var newApi = NewApiFixtures.aLlmProxyApiV4();
+
+        // When
+        var output = useCase.execute(new Input(newApi, AUDIT_INFO));
+
+        // Then
+        var expectedFlows = List.of(
+            new Flow().withSelectors(
+                List.of(
+                    HttpSelector.builder().pathOperator(Operator.EQUALS).path("chat/completions").methods(Set.of(HttpMethod.POST)).build()
+                )
+            ),
+            new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("models").methods(Set.of(HttpMethod.GET)).build())
+            ),
+            new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("embeddings").methods(Set.of(HttpMethod.POST)).build())
+            )
+        );
+        var expectedApi = newApi
+            .toApiBuilder()
+            .id("generated-id")
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .environmentId(ENVIRONMENT_ID)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .visibility(Api.Visibility.PRIVATE)
+            .apiDefinitionValue(newApi.toApiDefinitionBuilder().id("generated-id").flows(expectedFlows).build())
+            .build();
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, expectedFlows));
             soft.assertThat(apiCrudService.storage()).contains(expectedApi);
             soft
                 .assertThat(indexer.storage())

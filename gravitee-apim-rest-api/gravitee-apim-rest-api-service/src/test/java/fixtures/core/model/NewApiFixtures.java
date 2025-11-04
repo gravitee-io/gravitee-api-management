@@ -146,4 +146,45 @@ public class NewApiFixtures {
             )
             .build();
     }
+
+    public static NewHttpApi aLlmProxyApiV4() {
+        return BASE_HTTP.get()
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.LLM_PROXY)
+            .visibility(Api.Visibility.PRIVATE)
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(Path.builder().path("/llm_proxy").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("llm-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    EndpointGroup.builder()
+                        .name("Azure")
+                        .type("llm-proxy")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint.builder()
+                                    .name("default-endpoint")
+                                    .type("llm-proxy")
+                                    .inheritConfiguration(true)
+                                    .configuration(
+                                        """
+                                        {
+                                          "target": "https://api.gravitee.io/echo"
+                                        }
+                                        """
+                                    )
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .build();
+    }
 }

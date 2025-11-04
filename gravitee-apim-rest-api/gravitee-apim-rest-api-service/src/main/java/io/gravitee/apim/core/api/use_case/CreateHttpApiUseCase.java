@@ -21,13 +21,20 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import java.util.List;
+import java.util.Set;
+import org.jspecify.annotations.NonNull;
 
 @UseCase
 public class CreateHttpApiUseCase {
@@ -67,8 +74,13 @@ public class CreateHttpApiUseCase {
             auditInfo.actor().userId()
         );
 
+        Api newApi = ApiModelFactory.fromNewHttpApi(input.newHttpApi, auditInfo.environmentId());
+        if (newApi.getType() == ApiType.LLM_PROXY && newApi.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api) {
+            v4Api.setFlows(defaultFlowsLlmProxy());
+        }
+
         var created = createApiDomainService.create(
-            ApiModelFactory.fromNewHttpApi(input.newHttpApi, auditInfo.environmentId()),
+            newApi,
             primaryOwner,
             auditInfo,
             api ->
@@ -82,5 +94,21 @@ public class CreateHttpApiUseCase {
         );
 
         return new Output(created);
+    }
+
+    private static @NonNull List<Flow> defaultFlowsLlmProxy() {
+        return List.of(
+            new Flow().withSelectors(
+                List.of(
+                    HttpSelector.builder().pathOperator(Operator.EQUALS).path("chat/completions").methods(Set.of(HttpMethod.POST)).build()
+                )
+            ),
+            new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("models").methods(Set.of(HttpMethod.GET)).build())
+            ),
+            new Flow().withSelectors(
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("embeddings").methods(Set.of(HttpMethod.POST)).build())
+            )
+        );
     }
 }
