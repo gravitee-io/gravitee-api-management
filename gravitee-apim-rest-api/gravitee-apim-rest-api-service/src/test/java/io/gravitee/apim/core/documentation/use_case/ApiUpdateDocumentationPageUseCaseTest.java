@@ -206,7 +206,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
             apiCrudService,
             pageCrudService,
             pageQueryService,
-            documentationValidationDomainService
+            documentationValidationDomainService,
+            pageSourceDomainService
         );
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build()));
         roleQueryService.initWith(
@@ -511,6 +512,50 @@ class ApiUpdateDocumentationPageUseCaseTest {
             );
 
             assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("source", pageSource);
+        }
+
+        @Test
+        void should_merge_sensitive_data_from_old_page_when_updating_with_masked_source() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+
+            var oldPageWithSensitiveData = OLD_MARKDOWN_PAGE.toBuilder()
+                .source(
+                    PageSource.builder()
+                        .type("http-fetcher")
+                        .configuration("{\"url\": \"https://example.com\", \"token\": \"I'm a sensitive data\"}")
+                        .build()
+                )
+                .build();
+
+            initPageServices(List.of(PARENT_FOLDER, oldPageWithSensitiveData));
+
+            var updatedPageSourceWithMaskedData = PageSource.builder()
+                .type("http-fetcher")
+                .configuration("{\"url\": \"https://example.com\", \"token\": \"********\"}")
+                .build();
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input.builder()
+                    .source(updatedPageSourceWithMaskedData)
+                    .apiId(API_ID)
+                    .pageId(OLD_MARKDOWN_PAGE.getId())
+                    .order(OLD_MARKDOWN_PAGE.getOrder())
+                    .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                    .content(OLD_MARKDOWN_PAGE.getContent())
+                    .name(OLD_MARKDOWN_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .extracting(Page::getSource)
+                .isNotNull()
+                .extracting(PageSource::getConfiguration)
+                .asString()
+                .contains("I'm a sensitive data")
+                .doesNotContain("********");
         }
 
         @Test

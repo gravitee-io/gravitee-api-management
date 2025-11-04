@@ -100,16 +100,117 @@ class PageSourceDomainServiceImplTest {
         assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo("I'm not a sensitive data");
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_merge_sensitive_data_from_old_page_to_new_page() throws JsonProcessingException {
+        // Arrange
+        String originalSensitiveData = "original-secret-token";
+        String maskedSensitiveData = PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT;
+        String nonSensitiveData = "I'm not a sensitive data";
+
+        PageSource oldPageSource = dummySource(nonSensitiveData, originalSensitiveData);
+        PageSource newPageSource = dummySource(nonSensitiveData, maskedSensitiveData);
+
+        Page oldPage = Page.builder().source(oldPageSource).build();
+        Page newPage = Page.builder().source(newPageSource).build();
+
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
+            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
+        );
+        when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
+        when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
+        when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+
+        // Mock fetcher configuration factory to return appropriate configurations
+        // First call for old page, second call for new page
+        when(fetcherConfigurationFactory.create(any(), any()))
+            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
+            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, maskedSensitiveData));
+
+        // Act
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        // Assert
+        JsonNode configuration = new ObjectMapper().readTree(newPage.getSource().getConfiguration());
+        assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(originalSensitiveData);
+        assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo(nonSensitiveData);
+    }
+
+    @Test
+    void should_not_merge_when_old_page_has_no_source() {
+        Page oldPage = Page.builder().build();
+        Page newPage = Page.builder().source(dummySource()).build();
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        verifyNoInteractions(fetcherConfigurationFactory, pluginManager, applicationContext);
+    }
+
+    @Test
+    void should_not_merge_when_new_page_has_no_source() {
+        Page oldPage = Page.builder().source(dummySource()).build();
+        Page newPage = Page.builder().build();
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        verifyNoInteractions(fetcherConfigurationFactory, pluginManager, applicationContext);
+    }
+
+    @Test
+    void should_not_merge_when_sensitive_data_is_not_masked() throws JsonProcessingException {
+        // Arrange
+        String originalSensitiveData = "original-secret-token";
+        String newSensitiveData = "new-secret-token";
+        String nonSensitiveData = "I'm not a sensitive data";
+
+        PageSource oldPageSource = dummySource(nonSensitiveData, originalSensitiveData);
+        PageSource newPageSource = dummySource(nonSensitiveData, newSensitiveData);
+
+        Page oldPage = Page.builder().source(oldPageSource).build();
+        Page newPage = Page.builder().source(newPageSource).build();
+
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
+            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
+        );
+        when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
+        when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
+        when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+
+        // Mock fetcher configuration factory to return appropriate configurations
+        // First call for old page, second call for new page
+        when(fetcherConfigurationFactory.create(any(), any()))
+            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
+            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, newSensitiveData));
+
+        // Act
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        // Assert - new sensitive data should remain unchanged since it's not masked
+        JsonNode configuration = new ObjectMapper().readTree(newPage.getSource().getConfiguration());
+        assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(newSensitiveData);
+        assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo(nonSensitiveData);
+    }
+
     private static PageSource dummySource() {
+        return dummySource("I'm not a sensitive data", "I'm a sensitive data, I should be masked");
+    }
+
+    private static PageSource dummySource(String nonSensitiveData, String sensitiveData) {
         return PageSource.builder()
             .type("dummy-fetcher")
             .configuration(
-                """
-                {
-                   "sensitiveData" : I'm a sensitive data, I should be masked,
-                   "nonSensitiveData" : "I'm not a sensitive data"
-                }
-                """
+                String.format(
+                    """
+                    {
+                       "nonSensitiveData" : "%s",
+                       "sensitiveData" : "%s"
+                    }
+                    """,
+                    nonSensitiveData,
+                    sensitiveData
+                )
             )
             .build();
     }
