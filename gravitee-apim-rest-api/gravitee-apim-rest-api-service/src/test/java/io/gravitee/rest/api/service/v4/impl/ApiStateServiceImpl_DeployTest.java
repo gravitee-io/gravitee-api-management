@@ -223,9 +223,9 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(
-            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
-        ).thenReturn(List.of(previousPublishedEvent));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(previousPublishedEvent)
+        );
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
@@ -267,9 +267,9 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(
-            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
-        ).thenReturn(List.of(previousPublishedEvent));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(previousPublishedEvent)
+        );
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
@@ -320,9 +320,9 @@ public class ApiStateServiceImpl_DeployTest {
         deploymentEntity.setDeploymentLabel("Release v1.0");
         Event mockEvent = new Event();
         mockEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "5"));
-        when(
-            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
-        ).thenReturn(List.of(mockEvent));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(mockEvent)
+        );
         Map<String, String> props = new HashMap<>();
 
         ApiStateServiceImpl impl = new ApiStateServiceImpl(
