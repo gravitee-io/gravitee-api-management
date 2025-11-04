@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
@@ -22,7 +24,13 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.infra.domain_service.api.ApiImagesServiceProviderImpl;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import java.util.List;
+import java.util.function.UnaryOperator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,30 +40,96 @@ public class ImportDefinitionUpdateDomainService {
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiImagesServiceProvider apiImagesServiceProvider;
     private final ApiIdsCalculatorDomainService apiIdsCalculatorDomainService;
+    private final UpdateNativeApiDomainService updateNativeApiDomainService;
+    private final ValidateApiDomainService validateApiDomainService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
 
     public ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
         ApiImagesServiceProvider apiImagesServiceProvider,
-        ApiIdsCalculatorDomainService apiIdsCalculatorDomainService
+        ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
+        UpdateNativeApiDomainService updateNativeApiDomainService,
+        ValidateApiDomainService validateApiDomainService,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
         this.apiIdsCalculatorDomainService = apiIdsCalculatorDomainService;
+        this.updateNativeApiDomainService = updateNativeApiDomainService;
+        this.validateApiDomainService = validateApiDomainService;
+        this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(auditInfo.environmentId(), importDefinition);
-        return switch (existingPromotedApi.getType()) {
-            case PROXY, MESSAGE -> updateHttpV4Api(apiWithIds.getApiExport(), auditInfo);
-            case NATIVE -> throw new IllegalStateException("coming in the next commit");
+        var apiExport = apiWithIds.getApiExport();
+
+        var updatedApi = switch (existingPromotedApi.getType()) {
+            case PROXY, MESSAGE -> updateApiDomainService.updateV4(
+                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()),
+                auditInfo
+            );
+            case NATIVE -> updateNativeApi(existingPromotedApi.getId(), apiWithIds.getApiExport(), auditInfo);
             default -> throw new IllegalStateException("Unsupported API type: " + existingPromotedApi.getType());
         };
+
+        apiImagesServiceProvider.updateApiPicture(apiExport.getId(), apiExport.getPicture(), auditInfo);
+        apiImagesServiceProvider.updateApiBackground(apiExport.getId(), apiExport.getBackground(), auditInfo);
+
+        return updatedApi;
     }
 
-    private Api updateHttpV4Api(ApiExport export, AuditInfo auditInfo) {
-        var updatedApi = updateApiDomainService.updateV4(ApiModelFactory.fromApiExport(export, auditInfo.environmentId()), auditInfo);
-        apiImagesServiceProvider.updateApiPicture(export.getId(), export.getPicture(), auditInfo);
-        apiImagesServiceProvider.updateApiBackground(export.getId(), export.getBackground(), auditInfo);
-        return updatedApi;
+    private Api updateNativeApi(String apiId, ApiExport apiExport, AuditInfo auditInfo) {
+        var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), apiId);
+        var updateOperator = toNativeApiUpdateOperator(apiExport);
+        return updateNativeApiDomainService.update(
+            apiId,
+            updateOperator,
+            (existingApi, apiToUpdate) ->
+                validateApiDomainService.validateAndSanitizeForUpdate(
+                    existingApi,
+                    apiToUpdate,
+                    primaryOwner,
+                    auditInfo.environmentId(),
+                    auditInfo.organizationId()
+                ),
+            auditInfo,
+            primaryOwner,
+            oneShotIndexation(auditInfo)
+        );
+    }
+
+    private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
+        return currentApi ->
+            currentApi
+                .toBuilder()
+                .name(apiExport.getName())
+                .description(apiExport.getDescription())
+                .version(apiExport.getApiVersion())
+                .visibility(
+                    apiExport.getVisibility() != null
+                        ? Api.Visibility.valueOf(apiExport.getVisibility().toString())
+                        : Api.Visibility.PRIVATE
+                )
+                .labels(apiExport.getLabels())
+                .disableMembershipNotifications(apiExport.isDisableMembershipNotifications())
+                .apiDefinitionValue(
+                    currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
+                        ? nativeApi
+                            .toBuilder()
+                            .name(apiExport.getName())
+                            .apiVersion(apiExport.getApiVersion())
+                            .tags(apiExport.getTags())
+                            .resources(apiExport.getResources())
+                            .listeners(apiExport.getListeners() != null ? (List<NativeListener>) apiExport.getListeners() : null)
+                            .endpointGroups(
+                                apiExport.getEndpointGroups() != null ? (List<NativeEndpointGroup>) apiExport.getEndpointGroups() : null
+                            )
+                            .flows(apiExport.getFlows() != null ? (List<NativeFlow>) apiExport.getFlows() : null)
+                            .properties(apiExport.getProperties())
+                            .build()
+                        : null
+                )
+                .build();
     }
 }
