@@ -13,19 +13,121 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Observable } from 'rxjs';
 
+import { MeasureName } from './components/widget/model/request/enum/measure-name';
+import { MetricName } from './components/widget/model/request/enum/metric-name';
+import { FacetsResponse } from './components/widget/model/response/facets-response';
+import { MeasuresResponse } from './components/widget/model/response/measures-response';
+import { RequestType } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 describe('GraviteeDashboardService', () => {
   let service: GraviteeDashboardService;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     service = TestBed.inject(GraviteeDashboardService);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('getMetrics', () => {
+    it('should make POST request for measures endpoint', () => {
+      const basePath = 'http://test.api';
+      const endpoint = 'measures';
+      const request = {
+        type: 'measures' as const,
+        timeRange: {
+          from: '2025-01-01T00:00:00Z',
+          to: '2025-01-31T23:59:59Z',
+        },
+        metrics: [],
+      };
+      const mockResponse: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: MetricName.HTTP_REQUESTS,
+            measures: [{ name: MeasureName.COUNT, value: 100 }],
+          },
+        ],
+      };
+
+      (service.getMetrics(basePath, endpoint, request) as Observable<MeasuresResponse>).subscribe((response: MeasuresResponse) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpTestingController.expectOne(`${basePath}/${endpoint}`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(request);
+      req.flush(mockResponse);
+    });
+
+    it('should make POST request for facets endpoint', () => {
+      const basePath = 'http://test.api';
+      const endpoint = 'facets';
+      const request = {
+        type: 'facets' as const,
+        timeRange: {
+          from: '2025-01-01T00:00:00Z',
+          to: '2025-01-31T23:59:59Z',
+        },
+        by: [],
+        metrics: [],
+      };
+      const mockResponse: FacetsResponse = {
+        type: 'facets',
+        metrics: [
+          {
+            name: MetricName.HTTP_REQUESTS,
+            buckets: [
+              {
+                key: 'test-key',
+                measures: [{ name: MeasureName.COUNT, value: 50 }],
+              },
+            ],
+          },
+        ],
+      };
+
+      (service.getMetrics(basePath, endpoint, request) as Observable<FacetsResponse>).subscribe((response: FacetsResponse) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpTestingController.expectOne(`${basePath}/${endpoint}`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(request);
+      req.flush(mockResponse);
+    });
+    it('should throw error for unsupported endpoint', () => {
+      const basePath = 'http://test.api';
+      const endpoint = 'unsupported' as unknown as RequestType;
+      const request = {
+        type: 'measures' as const,
+        timeRange: {
+          from: '2025-01-01T00:00:00Z',
+          to: '2025-01-31T23:59:59Z',
+        },
+        metrics: [],
+      };
+
+      expect(() => {
+        service.getMetrics(basePath, endpoint, request);
+      }).toThrow('Endpoint unsupported not supported');
+    });
   });
 });

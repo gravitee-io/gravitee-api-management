@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { Bucket, Metric, MetricsResponse } from './response';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+export interface TimeSeriesResponse extends MetricsResponse<TimeSeries> {
+  type: 'time-series';
+  buckets: TimeSeriesBucket[];
+}
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+export interface TimeSeries extends Metric {
+  buckets: TimeSeriesBucket[];
+}
+
+export interface TimeSeriesBucket extends Bucket {
+  timestamp?: Date;
+}

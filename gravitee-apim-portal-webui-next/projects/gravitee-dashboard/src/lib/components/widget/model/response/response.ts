@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { MetricName } from '../request/enum/metric-name';
+import { Measure, RequestType } from '../widget/widget';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+export interface MetricsResponse<D extends Metric> {
+  type: RequestType;
+  interval?: string;
+  metrics?: D[]; //remove ? after remove mock
+}
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+export interface Metric {
+  name: MetricName;
+}
+
+export interface Bucket {
+  key: string;
+  buckets?: Bucket[];
+  measures?: Measure[];
+}

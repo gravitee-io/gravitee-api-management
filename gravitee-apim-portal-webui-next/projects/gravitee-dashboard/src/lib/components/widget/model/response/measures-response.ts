@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { Metric, MetricsResponse } from './response';
+import { Measure } from '../widget/widget';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+export interface MeasuresResponse extends MetricsResponse<MeasureMetric> {
+  type: 'measures';
+}
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+export interface MeasureMetric extends Metric {
+  measures: Measure[];
+}
+
+export function isMeasuresResponse(response: MetricsResponse<Metric>): response is MeasuresResponse {
+  return response?.type === 'measures';
+}

@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { ChartData } from 'chart.js';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { PieType } from './chart/pie-chart/pie-chart.component';
+import { Metric, MetricsResponse } from './widget/model/response/response';
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+export interface Converter {
+  convert(data: MetricsResponse<Metric>): ChartData<PieType, number[]> | number[];
+}

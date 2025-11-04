@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 
+import { GraviteeDashboardComponent, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
 
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
@@ -236,6 +238,13 @@ export const routes: Routes = [
         data: { breadcrumb: { alias: 'pageName' } },
       },
     ],
+  },
+  {
+    path: 'analytics',
+    component: GraviteeDashboardComponent,
+    resolve: {
+      widgets: () => inject(GraviteeDashboardService).getWidgets(),
+    },
   },
   {
     path: 'log-in',

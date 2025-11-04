@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AnalyticsViewerComponent } from './analytics-viewer.component';
@@ -29,10 +31,19 @@ globalThis.ResizeObserver =
 describe('AnalyticsViewerComponent', () => {
   let component: AnalyticsViewerComponent;
   let fixture: ComponentFixture<AnalyticsViewerComponent>;
+  const mockGraviteeDashboardService = {
+    getWidgets: jest.fn().mockReturnValue([]),
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AnalyticsViewerComponent],
+      providers: [
+        {
+          provide: GraviteeDashboardService,
+          useValue: mockGraviteeDashboardService,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AnalyticsViewerComponent);

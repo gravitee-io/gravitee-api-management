@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
-
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
-
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+export enum FacetName {
+  API,
+  APPLICATION,
+  PLAN,
+  GATEWAY,
+  TENANT,
+  ZONE,
+  HTTP_METHOD,
+  HTTP_STATUS_CODE_GROUP,
+  HTTP_STATUS,
+  HTTP_PATH,
+  HTTP_PATH_MAPPING,
+  HOST,
+  GEO_IP_COUNTRY,
+  GEO_IP_REGION,
+  GEO_IP_CITY,
+  GEO_IP_CONTINENT,
+  CONSUMER_IP,
+  HTTP_USER_AGENT_OS_NAME,
+  HTTP_USER_AGENT_DEVICE,
+  MESSAGE_CONNECTOR_TYPE,
+  MESSAGE_OPERATION_TYPE,
+  KAFKA_TOPIC,
+  API_STATE,
+  API_LIFECYCLE_STATE,
+  API_VISIBILITY,
+}
