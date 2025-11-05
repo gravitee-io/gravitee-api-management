@@ -82,8 +82,8 @@ public class HttpConnector implements ProxyConnector {
         UPGRADE
     );
     private final String relativeTarget;
-    private final String defaultHost;
-    private final int defaultPort;
+    protected final String defaultHost;
+    protected final int defaultPort;
     private final boolean defaultSsl;
     private final MultiValueMap<String, String> targetParameters;
     protected final HttpProxyEndpointConnectorConfiguration configuration;
