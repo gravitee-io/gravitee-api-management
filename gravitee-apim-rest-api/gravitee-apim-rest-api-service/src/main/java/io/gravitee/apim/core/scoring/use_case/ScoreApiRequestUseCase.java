@@ -43,11 +43,15 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @UseCase
 public class ScoreApiRequestUseCase {
@@ -86,6 +90,7 @@ public class ScoreApiRequestUseCase {
             .onErrorResumeNext(th -> Flowable.empty());
 
         return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
+            .subscribeOn(Schedulers.io())
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
             .flatMap(api -> Flowable.merge(pages$, export$).toList())
             .flatMap(assets ->
@@ -101,9 +106,22 @@ public class ScoreApiRequestUseCase {
                     )
                 )
             )
-            .flatMapCompletable(request -> {
-                var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request));
-                return scoringProvider.requestScore(request).doOnComplete(() -> asyncJobCrudService.create(job));
+            .flatMap(request ->
+                Single.fromCallable(() ->
+                    asyncJobCrudService.create(newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request)))
+                ).map(job -> Map.entry(request, job))
+            )
+            .flatMapCompletable(entry -> {
+                var request = entry.getKey();
+                var job = entry.getValue();
+                return scoringProvider
+                    .requestScore(request)
+                    .onErrorResumeNext(throwable -> {
+                        log.error("An error occurs while triggering scoring API [{}]", input.apiId, throwable);
+                        return Completable.fromRunnable(() -> asyncJobCrudService.update(job.error(throwable.getMessage()))).andThen(
+                            Completable.error(throwable)
+                        );
+                    });
             });
     }
 
@@ -178,7 +196,7 @@ public class ScoreApiRequestUseCase {
 
     /**
      * Compute the TTL of the scoring job.
-     *
+     * <p>
      * As simple rule, we consider that the scoring job will take 10 seconds per asset per ruleset to score (as simple ) and 30 seconds for the margin.
      *
      * @param request the scoring request

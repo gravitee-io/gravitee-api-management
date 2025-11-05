@@ -24,16 +24,25 @@ import java.util.List;
 
 public class ScoringProviderInMemory implements ScoringProvider {
 
+    /**
+     * If defined, this error will be thrown when a request is received.
+     */
+    public Throwable errorToThrow = null;
     List<ScoreRequest> pendingRequests = new ArrayList<>();
 
     @Override
     public Completable requestScore(ScoreRequest request) {
+        if (errorToThrow != null) {
+            return Completable.error(errorToThrow);
+        }
+
         pendingRequests.add(request);
         return Completable.complete();
     }
 
     public void reset() {
         pendingRequests.clear();
+        errorToThrow = null;
     }
 
     public List<ScoreRequest> pendingRequests() {

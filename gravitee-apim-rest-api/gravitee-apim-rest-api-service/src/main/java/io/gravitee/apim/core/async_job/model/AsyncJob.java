@@ -89,6 +89,10 @@ public class AsyncJob {
         return toBuilder().status(Status.TIMEOUT).updatedAt(TimeProvider.now()).build();
     }
 
+    public AsyncJob error(String errorMessage) {
+        return toBuilder().status(Status.ERROR).updatedAt(TimeProvider.now()).errorMessage(errorMessage).build();
+    }
+
     public boolean isTimedOut() {
         return !status.isFinal() && deadLine != null && deadLine.isBefore(TimeProvider.now());
     }
