@@ -37,10 +37,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("org-1", "env-1");
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(3);
-        assertThat(items).anyMatch(i -> "nav-item-1".equals(i.getId()));
-        assertThat(items).anyMatch(i -> "nav-item-2".equals(i.getId()));
-        assertThat(items).anyMatch(i -> "nav-item-3".equals(i.getId()));
+        assertThat(items).hasSize(6);
+        assertThat(items).anyMatch(i -> "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e".equals(i.getId()));
+        assertThat(items).anyMatch(i -> "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f".equals(i.getId()));
     }
 
     @Test
@@ -51,8 +54,8 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         );
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(1);
-        assertThat(items.getFirst().getId()).isEqualTo("nav-item-2");
+        assertThat(items).hasSize(5);
+        assertThat(items).anyMatch(i -> "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a".equals(i.getId()));
     }
 
     @Test
@@ -64,7 +67,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
         assertThat(items).isNotNull();
         assertThat(items).hasSize(1);
-        assertThat(items.getFirst().getId()).isEqualTo("nav-item-1");
+        assertThat(items.getFirst().getId()).isEqualTo("2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f");
     }
 
     @Test
@@ -94,7 +97,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .title("Support")
             .type(PortalNavigationItem.Type.LINK)
             .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .order(3)
+            .order(4)
             .configuration("{ \"url\": \"https://support.example.com\" }")
             .build();
 
@@ -109,11 +112,20 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
     @Test
     public void should_find_all_navigation_items_for_parent_id_and_environment() throws Exception {
-        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId("nav-item-1", "env-1");
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(
+            "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
+            "env-1"
+        );
 
         assertThat(items).isNotNull();
-        assertThat(items).hasSize(1);
-        assertThat(items.getFirst().getId()).isEqualTo("nav-item-3");
+        assertThat(items).hasSize(3);
+        assertThat(items)
+            .extracting("id")
+            .contains(
+                "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+                "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+                "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+            );
     }
 
     @Test

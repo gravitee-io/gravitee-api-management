@@ -21,7 +21,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -69,7 +69,7 @@ class ListPortalNavigationItemsUseCaseTest {
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 PortalArea.TOP_NAVBAR,
-                Optional.of(PortalPageNavigationId.of(APIS_ID)),
+                Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false
             )
         );
@@ -88,7 +88,7 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // When
         var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(PortalPageNavigationId.of(APIS_ID)), true)
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(PortalNavigationItemId.of(APIS_ID)), true)
         );
 
         // Then

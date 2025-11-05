@@ -18,15 +18,13 @@ package io.gravitee.apim.infra.query_service.portal_page;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
-import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -35,33 +33,13 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
 
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalNavigationItemAdapter portalNavigationItemAdapter = PortalNavigationItemAdapter.INSTANCE;
-    private static final Logger logger = LoggerFactory.getLogger(PortalNavigationItemsQueryServiceImpl.class);
 
     public PortalNavigationItemsQueryServiceImpl(@Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
 
     @Override
-    public PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalPageNavigationId id) {
-        try {
-            var result = portalNavigationItemRepository.findById(id.json());
-            if (result.isPresent() && result.get().getEnvironmentId().equals(environmentId)) {
-                return portalNavigationItemAdapter.toEntity(result.get());
-            }
-            return null;
-        } catch (TechnicalException e) {
-            String errorMessage = String.format(
-                "An error occurred while finding portal navigation item by id %s and environmentId %s",
-                id,
-                environmentId
-            );
-            logger.error(errorMessage, e);
-            throw new TechnicalDomainException(errorMessage, e);
-        }
-    }
-
-    @Override
-    public Collection<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalPageNavigationId parentId) {
+    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
         try {
             var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(parentId.json(), environmentId);
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
@@ -71,13 +49,12 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
                 parentId,
                 environmentId
             );
-            logger.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
-    public Collection<PortalNavigationItem> findTopLevelItemsByEnvironmentId(String environmentId, PortalArea portalArea) {
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea) {
         try {
             var area = switch (portalArea) {
                 case HOMEPAGE -> io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
@@ -91,7 +68,6 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
                 environmentId,
                 portalArea
             );
-            logger.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
