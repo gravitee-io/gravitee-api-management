@@ -23,19 +23,20 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
+
 import {
   WebhookLogsListComponent,
   WebhookLogsQuickFiltersComponent,
   WebhookLogDetailsDrawerComponent,
   WebhookSettingsDialogComponent,
 } from './components';
+import { WebhookLog, WebhookLogsResponse, WebhookFilters } from './models';
+
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
 import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner';
-
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { GioTableWrapperPagination } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { WebhookLog, WebhookLogsResponse, WebhookFilters } from './models';
 import { LogFiltersInitialValues } from '../runtime-logs/models';
 
 @Component({
@@ -350,7 +351,6 @@ export class WebhookLogsComponent implements OnInit {
 
   refresh(): void {
     // TODO: Implement refresh logic - call backend API to reload webhook logs
-    console.log('Refresh clicked');
   }
 
   /**
@@ -494,7 +494,6 @@ export class WebhookLogsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.saved) {
-        console.log('Settings saved successfully');
         // TODO: Implement post-save actions (e.g., show success message, reload data if needed)
       }
     });

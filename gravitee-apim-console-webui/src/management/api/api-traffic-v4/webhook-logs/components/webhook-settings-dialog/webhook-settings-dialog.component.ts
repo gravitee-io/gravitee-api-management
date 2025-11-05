@@ -53,7 +53,7 @@ import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../../entities/m
 })
 export class WebhookSettingsDialogComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
-  //To Do: understand why we are using ApiV2Service and if it needs to be changed
+  // To Do: understand why we are using ApiV2Service and if it needs to be changed
   private apiService = inject(ApiV2Service);
   private snackBarService = inject(SnackBarService);
   private apiId: string = inject(MAT_DIALOG_DATA);

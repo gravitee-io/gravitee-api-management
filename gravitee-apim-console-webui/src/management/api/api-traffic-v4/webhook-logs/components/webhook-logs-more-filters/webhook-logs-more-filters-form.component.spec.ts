@@ -22,6 +22,7 @@ import moment from 'moment';
 
 import { WebhookLogsMoreFiltersFormComponent } from './webhook-logs-more-filters-form.component';
 import { WebhookLogsMoreFiltersModule } from './webhook-logs-more-filters.module';
+
 import { DEFAULT_PERIOD } from '../../../models';
 
 describe('WebhookLogsMoreFiltersFormComponent', () => {

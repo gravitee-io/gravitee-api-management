@@ -407,7 +407,7 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addWebhookLogs(hasTcpListeners: boolean): MenuItem {
-    //TODO: add webhook log permission check?
+    // TODO: add webhook log permission check?
     if (this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
       return {
         displayName: 'Webhooks',

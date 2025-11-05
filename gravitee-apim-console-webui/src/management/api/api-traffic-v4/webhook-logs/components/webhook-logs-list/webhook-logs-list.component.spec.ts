@@ -17,17 +17,16 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter } from '@angular/router';
-import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { WebhookLogsListComponent } from './webhook-logs-list.component';
 import { WebhookLogsListHarness } from './webhook-logs-list.component.harness';
-import { ConnectionLog, fakeConnectionLog } from '../../../../../../entities/management-api-v2';
+
+import { fakeConnectionLog } from '../../../../../../entities/management-api-v2';
 
 describe('WebhookLogsListComponent', () => {
   let component: WebhookLogsListComponent;
   let fixture: ComponentFixture<WebhookLogsListComponent>;
-  let loader: HarnessLoader;
   let componentHarness: WebhookLogsListHarness;
 
   const mockLogs: any[] = [
@@ -72,7 +71,6 @@ describe('WebhookLogsListComponent', () => {
     fixture.componentRef.setInput('logs', mockLogs);
     fixture.componentRef.setInput('pagination', mockPagination);
 
-    loader = TestbedHarnessEnvironment.loader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookLogsListHarness);
   });
 

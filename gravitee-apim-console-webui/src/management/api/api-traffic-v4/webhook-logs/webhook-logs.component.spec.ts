@@ -19,12 +19,12 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MatDialog } from '@angular/material/dialog';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { of } from 'rxjs';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
+
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
