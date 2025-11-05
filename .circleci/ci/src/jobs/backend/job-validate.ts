@@ -41,6 +41,6 @@ export class ValidateJob {
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
     ];
-    return new Job(ValidateJob.jobName, OpenJdkExecutor.create('small'), steps);
+    return new Job(ValidateJob.jobName, OpenJdkExecutor.create('medium'), steps);
   }
 }
