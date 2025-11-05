@@ -396,6 +396,38 @@ class ScoreApiRequestUseCaseTest {
         });
     }
 
+    @Test
+    public void should_flag_async_job_in_error_when_trigger_fails() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+        scoringProvider.errorToThrow = new RuntimeException("Error while scoring");
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertError(scoringProvider.errorToThrow);
+
+        // Then
+        assertThat(scoringProvider.pendingRequests()).isEmpty();
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.ERROR)
+                .errorMessage("Error while scoring")
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
+                .build()
+        );
+    }
+
     private static Condition<JsonObject> is(String id, String name) {
         return new Condition<>(
             json -> {
