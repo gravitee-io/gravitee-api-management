@@ -48,7 +48,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
 
     @Setter
     @Nullable
-    private PortalPageNavigationId parentId;
+    private PortalNavigationItemId parentId;
 
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,

@@ -17,10 +17,9 @@ package inmemory;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class PortalNavigationItemsQueryServiceInMemory
@@ -29,16 +28,7 @@ public class PortalNavigationItemsQueryServiceInMemory
     ArrayList<PortalNavigationItem> storage = new ArrayList<>();
 
     @Override
-    public PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalPageNavigationId id) {
-        return storage
-            .stream()
-            .filter(item -> environmentId.equals(item.getEnvironmentId()) && id.equals(item.getId()))
-            .findFirst()
-            .orElse(null);
-    }
-
-    @Override
-    public Collection<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalPageNavigationId parentId) {
+    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
         return storage
             .stream()
             .filter(
@@ -50,7 +40,7 @@ public class PortalNavigationItemsQueryServiceInMemory
     }
 
     @Override
-    public Collection<PortalNavigationItem> findTopLevelItemsByEnvironmentId(String environmentId, PortalArea portalArea) {
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea) {
         return storage
             .stream()
             .filter(

@@ -28,6 +28,8 @@ public interface PortalNavigationItemAdapter {
     PortalNavigationItemAdapter INSTANCE = Mappers.getMapper(PortalNavigationItemAdapter.class);
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
+    String HREF = "href";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
@@ -44,39 +46,32 @@ public interface PortalNavigationItemAdapter {
         };
     }
 
-    default io.gravitee.repository.management.model.PortalNavigationItem.Area mapAreaReverse(PortalArea area) {
+    default io.gravitee.repository.management.model.PortalNavigationItem.Area mapArea(PortalArea area) {
         return switch (area) {
             case HOMEPAGE -> io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
             case TOP_NAVBAR -> io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
         };
     }
 
-    @Mapping(target = "id", expression = "java(PortalPageNavigationId.of(portalNavigationItem.getId()))")
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    @Mapping(target = "title", source = "title")
-    @Mapping(target = "area", expression = "java(mapArea(portalNavigationItem.getArea()))")
+    @Mapping(target = "id", expression = "java(PortalNavigationItemId.of(portalNavigationItem.getId()))")
     @Mapping(
         target = "parentId",
-        expression = "java(portalNavigationItem.getParentId() != null ? PortalPageNavigationId.of(portalNavigationItem.getParentId()) : null)"
+        expression = "java(portalNavigationItem.getParentId() != null ? PortalNavigationItemId.of(portalNavigationItem.getParentId()) : null)"
     )
-    @Mapping(target = "order", source = "order")
-    @Mapping(target = "href", expression = "java(parseHref(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = HREF, expression = "java(parseHref(portalNavigationItem.getConfiguration()))")
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
-    @Mapping(target = "id", expression = "java(PortalPageNavigationId.of(portalNavigationItem.getId()))")
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    @Mapping(target = "title", source = "title")
-    @Mapping(target = "area", expression = "java(mapArea(portalNavigationItem.getArea()))")
+    @Mapping(target = "id", expression = "java(PortalNavigationItemId.of(portalNavigationItem.getId()))")
     @Mapping(
         target = "parentId",
-        expression = "java(portalNavigationItem.getParentId() != null ? PortalPageNavigationId.of(portalNavigationItem.getParentId()) : null)"
+        expression = "java(portalNavigationItem.getParentId() != null ? PortalNavigationItemId.of(portalNavigationItem.getParentId()) : null)"
     )
-    @Mapping(target = "order", source = "order")
-    @Mapping(target = "contentId", expression = "java(PortalPageContentId.of(parsePageId(portalNavigationItem.getConfiguration())))")
+    @Mapping(
+        target = "portalPageContentId",
+        expression = "java(PortalPageContentId.of(parsePortalPageContentId(portalNavigationItem.getConfiguration())))"
+    )
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -87,7 +82,6 @@ public interface PortalNavigationItemAdapter {
         expression = "java(portalNavigationItem.getParentId() != null ? portalNavigationItem.getParentId().json() : null)"
     )
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
-    @Mapping(target = "area", expression = "java(mapAreaReverse(portalNavigationItem.getArea()))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationItem portalNavigationItem);
 
@@ -104,12 +98,12 @@ public interface PortalNavigationItemAdapter {
             return switch (portalNavigationItem) {
                 case PortalNavigationPage page -> {
                     Map<String, String> config = new HashMap<>();
-                    config.put("pageId", page.getContentId().json());
+                    config.put(PORTAL_PAGE_CONTENT_ID, page.getPortalPageContentId().json());
                     yield OBJECT_MAPPER.writeValueAsString(config);
                 }
                 case PortalNavigationLink link -> {
                     Map<String, String> config = new HashMap<>();
-                    config.put("href", link.getHref());
+                    config.put(HREF, link.getHref());
                     yield OBJECT_MAPPER.writeValueAsString(config);
                 }
                 case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
@@ -119,14 +113,14 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
-    @Named("parsePageId")
-    default String parsePageId(String configuration) {
+    @Named("parsePortalPageContentId")
+    default String parsePortalPageContentId(String configuration) {
         if (configuration == null || configuration.isEmpty()) {
             throw new IllegalArgumentException("PortalNavigationItem configuration is missing for PAGE type");
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration);
-            return node.get("pageId").asText();
+            return node.get(PORTAL_PAGE_CONTENT_ID).asText();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
         }
@@ -139,22 +133,17 @@ public interface PortalNavigationItemAdapter {
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration);
-            return node.get("href").asText();
+            return node.get(HREF).asText();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem LINK type", e);
         }
     }
 
-    @Mapping(target = "id", expression = "java(PortalPageNavigationId.of(portalNavigationItem.getId()))")
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    @Mapping(target = "title", source = "title")
-    @Mapping(target = "area", expression = "java(mapArea(portalNavigationItem.getArea()))")
+    @Mapping(target = "id", expression = "java(PortalNavigationItemId.of(portalNavigationItem.getId()))")
     @Mapping(
         target = "parentId",
-        expression = "java(portalNavigationItem.getParentId() != null ? PortalPageNavigationId.of(portalNavigationItem.getParentId()) : null)"
+        expression = "java(portalNavigationItem.getParentId() != null ? PortalNavigationItemId.of(portalNavigationItem.getParentId()) : null)"
     )
-    @Mapping(target = "order", source = "order")
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

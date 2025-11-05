@@ -58,7 +58,6 @@ public class JdbcPortalNavigationItemRepository
             final String sql = getOrm().getSelectAllSql() + " where organization_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), organizationId, environmentId);
         } catch (Exception ex) {
-            log.error("Failed to find portal navigation items", ex);
             throw new TechnicalException("Failed to find portal navigation items", ex);
         }
     }
@@ -67,13 +66,9 @@ public class JdbcPortalNavigationItemRepository
     public List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.findAllByParentIdAndEnvironmentId({}, {})", parentId, environmentId);
         try {
-            final String sql =
-                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
-                this.tableName +
-                " where parent_id = ? and environment_id = ?";
+            final String sql = getOrm().getSelectAllSql() + " where parent_id = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), parentId, environmentId);
         } catch (Exception ex) {
-            log.error("Failed to find portal navigation items by parentId", ex);
             throw new TechnicalException("Failed to find portal navigation items by parentId", ex);
         }
     }
@@ -86,7 +81,6 @@ public class JdbcPortalNavigationItemRepository
             final String sql = getOrm().getSelectAllSql() + " where area = ? and environment_id = ?";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
         } catch (Exception ex) {
-            log.error("Failed to find portal navigation items by area", ex);
             throw new TechnicalException("Failed to find portal navigation items by area", ex);
         }
     }
@@ -96,13 +90,9 @@ public class JdbcPortalNavigationItemRepository
         throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull({}, {})", area, environmentId);
         try {
-            final String sql =
-                "select id, organization_id, environment_id, title, type, area, parent_id, \"order\", configuration from " +
-                this.tableName +
-                " where area = ? and environment_id = ? and parent_id is null";
+            final String sql = getOrm().getSelectAllSql() + " where area = ? and environment_id = ? and parent_id is null";
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
         } catch (Exception ex) {
-            log.error("Failed to find top level portal navigation items by area", ex);
             throw new TechnicalException("Failed to find top level portal navigation items by area", ex);
         }
     }
@@ -113,7 +103,6 @@ public class JdbcPortalNavigationItemRepository
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
         } catch (Exception ex) {
-            log.error("Failed to delete portal navigation items by organizationId", ex);
             throw new TechnicalException("Failed to delete portal navigation items by organizationId", ex);
         }
     }
@@ -124,7 +113,6 @@ public class JdbcPortalNavigationItemRepository
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
-            log.error("Failed to delete portal navigation items by environmentId", ex);
             throw new TechnicalException("Failed to delete portal navigation items by environmentId", ex);
         }
     }

@@ -18,9 +18,9 @@ package fixtures.core.model;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
@@ -41,15 +41,15 @@ public class PortalNavigationItemFixtures {
         return aFolder(id, title, null);
     }
 
-    public static PortalNavigationFolder aFolder(String id, String title, PortalPageNavigationId parentId) {
-        var folder = new PortalNavigationFolder(PortalPageNavigationId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR);
+    public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
+        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR);
         folder.setParentId(parentId);
         return folder;
     }
 
-    public static PortalNavigationPage aPage(String id, String title, PortalPageNavigationId parentId) {
+    public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId) {
         var page = new PortalNavigationPage(
-            PortalPageNavigationId.of(id),
+            PortalNavigationItemId.of(id),
             ORG_ID,
             ENV_ID,
             title,

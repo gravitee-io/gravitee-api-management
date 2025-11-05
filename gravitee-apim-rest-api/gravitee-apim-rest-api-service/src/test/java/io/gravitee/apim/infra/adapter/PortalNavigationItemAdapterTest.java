@@ -54,12 +54,12 @@ class PortalNavigationItemAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(PortalNavigationFolder.class);
             var folder = (PortalNavigationFolder) entity;
-            assertThat(folder.getId()).isEqualTo(PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440000"));
+            assertThat(folder.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440000"));
             assertThat(folder.getOrganizationId()).isEqualTo("org-id");
             assertThat(folder.getEnvironmentId()).isEqualTo("env-id");
             assertThat(folder.getTitle()).isEqualTo("My Folder");
             assertThat(folder.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-            assertThat(folder.getParentId()).isEqualTo(PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440001"));
+            assertThat(folder.getParentId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(folder.getOrder()).isEqualTo(1);
         }
 
@@ -74,7 +74,7 @@ class PortalNavigationItemAdapterTest {
                 .type(PortalNavigationItem.Type.PAGE)
                 .area(PortalNavigationItem.Area.HOMEPAGE)
                 .order(2)
-                .configuration("{\"pageId\":\"550e8400-e29b-41d4-a716-446655440003\"}")
+                .configuration("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440003\"}")
                 .build();
 
             // When
@@ -83,12 +83,12 @@ class PortalNavigationItemAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(PortalNavigationPage.class);
             var page = (PortalNavigationPage) entity;
-            assertThat(page.getId()).isEqualTo(PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440002"));
+            assertThat(page.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440002"));
             assertThat(page.getOrganizationId()).isEqualTo("org-id");
             assertThat(page.getEnvironmentId()).isEqualTo("env-id");
             assertThat(page.getTitle()).isEqualTo("My Page");
             assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE);
-            assertThat(page.getContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
+            assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(page.getOrder()).isEqualTo(2);
         }
 
@@ -112,7 +112,7 @@ class PortalNavigationItemAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(PortalNavigationLink.class);
             var link = (PortalNavigationLink) entity;
-            assertThat(link.getId()).isEqualTo(PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440004"));
+            assertThat(link.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440004"));
             assertThat(link.getOrganizationId()).isEqualTo("org-id");
             assertThat(link.getEnvironmentId()).isEqualTo("env-id");
             assertThat(link.getTitle()).isEqualTo("My Link");
@@ -209,13 +209,13 @@ class PortalNavigationItemAdapterTest {
         void should_map_folder_to_repository() {
             // Given
             var entity = new PortalNavigationFolder(
-                PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440010"),
+                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440010"),
                 "org-id",
                 "env-id",
                 "My Folder",
                 PortalArea.TOP_NAVBAR
             );
-            entity.setParentId(PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440011"));
+            entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
             entity.setOrder(1);
 
             // When
@@ -237,7 +237,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_page_to_repository() {
             // Given
             var entity = new PortalNavigationPage(
-                PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440012"),
+                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440012"),
                 "org-id",
                 "env-id",
                 "My Page",
@@ -257,14 +257,14 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.PAGE);
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.HOMEPAGE);
             assertThat(repositoryItem.getOrder()).isEqualTo(2);
-            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"pageId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
         }
 
         @Test
         void should_map_link_to_repository() {
             // Given
             var entity = new PortalNavigationLink(
-                PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440014"),
+                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440014"),
                 "org-id",
                 "env-id",
                 "My Link",
@@ -291,7 +291,7 @@ class PortalNavigationItemAdapterTest {
         void should_handle_null_parent_id() {
             // Given
             var entity = new PortalNavigationFolder(
-                PortalPageNavigationId.of("550e8400-e29b-41d4-a716-446655440015"),
+                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440015"),
                 "org-id",
                 "env-id",
                 "My Folder",

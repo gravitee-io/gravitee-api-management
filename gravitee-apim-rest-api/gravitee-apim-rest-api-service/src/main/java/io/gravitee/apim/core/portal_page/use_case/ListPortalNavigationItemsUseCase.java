@@ -19,11 +19,12 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalPageNavigationId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -31,37 +32,33 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
+    private static final Predicate<PortalNavigationItem> IS_FOLDER_PREDICATE = i -> i instanceof PortalNavigationFolder;
 
     public Output execute(Input input) {
         var directItems = input
             .parentId()
             .map(parentId -> queryService.findByParentIdAndEnvironmentId(input.environmentId(), parentId))
-            .orElse(queryService.findTopLevelItemsByEnvironmentId(input.environmentId(), input.portalArea()));
+            .orElse(queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(input.environmentId(), input.portalArea()));
 
         var items = new ArrayList<>(directItems);
 
-        if (input.loadChildren()) {
-            for (var item : directItems) {
-                if (item instanceof PortalNavigationFolder) {
-                    addChildrenRecursively(items, item.getId(), input.environmentId());
-                }
-            }
+        if (!input.loadChildren()) {
+            return new Output(items);
+        }
+
+        var queue = new ArrayList<>(items.stream().filter(IS_FOLDER_PREDICATE).toList());
+
+        while (!queue.isEmpty()) {
+            var current = queue.removeFirst();
+            var children = queryService.findByParentIdAndEnvironmentId(current.getEnvironmentId(), current.getId());
+            items.addAll(children);
+            queue.addAll(children.stream().filter(IS_FOLDER_PREDICATE).toList());
         }
 
         return new Output(items);
     }
 
-    private void addChildrenRecursively(List<PortalNavigationItem> items, PortalPageNavigationId parentId, String environmentId) {
-        var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
-        for (var child : children) {
-            items.add(child);
-            if (child instanceof PortalNavigationFolder) {
-                addChildrenRecursively(items, child.getId(), environmentId);
-            }
-        }
-    }
-
     public record Output(List<PortalNavigationItem> items) {}
 
-    public record Input(String environmentId, PortalArea portalArea, Optional<PortalPageNavigationId> parentId, boolean loadChildren) {}
+    public record Input(String environmentId, PortalArea portalArea, Optional<PortalNavigationItemId> parentId, boolean loadChildren) {}
 }
