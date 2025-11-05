@@ -105,7 +105,7 @@ $typography: map.get(gio.$mat-theme, typography);
   top: 0;
   bottom: 0;
   right: 0;
-  z-index: 2;
+  z-index: 71;
   width: 400px;
   border-left: 1px solid map.get(gio.$mat-dove-palette, darker20);
   background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);

@@ -103,7 +103,7 @@
 </div>
 
 <ng-container *ngIf="showMoreFilters">
-  <div class="more-filters">
+  <div class="more-filters" (keydown.escape)="showMoreFilters = false">
     <div class="more-filters__header">
       <span class="more-filters__header__title">Filter your results</span>
       <button mat-icon-button type="button" aria-label="Close" (click)="showMoreFilters = false">
@@ -125,5 +125,13 @@
       </button>
     </div>
   </div>
-  <div class="main-page" (click)="showMoreFilters = false"></div>
+  <div
+    class="main-page"
+    role="button"
+    tabindex="0"
+    aria-label="Close filters"
+    (click)="showMoreFilters = false"
+    (keydown.enter)="showMoreFilters = false"
+    (keydown.space)="showMoreFilters = false; $event.preventDefault()"
+  ></div>
 </ng-container>

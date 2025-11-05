@@ -28,7 +28,7 @@ import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { LogFiltersInitialValues } from '../../../runtime-logs/models';
-import { PERIODS } from '../../../models';
+import { DEFAULT_PERIOD, PERIODS } from '../../../models';
 import { WebhookLogsMoreFiltersFormComponent } from '../webhook-logs-more-filters/webhook-logs-more-filters-form.component';
 import { WebhookFilters, WebhookMoreFiltersForm } from '../../models';
 import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
@@ -74,7 +74,12 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   currentFilters = signal<WebhookFilters>({});
   isFiltering = false;
   showMoreFilters = false;
-  moreFiltersValues: WebhookMoreFiltersForm = {};
+  moreFiltersValues: WebhookMoreFiltersForm = {
+    period: DEFAULT_PERIOD,
+    from: null,
+    to: null,
+    callbackUrls: [],
+  };
   moreFiltersInvalid = false;
 
   protected readonly Array = Array;
@@ -154,7 +159,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
 
   resetMoreFilters(): void {
     this.moreFiltersValues = {
-      period: { label: 'None', value: '0' },
+      period: DEFAULT_PERIOD,
       from: null,
       to: null,
       callbackUrls: [],

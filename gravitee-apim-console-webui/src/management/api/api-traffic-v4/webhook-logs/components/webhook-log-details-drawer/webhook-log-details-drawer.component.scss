@@ -297,9 +297,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .header-value {
-  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
   word-break: break-word;
-  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
   font-weight: bold;
 }
 

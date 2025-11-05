@@ -19,6 +19,8 @@ import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { Component, Input } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { OwlDateTimeModule, OwlDateTimeIntl } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 
@@ -74,7 +76,7 @@ export default {
   component: WebhookLogsComponent,
   decorators: [
     moduleMetadata({
-      imports: [WebhookLogsComponent, MockApiNavigationHeaderComponent],
+      imports: [WebhookLogsComponent, MockApiNavigationHeaderComponent, OwlDateTimeModule, OwlMomentDateTimeModule],
       providers: [
         {
           provide: ApiV2Service,
@@ -93,6 +95,7 @@ export default {
           provide: MatDialog,
           useValue: { open: () => ({}) },
         },
+        OwlDateTimeIntl,
       ],
     }),
     applicationConfig({

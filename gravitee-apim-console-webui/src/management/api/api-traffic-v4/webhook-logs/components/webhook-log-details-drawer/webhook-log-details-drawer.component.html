@@ -104,7 +104,14 @@
     </div>
 
     <div class="attempts-section">
-      <div class="attempts-section__header-row" (click)="toggleAttemptsExpanded()">
+      <div
+        class="attempts-section__header-row"
+        role="button"
+        tabindex="0"
+        (click)="toggleAttemptsExpanded()"
+        (keydown.enter)="toggleAttemptsExpanded()"
+        (keydown.space)="toggleAttemptsExpanded(); $event.preventDefault()"
+      >
         <h3 class="section-title">Delivery attempts</h3>
         <mat-icon [svgIcon]="isAttemptsExpanded() ? 'gio:nav-arrow-down' : 'gio:nav-arrow-up'"></mat-icon>
       </div>
