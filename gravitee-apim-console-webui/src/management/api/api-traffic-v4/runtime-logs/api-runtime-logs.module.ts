@@ -28,6 +28,7 @@ import { ApiRuntimeLogsListComponent } from './components/api-runtime-logs-list/
 
 import { ActionButtonsDirective } from '../../api-navigation/api-navigation-header/action-buttons.directive';
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
+import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner';
 
 @NgModule({
   imports: [
@@ -42,6 +43,7 @@ import { ApiNavigationModule } from '../../api-navigation/api-navigation.module'
     GioBannerModule,
     ActionButtonsDirective,
     ApiNavigationModule,
+    ReportingDisabledBannerComponent,
   ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],

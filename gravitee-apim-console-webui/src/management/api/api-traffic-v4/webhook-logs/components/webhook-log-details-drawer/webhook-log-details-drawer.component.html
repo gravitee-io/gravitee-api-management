@@ -1,0 +1,210 @@
+<!--
+  Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<div class="details-drawer" [class.details-drawer__expanded]="false">
+  <div class="details-drawer__header">
+    <div class="details-drawer__header__info">
+      <div class="details-drawer__header__timestamp">{{ log()?.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</div>
+      <div class="details-drawer__header__url">{{ log()?.callbackUrl || log()?.uri }}</div>
+    </div>
+    <div class="details-drawer__header__actions">
+      <button mat-stroked-button class="expand-button" (click)="toggleExpand()">
+        <span>Expand</span>
+        <mat-icon svgIcon="gio:maximize-2" iconPositionEnd></mat-icon>
+      </button>
+      <button mat-icon-button aria-label="Close" (click)="close()">
+        <mat-icon svgIcon="gio:cancel"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="details-drawer__body">
+    <div class="overview-section">
+      <h3 class="section-title">Overview</h3>
+      <div class="overview-cards">
+        <div class="overview-card">
+          <h4 class="overview-card__title">Request</h4>
+          <div class="overview-card__content">
+            <div class="info-row">
+              <span class="info-label">Date</span>
+              <span class="info-value">{{ log()?.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Method</span>
+              <span class="info-value">{{ log()?.additionalMetrics?.int_webhook_request_method || 'POST' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Attempts</span>
+              <span class="info-value">{{ (log()?.additionalMetrics?.int_webhook_retry_count || 0) + 1 }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Callback URL</span>
+              <span class="info-value">{{ log()?.callbackUrl || log()?.uri }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="overview-card">
+          <h4 class="overview-card__title">Response</h4>
+          <div class="overview-card__content">
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span
+                class="status-badge"
+                [class.gio-badge-success]="log()?.status < 400"
+                [class.gio-badge-warning]="log()?.status >= 400 && log()?.status <= 499"
+                [class.gio-badge-error]="log()?.status >= 500"
+              >
+                {{ log()?.status }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Total duration</span>
+              <span class="info-value">{{ log()?.duration }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Payload size</span>
+              <span class="info-value">{{ formatBytes(log()?.additionalMetrics?.long_webhook_payload_size || 0) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Last error</span>
+              <span class="info-value">{{ log()?.additionalMetrics?.string_webhook_last_error || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attempts-section">
+      <div class="attempts-section__header-row" (click)="toggleAttemptsExpanded()">
+        <h3 class="section-title">Delivery attempts</h3>
+        <mat-icon [svgIcon]="isAttemptsExpanded() ? 'gio:nav-arrow-down' : 'gio:nav-arrow-up'"></mat-icon>
+      </div>
+      <div class="attempts-card" *ngIf="isAttemptsExpanded()">
+        <table mat-table [dataSource]="retryTimeline()" class="attempts-table">
+          <ng-container matColumnDef="attempt">
+            <th mat-header-cell *matHeaderCellDef>Attempt</th>
+            <td mat-cell *matCellDef="let row; let i = index">{{ retryTimeline().length - i }}</td>
+          </ng-container>
+          <ng-container matColumnDef="timestamp">
+            <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+            <td mat-cell *matCellDef="let row">{{ row.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef>Duration</th>
+            <td mat-cell *matCellDef="let row">{{ formatDuration(row.duration || 0) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let row">
+              <span
+                class="status-badge"
+                [class.gio-badge-success]="row.status < 400"
+                [class.gio-badge-warning]="row.status >= 400 && row.status <= 499"
+                [class.gio-badge-error]="row.status >= 500"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['attempt', 'timestamp', 'duration', 'status']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['attempt', 'timestamp', 'duration', 'status']"></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="request-section">
+      <h3 class="section-title">Request sent by gateway</h3>
+      <div class="request-response-grid">
+        <div class="request-response-card">
+          <div class="card-header">
+            <h4 class="card-header__title">Headers</h4>
+            <span class="gio-badge-primary">
+              {{ log()?.additionalMetrics?.int_webhook_request_method || log()?.method || 'POST' }}
+            </span>
+          </div>
+          <div class="card-content">
+            <div *ngFor="let header of requestHeaders() | keyvalue" class="header-row">
+              <span class="header-key">{{ header.key }}</span>
+              <span class="header-value">{{ header.value }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="request-response-card">
+          <div class="card-header">
+            <h4 class="card-header__title">Body</h4>
+          </div>
+          <div class="card-content">
+            <div class="json-body-wrapper">
+              <button
+                mat-icon-button
+                class="copy-button"
+                [cdkCopyToClipboard]="requestBody()"
+                (cdkCopyToClipboardCopied)="onCopied()"
+                [attr.aria-label]="'Copy request body'"
+              >
+                <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+              <pre class="json-body">{{ requestBody() }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="response-section">
+      <h3 class="section-title">Response from Callback URL Endpoint</h3>
+      <div class="request-response-grid">
+        <div class="request-response-card">
+          <div class="card-header">
+            <h4 class="card-header__title">Headers</h4>
+            <span
+              class="status-badge"
+              [class.gio-badge-success]="log()?.status < 400"
+              [class.gio-badge-warning]="log()?.status >= 400 && log()?.status <= 499"
+              [class.gio-badge-error]="log()?.status >= 500"
+            >
+              {{ log()?.status }}
+            </span>
+          </div>
+          <div class="card-content">
+            <div *ngFor="let header of responseHeaders() | keyvalue" class="header-row">
+              <span class="header-key">{{ header.key }}</span>
+              <span class="header-value">{{ header.value }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="request-response-card">
+          <div class="card-header">
+            <h4 class="card-header__title">Body</h4>
+          </div>
+          <div class="card-content">
+            <div class="json-body-wrapper">
+              <button
+                mat-icon-button
+                class="copy-button"
+                [cdkCopyToClipboard]="responseBody()"
+                (cdkCopyToClipboardCopied)="onCopied()"
+                [attr.aria-label]="'Copy response body'"
+              >
+                <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+              <pre class="json-body">{{ responseBody() }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

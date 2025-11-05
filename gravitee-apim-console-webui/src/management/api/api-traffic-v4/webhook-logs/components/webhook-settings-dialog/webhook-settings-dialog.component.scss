@@ -1,0 +1,90 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.settings-content {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  &__description {
+    margin: 0;
+    flex: 1;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  &__toggle {
+    flex-shrink: 0;
+  }
+}
+
+.settings {
+  &__form-control {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+      display: flex;
+      justify-items: center;
+      margin-bottom: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+    }
+
+    &__subtitle {
+      margin: 16px 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, 'body-2');
+    }
+
+    &__toggles {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    &__sampling-fields {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+
+      mat-form-field {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .sampling-type {
+      @include gio.gio-button-toggle-group;
+    }
+
+    p {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      line-height: 20px;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    }
+  }
+}
+
+.logging-banner {
+  margin: 24px 0;
+}
+
+mat-dialog-actions.actions {
+  padding: 16px 24px;
+  margin: 0;
+  gap: 8px;
+  display: flex;
+  justify-content: flex-end;
+}

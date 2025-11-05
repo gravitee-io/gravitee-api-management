@@ -1,0 +1,48 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.table-wrapper {
+  border-top: 0;
+  margin-top: 0 !important;
+}
+
+.table {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .mat-column-timestamp {
+    min-width: 100px;
+    width: 200px;
+  }
+
+  .mat-column-status,
+  .mat-column-duration,
+  .mat-column-actions {
+    width: 0;
+  }
+
+  .callback-url-column {
+    max-width: 300px;
+
+    .callback-url {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .mat-column-timestamp,
+  .mat-column-status,
+  .mat-column-callbackUrl,
+  .mat-column-application,
+  .mat-column-duration,
+  .mat-column-actions {
+    padding: 0 8px;
+  }
+}

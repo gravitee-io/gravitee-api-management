@@ -22,14 +22,7 @@
 </api-navigation-header>
 
 @if (isReportingDisabled$ | async) {
-  <gio-banner-info class="banner-warning">
-    <div class="banner-warning__content">
-      Reporting is disabled
-      <span class="mat-body"
-        >You’re seeing outdated or no data because reporting is disabled. To view the latest data, please enable reporting.</span
-      >
-    </div>
-  </gio-banner-info>
+  <reporting-disabled-banner></reporting-disabled-banner>
 }
 <mat-card>
   @if (initialValues) {

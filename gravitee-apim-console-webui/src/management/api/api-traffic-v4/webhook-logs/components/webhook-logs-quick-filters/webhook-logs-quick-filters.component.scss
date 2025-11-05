@@ -1,0 +1,167 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+::ng-deep {
+  webhook-logs-quick-filters {
+    .quick-filters__chip_list .mdc-evolution-chip-set__chips {
+      align-items: center;
+    }
+  }
+}
+
+.quick-filters {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 0 24px;
+
+  &__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__selectors {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__search {
+    display: inline;
+    width: 200px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  &__status {
+    display: inline;
+    width: 150px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  &__application {
+    display: inline;
+    width: 180px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  &__period {
+    display: inline;
+    width: 150px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  .action {
+    &__button {
+      height: 48px;
+      margin-right: 16px;
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  &__chip {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      margin-left: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+
+  &__applied {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__reset {
+    margin-left: 12px;
+  }
+}
+
+.more-filters {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  width: 400px;
+  border-left: 1px solid map.get(gio.$mat-dove-palette, darker20);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+  transition: right 0.5s ease-in-out;
+
+  &__hidden {
+    right: -400px;
+    transition: right 0.5s ease-in-out;
+  }
+
+  &__header {
+    display: flex;
+    height: 76px;
+    padding: 16px 24px;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid map.get(gio.$mat-dove-palette, darker20);
+
+    &__title {
+      @include mat.m2-typography-level($typography, subtitle-1);
+    }
+  }
+
+  &__body {
+    padding: 24px;
+    overflow-y: auto;
+    height: calc(100vh - 176px);
+  }
+
+  &__footer {
+    display: flex;
+    padding: 24px;
+    width: 100%;
+    height: 100px;
+    max-height: 100px;
+    align-items: center;
+    border-top: 1px solid map.get(gio.$mat-dove-palette, darker20);
+    position: fixed;
+    bottom: 0;
+
+    .apply__button,
+    .clear__button {
+      min-width: 172px;
+    }
+
+    .clear__button {
+      margin-right: 8px;
+    }
+  }
+}
+
+.main-page {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 401px;
+  z-index: 70;
+}

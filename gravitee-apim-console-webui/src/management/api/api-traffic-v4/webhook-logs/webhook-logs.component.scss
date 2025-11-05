@@ -9,15 +9,3 @@ $typography: map.get(gio.$mat-theme, typography);
 :host {
   @include gio-layout.gio-full-width-content-container;
 }
-
-.header {
-  display: flex;
-  margin-bottom: 24px;
-  justify-content: space-between;
-  align-items: center;
-
-  &__title {
-    margin: auto 0;
-    @include mat.m2-typography-level($typography, 'headline-6');
-  }
-}

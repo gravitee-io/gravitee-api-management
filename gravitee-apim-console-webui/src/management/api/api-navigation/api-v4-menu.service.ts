@@ -52,6 +52,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       ...(api.type !== 'LLM_PROXY' ? [this.addApiTrafficMenuEntry(hasTcpListeners, api.type)] : []),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addWebhookLogs(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
@@ -400,6 +401,18 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Logs',
         icon: 'align-justify',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/runtime-logs',
+      };
+    }
+    return null;
+  }
+
+  private addWebhookLogs(hasTcpListeners: boolean): MenuItem {
+    //TODO: add webhook log permission check?
+    if (this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
+      return {
+        displayName: 'Webhooks',
+        icon: 'webhook',
+        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/webhook-logs',
       };
     }
     return null;
