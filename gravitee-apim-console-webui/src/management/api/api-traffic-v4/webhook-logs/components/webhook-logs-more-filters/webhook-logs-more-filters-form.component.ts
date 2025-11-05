@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { CommonModule, DatePipe } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
@@ -26,7 +33,18 @@ import { WebhookMoreFiltersForm } from '../../models';
   selector: 'webhook-logs-more-filters-form',
   templateUrl: './webhook-logs-more-filters-form.component.html',
   styleUrls: ['./webhook-logs-more-filters-form.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatIconModule,
+    MatInputModule,
+    OwlDateTimeModule,
+  ],
+  providers: [DatePipe],
 })
 export class WebhookLogsMoreFiltersFormComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

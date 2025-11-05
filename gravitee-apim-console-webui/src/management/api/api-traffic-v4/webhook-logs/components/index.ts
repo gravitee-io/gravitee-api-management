@@ -17,4 +17,4 @@ export * from './webhook-logs-list';
 export * from './webhook-logs-quick-filters';
 export * from './webhook-log-details-drawer';
 export * from './webhook-settings-dialog';
-export * from './webhook-logs-more-filters/webhook-logs-more-filters.module';
+export * from './webhook-logs-more-filters/webhook-logs-more-filters-form.component';

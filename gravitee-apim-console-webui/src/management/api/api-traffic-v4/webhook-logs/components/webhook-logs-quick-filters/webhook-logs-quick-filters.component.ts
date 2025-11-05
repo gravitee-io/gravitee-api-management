@@ -29,7 +29,7 @@ import { isEqual } from 'lodash';
 
 import { LogFiltersInitialValues } from '../../../runtime-logs/models';
 import { PERIODS } from '../../../models';
-import { WebhookLogsMoreFiltersModule } from '../webhook-logs-more-filters/webhook-logs-more-filters.module';
+import { WebhookLogsMoreFiltersFormComponent } from '../webhook-logs-more-filters/webhook-logs-more-filters-form.component';
 import { WebhookFilters, WebhookMoreFiltersForm } from '../../models';
 import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
 
@@ -48,7 +48,7 @@ import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
     MatIconModule,
     MatChipsModule,
     MatTooltipModule,
-    WebhookLogsMoreFiltersModule,
+    WebhookLogsMoreFiltersFormComponent,
   ],
 })
 export class WebhookLogsQuickFiltersComponent implements OnInit {

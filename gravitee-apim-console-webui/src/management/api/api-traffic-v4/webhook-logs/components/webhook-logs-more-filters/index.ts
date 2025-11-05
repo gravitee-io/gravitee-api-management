@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 export * from './webhook-logs-more-filters-form.harness';
-export * from './webhook-logs-more-filters.module';
+export * from './webhook-logs-more-filters-form.component';
