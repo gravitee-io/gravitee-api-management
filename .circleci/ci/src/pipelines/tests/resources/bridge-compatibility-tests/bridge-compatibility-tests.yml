@@ -127,7 +127,7 @@ jobs:
   job-validate:
     docker:
       - image: cimg/openjdk:17.0.8
-    resource_class: small
+    resource_class: medium
     steps:
       - checkout
       - attach_workspace:
