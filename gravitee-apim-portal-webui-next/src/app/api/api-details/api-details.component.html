@@ -43,7 +43,7 @@
       <app-banner class="api-details__banner">
         <div class="api-details__banner-content">
           <mat-icon class="api-details__banner-content__icon" aria-hidden="false" aria-label="Light-bulb icon">lightbulb</mat-icon>
-          <div class="m3-body-large">{{ api.description }}</div>
+          <div class="m3-body-large" [innerHTML]="(api | markdownDescription).description"></div>
         </div>
       </app-banner>
     }

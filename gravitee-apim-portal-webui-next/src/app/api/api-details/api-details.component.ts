@@ -28,6 +28,7 @@ import { ApiCardComponent } from '../../../components/api-card/api-card.componen
 import { BannerComponent } from '../../../components/banner/banner.component';
 import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
 import { PictureComponent } from '../../../components/picture/picture.component';
+import { MarkdownDescriptionPipe } from '../../../components/pipe/markdown-description.pipe';
 import { Api } from '../../../entities/api/api';
 import { Plan } from '../../../entities/plan/plan';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -48,6 +49,7 @@ import { PlanService } from '../../../services/plan.service';
     RouterModule,
     BreadcrumbNavigationComponent,
     FormsModule,
+    MarkdownDescriptionPipe,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
