@@ -14,42 +14,25 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output } from '@angular/core';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { Component, input, output, TemplateRef, ViewChild } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { Pagination } from '../../../../../../entities/management-api-v2';
-import {
-  GioTableWrapperFilters,
-  GioTableWrapperPagination,
-} from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperPagination } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 import { WebhookLog } from '../../models';
+import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base';
 
 @Component({
   selector: 'webhook-logs-list',
   templateUrl: './webhook-logs-list.component.html',
   styleUrls: ['./webhook-logs-list.component.scss'],
   standalone: true,
-  imports: [
-    GioAvatarModule,
-    GioTableWrapperModule,
-    MatIcon,
-    MatTableModule,
-    MatSort,
-    MatTooltipModule,
-    RouterLink,
-    MatButtonModule,
-    DatePipe,
-    GioTooltipOnEllipsisModule,
-  ],
+  imports: [LogsListBaseComponent, MatIcon, MatButtonModule, MatTooltipModule, RouterLink, DatePipe, GioTooltipOnEllipsisModule],
 })
 export class WebhookLogsListComponent {
   logs = input.required<WebhookLog[]>();
@@ -58,29 +41,21 @@ export class WebhookLogsListComponent {
   logDetailsClicked = output<WebhookLog>();
   paginationUpdated = output<GioTableWrapperPagination>();
 
-  readonly gioTableWrapperFilters = computed(() => {
-    const pagination = this.pagination();
-    return {
-      searchTerm: '',
-      pagination: {
-        index: pagination.page ?? 1,
-        size: pagination.perPage ?? 10,
-      },
-    };
-  });
+  @ViewChild('timestampTpl', { static: true }) timestampTpl!: TemplateRef<unknown>;
+  @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<unknown>;
+  @ViewChild('callbackUrlTpl', { static: true }) callbackUrlTpl!: TemplateRef<unknown>;
+  @ViewChild('applicationTpl', { static: true }) applicationTpl!: TemplateRef<unknown>;
+  @ViewChild('durationTpl', { static: true }) durationTpl!: TemplateRef<unknown>;
+  @ViewChild('actionsTpl', { static: true }) actionsTpl!: TemplateRef<unknown>;
 
-  readonly displayedColumns = computed(() => ['timestamp', 'status', 'callbackUrl', 'application', 'duration', 'actions']);
-
-  readonly pageSizeOptions: number[] = [10, 25, 50, 100];
-
-  onFiltersChanged(event: GioTableWrapperFilters) {
-    const eventPagination = event.pagination;
-    const currentPagination = this.pagination();
-    if (
-      (currentPagination.perPage >= 0 && currentPagination.perPage !== eventPagination.size) ||
-      (currentPagination.page >= 0 && currentPagination.page !== eventPagination.index)
-    ) {
-      this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
-    }
+  get columns(): LogsListColumnDef[] {
+    return [
+      { id: 'timestamp', label: 'Timestamp', template: this.timestampTpl },
+      { id: 'status', label: 'Status', template: this.statusTpl },
+      { id: 'callbackUrl', label: 'Callback URL', template: this.callbackUrlTpl },
+      { id: 'application', label: 'Application', template: this.applicationTpl },
+      { id: 'duration', label: 'Duration', template: this.durationTpl },
+      { id: 'actions', label: '', template: this.actionsTpl },
+    ];
   }
 }

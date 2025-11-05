@@ -119,7 +119,6 @@ export class WebhookLogsComponent implements OnInit {
                   ],
                 },
                 meta: {
-                  source_ip: '52.31.14.88',
                   region: 'eu-west-1',
                   version: '2025-05-21',
                 },

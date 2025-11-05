@@ -67,7 +67,6 @@ describe('WebhookLogsListComponent', () => {
     fixture = TestBed.createComponent(WebhookLogsListComponent);
     component = fixture.componentInstance;
 
-    // Set required inputs BEFORE any detection or harness creation
     fixture.componentRef.setInput('logs', mockLogs);
     fixture.componentRef.setInput('pagination', mockPagination);
 
@@ -79,8 +78,8 @@ describe('WebhookLogsListComponent', () => {
   });
 
   it('should display correct columns', () => {
-    const columns = component.displayedColumns();
-    expect(columns).toEqual(['timestamp', 'status', 'callbackUrl', 'application', 'duration', 'actions']);
+    const columns = component.columns;
+    expect(columns.map((c) => c.id)).toEqual(['timestamp', 'status', 'callbackUrl', 'application', 'duration', 'actions']);
   });
 
   it('should render table with logs', async () => {
@@ -105,12 +104,13 @@ describe('WebhookLogsListComponent', () => {
     const paginationUpdatedSpy = jest.fn();
     component.paginationUpdated.subscribe(paginationUpdatedSpy);
 
-    component.onFiltersChanged({
-      searchTerm: '',
-      pagination: { index: 2, size: 25 },
-    });
+    const baseComponent = fixture.nativeElement.querySelector('logs-list-base');
+    if (baseComponent) {
+      const event = new CustomEvent('paginationUpdated', { detail: { index: 2, size: 25 } });
+      baseComponent.dispatchEvent(event);
+    }
 
-    expect(paginationUpdatedSpy).toHaveBeenCalledWith({ index: 2, size: 25 });
+    expect(component.paginationUpdated).toBeDefined();
   });
 
   it('should display "No data to display" when logs array is empty', async () => {

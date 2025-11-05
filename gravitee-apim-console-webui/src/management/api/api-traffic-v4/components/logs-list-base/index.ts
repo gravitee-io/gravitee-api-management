@@ -13,14 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatTableHarness } from '@angular/material/table/testing';
-
-import { LogsListBaseHarness } from '../../../components/logs-list-base';
-
-export class ApiRuntimeLogsListHarness extends LogsListBaseHarness {
-  static hostSelector = 'api-runtime-logs-list';
-
-  protected getLogsTable(): Promise<MatTableHarness> {
-    return this.locatorFor(MatTableHarness)();
-  }
-}
+export * from './logs-list-base.component';
+export * from './logs-list-base.harness';

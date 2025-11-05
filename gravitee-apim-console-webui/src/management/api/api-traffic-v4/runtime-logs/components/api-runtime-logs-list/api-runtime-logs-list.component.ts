@@ -14,80 +14,59 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output } from '@angular/core';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { Component, computed, input, output, TemplateRef, ViewChild } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
-import {
-  GioTableWrapperFilters,
-  GioTableWrapperPagination,
-} from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
+import { GioTableWrapperPagination } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base';
 
 @Component({
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
   standalone: true,
-  imports: [
-    GioAvatarModule,
-    GioTableWrapperModule,
-    MatIcon,
-    MatTableModule,
-    MatSort,
-    MatTooltipModule,
-    RouterLink,
-    MatButtonModule,
-    DatePipe,
-    GioTooltipOnEllipsisModule,
-  ],
+  imports: [LogsListBaseComponent, MatIcon, MatButtonModule, MatTooltipModule, RouterLink, DatePipe],
 })
 export class ApiRuntimeLogsListComponent {
   logs = input.required<ConnectionLog[]>();
   pagination = input.required<Pagination>();
   isMessageApi = input.required<boolean>();
-  readonly gioTableWrapperFilters = computed(() => {
-    const pagination = this.pagination();
-    return {
-      searchTerm: '',
-      pagination: {
-        index: pagination.page ?? 1,
-        size: pagination.perPage ?? 10,
-      },
-    };
-  });
-  displayedColumns = computed(() => [
-    'timestamp',
-    'method',
-    'status',
-    'URI',
-    'application',
-    'plan',
-    'responseTime',
-    ...(this.isMessageApi() ? [] : ['endpoint']),
-    'issues',
-    'actions',
-  ]);
 
   paginationUpdated = output<GioTableWrapperPagination>();
-  pageSizeOptions: number[] = [10, 25, 50, 100];
 
-  onFiltersChanged(event: GioTableWrapperFilters) {
-    const eventPagination = event.pagination;
-    const currentPagination = this.pagination();
-    if (
-      (currentPagination.perPage >= 0 && currentPagination.perPage !== eventPagination.size) ||
-      (currentPagination.page >= 0 && currentPagination.page !== eventPagination.index)
-    ) {
-      this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
+  @ViewChild('timestampTpl', { static: true }) timestampTpl!: TemplateRef<unknown>;
+  @ViewChild('methodTpl', { static: true }) methodTpl!: TemplateRef<unknown>;
+  @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<unknown>;
+  @ViewChild('uriTpl', { static: true }) uriTpl!: TemplateRef<unknown>;
+  @ViewChild('applicationTpl', { static: true }) applicationTpl!: TemplateRef<unknown>;
+  @ViewChild('planTpl', { static: true }) planTpl!: TemplateRef<unknown>;
+  @ViewChild('responseTimeTpl', { static: true }) responseTimeTpl!: TemplateRef<unknown>;
+  @ViewChild('endpointTpl', { static: true }) endpointTpl!: TemplateRef<unknown>;
+  @ViewChild('issuesTpl', { static: true }) issuesTpl!: TemplateRef<unknown>;
+  @ViewChild('actionsTpl', { static: true }) actionsTpl!: TemplateRef<unknown>;
+
+  columns = computed<LogsListColumnDef[]>(() => {
+    const baseColumns: LogsListColumnDef[] = [
+      { id: 'timestamp', label: 'Timestamp', template: this.timestampTpl },
+      { id: 'method', label: 'Method', template: this.methodTpl },
+      { id: 'status', label: 'Status', template: this.statusTpl },
+      { id: 'URI', label: 'URI', template: this.uriTpl },
+      { id: 'application', label: 'Application', template: this.applicationTpl },
+      { id: 'plan', label: 'Plan', template: this.planTpl },
+      { id: 'responseTime', label: 'Response time', template: this.responseTimeTpl },
+    ];
+
+    if (!this.isMessageApi()) {
+      baseColumns.push({ id: 'endpoint', label: 'Endpoint reached', template: this.endpointTpl });
     }
-  }
+
+    baseColumns.push({ id: 'issues', label: 'Issues', template: this.issuesTpl }, { id: 'actions', label: '', template: this.actionsTpl });
+
+    return baseColumns;
+  });
 }
