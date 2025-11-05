@@ -32,12 +32,16 @@ import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -67,8 +71,14 @@ public class WebSocketConnector extends HttpConnector {
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
 
-            ctx.metrics().setEndpoint(options.getURI());
+            ctx.metrics().setEndpoint(buildWebSocketUri(options));
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
+
+            // Add subprotocols: handle comma-separated values, trim whitespace, filter empty strings
+            if (request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)) {
+                webSocketConnectOptions.setSubProtocols(parseSubProtocols(request));
+            }
+
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxWebSocket(webSocketConnectOptions)
@@ -132,5 +142,21 @@ public class WebSocketConnector extends HttpConnector {
 
     protected Set<CharSequence> hopHeaders() {
         return HOP_HEADERS;
+    }
+
+    private String buildWebSocketUri(RequestOptions options) {
+        String protocol = options.isSsl() ? "wss" : "ws";
+        return protocol + "://" + defaultHost + ":" + defaultPort + options.getURI();
+    }
+
+    private List<String> parseSubProtocols(HttpRequest request) {
+        return request
+            .headers()
+            .getAll(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)
+            .stream()
+            .flatMap(header -> Arrays.stream(header.split(",")))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toList());
     }
 }
