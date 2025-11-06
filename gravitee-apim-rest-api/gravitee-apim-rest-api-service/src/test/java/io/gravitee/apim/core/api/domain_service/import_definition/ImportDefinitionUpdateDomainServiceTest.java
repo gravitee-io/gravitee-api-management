@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.api.domain_service.import_definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
-import initializers.ImportDefinitionUpdateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
