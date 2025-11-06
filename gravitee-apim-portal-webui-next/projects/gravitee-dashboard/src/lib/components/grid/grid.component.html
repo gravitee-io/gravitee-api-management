@@ -20,21 +20,23 @@
   @for (item of items(); track item) {
     <gridster-item [item]="item.layout">
       <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
-        <gd-widget-title>{{ item.label }}</gd-widget-title>
+        <gd-widget-title>{{ item.title }}</gd-widget-title>
 
         <gd-widget-body>
-          @switch (item.type) {
-            @case ('pie') {
-              <gd-pie-chart type="pie" />
-            }
-            @case ('polarArea') {
-              <gd-pie-chart type="polarArea" />
-            }
-            @case ('doughnut') {
-              <gd-pie-chart type="doughnut" />
-            }
-            @default {
-              <div>Not yet implemented</div>
+          @if (item.data) {
+            @switch (item.type) {
+              @case ('pie') {
+                <gd-pie-chart type="pie" [data]="item.data" />
+              }
+              @case ('polarArea') {
+                <gd-pie-chart type="polarArea" [data]="item.data" />
+              }
+              @case ('doughnut') {
+                <gd-pie-chart type="doughnut" [data]="item.data" />
+              }
+              @default {
+                <div>Not yet implemented-</div>
+              }
             }
           }
         </gd-widget-body>

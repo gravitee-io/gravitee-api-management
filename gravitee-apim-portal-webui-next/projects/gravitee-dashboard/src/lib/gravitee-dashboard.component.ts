@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject, model } from '@angular/core';
+import { map, of } from 'rxjs';
 
 import { GridComponent } from './components/grid/grid.component';
 import { Widget } from './components/widget/widget';
@@ -22,9 +23,40 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
 @Component({
   selector: 'gd-dashboard',
   imports: [GridComponent],
-  template: `<gd-grid [items]="widgets" />`,
+  template: `<gd-grid [items]="widgets()" />`,
   styles: ``,
 })
 export class GraviteeDashboardComponent {
-  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
+  dashboardService = inject(GraviteeDashboardService);
+  widgets = model<Widget[]>(this.dashboardService.getWidgets());
+
+  constructor() {
+    effect(() => {
+      for (const widget of this.widgets()) {
+        if (!widget.data && widget.request) {
+          this.loadWidgetData(widget).subscribe(updatedWidget => {
+            this.updateWidgetInSignal(updatedWidget);
+          });
+        }
+      }
+    });
+  }
+
+  addWidget(widget: Widget) {
+    this.widgets.update(widgets => [...widgets, widget]);
+  }
+
+  removeWidget(id: string) {
+    this.widgets.update(widgets => widgets.filter(w => w.id !== id));
+  }
+
+  private loadWidgetData(widget: Widget) {
+    if (!widget.request) return of(widget);
+
+    return this.dashboardService.getMetricsMock('basePath', widget.request.type, widget.request).pipe(map(data => ({ ...widget, data })));
+  }
+
+  private updateWidgetInSignal(updatedWidget: Widget) {
+    this.widgets.update(widgets => widgets.map(w => (w.id === updatedWidget.id ? updatedWidget : w)));
+  }
 }

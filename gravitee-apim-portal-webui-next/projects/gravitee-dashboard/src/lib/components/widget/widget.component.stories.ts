@@ -109,9 +109,8 @@ export const WidgetWithPieChart: StoryObj<WidgetStoryArgs> = {
     widgetBody: '<gd-pie-chart type="pie" />',
     item: {
       id: 'widget-custom',
-      label: 'Custom Analytics',
+      title: 'Custom Analytics',
       type: 'pie',
-      filter: 'last-30-days',
       layout: { cols: 3, rows: 3, x: 0, y: 0 },
     },
   },

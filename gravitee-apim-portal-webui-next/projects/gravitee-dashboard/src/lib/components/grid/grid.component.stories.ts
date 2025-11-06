@@ -27,37 +27,37 @@ interface GridStoryArgs {
 const commonItems: Widget[] = [
   {
     id: 'widget-1',
-    label: 'API Calls',
+    title: 'API Calls',
     type: 'pie',
     layout: { cols: 2, rows: 1, x: 0, y: 0 },
   },
   {
     id: 'widget-2',
-    label: 'Database Queries',
+    title: 'Database Queries',
     type: 'doughnut',
     layout: { cols: 1, rows: 1, x: 2, y: 0 },
   },
   {
     id: 'widget-3',
-    label: 'Cache Hits',
+    title: 'Cache Hits',
     type: 'kpi',
     layout: { cols: 1, rows: 1, x: 3, y: 0 },
   },
   {
     id: 'widget-4',
-    label: 'Error Rate',
+    title: 'Error Rate',
     type: 'pie',
     layout: { cols: 1, rows: 3, x: 0, y: 1 },
   },
   {
     id: 'widget-5',
-    label: 'Response Time',
+    title: 'Response Time',
     type: 'doughnut',
     layout: { cols: 3, rows: 3, x: 1, y: 1 },
   },
   {
     id: 'widget-6',
-    label: 'User Activity',
+    title: 'User Activity',
     type: 'polarArea',
     layout: { cols: 2, rows: 2, x: 4, y: 1 },
   },
