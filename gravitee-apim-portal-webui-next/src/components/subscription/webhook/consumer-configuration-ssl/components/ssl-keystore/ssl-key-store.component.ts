@@ -34,6 +34,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { tap } from 'rxjs';
 
 import { KEYSTORE_TYPE_LABELS, SslKeyStoreFormValue } from './ssl-key-store.model';
+import { MobileClassDirective } from '../../../../../../directives/mobile-class.directive';
 import { JKSKeyStore, PEMKeyStore, PKCS12KeyStore, SslKeyStore } from '../../../../../../entities/ssl';
 import { pathOrContentRequired } from '../validators/ssl-trust-store.validators';
 
@@ -54,7 +55,7 @@ import { pathOrContentRequired } from '../validators/ssl-trust-store.validators'
     },
   ],
   standalone: true,
-  imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatSelectModule],
+  imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MobileClassDirective],
 })
 export class SslKeyStoreComponent implements OnInit, ControlValueAccessor, Validator {
   public types = KEYSTORE_TYPE_LABELS;

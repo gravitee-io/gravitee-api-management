@@ -28,9 +28,16 @@
     cursor: pointer;
   }
 
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   &__form-field {
     display: flex;
     flex-flow: column;
+    gap: 16px;
 
     &__toggle {
       margin-bottom: 12px;
