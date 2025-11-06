@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.api.domain_service.import_definition;
 
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -31,9 +35,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import java.util.List;
 import java.util.function.UnaryOperator;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @DomainService
 public class ImportDefinitionUpdateDomainService {
 

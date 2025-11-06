@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package initializers;
+package io.gravitee.apim.core.api.domain_service.import_definition;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -39,7 +39,6 @@ import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
