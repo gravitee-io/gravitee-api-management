@@ -86,6 +86,10 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiImagesServiceProvider apiImagesServiceProvider;
 
+    // Sub entities
+    private final ImportDefinitionMetadataDomainServiceTestInitializer metadataDomainServiceInitializer =
+        new ImportDefinitionMetadataDomainServiceTestInitializer();
+
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
             apiQueryServiceInMemory,
@@ -131,7 +135,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             apiIdsCalculatorDomainService,
             updateNativeApiDomainService,
             validateApiDomainService,
-            apiPrimaryOwnerDomainService
+            apiPrimaryOwnerDomainService,
+            metadataDomainServiceInitializer.initialize()
         );
     }
 
@@ -151,6 +156,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             roleQueryServiceInMemory,
             userCrudServiceInMemory
         ).forEach(InMemoryAlternative::reset);
+
+        metadataDomainServiceInitializer.tearDown();
+
         reset(apiService);
         reset(apiImagesService);
         reset(categoryDomainService);
