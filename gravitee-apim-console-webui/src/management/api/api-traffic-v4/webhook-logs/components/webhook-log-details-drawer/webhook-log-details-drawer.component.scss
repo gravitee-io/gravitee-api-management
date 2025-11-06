@@ -18,8 +18,7 @@ $typography: map.get(gio.$mat-theme, typography);
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 
   &__expanded {
-    width: 100%;
-    left: 0;
+    width: calc(100% - 64px);
     transition: all 0.3s ease-in-out;
   }
 

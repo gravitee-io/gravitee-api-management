@@ -78,22 +78,50 @@ describe('WebhookLogDetailsDrawerComponent', () => {
   describe('Expand/Collapse', () => {
     it('should toggle expanded state', () => {
       fixture.detectChanges();
-      expect(component.isExpanded()).toBe(true);
-
-      component.toggleExpand();
       expect(component.isExpanded()).toBe(false);
 
       component.toggleExpand();
       expect(component.isExpanded()).toBe(true);
+
+      component.toggleExpand();
+      expect(component.isExpanded()).toBe(false);
     });
 
-    it('should not have expanded class by default (expanded is false in template)', () => {
+    it('should have expanded class when isExpanded is true', () => {
+      component.isExpanded.set(true);
       fixture.detectChanges();
+
+      const compiled = fixture.nativeElement;
+      const drawer = compiled.querySelector('.details-drawer');
+      expect(drawer.classList.contains('details-drawer__expanded')).toBe(true);
+    });
+
+    it('should not have expanded class when isExpanded is false', () => {
       component.isExpanded.set(false);
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement;
       const drawer = compiled.querySelector('.details-drawer');
+      expect(drawer.classList.contains('details-drawer__expanded')).toBe(false);
+    });
+
+    it('should toggle CSS class when expand button is clicked', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement;
+      const drawer = compiled.querySelector('.details-drawer');
+      const expandButton = compiled.querySelector('.expand-button');
+
+      // Initially not expanded
+      expect(drawer.classList.contains('details-drawer__expanded')).toBe(false);
+
+      // Click to expand
+      expandButton.click();
+      fixture.detectChanges();
+      expect(drawer.classList.contains('details-drawer__expanded')).toBe(true);
+
+      // Click to collapse
+      expandButton.click();
+      fixture.detectChanges();
       expect(drawer.classList.contains('details-drawer__expanded')).toBe(false);
     });
   });

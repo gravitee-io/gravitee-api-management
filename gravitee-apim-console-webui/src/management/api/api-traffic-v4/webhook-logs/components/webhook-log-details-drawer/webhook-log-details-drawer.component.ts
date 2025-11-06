@@ -35,7 +35,7 @@ export class WebhookLogDetailsDrawerComponent {
 
   closeDrawer = output<void>();
 
-  isExpanded = signal(true);
+  isExpanded = signal(false);
   isAttemptsExpanded = signal(true);
   copied = signal(false);
 

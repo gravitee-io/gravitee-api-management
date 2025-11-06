@@ -15,14 +15,9 @@
  */
 
 import { Component, computed, input, output, TemplateRef } from '@angular/core';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
-import { MatIcon } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { Pagination } from '../../../../../entities/management-api-v2';
@@ -30,7 +25,6 @@ import {
   GioTableWrapperFilters,
   GioTableWrapperPagination,
 } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTooltipOnEllipsisModule } from '../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 
 export interface LogsListColumnDef {
   id: string;
@@ -43,19 +37,7 @@ export interface LogsListColumnDef {
   templateUrl: './logs-list-base.component.html',
   styleUrls: ['./logs-list-base.component.scss'],
   standalone: true,
-  imports: [
-    GioAvatarModule,
-    GioTableWrapperModule,
-    MatIcon,
-    MatTableModule,
-    MatSort,
-    MatTooltipModule,
-    RouterLink,
-    MatButtonModule,
-    DatePipe,
-    GioTooltipOnEllipsisModule,
-    NgTemplateOutlet,
-  ],
+  imports: [GioTableWrapperModule, MatTableModule, MatSort, NgTemplateOutlet],
 })
 export class LogsListBaseComponent<T = unknown> {
   logs = input.required<T[]>();

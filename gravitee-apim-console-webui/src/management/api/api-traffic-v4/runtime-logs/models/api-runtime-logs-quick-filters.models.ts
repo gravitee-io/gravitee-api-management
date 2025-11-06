@@ -16,10 +16,7 @@
 
 import { Moment } from 'moment';
 
-import { DEFAULT_PERIOD, PERIODS } from '../../models';
-
-// Re-export shared constants for backward compatibility
-export { DEFAULT_PERIOD, PERIODS };
+import { DEFAULT_PERIOD } from '../../models/traffic-filters.models';
 
 export type SimpleFilter = FilterVM;
 export type MultiFilter = FilterVM[];

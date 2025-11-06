@@ -30,7 +30,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<div class="details-drawer" [class.details-drawer__expanded]="false">
+<div class="details-drawer" [class.details-drawer__expanded]="isExpanded()">
   <div class="details-drawer__header">
     <div class="details-drawer__header__info">
       <div class="details-drawer__header__timestamp">{{ log()?.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</div>

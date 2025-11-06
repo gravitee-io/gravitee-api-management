@@ -21,16 +21,8 @@ import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
 import { KeyValue } from '@angular/common';
 
-import {
-  DEFAULT_FILTERS,
-  DEFAULT_PERIOD,
-  LogFilters,
-  LogFiltersForm,
-  LogFiltersInitialValues,
-  MoreFiltersForm,
-  MultiFilter,
-  PERIODS,
-} from '../../models';
+import { DEFAULT_FILTERS, LogFilters, LogFiltersForm, LogFiltersInitialValues, MoreFiltersForm, MultiFilter } from '../../models';
+import { DEFAULT_PERIOD, PERIODS } from '../../../models';
 import { QuickFiltersStoreService } from '../../services';
 import { Plan } from '../../../../../../entities/management-api-v2';
 

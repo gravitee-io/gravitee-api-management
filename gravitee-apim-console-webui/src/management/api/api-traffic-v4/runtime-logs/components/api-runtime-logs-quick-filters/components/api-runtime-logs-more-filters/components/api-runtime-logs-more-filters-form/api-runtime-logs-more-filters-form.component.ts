@@ -20,7 +20,8 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { MatChipInputEvent } from '@angular/material/chips';
 
-import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS } from '../../../../../../models';
+import { DEFAULT_FILTERS, MoreFiltersForm, MultiFilter } from '../../../../../../models';
+import { DEFAULT_PERIOD, PERIODS } from '../../../../../../../models';
 
 @Component({
   selector: 'api-runtime-logs-more-filters-form',
