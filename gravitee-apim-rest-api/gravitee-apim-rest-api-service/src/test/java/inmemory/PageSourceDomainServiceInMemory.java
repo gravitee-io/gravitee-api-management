@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.infra.domain_service.documentation.PageSourceDomainServiceImpl;
 import java.util.Map;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -33,6 +34,38 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
     public void setContentFromSource(Page page) {
         if (page.getSource() != null) {
             page.setContent(MARKDOWN);
+        }
+    }
+
+    @Override
+    public void removeSensitiveData(Page page) {
+        if (page.getSource() != null && page.getSource().getConfiguration() != null) {
+            page
+                .getSource()
+                .setConfiguration(
+                    page
+                        .getSource()
+                        .getConfiguration()
+                        .replace("I'm a sensitive data", "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"")
+                );
+        }
+    }
+
+    @Override
+    public void mergeSensitiveData(Page oldPage, Page newPage) {
+        if (oldPage.getSource() == null || newPage.getSource() == null) {
+            return;
+        }
+        if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
+            return;
+        }
+
+        String newConfig = newPage.getSource().getConfiguration();
+        String oldConfig = oldPage.getSource().getConfiguration();
+        String sanitizedValue = "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"";
+
+        if (newConfig.contains(sanitizedValue) && oldConfig.contains("I'm a sensitive data")) {
+            newPage.getSource().setConfiguration(newConfig.replace(sanitizedValue, "\"I'm a sensitive data\""));
         }
     }
 }
