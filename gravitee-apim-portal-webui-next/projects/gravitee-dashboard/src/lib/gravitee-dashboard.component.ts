@@ -28,7 +28,7 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
 })
 export class GraviteeDashboardComponent {
   dashboardService = inject(GraviteeDashboardService);
-  widgets = model<Widget[]>(this.dashboardService.getWidgets());
+  widgets = model.required<Widget[]>();
 
   constructor() {
     effect(() => {
