@@ -26,7 +26,7 @@
     "@gravitee/ui-analytics": "16.2.2",
     "@gravitee/ui-components": "4.4.0",
     "@gravitee/ui-particles-angular": "16.2.2",
-    "@gravitee/ui-policy-studio-angular": "16.2.1",
+    "@gravitee/ui-policy-studio-angular": "16.2.2",
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.3.12",
     "@ngx-formly/material": "6.3.12",
