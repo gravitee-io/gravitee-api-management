@@ -175,10 +175,27 @@ describe('NavBarComponent', () => {
 
       expect(await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeNull();
     });
+
+    it('should handle error when fetching homepage', async () => {
+      expectHomePageWithError();
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Catalog', 'Guides', 'Sign in']);
+    });
   });
 
   function expectHomePage(pages: PortalPage[] = [{ id: '1', name: 'Homepage', type: 'HOMEPAGE' }]) {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-pages?type=HOMEPAGE`);
     req.flush({ pages });
+  }
+
+  function expectHomePageWithError() {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-pages?type=HOMEPAGE`);
+    req.flush('Error', { status: 500, statusText: 'Server Error' });
   }
 });
