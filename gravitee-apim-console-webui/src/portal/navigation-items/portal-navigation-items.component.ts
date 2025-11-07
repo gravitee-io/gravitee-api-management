@@ -16,12 +16,16 @@
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { TreeComponent } from '../components/tree-component/tree.component';
+import { PortalMenuLink } from '../../entities/management-api-v2';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -34,13 +38,36 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
     EmptyStateComponent,
     GioCardEmptyStateModule,
     MatButton,
+    TreeComponent,
+    HttpClientModule,
   ],
 })
-export class PortalNavigationItemsComponent {
+export class PortalNavigationItemsComponent implements OnInit {
   contentControl = new FormControl({
     value: '',
     disabled: true,
   });
 
+  menuLinks: PortalMenuLink[] | null = null;
   isEmpty = true;
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+  ngOnInit(): void {
+    // TODO replace mock with real backend call when available
+    this.http.get<{ data: PortalMenuLink[] }>('assets/mocks/portal-menu-links.json').subscribe({
+      next: ({ data }) => {
+        this.menuLinks = data ?? [];
+        this.isEmpty = (this.menuLinks?.length ?? 0) === 0;
+      },
+      error: (err) => {
+        this.menuLinks = [];
+        this.isEmpty = true;
+        this.snackBarService.error('Failed to load portal navigation items: ' + err);
+      },
+    });
+  }
 }
