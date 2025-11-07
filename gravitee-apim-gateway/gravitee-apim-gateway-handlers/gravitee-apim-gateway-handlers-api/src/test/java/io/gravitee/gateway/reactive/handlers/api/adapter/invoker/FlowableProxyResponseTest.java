@@ -213,6 +213,65 @@ class FlowableProxyResponseTest {
         verify(proxyConnection).end();
     }
 
+    @Test
+    public void shouldCancelBackendConnectionWhenClientDisconnects() {
+        // Client disconnects
+        lenient().when(response.ended()).thenReturn(true);
+
+        final TestSubscriber<Buffer> obs = cut.test();
+        verify(proxyResponse).bodyHandler(bodyHandlerCaptor.capture());
+        verify(proxyResponse).endHandler(endHandlerCaptor.capture());
+
+        // Chunk arrives, triggers cancellation
+        bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk"));
+
+        verify(proxyConnection).cancel();
+        verify(proxyConnection).end();
+        obs.assertComplete();
+    }
+
+    @Test
+    public void shouldHandleExceptionDuringConnectionCancel() {
+        // Client disconnects, cancel() throws exception
+        lenient().when(response.ended()).thenReturn(true);
+        doAnswer(invocation -> {
+            throw new RuntimeException("Cancel failed");
+        })
+            .when(proxyConnection)
+            .cancel();
+
+        final TestSubscriber<Buffer> obs = cut.test();
+        verify(proxyResponse).bodyHandler(bodyHandlerCaptor.capture());
+
+        bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk"));
+
+        // Try-finally ensures end() called despite exception
+        verify(proxyConnection).cancel();
+        verify(proxyConnection).end();
+        obs.assertComplete();
+    }
+
+    @Test
+    public void shouldNotProcessChunksAfterClientDisconnect() {
+        final TestSubscriber<Buffer> obs = cut.test();
+        verify(proxyResponse).bodyHandler(bodyHandlerCaptor.capture());
+
+        // First chunk processed
+        bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk1"));
+        obs.assertValueCount(1);
+
+        // Client disconnects mid-stream
+        lenient().when(response.ended()).thenReturn(true);
+
+        // Second chunk triggers cancellation, not processed
+        bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk2"));
+
+        verify(proxyConnection).cancel();
+        verify(proxyConnection).end();
+        obs.assertComplete();
+        obs.assertValueCount(1);
+    }
+
     private void setupChunkProducer(Runnable runnable) {
         // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
         doAnswer(invocation -> {
