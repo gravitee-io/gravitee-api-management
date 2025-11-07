@@ -30,6 +30,8 @@
       <div class="empty-content">
         <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
       </div>
+    } @else {
+      <portal-tree-component [links]="menuLinks" />
     }
   </section>
 

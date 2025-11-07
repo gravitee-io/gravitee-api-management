@@ -1,0 +1,126 @@
+:host {
+  --indent-base: 16px;
+  --indent-step: 20px;
+}
+
+.tree {
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 6px 32px 6px calc(var(--indent-base) + (var(--level) * var(--indent-step)));
+
+    &:hover {
+      background-color: var(--gio-color-hover-lighter, rgba(0, 0, 0, 0.04));
+
+      .tree__inline-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &.selected {
+      background: var(--gio-color-background-selected, rgba(255, 194, 172, 0.5));
+    }
+  }
+
+  &__toggle {
+    background: none;
+    border: none;
+    padding: 4px;
+    margin-right: 4px;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      transition: transform 0.2s ease;
+
+      &.open {
+        transform: rotate(90deg);
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+      }
+    }
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__label {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    flex: 1;
+  }
+
+  &__badges {
+    display: flex;
+    gap: 6px;
+    margin: 0 8px;
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: var(--gio-border-radius-pill, 12px);
+      text-transform: uppercase;
+      font-size: 11px;
+
+      &.link {
+        background-color: var(--gio-color-info-lighter, #e3f2fd);
+        color: var(--gio-color-info, #1976d2);
+      }
+
+      &.unpublished {
+        background-color: var(--gio-color-warning-lighter, #fff3e0);
+        color: var(--gio-color-warning, #f57c00);
+      }
+    }
+  }
+
+  &__inline-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+
+    mat-icon {
+      cursor: pointer;
+      padding: 4px;
+      border-radius: var(--gio-border-radius-small, 4px);
+      transition: background-color 0.2s ease;
+      color: var(--gio-color-text-secondary, #666);
+      width: 18px;
+
+      &:hover {
+        background-color: var(--gio-color-hover, rgba(0, 0, 0, 0.15));
+        color: var(--gio-color-text-primary, #000);
+      }
+    }
+  }
+}
