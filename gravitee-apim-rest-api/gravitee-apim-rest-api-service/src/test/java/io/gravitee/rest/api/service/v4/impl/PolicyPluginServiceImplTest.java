@@ -143,6 +143,8 @@ public class PolicyPluginServiceImplTest {
                 "native_kafka",
                 "PUBLISH, SUBSCRIBE",
                 "mcp_proxy",
+                "REQUEST,RESPONSE",
+                "llm_proxy",
                 "REQUEST,RESPONSE"
             )
         );
@@ -156,6 +158,7 @@ public class PolicyPluginServiceImplTest {
         assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
         assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA));
         assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY));
+        assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY));
     }
 
     @Nested

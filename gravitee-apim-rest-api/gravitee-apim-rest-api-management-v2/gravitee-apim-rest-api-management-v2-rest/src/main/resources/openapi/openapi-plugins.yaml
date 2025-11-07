@@ -390,6 +390,7 @@ paths:
                           - HTTP_MESSAGE
                           - NATIVE_KAFKA
                           - MCP_PROXY
+                          - LLM_PROXY
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -538,6 +539,11 @@ components:
                                   uniqueItems: true
                                   items:
                                       $ref: "#/components/schemas/FlowPhase"
+                              LLM_PROXY:
+                                type: array
+                                uniqueItems: true
+                                items:
+                                  $ref: "#/components/schemas/FlowPhase"
         ResourcePlugin:
             type: object
             allOf:

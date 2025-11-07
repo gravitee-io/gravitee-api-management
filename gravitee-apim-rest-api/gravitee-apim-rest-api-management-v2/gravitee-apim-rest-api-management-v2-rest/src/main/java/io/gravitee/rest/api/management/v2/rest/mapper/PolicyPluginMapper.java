@@ -68,6 +68,10 @@ public interface PolicyPluginMapper {
         if (mcpProxyPhases != null) {
             policyPluginAllOfFlowPhaseCompatibility.MCP_PROXY(mapToFlowPhase(mcpProxyPhases));
         }
+        var llmProxyPhases = flowPhaseCompatibility.get(ApiProtocolType.LLM_PROXY);
+        if (llmProxyPhases != null) {
+            policyPluginAllOfFlowPhaseCompatibility.LLM_PROXY(mapToFlowPhase(llmProxyPhases));
+        }
         return policyPluginAllOfFlowPhaseCompatibility;
     }
 }

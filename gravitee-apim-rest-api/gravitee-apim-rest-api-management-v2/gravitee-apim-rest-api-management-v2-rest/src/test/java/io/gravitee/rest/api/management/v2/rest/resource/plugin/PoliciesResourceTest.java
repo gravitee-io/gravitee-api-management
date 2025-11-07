@@ -102,6 +102,8 @@ class PoliciesResourceTest extends AbstractResourceTest {
                             ApiProtocolType.NATIVE_KAFKA,
                             Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE, FlowPhase.PUBLISH),
                             ApiProtocolType.MCP_PROXY,
+                            Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                            ApiProtocolType.LLM_PROXY,
                             Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)
                         )
                     )
@@ -145,6 +147,12 @@ class PoliciesResourceTest extends AbstractResourceTest {
                             )
                         )
                         .MCP_PROXY(
+                            Set.of(
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
+                            )
+                        )
+                        .LLM_PROXY(
                             Set.of(
                                 io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
                                 io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
