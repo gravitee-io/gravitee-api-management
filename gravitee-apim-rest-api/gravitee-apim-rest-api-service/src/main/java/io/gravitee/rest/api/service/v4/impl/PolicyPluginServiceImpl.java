@@ -98,7 +98,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         var httpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_PROXY);
         var httpMessageFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_MESSAGE);
         var nativeKafkaFlowPhase = getFlowPhase(plugin, ApiProtocolType.NATIVE_KAFKA);
-        var httpMcpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.HTTP_MCP_PROXY);
+        var mcpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.MCP_PROXY);
         if (httpProxyFlowPhase.isEmpty()) {
             httpProxyFlowPhase = getDeprecatedFlowPhase(plugin, "proxy");
         }
@@ -109,7 +109,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, httpProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, httpMessageFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA, nativeKafkaFlowPhase);
-        entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MCP_PROXY, httpMcpProxyFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY, mcpProxyFlowPhase);
 
         return entity;
     }
