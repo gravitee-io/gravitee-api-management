@@ -826,6 +826,33 @@ paths:
             $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
+    /portal-navigation-items:
+      get:
+        tags:
+          - Portal Navigation Items
+        summary: Get portal navigation items
+        description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        operationId: getPortalNavigationItems
+        parameters:
+          - $ref: '#/components/parameters/portalArea'
+          - name: parentId
+            in: query
+            description: The parent ID to filter navigation items
+            required: false
+            schema:
+              type: string
+          - name: loadChildren
+            in: query
+            description: Whether to load children items
+            required: false
+            schema:
+              type: boolean
+              default: true
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalNavigationItemsResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -1642,6 +1669,74 @@ components:
             published:
               type: boolean
               description: Whether the page is published or not
+        BasePortalNavigationItem:
+          type: object
+          description: Base portal navigation item
+          properties:
+            id:
+              type: string
+              description: The unique ID of the navigation item
+            organizationId:
+              type: string
+              description: The organization ID
+            environmentId:
+              type: string
+              description: The environment ID
+            title:
+              type: string
+              description: The title of the navigation item
+            type:
+              type: string
+              description: The type of the navigation item
+            area:
+              type: string
+              description: The area of the navigation item
+              enum: [HOMEPAGE, TOP_NAVBAR]
+            parentId:
+              type: string
+              description: The parent ID of the navigation item
+            order:
+              type: integer
+              description: The order of the navigation item
+          required: [id, organizationId, environmentId, title, type, area, order]
+          discriminator:
+            propertyName: type
+        PortalNavigationPage:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                configuration:
+                  type: object
+                  properties:
+                    portalPageContentId:
+                      type: string
+                      description: The UUID of the portal page content
+                  required: [portalPageContentId]
+        PortalNavigationFolder:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                configuration:
+                  type: object
+                  description: Empty configuration for folders
+        PortalNavigationLink:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                configuration:
+                  type: object
+                  properties:
+                    href:
+                      type: string
+                      description: The URL for the link
+                  required: [href]
+        PortalNavigationItem:
+          oneOf:
+            - $ref: "#/components/schemas/PortalNavigationPage"
+            - $ref: "#/components/schemas/PortalNavigationFolder"
+            - $ref: "#/components/schemas/PortalNavigationLink"
+          discriminator:
+            propertyName: type
 
     parameters:
         pageParam:
@@ -1826,6 +1921,16 @@ components:
             items:
               type: string
               enum: [content]
+
+        # Portal Navigation
+        portalArea:
+          name: area
+          in: query
+          description: The portal area (eg. "homepage", "top_navbar")
+          required: true
+          schema:
+            type: string
+            enum: [homepage, top_navbar]
 
     responses:
         SchemaFormResponse:
@@ -2159,6 +2264,20 @@ components:
                     description: List of portal pages
                     items:
                       $ref: "#/components/schemas/PortalPageWithDetails"
+
+        PortalNavigationItemsResponse:
+          description: A list of portal navigation items
+          content:
+            application/json:
+              schema:
+                title: "PortalNavigationItemsResponse"
+                properties:
+                  items:
+                    type: array
+                    description: List of portal navigation items
+                    items:
+                      $ref: "#/components/schemas/PortalNavigationItem"
+
 
     securitySchemes:
         BasicAuth:
