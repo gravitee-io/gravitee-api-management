@@ -17,7 +17,7 @@ import { GridsterItem } from 'angular-gridster2';
 
 import { PieType } from '../chart/pie-chart/pie-chart.component';
 
-export type WidgetType = PieType | 'kpi' | 'top';
+export type WidgetType = PieType | 'stats' | 'top';
 
 export type MeasuresType = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'RPS';
 
@@ -96,9 +96,6 @@ export interface Order {
 export interface TimeRange {
   from: string;
   to: string;
-
-  // from: Date;
-  // to: Date;
 }
 
 export interface Filter {
