@@ -1,3 +1,20 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <div class="sections-card">
   <div class="sections-card__header">
     <div class="sections-card__title">Sections</div>
@@ -10,10 +27,8 @@
   </div>
 
   <div class="sections-group">
-    <div class="sections-group__header" (click)="toggleApi()" role="button" tabindex="0"
-         [attr.aria-expanded]="apiExpanded()">
-      <span class="sections-group__chevron" [class.-open]="apiExpanded()"><mat-icon
-        svgIcon="gio:nav-arrow-right"></mat-icon></span>
+    <div class="sections-group__header" (click)="toggleApi()" role="button" tabindex="0" [attr.aria-expanded]="apiExpanded()">
+      <span class="sections-group__chevron" [class.-open]="apiExpanded()"><mat-icon svgIcon="gio:nav-arrow-right"></mat-icon></span>
       <span class="sections-group__title">Top Bar Links</span>
       <span class="spacer"></span>
       <div class="sections-card__actions" (click)="$event.stopPropagation()">
@@ -38,8 +53,7 @@
     <div class="sections-group__content" *ngIf="apiExpanded()">
       <div class="tree" role="tree">
         <ng-container *ngFor="let node of tree(); trackBy: trackById">
-          <ng-container [ngTemplateOutlet]="nodeTpl"
-                        [ngTemplateOutletContext]="{ node: node, level: 0 }"></ng-container>
+          <ng-container [ngTemplateOutlet]="nodeTpl" [ngTemplateOutletContext]="{ node: node, level: 0 }"></ng-container>
         </ng-container>
       </div>
     </div>
@@ -47,13 +61,16 @@
 </div>
 
 <ng-template #nodeTpl let-node="node" let-level="level">
-  <div class="tree__row" role="treeitem" [attr.aria-level]="level + 1"
-       [class.-selected]="selectedId() === node.id"
-       [style.paddingLeft.px]="16 + level * 20">
+  <div
+    class="tree__row"
+    role="treeitem"
+    [attr.aria-level]="level + 1"
+    [class.-selected]="selectedId() === node.id"
+    [style.paddingLeft.px]="16 + level * 20"
+  >
     <div class="tree__row__connector" [style.left.px]="level * 20"></div>
     <button class="tree__toggle" *ngIf="node.type === 'folder'" (click)="toggle(node)" aria-label="Toggle">
-      <span class="arrow" [class.-open]="isExpanded(node.id)"><mat-icon
-        svgIcon="gio:nav-arrow-right"></mat-icon></span>
+      <span class="arrow" [class.-open]="isExpanded(node.id)"><mat-icon svgIcon="gio:nav-arrow-right"></mat-icon></span>
     </button>
     <span class="tree__icon" [attr.data-type]="node.type"></span>
 
@@ -80,8 +97,7 @@
 
   <div class="tree__children" *ngIf="node.children?.length && isExpanded(node.id)">
     <ng-container *ngFor="let child of node.children; trackBy: trackById">
-      <ng-container [ngTemplateOutlet]="nodeTpl"
-                    [ngTemplateOutletContext]="{ node: child, level: level + 1 }"></ng-container>
+      <ng-container [ngTemplateOutlet]="nodeTpl" [ngTemplateOutletContext]="{ node: child, level: level + 1 }"></ng-container>
     </ng-container>
   </div>
 </ng-template>

@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  width: 400px;
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-toggle {
+  margin-top: 8px;
+}

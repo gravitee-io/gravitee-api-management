@@ -19,7 +19,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
 import { PortalBannerComponent } from './banner/portal-banner.component';
 import { PortalThemeComponent } from './theme/portal-theme.component';
-import { PortalTopBarComponent } from './top-bar/portal-top-bar.component';
+import { PortalPagesComponent } from './top-bar/portal-pages.component';
 import { MenuLinkEditComponent } from './top-bar/menu-link-edit/menu-link-edit.component';
 import { MenuLinkListComponent } from './top-bar/menu-link-list/menu-link-list.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
@@ -42,7 +42,7 @@ const portalRoutes: Routes = [
     children: [
       {
         path: 'top-bar',
-        component: PortalTopBarComponent,
+        component: PortalPagesComponent,
         data: {
           permissions: {
             anyOf: ['environment-settings-r', 'environment-settings-u'],

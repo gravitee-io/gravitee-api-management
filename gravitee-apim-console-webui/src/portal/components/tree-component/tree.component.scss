@@ -1,0 +1,93 @@
+.sections-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &__actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+
+    mat-icon {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+      color: #666;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.15);
+        color: #000;
+      }
+    }
+  }
+}
+
+.destructive {
+  color: var(--gv-theme-color-danger-dark, #d73a49); /* Or your theme's danger color */
+
+  mat-icon {
+    color: var(--gv-theme-color-danger-dark, #d73a49);
+  }
+}
+
+.mat-menu-divider {
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: rgba(0, 0, 0, 0.12);
+  margin: 4px 0;
+}
+
+.sections-group {
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+
+      .sections-card__actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
+  &__chevron {
+    display: flex;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+
+    &.-open {
+      transform: rotate(90deg);
+    }
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__title {
+    font-weight: 500;
+    font-size: 14px;
+    flex: 1 0 0;
+  }
+
+  &__content {
+    padding: 8px 0;
+  }
+}

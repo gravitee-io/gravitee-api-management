@@ -1,0 +1,154 @@
+:host {
+  --indent-base: 16px;
+  --indent-step: 20px;
+}
+
+.tree {
+  /* Note: The root .tree container is in the parent component */
+
+  &__row {
+    display: flex;
+    align-items: center;
+    padding: 6px 32px; // Base padding
+    gap: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    /* NEW: Use CSS variable for indentation.
+      calc(BASE + (LEVEL * STEP))
+    */
+    padding-left: calc(var(--indent-base) + (var(--level) * var(--indent-step)));
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+
+      .tree__inline-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &.-selected {
+      background: rgba(255, 194, 172, 0.5);
+    }
+  }
+
+  &__row__connector {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: #e0e0e0;
+
+    /* NEW: Use CSS variable for positioning */
+    left: calc(var(--level) * var(--indent-step));
+  }
+
+  &__toggle {
+    background: none;
+    border: none;
+    padding: 4px;
+    margin-right: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      transition: transform 0.2s ease;
+
+      &.-open {
+        transform: rotate(90deg);
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+      }
+    }
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-right: 8px;
+
+    font-size: 20px;
+    aspect-ratio: 1 / 1;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__label {
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+    flex: 1;
+    color: inherit;
+    font-family: inherit;
+  }
+
+  &__badges {
+    display: flex;
+    gap: 6px;
+    margin-left: 8px;
+    margin-right: 8px;
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+
+      &.-link {
+        background-color: #e3f2fd;
+        color: #1976d2;
+      }
+
+      &.-unpublished {
+        background-color: #fff3e0;
+        color: #f57c00;
+      }
+    }
+  }
+
+  &__inline-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+
+    mat-icon {
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+      font-size: 18px;
+      width: 18px;
+      color: #666;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.15);
+        color: #000;
+      }
+    }
+  }
+
+  &__children {
+    /* No styles needed, parent row handles indentation */
+  }
+}

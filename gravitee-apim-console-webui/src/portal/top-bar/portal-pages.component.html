@@ -15,5 +15,14 @@
     limitations under the License.
 
 -->
-<portal-header title="Top Bar" subtitle="Customize the Developer Portal top bar" />
-<router-outlet></router-outlet>
+<portal-header title="Manage pages" subtitle="Manage and edit your Developer Portal pages with Markdown" />
+
+<main class="main-content">
+  <div class="container">
+    <portal-sections-tree></portal-sections-tree>
+  </div>
+  <gmd-editor [formControl]="contentControl" />
+  <div class="container">
+    <portal-tree-component></portal-tree-component>
+  </div>
+</main>
