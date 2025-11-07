@@ -16,15 +16,14 @@
 import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
-import { MetricsResponse } from '../../../widget/widget';
-import { PieType } from '../../pie-chart/pie-chart.component';
+import { PieType } from '../../chart/pie-chart/pie-chart.component';
+import { MetricsResponse } from '../../widget/widget';
+import { Converter } from '../converter';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PieConverterService {
-  constructor() {}
-
+export class PieConverterService implements Converter<PieType> {
   public convert<T extends PieType>(data: MetricsResponse): ChartData<T> {
     const labels: string[] = [];
     const dataValues: number[] = [];

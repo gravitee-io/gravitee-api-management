@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { Component, computed, inject, input } from '@angular/core';
-import { ChartConfiguration, ChartEvent } from 'chart.js';
+import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
+import { PieConverterService } from '../../converters/pie-converter/pie-converter.service';
 import { MetricsResponse } from '../../widget/widget';
-import { PieConverterService } from '../converters/pie-converter/pie-converter.service';
 
 export type PieType = 'doughnut' | 'pie' | 'polarArea';
 
@@ -38,14 +38,6 @@ export class PieChartComponent<T extends PieType> {
   public dataFormated = computed(() => {
     return this.converter.convert<T>(this.data());
   });
-
-  public chartClicked({ event, active }: { event: ChartEvent; active: object[] }): void {
-    console.log(event, active);
-  }
-
-  public chartHovered({ event, active }: { event: ChartEvent; active: object[] }): void {
-    console.log(event, active);
-  }
 
   private getDefaultOptions(): ChartConfiguration<T>['options'] {
     return {

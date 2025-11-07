@@ -32,7 +32,7 @@ export class GraviteeDashboardService {
       {
         id: '1',
         title: 'Requests',
-        type: 'kpi',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
@@ -70,7 +70,7 @@ export class GraviteeDashboardService {
       {
         id: '2',
         title: 'Error Rate',
-        type: 'kpi',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
@@ -108,7 +108,7 @@ export class GraviteeDashboardService {
       {
         id: '3',
         title: 'Average Latency',
-        type: 'kpi',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
@@ -146,7 +146,7 @@ export class GraviteeDashboardService {
       {
         id: '4',
         title: 'Subscriptions',
-        type: 'kpi',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
@@ -339,7 +339,7 @@ export class GraviteeDashboardService {
   }
 
   public getMetricsMock(basePath: string, endpoint: string, request: MetricsRequest): Observable<MetricsResponse> {
-    console.log('Request:', JSON.stringify(request));
+    console.log('request' + JSON.stringify(request, null, 2));
     switch (endpoint) {
       case 'measures':
         return of(this.getMesures());
@@ -358,7 +358,7 @@ export class GraviteeDashboardService {
           measures: [
             {
               name: 'COUNT',
-              value: 2984,
+              value: 10,
             },
           ],
         },
@@ -395,7 +395,7 @@ export class GraviteeDashboardService {
               measures: [
                 {
                   name: 'COUNT',
-                  value: 59,
+                  value: 590,
                 },
               ],
             },

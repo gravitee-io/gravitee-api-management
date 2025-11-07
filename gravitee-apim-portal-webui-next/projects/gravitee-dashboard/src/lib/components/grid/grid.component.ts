@@ -17,12 +17,21 @@ import { Component, input } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
+import { StatsComponent } from '../text/stats/stats.component';
 import { Widget } from '../widget/widget';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitleComponent, WidgetBodyComponent, PieChartComponent],
+  imports: [
+    GridsterComponent,
+    GridsterItemComponent,
+    WidgetComponent,
+    WidgetTitleComponent,
+    WidgetBodyComponent,
+    PieChartComponent,
+    StatsComponent,
+  ],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
 })

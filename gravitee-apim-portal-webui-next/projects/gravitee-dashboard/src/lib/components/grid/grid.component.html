@@ -35,6 +35,9 @@
                 @case ('doughnut') {
                   <gd-pie-chart type="doughnut" [data]="item.data" />
                 }
+                @case ('stats') {
+                  <gd-stats [data]="item.data" />
+                }
                 @default {
                   <div>Not yet Formatted - Type: {{ item.type }}</div>
                 }
