@@ -21,7 +21,7 @@
         "buckets": 10
       },
       "aggs": {
-        "MESSAGE_COUNT": {
+        "COUNT": {
           "sum": {
             "field": "count-increment"
           }
@@ -34,7 +34,7 @@
         "rps": {
           "bucket_script": {
             "buckets_path": {
-              "count": "MESSAGE_COUNT",
+              "count": "COUNT",
               "min_time": "time_range.min",
               "max_time": "time_range.max"
             },

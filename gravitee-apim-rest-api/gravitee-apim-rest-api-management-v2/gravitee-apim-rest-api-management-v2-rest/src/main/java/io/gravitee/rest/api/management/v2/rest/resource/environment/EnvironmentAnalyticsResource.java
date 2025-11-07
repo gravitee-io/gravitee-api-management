@@ -32,13 +32,9 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRespons
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
+import io.gravitee.rest.api.management.v2.rest.resource.analytics.computation.AnalyticsComputationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.definition.AnalyticsDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.param.TimeRangeParam;
-import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -199,6 +195,11 @@ public class EnvironmentAnalyticsResource {
         }
 
         return EnvironmentAnalyticsMapper.INSTANCE.map(topFailedApis);
+    }
+
+    @Path("/")
+    public AnalyticsComputationResource getAnalyticsComputationResource() {
+        return resourceContext.getResource(AnalyticsComputationResource.class);
     }
 
     @Path("/definition")
