@@ -182,7 +182,6 @@ public class WebhookTestingActions {
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
         configuration.setHeaders(headers);
         configuration.getRetry().setRetryStrategy(RetryStrategy.EXPONENTIAL);
-        configuration.getRetry().setRetryOnFail(true);
         configuration.getRetry().setRetryOption("Retry On Fail");
         configuration.getRetry().setInitialDelaySeconds(3L);
         configuration.getRetry().setMaxDelaySeconds(3L);
@@ -280,6 +279,7 @@ public class WebhookTestingActions {
         Subscription subscription = new Subscription();
         subscription.setApi(apiId);
         subscription.setId(UUID.randomUUID().toString());
+        subscription.setApplication(UUID.randomUUID().toString());
         subscription.setStatus("ACCEPTED");
         subscription.setType(Subscription.Type.PUSH);
         SubscriptionConfiguration subscriptionConfiguration = new SubscriptionConfiguration(
