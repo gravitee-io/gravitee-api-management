@@ -39,6 +39,14 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
     private final String id;
     public final SharedPolicyGroupPolicyConfiguration policyConfiguration;
 
+    public SharedPolicyGroupPolicy() {
+        this(POLICY_ID, null);
+    }
+
+    public SharedPolicyGroupPolicy(SharedPolicyGroupPolicyConfiguration policyConfiguration) {
+        this(POLICY_ID, policyConfiguration);
+    }
+
     public SharedPolicyGroupPolicy(String id, SharedPolicyGroupPolicyConfiguration policyConfiguration) {
         this.id = id;
         this.policyConfiguration = policyConfiguration;
