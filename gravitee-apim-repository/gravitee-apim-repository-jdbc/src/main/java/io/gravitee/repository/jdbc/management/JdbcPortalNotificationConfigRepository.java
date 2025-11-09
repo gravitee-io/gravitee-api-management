@@ -449,4 +449,61 @@ public class JdbcPortalNotificationConfigRepository
             );
         }
     }
+
+    @Override
+    public Set<PortalNotificationConfig> findAll() throws TechnicalException {
+        try {
+            List<PortalNotificationConfig> configs = jdbcTemplate.query(
+                "SELECT " +
+                    escapeReservedWord("user") +
+                    ", reference_type, reference_id, created_at, updated_at, origin, organization_id " +
+                    "FROM " +
+                    this.tableName,
+                getOrm().getRowMapper()
+            );
+
+            Map<String, PortalNotificationConfig> map = new HashMap<>();
+            for (PortalNotificationConfig cfg : configs) {
+                String key = cfg.getUser() + "|" + cfg.getReferenceType() + "|" + cfg.getReferenceId();
+                map.put(key, cfg);
+                cfg.setHooks(new ArrayList<>());
+                cfg.setGroups(new HashSet<>());
+            }
+            jdbcTemplate.query(
+                "SELECT " +
+                    escapeReservedWord("user") +
+                    ", reference_type, reference_id, hook " +
+                    "FROM " +
+                    PORTAL_NOTIFICATION_CONFIG_HOOKS,
+                rs -> {
+                    String key = rs.getString(1) + "|" + rs.getString(2) + "|" + rs.getString(3);
+                    PortalNotificationConfig cfg = map.get(key);
+                    if (cfg != null) {
+                        cfg.getHooks().add(rs.getString(4));
+                    }
+                }
+            );
+            jdbcTemplate.query(
+                "SELECT " +
+                    escapeReservedWord("user") +
+                    ", reference_type, reference_id, " +
+                    escapeReservedWord("group") +
+                    " FROM " +
+                    PORTAL_NOTIFICATION_CONFIG_GROUPS,
+                rs -> {
+                    String key = rs.getString(1) + "|" + rs.getString(2) + "|" + rs.getString(3);
+                    PortalNotificationConfig cfg = map.get(key);
+                    if (cfg != null) {
+                        cfg.getGroups().add(rs.getString(4));
+                    }
+                }
+            );
+
+            LOGGER.debug("JdbcPortalNotificationConfigRepository.findAll() - Done and found {} configs", configs.size());
+            return new HashSet<>(configs);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to load all PortalNotificationConfigs", ex);
+            throw new TechnicalException("Failed to load all PortalNotificationConfigs", ex);
+        }
+    }
 }
