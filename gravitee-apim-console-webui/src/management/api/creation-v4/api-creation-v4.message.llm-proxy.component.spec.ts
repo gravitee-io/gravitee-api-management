@@ -193,6 +193,8 @@ describe('ApiCreationV4Component - PROXY - LLM Proxy', () => {
 
       const step3Summary = await step5Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + llmConnector.name);
+      const step3SubSummary = await step5Harness.getStepSummaryTextContent(31);
+      expect(step3SubSummary).toContain('Model' + 'Provider:' + 'Provider URL');
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
