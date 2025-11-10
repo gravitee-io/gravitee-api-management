@@ -34,7 +34,6 @@ import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -77,7 +76,7 @@ abstract class SSEProxyIntegrationTest extends AbstractGatewayTest {
     }
 
     void should_proxy_sse_and_close_backend_connection_when_client_closes_the_connection(HttpClient httpClient) {
-        final MeterRegistry registry = Metrics.getDefaultRegistry();
+        final CompositeMeterRegistry registry = (CompositeMeterRegistry) Metrics.getDefaultRegistry();
 
         // Initially, there is no active client connection (gateway to backend).
         assertThat(Optional.ofNullable(registry.find("http.client.active.connections").gauge()).map(Gauge::value).orElse(0.0)).isEqualTo(
