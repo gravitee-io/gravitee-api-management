@@ -240,7 +240,7 @@
     "chart": {
       "type": "line",
       "selectable": true,
-      "stacked": true,
+      "stacked": false,
       "request": {
         "type": "date_histo",
         "aggs": "field:application"
