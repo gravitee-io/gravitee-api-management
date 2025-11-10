@@ -126,11 +126,21 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           value.legendIndex = orderedBucketNames.indexOf(value.name);
         });
 
+        const stackedValue = this.parent.widget.chart.stacked;
+        let stacking: string | boolean | null = null;
+        if (stackedValue != null) {
+          if (stackedValue) {
+            stacking = 'normal';
+          } else {
+            stacking = false;
+          }
+        }
+
         this.options = {
           labelPrefix: 'HTTP Status',
           pointStart: timestamp.from,
           pointInterval: timestamp.interval,
-          stacking: this.parent.widget.chart.stacked ? 'normal' : null,
+          stacking,
           plotLines: (this.events || []).map((event) => {
             return {
               color: 'rgba(223, 169, 65, 0.4)',
