@@ -73,7 +73,7 @@
           <ng-container matColumnDef="costOutput">
             <th mat-header-cell *matHeaderCellDef id="costOutput">Cost per 1m tokens (output) ($)</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.outputPrice }}
+              {{ element.outputPrice | number: '1.2' }}
             </td>
           </ng-container>
 

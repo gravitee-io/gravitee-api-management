@@ -112,6 +112,55 @@
           </div>
         </div>
       </div>
+      <!-- Step 3 - LLM_PROXY -->
+      @if (currentStepPayload.type === 'LLM_PROXY') {
+        <ng-container>
+          @for (endpoint of currentStepPayload.selectedEndpoints; track endpoint) {
+            <div id="step-31" class="step-5-summary__step">
+              <div class="mat-h3">Model</div>
+              <div class="step-5-summary__step__body">
+                <div class="step-5-summary__step__info">
+                  <div style="display: flex; align-items: center; gap: 16px">
+                    <div style="flex: 1">
+                      <div class="step-5-summary__step__info__row">
+                        <span class="step-5-summary__step__info__key">Provider:</span>
+                        <span class="step-5-summary__step__info__value">{{ endpoint.configuration?.['provider'] }}</span>
+                      </div>
+                      <div class="step-5-summary__step__info__row">
+                        <span class="step-5-summary__step__info__key">Provider URL:</span>
+                        <span class="step-5-summary__step__info__value">{{ endpoint.configuration?.['target'] }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <button mat-stroked-button (click)="onChangeStepInfo('Endpoints')">Change</button>
+                    </div>
+                  </div>
+
+                  <div class="step-5-summary__step" *ngFor="let model of endpoint.configuration?.['models']; let i = index">
+                    <div class="mat-h3">Model {{ i + 1 }}</div>
+                    <div class="step-5-summary__step__body">
+                      <div class="step-5-summary__step__info">
+                        <div class="step-5-summary__step__info__row">
+                          <span class="step-5-summary__step__info__key">Name:</span>
+                          <span class="step-5-summary__step__info__value">{{ model.name }}</span>
+                        </div>
+                        <div class="step-5-summary__step__info__row">
+                          <span class="step-5-summary__step__info__key">Cost per 1m tokens (input) ($):</span>
+                          <span class="step-5-summary__step__info__value">{{ model.inputPrice }}</span>
+                        </div>
+                        <div class="step-5-summary__step__info__row">
+                          <span class="step-5-summary__step__info__key">Cost per 1m tokens (output) ($):</span>
+                          <span class="step-5-summary__step__info__value">{{ model.outputPrice }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </ng-container>
+      }
       <!--    Step 4 -->
       <div id="step-4" class="step-5-summary__step">
         <div class="mat-h3">Security</div>
