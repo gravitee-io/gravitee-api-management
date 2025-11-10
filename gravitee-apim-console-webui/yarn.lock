@@ -3135,15 +3135,15 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@gravitee/ui-analytics@npm:16.2.2":
-  version: 16.2.2
-  resolution: "@gravitee/ui-analytics@npm:16.2.2"
+"@gravitee/ui-analytics@npm:16.2.3":
+  version: 16.2.3
+  resolution: "@gravitee/ui-analytics@npm:16.2.3"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^20.3.4
     "@angular/core": ^20.3.4
-  checksum: 10c0/d04383f75a906d48494b0eedd826710e13d63433b7443e31b27b7bfd9c1a4f1d9e5272d918d3d2025247828d858fcfe6b4404c452d387bc5257ffa1d35cee94b
+  checksum: 10c0/0c397a602aecc29bc17092102ff986c74923e75fadc49e43484dd053a74e95f7cfe5984c2a4117a50d409ae0e38a13d7c384d568116befef2e635c0c2ae68791
   languageName: node
   linkType: hard
 
@@ -3192,9 +3192,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:16.2.2":
-  version: 16.2.2
-  resolution: "@gravitee/ui-particles-angular@npm:16.2.2"
+"@gravitee/ui-particles-angular@npm:16.2.3":
+  version: 16.2.3
+  resolution: "@gravitee/ui-particles-angular@npm:16.2.3"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3223,13 +3223,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/a59fc4aa05f7bd40cb031903845a78119ac344f70704620e498ef6a5946a18ef8e1fa093f8c39b30fc4b416475dfe2a67f5395da4033d335b053c9895a59df6b
+  checksum: 10c0/c3a04b9d6dac2498c86ca43e15a75a646584c8d1fda180410ef4dffe3d16870e8662e7e2284b268b305495bb4e8b4b366370535436f0004956e9045ef1bc5fb5
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:16.2.2":
-  version: 16.2.2
-  resolution: "@gravitee/ui-policy-studio-angular@npm:16.2.2"
+"@gravitee/ui-policy-studio-angular@npm:16.2.3":
+  version: 16.2.3
+  resolution: "@gravitee/ui-policy-studio-angular@npm:16.2.3"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3242,19 +3242,19 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/a30eb1432edc2ac693d58e087cdf7deeba95b4019e4e5a22d46d2a47a0a7bb20550eb7ab17c5cabad3a87fe4b6e87ddd893550dcc1ff36c473190ab0732c085f
+  checksum: 10c0/ab4d9aa62ec34d078d076687a36818135ac92a010963d746451ab7cbe163bbbe7dd62449b12dbdb6abd546070e56a1631f59c3e32a8e8f5b93f2115bd25c163f
   languageName: node
   linkType: hard
 
-"@gravitee/ui-schematics@npm:16.2.2":
-  version: 16.2.2
-  resolution: "@gravitee/ui-schematics@npm:16.2.2"
+"@gravitee/ui-schematics@npm:16.2.3":
+  version: 16.2.3
+  resolution: "@gravitee/ui-schematics@npm:16.2.3"
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^20.3.4
     "@angular/core": ^20.3.4
-  checksum: 10c0/01ada44571fa17ae218c17245827ff827c5f604e6a9ea1d25a413e8d5f5df7789285b00c99f12bad5365b71988e59437a7589275701120b79c651f18baff7c41
+  checksum: 10c0/0457dae5175e7cd3e0ef1cc8fce38246bde910aa5d2c1af68681a2d42915b49318c0bf553c9f97c0f759d9e89f560b715ebc664407fd75c4c013b1fd427b1692
   languageName: node
   linkType: hard
 
@@ -12345,11 +12345,11 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/gravitee-dashboard": "portal:dist-lib/gravitee-dashboard"
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
-    "@gravitee/ui-analytics": "npm:16.2.2"
+    "@gravitee/ui-analytics": "npm:16.2.3"
     "@gravitee/ui-components": "npm:4.4.0"
-    "@gravitee/ui-particles-angular": "npm:16.2.2"
-    "@gravitee/ui-policy-studio-angular": "npm:16.2.2"
-    "@gravitee/ui-schematics": "npm:16.2.2"
+    "@gravitee/ui-particles-angular": "npm:16.2.3"
+    "@gravitee/ui-policy-studio-angular": "npm:16.2.3"
+    "@gravitee/ui-schematics": "npm:16.2.3"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
