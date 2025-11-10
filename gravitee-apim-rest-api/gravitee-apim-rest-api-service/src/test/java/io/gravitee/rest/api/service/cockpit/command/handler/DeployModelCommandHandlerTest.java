@@ -29,6 +29,7 @@ import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -41,7 +42,6 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -133,10 +133,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -168,10 +169,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -203,10 +205,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -217,8 +220,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V4).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V4).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -245,8 +248,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -272,10 +275,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -286,8 +290,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -313,10 +317,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -327,8 +332,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -354,10 +359,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -389,10 +395,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -420,11 +427,12 @@ public class DeployModelCommandHandlerTest {
             )
         ).thenThrow(new RuntimeException("fake error"));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertNoErrors()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
@@ -440,16 +448,17 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
-            return true;
-        });
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertNoErrors()
+            .assertValue(reply -> {
+                Assertions.assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
+                    .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
+                return true;
+            });
     }
 
     @Test
@@ -460,8 +469,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -471,16 +480,17 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
-            return true;
-        });
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertNoErrors()
+            .assertValue(reply -> {
+                Assertions.assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
+                    .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
+                return true;
+            });
     }
 
     @Test
@@ -512,9 +522,7 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-        obs.await();
-        obs.assertNoErrors();
+        cut.handle(command).test().await().assertNoErrors();
     }
 
     @Test
@@ -530,10 +538,7 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
+        cut.handle(command).test().await().assertNoErrors();
     }
 
     @Test
@@ -561,16 +566,17 @@ public class DeployModelCommandHandlerTest {
             )
         ).thenReturn(ApiEntityResult.failure("context path not available"));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
-            return true;
-        });
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertNoErrors()
+            .assertValue(reply -> {
+                Assertions.assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
+                    .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
+                return true;
+            });
     }
 
     @Test
@@ -609,11 +615,11 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(apiEntity);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .await()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     private static DeployModelCommandPayload createDeployPayload(
