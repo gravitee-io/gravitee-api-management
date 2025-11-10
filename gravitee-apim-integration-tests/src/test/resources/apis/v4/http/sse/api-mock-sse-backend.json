@@ -1,0 +1,45 @@
+{
+  "id": "api-sse-mock-backend",
+  "name": "api-sse-mock-backend",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "Mock SSE API for testing purposes",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/sse-mock-endpoint"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "sse"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "mock data"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
