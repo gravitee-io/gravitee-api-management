@@ -37,7 +37,7 @@
         <solace-messaging-client.version>1.7.0</solace-messaging-client.version>
         <reactor-rabbitmq.version>1.5.6</reactor-rabbitmq.version>
         <testcontainers-redis.version>2.2.4</testcontainers-redis.version>
-        <kindcontainer.version>1.4.9</kindcontainer.version>
+        <kindcontainer.version>1.4.10</kindcontainer.version>
 
         <surefireArgLine>-Xmx1024m -XX:MaxMetaspaceSize=512m</surefireArgLine>
     </properties>
