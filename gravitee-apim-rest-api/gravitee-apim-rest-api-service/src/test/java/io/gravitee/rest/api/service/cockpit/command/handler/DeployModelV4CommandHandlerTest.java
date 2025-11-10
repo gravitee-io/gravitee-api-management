@@ -196,8 +196,8 @@ public class DeployModelV4CommandHandlerTest {
             ).thenReturn(Optional.empty());
 
             when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-            when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-                io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V4).build()
+            when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+                io.gravitee.repository.management.model.Api.builder().definitionVersion(DefinitionVersion.V4).build()
             );
 
             when(deployModelToApiUpdateUseCase.execute(any())).thenReturn(new DeployModelToApiUpdateUseCase.Output(new Api()));

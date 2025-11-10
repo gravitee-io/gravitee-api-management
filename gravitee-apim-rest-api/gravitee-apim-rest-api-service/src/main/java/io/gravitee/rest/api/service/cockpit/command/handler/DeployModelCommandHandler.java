@@ -28,9 +28,9 @@ import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandHandler;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
@@ -106,7 +106,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                 return message
                     .map(s -> Single.just(new DeployModelReply(command.getId(), s)))
                     .orElseGet(() -> {
-                        final ApiEntity api = apiSearchService.findById(executionContext, apiId);
+                        final Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
 
                         if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                             return updateV2Api(command, apiId, executionContext, user, mode, swaggerDefinition, labels);
