@@ -23,10 +23,10 @@ import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandHandler;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
@@ -91,7 +91,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
             if (optApiId.isPresent()) {
                 final String apiId = optApiId.get();
-                final ApiEntity api = apiSearchService.findById(executionContext, apiId);
+                final Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
 
                 if (api.getDefinitionVersion() == DefinitionVersion.V4) {
                     return Single.just(new DeployModelReply(command.getId(), "API migrated from v2 to v4. Update not yet supported."));
