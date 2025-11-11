@@ -42,7 +42,7 @@ type ConnectorPluginWithIcon = ConnectorPlugin & { icon: string };
 })
 export class ApiEndpointGroupsLlmComponent {
   public api = input.required<ApiV4>();
-
+  private apiType: ApiV4['type'];
   private readonly destroyRef = inject(DestroyRef);
   private readonly permissionService = inject(GioPermissionService);
   private readonly activatedRoute = inject(ActivatedRoute);
@@ -72,10 +72,14 @@ export class ApiEndpointGroupsLlmComponent {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
   };
-
+  private llmProxyLicenseOptions = {
+    feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
+    context: UTMTags.GENERAL_ENDPOINT_CONFIG,
+  };
   constructor() {
     effect(() => {
       const apiValue = this.api();
+      this.apiType = apiValue?.type;
       if (apiValue) {
         this.providersTableData.set(toProviders(apiValue));
       }
@@ -122,7 +126,7 @@ export class ApiEndpointGroupsLlmComponent {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog(this.messageLicenseOptions);
+    this.licenseService.openDialog(this.apiType === 'LLM_PROXY' ? this.llmProxyLicenseOptions : this.messageLicenseOptions);
   }
 
   public getProviderTypeDisplayName(providerType: string): string {

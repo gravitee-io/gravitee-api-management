@@ -49,6 +49,11 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     context: UTMTags.GENERAL_DANGER_ZONE,
   };
 
+  private llmLicenseOptions = {
+    feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
+    context: UTMTags.GENERAL_DANGER_ZONE,
+  };
+
   @Input()
   public api: Api;
 
@@ -318,6 +323,10 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog(this.licenseOptions);
+    if ((this.api as ApiV4).type === 'LLM_PROXY') {
+      this.licenseService.openDialog(this.llmLicenseOptions);
+    } else {
+      this.licenseService.openDialog(this.licenseOptions);
+    }
   }
 }
