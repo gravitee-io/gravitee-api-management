@@ -20,7 +20,7 @@
 
 .api-tab-documentation {
   &__side-bar {
-    min-width: 276px;
+    min-width: 276px; // 276px (side bar)
 
     &__tree {
       position: sticky;
@@ -29,9 +29,9 @@
   }
 
   &__page-content {
-    width: 100%;
+    min-width: 0;
+    flex: 1;
     overflow-wrap: break-word;
-    word-wrap: break-word;
 
     &__container {
       min-width: 0;
