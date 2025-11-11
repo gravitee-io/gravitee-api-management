@@ -47,6 +47,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
+    private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -55,7 +56,8 @@ public class ImportDefinitionUpdateDomainService {
         UpdateNativeApiDomainService updateNativeApiDomainService,
         ValidateApiDomainService validateApiDomainService,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService
+        ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
+        ImportDefinitionPlanDomainService importDefinitionPlanDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -64,6 +66,7 @@ public class ImportDefinitionUpdateDomainService {
         this.validateApiDomainService = validateApiDomainService;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
+        this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -86,6 +89,9 @@ public class ImportDefinitionUpdateDomainService {
         new ImportDefinitionSubEntityProcessor(updatedApi.getId())
             .addSubEntity("Metadata", () ->
                 importDefinitionMetadataDomainService.upsertMetadata(apiId, importDefinition.getMetadata(), auditInfo)
+            )
+            .addSubEntity("Plans", () ->
+                importDefinitionPlanDomainService.upsertPlanWithFlows(existingPromotedApi, importDefinition.getPlans(), auditInfo)
             )
             .process();
 

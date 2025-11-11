@@ -75,7 +75,7 @@ class ImportDefinitionUpdateDomainServiceTest {
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = importDefinitionUpdateInitializer.apiCrudServiceInMemory;
     private final ApiQueryServiceInMemory apiQueryServiceInMemory = importDefinitionUpdateInitializer.apiQueryServiceInMemory;
 
-    private final ImportDefinitionUpdateDomainService service = importDefinitionUpdateInitializer.initialize();
+    private final ImportDefinitionUpdateDomainService service = importDefinitionUpdateInitializer.initialize(TARGET_ENVIRONMENT_ID);
 
     @BeforeEach
     void setUp() {
