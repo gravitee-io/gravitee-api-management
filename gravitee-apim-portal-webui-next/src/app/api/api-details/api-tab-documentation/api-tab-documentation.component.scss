@@ -20,6 +20,7 @@
 
 .api-tab-documentation {
   &__side-bar {
+<<<<<<< HEAD
     min-width: 276px;
     max-width: 300px;
     transition: margin-left 350ms ease-in-out;
@@ -30,6 +31,23 @@
 
     &__tree {
       position: sticky;
+=======
+    min-width: 276px; // 276px (side bar)
+
+    &__tree {
+      position: sticky;
+      top: 96px;
+    }
+  }
+
+  &__page-content {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: break-word;
+
+    &__container {
+      min-width: 0;
+>>>>>>> 5927d3578f (fix(portal-next): fix documentation content going out of frame)
     }
   }
 }
