@@ -49,6 +49,8 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
     public static final String PROPERTY_HTTP_API_PORTAL_ENTRYPOINT = "http.api.portal.entrypoint";
     private static final String PORTAL_NEXT_VERSION = "next";
     private static final String PORTAL_NEXT_QUERY_PARAM = "version=next&";
+    private static final String PORTAL_CLASSIC_VERSION = "classic";
+    private static final String PORTAL_CLASSIC_QUERY_PARAM = "version=classic&";
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
@@ -73,7 +75,15 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
                     .build();
                 url = uriComponents.toUriString();
             }
-            var versionQueryParam = version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_QUERY_PARAM : "";
+            var versionQueryParam = "";
+            if (version != null) {
+                if (version.equals(PORTAL_NEXT_VERSION)) {
+                    versionQueryParam = PORTAL_NEXT_QUERY_PARAM;
+                } else if (version.equals(PORTAL_CLASSIC_VERSION)) {
+                    versionQueryParam = PORTAL_CLASSIC_QUERY_PARAM;
+                }
+            }
+
             // Redirect the user.
             URI location = new URI(
                 "%s/environments/%s/auth/console?%stoken=%s".formatted(url, environmentId, versionQueryParam, tokenEntity.getToken())
