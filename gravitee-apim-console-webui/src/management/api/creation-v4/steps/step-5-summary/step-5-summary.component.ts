@@ -112,6 +112,8 @@ export class Step5SummaryComponent implements OnInit {
   public onRequestUpgrade() {
     if (this.currentStepPayload.type === 'NATIVE') {
       this.licenseService.openDialog({ feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
+    } else if (this.currentStepPayload.type === 'LLM_PROXY') {
+      this.licenseService.openDialog({ feature: ApimFeature.APIM_LLM_PROXY_REACTOR, context: UTMTags.API_CREATION_LLM_SUMMARY });
     } else {
       this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
     }

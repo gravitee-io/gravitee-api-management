@@ -278,6 +278,19 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT });
+    const selectedEntrypointsId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
+    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointsId === e.id);
+
+    if (selectedEntrypoint.supportedApiType === 'LLM_PROXY') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_LLM_ENTRYPOINT,
+      });
+    } else {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+        context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT,
+      });
+    }
   }
 }
