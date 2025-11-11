@@ -86,9 +86,11 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiImagesServiceProvider apiImagesServiceProvider;
 
-    // Sub entities
+    // Sub entities initializers
     private final ImportDefinitionMetadataDomainServiceTestInitializer metadataDomainServiceInitializer =
         new ImportDefinitionMetadataDomainServiceTestInitializer();
+    private final ImportDefinitionPlanDomainServiceTestInitializer planDomainServiceInitializer =
+        new ImportDefinitionPlanDomainServiceTestInitializer();
 
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
@@ -128,7 +130,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         apiImagesServiceProvider = new ApiImagesServiceProviderImpl(apiImagesService);
     }
 
-    public ImportDefinitionUpdateDomainService initialize() {
+    public ImportDefinitionUpdateDomainService initialize(String environmentId) {
         return new ImportDefinitionUpdateDomainService(
             updateApiDomainService,
             apiImagesServiceProvider,
@@ -136,7 +138,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             updateNativeApiDomainService,
             validateApiDomainService,
             apiPrimaryOwnerDomainService,
-            metadataDomainServiceInitializer.initialize()
+            metadataDomainServiceInitializer.initialize(),
+            planDomainServiceInitializer.initialize(environmentId)
         );
     }
 
