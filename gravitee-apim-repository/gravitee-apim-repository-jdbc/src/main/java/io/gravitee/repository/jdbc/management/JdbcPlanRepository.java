@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -434,6 +435,40 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             );
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update plans cross IDs", ex);
+        }
+    }
+
+    @Override
+    public Set<Plan> findAll() throws TechnicalException {
+        LOGGER.info("JdbcPlanRepository.findAll()");
+        try {
+            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api";
+            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(query, rowMapper);
+            List<Plan> planList = rowMapper.getRows();
+            if (planList.isEmpty()) {
+                return Collections.emptySet();
+            }
+            Map<String, Set<String>> tagsByPlanId = new HashMap<>();
+            List<String> planIds = planList.stream().map(Plan::getId).collect(Collectors.toList());
+            String tagQuery = "select plan_id, tag from " + PLAN_TAGS + " where plan_id in (" + getOrm().buildInClause(planIds) + ")";
+
+            jdbcTemplate.query(
+                tagQuery,
+                ps -> getOrm().setArguments(ps, planIds, 1),
+                rs -> {
+                    String planId = rs.getString("plan_id");
+                    String tag = rs.getString("tag");
+                    tagsByPlanId.computeIfAbsent(planId, k -> new HashSet<>()).add(tag);
+                }
+            );
+            for (Plan plan : planList) {
+                Set<String> tags = tagsByPlanId.getOrDefault(plan.getId(), Collections.emptySet());
+                plan.setTags(tags);
+            }
+            return new HashSet<>(planList);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find all plans", ex);
         }
     }
 }
