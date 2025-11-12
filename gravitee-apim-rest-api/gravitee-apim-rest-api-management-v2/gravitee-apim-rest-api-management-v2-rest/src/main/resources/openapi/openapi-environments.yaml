@@ -1669,6 +1669,10 @@ components:
             published:
               type: boolean
               description: Whether the page is published or not
+        PortalArea:
+          type: string
+          description: The portal area (used by portal navigation items)
+          enum: [HOMEPAGE, TOP_NAVBAR]
         BasePortalNavigationItem:
           type: object
           description: Base portal navigation item
@@ -1688,10 +1692,9 @@ components:
             type:
               type: string
               description: The type of the navigation item
+              enum: [PAGE, FOLDER, LINK]
             area:
-              type: string
-              description: The area of the navigation item
-              enum: [HOMEPAGE, TOP_NAVBAR]
+              $ref: "#/components/schemas/PortalArea"
             parentId:
               type: string
               description: The parent ID of the navigation item
@@ -1701,6 +1704,10 @@ components:
           required: [id, organizationId, environmentId, title, type, area, order]
           discriminator:
             propertyName: type
+            mapping:
+              PAGE: "#/components/schemas/PortalNavigationPage"
+              FOLDER: "#/components/schemas/PortalNavigationFolder"
+              LINK: "#/components/schemas/PortalNavigationLink"
         PortalNavigationPage:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -1715,10 +1722,6 @@ components:
         PortalNavigationFolder:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
-            - properties:
-                configuration:
-                  type: object
-                  description: Empty configuration for folders
         PortalNavigationLink:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -1737,6 +1740,10 @@ components:
             - $ref: "#/components/schemas/PortalNavigationLink"
           discriminator:
             propertyName: type
+            mapping:
+              PAGE: "#/components/schemas/PortalNavigationPage"
+              FOLDER: "#/components/schemas/PortalNavigationFolder"
+              LINK: "#/components/schemas/PortalNavigationLink"
 
     parameters:
         pageParam:
@@ -1929,8 +1936,7 @@ components:
           description: The portal area (eg. "homepage", "top_navbar")
           required: true
           schema:
-            type: string
-            enum: [homepage, top_navbar]
+            $ref: "#/components/schemas/PortalArea"
 
     responses:
         SchemaFormResponse:
