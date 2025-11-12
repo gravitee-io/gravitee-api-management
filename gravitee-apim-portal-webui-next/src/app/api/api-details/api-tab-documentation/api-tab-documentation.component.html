@@ -26,15 +26,11 @@
     </app-drawer>
   </div>
   @if (apiId && pageId(); as pageId) {
-<<<<<<< HEAD
+    <<<<<<< HEAD
     <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId" />
-=======
-    <app-api-documentation
-      [apiId]="apiId"
-      [pages]="pages"
-      [pageId]="pageId"
-      class="api-tab-documentation__page-content"></app-api-documentation>
->>>>>>> 7c41b53e87 (fix(portal-next): fix documentation content going out of frame)
+    =======
+    <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId" class="api-tab-documentation__page-content" />
+    >>>>>>> 7c41b53e87 (fix(portal-next): fix documentation content going out of frame)
   }
 } @else {
   <div i18n="@@apiDocumentationEmpty" class="api-tab-documentation__empty">Documentation for this API is missing.</div>
