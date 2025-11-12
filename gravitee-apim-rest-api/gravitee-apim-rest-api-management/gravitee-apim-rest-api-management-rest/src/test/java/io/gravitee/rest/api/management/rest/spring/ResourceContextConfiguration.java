@@ -46,6 +46,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -1027,5 +1028,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ProcessPromotionUseCase promotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
+    }
+
+    @Bean
+    public ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService() {
+        return mock(ImportDefinitionUpdateDomainService.class);
     }
 }

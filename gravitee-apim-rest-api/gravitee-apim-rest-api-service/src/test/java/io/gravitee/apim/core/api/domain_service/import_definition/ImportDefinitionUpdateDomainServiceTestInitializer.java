@@ -52,6 +52,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class ImportDefinitionUpdateDomainServiceTestInitializer {
@@ -63,7 +64,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     public final ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
 
     // In Memory
-    public final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
+    public ApiCrudServiceInMemory apiCrudServiceInMemory;
     public final ApiQueryServiceInMemory apiQueryServiceInMemory = new ApiQueryServiceInMemory();
     public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory();
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
@@ -95,6 +96,12 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         new ImportDefinitionPageDomainServiceTestInitializer();
 
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
+        this(null);
+    }
+
+    public ImportDefinitionUpdateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
+        apiCrudServiceInMemory = Objects.requireNonNullElseGet(apiCrudService, ApiCrudServiceInMemory::new);
+
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
             apiQueryServiceInMemory,
             pageQueryServiceInMemory,

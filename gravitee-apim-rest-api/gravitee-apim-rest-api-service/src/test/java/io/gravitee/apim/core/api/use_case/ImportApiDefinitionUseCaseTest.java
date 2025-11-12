@@ -408,7 +408,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page name must not be null or empty");
+                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
@@ -425,7 +425,7 @@ class ImportApiDefinitionUseCaseTest {
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
                 .hasMessage(
-                    "API created with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
+                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
                 );
         }
 
@@ -442,7 +442,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
@@ -465,7 +465,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test
@@ -749,7 +749,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page name must not be null or empty");
+                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
@@ -766,7 +766,7 @@ class ImportApiDefinitionUseCaseTest {
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
                 .hasMessage(
-                    "API created with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
+                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
                 );
         }
 
@@ -783,7 +783,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
@@ -806,7 +806,7 @@ class ImportApiDefinitionUseCaseTest {
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
                 .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test

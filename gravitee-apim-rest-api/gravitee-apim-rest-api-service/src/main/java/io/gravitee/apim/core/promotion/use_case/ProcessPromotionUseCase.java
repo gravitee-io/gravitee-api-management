@@ -17,6 +17,7 @@ package io.gravitee.apim.core.promotion.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -34,15 +35,18 @@ public class ProcessPromotionUseCase {
     private final PromotionCrudService promotionCrudService;
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
+    private final ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService;
 
     public ProcessPromotionUseCase(
         PromotionCrudService promotionCrudService,
         CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
+        ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
+        ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService
     ) {
         this.promotionCrudService = promotionCrudService;
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
+        this.importDefinitionUpdateDomainService = importDefinitionUpdateDomainService;
     }
 
     public record Input(
@@ -109,10 +113,10 @@ public class ProcessPromotionUseCase {
         }
 
         if (existingPromotedApi != null) {
-            throw new TechnicalManagementException("Coming soon - Api update using promotion is not yet supported");
+            importDefinitionUpdateDomainService.update(importDefinition, existingPromotedApi, auditInfo);
+        } else {
+            importDefinitionCreateDomainService.create(auditInfo, importDefinition);
         }
-
-        importDefinitionCreateDomainService.create(auditInfo, importDefinition);
         promotion.setStatus(PromotionStatus.ACCEPTED);
     }
 }

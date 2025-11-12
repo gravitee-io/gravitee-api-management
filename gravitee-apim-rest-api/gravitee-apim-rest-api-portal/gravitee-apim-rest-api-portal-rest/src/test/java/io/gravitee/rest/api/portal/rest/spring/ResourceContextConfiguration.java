@@ -45,6 +45,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -68,7 +69,6 @@ import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCa
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -989,5 +989,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ProcessPromotionUseCase promotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
+    }
+
+    @Bean
+    public ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService() {
+        return mock(ImportDefinitionUpdateDomainService.class);
     }
 }
