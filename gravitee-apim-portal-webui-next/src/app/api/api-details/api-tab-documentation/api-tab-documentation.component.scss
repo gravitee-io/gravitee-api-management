@@ -31,15 +31,15 @@
     &__tree {
       position: sticky;
     }
+  }
 
-    &__page-content {
+  &__page-content {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: break-word;
+
+    &__container {
       min-width: 0;
-      flex: 1;
-      overflow-wrap: break-word;
-
-      &__container {
-        min-width: 0;
-      }
     }
   }
 }
