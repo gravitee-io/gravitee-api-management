@@ -19,7 +19,7 @@
   <div class="sections-group__content">
     <div class="tree" role="tree">
       @for (node of tree(); track node) {
-        <app-tree-node [node]="node" [level]="0" [selectedId]="selectedId()" (nodeSelected)="select($event)"></app-tree-node>
+        <app-tree-node [node]="node" [level]="0" [selectedId]="selectedId()" (nodeSelected)="select.emit($event)"></app-tree-node>
       }
     </div>
   </div>

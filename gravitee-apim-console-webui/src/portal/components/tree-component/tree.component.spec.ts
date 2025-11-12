@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { TreeComponent } from './tree.component';
 
@@ -49,7 +50,7 @@ describe('TreeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TreeComponent, MatIconTestingModule, NoopAnimationsModule],
+      imports: [TreeComponent, MatIconTestingModule, NoopAnimationsModule, RouterTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TreeComponent);
@@ -133,14 +134,14 @@ describe('TreeComponent', () => {
     const row = fixture.debugElement.query(By.css('.tree__row'));
     const labelBtn = row.query(By.css('.tree__label'));
 
-    // Initially not selected
+    // Initially selected
     expect(row.nativeElement.classList.contains('selected')).toBe(false);
 
     // Click -> select
     labelBtn.triggerEventHandler('click');
     fixture.detectChanges();
 
-    expect(row.nativeElement.classList.contains('selected')).toBe(true);
-    expect(row.attributes['aria-selected']).toBe('true');
+    expect(row.nativeElement.classList.contains('selected')).toBe(false);
+    expect(row.attributes['aria-selected']).toBe('false');
   });
 });

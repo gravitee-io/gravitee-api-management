@@ -37,8 +37,12 @@
 @if (node().children?.length && isExpanded()) {
   <div class="tree__children">
     @for (child of node().children; track child) {
-      <app-tree-node [node]="child" [level]="level() + 1" [selectedId]="selectedId()" (nodeSelected)="nodeSelected.emit($event)">
-      </app-tree-node>
+      <app-tree-node
+        [node]="child"
+        [level]="level() + 1"
+        [selectedId]="selectedId()"
+        (nodeSelected)="nodeSelected.emit($event)"
+      ></app-tree-node>
     }
   </div>
 }
