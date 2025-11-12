@@ -85,6 +85,8 @@ export type InternalPlanFormValue = {
   restriction?: {
     rateLimitEnabled?: boolean;
     rateLimitConfig?: string;
+    rateLimitLlmProxyEnabled?: boolean;
+    rateLimitLlmProxyConfig?: string;
     quotaEnabled?: boolean;
     quotaConfig?: string;
     resourceFilteringEnabled?: boolean;
@@ -403,6 +405,10 @@ const planToInternalFormValue = (
             restriction.rateLimitEnabled = true;
             restriction.rateLimitConfig = step.configuration;
           }
+          if (step.policy === 'rate-limit-llm-proxy' && step.enabled) {
+            restriction.rateLimitLlmProxyEnabled = true;
+            restriction.rateLimitLlmProxyConfig = step.configuration;
+          }
           if (step.policy === 'quota' && step.enabled) {
             restriction.quotaEnabled = true;
             restriction.quotaConfig = step.configuration;
@@ -420,6 +426,10 @@ const planToInternalFormValue = (
           if (step.policy === 'rate-limit' && step.enabled) {
             restriction.rateLimitEnabled = true;
             restriction.rateLimitConfig = step.configuration;
+          }
+          if (step.policy === 'rate-limit-llm-proxy' && step.enabled) {
+            restriction.rateLimitLlmProxyEnabled = true;
+            restriction.rateLimitLlmProxyConfig = step.configuration;
           }
           if (step.policy === 'quota' && step.enabled) {
             restriction.quotaEnabled = true;
@@ -467,6 +477,16 @@ const internalFormValueToPlanV2 = (value: InternalPlanFormValue, mode: 'create' 
               policy: 'rate-limit',
             },
           ]
+        : []),
+      ...(restriction.rateLimitLlmProxyEnabled
+        ? [
+          {
+            enabled: true,
+            name: 'Rate Limiting for LLM Proxy',
+            configuration: restriction.rateLimitLlmProxyConfig,
+            policy: 'rate-limit-llm-proxy',
+          },
+        ]
         : []),
       ...(restriction.quotaEnabled
         ? [
@@ -552,6 +572,16 @@ const internalFormValueToPlanV4 = (
                   name: 'Rate Limiting',
                   configuration: restriction.rateLimitConfig,
                   policy: 'rate-limit',
+                },
+              ]
+            : []),
+          ...(restriction.rateLimitLlmProxyEnabled
+            ? [
+                {
+                  enabled: true,
+                  name: 'Rate Limiting for LLM Proxy',
+                  configuration: restriction.rateLimitLlmProxyConfig,
+                  policy: 'rate-limit-llm-proxy',
                 },
               ]
             : []),

@@ -36,6 +36,7 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   public restrictionForm: UntypedFormGroup;
 
   public rateLimitSchema$: Observable<undefined | unknown>;
+  public rateLimitLlmProxySchema$: Observable<undefined | unknown>;
   public quotaSchema$: Observable<undefined | unknown>;
   public resourceFilteringSchema$: Observable<undefined | unknown>;
 
@@ -45,6 +46,9 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     this.restrictionForm = new UntypedFormGroup({
       rateLimitEnabled: new UntypedFormControl(false),
       rateLimitConfig: new UntypedFormControl({}),
+
+      rateLimitLlmProxyEnabled: new UntypedFormControl(false),
+      rateLimitLlmProxyConfig: new UntypedFormControl({}),
 
       quotaEnabled: new UntypedFormControl(false),
       quotaConfig: new UntypedFormControl({}),
@@ -57,6 +61,17 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
       mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
       tap(() =>
         this.restrictionForm.setControl('rateLimitConfig', new UntypedFormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
+          emitEvent: false,
+        }),
+      ),
+
+      takeUntil(this.unsubscribe$),
+    );
+
+    this.rateLimitLlmProxySchema$ = this.restrictionForm.get('rateLimitLlmProxyEnabled').valueChanges.pipe(
+      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit-llm-proxy'))),
+      tap(() =>
+        this.restrictionForm.setControl('rateLimitLlmProxyConfig', new UntypedFormControl(this.initialFormValues?.rateLimitLlmProxyConfig ?? {}), {
           emitEvent: false,
         }),
       ),

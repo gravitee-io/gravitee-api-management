@@ -38,6 +38,28 @@
       </ng-container>
     </mat-card-content>
   </mat-card>
+  <mat-card class="rateLimitLlmProxy-card">
+    <mat-card-content>
+      <gio-form-slide-toggle>
+        <gio-form-label>Rate Limiting for LLM Proxy</gio-form-label>
+        Rate limit how many tokens an application can use.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="rateLimitLlmProxyEnabled"
+          aria-label="Toggle to enable rate limit for LLM Proxy"
+          name="rateLimitLlmProxy"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+      <ng-container *ngIf="rateLimitLlmProxySchema$ | async as rateLimitLlmProxySchema">
+        <gio-form-json-schema
+          *ngIf="rateLimitLlmProxySchema"
+          class="quota-card__schema-form"
+          formControlName="rateLimitLlmProxyLlmProxyConfig"
+          [jsonSchema]="rateLimitLlmProxySchema"
+        ></gio-form-json-schema>
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
 
   <mat-card class="quota-card">
     <mat-card-content>
