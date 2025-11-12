@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fakes.FakeApiImagesService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
@@ -71,7 +72,7 @@ class ImportDefinitionUpdateDomainServiceTest {
         new ImportDefinitionUpdateDomainServiceTestInitializer();
 
     private final ApiService apiService = importDefinitionUpdateInitializer.apiService;
-    private final ApiImagesService apiImagesService = importDefinitionUpdateInitializer.apiImagesService;
+    private final FakeApiImagesService apiImagesService = importDefinitionUpdateInitializer.apiImagesServiceProvider;
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = importDefinitionUpdateInitializer.apiCrudServiceInMemory;
     private final ApiQueryServiceInMemory apiQueryServiceInMemory = importDefinitionUpdateInitializer.apiQueryServiceInMemory;
 
@@ -140,8 +141,8 @@ class ImportDefinitionUpdateDomainServiceTest {
             eq(false),
             eq(USER)
         );
-        verify(apiImagesService).updateApiBackground(eq(executionContext), eq(PROMOTED_API_ID), eq(background));
-        verify(apiImagesService).updateApiPicture(eq(executionContext), eq(PROMOTED_API_ID), eq(picture));
+        assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
+        assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
     }
 
     @Test
@@ -213,10 +214,8 @@ class ImportDefinitionUpdateDomainServiceTest {
         var capturedApi = sanitizationCaptor.getValue();
         assertNativeApiMatchExport(capturedApi, apiExport);
 
-        var executionContext = new ExecutionContext(ORGANIZATION_ID, TARGET_ENVIRONMENT_ID);
-        verify(apiImagesService).updateApiBackground(eq(executionContext), eq(PROMOTED_API_ID), eq(background));
-        verify(apiImagesService).updateApiPicture(eq(executionContext), eq(PROMOTED_API_ID), eq(picture));
-
+        assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
+        assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
         assertNativeApiMatchExport(updated, apiExport);
     }
 

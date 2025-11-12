@@ -17,6 +17,8 @@ package fakes.spring;
 
 import fakes.FakeAnalyticsQueryService;
 import fakes.FakeApiHealthQueryService;
+import fakes.FakeApiImagesService;
+import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import org.springframework.context.annotation.Bean;
@@ -38,5 +40,10 @@ public class FakeConfiguration {
     @Bean
     public EventManager eventManager() {
         return new EventManagerImpl();
+    }
+
+    @Bean
+    public ApiImagesServiceProvider apiImagesServiceProvider() {
+        return new FakeApiImagesService();
     }
 }

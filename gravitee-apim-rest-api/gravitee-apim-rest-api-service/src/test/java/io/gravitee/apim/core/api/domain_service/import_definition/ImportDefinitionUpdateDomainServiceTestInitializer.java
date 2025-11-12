@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.domain_service.import_definition;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
+import fakes.FakeApiImagesService;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -52,18 +53,18 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class ImportDefinitionUpdateDomainServiceTestInitializer {
 
     // Mocks
     public final ApiService apiService = mock(ApiService.class);
-    public final ApiImagesService apiImagesService = mock(ApiImagesService.class);
     public final CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     public final ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
 
     // In Memory
-    public final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
+    public ApiCrudServiceInMemory apiCrudServiceInMemory;
     public final ApiQueryServiceInMemory apiQueryServiceInMemory = new ApiQueryServiceInMemory();
     public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory();
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
@@ -82,9 +83,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     // Domain Services
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiIdsCalculatorDomainService apiIdsCalculatorDomainService;
-    private final UpdateNativeApiDomainService updateNativeApiDomainService;
+    final FakeApiImagesService apiImagesServiceProvider;
     private final UpdateApiDomainService updateApiDomainService;
-    private final ApiImagesServiceProvider apiImagesServiceProvider;
+    private final UpdateNativeApiDomainService updateNativeApiDomainService;
 
     // Sub entities initializers
     private final ImportDefinitionMetadataDomainServiceTestInitializer metadataDomainServiceInitializer =
@@ -95,6 +96,12 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         new ImportDefinitionPageDomainServiceTestInitializer();
 
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
+        this(null);
+    }
+
+    public ImportDefinitionUpdateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
+        apiCrudServiceInMemory = Objects.requireNonNullElseGet(apiCrudService, ApiCrudServiceInMemory::new);
+
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
             apiQueryServiceInMemory,
             pageQueryServiceInMemory,
@@ -129,7 +136,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             apiIndexerDomainService
         );
         updateApiDomainService = new UpdateApiDomainServiceImpl(apiService, apiCrudServiceInMemory);
-        apiImagesServiceProvider = new ApiImagesServiceProviderImpl(apiImagesService);
+        apiImagesServiceProvider = new FakeApiImagesService();
     }
 
     public ImportDefinitionUpdateDomainService initialize(String environmentId) {
@@ -166,8 +173,9 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         metadataDomainServiceInitializer.tearDown();
 
         reset(apiService);
-        reset(apiImagesService);
         reset(categoryDomainService);
         reset(validateApiDomainService);
+
+        apiImagesServiceProvider.reset();
     }
 }
