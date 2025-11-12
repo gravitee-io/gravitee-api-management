@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author GraviteeSource Team
@@ -82,7 +83,12 @@ class PortalNavigationItemResourceTest extends AbstractResourceTest {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
 
-        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            ListPortalNavigationItemsUseCase.Input.class
+        );
+        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
+            new ListPortalNavigationItemsUseCase.Output(items)
+        );
 
         when(
             permissionService.hasPermission(
@@ -101,6 +107,12 @@ class PortalNavigationItemResourceTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
             .satisfies(entity -> assertThat(entity.getItems()).hasSize(8));
+
+        var capturedInput = inputCaptor.getValue();
+        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
+        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        assertThat(capturedInput.parentId()).isEmpty();
+        assertThat(capturedInput.loadChildren()).isTrue();
     }
 
     @Test
@@ -115,7 +127,14 @@ class PortalNavigationItemResourceTest extends AbstractResourceTest {
                     item.getId().id().toString().equals("00000000-0000-0000-0000-000000000006")
             )
             .toList();
-        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+
+        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            ListPortalNavigationItemsUseCase.Input.class
+        );
+        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
+            new ListPortalNavigationItemsUseCase.Output(items)
+        );
+
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -138,5 +157,114 @@ class PortalNavigationItemResourceTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
             .satisfies(entity -> assertThat(entity.getItems()).hasSize(3));
+
+        var capturedInput = inputCaptor.getValue();
+        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
+        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        assertThat(capturedInput.parentId()).isPresent();
+        assertThat(capturedInput.parentId().get().id().toString()).isEqualTo("00000000-0000-0000-0000-000000000001");
+        assertThat(capturedInput.loadChildren()).isFalse();
+    }
+
+    @Test
+    void should_return_portal_navigation_items_without_loading_children() {
+        // Given
+        var items = PortalNavigationItemFixtures.sampleNavigationItems()
+            .stream()
+            .filter(item -> item.getParentId() == null) // Assuming top-level items
+            .toList();
+
+        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            ListPortalNavigationItemsUseCase.Input.class
+        );
+        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
+            new ListPortalNavigationItemsUseCase.Output(items)
+        );
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", false).request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(items.size()));
+
+        var capturedInput = inputCaptor.getValue();
+        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
+        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        assertThat(capturedInput.parentId()).isEmpty();
+        assertThat(capturedInput.loadChildren()).isFalse();
+    }
+
+    @Test
+    void should_return_portal_navigation_items_with_parent_id_and_loading_children() {
+        // Given
+        var items = PortalNavigationItemFixtures.sampleNavigationItems(); // Assuming this includes the parent and children
+
+        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            ListPortalNavigationItemsUseCase.Input.class
+        );
+        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
+            new ListPortalNavigationItemsUseCase.Output(items)
+        );
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target
+            .queryParam("area", PortalArea.TOP_NAVBAR)
+            .queryParam("parentId", "00000000-0000-0000-0000-000000000001")
+            .queryParam("loadChildren", true)
+            .request()
+            .get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(8));
+
+        var capturedInput = inputCaptor.getValue();
+        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
+        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        assertThat(capturedInput.parentId()).isPresent();
+        assertThat(capturedInput.parentId().get().id().toString()).isEqualTo("00000000-0000-0000-0000-000000000001");
+        assertThat(capturedInput.loadChildren()).isTrue();
+    }
+
+    @Test
+    void should_return_forbidden_when_no_permission() {
+        // Given
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(false);
+
+        // When
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).request().get();
+
+        // Then
+        assertThat(response).hasStatus(FORBIDDEN_403);
     }
 }

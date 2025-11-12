@@ -55,7 +55,6 @@ public interface PortalNavigationMapper {
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(PortalNavigationPage page);
 
     @Mapping(target = "type", constant = "FOLDER")
-    @Mapping(target = "configuration", expression = "java(null)")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder map(PortalNavigationFolder folder);
 
     @Mapping(target = "type", constant = "LINK")

@@ -53,8 +53,8 @@ class PortalNavigationMapperTest {
         assertThat(result.getOrganizationId()).isEqualTo("org-id");
         assertThat(result.getEnvironmentId()).isEqualTo("env-id");
         assertThat(result.getTitle()).isEqualTo("My Page");
-        assertThat(result.getType()).isEqualTo("PAGE");
-        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.AreaEnum.TOP_NAVBAR);
+        assertThat(result.getType()).isEqualTo(BasePortalNavigationItem.TypeEnum.PAGE);
+        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
         assertThat(result.getOrder()).isEqualTo(1);
         assertThat(result.getParentId()).isNull();
         assertThat(result.getConfiguration()).isNotNull();
@@ -74,11 +74,10 @@ class PortalNavigationMapperTest {
         assertThat(result.getOrganizationId()).isEqualTo("org-id");
         assertThat(result.getEnvironmentId()).isEqualTo("env-id");
         assertThat(result.getTitle()).isEqualTo("My Folder");
-        assertThat(result.getType()).isEqualTo("FOLDER");
-        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder.AreaEnum.TOP_NAVBAR);
+        assertThat(result.getType()).isEqualTo(BasePortalNavigationItem.TypeEnum.FOLDER);
+        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
         assertThat(result.getOrder()).isEqualTo(2);
         assertThat(result.getParentId()).isNull();
-        assertThat(result.getConfiguration()).isNull();
     }
 
     @Test
@@ -101,8 +100,8 @@ class PortalNavigationMapperTest {
         assertThat(result.getOrganizationId()).isEqualTo("org-id");
         assertThat(result.getEnvironmentId()).isEqualTo("env-id");
         assertThat(result.getTitle()).isEqualTo("My Link");
-        assertThat(result.getType()).isEqualTo("LINK");
-        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink.AreaEnum.TOP_NAVBAR);
+        assertThat(result.getType()).isEqualTo(BasePortalNavigationItem.TypeEnum.LINK);
+        assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
         assertThat(result.getOrder()).isEqualTo(3);
         assertThat(result.getParentId()).isNull();
         assertThat(result.getConfiguration()).isNotNull();
