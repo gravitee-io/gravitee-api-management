@@ -480,13 +480,13 @@ const internalFormValueToPlanV2 = (value: InternalPlanFormValue, mode: 'create' 
         : []),
       ...(restriction.rateLimitLlmProxyEnabled
         ? [
-          {
-            enabled: true,
-            name: 'Rate Limiting for LLM Proxy',
-            configuration: restriction.rateLimitLlmProxyConfig,
-            policy: 'rate-limit-llm-proxy',
-          },
-        ]
+            {
+              enabled: true,
+              name: 'Rate Limiting for LLM Proxy',
+              configuration: restriction.rateLimitLlmProxyConfig,
+              policy: 'rate-limit-llm-proxy',
+            },
+          ]
         : []),
       ...(restriction.quotaEnabled
         ? [

@@ -57,51 +57,43 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
       resourceFilteringConfig: new UntypedFormControl({}),
     });
 
-    this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
+    this.rateLimitSchema$ = this.createPolicySchema(
+      'rateLimitEnabled',
+      'rateLimitConfig',
+      'rate-limit',
+      this.initialFormValues?.rateLimitConfig,
+    );
+
+    this.rateLimitLlmProxySchema$ = this.createPolicySchema(
+      'rateLimitLlmProxyEnabled',
+      'rateLimitLlmProxyConfig',
+      'rate-limit-llm-proxy',
+      this.initialFormValues?.rateLimitLlmProxyConfig,
+    );
+
+    this.quotaSchema$ = this.createPolicySchema('quotaEnabled', 'quotaConfig', 'quota', this.initialFormValues?.quotaConfig);
+
+    this.resourceFilteringSchema$ = this.createPolicySchema(
+      'resourceFilteringEnabled',
+      'resourceFilteringConfig',
+      'resource-filtering',
+      this.initialFormValues?.resourceFilteringConfig,
+    );
+  }
+
+  private createPolicySchema(
+    enabledControlName: string,
+    configControlName: string,
+    policyName: string,
+    initialConfigValue: any,
+  ): Observable<unknown | undefined> {
+    return this.restrictionForm.get(enabledControlName).valueChanges.pipe(
+      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema(policyName))),
       tap(() =>
-        this.restrictionForm.setControl('rateLimitConfig', new UntypedFormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
+        this.restrictionForm.setControl(configControlName, new UntypedFormControl(initialConfigValue ?? {}), {
           emitEvent: false,
         }),
       ),
-
-      takeUntil(this.unsubscribe$),
-    );
-
-    this.rateLimitLlmProxySchema$ = this.restrictionForm.get('rateLimitLlmProxyEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit-llm-proxy'))),
-      tap(() =>
-        this.restrictionForm.setControl('rateLimitLlmProxyConfig', new UntypedFormControl(this.initialFormValues?.rateLimitLlmProxyConfig ?? {}), {
-          emitEvent: false,
-        }),
-      ),
-
-      takeUntil(this.unsubscribe$),
-    );
-
-    this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
-      tap(() =>
-        this.restrictionForm.setControl('quotaConfig', new UntypedFormControl(this.initialFormValues?.quotaConfig ?? {}), {
-          emitEvent: false,
-        }),
-      ),
-
-      takeUntil(this.unsubscribe$),
-    );
-
-    this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
-      tap(() =>
-        this.restrictionForm.setControl(
-          'resourceFilteringConfig',
-          new UntypedFormControl(this.initialFormValues?.resourceFilteringConfig ?? {}),
-          {
-            emitEvent: false,
-          },
-        ),
-      ),
-
       takeUntil(this.unsubscribe$),
     );
   }
