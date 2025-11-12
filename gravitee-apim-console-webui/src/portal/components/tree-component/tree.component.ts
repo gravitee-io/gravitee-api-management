@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, effect, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 
@@ -54,17 +54,49 @@ type ProcessingNode = SectionNode & {
 export class TreeComponent {
   links = input<PortalMenuLink[] | null>(null);
   tree = computed(() => {
-    if (this.links() && Array.isArray(this.links())) {
-      return this.mapLinksToNodes(this.links());
-    } else {
-      this.selectedId.set(null);
-      return [];
-    }
+    const links = this.links();
+    return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
   });
-  selectedId = signal<string | null>(null);
 
-  select(node: SectionNode): void {
-    this.selectedId.set(node.id);
+  selectedId = input<string | null>(null);
+  select = output<SectionNode>();
+  pageNotFound = output<void>();
+
+  constructor() {
+    effect(() => {
+      const currentTree = this.tree();
+      const currentSelectedId = this.selectedId();
+
+      if (currentTree.length > 0) {
+        const isPageIdProvided = currentSelectedId !== null;
+        const pageExists = isPageIdProvided && this.findNode(currentTree, (node) => node.id === currentSelectedId);
+
+        if (isPageIdProvided && !pageExists) {
+          this.pageNotFound.emit();
+          return;
+        }
+
+        if (!isPageIdProvided) {
+          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'page');
+          if (firstPageNode) {
+            this.select.emit(firstPageNode);
+          }
+        }
+      }
+    });
+  }
+
+  private findNode(nodes: SectionNode[], predicate: (node: SectionNode) => boolean): SectionNode | null {
+    for (const node of nodes) {
+      if (predicate(node)) {
+        return node;
+      }
+      if (node.children) {
+        const found = this.findNode(node.children, predicate);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
@@ -87,7 +119,7 @@ export class TreeComponent {
         children: type === 'folder' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
-      });
+      } as ProcessingNode);
     }
     return nodes;
   }
@@ -99,7 +131,7 @@ export class TreeComponent {
       const parent = node.__parentId ? nodes.get(node.__parentId) : null;
       if (parent) {
         parent.children ??= [];
-        (parent.children as ProcessingNode[]).push(node);
+        parent.children.push(node);
       } else {
         roots.push(node);
       }

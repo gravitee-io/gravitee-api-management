@@ -16,14 +16,17 @@
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { TreeComponent } from '../components/tree-component/tree.component';
+import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
 import { PortalMenuLink } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 
@@ -50,10 +53,15 @@ export class PortalNavigationItemsComponent implements OnInit {
 
   menuLinks: PortalMenuLink[] | null = null;
   isEmpty = true;
+  pageNotFound = false;
+
+  navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
 
   constructor(
     private readonly http: HttpClient,
     private readonly snackBarService: SnackBarService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -69,5 +77,21 @@ export class PortalNavigationItemsComponent implements OnInit {
         this.snackBarService.error('Failed to load portal navigation items: ' + err);
       },
     });
+  }
+
+  onSelect($event: SectionNode) {
+    this.pageNotFound = false;
+    this.router
+      .navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: { navId: $event.id },
+        queryParamsHandling: 'merge',
+      })
+      .catch((err) => this.snackBarService.error('Failed to navigate to portal navigation items: ' + err));
+  }
+
+  onPageNotFound() {
+    this.pageNotFound = true;
+    this.snackBarService.error('The requested Navigation Item does not exist.');
   }
 }
