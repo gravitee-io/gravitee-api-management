@@ -21,7 +21,6 @@
 .api-tab-documentation {
   &__side-bar {
     min-width: 276px;
-    max-width: 300px;
     transition: margin-left 350ms ease-in-out;
 
     &--hidden {
@@ -30,6 +29,7 @@
 
     &__tree {
       position: sticky;
+      top: 96px;
     }
   }
 
