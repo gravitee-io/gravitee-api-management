@@ -50,6 +50,13 @@
 
   &__actions {
     margin-left: auto;
+
+    &__add {
+     &__label {
+       display: flex;
+       gap: 8px;
+     }
+    }
   }
 }
 

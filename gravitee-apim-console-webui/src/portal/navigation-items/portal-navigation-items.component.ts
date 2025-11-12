@@ -15,11 +15,11 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, inject, OnInit } from '@angular/core';
+import {GIO_DIALOG_WIDTH, GioCardEmptyStateModule} from '@gravitee/ui-particles-angular';
+import {Component, DestroyRef, inject, OnInit} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -29,6 +29,16 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
 import { PortalMenuLink } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import {GioPermissionModule} from "../../shared/components/gio-permission/gio-permission.module";
+import {MatMenuItem, MatMenuModule, MatMenuTrigger} from "@angular/material/menu";
+import {MatIconModule} from "@angular/material/icon";
+import {MatDialog} from "@angular/material/dialog";
+import {
+  AddSectionDialogComponent,
+  AddSectionDialogData,
+  AddSectionDialogResult
+} from "./add-section-dialog/add-section-dialog.component";
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 
 @Component({
   selector: 'portal-navigation-items',
@@ -42,7 +52,11 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
     GioCardEmptyStateModule,
     MatButton,
     TreeComponent,
-    HttpClientModule,
+    GioPermissionModule,
+    MatMenuModule,
+    MatMenuTrigger,
+    MatIconModule,
+    MatMenuItem,
   ],
 })
 export class PortalNavigationItemsComponent implements OnInit {
@@ -56,12 +70,15 @@ export class PortalNavigationItemsComponent implements OnInit {
   pageNotFound = false;
 
   navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
+  addPageMenuOpen = false;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly http: HttpClient,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -93,5 +110,20 @@ export class PortalNavigationItemsComponent implements OnInit {
   onPageNotFound() {
     this.pageNotFound = true;
     this.snackBarService.error('The requested Navigation Item does not exist.');
+  }
+
+  onAddPageClick() {
+    this.matDialog.open<AddSectionDialogComponent, AddSectionDialogData>(AddSectionDialogComponent, {
+      width: GIO_DIALOG_WIDTH.MEDIUM,
+      data: {
+        type: 'PAGE',
+      },
+    }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result: AddSectionDialogResult) => {
+        if (result) {
+          this.snackBarService.success(`Section with id ${result.id} added (not really, this is a mock).`);
+        }
+      }
+    });
   }
 }
