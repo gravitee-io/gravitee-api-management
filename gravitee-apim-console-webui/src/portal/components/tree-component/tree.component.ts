@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, effect, ErrorHandler, input, OnDestroy, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { TreeNodeComponent } from './tree-node.component';
 
@@ -51,20 +53,100 @@ type ProcessingNode = SectionNode & {
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
-export class TreeComponent {
+export class TreeComponent implements OnDestroy {
+  private hadPageIdInRouteInitially = false;
   links = input<PortalMenuLink[] | null>(null);
   tree = computed(() => {
     if (this.links() && Array.isArray(this.links())) {
       return this.mapLinksToNodes(this.links());
-    } else {
-      this.selectedId.set(null);
-      return [];
     }
+    return [];
   });
+
   selectedId = signal<string | null>(null);
+
+  private routeSub: Subscription | null = null;
+  private updatingFromRoute = false;
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private errorService: ErrorHandler,
+  ) {
+    const initialId = this.route.snapshot.queryParamMap.get('pageId');
+    if (initialId) {
+      this.hadPageIdInRouteInitially = true;
+      this.selectedId.set(initialId);
+    }
+
+    this.routeSub = this.route.queryParams.subscribe((params) => {
+      const pageId = params['pageId'] ?? null;
+      if (pageId !== this.selectedId()) {
+        this.hadPageIdInRouteInitially = !!pageId;
+        this.updatingFromRoute = true;
+        this.selectedId.set(pageId);
+        Promise.resolve().then(() => (this.updatingFromRoute = false));
+      }
+    });
+
+    effect(() => {
+      const id = this.selectedId();
+      if (this.updatingFromRoute) return;
+
+      const currentPageId = this.route.snapshot.queryParamMap.get('pageId');
+      const idToCompare = id ?? null;
+      if (currentPageId !== idToCompare) {
+        this.router
+          .navigate([], {
+            queryParams: { pageId: id },
+            queryParamsHandling: 'merge',
+            replaceUrl: true,
+          })
+          .catch((err) => this.errorService.handleError(err));
+      }
+    });
+
+    effect(() => {
+      const nodes = this.tree();
+      const cur = this.selectedId();
+
+      if (!nodes || nodes.length === 0) return;
+      const found = cur ? this.findNode(nodes, (node) => node.id === cur) : null;
+      if (found) return;
+      if (this.hadPageIdInRouteInitially) return;
+
+      const firstPage = this.findNode(nodes, (node) => node.type === 'page');
+      if (firstPage) {
+        this.updatingFromRoute = true;
+        this.selectedId.set(firstPage.id);
+        Promise.resolve().then(() => (this.updatingFromRoute = false));
+      } else {
+        this.updatingFromRoute = true;
+        this.selectedId.set(null);
+        Promise.resolve().then(() => (this.updatingFromRoute = false));
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routeSub?.unsubscribe();
+  }
 
   select(node: SectionNode): void {
     this.selectedId.set(node.id);
+  }
+
+  private findNode(nodes: SectionNode[], predicate: (node: SectionNode) => boolean): SectionNode | null {
+    for (const node of nodes) {
+      if (predicate(node)) {
+        return node;
+      }
+      if (node.children) {
+        const found = this.findNode(node.children, predicate);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
@@ -87,7 +169,7 @@ export class TreeComponent {
         children: type === 'folder' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
-      });
+      } as ProcessingNode);
     }
     return nodes;
   }
@@ -99,7 +181,7 @@ export class TreeComponent {
       const parent = node.__parentId ? nodes.get(node.__parentId) : null;
       if (parent) {
         parent.children ??= [];
-        (parent.children as ProcessingNode[]).push(node);
+        parent.children.push(node);
       } else {
         roots.push(node);
       }
