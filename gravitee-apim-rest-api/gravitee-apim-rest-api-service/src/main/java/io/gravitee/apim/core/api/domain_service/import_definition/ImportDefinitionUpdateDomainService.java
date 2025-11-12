@@ -48,6 +48,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
+    private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -57,7 +58,8 @@ public class ImportDefinitionUpdateDomainService {
         ValidateApiDomainService validateApiDomainService,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
-        ImportDefinitionPlanDomainService importDefinitionPlanDomainService
+        ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
+        ImportDefinitionPageDomainService importDefinitionPageDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -67,6 +69,7 @@ public class ImportDefinitionUpdateDomainService {
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
+        this.importDefinitionPageDomainService = importDefinitionPageDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -90,6 +93,7 @@ public class ImportDefinitionUpdateDomainService {
             .addSubEntity("Metadata", () ->
                 importDefinitionMetadataDomainService.upsertMetadata(apiId, importDefinition.getMetadata(), auditInfo)
             )
+            .addSubEntity("Pages", () -> importDefinitionPageDomainService.upsertPages(apiId, apiWithIds.getPages(), auditInfo))
             .addSubEntity("Plans", () ->
                 importDefinitionPlanDomainService.upsertPlanWithFlows(existingPromotedApi, importDefinition.getPlans(), auditInfo)
             )

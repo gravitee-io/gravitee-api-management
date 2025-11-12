@@ -91,6 +91,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         new ImportDefinitionMetadataDomainServiceTestInitializer();
     private final ImportDefinitionPlanDomainServiceTestInitializer planDomainServiceInitializer =
         new ImportDefinitionPlanDomainServiceTestInitializer();
+    private final ImportDefinitionPageDomainServiceTestInitializer pageDomainServiceTestInitializer =
+        new ImportDefinitionPageDomainServiceTestInitializer();
 
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
@@ -139,7 +141,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             validateApiDomainService,
             apiPrimaryOwnerDomainService,
             metadataDomainServiceInitializer.initialize(),
-            planDomainServiceInitializer.initialize(environmentId)
+            planDomainServiceInitializer.initialize(environmentId),
+            pageDomainServiceTestInitializer.initialize()
         );
     }
 
