@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, signal } from '@angular/core';
+import {Component, computed, effect, input, output} from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 
@@ -53,18 +53,32 @@ type ProcessingNode = SectionNode & {
 })
 export class TreeComponent {
   links = input<PortalMenuLink[] | null>(null);
+  selectedId = input<string | null>(null);
   tree = computed(() => {
-    if (this.links() && Array.isArray(this.links())) {
-      return this.mapLinksToNodes(this.links());
-    } else {
-      this.selectedId.set(null);
-      return [];
-    }
+    const links = this.links();
+    return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
   });
-  selectedId = signal<string | null>(null);
 
-  select(node: SectionNode): void {
-    this.selectedId.set(node.id);
+  select = output<SectionNode>();
+
+  constructor() {
+    effect(() => {
+      const currentTree = this.tree();
+      const currentSelectedId = this.selectedId();
+
+      // If tree has nodes and no valid selection exists, select the first page node
+      if (currentTree.length > 0) {
+        const shouldSelectDefault =
+          currentSelectedId === null || !this.checkNodeExists(currentTree, currentSelectedId);
+
+        if (shouldSelectDefault) {
+          const firstPageNode = this.findFirstPageNode(currentTree);
+          if (firstPageNode) {
+            this.select.emit(firstPageNode);
+          }
+        }
+      }
+    });
   }
 
   private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
@@ -125,5 +139,35 @@ export class TreeComponent {
       return 'link';
     }
     return 'page';
+  }
+
+  private findFirstPageNode(tree: SectionNode[]): SectionNode | null {
+    for (const node of tree) {
+      if (node.type === 'page') {
+        return node;
+      }
+      if (node.children) {
+        const found = this.findFirstPageNode(node.children);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  private checkNodeExists(tree: SectionNode[], nodeId: string): boolean {
+    for (const node of tree) {
+      if (node.id === nodeId) {
+        return true;
+      }
+      if (node.children) {
+        const found = this.checkNodeExists(node.children, nodeId);
+        if (found) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
