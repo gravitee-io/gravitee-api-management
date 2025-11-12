@@ -210,7 +210,7 @@
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-policy-quota.version>4.1.1</gravitee-policy-quota.version>    -->
         <!--    <gravitee-policy-spikearrest.version>4.1.1</gravitee-policy-spikearrest.version>    -->
-        <gravitee-policy-ratelimit.version>4.1.1</gravitee-policy-ratelimit.version>
+        <gravitee-policy-ratelimit.version>4.2.0-alpha.1</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
@@ -296,7 +296,7 @@
         <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>8.1.0</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>4.1.0</gravitee-reactor-native-kafka.version>
-        <gravitee-reactor-mcp-proxy.version>1.0.0-alpha.4</gravitee-reactor-mcp-proxy.version>
+        <gravitee-reactor-mcp-proxy.version>1.0.0-alpha.6</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>1.0.0-alpha.19</gravitee-reactor-llm-proxy.version>
         <gravitee-apim-repository-bridge.version>7.0.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
