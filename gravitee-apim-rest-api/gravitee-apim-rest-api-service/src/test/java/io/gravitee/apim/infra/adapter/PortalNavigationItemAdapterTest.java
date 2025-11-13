@@ -103,7 +103,7 @@ class PortalNavigationItemAdapterTest {
                 .type(PortalNavigationItem.Type.LINK)
                 .area(PortalNavigationItem.Area.TOP_NAVBAR)
                 .order(3)
-                .configuration("{\"href\":\"https://example.com\"}")
+                .configuration("{\"url\":\"https://example.com\"}")
                 .build();
 
             // When
@@ -117,7 +117,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(link.getEnvironmentId()).isEqualTo("env-id");
             assertThat(link.getTitle()).isEqualTo("My Link");
             assertThat(link.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-            assertThat(link.getHref()).isEqualTo("https://example.com");
+            assertThat(link.getUrl()).isEqualTo("https://example.com");
             assertThat(link.getOrder()).isEqualTo(3);
         }
 
@@ -284,7 +284,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.LINK);
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
             assertThat(repositoryItem.getOrder()).isEqualTo(3);
-            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"href\":\"https://example.com\"}");
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"https://example.com\"}");
         }
 
         @Test

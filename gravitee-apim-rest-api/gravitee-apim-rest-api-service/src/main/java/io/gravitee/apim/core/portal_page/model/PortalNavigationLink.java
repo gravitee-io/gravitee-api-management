@@ -24,7 +24,7 @@ public final class PortalNavigationLink extends PortalNavigationItem {
 
     @Setter
     @Nonnull
-    private String href;
+    private String url;
 
     public PortalNavigationLink(
         @Nonnull PortalNavigationItemId id,
@@ -32,9 +32,9 @@ public final class PortalNavigationLink extends PortalNavigationItem {
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
-        @Nonnull String href
+        @Nonnull String url
     ) {
         super(id, organizationId, environmentId, title, area);
-        this.href = href;
+        this.url = url;
     }
 }

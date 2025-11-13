@@ -60,7 +60,7 @@ public interface PortalNavigationMapper {
     @Mapping(target = "type", constant = "LINK")
     @Mapping(
         target = "configuration",
-        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration().href(link.getHref()))"
+        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration().url(link.getUrl()))"
     )
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(PortalNavigationLink link);
 }
