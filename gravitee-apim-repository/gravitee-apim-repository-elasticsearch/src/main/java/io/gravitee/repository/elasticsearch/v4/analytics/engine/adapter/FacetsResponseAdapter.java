@@ -16,15 +16,12 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
-import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
-import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,9 +29,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class MeasuresResponseAdapter {
+public class FacetsResponseAdapter {
 
-    public MeasuresResult adapt(SearchResponse esResponse, MeasuresQuery query) {
+    public FacetsResult adapt(SearchResponse esResponse, FacetsQuery query) {
         if (esResponse == null) {
             log.debug("Returning empty response because the esResponse is null");
             return empty(query);
@@ -51,29 +48,25 @@ public class MeasuresResponseAdapter {
             return empty(query);
         }
 
-        var metricAndMeasures = AggregationAdapter.toMetricsAndMeasures(aggregations, query);
-        var metricResults = new ArrayList<MetricMeasuresResult>();
+        var facets = new ArrayList<>(query.facets());
 
-        for (var entry : metricAndMeasures.entrySet()) {
-            metricResults.add(new MetricMeasuresResult(entry.getKey(), entry.getValue()));
+        if (facets.isEmpty()) {
+            log.debug("Returning empty response because the query does not contain facets");
+            return empty(query);
         }
 
-        return new MeasuresResult(metricResults);
+        return new FacetsResult(AggregationAdapter.toMetricsAndBuckets(aggregations, query));
     }
 
-    private MeasuresResult empty(MeasuresQuery query) {
-        return new MeasuresResult(emptyMetrics(query));
+    private FacetsResult empty(FacetsQuery query) {
+        return new FacetsResult(emptyMetrics(query));
     }
 
-    private List<MetricMeasuresResult> emptyMetrics(MeasuresQuery query) {
-        return query.metrics().stream().map(this::emptyMetric).toList();
+    private List<MetricFacetsResult> emptyMetrics(FacetsQuery query) {
+        return query.metrics().stream().map(this::emptyBuckets).toList();
     }
 
-    private MetricMeasuresResult emptyMetric(MetricMeasuresQuery query) {
-        return new MetricMeasuresResult(query.metric(), emptyMeasures(query));
-    }
-
-    private Map<Measure, Number> emptyMeasures(MetricMeasuresQuery query) {
-        return query.measures().stream().collect(Collectors.toMap(measure -> measure, measure -> 0));
+    private MetricFacetsResult emptyBuckets(MetricMeasuresQuery query) {
+        return new MetricFacetsResult(query.metric(), List.of());
     }
 }

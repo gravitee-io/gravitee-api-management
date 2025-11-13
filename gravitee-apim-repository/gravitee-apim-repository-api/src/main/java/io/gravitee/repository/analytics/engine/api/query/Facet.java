@@ -13,18 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api;
-
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
+package io.gravitee.repository.analytics.engine.api.query;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FieldResolver {
-    String fromMetric(Metric metric);
-    String fromFilter(Filter filter);
-    String fromFacet(Facet facet);
+public enum Facet {
+    API,
+    APPLICATION,
+    PLAN,
+    GATEWAY,
+    TENANT,
+    ZONE,
+    HTTP_METHOD,
+    HTTP_STATUS_CODE_GROUP,
+    HTTP_STATUS,
+    HTTP_PATH,
+    HTTP_PATH_MAPPING,
+    HOST,
+    GEO_IP_COUNTRY,
+    GEO_IP_REGION,
+    GEO_IP_CITY,
+    GEO_IP_CONTINENT,
+    CONSUMER_IP,
+    HTTP_USER_AGENT_OS_NAME,
+    HTTP_USER_AGENT_DEVICE,
+    MESSAGE_CONNECTOR_TYPE,
+    MESSAGE_OPERATION_TYPE,
+    KAFKA_TOPIC,
+    API_STATE,
+    API_LIFECYCLE_STATE,
+    API_VISIBILITY,
 }

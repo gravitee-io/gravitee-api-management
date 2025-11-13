@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HTTPRPSBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
@@ -30,6 +31,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Simp
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP95Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP99Builder;
 import io.vertx.core.json.JsonObject;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,65 +56,15 @@ public class HTTPMeasuresQueryAdapter {
 
     private final FilterAdapter filterAdapter = new FilterAdapter(fieldResolver);
 
+    private final BoolQueryAdapter queryAdapter = new BoolQueryAdapter(filterAdapter);
+
     public String adapt(MeasuresQuery query) {
         return json(query).toString();
     }
 
-    public Optional<SimpleCountBuilder> count() {
-        return Optional.of(countBuilder);
-    }
-
-    public Optional<SimpleMaxBuilder> max() {
-        return Optional.of(maxBuilder);
-    }
-
-    public Optional<SimpleMinBuilder> min() {
-        return Optional.of(minBuilder);
-    }
-
-    public Optional<SimpleAVGBuilder> avg() {
-        return Optional.of(avgBuilder);
-    }
-
-    public Optional<SimpleP99Builder> p99() {
-        return Optional.of(p99Builder);
-    }
-
-    public Optional<SimpleP95Builder> p95() {
-        return Optional.of(p95Builder);
-    }
-
-    public Optional<SimpleP90Builder> p90() {
-        return Optional.of(p90Builder);
-    }
-
-    public Optional<SimpleP50Builder> p50() {
-        return Optional.of(p50Builder);
-    }
-
-    public Optional<HTTPRPSBuilder> rps() {
-        return Optional.of(rpsBuilder);
-    }
-
-    public Optional<HttpErrorRateBuilder> errorRate() {
-        return Optional.of(errorRateBuilder);
-    }
-
-    JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", query(query)).put("aggs", aggregations(query));
-    }
-
-    JsonObject query(MeasuresQuery query) {
-        return JsonObject.of("bool", filter(query));
-    }
-
-    JsonObject filter(MeasuresQuery query) {
-        return JsonObject.of("filter", filterAdapter.adapt(query));
-    }
-
-    JsonObject aggregations(MeasuresQuery query) {
+    JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
-        for (var metric : query.metrics()) {
+        for (var metric : metrics) {
             for (var measure : metric.measures()) {
                 var field = fieldResolver.fromMetric(metric.metric());
                 var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
@@ -125,7 +77,11 @@ public class HTTPMeasuresQueryAdapter {
         return aggs;
     }
 
-    public Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
+    private JsonObject json(MeasuresQuery query) {
+        return new JsonObject().put("size", 0).put("query", queryAdapter.adapt(query)).put("aggs", adaptMetrics(query.metrics()));
+    }
+
+    private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
         if (metric == Metric.HTTP_ERRORS && measure == Measure.PERCENTAGE) {
             return errorRate().map(errorRate -> errorRate.build(aggName, field));
         }
@@ -141,5 +97,45 @@ public class HTTPMeasuresQueryAdapter {
             case Measure.RPS -> rps().map(rps -> rps.build(aggName, field));
             case Measure.PERCENTAGE -> Optional.empty();
         };
+    }
+
+    private Optional<SimpleCountBuilder> count() {
+        return Optional.of(countBuilder);
+    }
+
+    private Optional<SimpleMaxBuilder> max() {
+        return Optional.of(maxBuilder);
+    }
+
+    private Optional<SimpleMinBuilder> min() {
+        return Optional.of(minBuilder);
+    }
+
+    private Optional<SimpleAVGBuilder> avg() {
+        return Optional.of(avgBuilder);
+    }
+
+    private Optional<SimpleP99Builder> p99() {
+        return Optional.of(p99Builder);
+    }
+
+    private Optional<SimpleP95Builder> p95() {
+        return Optional.of(p95Builder);
+    }
+
+    private Optional<SimpleP90Builder> p90() {
+        return Optional.of(p90Builder);
+    }
+
+    private Optional<SimpleP50Builder> p50() {
+        return Optional.of(p50Builder);
+    }
+
+    private Optional<HTTPRPSBuilder> rps() {
+        return Optional.of(rpsBuilder);
+    }
+
+    private Optional<HttpErrorRateBuilder> errorRate() {
+        return Optional.of(errorRateBuilder);
     }
 }

@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.analytics.computation;
 
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsMeasuresMapper;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -36,6 +39,9 @@ public class AnalyticsComputationResource extends AbstractResource {
     @Inject
     ComputeMeasuresUseCase computeMeasuresUseCase;
 
+    @Inject
+    ComputeFacetsUseCase computeFacetsUseCase;
+
     @POST
     @Path("/measures")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -43,6 +49,16 @@ public class AnalyticsComputationResource extends AbstractResource {
     public MeasuresResponse computeMeasures(MeasuresRequest request) {
         var input = new ComputeMeasuresUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeMeasuresUseCase.execute(input);
+        return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
+    }
+
+    @POST
+    @Path("/facets")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public FacetsResponse computeFacets(FacetsRequest request) {
+        var input = new ComputeFacetsUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
+        var output = computeFacetsUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
     }
 }

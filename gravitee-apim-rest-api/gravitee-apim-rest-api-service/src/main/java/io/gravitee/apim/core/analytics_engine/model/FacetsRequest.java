@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api;
+package io.gravitee.apim.core.analytics_engine.model;
 
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FieldResolver {
-    String fromMetric(Metric metric);
-    String fromFilter(Filter filter);
-    String fromFacet(Facet facet);
+public record FacetsRequest(
+    TimeRange timeRange,
+    List<Filter> filters,
+    List<FacetMetricMeasuresRequest> metrics,
+    List<FacetSpec.Name> facets,
+    Integer limit,
+    List<NumberRange> ranges
+) {
+    public FacetsRequest(List<FacetSpec.Name> facets, List<FacetMetricMeasuresRequest> metrics, List<Filter> filters, TimeRange timeRange) {
+        this(timeRange, filters, metrics, facets, null, List.of());
+    }
+
+    public FacetsRequest emptyMetrics() {
+        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
+    }
 }

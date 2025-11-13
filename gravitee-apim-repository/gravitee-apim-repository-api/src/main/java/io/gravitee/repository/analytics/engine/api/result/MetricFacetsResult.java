@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api;
+package io.gravitee.repository.analytics.engine.api.result;
 
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FieldResolver {
-    String fromMetric(Metric metric);
-    String fromFilter(Filter filter);
-    String fromFacet(Facet facet);
-}
+public record MetricFacetsResult(Metric metric, List<FacetBucketResult> buckets) {}

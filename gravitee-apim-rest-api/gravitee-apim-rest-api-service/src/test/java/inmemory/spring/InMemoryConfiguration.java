@@ -48,7 +48,6 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
-import inmemory.HTTPProxyDataPlaneQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.IndexerInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
@@ -104,7 +103,6 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
-import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
@@ -115,7 +113,6 @@ import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvide
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
-import java.util.List;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -573,10 +570,5 @@ public class InMemoryConfiguration {
     @Bean
     public PromotionCrudServiceInMemory promotionCrudService() {
         return new PromotionCrudServiceInMemory();
-    }
-
-    @Bean
-    public HTTPProxyDataPlaneQueryServiceInMemory httpProxyDataPlaneQueryServiceInMemory() {
-        return new HTTPProxyDataPlaneQueryServiceInMemory();
     }
 }
