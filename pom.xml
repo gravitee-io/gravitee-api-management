@@ -273,8 +273,8 @@
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
         <gravitee-inference-service.version>1.2.0</gravitee-inference-service.version>
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
-        <gravitee-policy-ai-prompt-token-tracking.version>1.0.1</gravitee-policy-ai-prompt-token-tracking.version>
-        <gravitee-policy-ai-prompt-guard-rails.version>2.0.0</gravitee-policy-ai-prompt-guard-rails.version>
+        <gravitee-policy-ai-prompt-token-tracking.version>1.2.0</gravitee-policy-ai-prompt-token-tracking.version>
+        <gravitee-policy-ai-prompt-guard-rails.version>2.0.1</gravitee-policy-ai-prompt-guard-rails.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
