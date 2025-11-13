@@ -19,7 +19,7 @@ import jakarta.annotation.Nonnull;
 import lombok.Getter;
 
 @Getter
-public abstract class PortalPageContent {
+public abstract sealed class PortalPageContent permits GraviteeMarkdownPageContent {
 
     @Nonnull
     private final PortalPageContentId id;

@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class GraviteeMarkdownPageContent extends PortalPageContent {
+public final class GraviteeMarkdownPageContent extends PortalPageContent {
 
     @Setter
     @Nonnull
