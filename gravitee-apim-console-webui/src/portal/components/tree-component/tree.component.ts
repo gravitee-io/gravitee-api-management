@@ -17,26 +17,14 @@ import { Component, computed, effect, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 
-import { PortalMenuLink } from '../../../entities/management-api-v2';
-
-export type SectionNodeType = 'page' | 'folder' | 'link';
+import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 
 export interface SectionNode {
   id: string;
   label: string;
-  type: SectionNodeType;
-  data?: PortalMenuLink;
+  type: PortalNavigationItemType;
+  data?: PortalNavigationItem;
   children?: SectionNode[];
-}
-
-interface ApiPortalMenuLink {
-  id: string;
-  name: string;
-  type: string;
-  target?: string | null;
-  visibility: string;
-  order: number;
-  parentId?: string | null;
 }
 
 type ProcessingNode = SectionNode & {
@@ -52,7 +40,7 @@ type ProcessingNode = SectionNode & {
   styleUrls: ['./tree.component.scss'],
 })
 export class TreeComponent {
-  links = input<PortalMenuLink[] | null>(null);
+  links = input<PortalNavigationItem[] | null>(null);
   tree = computed(() => {
     const links = this.links();
     return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
@@ -77,7 +65,7 @@ export class TreeComponent {
         }
 
         if (!isPageIdProvided) {
-          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'page');
+          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'PAGE');
           if (firstPageNode) {
             this.select.emit(firstPageNode);
           }
@@ -99,24 +87,24 @@ export class TreeComponent {
     return null;
   }
 
-  private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
+  private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);
     const roots = this.connectNodes(nodesById);
     return this.sortAndCleanTree(roots);
   }
 
-  private createNodesMap(links: ApiPortalMenuLink[]): Map<string, ProcessingNode> {
+  private createNodesMap(links: PortalNavigationItem[]): Map<string, ProcessingNode> {
     const nodes = new Map<string, ProcessingNode>();
 
     for (const link of links) {
-      const type = this.getNodeType(link);
+      const type = link.type;
 
       nodes.set(link.id, {
         id: link.id,
-        label: link.name,
+        label: link.title,
         type,
-        data: link as PortalMenuLink,
-        children: type === 'folder' ? [] : undefined,
+        data: link,
+        children: type === 'FOLDER' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);
@@ -147,15 +135,5 @@ export class TreeComponent {
         ...node,
         children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
       }));
-  }
-
-  private getNodeType(link: ApiPortalMenuLink) {
-    if (link.target === null || link.type === 'FOLDER') {
-      return 'folder';
-    }
-    if (['LINK', 'EXTERNAL'].includes(link.type)) {
-      return 'link';
-    }
-    return 'page';
   }
 }

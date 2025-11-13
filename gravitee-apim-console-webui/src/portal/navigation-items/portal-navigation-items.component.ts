@@ -40,7 +40,7 @@ import { SectionNode, TreeComponent } from '../components/tree-component/tree.co
 import {
   NewPortalNavigationItem,
   PortalArea,
-  PortalMenuLink,
+  PortalNavigationItemsResponse,
   PortalNavigationItem,
   PortalNavigationItemType,
 } from '../../entities/management-api-v2';
@@ -73,7 +73,7 @@ export class PortalNavigationItemsComponent implements OnInit {
     disabled: true,
   });
 
-  menuLinks: PortalMenuLink[] | null = null;
+  menuLinks: PortalNavigationItem[] | null = null;
   isEmpty = true;
   pageNotFound = false;
 
@@ -92,9 +92,9 @@ export class PortalNavigationItemsComponent implements OnInit {
 
   ngOnInit(): void {
     // TODO replace mock with real backend call when available
-    this.http.get<{ data: PortalMenuLink[] }>('assets/mocks/portal-menu-links.json').subscribe({
-      next: ({ data }) => {
-        this.menuLinks = data ?? [];
+    this.http.get<PortalNavigationItemsResponse>('assets/mocks/portal-menu-links.json').subscribe({
+      next: ({ items }) => {
+        this.menuLinks = items ?? [];
         this.isEmpty = (this.menuLinks?.length ?? 0) === 0;
       },
       error: (err) => {
