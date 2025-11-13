@@ -105,7 +105,7 @@ class PortalNavigationMapperTest {
         assertThat(result.getOrder()).isEqualTo(3);
         assertThat(result.getParentId()).isNull();
         assertThat(result.getConfiguration()).isNotNull();
-        assertThat(result.getConfiguration().getHref()).isEqualTo("https://example.com");
+        assertThat(result.getConfiguration().getUrl()).isEqualTo("https://example.com");
     }
 
     @Test
