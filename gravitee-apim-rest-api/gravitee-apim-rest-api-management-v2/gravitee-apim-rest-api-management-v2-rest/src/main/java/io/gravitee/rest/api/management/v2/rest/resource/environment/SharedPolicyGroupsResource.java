@@ -79,7 +79,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION, acls = { RolePermissionAction.CREATE }) }
+    )
     public Response createSharedPolicyGroup(@Valid @NotNull final CreateSharedPolicyGroup createSharedPolicyGroup) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -109,7 +111,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION, acls = { RolePermissionAction.CREATE }) }
+    )
     public Response createSharedPolicyGroupCrd(@Valid @NotNull final SharedPolicyGroupCRD spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -155,7 +159,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION, acls = { RolePermissionAction.READ }) }
+    )
     public SharedPolicyGroupsResponse searchSharedPolicyGroups(
         @QueryParam("q") String q,
         @BeanParam @Valid PaginationParam paginationParam,
