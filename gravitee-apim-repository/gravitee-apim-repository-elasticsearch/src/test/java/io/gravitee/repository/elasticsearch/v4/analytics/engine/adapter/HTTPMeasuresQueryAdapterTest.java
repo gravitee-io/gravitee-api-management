@@ -13,54 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.analytics.engine;
+package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.repository.analytics.engine.Measure;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
-import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
-import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
-import io.gravitee.repository.analytics.engine.api.query.TimeRange;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPMeasuresQueryAdapter;
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class HTTPMeasuresQueryAdapterTest {
-
-    private static final String API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
-    private static final Long FROM = 1756104349879L;
-    private static final Long TO = 1756190749879L;
-    private static final ObjectMapper JSON = new ObjectMapper();
+class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
     final HTTPMeasuresQueryAdapter adapter = new HTTPMeasuresQueryAdapter();
 
     @Test
     void should_build_query() throws JsonProcessingException {
-        var timeRange = new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO));
-        var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)));
-        var measures = Set.of(Measure.P90);
-        var metrics = List.of(
-            new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, measures),
-            new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, measures)
-        );
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
+
         var queryString = adapter.adapt(query);
+
         var jsonQuery = JSON.readTree(queryString);
 
         var filter = jsonQuery.at("/query/bool/filter");
-        System.out.println(jsonQuery);
 
         var from = filter.at("/0/range/@timestamp/gte");
         assertThat(from).isNotNull();
@@ -80,10 +61,16 @@ class HTTPMeasuresQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs.at("/HTTP_GATEWAY_LATENCY#P90/percentiles");
-        assertThat(latencyP90).isNotNull();
+        var latencyP90 = aggs.at("/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
+        assertThat(latencyP90).isEqualTo(90.0);
 
-        var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles");
-        assertThat(gatewayP90).isNotNull();
+        var latencyP95 = aggs.at("/HTTP_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
+        assertThat(latencyP95).isEqualTo(95.0);
+
+        var latencyP99 = aggs.at("/HTTP_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
+        assertThat(latencyP99).isEqualTo(99.0);
+
+        var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0").asDouble();
+        assertThat(gatewayP90).isEqualTo(90.0);
     }
 }

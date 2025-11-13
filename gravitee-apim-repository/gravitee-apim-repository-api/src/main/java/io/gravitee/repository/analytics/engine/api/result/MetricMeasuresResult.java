@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.analytics.engine.api.result;
 
-import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import java.util.Map;
 

@@ -15,12 +15,16 @@
  */
 package fixtures;
 
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetricRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequestMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
@@ -39,14 +43,28 @@ public class AnalyticsEngineFixtures {
 
     public static final Supplier<MeasuresRequest> v = () -> new MeasuresRequest().timeRange(timeRange());
 
-    public static MeasuresRequest aRequestCountMeasureRequest(Filter... filters) {
-        return new MeasuresRequest()
+    public static MeasuresRequest aRequestCountMeasureRequest(Filter... filter) {
+        var filters = Arrays.asList(filter);
+        var metricName = MetricName.HTTP_REQUESTS;
+        var measures = List.of(MeasureName.COUNT);
+        var metric = new MeasuresRequestMetricsInner().name(metricName).measures(measures);
+        return new MeasuresRequest().timeRange(timeRange()).filters(filters).metrics(List.of(metric));
+    }
+
+    public static FacetsRequest aRequestCountFacetRequest(Filter... filters) {
+        var metric = new FacetMetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT));
+
+        return new FacetsRequest()
             .timeRange(timeRange())
             .filters(Arrays.asList(filters))
-            .metrics(List.of(new MeasuresRequestMetricsInner().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT))));
+            .by(List.of(FacetName.HTTP_STATUS))
+            .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
+            .metrics(List.of(metric));
     }
 
     public static TimeRange timeRange() {
-        return new TimeRange().from(OffsetDateTime.parse("2025-01-01T00:00:00Z")).to(OffsetDateTime.parse("2025-01-02T00:00:00Z"));
+        var from = OffsetDateTime.parse("2025-01-01T00:00:00Z");
+        var to = OffsetDateTime.parse("2025-01-02T00:00:00Z");
+        return new TimeRange().from(from).to(to);
     }
 }

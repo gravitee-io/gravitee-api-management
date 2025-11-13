@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics_engine.service_provider;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.analytics_engine.exception.UnsupportedMetricException;
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
@@ -47,6 +48,16 @@ public class AnalyticsQueryContextProvider {
         for (var metric : measureRequest.metrics()) {
             var service = resolve(metric.name());
             var request = context.computeIfAbsent(service, s -> measureRequest.emptyMetrics());
+            request.metrics().add(metric);
+        }
+        return context;
+    }
+
+    public Map<DataPlaneAnalyticsQueryService, FacetsRequest> resolve(FacetsRequest facetsRequest) {
+        var context = new HashMap<DataPlaneAnalyticsQueryService, FacetsRequest>();
+        for (var metric : facetsRequest.metrics()) {
+            var service = resolve(metric.name());
+            var request = context.computeIfAbsent(service, s -> facetsRequest.emptyMetrics());
             request.metrics().add(metric);
         }
         return context;

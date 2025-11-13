@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.engine;
+package io.gravitee.apim.core.analytics_engine.model;
+
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Measure {
-    COUNT,
-    AVG,
-    MIN,
-    MAX,
-    P50,
-    P90,
-    P95,
-    P99,
-    PERCENTAGE,
-    RPS,
-}
+public record FacetBucketResponse(String key, List<FacetBucketResponse> buckets, List<Measure> measures) {}

@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -22,8 +25,10 @@ import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import java.util.List;
@@ -40,12 +45,22 @@ import org.mapstruct.factory.Mappers;
 public interface AnalyticsMeasuresAdapter {
     AnalyticsMeasuresAdapter INSTANCE = Mappers.getMapper(AnalyticsMeasuresAdapter.class);
 
+    FacetsQuery fromRequest(FacetsRequest request);
+
+    FacetsResponse fromResult(FacetsResult result);
+
     MeasuresQuery fromRequest(MeasuresRequest request);
+
+    @Mapping(source = "name", target = "metric")
+    MetricMeasuresQuery fromRequest(FacetMetricMeasuresRequest request);
 
     @Mapping(source = "name", target = "metric")
     MetricMeasuresQuery fromRequest(MetricMeasuresRequest request);
 
     default MeasuresResponse fromResult(MeasuresResult result) {
+        if (result == null) {
+            return null;
+        }
         return new MeasuresResponse(result.measures().stream().map(this::fromResult).toList());
     }
 
@@ -53,7 +68,10 @@ public interface AnalyticsMeasuresAdapter {
         return new MetricMeasuresResponse(fromResult(result.metric()), fromResult(result.measures()));
     }
 
-    default List<Measure> fromResult(Map<io.gravitee.repository.analytics.engine.Measure, Number> result) {
+    default List<Measure> fromResult(Map<io.gravitee.repository.analytics.engine.api.metric.Measure, Number> result) {
+        if (result == null) {
+            return null;
+        }
         return result
             .entrySet()
             .stream()
@@ -65,7 +83,7 @@ public interface AnalyticsMeasuresAdapter {
         return MetricSpec.Name.valueOf(result.name());
     }
 
-    default MetricSpec.Measure fromResult(io.gravitee.repository.analytics.engine.Measure result) {
+    default MetricSpec.Measure fromResult(io.gravitee.repository.analytics.engine.api.metric.Measure result) {
         return MetricSpec.Measure.valueOf(result.name());
     }
 }

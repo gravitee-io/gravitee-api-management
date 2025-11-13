@@ -27,11 +27,16 @@ import static org.assertj.core.api.Assertions.withPrecision;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.NumberRange;
+import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -60,7 +65,6 @@ import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -1359,6 +1363,57 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             for (var measure : measures) {
                 assertThat(measure.measures().values()).hasSize(1);
                 assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotZero());
+            }
+        }
+
+        @Nested
+        class HTTPFacets {
+
+            private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
+
+            private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.DAYS);
+            private static final Instant TOMORROW = NOW.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            private static final Instant YESTERDAY = NOW.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            @Test
+            void should_return_http_facets() {
+                var timeRange = new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+                var ranges = List.of(
+                    new NumberRange(100, 199),
+                    new NumberRange(200, 299),
+                    new NumberRange(300, 399),
+                    new NumberRange(400, 499),
+                    new NumberRange(500, 599)
+                );
+
+                var filter = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                );
+
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.HTTP_STATUS), ranges);
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+
+                assertThat(result.metrics()).hasSize(1);
+
+                var metric = result.metrics().getFirst();
+
+                assertThat(metric.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+
+                assertThat(metric.buckets()).hasSize(5);
+
+                assertThat(metric.buckets()).satisfiesExactly(
+                    bucket -> assertThat(bucket.key()).isEqualTo("100-199"),
+                    bucket -> assertThat(bucket.key()).isEqualTo("200-299"),
+                    bucket -> assertThat(bucket.key()).isEqualTo("300-399"),
+                    bucket -> assertThat(bucket.key()).isEqualTo("400-499"),
+                    bucket -> assertThat(bucket.key()).isEqualTo("500-599")
+                );
             }
         }
     }
