@@ -81,6 +81,31 @@ export class PortalNavigationItemsComponent implements OnInit {
 
   onSelect($event: SectionNode) {
     this.pageNotFound = false;
+
+    if ($event.type === 'page') {
+      this.contentControl.reset('', { emitEvent: false });
+      this.contentControl.markAsPristine();
+      this.contentControl.markAsUntouched();
+      this.contentControl.disable({ emitEvent: false });
+
+      this.http.get<{ data: Record<string, string> }>('assets/mocks/page-contents.json').subscribe({
+        next: (resp) => {
+          const content = resp?.data?.[$event.id] ?? `# ${$event.label}\n\nNo content available for id: ${$event.id}.`;
+          this.contentControl.enable({ emitEvent: false });
+          this.contentControl.setValue(content, { emitEvent: false });
+        },
+        error: (err) => {
+          this.snackBarService.error('Failed to load page content: ' + err);
+          this.contentControl.enable({ emitEvent: false });
+          this.contentControl.setValue(`# ${$event.label}\n\nFailed to load content.`, { emitEvent: false });
+        },
+      });
+    } else {
+      this.contentControl.reset('', { emitEvent: false });
+      this.contentControl.markAsPristine();
+      this.contentControl.markAsUntouched();
+      this.contentControl.disable({ emitEvent: false });
+    }
     this.router
       .navigate(['.'], {
         relativeTo: this.activatedRoute,
@@ -92,6 +117,10 @@ export class PortalNavigationItemsComponent implements OnInit {
 
   onPageNotFound() {
     this.pageNotFound = true;
+    this.contentControl.reset('', { emitEvent: false });
+    this.contentControl.markAsPristine();
+    this.contentControl.markAsUntouched();
+    this.contentControl.disable({ emitEvent: false });
     this.snackBarService.error('The requested Navigation Item does not exist.');
   }
 }

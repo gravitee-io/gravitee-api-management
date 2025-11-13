@@ -1,0 +1,9 @@
+{
+  "data": {
+    "nav-overview": "# Overview\n\nWelcome to the Overview page.\n\nThis is mocked content loaded via GET from assets.\n\n- Section: APIs\n- Visibility: Public\n\n> Tip: replace this file with a real backend endpoint later.",
+    "nav-getting-started": "# Getting started\n\nThis guide helps you get started quickly.\n\n## Steps\n1. Install dependencies\n2. Configure your environment\n3. Deploy your first API\n\nHappy hacking!",
+    "nav-openapi": "# Open API\n\nLearn about the CoreLink Open API here.\n\n- Status: Draft\n- Owner: Platform Team\n\nUse this area to document your API details.",
+    "nav-guide-root-1": "# My root guide 1\n\nThis is a top-level guide with sample markdown content.\n\n- Item A\n- Item B\n- Item C",
+    "nav-infolder-guide": "# My infolder guide\n\nThis page lives under a folder and demonstrates nested navigation.\n\n```gmd\nCard(title: 'Example') {\n  Text('Hello from GMD!')\n}\n```"
+  }
+}
