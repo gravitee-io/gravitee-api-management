@@ -19,7 +19,14 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
+import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -29,7 +36,11 @@ public interface PortalNavigationMapper {
     PortalNavigationMapper INSTANCE = Mappers.getMapper(PortalNavigationMapper.class);
 
     default List<io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem> map(List<PortalNavigationItem> items) {
-        return items
+        if (items == null || items.isEmpty()) {
+            return List.of();
+        }
+
+        var allMapped = items
             .stream()
             .map(item ->
                 switch (item) {
@@ -41,6 +52,33 @@ public interface PortalNavigationMapper {
                 }
             )
             .toList();
+
+        // Build map id -> rest item for quick lookup
+        var restById = allMapped
+            .stream()
+            .filter(item -> item.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder)
+            .collect(Collectors.toMap(item -> ((BasePortalNavigationItem) item.getActualInstance()).getId(), Function.identity()));
+
+        return arrangeItems(allMapped, restById);
+    }
+
+    @Nonnull
+    private static ArrayList<io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem> arrangeItems(
+        List<io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem> allMapped,
+        Map<@NotNull String, io.gravitee.rest.api.management.v2.rest.model.@org.jetbrains.annotations.NotNull PortalNavigationItem> restById
+    ) {
+        var topLevel = new ArrayList<>(allMapped);
+
+        topLevel.removeIf(item -> {
+            BasePortalNavigationItem actualItem = (BasePortalNavigationItem) item.getActualInstance();
+            if (actualItem.getParentId() == null || !restById.containsKey(actualItem.getParentId())) {
+                return false; // no parent or parent not in provided list -> stays top-level
+            }
+
+            restById.get(actualItem.getParentId()).getPortalNavigationFolder().addChildrenItem(item);
+            return true; // remove from top-level since it's attached now
+        });
+        return topLevel;
     }
 
     default String map(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
