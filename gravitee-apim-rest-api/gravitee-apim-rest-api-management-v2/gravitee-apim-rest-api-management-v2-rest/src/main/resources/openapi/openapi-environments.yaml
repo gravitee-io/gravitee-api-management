@@ -1729,10 +1729,10 @@ components:
                 configuration:
                   type: object
                   properties:
-                    href:
+                    url:
                       type: string
                       description: The URL for the link
-                  required: [href]
+                  required: [url]
         PortalNavigationItem:
           oneOf:
             - $ref: "#/components/schemas/PortalNavigationPage"

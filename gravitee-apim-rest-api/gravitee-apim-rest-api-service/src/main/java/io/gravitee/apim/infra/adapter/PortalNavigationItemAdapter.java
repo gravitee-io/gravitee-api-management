@@ -29,7 +29,7 @@ public interface PortalNavigationItemAdapter {
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
-    String HREF = "href";
+    String URL = "url";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
@@ -58,7 +58,7 @@ public interface PortalNavigationItemAdapter {
         target = "parentId",
         expression = "java(portalNavigationItem.getParentId() != null ? PortalNavigationItemId.of(portalNavigationItem.getParentId()) : null)"
     )
-    @Mapping(target = HREF, expression = "java(parseHref(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -103,7 +103,7 @@ public interface PortalNavigationItemAdapter {
                 }
                 case PortalNavigationLink link -> {
                     Map<String, String> config = new HashMap<>();
-                    config.put(HREF, link.getHref());
+                    config.put(URL, link.getUrl());
                     yield OBJECT_MAPPER.writeValueAsString(config);
                 }
                 case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
@@ -126,14 +126,14 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
-    @Named("parseHref")
-    default String parseHref(String configuration) {
+    @Named("parseUrl")
+    default String parseUrl(String configuration) {
         if (configuration == null || configuration.isEmpty()) {
             throw new IllegalArgumentException("PortalNavigationItem configuration is missing for LINK type");
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration);
-            return node.get(HREF).asText();
+            return node.get(URL).asText();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem LINK type", e);
         }
