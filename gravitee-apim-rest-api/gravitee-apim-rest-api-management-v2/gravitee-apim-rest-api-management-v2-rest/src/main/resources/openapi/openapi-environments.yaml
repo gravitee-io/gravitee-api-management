@@ -1722,6 +1722,12 @@ components:
         PortalNavigationFolder:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                children:
+                  type: array
+                  description: The list of child portal navigation items
+                  items:
+                    $ref: "#/components/schemas/PortalNavigationItem"
         PortalNavigationLink:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
