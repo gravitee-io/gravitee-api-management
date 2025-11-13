@@ -15,7 +15,6 @@
  */
 import { ApiType, CreatePlanV4, KafkaHost, KafkaPort, ListenerType, PathV4, Qos } from '../../../../entities/management-api-v2';
 import { TcpHost } from '../../../../entities/management-api-v2/api/v4/tcpHost';
-import { EndpointConfiguration } from '../../../../entities/management-api-v2/api/v4/endpointConfiguration';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -47,7 +46,7 @@ export type ApiCreationPayload = Partial<{
     id: string;
     name: string;
     icon: string;
-    configuration?: EndpointConfiguration;
+    configuration?: unknown;
     sharedConfiguration?: unknown;
     deployed: boolean;
   }[];
