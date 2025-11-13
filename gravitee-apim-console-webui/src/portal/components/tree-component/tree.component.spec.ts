@@ -15,133 +15,108 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 import { TreeComponent } from './tree.component';
 
-interface TestLink {
-  id: string;
-  name: string;
-  type: string;
-  target?: string | null;
-  visibility: string;
-  order: number;
-  parentId?: string | null;
-}
-
-function link(partial: Partial<TestLink>): TestLink {
-  return {
-    id: 'id',
-    name: 'name',
-    type: 'INTERNAL',
-    target: '/',
-    visibility: 'PUBLIC',
-    order: 0,
-    parentId: null,
-    ...partial,
-  };
-}
+import {
+  fakePortalNavigationFolder,
+  fakePortalNavigationLink,
+  fakePortalNavigationPage,
+  PortalNavigationItem,
+} from '../../../entities/management-api-v2';
 
 describe('TreeComponent', () => {
   let fixture: ComponentFixture<TreeComponent>;
+  let component: TreeComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TreeComponent, MatIconTestingModule, NoopAnimationsModule, RouterTestingModule],
+      imports: [TreeComponent, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TreeComponent);
+    component = fixture.componentInstance;
   });
 
-  it('should map links to a tree: types, parent/child, sorting', () => {
-    const links: TestLink[] = [
-      link({ id: 'r2', name: 'Second root', order: 2, target: '/page2' }),
-      link({ id: 'r1', name: 'First root', order: 1, target: '/page1' }),
-      link({ id: 'f1', name: 'A folder', order: 3, target: null }),
-      link({ id: 'c1', name: 'Child of folder', order: 0, parentId: 'f1', target: '/child' }),
-      link({ id: 'l1', name: 'External', order: 4, type: 'LINK', target: '/ext' }),
+  const makeItem = (
+    id: string,
+    type: 'PAGE' | 'FOLDER' | 'LINK',
+    title: string,
+    order?: number,
+    parentId?: string | null,
+  ): PortalNavigationItem => {
+    switch (type) {
+      case 'FOLDER':
+        return fakePortalNavigationFolder({ id, title, order, parentId });
+      case 'LINK':
+        return fakePortalNavigationLink({ id, title, order, parentId });
+      case 'PAGE':
+      default:
+        return fakePortalNavigationPage({ id, title, order, parentId });
+    }
+  };
+
+  it('should emit pageNotFound when selectedId does not exist in the tree', () => {
+    const notFoundSpy = jest.fn();
+    component.pageNotFound.subscribe(notFoundSpy);
+
+    const links = [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.componentRef.setInput('selectedId', 'unknown');
+    fixture.detectChanges();
+
+    expect(notFoundSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should build a sorted tree with proper types and parent/child relationships', () => {
+    const links = [
+      // root page with smallest order -> should be first
+      makeItem('r1', 'PAGE', 'Root Page 1', 0),
+      // folder root
+      makeItem('f1', 'FOLDER', 'Folder 1', 1),
+      // link root
+      makeItem('l1', 'LINK', 'External Link', 3),
+      // child page under folder
+      makeItem('c1', 'PAGE', 'Child Page', 2, 'f1'),
     ];
 
-    // set input using ComponentRef.setInput (Angular signals input)
-    fixture.componentRef.setInput('links', links as any);
+    fixture.componentRef.setInput('links', links);
     fixture.detectChanges();
 
-    // Expect 4 roots (r1, r2, f1, l1) sorted by order 1,2,3,4
-    const rootRows = fixture.debugElement.queryAll(By.css('.tree__row[aria-level="1"]'));
-    expect(rootRows.length).toBe(4);
-    expect(rootRows[0].query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('First root');
-    expect(rootRows[1].query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('Second root');
-    expect(rootRows[2].query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('A folder');
-    expect(rootRows[3].query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('External');
+    const tree = component.tree();
+    expect(Array.isArray(tree)).toBe(true);
+    expect(tree.length).toBe(3);
 
-    // Folder has toggle, pages and links do not
-    expect(rootRows[0].query(By.css('.tree__toggle'))).toBeNull();
-    expect(rootRows[1].query(By.css('.tree__toggle'))).toBeNull();
-    expect(rootRows[2].query(By.css('.tree__toggle'))).toBeTruthy();
-    expect(rootRows[3].query(By.css('.tree__toggle'))).toBeNull();
+    // roots sorted by order: r1 (0), f1 (1), l1 (3)
+    expect(tree[0].id).toBe('r1');
+    expect(tree[0].type).toBe('PAGE');
+    expect(tree[0].children).toBeUndefined();
 
-    // By default folder is expanded, so child is visible immediately
-    const allRows = fixture.debugElement.queryAll(By.css('.tree__row'));
-    expect(allRows.length).toBe(5);
-    const childRow = allRows[3];
-    expect(childRow.query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('Child of folder');
+    expect(tree[1].id).toBe('f1');
+    expect(tree[1].type).toBe('FOLDER');
+    expect(tree[1].children?.length).toBe(1);
+    expect(tree[1].children?.[0].id).toBe('c1');
+    expect(tree[1].children?.[0].type).toBe('PAGE');
+    expect(tree[1].children?.[0].children).toBeUndefined();
 
-    // Collapse then expand again to ensure toggle works
-    const toggleBtn = rootRows[2].query(By.css('.tree__toggle'));
-    expect(toggleBtn.attributes['aria-expanded']).toBe('true');
-    toggleBtn.triggerEventHandler('click');
-    fixture.detectChanges();
-    expect(toggleBtn.attributes['aria-expanded']).toBe('false');
-    toggleBtn.triggerEventHandler('click');
-    fixture.detectChanges();
-    expect(toggleBtn.attributes['aria-expanded']).toBe('true');
+    expect(tree[2].id).toBe('l1');
+    expect(tree[2].type).toBe('LINK');
+    expect(tree[2].children).toBeUndefined();
   });
 
-  it('should keep type as page even if node has children (no normalization), but still render children', () => {
-    // parent has a target (would be page), but it also has a child via parentId
-    const parent = link({ id: 'p', name: 'Parent page', order: 0, target: '/parent' });
-    const child = link({ id: 'ch', name: 'Child', order: 0, parentId: 'p', target: '/child' });
+  it('should not auto-select when selectedId exists in tree', () => {
+    const selectSpy = jest.fn();
+    component.select.subscribe(selectSpy);
 
-    fixture.componentRef.setInput('links', [parent, child] as any);
+    const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.componentRef.setInput('selectedId', 'p1');
     fixture.detectChanges();
 
-    const row = fixture.debugElement.query(By.css('.tree__row[aria-level="1"]'));
-    // No toggle because type is page
-    const toggle = row.query(By.css('.tree__toggle'));
-    expect(toggle).toBeNull();
-
-    // Icon should be page
-    const icon = row.query(By.css('.tree__icon'));
-    expect(icon.attributes['ng-reflect-svg-icon'] || icon.attributes['svgicon'] || '').toContain('page');
-
-    // Children should still be rendered (no ability to collapse)
-    const rows = fixture.debugElement.queryAll(By.css('.tree__row'));
-    expect(rows.length).toBe(2);
-    const childRow = rows[1];
-    expect(childRow.attributes['aria-level']).toBe('2');
-    expect(childRow.query(By.css('.tree__label')).nativeElement.textContent.trim()).toBe('Child');
-  });
-
-  it('should update selection when a node is clicked', () => {
-    const links: TestLink[] = [link({ id: 'a', name: 'Alpha', order: 0 })];
-
-    fixture.componentRef.setInput('links', links as any);
-    fixture.detectChanges();
-
-    const row = fixture.debugElement.query(By.css('.tree__row'));
-    const labelBtn = row.query(By.css('.tree__label'));
-
-    // Initially selected
-    expect(row.nativeElement.classList.contains('selected')).toBe(false);
-
-    // Click -> select
-    labelBtn.triggerEventHandler('click');
-    fixture.detectChanges();
-
-    expect(row.nativeElement.classList.contains('selected')).toBe(false);
-    expect(row.attributes['aria-selected']).toBe('false');
+    // When selectedId exists, component should NOT emit default selection
+    expect(selectSpy).not.toHaveBeenCalled();
   });
 });
