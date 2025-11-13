@@ -31,39 +31,35 @@ import org.mapstruct.factory.Mappers;
 public interface AnalyticsDefinitionMapper {
     AnalyticsDefinitionMapper INSTANCE = Mappers.getMapper(AnalyticsDefinitionMapper.class);
 
-    ApiSpec mapApiSpec(io.gravitee.apim.core.analytics.model.engine.definition.ApiSpec apiSpec);
+    ApiSpec mapApiSpec(io.gravitee.apim.core.analytics_engine.model.ApiSpec apiSpec);
 
-    List<ApiSpec> mapApiSpecs(List<io.gravitee.apim.core.analytics.model.engine.definition.ApiSpec> apiSpecs);
+    List<ApiSpec> mapApiSpecs(List<io.gravitee.apim.core.analytics_engine.model.ApiSpec> apiSpecs);
 
-    default ApiSpecsResponse toApiSpecsResponse(List<io.gravitee.apim.core.analytics.model.engine.definition.ApiSpec> apiSpecs) {
+    default ApiSpecsResponse toApiSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.ApiSpec> apiSpecs) {
         return new ApiSpecsResponse().data(mapApiSpecs(apiSpecs));
     }
 
-    MetricSpec mapMetricSpec(io.gravitee.apim.core.analytics.model.engine.definition.MetricSpec metricSpec);
+    MetricSpec mapMetricSpec(io.gravitee.apim.core.analytics_engine.model.MetricSpec metricSpec);
 
-    List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics.model.engine.definition.MetricSpec> metricSpecs);
+    List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);
 
-    default MetricSpecsResponse toMetricSpecsResponse(
-        List<io.gravitee.apim.core.analytics.model.engine.definition.MetricSpec> metricSpecs
-    ) {
+    default MetricSpecsResponse toMetricSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs) {
         return new MetricSpecsResponse().data(mapMetricSpecs(metricSpecs));
     }
 
-    FacetSpec mapFacetSpec(io.gravitee.apim.core.analytics.model.engine.definition.FacetSpec facetSpec);
+    FacetSpec mapFacetSpec(io.gravitee.apim.core.analytics_engine.model.FacetSpec facetSpec);
 
-    List<FacetSpec> mapFacetSpecs(List<io.gravitee.apim.core.analytics.model.engine.definition.FacetSpec> facetSpecs);
+    List<FacetSpec> mapFacetSpecs(List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs);
 
-    default FacetSpecsResponse toFacetSpecsResponse(List<io.gravitee.apim.core.analytics.model.engine.definition.FacetSpec> facetSpecs) {
+    default FacetSpecsResponse toFacetSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs) {
         return new FacetSpecsResponse().data(mapFacetSpecs(facetSpecs));
     }
 
-    FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics.model.engine.definition.FilterSpec filterSpec);
+    FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
 
-    List<FilterSpec> mapFilterSpecs(List<io.gravitee.apim.core.analytics.model.engine.definition.FilterSpec> filterSpecs);
+    List<FilterSpec> mapFilterSpecs(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs);
 
-    default FilterSpecsResponse toFilterSpecsResponse(
-        List<io.gravitee.apim.core.analytics.model.engine.definition.FilterSpec> filterSpecs
-    ) {
+    default FilterSpecsResponse toFilterSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs) {
         return new FilterSpecsResponse().data(mapFilterSpecs(filterSpecs));
     }
 }

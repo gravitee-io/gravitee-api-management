@@ -19,7 +19,8 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { isEmpty } from 'lodash';
-import { map } from 'rxjs';
+import { catchError, map } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { User } from '../../../entities/user/user';
 import { PortalMenuLink } from '../../../services/portal-menu-links.service';
@@ -37,7 +38,10 @@ export class MobileNavBarComponent {
   hasHomepage = toSignal(
     inject(PortalService)
       .getPortalHomepages()
-      .pipe(map(homepages => homepages?.length > 0)),
+      .pipe(
+        map(homepages => homepages?.length > 0),
+        catchError(() => of(false)),
+      ),
   );
 
   protected isLoggedIn = computed(() => {

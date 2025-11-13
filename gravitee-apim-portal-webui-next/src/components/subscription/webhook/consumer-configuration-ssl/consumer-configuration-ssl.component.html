@@ -19,7 +19,7 @@
   <app-accordion-title>
     <span class="m3-title-medium" i18n="@@consumerConfigurationSslTitle">SSL options</span>
   </app-accordion-title>
-  <form [formGroup]="sslForm" ngNativeValidate>
+  <form class="ssl-configuration__form" [formGroup]="sslForm" ngNativeValidate>
     <div class="ssl-configuration__form-field">
       <mat-slide-toggle
         id="hostnameVerifier"

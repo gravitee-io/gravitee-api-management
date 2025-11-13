@@ -135,7 +135,18 @@ public class PolicyPluginServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
         when(mockPluginManifest.properties()).thenReturn(
-            Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE")
+            Map.of(
+                "http_proxy",
+                "REQUEST,RESPONSE",
+                "http_message",
+                "PUBLISH",
+                "native_kafka",
+                "PUBLISH, SUBSCRIBE",
+                "mcp_proxy",
+                "REQUEST,RESPONSE",
+                "llm_proxy",
+                "REQUEST,RESPONSE"
+            )
         );
         Set<PolicyPluginEntity> result = cut.findAll();
 
@@ -146,6 +157,8 @@ public class PolicyPluginServiceImplTest {
         assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY));
         assertEquals(Set.of(FlowPhase.PUBLISH), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE));
         assertEquals(Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA));
+        assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY));
+        assertEquals(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY));
     }
 
     @Nested

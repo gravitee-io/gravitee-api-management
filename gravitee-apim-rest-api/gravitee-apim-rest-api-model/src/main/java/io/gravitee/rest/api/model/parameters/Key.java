@@ -128,7 +128,7 @@ public enum Key {
     ),
     PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD(
         "portal.next.theme.color.background.card",
-        "#F4F7FD",
+        "#ffffff",
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),

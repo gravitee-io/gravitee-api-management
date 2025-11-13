@@ -17,7 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
 
-public class PortalNavigationFolder extends PortalNavigationItem {
+public final class PortalNavigationFolder extends PortalNavigationItem {
 
     public PortalNavigationFolder(
         @Nonnull PortalNavigationItemId id,

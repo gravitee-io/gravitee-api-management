@@ -60,8 +60,8 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
 
         FakeReporter fakeReporter = getBean(FakeReporter.class);
         fakeReporter.setReportableHandler(reportable -> {
-            if (reportable instanceof Log) {
-                subject.onNext((Log) reportable);
+            if (reportable instanceof Log l) {
+                subject.onNext(l);
             }
         });
     }
@@ -74,8 +74,8 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
         logging.setScope(LoggingScope.REQUEST_RESPONSE);
         logging.setCondition("{#response.status == 200}");
 
-        if (api.getDefinition() instanceof Api) {
-            ((Api) api.getDefinition()).getProxy().setLogging(logging);
+        if (api.getDefinition() instanceof Api apiDefinition) {
+            apiDefinition.getProxy().setLogging(logging);
         }
     }
 
@@ -91,7 +91,7 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
             .doOnNext(log -> {
                 final String transactionAndRequestId = wiremock
                     .getAllServeEvents()
-                    .get(0)
+                    .getFirst()
                     .getRequest()
                     .getHeaders()
                     .getHeader("X-Gravitee-Transaction-Id")

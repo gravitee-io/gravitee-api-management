@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.analytics.definition;
 
-import io.gravitee.apim.core.analytics.use_case.engine.definition.GetApiMetricsUseCase;
-import io.gravitee.apim.core.analytics.use_case.engine.definition.GetApiSpecsUseCase;
-import io.gravitee.apim.core.analytics.use_case.engine.definition.GetMetricFacetsUseCase;
-import io.gravitee.apim.core.analytics.use_case.engine.definition.GetMetricFiltersUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpecsResponse;
@@ -38,32 +38,32 @@ import jakarta.ws.rs.core.MediaType;
 public class AnalyticsDefinitionResource {
 
     @Inject
-    GetApiSpecsUseCase getApiSpecsUseCase;
+    GetApiSpecUseCase getApiSpec;
 
     @Inject
-    GetApiMetricsUseCase getApiMetricsUseCase;
+    GetApiMetricSpecUseCase getApiMetricSpec;
 
     @Inject
-    GetMetricFacetsUseCase getMetricFacetsUseCase;
+    GetMetricFacetSpecUseCase getMetricFacetSpec;
 
     @Inject
-    GetMetricFiltersUseCase getMetricFiltersUseCase;
+    GetMetricFilterSpecUseCase getMetricFilterSpec;
 
     @Path("/apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public ApiSpecsResponse getApiSpecs() {
-        return AnalyticsDefinitionMapper.INSTANCE.toApiSpecsResponse(getApiSpecsUseCase.execute().specs());
+        return AnalyticsDefinitionMapper.INSTANCE.toApiSpecsResponse(getApiSpec.execute().specs());
     }
 
     @Path("/apis/{apiName}/metrics")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public MetricSpecsResponse getApiMetrics(@PathParam("apiName") String apiName) {
+    public MetricSpecsResponse getApiMetricSpecs(@PathParam("apiName") String apiName) {
         return AnalyticsDefinitionMapper.INSTANCE.toMetricSpecsResponse(
-            getApiMetricsUseCase.execute(new GetApiMetricsUseCase.Input(apiName)).specs()
+            getApiMetricSpec.execute(new GetApiMetricSpecUseCase.Input(apiName)).specs()
         );
     }
 
@@ -71,9 +71,9 @@ public class AnalyticsDefinitionResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public FacetSpecsResponse getMetricFacets(@PathParam("metricName") String metricName) {
+    public FacetSpecsResponse getMetricFacetSpecs(@PathParam("metricName") String metricName) {
         return AnalyticsDefinitionMapper.INSTANCE.toFacetSpecsResponse(
-            getMetricFacetsUseCase.execute(new GetMetricFacetsUseCase.Input(metricName)).specs()
+            getMetricFacetSpec.execute(new GetMetricFacetSpecUseCase.Input(metricName)).specs()
         );
     }
 
@@ -81,9 +81,9 @@ public class AnalyticsDefinitionResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-    public FilterSpecsResponse getMetricFilters(@PathParam("apiName") String apiName, @PathParam("metricName") String metricName) {
+    public FilterSpecsResponse getMetricFilterSpecs(@PathParam("metricName") String metricName) {
         return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(
-            getMetricFiltersUseCase.execute(new GetMetricFiltersUseCase.Input(metricName)).specs()
+            getMetricFilterSpec.execute(new GetMetricFilterSpecUseCase.Input(metricName)).specs()
         );
     }
 }

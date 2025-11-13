@@ -1,0 +1,140 @@
+{
+  "data": [
+    {
+      "id": "nav-apis",
+      "name": "APIs",
+      "type": "FOLDER",
+      "target": "/apis",
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": null
+    },
+    {
+      "id": "nav-overview",
+      "name": "Overview",
+      "type": "INTERNAL",
+      "target": "/apis/overview",
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": "nav-apis"
+    },
+    {
+      "id": "nav-getting-started",
+      "name": "Getting started",
+      "type": "INTERNAL",
+      "target": "/apis/getting-started",
+      "visibility": "PUBLIC",
+      "order": 1,
+      "parentId": "nav-apis"
+    },
+    {
+      "id": "nav-corelink",
+      "name": "The CoreLink Foundational API Hub",
+      "type": "FOLDER",
+      "target": "/apis/corelink",
+      "visibility": "PUBLIC",
+      "order": 2,
+      "parentId": "nav-apis"
+    },
+    {
+      "id": "nav-openapi",
+      "name": "Open API",
+      "type": "INTERNAL",
+      "target": "/apis/openapi",
+      "visibility": "PRIVATE",
+      "order": 3,
+      "parentId": "nav-corelink"
+    },
+    {
+      "id": "nav-guides",
+      "name": "Guides",
+      "type": "FOLDER",
+      "target": null,
+      "visibility": "PUBLIC",
+      "order": 4,
+      "parentId": null
+    },
+    {
+      "id": "nav-guide-root-1",
+      "name": "My root guide 1",
+      "type": "INTERNAL",
+      "target": "/guides/my-root-guide-1",
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": "nav-guides"
+    },
+    {
+      "id": "nav-folder-1",
+      "name": "My folder",
+      "type": "FOLDER",
+      "target": null,
+      "visibility": "PUBLIC",
+      "order": 1,
+      "parentId": "nav-guides"
+    },
+    {
+      "id": "nav-infolder-guide",
+      "name": "My infolder guide",
+      "type": "INTERNAL",
+      "target": "/guides/my-folder/my-infolder-guide",
+      "visibility": "PRIVATE",
+      "order": 0,
+      "parentId": "nav-folder-1"
+    },
+    {
+      "id": "nav-new-section",
+      "name": "My new section",
+      "type": "FOLDER",
+      "target": null,
+      "visibility": "PUBLIC",
+      "order": 5,
+      "parentId": null
+    },
+    {
+      "id": "nav-tutorials",
+      "name": "Tutorials",
+      "type": "FOLDER",
+      "target": null,
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": "nav-new-section"
+    },
+    {
+      "id": "nav-tutorial",
+      "name": "My tutorial",
+      "type": "LINK",
+      "target": "/my-new-section/tutorials/my-tutorial",
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": "nav-tutorials"
+    },
+    {
+      "id": "faq",
+      "name": "FAQ",
+      "type": "LINK",
+      "target": "/my-new-section/tutorials/my-tutorial",
+      "visibility": "PUBLIC",
+      "order": 0,
+      "parentId": null
+    },
+    {
+      "id": "testLink",
+      "name": "Test Link",
+      "type": "LINK",
+      "target": "/my-new-section/tutorials/my-tutorial",
+      "visibility": "PUBLIC",
+      "order": 3,
+      "parentId": "nav-corelink"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "perPage": 9999,
+    "pageCount": 1,
+    "pageItemsCount": 12,
+    "totalCount": 12
+  },
+  "links": {
+    "self": "http://localhost:4000"
+  }
+}

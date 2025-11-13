@@ -301,6 +301,10 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-analytics.yaml</inputSpec>
                             <modelPackage>${openapi.modelPackage}.analytics.engine</modelPackage>
+                            <configOptions>
+                                <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
+                                <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
+                            </configOptions>
                         </configuration>
                     </execution>
 				</executions>

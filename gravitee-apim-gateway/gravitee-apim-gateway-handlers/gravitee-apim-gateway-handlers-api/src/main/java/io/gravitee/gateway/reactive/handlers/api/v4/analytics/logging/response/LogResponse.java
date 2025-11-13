@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -37,8 +38,8 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
         this.response = response;
     }
 
-    public void capture() {
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE))) {
+    public void capture(BaseExecutionContext ctx) {
+        if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             final Buffer buffer = Buffer.buffer();
             if (loggingContext.isBodyLoggable()) {
                 response.chunks(
@@ -61,8 +62,8 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
 
     @Override
     public void setHeaders(HttpHeaders headers) {
-        if (headers instanceof LogHeadersCaptor) {
-            super.setHeaders(((LogHeadersCaptor) headers).getCaptured());
+        if (headers instanceof LogHeadersCaptor logHeadersCaptor) {
+            super.setHeaders(logHeadersCaptor.getCaptured());
         } else {
             super.setHeaders(HttpHeaders.create(headers));
         }

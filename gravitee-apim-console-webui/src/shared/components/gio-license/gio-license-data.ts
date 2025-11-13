@@ -28,6 +28,7 @@ export enum ApimFeature {
   APIM_POLICY_V2 = 'apim-policy-v2',
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
+  APIM_LLM_PROXY_REACTOR = 'apim-llm-proxy-reactor',
   APIM_CLUSTER = 'apim-cluster',
   ALERT_ENGINE = 'alert-engine',
   FEDERATION = 'federation',
@@ -47,12 +48,16 @@ export enum UTMTags {
   GENERAL_ENTRYPOINT_CONFIG = 'general_entrypoint_config',
   API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
   API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
+  API_CREATION_LLM_ENTRYPOINT = 'api_creation_llm_entrypoint',
   API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
   API_CREATION_NATIVE_KAFKA_ENTRYPOINT_CONFIG = 'api_creation_native_kafka_entrypoint_config',
+  API_CREATION_LLM_ENTRYPOINT_CONFIG = 'api_creation_llm_entrypoint_config',
   API_CREATION_MESSAGE_ENDPOINT = 'api_creation_message_endpoint',
   API_CREATION_MESSAGE_ENDPOINT_CONFIG = 'api_creation_message_endpoint_config',
+  API_CREATION_LLM_ENDPOINT_CONFIG = 'api_creation_llm_endpoint_config',
   API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG = 'api_creation_native_kafka_endpoint_config',
   API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
+  API_CREATION_LLM_SUMMARY = 'api_creation_llm_summary',
 }
 
 export function stringFeature(ctaConfig: CTAConfiguration, value: string): ApimFeature {
@@ -81,6 +86,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/policies.svg',
       description: `Request the Native Kafka pack to unlock Kafka APIs and the Kafka Gateway.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_LLM_PROXY_REACTOR]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies-llm.svg',
+      description: `Request the Agent Mesh pack to unlock the LLM proxy APIs.`,
       trialButtonLabel,
       hideDays,
     },

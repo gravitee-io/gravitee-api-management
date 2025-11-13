@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class PortalNavigationLink extends PortalNavigationItem {
+public final class PortalNavigationLink extends PortalNavigationItem {
 
     @Setter
     @Nonnull

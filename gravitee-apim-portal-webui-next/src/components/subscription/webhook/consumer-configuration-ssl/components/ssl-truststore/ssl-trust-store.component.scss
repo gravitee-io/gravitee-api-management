@@ -16,11 +16,11 @@
 .form {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 
   &__field {
     width: 100%;
     flex: 1 1 auto;
-    margin-bottom: 12px;
 
     &.type {
       padding-bottom: 0;
@@ -32,6 +32,11 @@
     flex: 1 1 auto;
     flex-direction: row;
     align-items: baseline;
+    justify-content: center;
     gap: 16px;
+
+    &--mobile {
+      flex-wrap: wrap;
+    }
   }
 }

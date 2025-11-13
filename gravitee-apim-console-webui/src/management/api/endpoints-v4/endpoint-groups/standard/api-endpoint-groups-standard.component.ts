@@ -54,7 +54,10 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
   };
-
+  private llmProxyLicenseOptions = {
+    feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
+    context: UTMTags.GENERAL_ENDPOINT_CONFIG,
+  };
   private nativeLicenseOptions = {
     feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
@@ -219,6 +222,12 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade() {
-    this.licenseService.openDialog(this.api.type === 'NATIVE' ? this.nativeLicenseOptions : this.messageLicenseOptions);
+    this.licenseService.openDialog(
+      this.api.type === 'NATIVE'
+        ? this.nativeLicenseOptions
+        : this.api.type === 'LLM_PROXY'
+          ? this.llmProxyLicenseOptions
+          : this.messageLicenseOptions,
+    );
   }
 }

@@ -29,6 +29,7 @@ import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -105,8 +106,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -146,8 +147,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);
@@ -187,8 +188,8 @@ public class DeployModelCommandHandlerTest {
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            Api.builder().definitionVersion(DefinitionVersion.V2).build()
         );
 
         UserEntity user = createUserEntity(payload);

@@ -18,10 +18,15 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { Observable } from 'rxjs/internal/Observable';
 import { of } from 'rxjs/internal/observable/of';
 
+import { DataResponse } from '../entities/common/data-response';
 import { Configuration } from '../entities/configuration/configuration';
+import { IdentityProvider } from '../entities/configuration/identity-provider';
 import { ConfigService } from '../services/config.service';
+import { IdentityProviderService } from '../services/identity-provider.service';
 
 export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
 export const TESTING_ACTIVATED_ROUTE = {
@@ -30,22 +35,62 @@ export const TESTING_ACTIVATED_ROUTE = {
   params: of({ apiId: 'apiId' }),
   queryParams: of({}),
 };
+
 @Injectable()
 export class ConfigServiceStub {
+  private _configuration: Configuration = {
+    portalNext: {
+      banner: {
+        enabled: true,
+        title: 'Welcome to Gravitee Developer Portal!',
+        subtitle: 'Great subtitle',
+      },
+    },
+    authentication: {
+      localLogin: {
+        enabled: true,
+      },
+      forceLogin: {
+        enabled: false,
+      },
+    },
+  };
+
   get baseURL(): string {
     return TESTING_BASE_URL;
   }
 
   get configuration(): Configuration {
-    return {
-      portalNext: {
-        banner: {
-          enabled: true,
-          title: 'Welcome to Gravitee Developer Portal!',
-          subtitle: 'Great subtitle',
-        },
-      },
-    };
+    return this._configuration ?? {};
+  }
+
+  set configuration(configuration: Configuration) {
+    this._configuration = configuration;
+  }
+}
+
+@Injectable()
+export class IdentityProviderServiceStub {
+  providers: IdentityProvider[] = [];
+
+  getPortalIdentityProviders(): Observable<DataResponse<IdentityProvider[]>> {
+    return of({ data: this.providers } as unknown as DataResponse<IdentityProvider[]>);
+  }
+  getPortalIdentityProvider(): Observable<IdentityProvider> {
+    return of();
+  }
+}
+
+@Injectable()
+export class OAuthServiceStub {
+  initCodeFlow() {
+    // nothing to do
+  }
+  tryLoginCodeFlow(): Promise<void> {
+    return Promise.resolve();
+  }
+  configure() {
+    // nothing to do
   }
 }
 
@@ -64,6 +109,14 @@ export class TestRouterModule {
     {
       provide: ConfigService,
       useClass: ConfigServiceStub,
+    },
+    {
+      provide: OAuthService,
+      useClass: OAuthServiceStub,
+    },
+    {
+      provide: IdentityProviderService,
+      useClass: IdentityProviderServiceStub,
     },
     {
       provide: ActivatedRoute,

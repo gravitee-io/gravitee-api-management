@@ -1,0 +1,77 @@
+.sections-card {
+  background: var(--mat-card-bg-color, #fff);
+  border-radius: var(--gio-border-radius-small, 8px);
+  box-shadow: var(--mat-card-level1-shadow);
+
+  &__actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+
+    mat-icon {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: var(--gio-border-radius-small, 4px);
+      transition: background-color 0.2s ease;
+      color: var(--gio-color-text-secondary, #666);
+
+      &:hover {
+        background-color: var(--gio-color-hover, rgba(0, 0, 0, 0.15));
+        color: var(--gio-color-text-primary, #000);
+      }
+    }
+  }
+}
+
+.sections-group {
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--gio-color-hover-lighter, rgba(0, 0, 0, 0.04));
+
+      .sections-card__actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
+  &__chevron {
+    display: flex;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+
+    &.-open {
+      transform: rotate(90deg);
+    }
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__title {
+    font-weight: var(--gio-font-weight-medium, 500);
+    font-size: 14px;
+    flex: 1 0 0;
+  }
+
+  &__content {
+    padding: 8px 0;
+  }
+}

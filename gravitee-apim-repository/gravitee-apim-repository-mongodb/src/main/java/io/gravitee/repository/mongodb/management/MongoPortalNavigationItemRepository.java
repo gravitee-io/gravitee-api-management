@@ -57,22 +57,25 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndOrganizationIdAndEnvironmentId(
-        PortalNavigationItem.Area area,
-        String organizationId,
-        String environmentId
-    ) {
-        log.debug(
-            "Find all PortalNavigationItem by area [{}], organizationId [{}], environmentId [{}]",
-            area,
-            organizationId,
-            environmentId
-        );
-        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndOrganizationIdAndEnvironmentId(
-            area,
-            organizationId,
-            environmentId
-        );
+    public List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) {
+        log.debug("Find all PortalNavigationItem by parentId [{}] and environmentId [{}]", parentId, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByParentIdAndEnvironmentId(parentId, environmentId);
+        List<PortalNavigationItem> mapped = items.stream().map(mapper::map).collect(Collectors.toList());
+        log.debug("Find all PortalNavigationItem - Done, found {} items", mapped.size());
+        return mapped;
+    }
+
+    @Override
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
+        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}]", area, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentId(area, environmentId);
+        return items.stream().map(mapper::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId) {
+        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}] and parentId is null", area, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 

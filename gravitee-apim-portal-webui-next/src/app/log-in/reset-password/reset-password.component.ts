@@ -23,6 +23,7 @@ import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 
+import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { ResetPasswordService } from '../../../services/reset-password.service';
 
 @Component({
@@ -41,6 +42,7 @@ import { ResetPasswordService } from '../../../services/reset-password.service';
     ReactiveFormsModule,
     RouterLink,
     MatAnchor,
+    MobileClassDirective,
   ],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss'],
@@ -51,7 +53,7 @@ export class ResetPasswordComponent {
   });
   isSubmitted: boolean;
   error = signal(200);
-  private destroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(private resetPasswordService: ResetPasswordService) {
     this.isSubmitted = false;

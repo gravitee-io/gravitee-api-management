@@ -27,6 +27,11 @@ import static org.assertj.core.api.Assertions.withPrecision;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -55,6 +60,7 @@ import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -67,6 +73,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
@@ -1314,6 +1321,45 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 null,
                 terms
             );
+        }
+    }
+
+    @Nested
+    class HTTPMeasures {
+
+        private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
+
+        private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        private static final Instant TOMORROW = NOW.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+        private static final Instant YESTERDAY = NOW.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+        @Test
+        void should_return_http_measures() {
+            var timeRange = new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
+            var metrics = List.of(
+                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG)),
+                new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)),
+                new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE))
+            );
+
+            var filter = new Filter(
+                Filter.Name.API,
+                Filter.Operator.IN,
+                List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+            );
+
+            var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+            var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+            assertThat(result).isNotNull();
+
+            var measures = result.measures();
+            assertThat(measures).hasSize(metrics.size());
+
+            for (var measure : measures) {
+                assertThat(measure.measures().values()).hasSize(1);
+                assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotZero());
+            }
         }
     }
 }

@@ -15,14 +15,9 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
-import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
-import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
@@ -30,32 +25,20 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
-import io.gravitee.gateway.reactive.api.invoker.BaseInvoker;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
-import io.gravitee.gateway.reactive.api.invoker.Invoker;
-import io.gravitee.gateway.reactive.api.invoker.TcpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;

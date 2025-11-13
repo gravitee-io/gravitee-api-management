@@ -64,6 +64,14 @@ public interface PolicyPluginMapper {
         if (flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA) != null) {
             policyPluginAllOfFlowPhaseCompatibility.NATIVE_KAFKA(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA)));
         }
+        var mcpProxyPhases = flowPhaseCompatibility.get(ApiProtocolType.MCP_PROXY);
+        if (mcpProxyPhases != null) {
+            policyPluginAllOfFlowPhaseCompatibility.MCP_PROXY(mapToFlowPhase(mcpProxyPhases));
+        }
+        var llmProxyPhases = flowPhaseCompatibility.get(ApiProtocolType.LLM_PROXY);
+        if (llmProxyPhases != null) {
+            policyPluginAllOfFlowPhaseCompatibility.LLM_PROXY(mapToFlowPhase(llmProxyPhases));
+        }
         return policyPluginAllOfFlowPhaseCompatibility;
     }
 }

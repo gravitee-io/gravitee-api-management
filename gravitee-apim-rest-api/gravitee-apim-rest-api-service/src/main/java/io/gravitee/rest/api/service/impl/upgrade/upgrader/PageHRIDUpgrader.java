@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -31,27 +36,45 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageHRIDUpgrader implements Upgrader {
 
+    private static final int PAGE_SIZE = 100;
+
     @Lazy
     @Autowired
     private PageRepository pageRepository;
 
     @Override
     public boolean upgrade() {
+        int pageNumber = 0;
+        long updatedCount = 0;
+
         try {
-            pageRepository
-                .findAll()
-                .forEach(page -> {
+            while (true) {
+                Pageable pageable = new PageableBuilder().pageNumber(pageNumber).pageSize(PAGE_SIZE).build();
+
+                var pagedResult = pageRepository.findAll(pageable);
+                var pages = pagedResult.getContent();
+
+                if (pages.isEmpty()) {
+                    break;
+                }
+
+                for (var page : pages) {
                     page.setHrid(page.getId());
-                    try {
-                        pageRepository.update(page);
-                    } catch (TechnicalException e) {
-                        log.error("Unable to set HRID for Plan {}", page.getId(), e);
-                        throw new RuntimeException(e);
-                    }
-                });
+                    pageRepository.update(page);
+                    updatedCount++;
+                    log.debug("Updated HRID for page {}", page.getId());
+                }
+
+                if (pages.size() < PAGE_SIZE) {
+                    break;
+                }
+
+                pageNumber++;
+            }
+            log.info("Page HRID upgrade completed. Total pages updated: {}", updatedCount);
             return true;
         } catch (TechnicalException e) {
-            log.error("Error applying upgrader", e);
+            log.error("Error during Page HRID upgrade", e);
             return false;
         }
     }

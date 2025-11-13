@@ -20,11 +20,11 @@ import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.logging.LoggableContentType;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import java.util.regex.Pattern;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -34,10 +34,7 @@ import java.util.regex.Pattern;
  */
 public final class LoggingUtils {
 
-    private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
-        "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
-
-    private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
+    private static final LoggableContentType loggableContentType = new LoggableContentType();
 
     @Nullable
     public static LoggingContext getLoggingContext(final Logging logging) {
@@ -76,17 +73,7 @@ public final class LoggingUtils {
     }
 
     public static boolean isContentTypeLoggable(final String contentType, final LoggingContext loggingContext) {
-        // init pattern
-        if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
-            try {
-                final String responseTypes = loggingContext.getExcludedResponseTypes();
-                EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
-            } catch (Exception e) {
-                EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
-            }
-        }
-
-        return contentType == null || !EXCLUDED_CONTENT_TYPES_PATTERN.matcher(contentType).find();
+        return loggableContentType.isContentTypeLoggable(contentType, loggingContext);
     }
 
     public static boolean isRequestHeadersLoggable(final ExecutionContext executionContext) {
@@ -140,5 +127,9 @@ public final class LoggingUtils {
     public static boolean isProxyLoggable(final ExecutionContext executionContext) {
         final LoggingContext context = getLoggingContext(executionContext);
         return context != null && context.proxyMode();
+    }
+
+    public static void reset() {
+        loggableContentType.reset();
     }
 }

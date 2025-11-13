@@ -33,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParam
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
+import io.gravitee.rest.api.management.v2.rest.resource.analytics.computation.AnalyticsComputationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.definition.AnalyticsDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
@@ -75,6 +76,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ApisResource.class);
         register(ApplicationsResource.class);
         register(AnalyticsDefinitionResource.class);
+        register(AnalyticsComputationResource.class);
 
         // Resources deprecated at root level
         register(EndpointsResource.class);

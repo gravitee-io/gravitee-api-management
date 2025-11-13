@@ -20,11 +20,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class PortalNavigationPage extends PortalNavigationItem {
+public final class PortalNavigationPage extends PortalNavigationItem {
 
     @Setter
     @Nonnull
-    private PortalPageContentId contentId;
+    private PortalPageContentId portalPageContentId;
 
     public PortalNavigationPage(
         @Nonnull PortalNavigationItemId id,
@@ -32,9 +32,9 @@ public class PortalNavigationPage extends PortalNavigationItem {
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
-        @Nonnull PortalPageContentId contentId
+        @Nonnull PortalPageContentId portalPageContentId
     ) {
         super(id, organizationId, environmentId, title, area);
-        this.contentId = contentId;
+        this.portalPageContentId = portalPageContentId;
     }
 }

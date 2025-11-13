@@ -48,7 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -378,7 +377,7 @@ class LoggingHookTest {
         TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
 
         obs.assertComplete();
-        verify(logEndpointResponse).capture();
+        verify(logEndpointResponse).capture(any());
     }
 
     @Test
@@ -396,7 +395,7 @@ class LoggingHookTest {
         TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
 
         obs.assertComplete();
-        verify(logEndpointResponse, never()).capture();
+        verify(logEndpointResponse, never()).capture(any());
     }
 
     @Test
@@ -414,6 +413,6 @@ class LoggingHookTest {
         TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
 
         obs.assertComplete();
-        verify(logEndpointResponse, never()).capture();
+        verify(logEndpointResponse, never()).capture(any());
     }
 }

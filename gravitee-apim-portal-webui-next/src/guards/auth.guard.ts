@@ -14,10 +14,43 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { isEmpty } from 'lodash';
 
+import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 
-export const authGuard: CanActivateFn = (_route, _state) => {
-  return inject(CurrentUserService).isAuthenticated() || inject(Router).navigate(['']);
+export const authGuard: CanActivateFn = (route, state) => {
+  return checkUserAuthenticated() || forceLogin(state);
 };
+
+function checkUserAuthenticated() {
+  if (inject(CurrentUserService).isAuthenticated()) {
+    const redirectPath = getOAuthRedirectPath();
+    return isEmpty(redirectPath) || inject(Router).parseUrl(redirectPath);
+  }
+  return false;
+}
+
+function getOAuthRedirectPath() {
+  const oAuthService = inject(OAuthService);
+  const redirectPath = decodeURIComponent(oAuthService.state ?? '');
+  oAuthService.state = '';
+  return redirectPath;
+}
+
+function forceLogin(state: RouterStateSnapshot) {
+  if (isForceLoginEnabled() && !isRouteAnonymous(state.url)) {
+    return inject(Router).navigate(['/log-in'], { queryParams: { redirectUrl: state.url } });
+  }
+  return true;
+}
+
+function isForceLoginEnabled(): boolean {
+  return inject(ConfigService).configuration.authentication?.forceLogin?.enabled ?? false;
+}
+
+function isRouteAnonymous(url: string): boolean {
+  return url.startsWith('/log-in') || url.startsWith('/sign-up') || url.startsWith('/log-in/reset-password');
+}

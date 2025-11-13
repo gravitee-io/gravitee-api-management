@@ -506,6 +506,11 @@
                     <groupId>com.graviteesource.cloud</groupId>
                     <artifactId>gravitee-cloud-initializer</artifactId>
                 </dependency>
+
+                <dependency>
+                    <groupId>com.graviteesource.common</groupId>
+                    <artifactId>gravitee-common-mcp</artifactId>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>

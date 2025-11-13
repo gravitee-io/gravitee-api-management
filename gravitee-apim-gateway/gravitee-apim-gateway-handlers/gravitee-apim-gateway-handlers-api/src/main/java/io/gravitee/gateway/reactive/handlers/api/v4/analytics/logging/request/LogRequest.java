@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -38,8 +39,8 @@ abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
         this.setMethod(request.method());
     }
 
-    public void capture() {
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE))) {
+    public void capture(BaseExecutionContext ctx) {
+        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             final Buffer buffer = Buffer.buffer();
 
             if (loggingContext.isBodyLoggable()) {

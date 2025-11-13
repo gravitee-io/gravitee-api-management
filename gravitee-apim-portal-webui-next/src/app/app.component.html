@@ -15,7 +15,12 @@
     limitations under the License.
 
 -->
-<app-nav-bar [currentUser]="currentUser()" [siteTitle]="siteTitle" [logo]="logo()" [customLinks]="customLinks()" />
+<app-nav-bar
+  [currentUser]="currentUser()"
+  [siteTitle]="siteTitle"
+  [logo]="logo()"
+  [customLinks]="customLinks()"
+  [forceLogin]="forceLogin()" />
 <div class="main-container-wrapper">
   <router-outlet />
 </div>
