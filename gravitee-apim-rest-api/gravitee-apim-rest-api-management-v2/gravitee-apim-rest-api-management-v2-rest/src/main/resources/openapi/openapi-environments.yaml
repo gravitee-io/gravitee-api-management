@@ -826,6 +826,25 @@ paths:
             $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
+    /portal-page-content/{contentId}:
+      get:
+        tags:
+          - Portal Pages
+        summary: Get portal page content
+        description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        operationId: getPortalPageContent
+        parameters:
+          - name: contentId
+            in: path
+            description: The unique ID of the portal page content
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalPageContentResponse"
+          default:
+            $ref: "#/components/responses/Error"
     /portal-navigation-items:
       get:
         tags:
@@ -1751,6 +1770,23 @@ components:
               FOLDER: "#/components/schemas/PortalNavigationFolder"
               LINK: "#/components/schemas/PortalNavigationLink"
 
+        PortalPageContent:
+          type: object
+          description: Portal page content
+          properties:
+            id:
+              type: string
+              description: The unique ID of the portal page content
+            type:
+              type: string
+              description: Content type
+              enum:
+                - gravitee_markdown
+            content:
+              type: string
+              description: The content of the page
+          required: [id, type, content]
+
     parameters:
         pageParam:
             name: page
@@ -2289,6 +2325,13 @@ components:
                     description: List of portal navigation items
                     items:
                       $ref: "#/components/schemas/PortalNavigationItem"
+
+        PortalPageContentResponse:
+          description: Portal page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalPageContent"
 
 
     securitySchemes:
