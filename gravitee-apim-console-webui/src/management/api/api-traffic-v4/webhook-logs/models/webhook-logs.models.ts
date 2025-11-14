@@ -75,13 +75,11 @@ export interface WebhookLogsQuickFilters {
   statuses?: number[];
   applications?: MultiFilter;
   period?: SimpleFilter;
+  from?: number;
+  to?: number;
+  callbackUrls?: string[];
 }
 
-export interface WebhookLogsQuickFiltersInitialValues {
-  searchTerm?: string;
-  statuses?: number[];
-  applications?: MultiFilter;
-  period?: SimpleFilter;
-}
+export type WebhookLogsQuickFiltersInitialValues = WebhookLogsQuickFilters;
 
 export const DEFAULT_WEBHOOK_LOGS_FILTERS: WebhookLogsQuickFilters = {};

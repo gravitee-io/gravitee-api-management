@@ -29,6 +29,7 @@
   <webhook-logs-quick-filters
     [loading]="loading"
     [availableStatuses]="statusOptions"
+    [availableCallbackUrls]="callbackUrlOptions"
     [initialValues]="quickFiltersInitialValues"
     (filtersChanged)="onFiltersChanged($event)"
     (refresh)="refresh()"

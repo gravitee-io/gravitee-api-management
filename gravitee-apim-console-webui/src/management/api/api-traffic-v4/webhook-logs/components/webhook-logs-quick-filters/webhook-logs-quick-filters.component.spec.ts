@@ -18,6 +18,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import moment from 'moment';
 
 import { WebhookLogsQuickFiltersComponent } from './webhook-logs-quick-filters.component';
 
@@ -107,14 +108,29 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     });
   });
 
-  it('should emit more filters event when clicking more button', () => {
-    const moreSpy = jest.spyOn(component.moreFilters, 'emit');
+  it('should open more filters panel when clicking more button', () => {
     fixture.detectChanges();
 
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="more-button"]');
     button.click();
 
-    expect(moreSpy).toHaveBeenCalled();
+    expect(component.showMoreFilters).toBe(true);
+  });
+
+  it('should apply more filters and emit values with custom dates', () => {
+    const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
+    filtersSpy.mockClear();
+
+    const from = moment('2025-01-01T00:00:00Z');
+    const to = moment('2025-01-02T00:00:00Z');
+    component.applyMoreFilters({ period: component.defaultPeriod, from, to });
+
+    expect(filtersSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: from.valueOf(),
+        to: to.valueOf(),
+      }),
+    );
   });
 
   it('should reset filters when clicking reset button', () => {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isNumber } from 'angular';
 
 import { Component, inject, OnInit } from '@angular/core';
 import { map, shareReplay } from 'rxjs/operators';
@@ -74,6 +75,7 @@ export class WebhookLogsComponent implements OnInit {
   private filteredLogs: WebhookLog[] = [];
   quickFiltersInitialValues: WebhookLogsQuickFiltersInitialValues = {};
   statusOptions: number[] = [];
+  callbackUrlOptions: string[] = [];
   private readonly periods = PERIODS;
   currentFilters: WebhookLogsQuickFilters = {};
   loading = true;
@@ -90,7 +92,12 @@ export class WebhookLogsComponent implements OnInit {
           timestamp: '2025-06-15T12:00:00.000Z',
           method: 'POST' as any,
           status: 200,
-          application: { id: 'app-1', name: 'Acme Warehouse Service', type: 'SIMPLE' as any, apiKeyMode: 'UNSPECIFIED' as any },
+          application: {
+            id: 'app-1',
+            name: 'Acme Warehouse Service',
+            type: 'SIMPLE' as any,
+            apiKeyMode: 'UNSPECIFIED' as any,
+          },
           plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' as any },
           requestEnded: true,
           gatewayResponseTime: 2800,
@@ -181,7 +188,12 @@ export class WebhookLogsComponent implements OnInit {
           timestamp: '2025-06-16T13:15:00.000Z',
           method: 'POST' as any,
           status: 500,
-          application: { id: 'app-2', name: 'Acme Finance Service', type: 'SIMPLE' as any, apiKeyMode: 'UNSPECIFIED' as any },
+          application: {
+            id: 'app-2',
+            name: 'Acme Finance Service',
+            type: 'SIMPLE' as any,
+            apiKeyMode: 'UNSPECIFIED' as any,
+          },
           plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' as any },
           requestEnded: true,
           gatewayResponseTime: 980,
@@ -215,7 +227,12 @@ export class WebhookLogsComponent implements OnInit {
           timestamp: '2025-06-17T14:30:00.000Z',
           method: 'POST' as any,
           status: 200,
-          application: { id: 'app-3', name: 'Acme Inventory Control', type: 'SIMPLE' as any, apiKeyMode: 'UNSPECIFIED' as any },
+          application: {
+            id: 'app-3',
+            name: 'Acme Inventory Control',
+            type: 'SIMPLE' as any,
+            apiKeyMode: 'UNSPECIFIED' as any,
+          },
           plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' as any },
           requestEnded: true,
           gatewayResponseTime: 155,
@@ -323,10 +340,14 @@ export class WebhookLogsComponent implements OnInit {
     const initialSearch: string = qp?.search ?? '';
     const initialApplicationsIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',').filter(Boolean) : [];
     const initialPeriod = this.buildInitialPeriod(qp?.period);
+    const initialFrom = this.parseTimestamp(qp?.from);
+    const initialTo = this.parseTimestamp(qp?.to);
+    const initialCallbackUrls: string[] = qp?.callbackUrls ? qp.callbackUrls.split(',').filter(Boolean) : [];
 
     this.webhookLogsData = webhookData;
     this.allLogs = webhookData.data;
     this.buildStatusOptions(initialStatuses);
+    this.buildCallbackUrlOptions(initialCallbackUrls);
     const initialApplications = this.buildInitialApplications(initialApplicationsIds);
 
     this.quickFiltersInitialValues = {
@@ -334,6 +355,9 @@ export class WebhookLogsComponent implements OnInit {
       statuses: initialStatuses.length ? initialStatuses : undefined,
       applications: initialApplications?.length ? initialApplications : undefined,
       period: initialPeriod?.value !== DEFAULT_PERIOD.value ? initialPeriod : undefined,
+      from: initialFrom ?? undefined,
+      to: initialTo ?? undefined,
+      callbackUrls: initialCallbackUrls.length ? initialCallbackUrls : undefined,
     };
 
     this.applyFilters(this.quickFiltersInitialValues);
@@ -374,14 +398,18 @@ export class WebhookLogsComponent implements OnInit {
     const searchTerm = normalizedFilters.searchTerm?.toLowerCase();
     const statuses = normalizedFilters.statuses;
     const applications = normalizedFilters.applications?.map((app) => app.value);
+    const customRange = this.buildCustomDateRange(normalizedFilters);
     const periodRange = normalizedFilters.period ? this.preparePeriodRange(normalizedFilters.period) : undefined;
+    const range = customRange ?? periodRange;
+    const callbackUrls = normalizedFilters.callbackUrls;
 
     this.filteredLogs = this.allLogs.filter((log) => {
       const matchesSearch = !searchTerm || this.logMatchesSearchTerm(log, searchTerm);
       const matchesStatus = !statuses?.length || statuses.includes(log.status);
       const matchesApplication = !applications?.length || applications.includes(log.application?.id);
-      const matchesPeriod = !periodRange || this.logMatchesPeriod(log, periodRange);
-      return matchesSearch && matchesStatus && matchesApplication && matchesPeriod;
+      const matchesPeriod = !range || this.logMatchesPeriod(log, range);
+      const matchesCallback = !callbackUrls?.length || callbackUrls.includes(log.callbackUrl);
+      return matchesSearch && matchesStatus && matchesApplication && matchesPeriod && matchesCallback;
     });
 
     this.webhookLogsData = {
@@ -403,6 +431,16 @@ export class WebhookLogsComponent implements OnInit {
     this.statusOptions = Array.from(statusesSet).sort((a, b) => a - b);
   }
 
+  private buildCallbackUrlOptions(initialUrls: string[] = []): void {
+    const urls = new Set<string>(initialUrls);
+    this.allLogs.forEach((log) => {
+      if (log.callbackUrl) {
+        urls.add(log.callbackUrl);
+      }
+    });
+    this.callbackUrlOptions = Array.from(urls).sort((a, b) => a.localeCompare(b));
+  }
+
   private normalizeFilters(filters: WebhookLogsQuickFilters = {}): WebhookLogsQuickFilters {
     const searchTerm = filters?.searchTerm?.trim();
     const statuses = filters?.statuses?.filter((status) => !Number.isNaN(status));
@@ -414,10 +452,18 @@ export class WebhookLogsComponent implements OnInit {
         )
       : undefined;
 
+    const callbackUrls = filters?.callbackUrls?.map((url) => url?.trim()).filter(Boolean);
+    const uniqueCallbackUrls = callbackUrls?.length ? Array.from(new Set(callbackUrls)) : undefined;
+    const normalizedFrom = isNumber(filters?.from) && !Number.isNaN(filters.from) ? filters.from : undefined;
+    const normalizedTo = isNumber(filters?.to) && !Number.isNaN(filters.to) ? filters.to : undefined;
+
     const normalized: WebhookLogsQuickFilters = {
       searchTerm: searchTerm?.length ? searchTerm : undefined,
       statuses: uniqueStatuses,
       applications,
+      from: normalizedFrom,
+      to: normalizedTo,
+      callbackUrls: uniqueCallbackUrls,
     };
     const normalizedPeriod = this.normalizePeriod(filters?.period);
     if (normalizedPeriod) {
@@ -472,6 +518,9 @@ export class WebhookLogsComponent implements OnInit {
       statuses: filters.statuses?.length ? filters.statuses.join(',') : null,
       applicationIds: filters.applications?.length ? filters.applications.map((app) => app.value).join(',') : null,
       period: filters.period?.value ?? null,
+      callbackUrls: filters.callbackUrls?.length ? filters.callbackUrls.join(',') : null,
+      from: filters.from ?? null,
+      to: filters.to ?? null,
       page: 1,
     };
 
@@ -488,19 +537,34 @@ export class WebhookLogsComponent implements OnInit {
 
   private areQueryParamsEqual(
     current: Params,
-    next: { search: string | null; statuses: string | null; applicationIds: string | null; period: string | null; page: number },
+    next: {
+      search: string | null;
+      statuses: string | null;
+      applicationIds: string | null;
+      period: string | null;
+      callbackUrls: string | null;
+      from: number | null;
+      to: number | null;
+      page: number;
+    },
   ): boolean {
     const currentSearch = current?.search ?? null;
     const currentStatuses = current?.statuses ?? null;
     const currentPage = current?.page ? Number(current.page) : null;
     const currentApplications = current?.applicationIds ?? null;
     const currentPeriod = current?.period ?? null;
+    const currentCallbackUrls = current?.callbackUrls ?? null;
+    const currentFrom = current?.from ? Number(current.from) : null;
+    const currentTo = current?.to ? Number(current.to) : null;
 
     return (
       currentSearch === next.search &&
       currentStatuses === next.statuses &&
       currentApplications === next.applicationIds &&
       currentPeriod === next.period &&
+      currentCallbackUrls === next.callbackUrls &&
+      (currentFrom ?? null) === next.from &&
+      (currentTo ?? null) === next.to &&
       (currentPage ?? 1) === next.page
     );
   }
@@ -579,5 +643,22 @@ export class WebhookLogsComponent implements OnInit {
         queryParamsHandling: 'merge',
       });
     }
+  }
+
+  private buildCustomDateRange(filters: WebhookLogsQuickFilters): { from: number; to: number } | undefined {
+    if (filters?.from == null || filters?.to == null) {
+      return undefined;
+    }
+    const from = Math.min(filters.from, filters.to);
+    const to = Math.max(filters.from, filters.to);
+    return { from, to };
+  }
+
+  private parseTimestamp(value?: string | null): number | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? undefined : parsed;
   }
 }
