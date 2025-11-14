@@ -22,10 +22,11 @@ import java.util.List;
 
 public class PortalPageContentFixtures {
 
-    private static final String CONTENT_ID = "00000000-0000-0000-0000-000000000001";
+    public static final String CONTENT_ID = "00000000-0000-0000-0000-000000000001";
+    public static final String CONTENT = "# Welcome\n\nThis is a sample page content.";
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent() {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), "# Welcome\n\nThis is a sample page content.");
+        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), CONTENT);
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(String content) {
