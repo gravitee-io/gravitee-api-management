@@ -147,9 +147,6 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         Set<String> expectedOperationNames = Set.of(
             "POST",
             "Request phase",
-            "REQUEST Processor (processor-metrics)",
-            "REQUEST Processor (pre-processor-transaction)",
-            "REQUEST Processor (processor-x-forward-for)",
             "REQUEST flow (api-flow-1)",
             "REQUEST policy-latency",
             "REQUEST Security (keyless)",
@@ -157,10 +154,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "POST /endpoint",
             "Response phase",
             "RESPONSE flow (api-flow-1)",
-            "RESPONSE policy-latency",
-            "RESPONSE Processor (processor-reporter)",
-            "RESPONSE Processor (processor-response-time)",
-            "REQUEST Processor (processor-connection-drain)"
+            "RESPONSE policy-latency"
         );
 
         await()
@@ -204,9 +198,6 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
 
         Set<String> expectedOperationNames = Set.of(
             "GET /test",
-            "REQUEST Processor (processor-metrics)",
-            "REQUEST Processor (pre-processor-transaction)",
-            "REQUEST Processor (processor-x-forward-for)",
             "REQUEST Security (keyless)",
             "Request phase",
             "REQUEST flow (api-flow ready)",
@@ -217,10 +208,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "MESSAGE_RESPONSE flow (api-flow ready)",
             "Subscribe",
             "message (0)",
-            "policy-message-flow-ready",
-            "RESPONSE Processor (processor-response-time)",
-            "RESPONSE Processor (processor-reporter)",
-            "REQUEST Processor (processor-connection-drain)"
+            "policy-message-flow-ready"
         );
         await()
             .atMost(30, SECONDS)

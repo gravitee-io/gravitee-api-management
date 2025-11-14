@@ -192,12 +192,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         this.resourceLifecycleManager = resourceLifecycleManager;
 
-        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api, tracingContext);
-        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api, tracingContext);
-        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api, tracingContext);
-        this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api, tracingContext);
-        this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api, tracingContext);
-        this.onErrorProcessors = apiProcessorChainFactory.onError(api, tracingContext);
+        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
+        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
+        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api);
+        this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api);
+        this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
+        this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
@@ -542,9 +542,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
             }
 
             if (analyticsContext.isTracingEnabled()) {
-                if (analyticsContext.getTracingContext().isVerbose()) {
-                    processorChainHooks.add(new TracingHook("Processor chain"));
-                }
                 invokerHooks.add(new InvokerTracingHook("Invoker"));
                 httpSecurityChain.addHooks(new TracingHook("Security"));
             }

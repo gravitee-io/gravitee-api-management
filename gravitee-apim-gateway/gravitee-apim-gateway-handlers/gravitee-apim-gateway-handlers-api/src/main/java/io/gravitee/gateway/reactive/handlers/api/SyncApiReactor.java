@@ -478,9 +478,6 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             invokerHooks.add(new LoggingHook());
         }
         if (analyticsContext.isTracingEnabled()) {
-            if (analyticsContext.getTracingContext().isVerbose()) {
-                processorChainHooks.add(new TracingHook("Processor chain"));
-            }
             invokerHooks.add(new InvokerTracingHook("Invoker"));
             httpSecurityChain.addHooks(new TracingHook("Security plan"));
         }

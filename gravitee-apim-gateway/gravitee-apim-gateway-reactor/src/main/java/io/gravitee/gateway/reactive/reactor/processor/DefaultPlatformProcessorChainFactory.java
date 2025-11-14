@@ -49,11 +49,10 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         AlertEventProducer eventProducer,
         Node node,
         String port,
-        boolean tracing,
         GatewayConfiguration gatewayConfiguration,
         ConnectionDrainManager connectionDrainManager
     ) {
-        super(transactionHandlerFactory, reporterService, eventProducer, node, port, tracing);
+        super(transactionHandlerFactory, reporterService, eventProducer, node, port);
         this.traceContext = traceContext;
         this.xForwardProcessor = xForwardProcessor;
         this.gatewayConfiguration = gatewayConfiguration;
