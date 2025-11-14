@@ -1,0 +1,30 @@
+suite: Test Management API configmap for HTTP client proxy
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Sets http client proxy excludes
+    template: api/api-configmap.yaml
+    set:
+      api:
+        http:
+          client:
+            proxy:
+              type: HTTP
+              excludeHosts:
+                - 'test.company.com'
+                - '*.myotherdomain.com'
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |-
+            httpClient:
+              timeout: 10000
+              proxy:
+                type: HTTP
+                exclude-hosts:
+                  - test.company.com
+                  - '\*.myotherdomain.com'
