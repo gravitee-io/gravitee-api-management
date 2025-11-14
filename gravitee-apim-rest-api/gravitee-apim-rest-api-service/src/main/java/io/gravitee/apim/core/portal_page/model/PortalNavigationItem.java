@@ -43,7 +43,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
     private PortalArea area;
 
     @Setter
-    @Nullable
+    @Nonnull
     private Integer order;
 
     @Setter
@@ -55,13 +55,15 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,
-        @Nonnull PortalArea area
+        @Nonnull PortalArea area,
+        @Nonnull Integer order
     ) {
         this.id = id;
         this.organizationId = organizationId;
         this.environmentId = environmentId;
         this.title = title;
         this.area = area;
+        this.order = order;
     }
 
     @Override

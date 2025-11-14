@@ -42,7 +42,7 @@ public class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
-        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR);
+        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR, 0);
         folder.setParentId(parentId);
         return folder;
     }
@@ -54,6 +54,7 @@ public class PortalNavigationItemFixtures {
             ENV_ID,
             title,
             PortalArea.TOP_NAVBAR,
+            0,
             PortalPageContentId.random()
         );
         page.setParentId(parentId);
