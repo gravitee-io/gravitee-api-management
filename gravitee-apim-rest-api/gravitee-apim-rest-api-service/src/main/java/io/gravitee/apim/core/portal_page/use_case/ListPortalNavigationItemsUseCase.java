@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class ListPortalNavigationItemsUseCase {
         var items = new ArrayList<>(directItems);
 
         if (!input.loadChildren()) {
-            return new Output(items);
+            return new Output(ordered(items));
         }
 
         var queue = new ArrayList<>(items.stream().filter(IS_FOLDER_PREDICATE).toList());
@@ -55,7 +56,11 @@ public class ListPortalNavigationItemsUseCase {
             queue.addAll(children.stream().filter(IS_FOLDER_PREDICATE).toList());
         }
 
-        return new Output(items);
+        return new Output(ordered(items));
+    }
+
+    private List<PortalNavigationItem> ordered(List<PortalNavigationItem> items) {
+        return items.stream().sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder()).toList();
     }
 
     public record Output(List<PortalNavigationItem> items) {}
