@@ -41,7 +41,7 @@ public class PortalPageContentQueryServiceImpl implements PortalPageContentQuery
         try {
             return portalPageContentRepository.findById(id.json()).map(portalPageContentAdapter::toEntity);
         } catch (TechnicalException e) {
-            String errorMessage = String.format("An error occurred while finding portal page content by id %s", id);
+            String errorMessage = String.format("An error occurred while finding portal page content by id %s", id.json());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
