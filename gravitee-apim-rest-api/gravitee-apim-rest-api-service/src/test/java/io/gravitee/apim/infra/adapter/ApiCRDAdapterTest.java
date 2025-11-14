@@ -61,7 +61,7 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
         });
     }
 
@@ -92,7 +92,7 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
         });
     }
 
@@ -149,7 +149,7 @@ class ApiCRDAdapterTest {
         export.setPlans(plansWithConflictingNames);
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
         assertThat(spec.getPlans()).hasSize(3);
-        assertThat(spec.getPlans()).containsKey("plan-1");
+        assertThat(spec.getPlans()).containsKey("api key");
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {

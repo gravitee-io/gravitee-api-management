@@ -242,17 +242,7 @@ public interface ApiMapper {
             return List.of();
         }
 
-        return apiCRD
-            .getPlans()
-            .entrySet()
-            .stream()
-            .sorted(comparingInt(p -> p.getValue().getOrder()))
-            .map(entry -> {
-                PlanV4 planV4 = map(entry.getValue());
-                planV4.setHrid(entry.getKey());
-                return planV4;
-            })
-            .toList();
+        return apiCRD.getPlans().values().stream().sorted(comparingInt(PlanCRD::getOrder)).map(this::map).toList();
     }
 
     default Map<String, PageCRD> mapApiV4SpecPages(ApiV4Spec apiV4Spec) {
