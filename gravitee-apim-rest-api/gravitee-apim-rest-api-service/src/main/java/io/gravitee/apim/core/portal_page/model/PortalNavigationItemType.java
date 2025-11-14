@@ -15,28 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-public final class PortalNavigationLink extends PortalNavigationItem {
-
-    @Setter
-    @Nonnull
-    private String href;
-
-    public PortalNavigationLink(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull String href
-    ) {
-        super(id, organizationId, environmentId, title, area, order);
-        this.href = href;
-    }
+public enum PortalNavigationItemType {
+    PAGE,
+    FOLDER,
+    LINK,
 }

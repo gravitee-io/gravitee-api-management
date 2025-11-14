@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.query_service;
+package io.gravitee.apim.core.portal_page.crud_service;
 
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import java.util.List;
 
-public interface PortalNavigationItemsQueryService {
-    PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
+public interface PortalNavigationItemCrudService {
+    PortalNavigationItem create(PortalNavigationItem portalNavigationItem);
 
-    List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
+    PortalNavigationItem update(PortalNavigationItem portalNavigationItem);
 
-    List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);
+    void delete(PortalNavigationItemId portalNavigationItemId);
 }
