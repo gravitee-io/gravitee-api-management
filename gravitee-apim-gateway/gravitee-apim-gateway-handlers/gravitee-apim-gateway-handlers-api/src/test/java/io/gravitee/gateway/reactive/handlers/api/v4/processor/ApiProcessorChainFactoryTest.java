@@ -89,7 +89,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         apiModel.setListeners(List.of(new HttpListener()));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
@@ -105,7 +105,7 @@ class ApiProcessorChainFactoryTest {
         analytics.setLogging(logging);
         apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
@@ -121,7 +121,7 @@ class ApiProcessorChainFactoryTest {
         analytics.setLogging(logging);
         apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -135,7 +135,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnEmptyBeforeApiExecutionChainWithNoListener() {
         Api api = new Api(new io.gravitee.definition.model.v4.Api());
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -150,7 +150,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         apiModel.setListeners(List.of(new SubscriptionListener()));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertComplete().assertValueCount(1);
@@ -165,7 +165,7 @@ class ApiProcessorChainFactoryTest {
         httpListener.setCors(cors);
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api);
         assertThat(processorChain.getId()).isEqualTo("before-security-chain");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -184,7 +184,7 @@ class ApiProcessorChainFactoryTest {
         HttpListener httpListener = new HttpListener();
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -210,7 +210,7 @@ class ApiProcessorChainFactoryTest {
         flow.setSelectors(List.of(httpSelector));
         apiModel.setFlows(List.of(flow));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -227,7 +227,7 @@ class ApiProcessorChainFactoryTest {
         HttpListener httpListener = new HttpListener();
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -244,7 +244,7 @@ class ApiProcessorChainFactoryTest {
         httpListener.setPathMappings(Set.of("/test"));
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -258,7 +258,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnEmptyAfterApiExecutionChainWithNoListener() {
         Api api = new Api(new io.gravitee.definition.model.v4.Api());
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -274,7 +274,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         apiModel.setListeners(List.of(new SubscriptionListener()));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -294,7 +294,7 @@ class ApiProcessorChainFactoryTest {
         httpListener.setCors(cors);
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -310,7 +310,7 @@ class ApiProcessorChainFactoryTest {
     void shouldReturnShutdownAfterApiExecutionChainWithHttpListener() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -328,7 +328,7 @@ class ApiProcessorChainFactoryTest {
         httpListener.setPathMappings(Set.of("/tot"));
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.onError(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.onError(api);
         assertThat(processorChain.getId()).isEqualTo("api-error");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
@@ -345,7 +345,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         apiModel.setListeners(List.of(new HttpListener()));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
@@ -361,7 +361,7 @@ class ApiProcessorChainFactoryTest {
         analytics.setLogging(logging);
         apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors.test().assertNoValues();
@@ -377,7 +377,7 @@ class ApiProcessorChainFactoryTest {
         analytics.setLogging(logging);
         apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api, TracingContext.noop());
+        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors

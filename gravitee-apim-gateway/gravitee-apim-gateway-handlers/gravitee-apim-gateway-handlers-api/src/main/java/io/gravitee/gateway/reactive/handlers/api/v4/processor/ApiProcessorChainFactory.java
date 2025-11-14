@@ -64,7 +64,6 @@ public class ApiProcessorChainFactory {
     private final Node node;
     protected final Configuration configuration;
     protected final ReporterService reporterService;
-    private final TracingHook tracingHook;
 
     public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
         this.configuration = configuration;
@@ -76,7 +75,6 @@ public class ApiProcessorChainFactory {
         );
         this.node = node;
         this.reporterService = reporterService;
-        tracingHook = new TracingHook("processor");
     }
 
     /**
@@ -86,7 +84,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain beforeHandle(final Api api, final TracingContext tracingContext) {
+    public ProcessorChain beforeHandle(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
@@ -96,7 +94,7 @@ public class ApiProcessorChainFactory {
             processors.add(LogRequestProcessor.instance());
         }
 
-        return new ProcessorChain("before-api-handle", processors, processorHooks(tracingContext));
+        return new ProcessorChain("before-api-handle", processors, List.of());
     }
 
     /**
@@ -106,7 +104,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain beforeSecurityChain(final Api api, final TracingContext tracingContext) {
+    public ProcessorChain beforeSecurityChain(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
         getHttpListener(api).ifPresent(httpListener -> {
@@ -117,7 +115,7 @@ public class ApiProcessorChainFactory {
             }
         });
 
-        return new ProcessorChain("before-security-chain", processors, processorHooks(tracingContext));
+        return new ProcessorChain("before-security-chain", processors, List.of());
     }
 
     /**
@@ -127,7 +125,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain beforeApiExecution(final Api api, final TracingContext tracingContext) {
+    public ProcessorChain beforeApiExecution(final Api api) {
         final List<Processor> processors = new ArrayList<>();
         if (isNotEmpty(api.getDefinition().getListeners())) {
             if (overrideXForwardedPrefix) {
@@ -148,7 +146,7 @@ public class ApiProcessorChainFactory {
             });
         }
 
-        return new ProcessorChain("before-api-execution", processors, processorHooks(tracingContext));
+        return new ProcessorChain("before-api-execution", processors, List.of());
     }
 
     /**
@@ -158,9 +156,9 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain afterApiExecution(final Api api, final TracingContext tracingContext) {
+    public ProcessorChain afterApiExecution(final Api api) {
         final List<Processor> processors = getAfterApiExecutionProcessors(api);
-        return new ProcessorChain("after-api-execution", processors, processorHooks(tracingContext));
+        return new ProcessorChain("after-api-execution", processors, List.of());
     }
 
     private List<Processor> getAfterApiExecutionProcessors(Api api) {
@@ -186,7 +184,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain onError(final Api api, final TracingContext tracingContext) {
+    public ProcessorChain onError(final Api api) {
         // On error processor chain contains the after api execution processors.
         List<Processor> processors = new ArrayList<>(getAfterApiExecutionProcessors(api));
 
@@ -196,7 +194,7 @@ public class ApiProcessorChainFactory {
             processors.add(SimpleFailureProcessor.instance());
         }
 
-        return new ProcessorChain("api-error", processors, processorHooks(tracingContext));
+        return new ProcessorChain("api-error", processors, List.of());
     }
 
     /**
@@ -206,8 +204,8 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
-    public ProcessorChain afterHandle(final Api api, final TracingContext tracingContext) {
-        return new ProcessorChain("after-api-handle", afterHandleProcessors(api), processorHooks(tracingContext));
+    public ProcessorChain afterHandle(final Api api) {
+        return new ProcessorChain("after-api-handle", afterHandleProcessors(api), List.of());
     }
 
     protected List<Processor> afterHandleProcessors(Api api) {
@@ -229,10 +227,6 @@ public class ApiProcessorChainFactory {
                     : Stream.empty()
             )
             .findFirst();
-    }
-
-    protected List<ProcessorHook> processorHooks(final TracingContext tracingContext) {
-        return tracingContext.isVerbose() ? List.of(tracingHook) : List.of();
     }
 
     private boolean isNotEmpty(Iterable<?> iterable) {

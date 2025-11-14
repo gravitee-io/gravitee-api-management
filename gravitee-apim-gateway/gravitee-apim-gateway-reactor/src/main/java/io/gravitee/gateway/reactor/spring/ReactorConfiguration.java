@@ -148,7 +148,6 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            openTelemetryConfiguration.isTracesEnabled(),
             gatewayConfiguration,
             connectionDrainManager
         );
@@ -254,7 +253,6 @@ public class ReactorConfiguration {
         ReporterService reporterService,
         @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
         @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
-        OpenTelemetryConfiguration openTelemetryConfiguration,
         GatewayConfiguration gatewayConfiguration
     ) {
         return new NotFoundProcessorChainFactory(
@@ -262,7 +260,6 @@ public class ReactorConfiguration {
             environment,
             reporterService,
             notFoundAnalyticsEnabled || notFoundLogEnabled,
-            openTelemetryConfiguration.isTracesEnabled(),
             gatewayConfiguration
         );
     }

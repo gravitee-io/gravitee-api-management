@@ -188,7 +188,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
-            List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
+            List<ProcessorHook> processHooks = List.of();
             Completable handleCompletable = HookHelper.hook(
                 () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
                 preProcessorChain.getId(),
