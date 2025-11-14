@@ -1,0 +1,124 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+::ng-deep {
+  webhook-logs-quick-filters {
+    .quick-filters__chip-list .mdc-evolution-chip-set__chips {
+      align-items: center;
+    }
+  }
+}
+
+.quick-filters {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 0 24px;
+
+  &__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__form {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__search {
+    flex: 1 1 320px;
+    min-width: 280px;
+  }
+
+  &__period,
+  &__status {
+    display: inline;
+    width: 132px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  &__status {
+    min-width: 150px;
+
+    ::ng-deep mat-chip-row {
+      margin: 0 4px 4px 0;
+    }
+  }
+
+  &__applications {
+    flex: 1 1 320px;
+    min-width: 260px;
+
+    ::ng-deep .applications_form_field {
+      width: 100%;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    button {
+      height: 48px;
+    }
+  }
+
+  .action {
+    display: flex;
+    align-items: center;
+
+    &__button {
+      height: 48px;
+      margin-right: 16px;
+
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  &__chip-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__chip {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      margin-left: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+
+  &__applied {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__reset {
+    margin-left: 12px;
+  }
+}

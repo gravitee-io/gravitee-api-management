@@ -17,22 +17,24 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { map, shareReplay } from 'rxjs/operators';
 import { ReplaySubject } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import moment, { unitOfTime } from 'moment';
 
-import { WebhookLog, WebhookLogsResponse } from './models';
+import { WebhookLog, WebhookLogsQuickFilters, WebhookLogsQuickFiltersInitialValues, WebhookLogsResponse } from './models';
 import { WebhookLogsListComponent } from './components/webhook-logs-list';
 import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog';
+import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quick-filters';
 
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
 import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { LogFiltersInitialValues } from '../runtime-logs/models';
+import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
 
 @Component({
   selector: 'webhook-logs',
@@ -45,6 +47,7 @@ import { LogFiltersInitialValues } from '../runtime-logs/models';
     MatButtonModule,
     MatDialogModule,
     GioBannerModule,
+    WebhookLogsQuickFiltersComponent,
     WebhookLogsListComponent,
     WebhookSettingsDialogComponent,
     ApiNavigationModule,
@@ -69,12 +72,11 @@ export class WebhookLogsComponent implements OnInit {
   webhookLogsData: WebhookLogsResponse | null = null;
   private allLogs: WebhookLog[] = [];
   private filteredLogs: WebhookLog[] = [];
-  applicationsOptions: { id: string; name: string }[] = [];
-  callbackUrlOptions: string[] = [];
-  quickFiltersInitialValues: LogFiltersInitialValues | null = null;
+  quickFiltersInitialValues: WebhookLogsQuickFiltersInitialValues = {};
+  statusOptions: number[] = [];
+  private readonly periods = PERIODS;
+  currentFilters: WebhookLogsQuickFilters = {};
   loading = true;
-  selectedLogForDetails: WebhookLog | null = null;
-  showDetailsDrawer = false;
 
   ngOnInit(): void {
     // TODO: Replace with real backend API call
@@ -312,25 +314,29 @@ export class WebhookLogsComponent implements OnInit {
 
     // Build initial values from query params to mimic runtime logs behavior
     const qp = this.activatedRoute.snapshot.queryParams;
-    const initialStatuses: string[] = qp?.statuses ? qp.statuses.split(',') : [];
-    const initialApplications: string[] = qp?.applicationIds ? qp.applicationIds.split(',') : [];
-    const initialTimeframe: string | undefined = qp?.timeframe ?? '0';
+    const initialStatuses = qp?.statuses
+      ? qp.statuses
+          .split(',')
+          .map((status: string) => Number(status))
+          .filter((value) => !Number.isNaN(value))
+      : [];
     const initialSearch: string = qp?.search ?? '';
-
-    this.quickFiltersInitialValues = {
-      applications: initialApplications,
-      statuses: new Set(initialStatuses.map((s) => Number(s))),
-      searchTerm: initialSearch,
-      timeframe: initialTimeframe,
-    } as unknown as LogFiltersInitialValues;
+    const initialApplicationsIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',').filter(Boolean) : [];
+    const initialPeriod = this.buildInitialPeriod(qp?.period);
 
     this.webhookLogsData = webhookData;
     this.allLogs = webhookData.data;
-    this.filteredLogs = [...this.allLogs];
-    this.webhookLogsSubject$.next(webhookData);
-    // this.buildFilterOptions();
-    // this.pushPage(1, webhookData.pagination.perPage);
+    this.buildStatusOptions(initialStatuses);
+    const initialApplications = this.buildInitialApplications(initialApplicationsIds);
 
+    this.quickFiltersInitialValues = {
+      searchTerm: initialSearch || undefined,
+      statuses: initialStatuses.length ? initialStatuses : undefined,
+      applications: initialApplications?.length ? initialApplications : undefined,
+      period: initialPeriod?.value !== DEFAULT_PERIOD.value ? initialPeriod : undefined,
+    };
+
+    this.applyFilters(this.quickFiltersInitialValues);
     this.loading = false;
 
     this.openSettingsDialogIfRequested();
@@ -350,141 +356,194 @@ export class WebhookLogsComponent implements OnInit {
   // }
 
   refresh(): void {
-    // TODO: Implement refresh logic - call backend API to reload webhook logs
+    this.applyFilters(this.currentFilters);
   }
 
-  /**
-   * Client-side filtering for demo data.
-   * TODO: Replace with backend API call that sends filter params to server
-   */
-  // onFiltersChanged(filters: WebhookFilters): void {
-  //   const term = filters.searchTerm?.trim().toLowerCase() || '';
-  //   const statuses = filters.status || [];
-  //   const applications = filters.application || [];
-  //   const callbackUrls = filters.callbackUrls || [];
-  //   const timeframe = filters.timeframe;
+  onFiltersChanged(filters: WebhookLogsQuickFilters): void {
+    this.applyFilters(filters);
+  }
 
-  //   this.filteredLogs = this.allLogs.filter((log) => {
-  //     const matchesSearch = !term || this.logMatchesSearchTerm(log, term);
-  //     const matchesStatus = !statuses.length || statuses.includes(String(log.status));
-  //     const matchesApp = !applications.length || applications.includes(log.application?.id);
-  //     const matchesCallback = !callbackUrls.length || callbackUrls.includes(log.callbackUrl || log.uri);
-  //     const matchesTimeframe = this.matchesTimeframe(log.timestamp, timeframe);
+  private applyFilters(filters: WebhookLogsQuickFilters = {}): void {
+    if (!this.webhookLogsData) {
+      return;
+    }
 
-  //     return matchesSearch && matchesStatus && matchesApp && matchesCallback && matchesTimeframe;
-  //   });
+    const normalizedFilters = this.normalizeFilters(filters);
+    this.currentFilters = normalizedFilters;
 
-  //   this.webhookLogsData.pagination.totalCount = this.filteredLogs.length;
-  //   this.pushPage(1, this.webhookLogsData.pagination.perPage);
+    const searchTerm = normalizedFilters.searchTerm?.toLowerCase();
+    const statuses = normalizedFilters.statuses;
+    const applications = normalizedFilters.applications?.map((app) => app.value);
+    const periodRange = normalizedFilters.period ? this.preparePeriodRange(normalizedFilters.period) : undefined;
 
-  //   this.updateUrlParams(term, statuses, applications, callbackUrls, timeframe);
-  // }
+    this.filteredLogs = this.allLogs.filter((log) => {
+      const matchesSearch = !searchTerm || this.logMatchesSearchTerm(log, searchTerm);
+      const matchesStatus = !statuses?.length || statuses.includes(log.status);
+      const matchesApplication = !applications?.length || applications.includes(log.application?.id);
+      const matchesPeriod = !periodRange || this.logMatchesPeriod(log, periodRange);
+      return matchesSearch && matchesStatus && matchesApplication && matchesPeriod;
+    });
 
-  // /**
-  //  * TODO: Remove when backend filtering is implemented
-  //  */
-  // private logMatchesSearchTerm(log: WebhookLogModel, term: string): boolean {
-  //   const searchableFields = [log.callbackUrl, log.uri, log.requestId, log.application?.name].filter(Boolean) as string[];
+    this.webhookLogsData = {
+      ...this.webhookLogsData,
+      pagination: {
+        ...this.webhookLogsData.pagination,
+        totalCount: this.filteredLogs.length,
+      },
+    };
 
-  //   return searchableFields.some((field) => field.toLowerCase().includes(term));
-  // }
+    const perPage = this.webhookLogsData.pagination.perPage ?? (this.filteredLogs.length || 10);
+    this.pushPage(1, perPage);
+    this.updateUrlParams(normalizedFilters);
+  }
 
-  // private updateUrlParams(search: string, statuses: string[], applications: string[], callbackUrls: string[], timeframe?: string): void {
-  //   this.router.navigate(['.'], {
-  //     relativeTo: this.activatedRoute,
-  //     queryParams: {
-  //       search: search || null,
-  //       statuses: statuses.length ? statuses.join(',') : null,
-  //       applicationIds: applications.length ? applications.join(',') : null,
-  //       callbackUrls: callbackUrls.length ? callbackUrls.join(',') : null,
-  //       timeframe: timeframe || null,
-  //       page: 1,
-  //     },
-  //     queryParamsHandling: 'merge',
-  //   });
-  // }
+  private buildStatusOptions(initialStatuses: number[] = []): void {
+    const statusesSet = new Set<number>(initialStatuses);
+    this.allLogs.forEach((log) => statusesSet.add(log.status));
+    this.statusOptions = Array.from(statusesSet).sort((a, b) => a - b);
+  }
 
-  /**
-   * TODO: Remove when backend provides filter options directly
-   */
-  // private buildFilterOptions(): void {
-  //   const appsMap = new Map<string, string>();
-  //   const urlsSet = new Set<string>();
+  private normalizeFilters(filters: WebhookLogsQuickFilters = {}): WebhookLogsQuickFilters {
+    const searchTerm = filters?.searchTerm?.trim();
+    const statuses = filters?.statuses?.filter((status) => !Number.isNaN(status));
+    const uniqueStatuses = statuses?.length ? Array.from(new Set(statuses)) : undefined;
 
-  //   this.allLogs.forEach((log) => {
-  //     if (log.application?.id && log.application?.name) {
-  //       appsMap.set(log.application.id, log.application.name);
-  //     }
-  //     const url = log.callbackUrl || log.uri;
-  //     if (url) {
-  //       urlsSet.add(url);
-  //     }
-  //   });
+    const applications = filters?.applications?.length
+      ? filters.applications.filter(
+          (application, index, array) => application && array.findIndex((app) => app.value === application.value) === index,
+        )
+      : undefined;
 
-  //   this.applicationsOptions = Array.from(appsMap.entries()).map(([id, name]) => ({ id, name }));
-  //   this.callbackUrlOptions = Array.from(urlsSet);
-  // }
+    const normalized: WebhookLogsQuickFilters = {
+      searchTerm: searchTerm?.length ? searchTerm : undefined,
+      statuses: uniqueStatuses,
+      applications,
+    };
+    const normalizedPeriod = this.normalizePeriod(filters?.period);
+    if (normalizedPeriod) {
+      normalized.period = normalizedPeriod;
+    }
+    return normalized;
+  }
 
-  // /**
-  //  * TODO: Remove this when backend API with server-side pagination is implemented
-  //  */
-  // private pushPage(page: number, perPage: number) {
-  //   const start = (page - 1) * perPage;
-  //   const end = start + perPage;
-  //   const pageData = this.filteredLogs.slice(start, end);
-  //   const total = this.filteredLogs.length;
+  private normalizePeriod(period?: SimpleFilter): SimpleFilter | undefined {
+    if (!period) {
+      return undefined;
+    }
+    const match = this.periods.find((available) => available.value === period.value);
+    return match && match.value !== DEFAULT_PERIOD.value ? match : undefined;
+  }
 
-  //   const pagination = {
-  //     page,
-  //     perPage,
-  //     pageItemsCount: pageData.length,
-  //     pageCount: Math.max(1, Math.ceil(total / perPage || 1)),
-  //     totalCount: total,
-  //   };
+  private preparePeriodRange(period: SimpleFilter): { from: number; to: number } | undefined {
+    if (!period || period.value === DEFAULT_PERIOD.value) {
+      return undefined;
+    }
+    const value = period.value;
+    const operation = value.charAt(0);
+    const unit = value.charAt(value.length - 1) as unitOfTime.DurationConstructor;
+    const duration = Number(value.substring(1, value.length - 1));
+    if (Number.isNaN(duration) || !['-', '+'].includes(operation)) {
+      return undefined;
+    }
+    const now = moment();
+    const fromMoment = operation === '-' ? now.clone().subtract(duration, unit) : now.clone().add(duration, unit);
+    return { from: fromMoment.valueOf(), to: now.valueOf() };
+  }
 
-  //   this.webhookLogsSubject$.next({ pagination, data: pageData });
-  // }
+  private logMatchesPeriod(log: WebhookLog, range: { from: number; to: number }): boolean {
+    if (!log?.timestamp) {
+      return false;
+    }
+    const timestamp = new Date(log.timestamp).getTime();
+    if (Number.isNaN(timestamp)) {
+      return false;
+    }
+    return timestamp >= range.from && timestamp <= range.to;
+  }
 
-  // /**
-  //  * TODO: Remove this when backend API filtering is implemented
-  //  */
-  // private matchesTimeframe(timestampIso: string, timeframe?: string): boolean {
-  //   if (!timeframe || timeframe === '0') {
-  //     return true;
-  //   }
-  //   const durationMs = this.parseTimeframeToMs(timeframe);
-  //   if (!durationMs) {
-  //     return true;
-  //   }
-  //   const logTs = new Date(timestampIso).getTime();
-  //   const referenceNow = this.allLogs.reduce((max, l) => Math.max(max, new Date(l.timestamp).getTime()), 0);
-  //   return logTs >= referenceNow - durationMs && logTs <= referenceNow;
-  // }
+  private logMatchesSearchTerm(log: WebhookLog, term: string): boolean {
+    const searchableFields = [log.callbackUrl, log.uri, log.requestId, log.application?.name].filter(Boolean) as string[];
+    return searchableFields.some((field) => field.toLowerCase().includes(term));
+  }
 
-  // /**
-  //  * TODO: Remove this when backend API filtering is implemented
-  //  */
-  // private parseTimeframeToMs(tf: string): number | null {
-  //   const m = tf.match(/^-(\d+)([mhd])$/);
-  //   if (!m) {
-  //     return null;
-  //   }
-  //   const value = Number(m[1]);
-  //   const unit = m[2];
-  //   const minute = 60 * 1000;
-  //   const hour = 60 * minute;
-  //   const day = 24 * hour;
-  //   switch (unit) {
-  //     case 'm':
-  //       return value * minute;
-  //     case 'h':
-  //       return value * hour;
-  //     case 'd':
-  //       return value * day;
-  //     default:
-  //       return null;
-  //   }
-  // }
+  private updateUrlParams(filters: WebhookLogsQuickFilters): void {
+    const nextParams = {
+      search: filters.searchTerm ?? null,
+      statuses: filters.statuses?.length ? filters.statuses.join(',') : null,
+      applicationIds: filters.applications?.length ? filters.applications.map((app) => app.value).join(',') : null,
+      period: filters.period?.value ?? null,
+      page: 1,
+    };
+
+    if (this.areQueryParamsEqual(this.activatedRoute.snapshot.queryParams, nextParams)) {
+      return;
+    }
+
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: nextParams,
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private areQueryParamsEqual(
+    current: Params,
+    next: { search: string | null; statuses: string | null; applicationIds: string | null; period: string | null; page: number },
+  ): boolean {
+    const currentSearch = current?.search ?? null;
+    const currentStatuses = current?.statuses ?? null;
+    const currentPage = current?.page ? Number(current.page) : null;
+    const currentApplications = current?.applicationIds ?? null;
+    const currentPeriod = current?.period ?? null;
+
+    return (
+      currentSearch === next.search &&
+      currentStatuses === next.statuses &&
+      currentApplications === next.applicationIds &&
+      currentPeriod === next.period &&
+      (currentPage ?? 1) === next.page
+    );
+  }
+
+  private pushPage(page: number, perPage: number): void {
+    const safePerPage = perPage > 0 ? perPage : this.filteredLogs.length || 1;
+    const start = (page - 1) * safePerPage;
+    const end = start + safePerPage;
+    const pageData = this.filteredLogs.slice(start, end);
+    const total = this.filteredLogs.length;
+
+    const pagination = {
+      page,
+      perPage: safePerPage,
+      pageItemsCount: pageData.length,
+      pageCount: Math.max(1, Math.ceil(total / safePerPage || 1)),
+      totalCount: total,
+    };
+
+    this.webhookLogsSubject$.next({ pagination, data: pageData });
+  }
+
+  private buildInitialPeriod(periodValue?: string): SimpleFilter {
+    if (!periodValue) {
+      return DEFAULT_PERIOD;
+    }
+    return this.periods.find((period) => period.value === periodValue) ?? DEFAULT_PERIOD;
+  }
+
+  private buildInitialApplications(ids: string[]): MultiFilter | undefined {
+    if (!ids?.length) {
+      return undefined;
+    }
+    const applicationMap = this.allLogs.reduce((map, log) => {
+      if (log.application?.id && log.application?.name) {
+        map.set(log.application.id, log.application.name);
+      }
+      return map;
+    }, new Map<string, string>());
+
+    const applications = ids.map((id) => ({ value: id, label: applicationMap.get(id) ?? id }));
+    return applications.length ? applications : undefined;
+  }
 
   openSettingsDialog(): void {
     const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {

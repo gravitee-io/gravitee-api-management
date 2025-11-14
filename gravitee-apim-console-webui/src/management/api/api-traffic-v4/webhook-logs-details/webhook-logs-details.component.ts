@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isNumber } from 'angular';
+
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { editor } from 'monaco-editor';
-import { isNumber } from 'angular';
 
 import { HttpMethod } from '../../../../entities/management-api-v2';
 import { WebhookLog } from '../webhook-logs/models';

@@ -26,14 +26,13 @@
 }
 
 <mat-card>
-  <!-- <webhook-logs-quick-filters
+  <webhook-logs-quick-filters
     [loading]="loading"
+    [availableStatuses]="statusOptions"
     [initialValues]="quickFiltersInitialValues"
-    [applications]="applicationsOptions"
-    [callbackUrls]="callbackUrlOptions"
-    (refresh)="refresh()"
     (filtersChanged)="onFiltersChanged($event)"
-  ></webhook-logs-quick-filters> -->
+    (refresh)="refresh()"
+  ></webhook-logs-quick-filters>
 
   @if (webhookLogsSubject$ | async; as logs) {
     <webhook-logs-list

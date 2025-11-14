@@ -17,6 +17,7 @@
 import { Moment } from 'moment';
 
 import { ConnectionLog, Pagination } from '../../../../../entities/management-api-v2';
+import { MultiFilter, SimpleFilter } from '../../runtime-logs/models';
 
 /**
  * Webhook-specific additional metrics from backend
@@ -68,3 +69,19 @@ export interface WebhookMoreFiltersForm {
   to?: Moment | null;
   callbackUrls?: string[];
 }
+
+export interface WebhookLogsQuickFilters {
+  searchTerm?: string;
+  statuses?: number[];
+  applications?: MultiFilter;
+  period?: SimpleFilter;
+}
+
+export interface WebhookLogsQuickFiltersInitialValues {
+  searchTerm?: string;
+  statuses?: number[];
+  applications?: MultiFilter;
+  period?: SimpleFilter;
+}
+
+export const DEFAULT_WEBHOOK_LOGS_FILTERS: WebhookLogsQuickFilters = {};

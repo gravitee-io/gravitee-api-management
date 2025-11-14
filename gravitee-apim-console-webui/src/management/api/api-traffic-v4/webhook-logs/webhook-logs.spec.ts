@@ -159,6 +159,31 @@ describe('WebhookLogsComponent', () => {
     });
   });
 
+  it('should filter logs when quick filters change', async () => {
+    await setupComponent();
+
+    fixture.componentInstance.onFiltersChanged({ statuses: [500] });
+    fixture.detectChanges();
+
+    const logsListHarness = await harness.getLogsList();
+    expect(await logsListHarness!.countRows()).toBe(3);
+
+    fixture.componentInstance.onFiltersChanged({
+      statuses: [500],
+      searchTerm: 'monitoring',
+    });
+    fixture.detectChanges();
+
+    expect(await logsListHarness!.countRows()).toBe(1);
+
+    fixture.componentInstance.onFiltersChanged({
+      applications: [{ value: 'app-1', label: 'Acme Warehouse Service' }],
+    });
+    fixture.detectChanges();
+
+    expect(await logsListHarness!.countRows()).toBe(1);
+  });
+
   it('should open the settings dialog when clicking the Configure Reporting button', async () => {
     await setupComponent();
 
