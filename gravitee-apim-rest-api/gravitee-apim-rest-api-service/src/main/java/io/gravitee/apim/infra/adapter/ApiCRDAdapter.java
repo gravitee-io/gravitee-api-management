@@ -103,12 +103,8 @@ public interface ApiCRDAdapter {
             .filter(plan -> !plan.isClosed())
             .toList();
         for (var plan : nonClosedPlans) {
-            if (plan.getHrid() == null) {
-                var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
-                plansMap.put(key, toCRDPlan(plan));
-            } else {
-                plansMap.put(plan.getHrid(), toCRDPlan(plan));
-            }
+            var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
+            plansMap.put(key, toCRDPlan(plan));
         }
         return plansMap;
     }
@@ -135,7 +131,7 @@ public interface ApiCRDAdapter {
             ? definition
                 .getMembers()
                 .stream()
-                .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().get(0).getName()))
+                .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().getFirst().getName()))
                 .collect(Collectors.toSet())
             : null;
     }
