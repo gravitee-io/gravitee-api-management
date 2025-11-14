@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.annotation.Nonnull;
 import java.util.UUID;
 
-public class PortalNavigationItemId {
+public class PortalNavigationItemId implements Comparable<PortalNavigationItemId> {
 
     @Nonnull
     private final UUID id;
@@ -61,5 +61,10 @@ public class PortalNavigationItemId {
     @Override
     public String toString() {
         return id.toString();
+    }
+
+    @Override
+    public int compareTo(PortalNavigationItemId other) {
+        return this.id.compareTo(other.id);
     }
 }
