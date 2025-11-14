@@ -15,7 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-export class AddSectionDialogHarness extends ComponentHarness {
-  static hostSelector = 'add-section-dialog';
+export class SectionEditorDialogHarness extends ComponentHarness {
+  static hostSelector = 'section-editor-dialog';
 }
 

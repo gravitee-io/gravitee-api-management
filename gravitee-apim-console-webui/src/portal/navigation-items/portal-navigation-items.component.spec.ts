@@ -21,7 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 
 import { PortalNavigationItemsComponent } from './portal-navigation-items.component';
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
-import { AddSectionDialogHarness } from './add-section-dialog/add-section-dialog.harness';
+import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 
 import { GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -62,7 +62,7 @@ describe('PortalNavigationItemsComponent', () => {
         await harness.clickAddButton();
         await harness.clickPageMenuItem();
 
-        const dialogHarness = await rootLoader.getHarness(AddSectionDialogHarness);
+        const dialogHarness = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(dialogHarness).toBeTruthy();
       });
     });

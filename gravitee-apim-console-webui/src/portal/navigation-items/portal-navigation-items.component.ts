@@ -34,10 +34,10 @@ import {MatMenuItem, MatMenuModule, MatMenuTrigger} from "@angular/material/menu
 import {MatIconModule} from "@angular/material/icon";
 import {MatDialog} from "@angular/material/dialog";
 import {
-  AddSectionDialogComponent,
-  AddSectionDialogData,
-  AddSectionDialogResult
-} from "./add-section-dialog/add-section-dialog.component";
+  SectionEditorDialogComponent,
+  SectionEditorDialogData,
+  SectionEditorDialogResult
+} from "./section-editor-dialog/section-editor-dialog.component";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 
 @Component({
@@ -113,15 +113,16 @@ export class PortalNavigationItemsComponent implements OnInit {
   }
 
   onAddPageClick() {
-    this.matDialog.open<AddSectionDialogComponent, AddSectionDialogData>(AddSectionDialogComponent, {
+    this.matDialog.open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
       width: GIO_DIALOG_WIDTH.MEDIUM,
       data: {
         type: 'PAGE',
+        mode: 'create',
       },
     }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result: AddSectionDialogResult) => {
+      next: (result: SectionEditorDialogResult) => {
         if (result) {
-          this.snackBarService.success(`Section with id ${result.id} added (not really, this is a mock).`);
+          // this.snackBarService.success(`Section with id ${result.id} added (not really, this is a mock).`);
         }
       }
     });
