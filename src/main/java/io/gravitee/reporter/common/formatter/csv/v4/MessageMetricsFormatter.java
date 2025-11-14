@@ -60,6 +60,7 @@ public class MessageMetricsFormatter
     appendLong(buffer, metrics.getErrorCountIncrement());
     appendBoolean(buffer, metrics.isError());
     appendLong(buffer, metrics.getGatewayLatencyMs());
+    appendAdditional(metrics, buffer);
 
     for (
       Iterator<String> i = customMetrics.keySet().iterator();

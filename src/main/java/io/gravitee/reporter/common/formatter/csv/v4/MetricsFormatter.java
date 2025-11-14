@@ -72,32 +72,9 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
     appendString(
       buffer,
       metrics.getSecurityToken() != null ? metrics.getApiId() : null,
-      customMetrics.isEmpty()
+      customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty()
     );
-    var longAdditionalMetrics = metrics.longAdditionalMetrics();
-    if (longAdditionalMetrics != null) {
-      longAdditionalMetrics
-        .values()
-        .forEach(value -> appendLong(buffer, value));
-    }
-    var doubleAdditionalMetrics = metrics.doubleAdditionalMetrics();
-    if (doubleAdditionalMetrics != null) {
-      doubleAdditionalMetrics
-        .values()
-        .forEach(value -> appendString(buffer, value.toString()));
-    }
-    var keywordAdditionalMetrics = metrics.keywordAdditionalMetrics();
-    if (keywordAdditionalMetrics != null) {
-      keywordAdditionalMetrics
-        .values()
-        .forEach(value -> appendString(buffer, value));
-    }
-    var boolAdditionalMetrics = metrics.boolAdditionalMetrics();
-    if (boolAdditionalMetrics != null) {
-      boolAdditionalMetrics
-        .values()
-        .forEach(value -> appendBoolean(buffer, value));
-    }
+    appendAdditional(metrics, buffer);
 
     for (
       Iterator<String> i = customMetrics.keySet().iterator();

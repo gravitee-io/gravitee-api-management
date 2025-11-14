@@ -5,6 +5,7 @@
   "apiName": "API Name",
   "clientIdentifier": "b6cf5bd6081fb775fc3f89927e582d7e945f955c35b73a07879d75bb4ea96a01",
   "correlationId": "10e949d4-fa38-4ff4-a139-1358bbacd127",
+  "parentCorrelationId": null,
   "operation": "SUBSCRIBE",
   "connectorType": "ENTRYPOINT",
   "connectorId": "http-get",
@@ -18,5 +19,13 @@
   "customMetrics": {
     "zone": "europe-west10-a"
   },
-  "additionalMetrics": []
+  "additionalMetrics": [
+    { "name": "long_tokenCount", "value": 12 },
+    { "name": "double_valueAvg", "value": 12.6 },
+    { "name": "keyword_name", "value": "the name" },
+    { "name": "bool_name", "value": true },
+    { "name": "int_name", "value": 42 },
+    { "name": "string_name", "value": "the string name" },
+    { "name": "json_name", "value": "{\"hello\":\"world\"}" }
+  ]
 }

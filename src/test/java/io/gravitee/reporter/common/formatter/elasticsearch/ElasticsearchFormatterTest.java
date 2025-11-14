@@ -52,11 +52,11 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
       "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
       "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
       "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
+      "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
       "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, elasticsearch/v4/event-metrics.json",
     }
   )
   @ParameterizedTest(name = "{0}")
-  @SuppressWarnings({ "unused", "ResultOfMethodCallIgnored" })
   void should_format(
     String testName,
     String className,
@@ -93,7 +93,6 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
     }
   )
   @ParameterizedTest(name = "{0}")
-  @SuppressWarnings({ "unused", "ResultOfMethodCallIgnored" })
   void should_format_with_options(
     String testName,
     String className,
@@ -123,7 +122,6 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
   }
 
   @Test
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   void should_format_monitor() throws IOException {
     var utcZone = ZoneId.of("UTC");
 
@@ -144,7 +142,6 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
   }
 
   @Test
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   void should_format_monitor_with_options() throws IOException {
     var utcZone = ZoneId.of("UTC");
 
