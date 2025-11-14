@@ -1172,6 +1172,7 @@ gateway:
     # redis:
     #   host: redis
     #   port: 6379
+    #   username: # Optional: Redis username for ACL authentication
     #   password:
     #   ssl: false
     #   hostnameVerificationAlgorithm: NONE
