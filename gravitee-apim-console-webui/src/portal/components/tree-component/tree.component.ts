@@ -18,6 +18,7 @@ import { Component, computed, effect, input, output } from '@angular/core';
 import { TreeNodeComponent } from './tree-node.component';
 
 import { PortalMenuLink } from '../../../entities/management-api-v2';
+import { PortalTreeHelperService } from '../../../services/portal-tree-helper.service';
 
 export type SectionNodeType = 'page' | 'folder' | 'link';
 
@@ -28,21 +29,6 @@ export interface SectionNode {
   data?: PortalMenuLink;
   children?: SectionNode[];
 }
-
-interface ApiPortalMenuLink {
-  id: string;
-  name: string;
-  type: string;
-  target?: string | null;
-  visibility: string;
-  order: number;
-  parentId?: string | null;
-}
-
-type ProcessingNode = SectionNode & {
-  __order: number;
-  __parentId: string | null;
-};
 
 @Component({
   selector: 'portal-tree-component',
@@ -55,107 +41,27 @@ export class TreeComponent {
   links = input<PortalMenuLink[] | null>(null);
   tree = computed(() => {
     const links = this.links();
-    return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
+    return links && Array.isArray(links) ? this.helper.mapLinksToNodes(links) : [];
   });
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-  pageNotFound = output<void>();
 
-  constructor() {
+  constructor(private readonly helper: PortalTreeHelperService) {
     effect(() => {
       const currentTree = this.tree();
       const currentSelectedId = this.selectedId();
 
       if (currentTree.length > 0) {
         const isPageIdProvided = currentSelectedId !== null;
-        const pageExists = isPageIdProvided && this.findNode(currentTree, (node) => node.id === currentSelectedId);
-
-        if (isPageIdProvided && !pageExists) {
-          this.pageNotFound.emit();
-          return;
-        }
-
+        isPageIdProvided && this.helper.findNode(currentTree, (node) => node.id === currentSelectedId);
         if (!isPageIdProvided) {
-          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'page');
+          const firstPageNode = this.helper.findNode(currentTree, (node) => node.type === 'page');
           if (firstPageNode) {
             this.select.emit(firstPageNode);
           }
         }
       }
     });
-  }
-
-  private findNode(nodes: SectionNode[], predicate: (node: SectionNode) => boolean): SectionNode | null {
-    for (const node of nodes) {
-      if (predicate(node)) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNode(node.children, predicate);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
-    const nodesById = this.createNodesMap(links);
-    const roots = this.connectNodes(nodesById);
-    return this.sortAndCleanTree(roots);
-  }
-
-  private createNodesMap(links: ApiPortalMenuLink[]): Map<string, ProcessingNode> {
-    const nodes = new Map<string, ProcessingNode>();
-
-    for (const link of links) {
-      const type = this.getNodeType(link);
-
-      nodes.set(link.id, {
-        id: link.id,
-        label: link.name,
-        type,
-        data: link as PortalMenuLink,
-        children: type === 'folder' ? [] : undefined,
-        __order: link.order ?? 0,
-        __parentId: link.parentId ?? null,
-      } as ProcessingNode);
-    }
-    return nodes;
-  }
-
-  private connectNodes(nodes: Map<string, ProcessingNode>): ProcessingNode[] {
-    const roots: ProcessingNode[] = [];
-
-    for (const node of nodes.values()) {
-      const parent = node.__parentId ? nodes.get(node.__parentId) : null;
-      if (parent) {
-        parent.children ??= [];
-        parent.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    }
-
-    return roots;
-  }
-
-  private sortAndCleanTree(nodes: ProcessingNode[]): SectionNode[] {
-    return nodes
-      .sort((a, b) => a.__order - b.__order)
-      .map(({ __order, __parentId, ...node }) => ({
-        ...node,
-        children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
-      }));
-  }
-
-  private getNodeType(link: ApiPortalMenuLink) {
-    if (link.target === null || link.type === 'FOLDER') {
-      return 'folder';
-    }
-    if (['LINK', 'EXTERNAL'].includes(link.type)) {
-      return 'link';
-    }
-    return 'page';
   }
 }
