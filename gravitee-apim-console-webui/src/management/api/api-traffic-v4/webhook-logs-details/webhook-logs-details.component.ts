@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular from 'angular';
-
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { editor } from 'monaco-editor';
 
+import { HttpMethod } from '../../../../entities/management-api-v2';
 import { WebhookLog } from '../webhook-logs/models';
 
 type OverviewItem = { label: string; value: string | number; variant?: 'success' | 'warning' | 'error' };
@@ -172,7 +171,7 @@ export class WebhookLogsDetailsComponent {
       }>;
       return parsed.map((item, index) => ({
         attempt: item.attempt ?? index + 1,
-        timestamp: angular.isNumber(item.timestamp) ? new Date(item.timestamp).toISOString() : item.timestamp,
+        timestamp: typeof item.timestamp === 'number' ? new Date(item.timestamp).toISOString() : item.timestamp,
         duration: item.duration,
         status: item.status,
         reason: item.reason,
@@ -240,29 +239,15 @@ export class WebhookLogsDetailsComponent {
     return date.toLocaleString();
   }
 
-  private buildInitials(name?: string | null): string {
-    if (!name) {
-      return 'WH';
-    }
-    const parts = name.trim().split(/\s+/);
-    if (!parts.length) {
-      return 'WH';
-    }
-    return parts
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('');
-  }
-
   private buildSampleLog(): WebhookLog {
     return {
       apiId: 'api-sample',
       requestId: this.requestId ?? 'req-sample',
       timestamp: '2025-06-15T12:00:00.000Z',
-      method: 'POST' as any,
+      method: 'POST' as HttpMethod,
       status: 200,
-      application: { id: 'app-1', name: 'Postman Monitoring', type: 'SIMPLE' as any, apiKeyMode: 'UNSPECIFIED' },
-      plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' as any },
+      application: { id: 'app-1', name: 'Postman Monitoring', type: 'SIMPLE', apiKeyMode: 'UNSPECIFIED' },
+      plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' },
       requestEnded: true,
       gatewayResponseTime: 2800,
       uri: 'https://warehouse.acme.com/webhooks/fulfillment',
