@@ -13,15 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
 
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { WebhookLogsModule } from './webhook-logs/webhook-logs.module';
-import { WebhookLogsDetailsModule } from './webhook-logs-details/webhook-logs-details.module';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, WebhookLogsModule, WebhookLogsDetailsModule],
-})
-export class ApiTrafficV4Module {}
+.table-wrapper {
+  border-top: 0;
+}
+
+.table {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .mat-column-timestamp {
+    min-width: 100px;
+    width: 200px;
+  }
+
+  .mat-column-actions {
+    width: 0;
+  }
+
+  .mat-column-timestamp,
+  .mat-column-actions {
+    padding: 0 8px;
+  }
+}

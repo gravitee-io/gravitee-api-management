@@ -1,0 +1,27 @@
+.overview {
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: 960px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+
+    dt {
+      @include mat.m2-typography-level($typography, caption);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      flex: 0 0 120px;
+    }
+
+    dd {
+      margin: 0;
+      flex: 1;
+      text-align: right;
+    }
+  }
+}

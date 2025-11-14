@@ -22,7 +22,7 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV4 } from '../../../entities/management-api-v2';
+import { ApiLifecycleState, ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 import { ApiType } from '../../../entities/management-api-v2/api/v4/apiType';
@@ -39,7 +39,8 @@ export class ApiV4MenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
+    const hasTcpListeners = api.listeners?.some((listener) => listener.type === 'TCP') ?? false;
+    const webhooksMenuEntry = this.addWebhooksMenuEntry(api);
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
@@ -52,19 +53,18 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       ...(api.type !== 'LLM_PROXY' ? [this.addApiTrafficMenuEntry(hasTcpListeners, api.type)] : []),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
+      ...(webhooksMenuEntry ? [webhooksMenuEntry] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
-    ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
+    ].filter((entry): entry is MenuItem => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
   }
 
   private addConfigurationMenuEntry(): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : '')));
 
     const tabs: MenuItem[] = [
       {
@@ -317,7 +317,9 @@ export class ApiV4MenuService implements ApiMenuService {
           text: 'Open API in Developer Portal',
           targetUrl: this.apiDocumentationV2Service.getApiPortalUrl(api.id),
           disabled: api.lifecycleState !== 'PUBLISHED',
-          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(api.lifecycleState),
+          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(
+            (api.lifecycleState ?? 'UNPUBLISHED') as ApiLifecycleState,
+          ),
         },
       },
       tabs: tabs,
@@ -373,7 +375,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addApiTrafficMenuEntry(hasTcpListeners: boolean, apiType: ApiType): MenuItem {
+  private addApiTrafficMenuEntry(hasTcpListeners: boolean, apiType: ApiType): MenuItem | null {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       const baseMenuItem = {
         displayName: 'API Traffic',
@@ -394,7 +396,7 @@ export class ApiV4MenuService implements ApiMenuService {
     return null;
   }
 
-  private addLogs(hasTcpListeners: boolean): MenuItem {
+  private addLogs(hasTcpListeners: boolean): MenuItem | null {
     if (this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
       return {
         displayName: 'Logs',
@@ -443,6 +445,27 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       routerLink: 'v4/debug',
       tabs: undefined,
+    };
+  }
+
+  private addWebhooksMenuEntry(api: ApiV4): MenuItem | null {
+    const hasWebhookEntrypoint =
+      api.listeners?.some(
+        (listener) => listener.type === 'SUBSCRIPTION' && listener.entrypoints?.some((entrypoint) => entrypoint.type === 'webhook'),
+      ) ?? false;
+
+    if (!hasWebhookEntrypoint) {
+      return null;
+    }
+
+    if (!this.permissionService.hasAnyMatching(['api-definition-u'])) {
+      return null;
+    }
+
+    return {
+      displayName: 'Webhooks',
+      icon: 'webhook',
+      routerLink: 'v4/webhook-logs',
     };
   }
 }
