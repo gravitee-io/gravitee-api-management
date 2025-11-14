@@ -1,8 +1,5 @@
-.table {
-  .diagnostics-container {
-    .gio-badge-error,
-    .gio-badge-warning {
-      margin: 2px;
-    }
-  }
+.callback-url {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }

@@ -40,26 +40,26 @@ export class WebhookLogsListComponent {
   logDetailsClicked = output<WebhookLog>();
 
   readonly columns = computed<LogsListColumnDef[]>(() => {
-    const baseTemplates = [
-      this.timestampTemplate(),
-      this.statusTemplate(),
-      this.callbackUrlTemplate(),
-      this.applicationTemplate(),
-      this.sentToDlqTemplate(),
-      this.actionsTemplate(),
-    ];
+    const templates = {
+      timestamp: this.timestampTemplate(),
+      status: this.statusTemplate(),
+      callbackUrl: this.callbackUrlTemplate(),
+      application: this.applicationTemplate(),
+      sentToDlq: this.sentToDlqTemplate(),
+      actions: this.actionsTemplate(),
+    };
 
-    if (baseTemplates.some((tpl) => !tpl)) {
+    if (Object.values(templates).some((tpl) => !tpl)) {
       return [];
     }
 
     return [
-      { id: 'timestamp', label: 'Timestamp', template: this.timestampTemplate()! },
-      { id: 'status', label: 'Status', template: this.statusTemplate()! },
-      { id: 'callbackUrl', label: 'Callback URL', template: this.callbackUrlTemplate()! },
-      { id: 'application', label: 'Application', template: this.applicationTemplate()! },
-      { id: 'sentToDlq', label: 'Sent to DLQ', template: this.sentToDlqTemplate()! },
-      { id: 'actions', label: '', template: this.actionsTemplate()! },
+      { id: 'timestamp', label: 'Timestamp', template: templates.timestamp! },
+      { id: 'status', label: 'Status', template: templates.status! },
+      { id: 'callbackUrl', label: 'Callback URL', template: templates.callbackUrl! },
+      { id: 'application', label: 'Application', template: templates.application! },
+      { id: 'sentToDlq', label: 'Sent to DLQ', template: templates.sentToDlq! },
+      { id: 'actions', label: '', template: templates.actions! },
     ];
   });
 
