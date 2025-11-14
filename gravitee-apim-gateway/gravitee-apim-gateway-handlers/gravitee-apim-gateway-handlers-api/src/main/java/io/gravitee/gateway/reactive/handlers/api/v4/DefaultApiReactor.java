@@ -542,9 +542,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
             }
 
             if (analyticsContext.isTracingEnabled()) {
-                if (analyticsContext.getTracingContext().isVerbose()) {
-                    processorChainHooks.add(new TracingHook("Processor chain"));
-                }
                 invokerHooks.add(new InvokerTracingHook("Invoker"));
                 httpSecurityChain.addHooks(new TracingHook("Security"));
             }
