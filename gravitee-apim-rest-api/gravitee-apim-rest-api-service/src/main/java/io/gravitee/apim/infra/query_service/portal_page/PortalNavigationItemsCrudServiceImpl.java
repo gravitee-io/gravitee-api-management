@@ -50,7 +50,6 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 portalNavigationItem.getId(),
                 portalNavigationItem.getEnvironmentId()
             );
-            logger.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -67,7 +66,6 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 portalNavigationItem.getId(),
                 portalNavigationItem.getEnvironmentId()
             );
-            logger.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -81,7 +79,6 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 "An error occurred while creating portal navigation item with id %s",
                 portalNavigationItemId
             );
-            logger.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }

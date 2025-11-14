@@ -72,15 +72,13 @@ public class CreatePortalNavigationItemUseCase {
         if (parentId != null) {
             final var parentItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(item.getEnvironmentId(), parentId);
             if (parentItem == null) {
-                throw new ParentNotFoundException(String.format("Parent item with id %s does not exist", parentId));
+                throw new ParentNotFoundException(parentId.toString());
             }
             if (!parentItem.getClass().equals(PortalNavigationFolder.class)) {
-                throw new ParentTypeMismatchException(String.format("Parent item with id %s is not a folder", parentId));
+                throw new ParentTypeMismatchException(parentId.toString());
             }
             if (!parentItem.getArea().equals(item.getArea())) {
-                throw new ParentAreaMismatchException(
-                    String.format("Parent item with id %s belongs to a different area than the child item", parentId)
-                );
+                throw new ParentAreaMismatchException(parentId.toString());
             }
         }
 
@@ -90,7 +88,7 @@ public class CreatePortalNavigationItemUseCase {
                 item.getArea()
             );
             if (!existingHomepage.isEmpty()) {
-                throw new HomepageAlreadyExistsException("Homepage already exists");
+                throw new HomepageAlreadyExistsException();
             }
         }
 

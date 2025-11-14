@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 

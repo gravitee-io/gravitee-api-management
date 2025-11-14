@@ -41,7 +41,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PAGE, acls = { RolePermissionAction.UPDATE }) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortalNavigationItem(@Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem) {

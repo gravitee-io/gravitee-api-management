@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class ParentNotFoundException extends ValidationDomainException {
 
-    public ParentNotFoundException(String message) {
-        super(message);
+    public ParentNotFoundException(String parentId) {
+        super(String.format("Parent item with id %s does not exist", parentId));
     }
 }

@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class ParentTypeMismatchException extends ValidationDomainException {
 
-    public ParentTypeMismatchException(String message) {
-        super(message);
+    public ParentTypeMismatchException(String parentId) {
+        super(String.format("Parent item with id %s is not a folder", parentId));
     }
 }

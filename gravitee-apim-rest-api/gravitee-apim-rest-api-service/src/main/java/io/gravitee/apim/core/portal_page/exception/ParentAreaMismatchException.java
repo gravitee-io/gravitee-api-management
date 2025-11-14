@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class ParentAreaMismatchException extends ValidationDomainException {
 
-    public ParentAreaMismatchException(String message) {
-        super(message);
+    public ParentAreaMismatchException(String parentId) {
+        super(String.format("Parent item with id %s belongs to a different area than the child item", parentId));
     }
 }

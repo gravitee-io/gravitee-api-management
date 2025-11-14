@@ -24,7 +24,6 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
-import io.gravitee.apim.core.portal_page.exception.PortalPageSpecificationException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
