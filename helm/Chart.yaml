@@ -37,4 +37,9 @@ annotations:
       links:
         - name: GitHub Issue
           url: https://github.com/gravitee-io/issues/issues/10533
+    - kind: added
+      description: 'allow redis rate limit configuration to use username for acl configuration'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10966
 

@@ -264,4 +264,29 @@ public class RedisConnectionFactoryTest {
         assertThat(options.getNetClientOptions().getConnectTimeout()).isEqualTo(1234);
         assertThat(options.getNetClientOptions().getIdleTimeout()).isEqualTo(5678);
     }
+
+    @Test
+    void shouldReturnRedisOptionsWithUsernameAndPassword() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.username", "testuser");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.password", "testpass");
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        assertThat(options).isNotNull();
+        assertThat(options.getEndpoint()).isEqualTo("redis://testuser:testpass@redis:6379");
+    }
+
+    @Test
+    void shouldReturnRedisOptionsWithOnlyPassword() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.password", "testpass");
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        assertThat(options).isNotNull();
+        assertThat(options.getEndpoint()).isEqualTo("redis://:testpass@redis:6379");
+    }
 }

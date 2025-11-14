@@ -449,6 +449,9 @@ data:
       redis:
         host: {{ .Values.gateway.ratelimit.redis.host }}
         port: {{ .Values.gateway.ratelimit.redis.port }}
+        {{- if .Values.gateway.ratelimit.redis.username }}
+        username: {{ .Values.gateway.ratelimit.redis.username }}
+        {{- end }}
         {{- if .Values.gateway.ratelimit.redis.password }}
         password: {{ .Values.gateway.ratelimit.redis.password }}
         {{- end }}
