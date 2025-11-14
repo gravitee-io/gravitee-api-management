@@ -127,7 +127,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
         });
     }
 
@@ -152,7 +152,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
         });
     }
 

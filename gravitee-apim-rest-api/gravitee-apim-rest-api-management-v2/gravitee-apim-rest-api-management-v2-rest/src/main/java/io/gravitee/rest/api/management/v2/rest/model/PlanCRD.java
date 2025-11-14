@@ -33,6 +33,8 @@ public class PlanCRD {
     @NotEmpty
     private String id;
 
+    private String hrid;
+
     private String crossId;
 
     private String name;
