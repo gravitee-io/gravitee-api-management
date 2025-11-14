@@ -58,7 +58,6 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
             eventProducer,
             node,
             port,
-            tracing,
             gatewayConfiguration,
             connectionDrainManager
         );

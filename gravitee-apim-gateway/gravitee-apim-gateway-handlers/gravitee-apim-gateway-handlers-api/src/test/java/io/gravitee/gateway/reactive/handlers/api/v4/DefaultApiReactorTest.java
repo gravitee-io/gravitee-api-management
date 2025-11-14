@@ -316,12 +316,12 @@ class DefaultApiReactorTest {
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
         lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
         lenient().when(apiDefinition.getAnalytics()).thenReturn(new Analytics());
-        lenient().when(apiProcessorChainFactory.beforeHandle(api, tracingContext)).thenReturn(beforeHandleProcessors);
-        lenient().when(apiProcessorChainFactory.afterHandle(api, tracingContext)).thenReturn(afterHandleProcessors);
-        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api, tracingContext)).thenReturn(beforeSecurityChainProcessors);
-        lenient().when(apiProcessorChainFactory.beforeApiExecution(api, tracingContext)).thenReturn(beforeApiExecutionProcessors);
-        lenient().when(apiProcessorChainFactory.afterApiExecution(api, tracingContext)).thenReturn(afterApiExecutionProcessors);
-        lenient().when(apiProcessorChainFactory.onError(api, tracingContext)).thenReturn(onErrorProcessors);
+        lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
+        lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
+        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api)).thenReturn(beforeSecurityChainProcessors);
+        lenient().when(apiProcessorChainFactory.beforeApiExecution(api)).thenReturn(beforeApiExecutionProcessors);
+        lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
+        lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
 
         lenient().when(flowChainFactory.createOrganizationFlow(api, tracingContext)).thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);

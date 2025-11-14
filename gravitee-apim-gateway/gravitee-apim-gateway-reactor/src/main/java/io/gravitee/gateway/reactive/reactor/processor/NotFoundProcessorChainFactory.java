@@ -49,7 +49,6 @@ public class NotFoundProcessorChainFactory {
         final Environment environment,
         final ReporterService reporterService,
         boolean notFoundAnalyticsEnabled,
-        boolean tracing,
         GatewayConfiguration gatewayConfiguration
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
@@ -57,9 +56,6 @@ public class NotFoundProcessorChainFactory {
         this.reporterService = reporterService;
         this.notFoundAnalyticsEnabled = notFoundAnalyticsEnabled;
         this.gatewayConfiguration = gatewayConfiguration;
-        if (tracing) {
-            processorHooks.add(new TracingHook("processor"));
-        }
     }
 
     public ProcessorChain processorChain() {

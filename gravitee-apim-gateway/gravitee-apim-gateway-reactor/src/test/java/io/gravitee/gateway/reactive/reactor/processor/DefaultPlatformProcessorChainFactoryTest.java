@@ -93,7 +93,6 @@ class DefaultPlatformProcessorChainFactoryTest {
                 eventProducer,
                 node,
                 "8080",
-                false,
                 gatewayConfiguration,
                 connectionDrainManager
             );
@@ -117,7 +116,6 @@ class DefaultPlatformProcessorChainFactoryTest {
                 eventProducer,
                 node,
                 "8080",
-                false,
                 gatewayConfiguration,
                 connectionDrainManager
             );
@@ -144,7 +142,6 @@ class DefaultPlatformProcessorChainFactoryTest {
                 eventProducer,
                 node,
                 "8080",
-                false,
                 gatewayConfiguration,
                 connectionDrainManager
             );
@@ -167,7 +164,6 @@ class DefaultPlatformProcessorChainFactoryTest {
                 eventProducer,
                 node,
                 "8080",
-                false,
                 gatewayConfiguration,
                 connectionDrainManager
             );
