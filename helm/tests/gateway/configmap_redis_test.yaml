@@ -19,6 +19,27 @@ tests:
             \s redis:
             \s   host: redis
             \s   port: 6379
+  - it: Set host and port with username and password for ACL authentication
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            username: myuser
+            password: mypassword
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
+            \s   username: myuser
+            \s   password: mypassword
   - it: Set host and port with password and ssl enabled
     template: gateway/gateway-configmap.yaml
     set:

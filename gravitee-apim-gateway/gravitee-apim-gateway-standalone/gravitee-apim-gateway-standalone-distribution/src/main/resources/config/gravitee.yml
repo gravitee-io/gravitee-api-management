@@ -418,6 +418,7 @@ ratelimit:
   mongodb:
     uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
 #  redis:
+#    username: # Optional: Redis username for ACL authentication
 #    password:
 #    # Redis Standalone settings
 #    host: localhost
