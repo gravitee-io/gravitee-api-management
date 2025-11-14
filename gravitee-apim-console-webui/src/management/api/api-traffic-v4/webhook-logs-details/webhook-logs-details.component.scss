@@ -81,6 +81,13 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     justify-content: flex-end;
   }
+
+  &--failure {
+    margin: 24px;
+    background: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+    box-shadow: 0 1px 4px rgba(16, 24, 40, 0.08);
+  }
 }
 
 .overview {
@@ -189,6 +196,109 @@ $typography: map.get(gio.$mat-theme, typography);
   margin: 0;
   color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   @include mat.m2-typography-level($typography, caption);
+}
+
+.failure {
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    margin: 0;
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'darker');
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  &__subtitle {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    font-size: 13px;
+  }
+
+  &__details {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 0;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 8px;
+    align-items: start;
+  }
+
+  dt {
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker40');
+    word-break: break-word;
+  }
+
+  &__message {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__message-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+
+  pre {
+    margin: 0;
+    background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'Source Code Pro', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__warnings {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__warnings-title {
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker40');
+  }
+
+  &__warnings ul {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__warnings-key {
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  &__warnings-message {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
 }
 
 .placeholder {

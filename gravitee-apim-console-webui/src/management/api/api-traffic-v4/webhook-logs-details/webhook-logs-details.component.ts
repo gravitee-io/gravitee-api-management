@@ -19,8 +19,9 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { editor } from 'monaco-editor';
 
-import { HttpMethod } from '../../../../entities/management-api-v2';
+import { ConnectionLogDiagnostic } from '../../../../entities/management-api-v2/log/connectionLog';
 import { WebhookLog } from '../webhook-logs/models';
+import { getWebhookLogMockByRequestId, WEBHOOK_SAMPLE_LOG } from '../webhook-logs/mocks/webhook-logs.mock';
 
 type OverviewItem = { label: string; value: string | number; variant?: 'success' | 'warning' | 'error' };
 interface HeaderItem {
@@ -33,6 +34,14 @@ interface DeliveryAttempt {
   status: number;
   duration: number;
   reason?: string;
+}
+interface ConnectionFailureDetails {
+  errorKey?: string | null;
+  componentType?: string | null;
+  componentName?: string | null;
+  message?: string | null;
+  diagnostics: ConnectionLogDiagnostic[];
+  lastError?: string | null;
 }
 
 @Component({
@@ -57,7 +66,8 @@ export class WebhookLogsDetailsComponent {
   responseBody = '';
   selectedLog: WebhookLog | null = null;
   deliveryAttemptsExpanded = true;
-  monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
+  connectionFailure: ConnectionFailureDetails | null = null;
+  readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
     renderLineHighlight: 'none',
     hideCursorInOverviewRuler: true,
     overviewRulerBorder: false,
@@ -69,8 +79,17 @@ export class WebhookLogsDetailsComponent {
   };
 
   constructor() {
-    // Temporary sample data to make the layout visible until real data is wired.
-    this.applyLog(this.buildSampleLog());
+    // Look up the log by requestId from mock data
+    const log = this.findLogByRequestId(this.requestId);
+    this.applyLog(log);
+  }
+
+  private findLogByRequestId(requestId: string | undefined): WebhookLog | null {
+    if (!requestId) {
+      return WEBHOOK_SAMPLE_LOG;
+    }
+
+    return getWebhookLogMockByRequestId(requestId) ?? WEBHOOK_SAMPLE_LOG;
   }
 
   formatAttemptTimestamp(timestamp: string): string {
@@ -116,13 +135,7 @@ export class WebhookLogsDetailsComponent {
     this.selectedLog = log;
 
     if (!log) {
-      this.overviewRequest = [];
-      this.overviewResponse = [];
-      this.deliveryAttempts = [];
-      this.requestHeaders = [];
-      this.responseHeaders = [];
-      this.requestBody = '';
-      this.responseBody = '';
+      this.resetViewState();
       return;
     }
 
@@ -147,6 +160,7 @@ export class WebhookLogsDetailsComponent {
     this.responseHeaders = this.parseHeaders(log.additionalMetrics?.['string_webhook_response-headers']);
     this.requestBody = log.additionalMetrics?.['string_webhook_request-body'] ?? '';
     this.responseBody = log.additionalMetrics?.['string_webhook_response-body'] ?? '';
+    this.connectionFailure = this.buildConnectionFailure(log);
   }
 
   private buildDeliveryAttempts(log: WebhookLog): DeliveryAttempt[] {
@@ -199,13 +213,28 @@ export class WebhookLogsDetailsComponent {
   }
 
   private toVariant(status: number): 'success' | 'warning' | 'error' {
-    if (status >= 500) {
+    if (status <= 0 || status >= 500) {
       return 'error';
     }
     if (status >= 400) {
       return 'warning';
     }
     return 'success';
+  }
+
+  private buildConnectionFailure(log: WebhookLog): ConnectionFailureDetails | null {
+    if (log.status !== 0) {
+      return null;
+    }
+
+    return {
+      errorKey: log.errorKey ?? null,
+      componentType: log.errorComponentType ?? null,
+      componentName: log.errorComponentName ?? null,
+      message: log.message ?? null,
+      diagnostics: log.warnings ?? [],
+      lastError: log.additionalMetrics?.['string_webhook_last-error'] ?? null,
+    };
   }
 
   private formatDuration(log: WebhookLog): string {
@@ -241,106 +270,14 @@ export class WebhookLogsDetailsComponent {
     return date.toLocaleString();
   }
 
-  private buildSampleLog(): WebhookLog {
-    return {
-      apiId: 'api-sample',
-      requestId: this.requestId ?? 'req-sample',
-      timestamp: '2025-06-15T12:00:00.000Z',
-      method: 'POST' as HttpMethod,
-      status: 200,
-      application: { id: 'app-1', name: 'Postman Monitoring', type: 'SIMPLE', apiKeyMode: 'UNSPECIFIED' },
-      plan: { id: 'plan-1', name: 'Webhook Plan', mode: 'PUSH' },
-      requestEnded: true,
-      gatewayResponseTime: 2800,
-      uri: 'https://warehouse.acme.com/webhooks/fulfillment',
-      endpoint: 'https://warehouse.acme.com/webhooks/fulfillment',
-      callbackUrl: 'https://warehouse.acme.com/webhooks/fulfillment',
-      duration: '2.8 s',
-      additionalMetrics: {
-        'string_webhook_request-method': 'POST',
-        string_webhook_url: 'https://warehouse.acme.com/webhooks/fulfillment',
-        'keyword_webhook_application-id': 'app-1',
-        'keyword_webhook_subscription-id': 'sub-1',
-        'int_webhook_retry-count': 5,
-        'string_webhook_retry-timeline': JSON.stringify([
-          {
-            attempt: 5,
-            timestamp: new Date('2025-06-15T12:00:00Z').getTime(),
-            duration: 2800,
-            status: 200,
-            reason: 'Delivered successfully',
-          },
-          {
-            attempt: 4,
-            timestamp: new Date('2025-06-15T11:59:00Z').getTime(),
-            duration: 155,
-            status: 500,
-            reason: 'Warehouse callback timed out',
-          },
-          {
-            attempt: 3,
-            timestamp: new Date('2025-06-15T11:58:00Z').getTime(),
-            duration: 155,
-            status: 500,
-            reason: 'Warehouse callback timed out',
-          },
-          {
-            attempt: 2,
-            timestamp: new Date('2025-06-15T11:57:00Z').getTime(),
-            duration: 1600,
-            status: 500,
-            reason: 'Warehouse callback timed out',
-          },
-          {
-            attempt: 1,
-            timestamp: new Date('2025-06-15T11:56:00Z').getTime(),
-            duration: 340,
-            status: 500,
-            reason: 'Warehouse callback timed out',
-          },
-        ]),
-        'string_webhook_last-error': 'Warehouse callback timed out',
-        'long_webhook_request-timestamp': new Date('2025-06-15T11:56:00Z').getTime(),
-        'string_webhook_request-headers': JSON.stringify({
-          Host: 'api-gateway.team.gravitee.dev',
-          'User-Agent': 'Gravitee.io 4.5 SNAPSHOT',
-          'X-Forwarded-For': '127.0.0.1',
-          'X-Forwarded-Proto': 'https',
-          'X-Request-ID': 'cb4e476c-236c-4f06-846c-3c2a356f0c84',
-        }),
-        'string_webhook_request-body': `{
-  "id": "evt_01J8M3TKQ5PM2W8X69JKS95X56",
-  "type": "order.fulfillment.failed",
-  "created_at": "2025-06-16T10:35:02Z",
-  "data": {
-    "order_id": "ORD-183221",
-    "reason": "warehouse_timeout",
-    "attempted_at": "2025-06-16T10:35:01Z",
-    "items": [
-      { "sku": "SKU-RED-42", "qty": 1 },
-      { "sku": "SKU-BLK-11", "qty": 2 }
-    ],
-    "meta": {
-      "region": "eu-west-1",
-      "version": "2025-05-21"
-    }
-  }
-}`,
-        'long_webhook_response-time': 2800,
-        'int_webhook_response-status': 200,
-        'int_webhook_response-payload-size': 42800,
-        'string_webhook_response-headers': JSON.stringify({
-          Status: '200',
-          'Content-Length': '428',
-          'Content-Type': 'application/json; charset=utf-8',
-          Date: 'Thu, 15 Jun 2025 12:00:05 GMT',
-          'X-Correlation-Id': 'cb4e476c-236c-4f06-846c-3c2a356f0c84',
-        }),
-        'string_webhook_response-body': `{
-  "status": "acknowledged"
-}`,
-        'boolean_webhook_dl-queue': false,
-      },
-    };
+  private resetViewState(): void {
+    this.overviewRequest = [];
+    this.overviewResponse = [];
+    this.deliveryAttempts = [];
+    this.requestHeaders = [];
+    this.responseHeaders = [];
+    this.requestBody = '';
+    this.responseBody = '';
+    this.connectionFailure = null;
   }
 }

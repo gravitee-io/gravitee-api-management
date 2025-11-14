@@ -26,6 +26,14 @@
     </div>
 
     @if (selectedLog) {
+      @if (connectionFailure) {
+        <section class="section section--failure">
+          <header class="failure__header">
+            <h2 class="failure__title">Failure</h2>
+            <span class="failure__subtitle">Connection failure</span>
+          </header>
+        </section>
+      }
       <div class="card__container">
         <section class="section section--overview">
           <header class="section__header">
@@ -78,17 +86,17 @@
             </button>
           </header>
           @if (deliveryAttemptsExpanded) {
-            @if (deliveryAttempts.length) {
-              <table class="attempts-table" aria-label="Webhook delivery attempts">
-                <thead>
-                  <tr>
-                    <th scope="col">Attempt</th>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col">Duration</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <table class="attempts-table" aria-label="Webhook delivery attempts">
+              <thead>
+                <tr>
+                  <th scope="col">Attempt</th>
+                  <th scope="col">Timestamp</th>
+                  <th scope="col">Duration</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (deliveryAttempts.length) {
                   @for (attempt of deliveryAttempts; track attempt.attempt) {
                     <tr>
                       <td>{{ attempt.attempt }}</td>
@@ -105,11 +113,16 @@
                       </td>
                     </tr>
                   }
-                </tbody>
-              </table>
-            } @else {
-              <p class="placeholder">There are no delivery attempts recorded for this webhook invocation.</p>
-            }
+                } @else {
+                  <tr class="attempts-table__empty">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           }
         </section>
 
@@ -120,14 +133,18 @@
           <div class="overview">
             <div class="overview__card">
               <header class="overview__card-header">Headers</header>
-              <dl class="overview__list">
-                @for (header of requestHeaders; track header.key) {
-                  <div class="overview__row">
-                    <dt class="mat-caption">{{ header.key }}</dt>
-                    <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
-                  </div>
-                }
-              </dl>
+              @if (requestHeaders.length) {
+                <dl class="overview__list">
+                  @for (header of requestHeaders; track header.key) {
+                    <div class="overview__row">
+                      <dt class="mat-caption">{{ header.key }}</dt>
+                      <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
+                    </div>
+                  }
+                </dl>
+              } @else {
+                <p class="payload__empty">No request headers captured.</p>
+              }
             </div>
             <div class="overview__card">
               @if (requestBody) {
@@ -154,14 +171,18 @@
           <div class="overview">
             <div class="overview__card">
               <div class="overview__card-header">Headers</div>
-              <dl class="overview__list">
-                @for (header of responseHeaders; track header.key) {
-                  <div class="overview__row">
-                    <dt class="mat-caption">{{ header.key }}</dt>
-                    <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
-                  </div>
-                }
-              </dl>
+              @if (responseHeaders.length) {
+                <dl class="overview__list">
+                  @for (header of responseHeaders; track header.key) {
+                    <div class="overview__row">
+                      <dt class="mat-caption">{{ header.key }}</dt>
+                      <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
+                    </div>
+                  }
+                </dl>
+              } @else {
+                <p class="payload__empty">No response headers captured.</p>
+              }
             </div>
             <div class="overview__card">
               @if (responseBody) {

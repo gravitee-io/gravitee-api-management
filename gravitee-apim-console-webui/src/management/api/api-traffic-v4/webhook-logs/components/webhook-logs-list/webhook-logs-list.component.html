@@ -24,14 +24,16 @@
   (paginationUpdated)="paginationUpdated.emit($event)"
 >
   <ng-template #timestampTemplate let-log>
-    <a [routerLink]="'./' + log.id">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}</a>
+    <a [routerLink]="['./', log.requestId]">
+      {{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}
+    </a>
   </ng-template>
 
   <ng-template #statusTemplate let-log>
     <span
       [class.gio-badge-success]="log.status < 400"
       [class.gio-badge-warning]="log.status >= 400 && log.status <= 499"
-      [class.gio-badge-error]="log.status >= 500"
+      [class.gio-badge-error]="log.status >= 500 || log.status === 0"
       >{{ log.status }}</span
     >
   </ng-template>
