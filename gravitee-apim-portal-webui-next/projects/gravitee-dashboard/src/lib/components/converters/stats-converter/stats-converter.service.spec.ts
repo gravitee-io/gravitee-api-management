@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardComponent, GraviteeDashboardService, Widget } from '@gravitee/gravitee-dashboard';
-import { inject, Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 
-@Component({
-  selector: 'analytics-viewer',
-  imports: [GraviteeDashboardComponent],
-  templateUrl: './analytics-viewer.component.html',
-  styleUrl: './analytics-viewer.component.scss',
-})
-export class AnalyticsViewerComponent {
-  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
-}
+import { StatsConverterService } from './stats-converter.service';
+
+describe('StatsConverterService', () => {
+  let service: StatsConverterService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(StatsConverterService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});

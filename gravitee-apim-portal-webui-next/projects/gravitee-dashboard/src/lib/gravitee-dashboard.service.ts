@@ -13,77 +13,209 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
 
-import { Widget } from './components/widget/widget';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
+
+import { MetricsRequest, MetricsResponse, Widget } from './components/widget/widget';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GraviteeDashboardService {
-  constructor() {}
+  constructor(private readonly http: HttpClient) {}
 
   public getWidgets(): Widget[] {
     return [
       {
         id: '1',
-        label: 'Requests',
-        type: 'kpi',
+        title: 'Requests',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
           y: 0,
           x: 1,
         },
+        request: {
+          type: 'measures',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          filters: [
+            {
+              name: 'API',
+              operator: 'EQ',
+              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
+            },
+          ],
+          metrics: [
+            {
+              name: 'HTTP_GATEWAY_RESPONSE_TIME',
+              measures: ['P90', 'P95', 'P99'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '2',
-        label: 'Error Rate',
-        type: 'kpi',
+        title: 'Error Rate',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
           y: 0,
           x: 2,
         },
+        request: {
+          type: 'measures',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          filters: [
+            {
+              name: 'API',
+              operator: 'EQ',
+              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
+            },
+          ],
+          metrics: [
+            {
+              name: 'HTTP_GATEWAY_RESPONSE_TIME',
+              measures: ['P90', 'P95', 'P99'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '3',
-        label: 'Average Latency',
-        type: 'kpi',
+        title: 'Average Latency',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
           y: 0,
           x: 3,
         },
+        request: {
+          type: 'measures',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          filters: [
+            {
+              name: 'API',
+              operator: 'EQ',
+              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
+            },
+          ],
+          metrics: [
+            {
+              name: 'HTTP_GATEWAY_RESPONSE_TIME',
+              measures: ['P90', 'P95', 'P99'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
-        id: 'kpi',
-        label: 'Subscriptions',
-        type: 'doughnut',
+        id: '4',
+        title: 'Subscriptions',
+        type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
           y: 0,
           x: 4,
         },
+        request: {
+          type: 'measures',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          filters: [
+            {
+              name: 'API',
+              operator: 'EQ',
+              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
+            },
+          ],
+          metrics: [
+            {
+              name: 'HTTP_GATEWAY_RESPONSE_TIME',
+              measures: ['P90', 'P95', 'P99'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '5',
-        label: 'HTTP Statuses',
+        title: 'HTTP Statuses',
         type: 'doughnut',
-        filter: 'status-code',
         layout: {
           cols: 1,
           rows: 2,
           y: 1,
           x: 1,
         },
+        request: {
+          type: 'facets',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          by: ['API', 'APPLICATION'],
+          metrics: [
+            {
+              name: 'HTTP_REQUESTS',
+              measures: ['RPS'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '6',
-        label: 'Response Time',
+        title: 'Response Time',
         type: 'pie',
         layout: {
           cols: 3,
@@ -91,22 +223,63 @@ export class GraviteeDashboardService {
           y: 1,
           x: 2,
         },
+        request: {
+          type: 'facets',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          by: ['API', 'APPLICATION'],
+          metrics: [
+            {
+              name: 'HTTP_REQUESTS',
+              measures: ['RPS'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '7',
-        label: 'Response Statuses',
+        title: 'Response Statuses',
         type: 'doughnut',
-        filter: 'status-over-time',
         layout: {
           cols: 3,
           rows: 2,
           y: 3,
           x: 1,
         },
+        request: {
+          type: 'facets',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          by: ['API', 'APPLICATION'],
+          metrics: [
+            {
+              name: 'HTTP_REQUESTS',
+              measures: ['RPS'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '8',
-        label: 'Consumption by Application',
+        title: 'Consumption by Application',
         type: 'polarArea',
         layout: {
           cols: 1,
@@ -114,10 +287,31 @@ export class GraviteeDashboardService {
           y: 3,
           x: 4,
         },
+        request: {
+          type: 'facets',
+          timeRange: {
+            from: '2025-01-01T00:00:00Z',
+            to: '2025-01-31T23:59:59Z',
+          },
+          by: ['API', 'APPLICATION'],
+          metrics: [
+            {
+              name: 'HTTP_REQUESTS',
+              measures: ['RPS'],
+              filters: [
+                {
+                  name: 'TENANT',
+                  operator: 'EQ',
+                  value: 'europe',
+                },
+              ],
+            },
+          ],
+        },
       },
       {
         id: '9',
-        label: 'Top Application',
+        title: 'Top Application',
         type: 'top',
         layout: {
           cols: 1,
@@ -128,7 +322,7 @@ export class GraviteeDashboardService {
       },
       {
         id: '10',
-        label: 'Top API',
+        title: 'Top API',
         type: 'top',
         layout: {
           cols: 1,
@@ -138,5 +332,76 @@ export class GraviteeDashboardService {
         },
       },
     ];
+  }
+
+  public getMetrics(basePath: string, endpoint: string, request: MetricsRequest) {
+    return this.http.post<MetricsResponse>(`${basePath}/${endpoint}`, request);
+  }
+
+  public getMetricsMock(basePath: string, endpoint: string, request: MetricsRequest): Observable<MetricsResponse> {
+    console.log('request' + JSON.stringify(request, null, 2));
+    switch (endpoint) {
+      case 'measures':
+        return of(this.getMesures());
+      case 'facets':
+        return of(this.getFacets());
+      default:
+        return of();
+    }
+  }
+
+  private getMesures(): MetricsResponse {
+    return {
+      metrics: [
+        {
+          name: 'HTTP_REQUESTS',
+          measures: [
+            {
+              name: 'COUNT',
+              value: 10,
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  private getFacets(): MetricsResponse {
+    return {
+      metrics: [
+        {
+          name: 'HTTP_REQUESTS',
+          buckets: [
+            {
+              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
+              measures: [
+                {
+                  name: 'COUNT',
+                  value: 1234,
+                },
+              ],
+            },
+            {
+              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71-test',
+              measures: [
+                {
+                  name: 'COUNT',
+                  value: 989,
+                },
+              ],
+            },
+            {
+              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71-test2',
+              measures: [
+                {
+                  name: 'COUNT',
+                  value: 590,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
   }
 }

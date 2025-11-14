@@ -17,12 +17,89 @@ import { GridsterItem } from 'angular-gridster2';
 
 import { PieType } from '../chart/pie-chart/pie-chart.component';
 
-export type WidgetType = PieType | 'kpi' | 'top';
+export type WidgetType = PieType | 'stats' | 'top';
 
-export interface Widget {
+export type MeasuresType = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'RPS';
+
+export interface Widget2 {
   id: string;
   label: string;
   type: WidgetType;
   filter?: string;
   layout: GridsterItem;
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  layout: WidgetLayout;
+
+  request?: MetricsRequest;
+  data?: MetricsResponse;
+}
+
+export interface MetricsResponse {
+  interval?: string;
+  metrics?: Metric[]; //remove ? after remove mock
+}
+
+export interface Metric {
+  name: string;
+  buckets?: Bucket[]; //Used by Facets and time-series
+  measures?: Measure[]; // Used by KPI/STATS
+  status?: 'pending' | 'success' | 'failed';
+}
+
+export interface Bucket {
+  key: string;
+  timestamp?: Date; //used by time-series
+  measures?: Measure[];
+  buckets?: Bucket[];
+}
+export interface Measure {
+  name: string;
+  value: number;
+}
+
+export interface WidgetLayout {
+  cols: number;
+  rows: number;
+  x: number;
+  y: number;
+}
+
+//Metrics
+
+export interface MetricsRequest {
+  type: 'measures' | 'facets' | 'time-series';
+  by?: string[];
+  timeRange: TimeRange;
+  filters?: Filter[];
+  metrics: WidgetMetric[];
+}
+
+export interface WidgetMetric {
+  name: string; //Change by type ?
+  filters?: Filter[];
+  measures?: MeasuresType[];
+  by?: string[];
+  order?: Order;
+  limit?: number;
+}
+
+export interface Order {
+  measure: string;
+  direction: 'ASC' | 'DESC';
+}
+
+export interface TimeRange {
+  from: string;
+  to: string;
+}
+
+export interface Filter {
+  name: string;
+  operator: 'EQ' | 'IN' | 'LTE' | 'GTE';
+  value: string;
 }
