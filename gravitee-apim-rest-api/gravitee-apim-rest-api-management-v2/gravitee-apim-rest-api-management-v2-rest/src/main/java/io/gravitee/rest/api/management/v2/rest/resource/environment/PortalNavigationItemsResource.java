@@ -37,7 +37,7 @@ import java.util.Optional;
 /**
  * @author GraviteeSource Team
  */
-public class PortalNavigationItemResource extends AbstractResource {
+public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
