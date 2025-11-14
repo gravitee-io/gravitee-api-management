@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.7.19
+
+- Improved redis rate limit configuration to allow username for acl configuration [issues/10966](https://github.com/gravitee-io/issues/issues/10966).
+
 ### 4.7.15
 
 - BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency
