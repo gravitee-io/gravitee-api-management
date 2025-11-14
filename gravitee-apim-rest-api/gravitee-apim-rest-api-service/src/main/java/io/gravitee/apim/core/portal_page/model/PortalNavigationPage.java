@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,9 +33,10 @@ public final class PortalNavigationPage extends PortalNavigationItem {
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
+        @Nonnull Integer order,
         @Nonnull PortalPageContentId portalPageContentId
     ) {
-        super(id, organizationId, environmentId, title, area);
+        super(id, organizationId, environmentId, title, area, order);
         this.portalPageContentId = portalPageContentId;
     }
 }
