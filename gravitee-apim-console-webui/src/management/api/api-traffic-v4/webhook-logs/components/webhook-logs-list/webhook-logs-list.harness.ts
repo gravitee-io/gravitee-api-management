@@ -38,4 +38,3 @@ export class WebhookLogsListHarness extends LogsListBaseHarness {
     await buttons[index].click();
   }
 }
-
