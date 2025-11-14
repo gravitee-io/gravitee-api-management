@@ -837,7 +837,7 @@ paths:
           - for item of type PAGE, provide id of page content.
           - for item of type LINK, provide target URL.
 
-          User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
+          User must have the ENVIRONMENT_PAGE[UPDATE] permission.
         operationId: createPortalNavigationItem
         requestBody:
           content:

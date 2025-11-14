@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class HomepageAlreadyExistsException extends ValidationDomainException {
 
-    public HomepageAlreadyExistsException(String message) {
-        super(message);
+    public HomepageAlreadyExistsException() {
+        super("Homepage already exists");
     }
 }
