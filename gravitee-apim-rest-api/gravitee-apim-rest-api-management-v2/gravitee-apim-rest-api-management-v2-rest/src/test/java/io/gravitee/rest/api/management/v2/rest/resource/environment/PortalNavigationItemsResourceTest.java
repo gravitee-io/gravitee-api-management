@@ -44,7 +44,7 @@ import org.mockito.ArgumentCaptor;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemResourceTest extends AbstractResourceTest {
+class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 

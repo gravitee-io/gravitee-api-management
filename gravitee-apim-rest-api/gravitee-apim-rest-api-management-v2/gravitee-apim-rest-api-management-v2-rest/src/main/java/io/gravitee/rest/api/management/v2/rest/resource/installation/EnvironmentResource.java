@@ -26,7 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
-import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
@@ -115,8 +115,8 @@ public class EnvironmentResource extends AbstractResource {
     }
 
     @Path("/portal-navigation-items")
-    public PortalNavigationItemResource getPortalNavigationItemResource() {
-        return resourceContext.getResource(PortalNavigationItemResource.class);
+    public PortalNavigationItemsResource getPortalNavigationItemResource() {
+        return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
 
     @GET
