@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.Test;
 class ListPortalNavigationItemsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
-    private static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
 
     private ListPortalNavigationItemsUseCase useCase;
 

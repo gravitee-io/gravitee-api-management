@@ -28,7 +28,7 @@ public class PortalNavigationItemFixtures {
     private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";
 
-    private static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
+    public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
     private static final String GUIDES_ID = "00000000-0000-0000-0000-000000000002";
     private static final String SUPPORT_ID = "00000000-0000-0000-0000-000000000003";
     private static final String OVERVIEW_ID = "00000000-0000-0000-0000-000000000004";
