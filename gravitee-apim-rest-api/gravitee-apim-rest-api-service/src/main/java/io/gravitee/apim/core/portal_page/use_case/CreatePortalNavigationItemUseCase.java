@@ -92,6 +92,7 @@ public class CreatePortalNavigationItemUseCase {
             }
         }
 
+        // TODO create a content at the same type
         if (item instanceof PortalNavigationPage page) {
             final var contentId = page.getPortalPageContentId();
             // TODO check that content with provided id exists, when portal page content dev is ready

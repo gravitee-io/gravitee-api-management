@@ -24,45 +24,57 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+//import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPageAllOfConfiguration;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import java.util.List;
 
 @Mapper
 public interface PortalNavigationItemsMapper {
     PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
 
-    default BasePortalNavigationItem map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
-        final var id = portalNavigationItem.getId().toString();
+    default PortalNavigationItem map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
+        final var id = portalNavigationItem.getId().id();
         final var title = portalNavigationItem.getTitle();
-        final var area = BasePortalNavigationItem.AreaEnum.fromValue(portalNavigationItem.getArea().name());
+        final var area = io.gravitee.rest.api.management.v2.rest.model.PortalArea.fromValue(portalNavigationItem.getArea().name());
         final var order = portalNavigationItem.getOrder();
         final var parentId = mapParentId(portalNavigationItem.getParentId());
 
-        return switch (portalNavigationItem) {
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder ignored -> new PortalNavigationFolder()
-                .id(id)
-                .title(title)
-                .area(area)
-                .order(order)
-                .parentId(parentId);
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationPage()
-                .contentId(page.getPortalPageContentId().toString())
-                .id(id)
-                .title(title)
-                .area(area)
-                .order(order)
-                .parentId(parentId);
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationLink()
-                .url(link.getHref())
-                .id(id)
-                .title(title)
-                .area(area)
-                .order(order)
-                .parentId(parentId);
-        };
+        return  null;
+//
+//        return switch (portalNavigationItem) {
+//            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder ignored -> new PortalNavigationItem(map(ignored));
+////            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder ignored -> new PortalNavigationItem(
+////                    new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder()
+////                            .id(id)
+////                            .title(title)
+////                            .area(area)
+////                            .order(order)
+////                            .parentId(parentId)
+////            );
+//            default -> new PortalNavigationPage();
+////            case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationPage()
+////                .configuration(new PortalNavigationPageAllOfConfiguration().portalPageContentId(page.getPortalPageContentId().toString()))
+////                .id(id)
+////                .title(title)
+////                .area(area)
+////                .order(order)
+////                .parentId(parentId);
+////            case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationLink()
+////                .configuration(new PortalNavigationLinkAllOfConfiguration().url(link.getHref()))
+////                .id(id)
+////                .title(title)
+////                .area(area)
+////                .order(order)
+////                .parentId(parentId);
+//        };
     }
 
     default io.gravitee.apim.core.portal_page.model.PortalNavigationItem map(
