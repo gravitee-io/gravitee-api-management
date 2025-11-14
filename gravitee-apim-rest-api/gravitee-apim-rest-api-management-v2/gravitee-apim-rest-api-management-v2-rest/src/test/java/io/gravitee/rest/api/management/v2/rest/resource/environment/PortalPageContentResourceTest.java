@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalPageContentFixtures.CONTENT_ID;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
@@ -129,5 +130,26 @@ class PortalPageContentResourceTest extends AbstractResourceTest {
 
         // Then
         assertThat(response).hasStatus(FORBIDDEN_403);
+    }
+
+    @Test
+    void should_return_400_when_content_id_has_invalid_format() {
+        // Given
+        String invalidContentId = "invalid-uuid-format";
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.path(invalidContentId).request().get();
+
+        // Then
+        assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 }

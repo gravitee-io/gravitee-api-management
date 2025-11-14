@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -43,8 +44,12 @@ public class PortalPageContentResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent getPortalPageContent(@PathParam("contentId") String contentId) {
-        var result = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(contentId)));
+        try {
+            var result = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(contentId)));
 
-        return PortalPageContentMapper.INSTANCE.map(result.content());
+            return PortalPageContentMapper.INSTANCE.map(result.content());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid content ID format: " + contentId);
+        }
     }
 }
