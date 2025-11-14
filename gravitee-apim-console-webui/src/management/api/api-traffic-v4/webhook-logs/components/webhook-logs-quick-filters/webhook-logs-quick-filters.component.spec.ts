@@ -116,4 +116,33 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
     expect(moreSpy).toHaveBeenCalled();
   });
+
+  it('should reset filters when clicking reset button', () => {
+    const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
+    component.filtersForm.setValue({
+      searchTerm: 'acme',
+      statuses: [200],
+      applications: ['app-1'],
+      period: component.defaultPeriod,
+    });
+    component.onApplicationCache([{ value: 'app-1', label: 'Acme App' }]);
+    filtersSpy.mockClear();
+
+    fixture.detectChanges();
+
+    const resetButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testId="reset-filters-button"]');
+    resetButton.click();
+
+    expect(component.filtersForm.value).toEqual({
+      searchTerm: '',
+      statuses: [],
+      applications: [],
+      period: component.defaultPeriod,
+    });
+    expect(filtersSpy).toHaveBeenCalledWith({
+      searchTerm: undefined,
+      statuses: undefined,
+      applications: undefined,
+    });
+  });
 });

@@ -23,29 +23,45 @@ $typography: map.get(gio.$mat-theme, typography);
     align-items: center;
   }
 
-  &__form {
-    flex: 1;
+  &__selectors {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
   }
 
-  &__search {
-    flex: 1 1 320px;
-    min-width: 280px;
-  }
-
+  &__search,
   &__period,
-  &__status {
-    display: inline;
-    width: 132px;
+  &__status,
+  &__applications {
     padding: 0;
     margin-right: 16px;
   }
 
+  &__search {
+    width: 320px;
+  }
+
+  &__period,
   &__status {
-    min-width: 150px;
+    display: inline-flex;
+    width: 180px;
+  }
+
+  &__status {
+    min-width: 180px;
+
+    ::ng-deep mat-chip-grid {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+    }
+
+    ::ng-deep mat-chip-grid input[type='number'] {
+      width: 110px;
+      min-width: 80px;
+    }
 
     ::ng-deep mat-chip-row {
       margin: 0 4px 4px 0;
@@ -53,8 +69,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__applications {
-    flex: 1 1 320px;
-    min-width: 260px;
+    min-width: 220px;
 
     ::ng-deep .applications_form_field {
       width: 100%;
@@ -85,7 +100,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 
-  &__chip-list {
+  &__chip_list {
     display: flex;
     align-items: center;
     gap: 8px;

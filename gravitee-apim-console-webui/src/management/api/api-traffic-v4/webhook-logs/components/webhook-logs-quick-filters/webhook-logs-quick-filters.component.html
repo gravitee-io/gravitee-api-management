@@ -18,9 +18,10 @@
 <div class="quick-filters">
   <div class="quick-filters__row">
     @if (filtersForm) {
-      <form class="quick-filters__form" [formGroup]="filtersForm">
-        <mat-form-field appearance="fill" class="quick-filters__search">
-          <mat-label>Search</mat-label>
+      <form class="quick-filters__selectors" [formGroup]="filtersForm">
+        <mat-form-field class="quick-filters__search">
+          <mat-label>Search Logs</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
           <input matInput placeholder="Search request ID, URL, or application" formControlName="searchTerm" />
           @if (filtersForm.get('searchTerm').value) {
             <button matSuffix mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
@@ -29,7 +30,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="quick-filters__period">
+        <mat-form-field class="quick-filters__period">
           <mat-label>Period</mat-label>
           <mat-select formControlName="period" [compareWith]="comparePeriods">
             @for (period of periods; track period.value) {
@@ -38,13 +39,13 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="quick-filters__status">
+        <mat-form-field class="quick-filters__status">
           <mat-label>Status</mat-label>
           <mat-chip-grid #statusChipList aria-label="Status chips" formControlName="statuses">
             @for (status of selectedStatuses; track status) {
               <mat-chip-row removable="true" selectable="false" [value]="status" (removed)="removeStatus(status)">
                 {{ status }}
-                <button matChipRemove>
+                <button matChipRemove type="button" aria-label="Remove status">
                   <mat-icon>cancel</mat-icon>
                 </button>
               </mat-chip-row>
@@ -91,7 +92,6 @@
               Refresh
             </button>
           </div>
-          <button mat-stroked-button type="button" (click)="resetFilters()" [disabled]="loading || !hasActiveFilters()">Reset</button>
         </div>
       </form>
     }
@@ -99,7 +99,8 @@
 
   <div class="quick-filters__applied">
     @if (hasActiveFilters()) {
-      <mat-chip-listbox class="quick-filters__chip-list">
+      <mat-chip-listbox class="quick-filters__chip_list">
+        <span>Filters applied:</span>
         @if (currentFilters.searchTerm) {
           <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="clearSearch()">
             <span class="quick-filters__chip__key">Search:</span>
@@ -136,6 +137,17 @@
             <mat-icon matChipRemove>cancel</mat-icon>
           </mat-chip-option>
         }
+        <button
+          mat-button
+          type="button"
+          class="quick-filters__reset"
+          data-testId="reset-filters-button"
+          (click)="resetFilters()"
+          [disabled]="loading"
+        >
+          <mat-icon svgIcon="gio:x-circle"></mat-icon>
+          <span class="quick-filters__reset__label">Reset filters</span>
+        </button>
       </mat-chip-listbox>
     } @else {
       <span>No filter applied</span>
