@@ -74,6 +74,7 @@ public class RedisConnectionFactory {
         final RedisOptions options = new RedisOptions();
 
         boolean ssl = readPropertyValue(propertyPrefix + "ssl", boolean.class, false);
+        String username = readPropertyValue(propertyPrefix + "username", String.class, null);
 
         if (isSentinelEnabled()) {
             // Sentinels + Redis master / replicas
@@ -113,6 +114,7 @@ public class RedisConnectionFactory {
                 readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
                 readPropertyValue(propertyPrefix + "port", int.class, 6379)
             )
+                .withUsername(username)
                 .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class))
                 .withSsl(ssl);
 
@@ -336,6 +338,7 @@ public class RedisConnectionFactory {
         private final int port;
         private String password;
         private boolean useSsl;
+        private String username;
 
         private HostAndPort(String host, int port) {
             this.host = host;
@@ -352,6 +355,11 @@ public class RedisConnectionFactory {
             return this;
         }
 
+        public HostAndPort withUsername(String username) {
+            this.username = username;
+            return this;
+        }
+
         public HostAndPort withSsl(boolean useSsl) {
             this.useSsl = useSsl;
 
@@ -364,12 +372,14 @@ public class RedisConnectionFactory {
             if (useSsl) {
                 connectionType = "rediss";
             }
-
-            if (StringUtils.hasText(password)) {
+            if (StringUtils.hasText(username) && StringUtils.hasText(password)) {
+                log.debug("Redis repository configured with username and password");
+                return connectionType + "://" + username + ":" + password + '@' + host + ':' + port;
+            } else if (StringUtils.hasText(password)) {
                 return connectionType + "://:" + password + '@' + host + ':' + port;
+            } else {
+                return connectionType + "://" + host + ':' + port;
             }
-
-            return connectionType + "://" + host + ':' + port;
         }
     }
 }
