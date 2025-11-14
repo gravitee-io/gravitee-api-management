@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
+import { provideHttpClient } from '@angular/common/http';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconRegistry } from '@angular/material/icon';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-import { MatIconRegistry } from '@angular/material/icon';
-import { provideHttpClient } from '@angular/common/http';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
+import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog';
+
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
-import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog';
 
 declare const describe: (...args: any[]) => void;
 declare const beforeEach: (...args: any[]) => void;
@@ -46,6 +47,16 @@ const defaultApi = {
   id: API_ID,
   analytics: { enabled: true, logging: { mode: { endpoint: true } } },
 } as ApiV4;
+
+type RouterNavigateSpy = {
+  mockRestore: () => void;
+  mock: { calls: unknown[] };
+};
+
+type JestMockFn = ((...args: unknown[]) => unknown) & {
+  mockReturnValue: (...args: unknown[]) => JestMockFn;
+  mock: { calls: unknown[] };
+};
 
 class MatIconRegistryMock {
   addSvgIconSetInNamespace(): this {
@@ -68,8 +79,8 @@ class MatIconRegistryMock {
 describe('WebhookLogsComponent', () => {
   let fixture: ComponentFixture<WebhookLogsComponent>;
   let harness: WebhookLogsHarness;
-  let routerNavigateSpy: ReturnType<typeof jest.spyOn>;
-  let dialogOpenSpy: jest.Mock;
+  let routerNavigateSpy: RouterNavigateSpy | null = null;
+  let dialogOpenSpy: JestMockFn;
 
   const activatedRouteMock = {
     snapshot: {

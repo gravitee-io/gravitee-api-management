@@ -16,6 +16,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { editor } from 'monaco-editor';
+import { isNumber } from 'angular';
 
 import { HttpMethod } from '../../../../entities/management-api-v2';
 import { WebhookLog } from '../webhook-logs/models';
@@ -171,7 +172,7 @@ export class WebhookLogsDetailsComponent {
       }>;
       return parsed.map((item, index) => ({
         attempt: item.attempt ?? index + 1,
-        timestamp: typeof item.timestamp === 'number' ? new Date(item.timestamp).toISOString() : item.timestamp,
+        timestamp: isNumber(item.timestamp) ? new Date(item.timestamp).toISOString() : item.timestamp,
         duration: item.duration,
         status: item.status,
         reason: item.reason,
