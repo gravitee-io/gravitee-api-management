@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+
+import { Component, DestroyRef } from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { map, startWith, switchMap } from 'rxjs';
+import { map, of } from 'rxjs';
 
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PageTreeComponent } from '../../components/page-tree/page-tree.component';
@@ -39,12 +40,12 @@ export class GuidesComponent {
       }),
     ),
   );
+
   protected pageId = toSignal(
-    this.activatedRoute.url.pipe(
-      startWith(null),
-      switchMap(() => this.activatedRoute.firstChild?.paramMap ?? []),
+    this.activatedRoute.firstChild?.paramMap.pipe(
       map(params => params.get('pageId')),
-    ),
+      takeUntilDestroyed(this.destroyRef),
+    ) ?? of(null),
     { initialValue: null },
   );
 
@@ -52,6 +53,7 @@ export class GuidesComponent {
     private readonly pageService: PageService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
   showPage(pageId: string): void {
