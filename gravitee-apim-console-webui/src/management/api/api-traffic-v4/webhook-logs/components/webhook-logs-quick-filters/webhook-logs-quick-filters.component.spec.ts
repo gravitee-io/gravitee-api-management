@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/// <reference types="jest" />
-
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -24,14 +23,6 @@ import { WebhookLogsQuickFiltersComponent } from './webhook-logs-quick-filters.c
 
 import { Constants } from '../../../../../../entities/Constants';
 import { CONSTANTS_TESTING } from '../../../../../../shared/testing/gio-testing.module';
-
-declare const jest: {
-  spyOn: (...args: any[]) => any;
-};
-declare const describe: (...args: any[]) => void;
-declare const beforeEach: (...args: any[]) => void;
-declare const it: (...args: any[]) => void;
-declare const expect: (...args: any[]) => any;
 
 describe('WebhookLogsQuickFiltersComponent', () => {
   let fixture: ComponentFixture<WebhookLogsQuickFiltersComponent>;

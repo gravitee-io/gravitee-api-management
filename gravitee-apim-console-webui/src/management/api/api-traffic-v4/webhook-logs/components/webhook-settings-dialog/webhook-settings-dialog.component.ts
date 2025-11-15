@@ -16,20 +16,17 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { Api, ApiV4 } from '../../../../../../entities/management-api-v2';
+import { Analytics, Api, ApiV4, SamplingTypeEnum } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'webhook-settings-dialog',
@@ -38,15 +35,13 @@ import { Api, ApiV4 } from '../../../../../../entities/management-api-v2';
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatSlideToggleModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonToggleModule,
     GioBannerModule,
+    GioFormSlideToggleModule,
   ],
 })
 export class WebhookSettingsDialogComponent implements OnInit {
@@ -55,10 +50,10 @@ export class WebhookSettingsDialogComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
   private apiId: string = inject(MAT_DIALOG_DATA);
 
-  form: UntypedFormGroup;
-  initialFormValue: unknown;
+  form: UntypedFormGroup | null = null;
   isLoading = true;
   private api!: ApiV4;
+  analytics?: Analytics;
 
   constructor(public dialogRef: MatDialogRef<WebhookSettingsDialogComponent>) {}
 
@@ -73,199 +68,96 @@ export class WebhookSettingsDialogComponent implements OnInit {
           return;
         }
         this.api = api;
-        this.initForm();
-        this.handleEnabledChanges();
-        this.handleSamplingTypeChanges();
+        this.analytics = api.analytics;
+        this.buildForm(this.analytics);
         this.isLoading = false;
       });
   }
 
-  public save(): void {
-    if (!this.form) {
-      return;
-    }
-    // console.log('save', this.form.getRawValue());
-  }
-
-  cancel(): void {
+  close(): void {
     this.dialogRef.close();
-  }
-
-  private initForm(): void {
-    const analyticsEnabled = this.api?.analytics?.enabled;
-    const isReadOnly = this.api?.definitionContext?.origin === 'KUBERNETES';
-
-    // TODO: Backend support pending for COUNT_PER_TIME_WINDOW
-
-    let samplingType: string = this.api?.analytics?.sampling?.type ?? 'COUNT';
-    if (samplingType === 'COUNT' && this.api?.analytics?.sampling?.value?.includes('/')) {
-      samplingType = 'COUNT_PER_TIME_WINDOW';
-    }
-
-    this.form = new UntypedFormGroup({
-      enabled: new UntypedFormControl({
-        value: analyticsEnabled,
-        disabled: isReadOnly,
-      }),
-      requestBody: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
-      }),
-      requestHeaders: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
-      }),
-      responseBody: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.payload ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
-      }),
-      responseHeaders: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.headers ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
-      }),
-      samplingType: new UntypedFormControl(
-        {
-          value: samplingType,
-          disabled: !analyticsEnabled || isReadOnly,
-        },
-        Validators.required,
-      ),
-      samplingValue: new UntypedFormControl(
-        {
-          value: this.getSamplingDefaultValue(samplingType),
-          disabled: !analyticsEnabled || isReadOnly,
-        },
-        this.getSamplingValueValidators(samplingType),
-      ),
-      messageCount: new UntypedFormControl(
-        {
-          value: this.getMessageCount(samplingType),
-          disabled: !analyticsEnabled || isReadOnly,
-        },
-        [Validators.required, Validators.min(1)],
-      ),
-      timeWindow: new UntypedFormControl(
-        {
-          value: this.getTimeWindow(samplingType),
-          disabled: !analyticsEnabled || isReadOnly,
-        },
-        [Validators.required, Validators.min(1)],
-      ),
-    });
-
-    this.initialFormValue = this.form.getRawValue();
-  }
-
-  private handleEnabledChanges(): void {
-    const enabledControl = this.form.get('enabled');
-    if (!enabledControl) {
-      return;
-    }
-
-    enabledControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((enabled) => {
-      Object.entries(this.form.controls)
-        .filter(([key]) => key !== 'enabled')
-        .forEach(([, control]) => {
-          if (enabled) {
-            control.enable();
-          } else {
-            control.disable();
-          }
-        });
-    });
-  }
-
-  private handleSamplingTypeChanges(): void {
-    const samplingTypeControl = this.form.get('samplingType');
-    if (!samplingTypeControl) {
-      return;
-    }
-
-    samplingTypeControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
-      const samplingValueControl = this.form.get('samplingValue');
-      const messageCountControl = this.form.get('messageCount');
-      const timeWindowControl = this.form.get('timeWindow');
-
-      if (!messageCountControl || !timeWindowControl) {
-        return;
-      }
-
-      if (value !== 'COUNT_PER_TIME_WINDOW') {
-        if (!samplingValueControl) {
-          return;
-        }
-        samplingValueControl.setValue(this.getSamplingDefaultValue(value));
-        samplingValueControl.setValidators(this.getSamplingValueValidators(value));
-        samplingValueControl.updateValueAndValidity();
-        samplingValueControl.parent?.updateValueAndValidity();
-      } else {
-        messageCountControl.setValue(this.getMessageCount(value));
-        timeWindowControl.setValue(this.getTimeWindow(value));
-        messageCountControl.updateValueAndValidity();
-        timeWindowControl.updateValueAndValidity();
-      }
-    });
-  }
-
-  private getSamplingValueValidators(samplingType: string): ValidatorFn[] {
-    switch (samplingType) {
-      case 'PROBABILITY':
-        return [Validators.required, Validators.min(0.01), Validators.max(0.5)];
-      case 'COUNT':
-        return [Validators.required, Validators.min(10)];
-      case 'TEMPORAL':
-        return [Validators.required];
-      default:
-        return [];
-    }
-  }
-
-  private getSamplingDefaultValue(samplingType: string): string | number {
-    // If a value is already set for the selected sampling type, use it
-    // But only if it's not COUNT_PER_TIME_WINDOW (which uses separate messageCount/timeWindow fields)
-    const sampling = this.api?.analytics?.sampling;
-
-    if (samplingType !== 'COUNT_PER_TIME_WINDOW' && sampling?.type === samplingType && sampling?.value) {
-      return sampling.value;
-    }
-
-    switch (samplingType) {
-      case 'PROBABILITY':
-        return '0.01';
-      case 'COUNT':
-        return '100';
-      case 'TEMPORAL':
-        return 'PT1S';
-      case 'COUNT_PER_TIME_WINDOW':
-        return '';
-      default:
-        return '';
-    }
-  }
-
-  private getMessageCount(samplingType: string): number {
-    // Only parse saved value if it's for COUNT_PER_TIME_WINDOW
-    const sampling = this.api?.analytics?.sampling;
-
-    if (samplingType === 'COUNT_PER_TIME_WINDOW' && sampling?.type === 'COUNT' && sampling?.value?.includes('/')) {
-      const parts = sampling.value.split('/');
-      return parseInt(parts[0], 10) || 1;
-    }
-    return 1;
-  }
-
-  private getTimeWindow(samplingType: string): number {
-    // Only parse saved value if it's for COUNT_PER_TIME_WINDOW
-    const sampling = this.api?.analytics?.sampling;
-
-    if (samplingType === 'COUNT_PER_TIME_WINDOW' && sampling?.type === 'COUNT' && sampling?.value?.includes('/')) {
-      const parts = sampling.value.split('/');
-      return parseInt(parts[1], 10) || 1;
-    }
-    return 1;
   }
 
   private isApiV4(api: Api): api is ApiV4 {
     return api?.definitionVersion === 'V4';
   }
+
+  private buildForm(analytics?: Analytics): void {
+    this.form = new UntypedFormGroup({
+      enabled: new UntypedFormControl({ value: analytics?.enabled ?? false, disabled: true }),
+      requestBody: new UntypedFormControl({ value: analytics?.logging?.content?.messagePayload ?? false, disabled: true }),
+      requestHeaders: new UntypedFormControl({ value: analytics?.logging?.content?.messageHeaders ?? false, disabled: true }),
+      responseBody: new UntypedFormControl({ value: analytics?.logging?.content?.payload ?? false, disabled: true }),
+      responseHeaders: new UntypedFormControl({ value: analytics?.logging?.content?.headers ?? false, disabled: true }),
+    });
+  }
+
+  get samplingModeLabel(): string {
+    const sampling = this.analytics?.sampling;
+    const type = this.getSamplingDisplayType(sampling?.type, sampling?.value);
+    switch (type) {
+      case 'PROBABILITY':
+        return 'Probabilistic';
+      case 'COUNT':
+        return 'Count';
+      case 'COUNT_PER_TIME_WINDOW':
+        return 'Count per time window';
+      case 'TEMPORAL':
+        return 'Temporal';
+      default:
+        return 'Not configured';
+    }
+  }
+
+  get samplingSettingsSummary(): string {
+    const sampling = this.analytics?.sampling;
+    const type = this.getSamplingDisplayType(sampling?.type, sampling?.value);
+    if (!type) {
+      return '—';
+    }
+    if (type === 'COUNT_PER_TIME_WINDOW') {
+      const parts = this.getCountPerWindowParts(sampling?.value);
+      return `Message count: ${parts?.count ?? '—'}    Time window: ${parts?.window ?? '—'}`;
+    }
+    return sampling?.value ?? '—';
+  }
+
+  get samplingNote(): string {
+    const type = this.getSamplingDisplayType(this.analytics?.sampling?.type, this.analytics?.sampling?.value);
+    switch (type) {
+      case 'PROBABILITY':
+        return 'Samples messages based on a specified probability.';
+      case 'COUNT':
+        return 'Samples one message for every number of specified messages.';
+      case 'COUNT_PER_TIME_WINDOW':
+        return 'Samples a fixed number of messages for every time window.';
+      case 'TEMPORAL':
+        return 'Samples messages based on time duration (ISO-8601).';
+      default:
+        return 'Sampling is not configured for this API.';
+    }
+  }
+
+  get reporterSettingsLink(): string[] {
+    return ['/management', 'apis', this.apiId, 'deployment', 'reporter-settings'];
+  }
+
+  private getSamplingDisplayType(type: SamplingTypeEnum | undefined | null, value?: string | null): SamplingDisplayType {
+    if (type === 'COUNT' && value?.includes('/')) {
+      return 'COUNT_PER_TIME_WINDOW';
+    }
+    return type ?? null;
+  }
+
+  private getCountPerWindowParts(value?: string | null): { count?: number; window?: number } | null {
+    if (!value?.includes('/')) {
+      return null;
+    }
+    const [countRaw, windowRaw] = value.split('/');
+    const count = Number(countRaw);
+    const window = Number(windowRaw);
+    return { count: Number.isFinite(count) ? count : undefined, window: Number.isFinite(window) ? window : undefined };
+  }
 }
+
+type SamplingDisplayType = SamplingTypeEnum | 'COUNT_PER_TIME_WINDOW' | null;

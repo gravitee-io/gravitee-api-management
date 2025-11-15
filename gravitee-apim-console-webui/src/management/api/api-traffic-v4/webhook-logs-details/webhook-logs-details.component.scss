@@ -146,7 +146,7 @@ $typography: map.get(gio.$mat-theme, typography);
       align-items: center;
       gap: 8px;
       font:
-        600 12px/16px 'Manrope',
+        bold 12px/16px 'Manrope',
         sans-serif;
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker40');
       word-break: break-word;
@@ -241,7 +241,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   dd {
     margin: 0;
-    font-weight: 600;
+    font-weight: bold;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker40');
     word-break: break-word;
   }
@@ -279,7 +279,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__warnings-title {
-    font-weight: 600;
+    font-weight: bold;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker40');
   }
 
@@ -292,7 +292,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__warnings-key {
-    font-weight: 600;
+    font-weight: bold;
     margin-right: 6px;
   }
 

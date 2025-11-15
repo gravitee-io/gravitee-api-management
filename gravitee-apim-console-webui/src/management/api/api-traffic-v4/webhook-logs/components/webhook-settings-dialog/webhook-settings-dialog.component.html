@@ -37,7 +37,7 @@
     <p>Loading settings...</p>
   </mat-dialog-content>
 } @else {
-  <form [formGroup]="form" (ngSubmit)="save()">
+  <form [formGroup]="form">
     <mat-dialog-content>
       <div class="settings-content__header">
         <p class="settings-content__description">
@@ -62,73 +62,28 @@
         </div>
       </div>
 
-      <div class="settings__form-control">
+      <div class="settings__form-control sampling-summary">
         <div class="settings__form-control__title">Message sampling</div>
-        <div class="settings__form-control__subtitle">Set a personalized sampling configuration.</div>
-        <mat-button-toggle-group formControlName="samplingType" class="sampling-type" aria-label="Sampling type">
-          <mat-button-toggle class="sampling-type__toggle" value="PROBABILITY">Probabilistic</mat-button-toggle>
-          <mat-button-toggle class="sampling-type__toggle" value="COUNT">Count</mat-button-toggle>
-          <mat-button-toggle class="sampling-type__toggle" value="COUNT_PER_TIME_WINDOW">Count per time window</mat-button-toggle>
-          <mat-button-toggle class="sampling-type__toggle" value="TEMPORAL">Temporal</mat-button-toggle>
-        </mat-button-toggle-group>
-
-        <ng-container *ngIf="form.get('samplingType').value === 'PROBABILITY'">
-          <p>Samples messages based on a specified probability.</p>
-          <p>The value should be between 0.01 and 0.5.</p>
-          <mat-form-field>
-            <mat-label>Message sampling</mat-label>
-            <input matInput type="number" formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')">The sampling value is required.</mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('min')">The sampling value should be greater than 0.01.</mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('max')">The sampling value should be lower than 0.5.</mat-error>
-          </mat-form-field>
-        </ng-container>
-
-        <ng-container *ngIf="form.get('samplingType').value === 'COUNT'">
-          <p>Samples one message for every number of specified messages.</p>
-          <p>The value should be greater than 10.</p>
-          <mat-form-field>
-            <mat-label>Message sampling</mat-label>
-            <input matInput type="number" formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')">The sampling value is required.</mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('min')">The sampling value should be greater than 10.</mat-error>
-          </mat-form-field>
-        </ng-container>
-
-        <ng-container *ngIf="form.get('samplingType').value === 'COUNT_PER_TIME_WINDOW'">
-          <p>How many messages to log per time window</p>
-          <p>The value should be greater than 1.</p>
-          <div class="settings__form-control__sampling-fields">
-            <mat-form-field appearance="outline">
-              <mat-label>Message count *</mat-label>
-              <input matInput type="number" formControlName="messageCount" min="1" />
-              <mat-error *ngIf="form.get('messageCount').hasError('required')">Message count is required.</mat-error>
-              <mat-error *ngIf="form.get('messageCount').hasError('min')">The value should be greater than 1.</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Time window (seconds)</mat-label>
-              <input matInput type="number" formControlName="timeWindow" min="1" />
-              <mat-error *ngIf="form.get('timeWindow').hasError('required')">Time window is required.</mat-error>
-              <mat-error *ngIf="form.get('timeWindow').hasError('min')">The value should be greater than 1.</mat-error>
-            </mat-form-field>
-          </div>
-        </ng-container>
-
-        <ng-container *ngIf="form.get('samplingType').value === 'TEMPORAL'">
-          <p>Samples messages based on time duration.</p>
-          <p>The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second and be greater than PT1S.</p>
-          <mat-form-field>
-            <mat-label>Message sampling</mat-label>
-            <input matInput formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')">The sampling value is required.</mat-error>
-          </mat-form-field>
-        </ng-container>
+        <p class="sampling-summary__description">
+          This is the current message sampling configuration for this API – Edit it in
+          <a [routerLink]="reporterSettingsLink">Deployment › Reporter Settings</a>.
+          <br />
+          Note: the sampling mode affects all API messages, not only webhook messages.
+        </p>
+        <div class="sampling-summary__card sampling-summary__card--row">
+          <span class="sampling-summary__label">Sampling mode:</span>
+          <span class="sampling-summary__value">{{ samplingModeLabel }}</span>
+        </div>
+        <div class="sampling-summary__card sampling-summary__card--row sampling-summary__card--mono">
+          <span class="sampling-summary__label">Sampling settings:</span>
+          <span class="sampling-summary__value sampling-summary__value--mono">{{ samplingSettingsSummary }}</span>
+        </div>
+        <p class="sampling-summary__note">{{ samplingNote }}</p>
       </div>
     </mat-dialog-content>
 
     <mat-dialog-actions class="actions">
-      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save</button>
+      <button mat-flat-button color="primary" type="button" (click)="close()">Close</button>
     </mat-dialog-actions>
   </form>
 }
