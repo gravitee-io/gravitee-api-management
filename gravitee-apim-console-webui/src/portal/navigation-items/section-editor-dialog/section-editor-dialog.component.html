@@ -1,0 +1,22 @@
+<h2 mat-dialog-title class="title">
+  {{ title }}
+</h2>
+
+<form [formGroup]="form">
+  <mat-dialog-content>
+      <mat-form-field>
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" required />
+        @if (form.controls.title.hasError('required')) {
+          <mat-error>Title is required</mat-error>
+        }
+      </mat-form-field>
+
+    <mat-slide-toggle formControlName="isPublic">{{ authenticationLabel }}</mat-slide-toggle>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!form.valid">Add</button>
+  </mat-dialog-actions>
+</form>
