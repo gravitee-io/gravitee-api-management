@@ -48,6 +48,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public customLogo: string;
   public isOEM: boolean;
   public portalUrl?: string;
+  isPortalNextEnabled = false;
 
   constructor(
     @Inject(Constants) public readonly constants: Constants,
@@ -94,6 +95,11 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
         this.portalUrl = isEmpty(settings?.portal?.url)
           ? undefined
           : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
+
+        this.isPortalNextEnabled = settings?.portalNext?.access?.enabled;
+        if (!this.isPortalNextEnabled && this.portalUrl) {
+          this.portalUrl = this.portalUrl + '?version=classic';
+        }
       });
   }
 

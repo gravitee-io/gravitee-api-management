@@ -47,6 +47,8 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
 
     private static final String PORTAL_NEXT_VERSION = "next";
     private static final String PORTAL_NEXT_PATH = "/next";
+    private static final String PORTAL_CLASSIC_VERSION = "classic";
+    private static final String PORTAL_CLASSIC_PATH = "/classic";
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
@@ -89,7 +91,14 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
             // connect the user
             super.connectUser(jwt.getSubject(), httpResponse);
             String url = installationAccessQueryService.getPortalUrl(environmentId);
-            var versionQueryParam = version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_PATH : "";
+            var versionQueryParam = ""; // Default to no Version path
+            if (version != null) {
+                if (version.equals(PORTAL_NEXT_VERSION)) {
+                    versionQueryParam = PORTAL_NEXT_PATH;
+                } else if (version.equals(PORTAL_CLASSIC_VERSION)) {
+                    versionQueryParam = PORTAL_CLASSIC_PATH;
+                }
+            }
             url += versionQueryParam;
             // Redirect the user.
             return Response.temporaryRedirect(new URI(url)).build();
