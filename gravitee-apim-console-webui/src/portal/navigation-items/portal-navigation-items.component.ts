@@ -16,12 +16,12 @@
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
@@ -29,6 +29,9 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
 import { PortalMenuLink } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { PortalContentService } from '../../services/portal-content.service';
+import { PortalEditorHelperService } from '../../services/portal-editor-helper.service';
+import { PortalTreeHelperService } from '../../services/portal-tree-helper.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -58,18 +61,28 @@ export class PortalNavigationItemsComponent implements OnInit {
   navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
 
   constructor(
-    private readonly http: HttpClient,
+    private readonly contentService: PortalContentService,
+    private readonly editorHelper: PortalEditorHelperService,
     private readonly snackBarService: SnackBarService,
-    private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-  ) {}
+    private readonly treeHelper: PortalTreeHelperService,
+  ) {
+    effect(() => {
+      const id = this.navId();
+      if (id) {
+        this.validateNavSelection();
+      } else {
+        this.pageNotFound = false;
+      }
+    });
+  }
 
   ngOnInit(): void {
-    // TODO replace mock with real backend call when available
-    this.http.get<{ data: PortalMenuLink[] }>('assets/mocks/portal-menu-links.json').subscribe({
-      next: ({ data }) => {
-        this.menuLinks = data ?? [];
+    this.contentService.getMenuLinks().subscribe({
+      next: (links) => {
+        this.menuLinks = links ?? [];
         this.isEmpty = (this.menuLinks?.length ?? 0) === 0;
+        this.validateNavSelection();
       },
       error: (err) => {
         this.menuLinks = [];
@@ -81,17 +94,52 @@ export class PortalNavigationItemsComponent implements OnInit {
 
   onSelect($event: SectionNode) {
     this.pageNotFound = false;
-    this.router
-      .navigate(['.'], {
-        relativeTo: this.activatedRoute,
-        queryParams: { navId: $event.id },
-        queryParamsHandling: 'merge',
-      })
+
+    if ($event.type !== 'page') {
+      this.editorHelper.clearEditor(this.contentControl);
+      this.treeHelper
+        .navigateToNavId(this.activatedRoute, $event.id)
+        .catch((err) => this.snackBarService.error('Failed to navigate to portal navigation items: ' + err));
+      return;
+    }
+
+    this.editorHelper.resetEditor(this.contentControl);
+
+    this.contentService.getPageContent($event.id, $event.label).subscribe({
+      next: (content) => {
+        this.editorHelper.enableEditor(this.contentControl);
+        this.editorHelper.setEditorContent(this.contentControl, content);
+      },
+      error: (err) => {
+        this.snackBarService.error('Failed to load page content' + err);
+        this.editorHelper.enableEditor(this.contentControl);
+      },
+    });
+    this.treeHelper
+      .navigateToNavId(this.activatedRoute, $event.id)
       .catch((err) => this.snackBarService.error('Failed to navigate to portal navigation items: ' + err));
   }
 
   onPageNotFound() {
     this.pageNotFound = true;
+    this.editorHelper.clearEditor(this.contentControl);
     this.snackBarService.error('The requested Navigation Item does not exist.');
+  }
+
+  private validateNavSelection(): void {
+    if (!this.menuLinks || this.menuLinks.length === 0) {
+      return;
+    }
+    const id = this.navId();
+    if (!id) {
+      return;
+    }
+    const tree = this.treeHelper.mapLinksToNodes(this.menuLinks);
+    const exists = this.treeHelper.findNode(tree, (n) => n.id === id);
+    if (!exists) {
+      this.onPageNotFound();
+    } else {
+      this.pageNotFound = false;
+    }
   }
 }
