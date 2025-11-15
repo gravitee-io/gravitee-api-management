@@ -48,24 +48,31 @@ import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.impl.BufferImpl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.StreamResetException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
+import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class HttpConnector implements ProxyConnector {
 
     /**
@@ -130,7 +137,9 @@ public class HttpConnector implements ProxyConnector {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
                     if (requestWithBody(request)) {
                         return httpClientRequest.rxSend(
-                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            request
+                                .chunks()
+                                .map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
                         );
                     } else {
                         return httpClientRequest.rxSend();
@@ -146,15 +155,10 @@ public class HttpConnector implements ProxyConnector {
                             ((VertxHttpServerResponse) response).getNativeResponse().writeCustomFrame(frame)
                         );
                     }
-                    response.chunks(
-                        endpointResponse
-                            .toFlowable()
-                            .map(Buffer::buffer)
-                            .doOnComplete(() ->
-                                // Write trailers when chunks are completed
-                                copyHeaders(endpointResponse.trailers(), response.trailers())
-                            )
-                    );
+
+                    // Assign the response chunks from the endpoint's response to the gateway response.
+                    response.chunks(getEndpointResponseChunks(endpointResponse, response, absoluteUri));
+
                     ObservableHttpClientResponse observableHttpClientResponse = new ObservableHttpClientResponse(
                         endpointResponse.getDelegate()
                     );
@@ -165,6 +169,39 @@ public class HttpConnector implements ProxyConnector {
         } catch (Exception e) {
             return Completable.error(e);
         }
+    }
+
+    private @NonNull Flowable<Buffer> getEndpointResponseChunks(
+        HttpClientResponse endpointResponse,
+        HttpResponse response,
+        String absoluteUri
+    ) {
+        return endpointResponse
+            .toFlowable()
+            .map(Buffer::buffer)
+            .doOnComplete(() ->
+                // Write trailers when chunks are completed
+                copyHeaders(endpointResponse.trailers(), response.trailers())
+            )
+            .onErrorResumeNext(throwable -> {
+                if (throwable instanceof StreamResetException) {
+                    // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
+                    log.debug("Stream reset to the backend [{}]", absoluteUri);
+                } else {
+                    log.error("Exception occurred while handling response chunk from upstream [{}]", absoluteUri, throwable);
+                }
+                return Flowable.empty();
+            })
+            .doOnCancel(() -> {
+                try {
+                    log.debug("Downstream request has been cancelled, cancelling upstream request to [{}]", absoluteUri);
+
+                    // Reset forces the upstream connection to be closed and avoid consuming the response while downstream is already gone.
+                    endpointResponse.request().reset();
+                } catch (Exception e) {
+                    log.debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
+                }
+            });
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {

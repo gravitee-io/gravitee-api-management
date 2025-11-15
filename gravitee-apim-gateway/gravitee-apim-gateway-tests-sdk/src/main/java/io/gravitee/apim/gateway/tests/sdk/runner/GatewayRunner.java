@@ -179,6 +179,7 @@ public class GatewayRunner {
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
     private boolean isRunning = false;
+    private GatewayDynamicConfig.GatewayDynamicConfigImpl gatewayDynamicConfig;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
@@ -276,7 +277,7 @@ public class GatewayRunner {
                 .flatMap(srv -> selectPort(srv, NetServer::actualPort))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            var gatewayDynamicConfig = new GatewayDynamicConfig.GatewayDynamicConfigImpl(httpPorts, tcpPorts);
+            gatewayDynamicConfig = new GatewayDynamicConfig.GatewayDynamicConfigImpl(httpPorts, tcpPorts);
             isRunning = true;
 
             testInstance.init();
@@ -938,6 +939,13 @@ public class GatewayRunner {
         final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
 
         final HashMap<String, String> variables = new HashMap<>();
+
+        gatewayDynamicConfig
+            .httpPorts()
+            .forEach((id, port) -> {
+                variables.put("GATEWAY_" + id.toUpperCase() + "_PORT", "" + port);
+            });
+
         testInstance.configurePlaceHolderVariables(variables);
 
         for (Map.Entry<String, String> entry : variables.entrySet()) {
