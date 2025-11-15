@@ -296,21 +296,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 values[i] = 0;
             }
             for (Data data : dataBucket.getValue()) {
-                long index = Math.round((double) (data.timestamp() - from) / interval);
-                if (index >= 0 && index < timestamps.size()) {
-                    values[(int) index] = data.value();
-                } else {
-                    logger.warn(
-                        "Calculated index {} is out of bounds [0, {}) for timestamp {} (from: {}, interval: {}). " +
-                            "Skipping data point for bucket: {}",
-                        index,
-                        timestamps.size(),
-                        data.timestamp(),
-                        from,
-                        interval,
-                        dataBucket.getKey()
-                    );
-                }
+                values[(int) ((data.timestamp() - from) / interval)] = data.value();
             }
 
             analyticsDataBucket.setData(values);
