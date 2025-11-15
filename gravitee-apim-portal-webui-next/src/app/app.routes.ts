@@ -34,6 +34,7 @@ import { CategoriesViewComponent } from './catalog/categories-view/categories-vi
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { GuidesPageComponent } from './guides/components/guides-page.component';
+import { GuidesRedirectToFirstIdComponent } from './guides/components/guides-redirect-to-first-id.component';
 import { GuidesComponent } from './guides/guides.component';
 import { environmentPagesResolver } from './guides/resolvers/environment-pages.resolver';
 import { LogInComponent } from './log-in/log-in.component';
@@ -215,6 +216,10 @@ export const routes: Routes = [
     data: { breadcrumb: { label: 'Documentation', disable: true } },
     resolve: { pages: environmentPagesResolver },
     children: [
+      {
+        path: '',
+        component: GuidesRedirectToFirstIdComponent,
+      },
       {
         path: ':pageId',
         component: GuidesPageComponent,
