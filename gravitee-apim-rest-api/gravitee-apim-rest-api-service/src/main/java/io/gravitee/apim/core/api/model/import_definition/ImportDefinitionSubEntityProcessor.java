@@ -1,0 +1,50 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.api.model.import_definition;
+
+import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class ImportDefinitionSubEntityProcessor {
+
+    private final List<Map.Entry<String, Runnable>> operations = new ArrayList<>();
+    private final ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder apiImportedWithErrorExceptionBuilder;
+
+    public ImportDefinitionSubEntityProcessor(String apiId) {
+        this.apiImportedWithErrorExceptionBuilder = new ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder().apiId(apiId);
+    }
+
+    public ImportDefinitionSubEntityProcessor addSubEntity(String partName, Runnable creationPart) {
+        operations.add(Map.entry(partName, creationPart));
+        return this;
+    }
+
+    public void process() throws ApiImportedWithErrorException {
+        operations.forEach(entry -> {
+            try {
+                entry.getValue().run();
+            } catch (Exception e) {
+                apiImportedWithErrorExceptionBuilder.addError(entry.getKey(), e);
+            }
+        });
+
+        if (apiImportedWithErrorExceptionBuilder.hasErrors()) {
+            throw apiImportedWithErrorExceptionBuilder.build();
+        }
+    }
+}
