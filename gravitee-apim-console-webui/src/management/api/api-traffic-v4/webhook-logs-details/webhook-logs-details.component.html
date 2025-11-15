@@ -1,0 +1,231 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card class="card">
+  <mat-card-content>
+    <div class="card__header">
+      <div>
+        <div class="card__header__title">Details</div>
+      </div>
+      <a mat-button mat-raised-button [routerLink]="['..']" aria-label="Back to webhook logs">Back to webhook logs</a>
+    </div>
+
+    @if (selectedLog) {
+      @if (connectionFailure) {
+        <section class="section section--failure">
+          <header class="failure__header">
+            <h2 class="failure__title">Failure</h2>
+            <span class="failure__subtitle">Connection failure</span>
+          </header>
+        </section>
+      }
+      <div class="card__container">
+        <section class="section section--overview">
+          <header class="section__header">
+            <h2 class="section__title">Overview</h2>
+          </header>
+          <div class="overview">
+            <div class="overview__card">
+              <header class="overview__card-header">Request</header>
+              <dl class="overview__list">
+                @for (item of overviewRequest; track item.label) {
+                  <div class="overview__row">
+                    <dt class="mat-caption">{{ item.label }}</dt>
+                    <dd class="gio-caption-2 gio-caption-2--strong">{{ item.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+
+            <div class="overview__card">
+              <header class="overview__card-header">Response</header>
+              <dl class="overview__list">
+                @for (item of overviewResponse; track item.label) {
+                  <div class="overview__row">
+                    <dt class="mat-caption">{{ item.label }}</dt>
+                    <dd class="gio-caption-2 gio-caption-2--strong">
+                      @if (item.variant) {
+                        <span
+                          [class.gio-badge-success]="item.variant === 'success'"
+                          [class.gio-badge-warning]="item.variant === 'warning'"
+                          [class.gio-badge-error]="item.variant === 'error'"
+                        >
+                          {{ item.value }}
+                        </span>
+                      } @else {
+                        {{ item.value }}
+                      }
+                    </dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--delivery-attempts">
+          <header class="section__header" (click)="deliveryAttemptsExpanded = !deliveryAttemptsExpanded">
+            <h2 class="section__title">Delivery attempts</h2>
+            <button mat-icon-button type="button" aria-label="Toggle delivery attempts">
+              <mat-icon>{{ deliveryAttemptsExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          </header>
+          @if (deliveryAttemptsExpanded) {
+            <table class="attempts-table" aria-label="Webhook delivery attempts">
+              <thead>
+                <tr>
+                  <th scope="col">Attempt</th>
+                  <th scope="col">Timestamp</th>
+                  <th scope="col">Duration</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (deliveryAttempts.length) {
+                  @for (attempt of deliveryAttempts; track attempt.attempt) {
+                    <tr>
+                      <td>{{ attempt.attempt }}</td>
+                      <td>{{ formatAttemptTimestamp(attempt.timestamp) }}</td>
+                      <td>{{ formatAttemptDuration(attempt.duration) }}</td>
+                      <td>
+                        <span
+                          [class.gio-badge-success]="statusVariant(attempt.status) === 'success'"
+                          [class.gio-badge-warning]="statusVariant(attempt.status) === 'warning'"
+                          [class.gio-badge-error]="statusVariant(attempt.status) === 'error'"
+                        >
+                          {{ attempt.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                } @else {
+                  <tr class="attempts-table__empty">
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </section>
+
+        <section class="section section--overview">
+          <header class="section__header">
+            <h2 class="section__title">Request sent by gateway</h2>
+          </header>
+          <div class="overview">
+            <div class="overview__card">
+              <header class="overview__card-header">Headers</header>
+              @if (requestHeaders.length) {
+                <dl class="overview__list">
+                  @for (header of requestHeaders; track header.key) {
+                    <div class="overview__row">
+                      <dt class="mat-caption">{{ header.key }}</dt>
+                      <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
+                    </div>
+                  }
+                </dl>
+              } @else {
+                <p class="payload__empty">No request headers captured.</p>
+              }
+            </div>
+            <div class="overview__card">
+              @if (requestBody) {
+                <header class="overview__card-header">Body</header>
+                <div gioMonacoClipboardCopy class="payload__editor">
+                  <gio-monaco-editor
+                    disabled
+                    [options]="monacoEditorOptions"
+                    [ngModel]="requestBody"
+                    [disableMiniMap]="true"
+                  ></gio-monaco-editor>
+                </div>
+              } @else {
+                <p class="payload__empty">No request body captured.</p>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--overview">
+          <header class="section__header">
+            <h2 class="section__title">Response from callback URL endpoint</h2>
+          </header>
+          <div class="overview">
+            <div class="overview__card">
+              <div class="overview__card-header">Headers</div>
+              @if (responseHeaders.length) {
+                <dl class="overview__list">
+                  @for (header of responseHeaders; track header.key) {
+                    <div class="overview__row">
+                      <dt class="mat-caption">{{ header.key }}</dt>
+                      <dd class="gio-caption-2 gio-caption-2--strong">{{ header.value }}</dd>
+                    </div>
+                  }
+                </dl>
+              } @else {
+                <p class="payload__empty">No response headers captured.</p>
+              }
+            </div>
+            <div class="overview__card">
+              @if (responseBody) {
+                <header class="overview__card-header">Body</header>
+                <div gioMonacoClipboardCopy class="payload__editor">
+                  <gio-monaco-editor
+                    disabled
+                    [options]="monacoEditorOptions"
+                    [ngModel]="responseBody"
+                    [disableMiniMap]="true"
+                  ></gio-monaco-editor>
+                </div>
+              } @else {
+                <p class="payload__empty">No response body captured.</p>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+    } @else {
+      <mat-card class="empty-card">
+        <mat-card-content>
+          <mat-icon class="icon" svgIcon="gio:search"></mat-icon>
+          <div class="mat-h3" aria-label="No runtime logs available">No log available</div>
+          <div class="empty-card__body">
+            <span class="empty-card__body__subtitle">
+              Modify the Runtime Logs settings to record additional data for future requests.
+            </span>
+          </div>
+
+          <div class="empty-card__actions">
+            <button
+              mat-flat-button
+              color="primary"
+              class="empty-card__actions__button"
+              (click)="openLogSettings()"
+              data-testId="open-settings-button"
+            >
+              Open reporting settings
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </mat-card-content>
+</mat-card>

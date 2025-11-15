@@ -13,15 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { WebhookLogsModule } from './webhook-logs/webhook-logs.module';
-import { WebhookLogsDetailsModule } from './webhook-logs-details/webhook-logs-details.module';
-
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, WebhookLogsModule, WebhookLogsDetailsModule],
-})
-export class ApiTrafficV4Module {}
+export { WebhookLogsListComponent } from './webhook-logs-list.component';

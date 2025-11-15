@@ -1,0 +1,138 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+::ng-deep {
+  webhook-logs-quick-filters {
+    .quick-filters__chip-list .mdc-evolution-chip-set__chips {
+      align-items: center;
+    }
+  }
+}
+
+.quick-filters {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 0 24px;
+
+  &__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__selectors {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__search,
+  &__period,
+  &__status,
+  &__applications {
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  &__search {
+    width: 320px;
+  }
+
+  &__period,
+  &__status {
+    display: inline-flex;
+    width: 180px;
+  }
+
+  &__status {
+    min-width: 180px;
+
+    ::ng-deep mat-chip-grid {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+    }
+
+    ::ng-deep mat-chip-grid input[type='number'] {
+      width: 110px;
+      min-width: 80px;
+    }
+
+    ::ng-deep mat-chip-row {
+      margin: 0 4px 4px 0;
+    }
+  }
+
+  &__applications {
+    min-width: 220px;
+
+    ::ng-deep .applications_form_field {
+      width: 100%;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+
+    button {
+      height: 48px;
+    }
+  }
+
+  .action {
+    display: flex;
+    align-items: center;
+
+    &__button {
+      height: 48px;
+      margin-right: 16px;
+
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  &__chip_list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__chip {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      margin-left: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+
+  &__applied {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__reset {
+    margin-left: 12px;
+  }
+}
