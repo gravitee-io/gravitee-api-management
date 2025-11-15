@@ -95,7 +95,13 @@
                     <mat-icon svgIcon="gio:kubernetes"></mat-icon>
                   </div>
                 }
-                <button mat-button aria-label="Button to view" matTooltip="View" (click)="onEdit(element.id)">
+                <button
+                  *gioPermission="{ anyOf: ['environment-shared_policy_group_configuration-r'] }"
+                  mat-button
+                  aria-label="Button to view"
+                  matTooltip="View"
+                  (click)="onEdit(element.id)"
+                >
                   <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                 </button>
               } @else {
