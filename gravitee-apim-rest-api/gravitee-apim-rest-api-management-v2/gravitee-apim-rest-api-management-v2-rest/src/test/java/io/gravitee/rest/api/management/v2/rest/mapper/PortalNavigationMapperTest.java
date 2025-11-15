@@ -114,8 +114,10 @@ class PortalNavigationMapperTest {
 
         var result = mapper.map(items);
 
-        assertThat(result).hasSize(8);
-        // Check that all items are mapped correctly
+        // After mapping, the result contains only top-level items (items without a parent present in the provided list)
+        assertThat(result).hasSize(3);
+
+        // Top-level ids should be folder 0001, folder 0002 and page 0003
         assertThat(
             result
                 .stream()
@@ -124,12 +126,67 @@ class PortalNavigationMapperTest {
         ).containsExactlyInAnyOrder(
             "00000000-0000-0000-0000-000000000001",
             "00000000-0000-0000-0000-000000000002",
-            "00000000-0000-0000-0000-000000000003",
+            "00000000-0000-0000-0000-000000000003"
+        );
+
+        // Verify hierarchical children for folder 0001 (APIs)
+        var apisFolder = result
+            .stream()
+            .filter(i -> ((BasePortalNavigationItem) i.getActualInstance()).getId().equals("00000000-0000-0000-0000-000000000001"))
+            .map(i -> (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) i.getActualInstance())
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(apisFolder.getChildren()).hasSize(3);
+        assertThat(
+            apisFolder
+                .getChildren()
+                .stream()
+                .map(i -> (BasePortalNavigationItem) i.getActualInstance())
+                .map(BasePortalNavigationItem::getId)
+        ).containsExactlyInAnyOrder(
             "00000000-0000-0000-0000-000000000004",
             "00000000-0000-0000-0000-000000000005",
-            "00000000-0000-0000-0000-000000000006",
-            "00000000-0000-0000-0000-000000000007",
-            "00000000-0000-0000-0000-000000000008"
+            "00000000-0000-0000-0000-000000000006"
         );
+
+        // Verify category folder 0006 has its two pages
+        var categoryFolder = apisFolder
+            .getChildren()
+            .stream()
+            .filter(i -> ((BasePortalNavigationItem) i.getActualInstance()).getId().equals("00000000-0000-0000-0000-000000000006"))
+            .map(i -> (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) i.getActualInstance())
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(categoryFolder.getChildren()).hasSize(2);
+        assertThat(
+            categoryFolder
+                .getChildren()
+                .stream()
+                .map(i -> (BasePortalNavigationItem) i.getActualInstance())
+                .map(BasePortalNavigationItem::getId)
+        ).containsExactlyInAnyOrder("00000000-0000-0000-0000-000000000007", "00000000-0000-0000-0000-000000000008");
+
+        // Verify folder 0002 (Guides) exists and has no children
+        var guidesFolder = result
+            .stream()
+            .filter(i -> ((BasePortalNavigationItem) i.getActualInstance()).getId().equals("00000000-0000-0000-0000-000000000002"))
+            .map(i -> (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) i.getActualInstance())
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(guidesFolder.getChildren()).isEmpty();
+
+        // Verify Support page 0003 is present as top-level page
+        var supportPage = result
+            .stream()
+            .filter(i -> ((BasePortalNavigationItem) i.getActualInstance()).getId().equals("00000000-0000-0000-0000-000000000003"))
+            .map(i -> (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage) i.getActualInstance())
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(supportPage.getConfiguration()).isNotNull();
+        assertThat(supportPage.getConfiguration().getPortalPageContentId()).isNotNull();
     }
 }

@@ -101,6 +101,7 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
@@ -888,5 +889,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ProcessPromotionUseCase promotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
+    }
+
+    @Bean
+    public GetPortalPageContentUseCase getPortalPageContentUseCase() {
+        return mock(GetPortalPageContentUseCase.class);
     }
 }
