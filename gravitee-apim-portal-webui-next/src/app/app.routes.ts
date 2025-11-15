@@ -29,7 +29,15 @@ import { ApplicationTabLogsComponent } from './applications/application/applicat
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
+<<<<<<< HEAD
 import { CatalogComponent } from './catalog/catalog.component';
+=======
+import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
+import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
+import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
+import { GuidesPageComponent } from './guides/components/guides-page.component';
+import { GuidesRedirectToFirstIdComponent } from './guides/components/guides-redirect-to-first-id.component';
+>>>>>>> e9b94817e9 (fix(portal-next): fix the guide link same page redirection)
 import { GuidesComponent } from './guides/guides.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -148,6 +156,43 @@ export const routes: Routes = [
   {
     path: 'guides',
     component: GuidesComponent,
+<<<<<<< HEAD
+=======
+    data: { breadcrumb: { label: 'Documentation', disable: true } },
+    resolve: { pages: environmentPagesResolver },
+    children: [
+      {
+        path: '',
+        component: GuidesRedirectToFirstIdComponent,
+      },
+      {
+        path: ':pageId',
+        component: GuidesPageComponent,
+        data: { breadcrumb: { alias: 'pageName' } },
+      },
+    ],
+  },
+  {
+    path: 'log-in',
+    canActivate: [redirectGuard, anonymousGuard],
+    children: [
+      { path: '', pathMatch: 'full', component: LogInComponent },
+      {
+        path: 'reset-password',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ResetPasswordComponent,
+          },
+          {
+            path: 'confirm/:token',
+            component: ResetPasswordConfirmationComponent,
+          },
+        ],
+      },
+    ],
+>>>>>>> e9b94817e9 (fix(portal-next): fix the guide link same page redirection)
   },
   { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
