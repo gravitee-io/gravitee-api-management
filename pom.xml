@@ -67,7 +67,11 @@
         <gravitee-node.version>7.16.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
+<<<<<<< HEAD
         <gravitee-plugin.version>4.9.0</gravitee-plugin.version>
+=======
+        <gravitee-plugin.version>4.9.1</gravitee-plugin.version>
+>>>>>>> 613a500273 (chore(deps): bump gravitee-plugin version to 4.9.1)
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.35.1</gravitee-reporter-api.version>
         <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
