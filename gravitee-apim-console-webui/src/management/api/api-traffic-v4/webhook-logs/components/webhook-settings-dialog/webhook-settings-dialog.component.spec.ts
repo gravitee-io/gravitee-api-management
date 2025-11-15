@@ -19,6 +19,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
 
@@ -54,6 +55,22 @@ describe('WebhookSettingsDialogComponent', () => {
         { provide: MatDialogRef, useValue: dialogRefMock },
         { provide: MAT_DIALOG_DATA, useValue: 'api-id' },
         { provide: ApiV2Service, useValue: apiServiceMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: { apiId: 'api-id' },
+              queryParams: {},
+              queryParamMap: convertToParamMap({}),
+            },
+            paramMap: of(convertToParamMap({ apiId: 'api-id' })),
+            params: of({ apiId: 'api-id' }),
+            queryParamMap: of(convertToParamMap({})),
+            queryParams: of({}),
+            fragment: of(null),
+            data: of({}),
+          } as unknown as ActivatedRoute,
+        },
         { provide: SnackBarService, useValue: snackBarServiceMock },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -73,9 +90,9 @@ describe('WebhookSettingsDialogComponent', () => {
     expect(await harness.getTitleText()).toBe('Webhook Logs reporting settings');
   });
 
-  it('should close the dialog when cancel is clicked', async () => {
+  it('should close the dialog when close is clicked', async () => {
     expect(dialogRefMock.close).not.toHaveBeenCalled();
-    await harness.clickCancel();
+    await harness.clickClose();
     expect(dialogRefMock.close).toHaveBeenCalled();
   });
 

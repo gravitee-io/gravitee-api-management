@@ -22,7 +22,7 @@ import moment from 'moment';
 import { WebhookLogsQuickFiltersComponent } from './webhook-logs-quick-filters.component';
 
 import { Constants } from '../../../../../../entities/Constants';
-import { CONSTANTS_TESTING } from '../../../../../../shared/testing/gio-testing.module';
+import { CONSTANTS_TESTING } from '../../../../../../shared/testing';
 
 describe('WebhookLogsQuickFiltersComponent', () => {
   let fixture: ComponentFixture<WebhookLogsQuickFiltersComponent>;

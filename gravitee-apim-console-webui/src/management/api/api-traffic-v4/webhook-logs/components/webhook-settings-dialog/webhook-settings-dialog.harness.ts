@@ -21,7 +21,7 @@ export class WebhookSettingsDialogHarness extends ComponentHarness {
 
   private readonly titleLocator = this.locatorForOptional('[mat-dialog-title]');
   private readonly contentLocator = this.locatorForOptional('mat-dialog-content');
-  private readonly cancelButtonLocator = this.locatorForOptional(MatButtonHarness.with({ text: /cancel/i }));
+  private readonly closeButtonLocator = this.locatorForOptional(MatButtonHarness.with({ text: /close/i }));
 
   async getTitleText(): Promise<string | null> {
     const title = await this.titleLocator();
@@ -37,11 +37,11 @@ export class WebhookSettingsDialogHarness extends ComponentHarness {
     return text.toLowerCase().includes('loading settings');
   }
 
-  async clickCancel(): Promise<void> {
-    const cancelButton = await this.cancelButtonLocator();
-    if (!cancelButton) {
-      throw new Error('Cancel button not found in webhook settings dialog.');
+  async clickClose(): Promise<void> {
+    const closeButton = await this.closeButtonLocator();
+    if (!closeButton) {
+      throw new Error('Close button not found in webhook settings dialog.');
     }
-    await cancelButton.click();
+    await closeButton.click();
   }
 }

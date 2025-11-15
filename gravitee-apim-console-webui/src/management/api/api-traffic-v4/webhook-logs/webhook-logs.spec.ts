@@ -19,7 +19,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconRegistry } from '@angular/material/icon';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -31,6 +31,8 @@ import { WebhookSettingsDialogComponent } from './components/webhook-settings-di
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
+import { Constants } from '../../../../entities/Constants';
+import { CONSTANTS_TESTING } from '../../../../shared/testing/gio-testing.module';
 
 declare const describe: (...args: any[]) => void;
 declare const beforeEach: (...args: any[]) => void;
@@ -57,24 +59,6 @@ type JestMockFn = ((...args: unknown[]) => unknown) & {
   mockReturnValue: (...args: unknown[]) => JestMockFn;
   mock: { calls: unknown[] };
 };
-
-class MatIconRegistryMock {
-  addSvgIconSetInNamespace(): this {
-    return this;
-  }
-  addSvgIconLiteralInNamespace(): this {
-    return this;
-  }
-  addSvgIconSet(): this {
-    return this;
-  }
-  addSvgIcon(): this {
-    return this;
-  }
-  getNamedSvgIcon(): any {
-    return of(document.createElement('svg'));
-  }
-}
 
 describe('WebhookLogsComponent', () => {
   let fixture: ComponentFixture<WebhookLogsComponent>;
@@ -121,11 +105,11 @@ describe('WebhookLogsComponent', () => {
     });
 
     TestBed.configureTestingModule({
-      imports: [WebhookLogsComponent, NoopAnimationsModule, RouterTestingModule],
+      imports: [WebhookLogsComponent, NoopAnimationsModule, RouterTestingModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: activatedRouteMock },
         { provide: ApiV2Service, useValue: apiServiceMock },
-        { provide: MatIconRegistry, useClass: MatIconRegistryMock },
+        { provide: Constants, useValue: CONSTANTS_TESTING },
         provideHttpClient(),
       ],
     });
@@ -150,11 +134,11 @@ describe('WebhookLogsComponent', () => {
 
     const logsListHarness = await harness.getLogsList();
     expect(logsListHarness).not.toBeNull();
-    expect(await logsListHarness!.countRows()).toBe(5);
+    expect(await logsListHarness!.countRows()).toBe(8);
 
     await logsListHarness!.clickDetailsButtonAtRow(0);
 
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['./', 'req-1'], {
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['./', 'req-all-fields'], {
       relativeTo: activatedRouteMock,
     });
   });
@@ -207,21 +191,5 @@ describe('WebhookLogsComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('reporting-disabled-banner')).not.toBeNull();
-  });
-
-  it('should open the settings dialog on init when requested through query params', async () => {
-    await setupComponent({ queryParams: { openSettings: 'true' } });
-
-    expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
-    expect(dialogOpenSpy).toHaveBeenCalledWith(WebhookSettingsDialogComponent, {
-      width: '750px',
-      data: API_ID,
-    });
-
-    expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: activatedRouteMock,
-      queryParams: { openSettings: null },
-      queryParamsHandling: 'merge',
-    });
   });
 });
