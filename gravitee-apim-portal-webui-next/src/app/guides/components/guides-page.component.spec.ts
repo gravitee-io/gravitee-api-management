@@ -98,6 +98,24 @@ describe('GuidesPageComponent', () => {
       const pageComponent = fixture.debugElement.nativeElement.querySelector('app-page');
       expect(pageComponent).toBeFalsy();
     });
+
+    it('should reload page content when navigating to the same pageId', async () => {
+      const testPage = fakePage({ id: 'same-page', type: 'MARKDOWN', content: '# Test Content' });
+      fixture.componentInstance.pages = [testPage];
+      fixture.detectChanges();
+
+      // First navigation to the page
+      paramMapSubject.next(new Map([['pageId', testPage.id]]));
+      fixture.detectChanges();
+      expectGetPageContent(testPage);
+
+      // Second navigation to the same page (simulating clicking the same link again)
+      paramMapSubject.next(new Map([['pageId', testPage.id]]));
+      fixture.detectChanges();
+
+      // Should make another API call to fetch the content
+      expectGetPageContent(testPage);
+    });
   });
 
   function expectGetPageContent(page: Page) {

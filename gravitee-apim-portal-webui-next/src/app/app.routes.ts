@@ -227,6 +227,7 @@ export const routes: Routes = [
       {
         path: ':pageId',
         component: GuidesPageComponent,
+        runGuardsAndResolvers: 'always',
         data: { breadcrumb: { alias: 'pageName' } },
       },
     ],
