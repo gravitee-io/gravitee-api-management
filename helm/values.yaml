@@ -473,8 +473,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.13.2.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.13.2.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.17.1.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.17.1.zip
 
 api:
   enabled: true
@@ -735,9 +735,6 @@ api:
       timeout: 10000
       # proxy:
       #   type: HTTP
-      #   excludeHosts:
-      #     - '*.internal.com'
-      #     - 'internal.mycompany.com'
       #   http:
       #     host: localhost
       #     port: 3128
@@ -1670,6 +1667,18 @@ gateway:
   #  - name: config
   #    secret:
   #      secretName: gravitee-config-secret-name
+  # Gravitee Expression Language whitelist
+  # These are the java classes / methods that are whitelisted for Gravitee Expression Language (SpEL) expressions:
+  # https://github.com/gravitee-io/gravitee-expression-language/blob/master/src/main/resources/whitelist
+  # Everything beyond must be explicitly whitelisted:
+  #el:
+  #  whitelist:
+  #    mode: append
+  #    list:
+  #    - class java.io.ByteArrayInputStream
+  #    - class java.util.regex.Pattern
+  #    - class java.util.regex.Matcher
+  #    - ...
 
 portal:
   enabled: true
@@ -2187,44 +2196,22 @@ kafkaConsole:
     #  lifecycle:
     #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee Portal" ]'
     #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee Portal" ]'
-
-  # Defines additional volume mounts.
-  #extraVolumeMounts: |
-  #  - name: extra-volume
-  #    mountPath: /mnt/volume
-  #    readOnly: true
-  #
-
-  # Defines additional volumes.
-  #extraVolumes: |
-  #  - name: config
-  #    configMap:
-  #      name: gravitee-config-configmap-name
-  #  - name: cert
-  #    secret:
-  #      secretName: gravitee-cert-secret-name
+    ## Additional gravitee ui volume mounts
+    # Defines additional volume mounts.
+    # extraVolumeMounts: |
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
 
   jwt:
-    secret:
-      value: # put here a 32bits string. It's used to signed JWT token for communication between management API and kafka console
-  #    valueFrom:
-  #      secretKeyRef:
-  #        name:
-  #        key:
-
+    secret: # put here a 32bits string. It's used to signed JWT token for communication between management API and kafka console
   apim:
-  #  apiUrl: # put here the URL to your management API. This should contain the organization and the environment information. If provided, `organization` & `environment` fields will be ignored. Example: https://my.company.com:8083/organizations/6eb27b47-2560-481f-b27b-472560581fff/environments/808a51a9-48f5-4517-8a51-a948f5e517b3
-    organization: DEFAULT
-    environment: DEFAULT
     security:
       username: admin # put here an org admin username. Ignored if token is provided
       password: admin # put here an org admin password. Ignored if token is provided
-  #    token:
-  #      value: # put here an org admin Personal Access Token. It replaces username and password
-  #      valueFrom:
-  #        secretKeyRef:
-  #          name:
-  #          key:
+  #    token:         # put here an org admin Personal Access Token. It replaces username and password
+    organization: DEFAULT
+    environment: DEFAULT
 
 
 #secrets:
