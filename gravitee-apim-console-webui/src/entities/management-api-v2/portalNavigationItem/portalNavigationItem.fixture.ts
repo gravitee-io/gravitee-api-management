@@ -114,8 +114,6 @@ export function fakeNewPagePortalNavigationItem(overrides?: Partial<NewPagePorta
     title: 'New Page',
     type: 'PAGE',
     area: 'HOMEPAGE',
-    order: 1,
-    contentId: 'content-1',
   };
 
   if (isFunction(overrides)) {
@@ -133,7 +131,6 @@ export function fakeNewFolderPortalNavigationItem(overrides?: Partial<NewFolderP
     title: 'New Folder',
     type: 'FOLDER',
     area: 'HOMEPAGE',
-    order: 1,
   };
 
   if (isFunction(overrides)) {
@@ -151,7 +148,6 @@ export function fakeNewLinkPortalNavigationItem(overrides?: Partial<NewLinkPorta
     title: 'New Link',
     type: 'LINK',
     area: 'HOMEPAGE',
-    order: 1,
     url: 'https://example.com',
   };
 
