@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,9 @@ import java.util.Map;
 public class ComputeMeasuresUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
+
+    @Inject
+    private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
     public ComputeMeasuresUseCase(AnalyticsQueryContextProvider queryContextResolver) {
         this.queryContextProvider = queryContextResolver;
@@ -55,7 +61,11 @@ public class ComputeMeasuresUseCase {
         Map<DataPlaneAnalyticsQueryService, MeasuresRequest> queryContext
     ) {
         var responses = new ArrayList<MeasuresResponse>();
-        queryContext.forEach((queryService, request) -> responses.add(queryService.searchMeasures(executionContext, request)));
+        queryContext.forEach((queryService, request) -> {
+            List<Filter> updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(request.filters());
+            MeasuresRequest filteredRequest = new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
+            responses.add(queryService.searchMeasures(executionContext, filteredRequest));
+        });
         return responses;
     }
 }
