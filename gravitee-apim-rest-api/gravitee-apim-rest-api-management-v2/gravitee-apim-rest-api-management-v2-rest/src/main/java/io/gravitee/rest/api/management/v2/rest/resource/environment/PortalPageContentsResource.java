@@ -34,22 +34,26 @@ import jakarta.ws.rs.Produces;
 /**
  * @author GraviteeSource Team
  */
-public class PortalPageContentResource extends AbstractResource {
+public class PortalPageContentsResource extends AbstractResource {
 
     @Inject
     private GetPortalPageContentUseCase getPortalPageContentUseCase;
 
     @GET
-    @Path("/{contentId}")
+    @Path("/{portalPageContentId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
-    public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent getPortalPageContent(@PathParam("contentId") String contentId) {
+    public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent getPortalPageContent(
+        @PathParam("portalPageContentId") String portalPageContentId
+    ) {
         try {
-            var result = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(contentId)));
+            var result = getPortalPageContentUseCase.execute(
+                new GetPortalPageContentUseCase.Input(PortalPageContentId.of(portalPageContentId))
+            );
 
             return PortalPageContentMapper.INSTANCE.map(result.content());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid content ID format: " + contentId);
+            throw new BadRequestException("Invalid content ID format: " + portalPageContentId);
         }
     }
 }
