@@ -19,8 +19,9 @@ tests:
                 server:
                   host: RELEASE-NAME-apim-kafkaConsole
                   port: 8004
-                security:
-                  secret: mySecret
+                  scheme: http
+                  security:
+                    secret: mySecret
 
   - it: Should not set configuration for Kafka Console by default
     template: api/api-configmap.yaml
