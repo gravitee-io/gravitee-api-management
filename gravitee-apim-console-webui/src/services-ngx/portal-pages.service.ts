@@ -15,12 +15,14 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
 import { PatchPortalPage } from '../entities/portal/patch-portal-page';
-import { PortalPagesResponse } from '../entities/portal/portal-pages-response';
+import { PortalNavigationItem, PortalNavigationItemsResponse, PortalNavigationPage } from '../entities/portal/portal-navigation-item';
+import { PortalPageContent } from '../entities/portal/portal-page-content';
 
 @Injectable({
   providedIn: 'root',
@@ -34,8 +36,31 @@ export class PortalPagesService {
   /**
    * Get the homepage portal page
    */
-  getHomepage(): Observable<PortalPagesResponse> {
-    return this.http.get<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages?type=homepage&expands=content`);
+  getHomepage(): Observable<{ navigationItem: PortalNavigationItem; content: PortalPageContent } | null> {
+    const navUrl = `${this.constants.env.v2BaseURL}/portal-navigation-items?area=HOMEPAGE`;
+    return this.http.get<PortalNavigationItemsResponse>(navUrl).pipe(
+      map((response) => {
+        const items = response?.items ?? [];
+        if (items.length === 0) {
+          return null as unknown as PortalNavigationPage | null;
+        }
+        const firstPageItem = items.find((i) => i.type === 'PAGE');
+        if (!firstPageItem) {
+          return null as unknown as PortalNavigationPage | null;
+        }
+        return firstPageItem as PortalNavigationPage;
+      }),
+      switchMap((portalNavigationPage) => {
+        if (!portalNavigationPage) {
+          return of(null);
+        }
+        return this.http
+          .get<PortalPageContent>(
+            `${this.constants.env.v2BaseURL}/portal-page-content/${portalNavigationPage.configuration.portalPageContentId}`,
+          )
+          .pipe(map((content) => ({ navigationItem: portalNavigationPage, content: content })));
+      }),
+    );
   }
 
   publishPage(pageId: string): Observable<PortalPageWithDetails> {
