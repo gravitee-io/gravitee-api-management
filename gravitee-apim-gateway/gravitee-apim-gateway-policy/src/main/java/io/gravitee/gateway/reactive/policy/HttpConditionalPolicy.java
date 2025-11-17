@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+import static io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook.ATTR_POLICY_TRIGGER_CONDITION_PREFIX;
+
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
@@ -59,7 +61,7 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onRequest(ctx);
         }
-
+        storeTriggerCondition(ctx);
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
     }
 
@@ -68,22 +70,30 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onResponse(ctx);
         }
-
+        storeTriggerCondition(ctx);
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
     }
 
     @Override
     public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
+        storeTriggerCondition(ctx);
         return Completable.complete();
     }
 
     @Override
     public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
+        storeTriggerCondition(ctx);
         return Completable.complete();
     }
 
     @Override
     public String getCondition() {
         return condition;
+    }
+
+    private void storeTriggerCondition(final BaseExecutionContext ctx) {
+        if (conditionDefined) {
+            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
+        }
     }
 }

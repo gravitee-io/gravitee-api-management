@@ -104,6 +104,7 @@ public class TcpApiReactor extends AbstractApiReactor {
     public Completable handle(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain
         return new CompletableReactorChain(handleEntrypointRequest(ctx))
