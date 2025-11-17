@@ -28,6 +28,7 @@ export interface ApiLogsParam {
   applicationIds?: string;
   planIds?: string;
   methods?: string;
+  mcpMethods?: string;
   statuses?: string;
 }
 
