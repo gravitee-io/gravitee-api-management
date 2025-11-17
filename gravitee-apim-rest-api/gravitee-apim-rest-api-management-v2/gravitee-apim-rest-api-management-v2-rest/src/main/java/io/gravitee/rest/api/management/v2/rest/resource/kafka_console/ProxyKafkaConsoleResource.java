@@ -185,72 +185,61 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                         } else {
                             HttpClientResponse response = asyncResponse.result();
 
-                            if (response.statusCode() / 100 == 2) {
-                                response.bodyHandler(buffer -> {
-                                    Response.ResponseBuilder responseBuilder;
-                                    if (response.headers().get(HttpHeaderNames.CONTENT_TYPE).startsWith("image")) {
-                                        responseBuilder = Response.ok(buffer.getBytes());
-                                        response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
-                                    } else {
-                                        String payload;
-                                        payload = buffer.toString();
+                            response.bodyHandler(buffer -> {
+                                Response.ResponseBuilder responseBuilder;
+                                if (
+                                    response.headers().get(HttpHeaderNames.CONTENT_TYPE) != null &&
+                                    response.headers().get(HttpHeaderNames.CONTENT_TYPE).startsWith("image")
+                                ) {
+                                    responseBuilder = Response.ok(buffer.getBytes());
+                                    response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
+                                } else {
+                                    String payload;
+                                    payload = buffer.toString();
 
-                                        payload = payload.replace(
-                                            """
-                                            href="/""",
-                                            """
-                                            href="%s/""".formatted(baseURI)
-                                        );
+                                    payload = payload.replace(
+                                        """
+                                        href="/""",
+                                        """
+                                        href="%s/""".formatted(baseURI)
+                                    );
 
-                                        payload = payload.replace(
-                                            """
-                                            src="/""",
-                                            """
-                                            src="%s/""".formatted(baseURI)
-                                        );
+                                    payload = payload.replace(
+                                        """
+                                        src="/""",
+                                        """
+                                        src="%s/""".formatted(baseURI)
+                                    );
 
-                                        payload = payload.replace(
-                                            """
-                                            src: url('/""",
-                                            """
-                                            src: url('%s/""".formatted(baseURI)
-                                        );
+                                    payload = payload.replace(
+                                        """
+                                        src: url('/""",
+                                        """
+                                        src: url('%s/""".formatted(baseURI)
+                                    );
 
-                                        payload = payload.replace(
-                                            """
-                                            window.basePath = '';""",
-                                            """
-                                            window.basePath = '%s';""".formatted(baseURI)
-                                        );
+                                    payload = payload.replace(
+                                        """
+                                        window.basePath = '';""",
+                                        """
+                                        window.basePath = '%s';""".formatted(baseURI)
+                                    );
 
-                                        responseBuilder = Response.ok(payload);
-                                        response
-                                            .headers()
-                                            .forEach(header -> {
-                                                if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
-                                                    responseBuilder.header(header.getKey(), header.getValue());
-                                                }
-                                            });
-                                        responseBuilder.header("content-length", payload.getBytes(StandardCharsets.UTF_8).length);
-                                    }
-                                    finalResponse.resume(responseBuilder.build());
+                                    responseBuilder = Response.status(response.statusCode()).entity(payload);
+                                    response
+                                        .headers()
+                                        .forEach(header -> {
+                                            if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
+                                                responseBuilder.header(header.getKey(), header.getValue());
+                                            }
+                                        });
+                                    responseBuilder.header("content-length", payload.getBytes(StandardCharsets.UTF_8).length);
+                                }
+                                finalResponse.resume(responseBuilder.build());
 
-                                    // Close client
-                                    httpClient.close();
-                                });
-                            } else {
-                                finalResponse.resume(
-                                    new TechnicalManagementException(
-                                        " Error on url '" +
-                                            kafbatURI +
-                                            "'. Status code: " +
-                                            response.statusCode() +
-                                            ". Message: " +
-                                            response.statusMessage(),
-                                        null
-                                    )
-                                );
-                            }
+                                // Close client
+                                httpClient.close();
+                            });
                         }
                     })
                     .exceptionHandler(throwable -> {
