@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalPageContentResourceTest extends AbstractResourceTest {
+class PortalPageContentsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -58,7 +58,7 @@ class PortalPageContentResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/portal-page-content";
+        return "/environments/" + ENVIRONMENT + "/portal-page-contents";
     }
 
     @BeforeEach
