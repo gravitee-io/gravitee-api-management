@@ -15,20 +15,38 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, inject, OnInit } from '@angular/core';
+import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpClient } from '@angular/common/http';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY, Observable } from 'rxjs';
+
+import {
+  SectionEditorDialogComponent,
+  SectionEditorDialogData,
+  SectionEditorDialogMode,
+} from './section-editor-dialog/section-editor-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
-import { PortalMenuLink } from '../../entities/management-api-v2';
+import {
+  NewPortalNavigationItem,
+  PortalArea,
+  PortalMenuLink,
+  PortalNavigationItem,
+  PortalNavigationItemType,
+} from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -42,7 +60,11 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
     GioCardEmptyStateModule,
     MatButton,
     TreeComponent,
-    HttpClientModule,
+    GioPermissionModule,
+    MatMenuModule,
+    MatMenuTrigger,
+    MatIconModule,
+    MatMenuItem,
   ],
 })
 export class PortalNavigationItemsComponent implements OnInit {
@@ -56,12 +78,16 @@ export class PortalNavigationItemsComponent implements OnInit {
   pageNotFound = false;
 
   navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
+  addSectionMenuOpen = false;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly http: HttpClient,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly matDialog: MatDialog,
+    private readonly portalNavigationItemsService: PortalNavigationItemService,
   ) {}
 
   ngOnInit(): void {
@@ -93,5 +119,62 @@ export class PortalNavigationItemsComponent implements OnInit {
   onPageNotFound() {
     this.pageNotFound = true;
     this.snackBarService.error('The requested Navigation Item does not exist.');
+  }
+
+  onAddPageSectionClick() {
+    this.manageSection('PAGE', 'create', 'TOP_NAVBAR');
+  }
+
+  private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
+    this.matDialog
+      .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          type,
+          mode,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((result) => {
+          return this.create({
+            title: result.title,
+            type,
+            area,
+            url: type === 'LINK' && result.settings ? result.settings.url : undefined,
+          });
+        }),
+        switchMap((createdItem) => this.refreshList().pipe(map(() => createdItem))),
+        tap(({ id }) => {
+          this.router.navigate(['.'], {
+            relativeTo: this.activatedRoute,
+            queryParams: { navId: id },
+            queryParamsHandling: 'merge',
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private create(newPortalNavigationItem: NewPortalNavigationItem): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.createNavigationItem(newPortalNavigationItem).pipe(
+      catchError(() => {
+        this.snackBarService.error('Failed to create navigation item');
+        return EMPTY;
+      }),
+    );
+  }
+
+  private refreshList(): Observable<PortalNavigationItem[]> {
+    return this.portalNavigationItemsService.getNavigationItems().pipe(
+      map(({ items }) => {
+        // TODO: Use real backend or adjust mocks to return correct data list
+        // this.menuLinks = items;
+        // this.isEmpty = !this.menuLinks?.length;
+        return items;
+      }),
+    );
   }
 }

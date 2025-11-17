@@ -21,8 +21,24 @@
   <section class="panel sections-panel">
     <header class="panel-header sections-panel__header">
       <h3>Navigation items</h3>
-      <div class="panel-header__actions">
-        <button mat-flat-button disabled>Add</button>
+      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-c'] }">
+        <button
+          mat-stroked-button
+          type="button"
+          aria-label="Add new section"
+          [matMenuTriggerFor]="addSectionMenu"
+          (menuClosed)="addSectionMenuOpen = false"
+          (menuOpened)="addSectionMenuOpen = true"
+        >
+          <span class="panel-header__actions__add__label"
+            >Add
+            <mat-icon svgIcon="gio:nav-arrow-down" class="panel-header__actions__add__label__icon" [class.opened]="addSectionMenuOpen">
+            </mat-icon>
+          </span>
+        </button>
+        <mat-menu #addSectionMenu="matMenu">
+          <button mat-menu-item (click)="onAddPageSectionClick()"><mat-icon svgIcon="gio:page"></mat-icon> Add Page</button>
+        </mat-menu>
       </div>
     </header>
 
@@ -37,7 +53,7 @@
 
   <section class="panel editor-panel">
     <header class="panel-header editor-panel__header">
-      <div class="panel-header__actions">
+      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
         <button mat-flat-button disabled>Save</button>
       </div>
     </header>
