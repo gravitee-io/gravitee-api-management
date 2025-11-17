@@ -100,12 +100,15 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public void proxyKafkaConsolePost(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest, Buffer body) {
+        log.debug("Kafka Console POST request: {}", httpRequest.getRequestURI());
+        log.debug("Kafka Console POST body: {}", body.toString());
         proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.POST, body);
     }
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public void proxyKafkaConsoleGet(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest) {
+        log.debug("Kafka Console GET request: {}", httpRequest.getRequestURI());
         proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.GET, null);
     }
 
@@ -117,6 +120,8 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
         @Context HttpServletRequest httpRequest,
         Buffer body
     ) {
+        log.debug("Kafka Console POST request: {}", httpRequest.getRequestURI());
+        log.debug("Kafka Console POST body: {}", body.toString());
         proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.POST, body);
     }
 
@@ -124,6 +129,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
     @Path("/{s:.*}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
     public void proxyKafkaConsoleGetSubResource(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest) {
+        log.debug("Kafka Console GET request: {}", httpRequest.getRequestURI());
         proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.GET, null);
     }
 
@@ -155,6 +161,8 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             options.setTrustAll(true);
         }
 
+        log.debug("HttpClient options: {}", options);
+
         HttpClient httpClient = vertx.createHttpClient(options);
 
         String kafbatToken = computeKafbatToken(jwtSecret);
@@ -164,9 +172,12 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
         final String kafbatURI =
             requestURI.substring(baseURI.length()) + (httpRequest.getQueryString() == null ? "" : "?" + httpRequest.getQueryString());
 
+        log.debug("Request proxied to '{}://{}:{}{}'", kafbatServerScheme, kafbatServerHost, kafbatServerPort, kafbatURI);
+
         Future<HttpClientRequest> requestFuture = httpClient.request(httpMethod, kafbatURI);
         requestFuture
             .onFailure(throwable -> {
+                log.error("Error on url '{}'", kafbatURI, throwable);
                 finalResponse.resume(throwable);
 
                 // Close client
@@ -175,15 +186,20 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             .onSuccess(request -> {
                 getFilteredHeaders(httpRequest).forEach(request::putHeader);
                 request.putHeader("Authorization", kafbatToken);
+                log.debug("Request headers: {}", request.headers());
                 request
                     .response(asyncResponse -> {
                         if (asyncResponse.failed()) {
+                            log.error("Error on url '{}'", kafbatURI, asyncResponse.cause());
                             finalResponse.resume(asyncResponse.cause());
 
                             // Close client
                             httpClient.close();
                         } else {
                             HttpClientResponse response = asyncResponse.result();
+
+                            log.debug("Response status code: {}", response.statusCode());
+                            log.debug("Response headers: {}", response.headers());
 
                             response.bodyHandler(buffer -> {
                                 Response.ResponseBuilder responseBuilder;
@@ -194,6 +210,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                     responseBuilder = Response.ok(buffer.getBytes());
                                     response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
                                 } else {
+                                    log.trace("Response body: {}", buffer.toString());
                                     String payload;
                                     payload = buffer.toString();
 
@@ -243,6 +260,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                         }
                     })
                     .exceptionHandler(throwable -> {
+                        log.error("Error on url '{}'", kafbatURI, throwable);
                         finalResponse.resume(throwable);
 
                         // Close client
@@ -288,6 +306,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             .withClaim("clusters", listOfAvailableClusters)
             .sign(algorithm);
 
+        log.debug("JWT created for user '{}' with clusters list: {}", currentUser.getDisplayName(), listOfAvailableClusters);
         return "Bearer " + token;
     }
 }
