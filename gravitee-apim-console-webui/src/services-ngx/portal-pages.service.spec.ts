@@ -57,7 +57,7 @@ describe('PortalPagesService', () => {
 
       const contentReq = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-content/${fakePortalPage.id}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${fakePortalPage.id}`,
       });
       contentReq.flush(portalPageContent);
     });
