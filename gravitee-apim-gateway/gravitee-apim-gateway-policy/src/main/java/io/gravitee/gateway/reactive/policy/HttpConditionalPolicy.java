@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(HttpConditionalPolicy.class);
+    private static final String ATTR_POLICY_TRIGGER_CONDITION_PREFIX = "policy.trigger.condition.";
 
     protected final HttpPolicy policy;
     protected final String condition;
@@ -59,7 +60,7 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onRequest(ctx);
         }
-
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
     }
 
@@ -68,17 +69,23 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         if (!conditionDefined) {
             return policy.onResponse(ctx);
         }
-
+        ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
     }
 
     @Override
     public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
+        if (conditionDefined) {
+            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
+        }
         return Completable.complete();
     }
 
     @Override
     public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
+        if (conditionDefined) {
+            ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_CONDITION_PREFIX + policy.id(), condition);
+        }
         return Completable.complete();
     }
 
