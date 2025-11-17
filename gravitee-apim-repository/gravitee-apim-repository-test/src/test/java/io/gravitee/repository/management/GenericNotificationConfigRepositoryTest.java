@@ -139,6 +139,25 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
     }
 
     @Test
+    public void shouldFindAll() throws Exception {
+        var configs = genericNotificationConfigRepository.findAll();
+        assertNotNull(configs);
+        assertFalse(configs.isEmpty());
+        assertEquals(9, configs.size());
+
+        var notifToFind = configs
+            .stream()
+            .filter(c -> "notif-to-find".equals(c.getId()))
+            .findFirst()
+            .orElseThrow();
+
+        assertNotNull(notifToFind.getHooks());
+        assertEquals(2, notifToFind.getHooks().size());
+        assertTrue(notifToFind.getHooks().contains("A"));
+        assertTrue(notifToFind.getHooks().contains("B"));
+    }
+
+    @Test
     public void shouldFindByHookAndReference() throws Exception {
         List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByReferenceAndHook(
             "B",
