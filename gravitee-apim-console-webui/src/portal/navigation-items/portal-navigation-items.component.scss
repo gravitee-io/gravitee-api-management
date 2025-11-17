@@ -50,6 +50,22 @@
 
   &__actions {
     margin-left: auto;
+
+    &__add {
+      &__label {
+        display: flex;
+        gap: 8px;
+
+        &__icon {
+          transition: transform 0.15s ease-out;
+          backface-visibility: hidden;
+
+          &.opened {
+            transform: rotate(-180deg);
+          }
+        }
+      }
+    }
   }
 }
 
