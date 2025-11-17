@@ -866,19 +866,53 @@ api:
 #      - id: all                # uri starts with '/all/...'
 #        plugin: vault
 #        configuration:
-#          enabled: true
-#          # ... HC Vault plugin configuration
+#          enabled: false
+#          host: 127.0.0.1
+#          port: 8200
+#          # namespace:
+#          # kvEngine: V2                          # defaults to v2 can be "v1", no mixing supported
+#          # readTimeoutSec: 2
+#          # connectTimeoutSec: 3
+#          ssl:
+#            enabled: false                        # not for production
+#            # format: "pemfile"                   # one of "pem","pemfile" "truststore"
+#            # pem:                                # pem in base64 with headers
+#            # file: /opt/gravitee/vault.pem       # for 'pemfile' and 'truststore'
 #          auth:
-#            method: token
-#            # this points to the configuration-level kube plugin
-#            # as configured in 'secrets.kubernetes' section of the configuration
-#            token: secrets://kubernetes/gravitee-secrets:vault-token
-#      # this one is another instance of kube plugin
-#      # and may have a different configuration
+#            method: token # one of "token", "github", "userpass", "approle", "cert" (mTLS)
+#            config:
+#              ### token config
+#              # token:
+
+#              ### github config
+#              # token:
+#              ## path: <non standard github mount path>
+
+#              ### userpass config
+#              # username:
+#              # password:
+#              ## path: <non standard userpass mount path>
+
+#              ### approle
+#              # roleId:
+#              # secretId:
+#              ## path: <non standard approle mount path>
+
+#              ### cert
+#              # format:        # one of "pem", "pemfile", "keystore"
+#              ## path: <non standard cert mount path>
+#              ## for 'pem' and 'pemfile' format
+#              # cert:          # filename or inline cert
+#              # key:           # filename or inline private key
+#              ## for 'keystore' format
+#              # keyStore:      # for "keystore": keystore filename
+#              # password:      # keystore password
 #      - plugin: kubernetes    # uri starts with '/kubernetes/...'
 #        configuration:
 #          enabled: true
-#          # ... Kube plugin config
+#          # namespace: default   # if left empty will assume the namespace is the current namespace in which gravitee is deployed
+#          # kubeConfigFile: /opt/gravitee/config/kube-config.json
+#          # timeoutMs: 3000      # client timeout
 #        environments:
 #          - f5bd78b7-eec2-4c97-9d3a-cb73ec7e3e87
 #          - 6654bb2f-1f07-4b55-b708-0d0fde18159e
