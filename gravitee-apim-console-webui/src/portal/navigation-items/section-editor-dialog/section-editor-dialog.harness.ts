@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+
+export class SectionEditorDialogHarness extends ComponentHarness {
+  static hostSelector = 'section-editor-dialog';
+  private locateTitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formcontrolname="title"]' }));
+  private locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
+  private locateAddButton = this.locatorFor(MatButtonHarness.with({ text: 'Add' }));
+
+  async getTitleInput(): Promise<MatInputHarness> {
+    return this.locateTitleInput();
+  }
+  async setTitleInputValue(value: string): Promise<void> {
+    const titleInput = await this.locateTitleInput();
+    return titleInput.setValue(value);
+  }
+  async getTitleInputValue(): Promise<string> {
+    const titleInput = await this.locateTitleInput();
+    return titleInput.getValue();
+  }
+  async clickCancelButton(): Promise<void> {
+    const cancelButton = await this.locateCancelButton();
+    return cancelButton.click();
+  }
+  async isAddButtonDisabled(): Promise<boolean> {
+    const addButton = await this.locateAddButton();
+    return await addButton.isDisabled();
+  }
+  async clickAddButton(): Promise<void> {
+    const addButton = await this.locateAddButton();
+    return addButton.click();
+  }
+}
