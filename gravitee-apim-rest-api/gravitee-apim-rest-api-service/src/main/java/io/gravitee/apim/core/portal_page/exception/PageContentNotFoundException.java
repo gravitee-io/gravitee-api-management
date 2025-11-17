@@ -19,7 +19,7 @@ import io.gravitee.apim.core.exception.NotFoundDomainException;
 
 public class PageContentNotFoundException extends NotFoundDomainException {
 
-    public PageContentNotFoundException(String pageId) {
-        super("Page not found", pageId);
+    public PageContentNotFoundException(String pageContentId) {
+        super("Page content not found", pageContentId);
     }
 }

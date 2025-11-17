@@ -62,7 +62,7 @@ class GetPortalPageContentUseCaseTest {
         // When & Then
         assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(unknownId)))
             .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page not found")
+            .hasMessage("Page content not found")
             .extracting(ex -> ((PageContentNotFoundException) ex).getId())
             .isEqualTo(unknownId.json());
     }
