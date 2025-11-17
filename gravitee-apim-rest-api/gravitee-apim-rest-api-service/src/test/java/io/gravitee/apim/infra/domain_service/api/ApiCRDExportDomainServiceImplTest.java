@@ -30,6 +30,8 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
@@ -250,6 +252,80 @@ class ApiCRDExportDomainServiceImplTest {
         });
     }
 
+    @Test
+    void should_export_with_only_hrid() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity(true).crossId("cross-id").build(), true)
+        );
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.HRID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(spec.getId()).isNull();
+            soft.assertThat(spec.getCrossId()).isNull();
+            soft.assertThat(spec.getHrid()).isEqualTo("api-hrid");
+            soft.assertThat(spec.getPlans()).hasSize(1);
+            soft
+                .assertThat(spec.getPlans().get("plan-name"))
+                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                    soft.assertThat(plan.getId()).isNull();
+                    soft.assertThat(plan.getHrid()).isNotNull();
+                    soft.assertThat(plan.getGeneralConditions()).isNull();
+                    soft.assertThat(plan.getGeneralConditionsHrid()).isEqualTo("general-conditions-hrid");
+                });
+            soft.assertThat(spec.getPages()).hasSize(1);
+            soft
+                .assertThat(spec.getPages().get("page-hrid"))
+                .isInstanceOfSatisfying(PageCRD.class, page -> {
+                    soft.assertThat(page.getId()).isNull();
+                    soft.assertThat(page.getHrid()).isNotNull();
+                    soft.assertThat(page.getParentId()).isNull();
+                    soft.assertThat(page.getParentHrid()).isNotNull();
+                });
+        });
+    }
+
+    @Test
+    void should_export_without_hrid() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity(true).crossId("cross-id").build(), true)
+        );
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.GUID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(spec.getId()).isEqualTo("api-id");
+            soft.assertThat(spec.getCrossId()).isEqualTo("cross-id");
+            soft.assertThat(spec.getHrid()).isNull();
+            soft.assertThat(spec.getPlans()).hasSize(1);
+            soft
+                .assertThat(spec.getPlans().get("plan-name"))
+                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                    soft.assertThat(plan.getId()).isEqualTo("plan-id");
+                    soft.assertThat(plan.getHrid()).isNull();
+                    soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions-id");
+                    soft.assertThat(plan.getGeneralConditionsHrid()).isNull();
+                });
+            soft.assertThat(spec.getPages()).hasSize(1);
+            soft
+                .assertThat(spec.getPages().get("page-hrid"))
+                .isInstanceOfSatisfying(PageCRD.class, page -> {
+                    soft.assertThat(page.getId()).isEqualTo("page-id");
+                    soft.assertThat(page.getHrid()).isNull();
+                    soft.assertThat(page.getParentId()).isEqualTo("parent-id");
+                    soft.assertThat(page.getParentHrid()).isNull();
+                });
+        });
+    }
+
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
         return exportApiEntity(apiEntity, true);
     }
@@ -258,13 +334,25 @@ class ApiCRDExportDomainServiceImplTest {
         return ExportApiEntity.builder()
             .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
             .apiEntity(apiEntity)
-            .pages(List.of(PageEntity.builder().id("page-id").hrid(withHrid ? "page-hrid" : null).name(null).build()))
+            .pages(
+                List.of(
+                    PageEntity.builder()
+                        .id("page-id")
+                        .hrid(withHrid ? "page-hrid" : null)
+                        .parentId("parent-id")
+                        .parentHrid(withHrid ? "parent-hrid" : null)
+                        .name(null)
+                        .build()
+                )
+            )
             .plans(
                 Set.of(
                     PlanEntity.builder()
                         .name("plan-name")
                         .id("plan-id")
                         .hrid(withHrid ? "plan-hrid" : null)
+                        .generalConditions("general-conditions-id")
+                        .generalConditionsHrid(withHrid ? "general-conditions-hrid" : null)
                         .security(new PlanSecurity("key-less", "{}"))
                         .build()
                 )
@@ -273,9 +361,14 @@ class ApiCRDExportDomainServiceImplTest {
     }
 
     private static ApiEntity.ApiEntityBuilder apiEntity() {
+        return apiEntity(false);
+    }
+
+    private static ApiEntity.ApiEntityBuilder apiEntity(boolean withHrid) {
         return ApiEntity.builder()
             .name("api-name")
             .id(API_ID)
+            .hrid(withHrid ? "api-hrid" : null)
             .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
             .endpointGroups(
                 List.of(
