@@ -32,10 +32,11 @@ export type LogFilters = {
   applications?: MultiFilter;
   plans?: MultiFilter;
   methods?: string[];
+  mcpMethods?: string[];
   statuses?: Set<number>;
 };
 
-export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plans: string[]; methods: string[] };
+export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plans: string[]; methods: string[]; mcpMethods: string[] };
 
 export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
 
@@ -46,6 +47,7 @@ export type LogFiltersInitialValues = {
   to: Moment;
   entrypoints: string[];
   methods: string[];
+  mcpMethods: string[];
   statuses: Set<number>;
 };
 

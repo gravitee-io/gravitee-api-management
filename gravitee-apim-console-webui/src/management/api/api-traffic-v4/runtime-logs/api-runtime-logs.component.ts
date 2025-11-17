@@ -151,6 +151,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
               : undefined,
             to: this.activatedRoute.snapshot.queryParams?.to ? moment(Number(this.activatedRoute.snapshot.queryParams.to)) : undefined,
             methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
+            mcpMethods: this.activatedRoute.snapshot.queryParams?.mcpMethods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
             entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
           };

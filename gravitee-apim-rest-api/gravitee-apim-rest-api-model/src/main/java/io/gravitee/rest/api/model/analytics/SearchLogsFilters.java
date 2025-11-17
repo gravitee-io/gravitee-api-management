@@ -27,6 +27,7 @@ public record SearchLogsFilters(
     Set<String> applicationIds,
     Set<String> planIds,
     Set<HttpMethod> methods,
+    Set<String> mcpMethods,
     Set<Integer> statuses,
     Set<String> entrypointIds,
     Set<String> apiIds,

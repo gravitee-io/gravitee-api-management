@@ -32,6 +32,7 @@ public class SearchLogsParam implements TimeInterval {
     public static final String APPLICATION_IDS_QUERY_PARAM_NAME = "applicationIds";
     public static final String PLAN_IDS_QUERY_PARAM_NAME = "planIds";
     public static final String METHODS_QUERY_PARAM_NAME = "methods";
+    public static final String MCP_METHODS_QUERY_PARAM_NAME = "mcpMethods";
     public static final String STATUSES_QUERY_PARAM_NAME = "statuses";
     public static final String ENTRYPOINT_IDS_QUERY_PARAM_NAME = "entrypointIds";
 
@@ -51,6 +52,9 @@ public class SearchLogsParam implements TimeInterval {
 
     @QueryParam(METHODS_QUERY_PARAM_NAME)
     Set<HttpMethod> methods;
+
+    @QueryParam(MCP_METHODS_QUERY_PARAM_NAME)
+    Set<String> mcpMethods;
 
     @QueryParam(STATUSES_QUERY_PARAM_NAME)
     Set<Integer> statuses;

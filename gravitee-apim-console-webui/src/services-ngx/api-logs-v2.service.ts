@@ -41,6 +41,7 @@ export class ApiLogsV2Service {
     if (queryParam?.applicationIds) params = params.append('applicationIds', queryParam.applicationIds);
     if (queryParam?.planIds) params = params.append('planIds', queryParam.planIds);
     if (queryParam?.methods) params = params.append('methods', queryParam.methods);
+    if (queryParam?.mcpMethods) params = params.append('mcpMethods', queryParam.mcpMethods);
     if (queryParam?.statuses) params = params.append('statuses', queryParam.statuses);
 
     return this.http.get<ApiLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs`, {

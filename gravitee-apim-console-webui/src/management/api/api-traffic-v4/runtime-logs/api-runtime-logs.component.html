@@ -39,6 +39,7 @@
       [initialValues]="initialValues"
       [plans]="apiPlans$ | async"
       [entrypoints]="entrypoints$ | async"
+      [apiType]="apiType()"
       (refresh)="refresh()"
     ></api-runtime-logs-quick-filters>
   }

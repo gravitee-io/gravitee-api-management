@@ -20,14 +20,14 @@
     <form class="quick-filters__selectors" *ngIf="quickFiltersForm" [formGroup]="quickFiltersForm">
       <mat-form-field class="quick-filters__period">
         <mat-label>Period</mat-label>
-        <mat-select formControlName="period" aria-label="Period selection">
+        <mat-select formControlName="period" aria-label="Period selection" panelWidth="">
           <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field class="quick-filters__entrypoints">
         <mat-label>Entrypoints</mat-label>
-        <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true">
+        <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true" panelWidth="">
           <mat-option *ngFor="let entrypoint of entrypoints" [value]="entrypoint.id">{{ entrypoint.name }}</mat-option>
         </mat-select>
       </mat-form-field>
@@ -39,9 +39,24 @@
         </mat-select>
       </mat-form-field>
 
+      @if (apiType === 'MCP_PROXY') {
+        <mat-form-field class="quick-filters__methods">
+          <mat-label>MCP methods</mat-label>
+          <mat-select formControlName="mcpMethods" aria-label="MCP methods selection" [multiple]="true" panelWidth="">
+            @for (mcpMethodGroup of MCP_METHODS; track mcpMethodGroup.groupLabel) {
+              <mat-optgroup [label]="mcpMethodGroup.groupLabel">
+                @for (mcpMethod of mcpMethodGroup.groupOptions; track mcpMethod.label) {
+                  <mat-option [value]="mcpMethod.value">{{ mcpMethod.label }}</mat-option>
+                }
+              </mat-optgroup>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
       <mat-form-field class="quick-filters__plans">
         <mat-label>Plan</mat-label>
-        <mat-select formControlName="plans" [multiple]="true">
+        <mat-select formControlName="plans" [multiple]="true" panelWidth="">
           <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
         </mat-select>
       </mat-form-field>

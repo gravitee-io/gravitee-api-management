@@ -941,6 +941,7 @@ describe('ApiRuntimeLogsComponent', () => {
         entrypointIds: null,
         planIds: null,
         methods: null,
+        mcpMethods: null,
         statuses: null,
         from: null,
         to: null,
