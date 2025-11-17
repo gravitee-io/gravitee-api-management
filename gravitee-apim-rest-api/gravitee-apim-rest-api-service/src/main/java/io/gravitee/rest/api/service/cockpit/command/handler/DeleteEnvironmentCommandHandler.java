@@ -297,15 +297,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         var payload = command.getPayload();
 
         try {
-            log.info("Delete environment with id [{}]", payload.cockpitId());
-            var environment = environmentService.findByCockpitId(payload.cockpitId());
-            var executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-            String resolvedUserId = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, payload.userId());
-
-            disableEnvironment(executionContext, resolvedUserId);
-            deleteEnvironment(executionContext, environment);
-
-            log.info("Environment [{}] with id [{}] has been deleted.", environment.getName(), environment.getId());
+            processDeletionWorkflow(payload.cockpitId(), payload.userId());
             return Single.just(new DeleteEnvironmentReply(command.getId()));
         } catch (EnvironmentNotFoundException e) {
             log.warn("Environment with cockpitId [{}] has not been found.", payload.cockpitId());
@@ -315,6 +307,16 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             log.error(errorDetails, e);
             return Single.just(new DeleteEnvironmentReply(command.getId(), errorDetails));
         }
+    }
+
+    void processDeletionWorkflow(String environmentCockpitId, String userId) throws TechnicalException {
+        log.info("Delete environment with id [{}]", environmentCockpitId);
+        var environment = environmentService.findByCockpitId(environmentCockpitId);
+        var executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+        String resolvedUserId = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, userId);
+        disableEnvironment(executionContext, resolvedUserId);
+        deleteEnvironment(executionContext, environment);
+        log.info("Environment [{}] with id [{}] has been deleted.", environment.getName(), environment.getId());
     }
 
     private void disableEnvironment(ExecutionContext executionContext, String userId) {
