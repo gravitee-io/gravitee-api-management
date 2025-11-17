@@ -43,24 +43,21 @@ export interface PortalNavigationLink extends BasePortalNavigationItem {
 
 export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink;
 
-interface BaseNewPortalNavigationItem {
+interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
+  type: T;
   area: PortalArea;
   parentId?: string;
   order?: number;
 }
 
-export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'PAGE';
-  contentId: string;
+export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
+  contentId?: string;
 }
 
-export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'FOLDER';
-}
+export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {}
 
-export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'LINK';
+export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem<'LINK'> {
   url: string;
 }
 
