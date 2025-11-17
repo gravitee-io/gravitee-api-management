@@ -81,7 +81,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     public Stream<String> searchIds(ApplicationCriteria criteria) {
         final Query query = buildSearchCriteria(criteria);
         query.fields().include("id");
-        return mongoTemplate.findDistinct(query, "id", ApplicationMongo.class, String.class).parallelStream();
+        return mongoTemplate.stream(query, ApplicationMongo.class).map(ApplicationMongo::getId);
     }
 
     Query buildSearchCriteria(ApplicationCriteria criteria) {
