@@ -31,6 +31,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,26 +70,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         }
 
         ensureCrossId(spec);
-        switch (idExport) {
-            case GUID -> {
-                spec.setHrid(null);
-                return spec;
-            }
-            case HRID -> {
-                spec.setId(null);
-                spec.setCrossId(null);
-                return spec;
-            }
-            case NONE -> {
-                spec.setHrid(null);
-                spec.setId(null);
-                spec.setCrossId(null);
-                return spec;
-            }
-            default -> {
-                // keep all
-            }
-        }
+        applyIDExportStrategy(idExport, spec);
         return spec;
     }
 
@@ -130,5 +113,69 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private Set<String> getGroupNames(Set<String> groups) {
         return groupQueryService.findByIds(groups).stream().map(Group::getName).collect(Collectors.toSet());
+    }
+
+    private void applyIDExportStrategy(IDExportStrategy idExport, ApiCRDSpec spec) {
+        switch (idExport) {
+            case GUID -> {
+                spec.setHrid(null);
+                Optional.ofNullable(spec.getPlans())
+                    .orElse(Map.of())
+                    .forEach((k, plan) -> {
+                        plan.setHrid(null);
+                        plan.setGeneralConditionsHrid(null);
+                    });
+                Optional.ofNullable(spec.getPages())
+                    .orElse(Map.of())
+                    .forEach((k, page) -> {
+                        page.setHrid(null);
+                        page.setParentHrid(null);
+                    });
+            }
+            case HRID -> {
+                spec.setId(null);
+                spec.setCrossId(null);
+                Optional.ofNullable(spec.getPlans())
+                    .orElse(Map.of())
+                    .forEach((k, plan) -> {
+                        plan.setId(null);
+                        plan.setCrossId(null);
+                        plan.setGeneralConditions(null);
+                    });
+                Optional.ofNullable(spec.getPages())
+                    .orElse(Map.of())
+                    .forEach((k, page) -> {
+                        page.setId(null);
+                        page.setCrossId(null);
+                        page.setParentId(null);
+                    });
+            }
+            case NONE -> {
+                spec.setHrid(null);
+                spec.setId(null);
+                spec.setCrossId(null);
+                Optional.ofNullable(spec.getPlans())
+                    .orElse(Map.of())
+                    .forEach((k, plan) -> {
+                        plan.setHrid(null);
+                        plan.setGeneralConditionsHrid(null);
+                        plan.setId(null);
+                        plan.setCrossId(null);
+                        plan.setGeneralConditions(null);
+                    });
+                Optional.ofNullable(spec.getPages())
+                    .orElse(Map.of())
+                    .forEach((k, page) -> {
+                        page.setId(null);
+                        page.setCrossId(null);
+                        page.setParentId(null);
+                        page.setHrid(null);
+                        page.setParentHrid(null);
+                    });
+            }
+            default -> {
+                // keep all
+            }
+        }
     }
 }
