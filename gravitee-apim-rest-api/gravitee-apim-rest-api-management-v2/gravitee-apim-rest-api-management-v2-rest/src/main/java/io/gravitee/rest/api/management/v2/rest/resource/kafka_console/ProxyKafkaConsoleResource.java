@@ -98,35 +98,36 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
     }
 
     @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    public void proxyKafkaConsolePost(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest, Buffer body) {
+        proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.POST, body);
+    }
+
+    @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    public void proxyKafkaConsoleGet(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest) {
+        proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.GET, null);
+    }
+
+    @POST
     @Path("/{s:.*}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
-    public void proxyKafkaConsolePost(
+    public void proxyKafkaConsolePostSubResource(
         @Suspended AsyncResponse finalResponse,
         @Context HttpServletRequest httpRequest,
-        @Context UriInfo uriInfo,
         Buffer body
     ) {
-        proxyKafkaConsole(finalResponse, httpRequest, uriInfo, HttpMethod.POST, body);
+        proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.POST, body);
     }
 
     @GET
     @Path("/{s:.*}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
-    public void proxyKafkaConsoleGet(
-        @Suspended AsyncResponse finalResponse,
-        @Context HttpServletRequest httpRequest,
-        @Context UriInfo uriInfo
-    ) {
-        proxyKafkaConsole(finalResponse, httpRequest, uriInfo, HttpMethod.GET, null);
+    public void proxyKafkaConsoleGetSubResource(@Suspended AsyncResponse finalResponse, @Context HttpServletRequest httpRequest) {
+        proxyKafkaConsole(finalResponse, httpRequest, HttpMethod.GET, null);
     }
 
-    private void proxyKafkaConsole(
-        AsyncResponse finalResponse,
-        HttpServletRequest httpRequest,
-        UriInfo uriInfo,
-        HttpMethod httpMethod,
-        Buffer body
-    ) {
+    private void proxyKafkaConsole(AsyncResponse finalResponse, HttpServletRequest httpRequest, HttpMethod httpMethod, Buffer body) {
         Boolean enabled = environment.getProperty("kafka.console.enabled", Boolean.class, Boolean.FALSE);
         if (!enabled) {
             log.warn("Kafka console server security secret is not defined. Please define it in your environment.");
