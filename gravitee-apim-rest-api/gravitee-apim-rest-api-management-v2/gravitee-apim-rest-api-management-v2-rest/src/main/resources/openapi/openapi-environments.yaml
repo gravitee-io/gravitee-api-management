@@ -1775,7 +1775,7 @@ components:
               type: string
               description: Content type
               enum:
-                - gravitee_markdown
+                - GRAVITEE_MARKDOWN
             content:
               type: string
               description: The content of the page
