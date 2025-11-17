@@ -82,7 +82,7 @@ describe('HomepageComponent', () => {
 
     // Then the service fetches the portal page content by content id
     httpTestingController
-      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-content/${portalPage.id}` })
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${portalPage.id}` })
       .flush(portalPage);
   };
 

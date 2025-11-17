@@ -96,7 +96,7 @@ export class HomepageComponent {
   public togglePublish(): void {
     const isCurrentlyPublished = this.portalHomepagePublished();
     const nav = this.portalHomepage()?.navigationItem ?? null;
-    const pageId = nav?.type === 'PAGE' ? (nav.configuration.portalPageContentId ?? nav.id) : (nav?.id ?? '');
+    const pageId = nav?.type === 'PAGE' ? nav.configuration.portalPageContentId : '';
 
     const data: GioConfirmDialogData = {
       title: `${this.togglePublishActionText()} page?`,
@@ -125,7 +125,7 @@ export class HomepageComponent {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
           this.portalHomepage.set(
             currentNav
-              ? { navigationItem: currentNav, content: { id: updatedPage.id, type: updatedPage.type as any, content: updatedPage.content } }
+              ? { navigationItem: currentNav, content: { id: updatedPage.id, type: updatedPage.type, content: updatedPage.content } }
               : null,
           );
           this.portalHomepagePublished.set(updatedPage.published);

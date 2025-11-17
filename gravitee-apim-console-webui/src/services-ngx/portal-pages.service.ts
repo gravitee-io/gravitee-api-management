@@ -42,11 +42,11 @@ export class PortalPagesService {
       map((response) => {
         const items = response?.items ?? [];
         if (items.length === 0) {
-          return null as unknown as PortalNavigationPage | null;
+          return null;
         }
         const firstPageItem = items.find((i) => i.type === 'PAGE');
         if (!firstPageItem) {
-          return null as unknown as PortalNavigationPage | null;
+          return null;
         }
         return firstPageItem as PortalNavigationPage;
       }),
@@ -56,7 +56,7 @@ export class PortalPagesService {
         }
         return this.http
           .get<PortalPageContent>(
-            `${this.constants.env.v2BaseURL}/portal-page-content/${portalNavigationPage.configuration.portalPageContentId}`,
+            `${this.constants.env.v2BaseURL}/portal-page-contents/${portalNavigationPage.configuration.portalPageContentId}`,
           )
           .pipe(map((content) => ({ navigationItem: portalNavigationPage, content: content })));
       }),
