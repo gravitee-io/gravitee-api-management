@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiResource_ExportCRDTest extends ApiResourceTest {
+class ApiResource_ExportCRDTest extends ApiResourceTest {
 
     private static final YAMLMapper YAML = new YAMLMapper();
 
@@ -44,7 +44,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_not_export_when_no_definition_permission() {
+    void should_not_export_when_no_definition_permission() {
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -58,7 +58,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_export() throws JsonProcessingException {
+    void should_export() throws JsonProcessingException {
         Response response = rootTarget().request().get();
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -71,6 +71,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
             soft.assertThat(yamlNode.get("spec")).isNotNull();
             soft.assertThat(yamlNode.get("spec").get("id").asText()).isEqualTo(ApiCRDFixtures.API_ID);
             soft.assertThat(yamlNode.get("spec").get("crossId").asText()).isEqualTo(ApiCRDFixtures.API_CROSS_ID);
+            soft.assertThat(yamlNode.get("spec").get("hrid")).isNull();
             soft.assertThat(yamlNode.get("spec").get("name").asText()).isEqualTo(ApiCRDFixtures.API_NAME);
             soft.assertThat(yamlNode.get("spec").get("plans")).isNotEmpty();
             soft.assertThat(yamlNode.get("spec").get("plans").get(ApiCRDFixtures.PLAN_NAME)).isNotNull();

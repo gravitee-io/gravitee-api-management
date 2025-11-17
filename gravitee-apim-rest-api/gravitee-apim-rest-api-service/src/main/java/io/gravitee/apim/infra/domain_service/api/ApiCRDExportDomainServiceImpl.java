@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
@@ -56,7 +57,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     private final ApiQueryService apiQueryService;
 
     @Override
-    public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
@@ -67,7 +68,29 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         if (spec.getGroups() != null) {
             spec.setGroups(getGroupNames(spec.getGroups()));
         }
-        return ensureCrossId(spec);
+
+        ensureCrossId(spec);
+        switch (idExport) {
+            case GUID -> {
+                spec.setHrid(null);
+                return spec;
+            }
+            case HRID -> {
+                spec.setId(null);
+                spec.setCrossId(null);
+                return spec;
+            }
+            case NONE -> {
+                spec.setHrid(null);
+                spec.setId(null);
+                spec.setCrossId(null);
+                return spec;
+            }
+            default -> {
+                // keep all
+            }
+        }
+        return spec;
     }
 
     private ApiCRDSpec ensureCrossId(ApiCRDSpec spec) {
