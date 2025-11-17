@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.never;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -74,13 +77,14 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DeleteOrganizationCommandHandlerTest {
 
     private static final String EMPTY_ORG_ID = "org#1";
@@ -168,19 +172,24 @@ public class DeleteOrganizationCommandHandlerTest {
     @Mock
     private ClusterRepository clusterRepository;
 
+    @Mock
+    private DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
+
     private DeleteOrganizationCommandHandler cut;
 
-    @Before
-    public void setUp() throws Exception {
-        when(organizationService.findByCockpitId(NOT_FOUND_ENV_ID)).thenThrow(new OrganizationNotFoundException(NOT_FOUND_ENV_ID));
-        when(organizationService.findByCockpitId(ERROR_ENV_ID)).thenThrow(new RuntimeException(ERROR_ENV_ID));
+    @BeforeEach
+    void setUp() throws Exception {
+        lenient()
+            .when(organizationService.findByCockpitId(NOT_FOUND_ENV_ID))
+            .thenThrow(new OrganizationNotFoundException(NOT_FOUND_ENV_ID));
+        lenient().when(organizationService.findByCockpitId(ERROR_ENV_ID)).thenThrow(new RuntimeException(ERROR_ENV_ID));
         OrganizationEntity emptyOrganization = new OrganizationEntity();
         emptyOrganization.setId(EMPTY_ORG_ID);
-        when(organizationService.findByCockpitId(EMPTY_ORG_ID)).thenReturn(emptyOrganization);
+        lenient().when(organizationService.findByCockpitId(EMPTY_ORG_ID)).thenReturn(emptyOrganization);
         OrganizationEntity organization = new OrganizationEntity();
         organization.setId(ORG_ID);
-        when(organizationService.findByCockpitId(ORG_ID)).thenReturn(organization);
-        when(userRepository.deleteByOrganizationId(ORG_ID)).thenReturn(List.of(USER_ID, USER_ID_2));
+        lenient().when(organizationService.findByCockpitId(ORG_ID)).thenReturn(organization);
+        lenient().when(userRepository.deleteByOrganizationId(ORG_ID)).thenReturn(List.of(USER_ID, USER_ID_2));
 
         cut = new DeleteOrganizationCommandHandler(
             accessPointRepository,
@@ -208,7 +217,8 @@ public class DeleteOrganizationCommandHandlerTest {
             environmentService,
             identityProviderActivationService,
             organizationService,
-            searchEngineService
+            searchEngineService,
+            deleteEnvironmentCommandHandler
         );
     }
 
@@ -223,15 +233,40 @@ public class DeleteOrganizationCommandHandlerTest {
     }
 
     @Test
-    public void should_not_delete_organization_with_environment() {
-        when(environmentService.findByOrganization(EMPTY_ORG_ID)).thenReturn(List.of(EnvironmentEntity.builder().id("env-id").build()));
+    @SneakyThrows
+    public void should_delete_organization_environments() {
+        when(environmentService.findByOrganization(EMPTY_ORG_ID)).thenReturn(
+            List.of(
+                EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
+                EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()
+            )
+        );
+
+        DeleteOrganizationReply reply = cut
+            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
+        verify(deleteEnvironmentCommandHandler).processDeletionWorkflow("cockpit-env-1", USER_ID);
+        verify(deleteEnvironmentCommandHandler).processDeletionWorkflow("cockpit-env-2", USER_ID);
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_reply_with_error_when_environment_deletion_fails() {
+        when(environmentService.findByOrganization(EMPTY_ORG_ID)).thenReturn(
+            List.of(
+                EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
+                EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()
+            )
+        );
+        doThrow(new TechnicalException("Failed")).when(deleteEnvironmentCommandHandler).processDeletionWorkflow(anyString(), eq(USER_ID));
 
         DeleteOrganizationReply reply = cut
             .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
             .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
-        verify(organizationService, never()).delete(EMPTY_ORG_ID);
     }
 
     @Test
