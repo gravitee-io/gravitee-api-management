@@ -143,12 +143,18 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             return;
         }
 
+        String kafbatServerScheme = environment.getProperty("kafka.console.server.scheme", "http");
         String kafbatServerHost = environment.getProperty("kafka.console.server.host", "localhost");
         Integer kafbatServerPort = environment.getProperty("kafka.console.server.port", Integer.class, 8080);
 
         HttpClientOptions options = new HttpClientOptions();
         options.setDefaultHost(kafbatServerHost);
         options.setDefaultPort(kafbatServerPort);
+        if (kafbatServerScheme.equalsIgnoreCase("https")) {
+            options.setSsl(true);
+            options.setTrustAll(true);
+        }
+
         HttpClient httpClient = vertx.createHttpClient(options);
 
         String kafbatToken = computeKafbatToken(jwtSecret);
