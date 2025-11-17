@@ -17,12 +17,16 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+<<<<<<< HEAD
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+=======
+import static org.mockito.Mockito.*;
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
 
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -30,6 +34,10 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
@@ -223,6 +231,7 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
+<<<<<<< HEAD
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -241,6 +250,8 @@ class ApiCRDExportDomainServiceImplTest {
         var spec = apiCRDExportDomainService.export(
             API_ID,
             IDExportStrategy.ALL,
+=======
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 

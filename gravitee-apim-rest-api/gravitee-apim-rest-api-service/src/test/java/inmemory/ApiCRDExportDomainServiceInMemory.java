@@ -28,7 +28,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService {
 
     @Override
+<<<<<<< HEAD
     public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
+=======
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExportStrategy, AuditInfo auditInfo) {
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
         return ApiCRDFixtures.anApiCRD();
     }
 }

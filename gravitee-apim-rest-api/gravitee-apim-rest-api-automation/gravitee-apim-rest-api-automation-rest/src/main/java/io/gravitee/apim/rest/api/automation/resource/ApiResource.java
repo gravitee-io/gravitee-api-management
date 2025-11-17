@@ -29,13 +29,18 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+<<<<<<< HEAD
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+=======
+import io.gravitee.rest.api.service.PermissionService;
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
+<<<<<<< HEAD
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -45,6 +50,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+=======
+import jakarta.ws.rs.*;
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,8 +86,13 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ExportApiCRDUseCase.Input(
+<<<<<<< HEAD
             legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
             IDExportStrategy.ALL,
+=======
+            IdBuilder.builder(executionContext, hrid).buildId(),
+            IDExportStrategy.HRID,
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
             buildAuditInfo(executionContext, userDetails)
         );
 

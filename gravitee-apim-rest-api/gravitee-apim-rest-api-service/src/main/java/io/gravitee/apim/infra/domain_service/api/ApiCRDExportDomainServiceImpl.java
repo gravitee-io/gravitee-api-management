@@ -19,6 +19,10 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;

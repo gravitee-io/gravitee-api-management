@@ -15,9 +15,20 @@
  */
 package io.gravitee.apim.core.api.model.crd;
 
+<<<<<<< HEAD
 public enum IDExportStrategy {
     ALL,
     HRID,
     GUID,
+=======
+/**
+ * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum IDExportStrategy {
+    GUID,
+    HRID,
+    ALL,
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
     NONE,
 }

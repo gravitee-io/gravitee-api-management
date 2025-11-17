@@ -34,9 +34,16 @@ public class ExportApiCRDUseCase {
 
     public record Output(ApiCRDSpec spec) {}
 
+<<<<<<< HEAD
     public record Input(String apiId, IDExportStrategy idExportStrategy, AuditInfo auditInfo) {}
 
     public Output execute(Input input) {
         return new Output(exportDomainService.export(input.apiId, input.idExportStrategy, input.auditInfo));
+=======
+    public record Input(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {}
+
+    public Output execute(Input input) {
+        return new Output(exportDomainService.export(input.apiId, input.idExport, input.auditInfo));
+>>>>>>> bab00a4015 (fix: remove hrid from exported API)
     }
 }
