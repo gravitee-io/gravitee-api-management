@@ -16,7 +16,7 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -28,8 +28,6 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -37,11 +35,7 @@ import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 /**
@@ -76,6 +70,7 @@ public class ApiResource extends AbstractResource {
 
         var input = new ExportApiCRDUseCase.Input(
             IdBuilder.builder(executionContext, hrid).buildId(),
+            IDExportStrategy.HRID,
             buildAuditInfo(executionContext, userDetails)
         );
 
