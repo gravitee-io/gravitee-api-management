@@ -28,8 +28,9 @@ import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
-import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
 import { WebhookLogsApplicationsFilterComponent } from './components/webhook-logs-applications-filter/webhook-logs-applications-filter.component';
+
+import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
 import {
   DEFAULT_WEBHOOK_LOGS_FILTERS,
   WebhookLogsQuickFilters,
