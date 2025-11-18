@@ -37,8 +37,18 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return menu.getHarness(MatMenuItemHarness.with({ text: /Add Page/i }));
   }
 
+  async getLinkMenuItem(): Promise<MatMenuItemHarness> {
+    const menu = await this.getMenu();
+    return menu.getHarness(MatMenuItemHarness.with({ text: /Add Link/i }));
+  }
+
   async clickPageMenuItem(): Promise<void> {
     const menuItem = await this.getPageMenuItem();
+    return menuItem.click();
+  }
+
+  async clickLinkMenuItem(): Promise<void> {
+    const menuItem = await this.getLinkMenuItem();
     return menuItem.click();
   }
 }

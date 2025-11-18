@@ -121,8 +121,8 @@ export class PortalNavigationItemsComponent implements OnInit {
     this.snackBarService.error('The requested Navigation Item does not exist.');
   }
 
-  onAddPageSectionClick() {
-    this.manageSection('PAGE', 'create', 'TOP_NAVBAR');
+  onAddSection(sectionType: PortalNavigationItemType) {
+    this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
   }
 
   private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
@@ -142,7 +142,7 @@ export class PortalNavigationItemsComponent implements OnInit {
             title: result.title,
             type,
             area,
-            url: type === 'LINK' && result.settings ? result.settings.url : undefined,
+            url: result.url,
           });
         }),
         switchMap((createdItem) => this.refreshList().pipe(map(() => createdItem))),
@@ -170,9 +170,8 @@ export class PortalNavigationItemsComponent implements OnInit {
   private refreshList(): Observable<PortalNavigationItem[]> {
     return this.portalNavigationItemsService.getNavigationItems().pipe(
       map(({ items }) => {
-        // TODO: Use real backend or adjust mocks to return correct data list
-        // this.menuLinks = items;
-        // this.isEmpty = !this.menuLinks?.length;
+        this.menuLinks = items;
+        this.isEmpty = !this.menuLinks?.length;
         return items;
       }),
     );

@@ -29,8 +29,10 @@ import { SectionEditorDialogHarness } from './section-editor-dialog/section-edit
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 import {
+  fakeNewLinkPortalNavigationItem,
   fakeNewPagePortalNavigationItem,
   fakePortalNavigationItemsResponse,
+  fakePortalNavigationLink,
   fakePortalNavigationPage,
   NewPortalNavigationItem,
   PortalNavigationItem,
@@ -70,11 +72,13 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('adding a section', () => {
+    let dialogHarness: SectionEditorDialogHarness;
+    beforeEach(async () => {
+      expectGetMenuLinks();
+      await harness.clickAddButton();
+    });
     describe('adding a page', () => {
-      let dialogHarness: SectionEditorDialogHarness;
       beforeEach(async () => {
-        expectGetMenuLinks();
-        await harness.clickAddButton();
         await harness.clickPageMenuItem();
         dialogHarness = await rootLoader.getHarness(SectionEditorDialogHarness);
       });
@@ -121,6 +125,38 @@ describe('PortalNavigationItemsComponent', () => {
         expectGetNavigationItems();
 
         expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+      });
+    });
+    describe('adding a link', () => {
+      beforeEach(async () => {
+        await harness.clickLinkMenuItem();
+        dialogHarness = await rootLoader.getHarness(SectionEditorDialogHarness);
+      });
+      it('opens the dialog when the Add button is clicked and Link is selected', async () => {
+        expect(dialogHarness).toBeTruthy();
+      });
+      it('should not create the link when the dialog is cancelled', async () => {
+        await dialogHarness.clickCancelButton();
+      });
+      it('should create the link when the dialog is submitted', async () => {
+        const title = 'New Link Title';
+        const url = 'https://gravitee.io';
+        await dialogHarness.setTitleInputValue(title);
+        await dialogHarness.setUrlInputValue(url);
+        await dialogHarness.clickAddButton();
+
+        expectCreateNavigationItem(
+          fakeNewLinkPortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'LINK', url }),
+          fakePortalNavigationLink({
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'LINK',
+            configuration: {
+              url,
+            },
+          }),
+        );
+        expectGetNavigationItems();
       });
     });
   });

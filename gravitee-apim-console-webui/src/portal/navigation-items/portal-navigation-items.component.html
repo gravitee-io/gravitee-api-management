@@ -37,7 +37,8 @@
           </span>
         </button>
         <mat-menu #addSectionMenu="matMenu">
-          <button mat-menu-item (click)="onAddPageSectionClick()"><mat-icon svgIcon="gio:page"></mat-icon> Add Page</button>
+          <button mat-menu-item (click)="onAddSection('PAGE')"><mat-icon svgIcon="gio:page"></mat-icon> Add Page</button>
+          <button mat-menu-item (click)="onAddSection('LINK')"><mat-icon svgIcon="gio:link"></mat-icon> Add Link</button>
         </mat-menu>
       </div>
     </header>
