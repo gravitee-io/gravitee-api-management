@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, input, InputSignal } from '@angular/core';
 import { catchError, share, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -32,6 +32,7 @@ import { ApiRuntimeLogsConnectionLogDetailsModule, ApiRuntimeLogsDetailsEmptySta
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { InstanceService } from '../../../../../../services-ngx/instance.service';
+import { ApiType } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-proxy',
@@ -59,6 +60,7 @@ export class ApiRuntimeLogsProxyComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly apiId = this.activatedRoute.snapshot.params.apiId;
   private readonly requestId = this.activatedRoute.snapshot.params.requestId;
+  apiType: InputSignal<ApiType> = input.required<ApiType>();
 
   private metric$ = this.apiAnalyticsService
     .getApiMetricsDetail(this.apiId, this.requestId)

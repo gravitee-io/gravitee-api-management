@@ -16,6 +16,8 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
@@ -28,6 +30,7 @@ import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 })
 export class ApiRuntimeLogsDetailsComponent {
   api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());
+  apiType = toSignal(this.api$.pipe(map((api) => api.type)));
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,

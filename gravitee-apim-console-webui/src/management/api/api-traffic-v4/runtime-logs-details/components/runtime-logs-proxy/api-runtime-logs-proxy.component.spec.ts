@@ -52,6 +52,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiRuntimeLogsProxyComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('apiType', 'PROXY');
     fixture.detectChanges();
 
     loader = TestbedHarnessEnvironment.loader(fixture);

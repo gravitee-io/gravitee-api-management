@@ -59,12 +59,12 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
   });
 
   function expectApi(api: ApiV4) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
-        method: 'GET',
-      })
-      .flush(api);
+    const reqs = httpTestingController.match({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      method: 'GET',
+    });
+    expect(reqs.length).toBe(2);
+    reqs.forEach((r) => r.flush(api));
     fixture.detectChanges();
   }
 });

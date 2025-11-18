@@ -22,6 +22,8 @@ import {
   ApiMetricsDetailResponse,
   BaseInstance,
 } from '../../../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+import { ApiUtils } from '../../../../../../../../util/api.util';
+import { ApiType } from '../../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-request-metric-overview',
@@ -32,4 +34,9 @@ import {
 export class ApiProxyRequestMetricOverviewComponent {
   metric: InputSignal<ApiMetricsDetailResponse> = input.required<ApiMetricsDetailResponse>();
   instance: InputSignal<BaseInstance> = input<BaseInstance>();
+  apiType: InputSignal<ApiType> = input.required<ApiType>();
+
+  getMcpErrorLabel(error: string) {
+    return ApiUtils.getMcpErrorLabel(error);
+  }
 }

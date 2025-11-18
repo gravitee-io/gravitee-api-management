@@ -35,6 +35,11 @@
             <div [class]="'gio-method-badge-' + metricValue?.method.toLocaleLowerCase()">{{ metricValue?.method }}</div>
           </dd>
 
+          @if (apiType() === 'MCP_PROXY') {
+            <dt class="mat-caption">MCP method</dt>
+            <dd class="gio-caption-2">{{ metricValue?.additionalMetrics['keyword_mcp-proxy_method'] }}</dd>
+          }
+
           <dt class="mat-caption">URI</dt>
           <dd class="gio-caption-2">{{ metricValue?.uri }}</dd>
 
@@ -61,6 +66,17 @@
               {{ metricValue?.status }}
             </div>
           </dd>
+
+          @if (apiType() === 'MCP_PROXY') {
+            <dt class="mat-caption">MCP error</dt>
+            <dd class="gio-caption-2">
+              @if (metricValue?.additionalMetrics['long_mcp-proxy_response-error-code']) {
+                <span class="gio-badge-error">{{
+                  getMcpErrorLabel(metricValue?.additionalMetrics['long_mcp-proxy_response-error-code'])
+                }}</span>
+              }
+            </dd>
+          }
 
           <dt class="mat-caption">Global response time</dt>
           <dd class="gio-caption-2">{{ metricValue?.gatewayResponseTime }}</dd>

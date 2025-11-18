@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asIntOr;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asLongOr;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,6 +72,7 @@ public class FindApiMetricsDetailResponseAdapter {
             .errorComponentName(asTextOrNull(json.get("error-component-name")))
             .errorComponentType(asTextOrNull(json.get("error-component-type")))
             .warnings(buildWarnings(json.get("warnings")))
+            .additionalMetrics(asMapOrNull(json.get("additional-metrics")))
             .build();
     }
 

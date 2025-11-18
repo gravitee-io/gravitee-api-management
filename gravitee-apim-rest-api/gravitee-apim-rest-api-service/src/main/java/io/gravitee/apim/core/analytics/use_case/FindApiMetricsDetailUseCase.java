@@ -87,6 +87,7 @@ public class FindApiMetricsDetailUseCase {
             .errorComponentName(apiMetricsDetail.getErrorComponentName())
             .errorComponentType(apiMetricsDetail.getErrorComponentType())
             .warnings(apiMetricsDetail.getWarnings())
+            .additionalMetrics(apiMetricsDetail.getAdditionalMetrics())
             .build();
 
         return new Output(result);

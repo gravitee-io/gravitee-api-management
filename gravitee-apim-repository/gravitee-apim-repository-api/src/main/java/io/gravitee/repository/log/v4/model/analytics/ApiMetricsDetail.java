@@ -18,6 +18,7 @@ package io.gravitee.repository.log.v4.model.analytics;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 
@@ -48,4 +49,5 @@ public class ApiMetricsDetail {
     String errorComponentName;
     String errorComponentType;
     List<ConnectionDiagnostic> warnings;
+    Map<String, String> additionalMetrics;
 }
