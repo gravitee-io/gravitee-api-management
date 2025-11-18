@@ -27,10 +27,9 @@ import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } fro
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { PortalPagesService } from '../../services-ngx/portal-pages.service';
+import { PortalPagesService, PortalHomepage } from '../../services-ngx/portal-pages.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { PortalPageContent } from '../../entities/portal/portal-page-content';
-import { PortalNavigationItem } from '../../entities/portal/portal-navigation-item';
+import { PortalNavigationPage } from '../../entities/management-api-v2';
 
 @Component({
   selector: 'homepage',
@@ -66,10 +65,10 @@ export class HomepageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
 
-  readonly portalHomepage: WritableSignal<{ navigationItem: PortalNavigationItem; content: PortalPageContent } | null> = signal(null);
+  readonly portalHomepage: WritableSignal<PortalHomepage | null> = signal(null);
   // TODO: when update of portal navigation item is implemented, read the actual "published" flag from the navigation/page metadata.
   // For now default to true so the UI has a sane initial state
-  readonly portalHomepagePublished = signal<boolean>(true);
+  readonly portalHomepagePublished = computed(() => !!this.portalHomepage());
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
@@ -78,7 +77,6 @@ export class HomepageComponent {
       .pipe(
         tap((result) => {
           this.portalHomepage.set(result);
-          this.portalHomepagePublished.set(true);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -95,8 +93,8 @@ export class HomepageComponent {
 
   public togglePublish(): void {
     const isCurrentlyPublished = this.portalHomepagePublished();
-    const nav = this.portalHomepage()?.navigationItem ?? null;
-    const pageId = nav?.type === 'PAGE' ? nav.configuration.portalPageContentId : '';
+    const nav = this.portalHomepage().navigationItem as PortalNavigationPage;
+    const pageId = nav.configuration.portalPageContentId;
 
     const data: GioConfirmDialogData = {
       title: `${this.togglePublishActionText()} page?`,
@@ -125,10 +123,9 @@ export class HomepageComponent {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
           this.portalHomepage.set(
             currentNav
-              ? { navigationItem: currentNav, content: { id: updatedPage.id, type: updatedPage.type, content: updatedPage.content } }
+              ? { navigationItem: currentNav, content: { id: updatedPage.id, type: 'GRAVITEE_MARKDOWN', content: updatedPage.content } }
               : null,
           );
-          this.portalHomepagePublished.set(updatedPage.published);
           this.snackbarService.success(`Page has been ${updatedPage.published ? 'publish' : 'unpublish'}ed successfully.`);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -143,7 +140,9 @@ export class HomepageComponent {
   updatePortalPage(): void {
     const navForUpdate = this.portalHomepage()?.navigationItem ?? null;
     const pageId =
-      navForUpdate?.type === 'PAGE' ? (navForUpdate.configuration.portalPageContentId ?? navForUpdate.id) : (navForUpdate?.id ?? '');
+      navForUpdate?.type === 'PAGE'
+        ? ((navForUpdate as PortalNavigationPage).configuration.portalPageContentId ?? navForUpdate.id)
+        : (navForUpdate?.id ?? '');
     this.portalPagesService
       .patchPortalPage(pageId, {
         content: this.contentControl.value,
@@ -157,7 +156,6 @@ export class HomepageComponent {
               ? { navigationItem: currentNav, content: { id: portalPage.id, type: portalPage.type as any, content: portalPage.content } }
               : null,
           );
-          this.portalHomepagePublished.set(portalPage.published);
         }),
         catchError(() => {
           this.snackbarService.error('An error occurred while updating the homepage');
@@ -168,7 +166,7 @@ export class HomepageComponent {
       .subscribe();
   }
 
-  private getPortalHomepage(): Observable<{ navigationItem: PortalNavigationItem; content: PortalPageContent }> {
+  private getPortalHomepage(): Observable<PortalHomepage> {
     return this.portalPagesService.getHomepage().pipe(
       catchError(() => {
         this.snackbarService.error('An error occurred while loading the homepage');
