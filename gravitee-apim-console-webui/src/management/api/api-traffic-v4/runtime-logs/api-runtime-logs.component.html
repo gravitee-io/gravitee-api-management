@@ -47,7 +47,7 @@
     <api-runtime-logs-list
       [pagination]="logs.pagination"
       [logs]="logs.data"
-      [isMessageApi]="isMessageApi()"
+      [apiType]="apiType()"
       (paginationUpdated)="paginationUpdated($event)"
     ></api-runtime-logs-list>
   }

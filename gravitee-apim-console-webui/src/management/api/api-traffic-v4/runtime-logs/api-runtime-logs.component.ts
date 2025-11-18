@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, Signal } from '@angular/core';
 import { map, shareReplay, skip, switchMap, tap } from 'rxjs/operators';
 import { forkJoin, of, ReplaySubject } from 'rxjs';
 import moment from 'moment';
@@ -25,7 +25,7 @@ import { QuickFiltersStoreService } from './services';
 import { LogFiltersInitialValues } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
-import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiLogsParam, ApiLogsResponse, ApiType, ApiV4 } from '../../../../entities/management-api-v2';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
@@ -67,7 +67,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
       });
     }),
   );
-  isMessageApi = toSignal(this.api$.pipe(map((api: ApiV4) => !!api && api.type === 'MESSAGE')));
+  apiType: Signal<ApiType> = toSignal(this.api$.pipe(map((api: ApiV4) => api.type)));
   initialValues: LogFiltersInitialValues;
   loading = true;
 
