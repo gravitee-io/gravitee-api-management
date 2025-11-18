@@ -24,6 +24,7 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create';
 
@@ -34,17 +35,12 @@ export interface SectionEditorDialogData {
 
 export interface SectionEditorDialogResult {
   title: string;
-  settings?: {
-    url: string;
-  };
+  url?: string;
 }
 
 interface SectionFormControls {
   title: FormControl<string>;
-  settings?: FormGroup<{
-    // Optional for 'LINK' type
-    url: FormControl<string>;
-  }>;
+  url?: FormControl<string>; // Optional for 'LINK' type
 }
 
 type SectionForm = FormGroup<SectionFormControls>;
@@ -89,7 +85,7 @@ export class SectionEditorDialogComponent implements OnInit {
 
   private addTypeSpecificControls(): void {
     if (this.type === 'LINK') {
-      // Add link specific settings here
+      this.form.addControl('url', new FormControl<string>('', { validators: [Validators.required, urlValidator()], nonNullable: true }));
     }
   }
 
