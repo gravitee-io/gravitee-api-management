@@ -38,6 +38,7 @@ public class ConnectionLogField {
     public static final String ERROR_KEY = "error-key";
     public static final String ERROR_COMPONENT_NAME = "error-component-name";
     public static final String ERROR_COMPONENT_TYPE = "error-component-type";
+    public static final String ADDITIONAL_METRICS = "additional-metrics";
     public static final String WARNINGS = "warnings";
 
     // Fields with different names in each index

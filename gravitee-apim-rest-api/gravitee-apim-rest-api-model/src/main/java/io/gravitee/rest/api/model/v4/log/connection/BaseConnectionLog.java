@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.log.connection;
 
 import io.gravitee.common.http.HttpMethod;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -50,4 +51,5 @@ public class BaseConnectionLog {
     private String errorComponentName;
     private String errorComponentType;
     private List<ConnectionDiagnosticModel> warnings;
+    private Map<String, String> additionalMetrics;
 }
