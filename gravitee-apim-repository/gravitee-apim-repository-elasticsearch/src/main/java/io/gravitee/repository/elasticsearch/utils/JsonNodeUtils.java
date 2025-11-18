@@ -15,15 +15,38 @@
  */
 package io.gravitee.repository.elasticsearch.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonNodeUtils {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     public static String asTextOrNull(JsonNode jsonNode) {
         return jsonNode != null ? jsonNode.asText() : null;
+    }
+
+    /**
+     * This method returns the jsonNode elements as a Map<String, String>.
+     * If the jsonNode is null, or the elements are not all String pairs of key-values, the result will be null.
+     *
+     * @param jsonNode
+     * @return Map<String, String>
+     */
+    public static Map<String, String> asMapOrNull(JsonNode jsonNode) {
+        if (jsonNode == null) {
+            return null;
+        }
+        try {
+            return MAPPER.convertValue(jsonNode, new TypeReference<>() {});
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public static int asIntOr(JsonNode jsonNode, int defaultValue) {
