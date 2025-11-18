@@ -7,7 +7,7 @@ $typography: map.get(gio.$mat-theme, typography);
 mat-dialog-content {
   display: flex;
   flex-flow: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .title {
