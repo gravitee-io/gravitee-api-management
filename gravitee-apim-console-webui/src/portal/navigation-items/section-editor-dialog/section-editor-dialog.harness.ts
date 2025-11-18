@@ -20,6 +20,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 export class SectionEditorDialogHarness extends ComponentHarness {
   static hostSelector = 'section-editor-dialog';
   private locateTitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formcontrolname="title"]' }));
+  private locateUrlInput = this.locatorFor(MatInputHarness.with({ selector: '[formcontrolname="url"]' }));
   private locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   private locateAddButton = this.locatorFor(MatButtonHarness.with({ text: 'Add' }));
 
@@ -33,6 +34,14 @@ export class SectionEditorDialogHarness extends ComponentHarness {
   async getTitleInputValue(): Promise<string> {
     const titleInput = await this.locateTitleInput();
     return titleInput.getValue();
+  }
+  async getUrlInputValue(): Promise<string> {
+    const urlInput = await this.locateUrlInput();
+    return urlInput.getValue();
+  }
+  async setUrlInputValue(value: string): Promise<void> {
+    const urlInput = await this.locateUrlInput();
+    return urlInput.setValue(value);
   }
   async clickCancelButton(): Promise<void> {
     const cancelButton = await this.locateCancelButton();

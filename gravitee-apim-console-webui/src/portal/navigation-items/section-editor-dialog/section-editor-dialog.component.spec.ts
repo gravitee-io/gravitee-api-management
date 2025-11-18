@@ -116,5 +116,52 @@ describe('SectionEditorDialogComponent', () => {
         expect(component.dialogValue).toBeUndefined();
       });
     });
+    describe('when adding a link', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput('type', 'LINK');
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+      it('should not allow empty title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.getValue()).toBe('');
+
+        await dialog.setUrlInputValue('https://gravitee.io');
+        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+      });
+      it('should not allow empty url', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.getValue()).toBe('');
+
+        await titleInput.setValue('Gravitee Homepage');
+        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+      });
+      it('should not allow invalid url', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+
+        await titleInput.setValue('Gravitee Homepage');
+        await dialog.setUrlInputValue('invalid-url');
+        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+      });
+      it('should save the title and url', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+
+        await titleInput.setValue('Gravitee Homepage');
+        await dialog.setUrlInputValue('https://gravitee.io');
+
+        await dialog.clickAddButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Gravitee Homepage',
+          url: 'https://gravitee.io',
+        });
+      });
+    });
   });
 });

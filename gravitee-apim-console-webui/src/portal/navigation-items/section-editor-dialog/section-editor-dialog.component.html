@@ -30,6 +30,20 @@
       }
     </mat-form-field>
 
+    @if (type === 'LINK') {
+      <div class="form-field-title">Link settings</div>
+      <mat-form-field>
+        <mat-label>URL</mat-label>
+        <input matInput formControlName="url" required />
+        @if (form.controls.url.hasError('required')) {
+          <mat-error>URL is required</mat-error>
+        }
+        @if (form.controls.url.hasError('invalidUrl')) {
+          <mat-error>Invalid URL format</mat-error>
+        }
+      </mat-form-field>
+    }
+
     <gio-banner-info type="info">
       This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
     </gio-banner-info>
