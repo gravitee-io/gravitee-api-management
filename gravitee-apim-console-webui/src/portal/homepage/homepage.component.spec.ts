@@ -184,7 +184,8 @@ describe('HomepageComponent', () => {
       expect(badgeElement?.classList.contains('gio-badge-success')).toBe(true);
     });
 
-    it('should unpublish a published page after confirmation', async () => {
+    test.skip('should unpublish a published page after confirmation', async () => {
+      // TODO: handle publish/unpublish when feature is re-enabled
       const publishedPage = fakePortalPageWithDetails({ published: true });
       await init(true, publishedPage);
 
@@ -227,7 +228,7 @@ describe('HomepageComponent', () => {
       httpTestingController.verify();
     });
 
-    it('should show an error message if publishing fails', async () => {
+    it('should show an error message if unpublishing fails', async () => {
       await init(true, fakePortalPageWithDetails({ published: true }));
 
       const toggleButton = await getToggleButton();

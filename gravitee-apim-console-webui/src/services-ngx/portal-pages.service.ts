@@ -16,13 +16,22 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, catchError } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
 import { PatchPortalPage } from '../entities/portal/patch-portal-page';
-import { PortalNavigationItem, PortalNavigationItemsResponse, PortalNavigationPage } from '../entities/portal/portal-navigation-item';
-import { PortalPageContent } from '../entities/portal/portal-page-content';
+import {
+  PortalNavigationItem,
+  PortalNavigationPage,
+  PortalNavigationItemsResponse,
+  PortalPageContent,
+} from '../entities/management-api-v2';
+
+export interface PortalHomepage {
+  navigationItem: PortalNavigationItem;
+  content: PortalPageContent;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -36,9 +45,10 @@ export class PortalPagesService {
   /**
    * Get the homepage portal page
    */
-  getHomepage(): Observable<{ navigationItem: PortalNavigationItem; content: PortalPageContent } | null> {
+  getHomepage(): Observable<PortalHomepage | null> {
     const navUrl = `${this.constants.env.v2BaseURL}/portal-navigation-items?area=HOMEPAGE`;
-    return this.http.get<PortalNavigationItemsResponse>(navUrl).pipe(
+    return this.http.get<PortalNavigationItemsResponse | null>(navUrl).pipe(
+      catchError(() => of(null)),
       map((response) => {
         const items = response?.items ?? [];
         if (items.length === 0) {
@@ -58,7 +68,10 @@ export class PortalPagesService {
           .get<PortalPageContent>(
             `${this.constants.env.v2BaseURL}/portal-page-contents/${portalNavigationPage.configuration.portalPageContentId}`,
           )
-          .pipe(map((content) => ({ navigationItem: portalNavigationPage, content: content })));
+          .pipe(
+            map((content) => ({ navigationItem: portalNavigationPage, content: content }) as PortalHomepage),
+            catchError(() => of(null)),
+          );
       }),
     );
   }
