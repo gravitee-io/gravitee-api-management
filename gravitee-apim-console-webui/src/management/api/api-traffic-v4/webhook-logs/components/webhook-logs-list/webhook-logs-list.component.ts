@@ -23,7 +23,7 @@ import { DatePipe } from '@angular/common';
 import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base';
 import { GioTableWrapperPagination } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../../../../entities/management-api-v2';
-import { WebhookLog } from '../../models';
+import { WebhookLog } from '../../models/webhook-logs.models';
 
 // TODO: Backend Integration Required
 // - Verify that the WebhookLog interface matches the backend API response structure

@@ -14,114 +14,106 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { of } from 'rxjs';
 
 import { WebhookSettingsDialogComponent } from './webhook-settings-dialog.component';
 import { WebhookSettingsDialogHarness } from './webhook-settings-dialog.harness';
 
-import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
-import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { ApiV4 } from '../../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
+import { ApiV4, fakeProxyApiV4 } from '../../../../../../entities/management-api-v2';
+
+@Component({
+  selector: 'gio-dialog-test',
+  template: `<button mat-button id="open-dialog-test" (click)="openDialog()">Open dialog</button>`,
+  standalone: false,
+})
+class TestComponent {
+  public result?: any;
+  public apiId: string;
+  constructor(private readonly matDialog: MatDialog) {}
+
+  public openDialog() {
+    this.matDialog
+      .open<WebhookSettingsDialogComponent, string>(WebhookSettingsDialogComponent, {
+        data: this.apiId,
+      })
+      .afterClosed()
+      .subscribe((result) => (this.result = result));
+  }
+}
 
 describe('WebhookSettingsDialogComponent', () => {
-  let fixture: ComponentFixture<WebhookSettingsDialogComponent>;
-  let harness: WebhookSettingsDialogHarness;
-  let loader: ReturnType<typeof TestbedHarnessEnvironment.documentRootLoader>;
+  const API_ID = 'api-id';
+  let fixture: ComponentFixture<TestComponent>;
+  let harnessLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
-  const dialogRefMock = { close: jest.fn() };
-  const apiGetMock = jest.fn();
-  const apiUpdateMock = jest.fn();
-  const apiServiceMock: Pick<ApiV2Service, 'get' | 'update'> = { get: apiGetMock, update: apiUpdateMock };
-  const snackBarErrorMock = jest.fn();
-  const snackBarSuccessMock = jest.fn();
-  const snackBarServiceMock: Pick<SnackBarService, 'error' | 'success'> = { error: snackBarErrorMock, success: snackBarSuccessMock };
+  const init = async (api: ApiV4) => {
+    fixture = TestBed.createComponent(TestComponent);
+    harnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.componentInstance.apiId = API_ID;
+    const openDialogButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '#open-dialog-test' }));
+    await openDialogButton.click();
+    fixture.detectChanges();
+
+    expectApiGetRequest(api);
+  };
 
   beforeEach(async () => {
-    dialogRefMock.close.mockClear();
-    apiGetMock.mockClear();
-    apiUpdateMock.mockClear();
-    snackBarErrorMock.mockClear();
-    snackBarSuccessMock.mockClear();
-    apiGetMock.mockReturnValue(of(createApiV4()));
-    apiUpdateMock.mockImplementation((id, api) => of(api));
-
     await TestBed.configureTestingModule({
-      imports: [WebhookSettingsDialogComponent, NoopAnimationsModule],
-      providers: [
-        { provide: MatDialogRef, useValue: dialogRefMock },
-        { provide: MAT_DIALOG_DATA, useValue: 'api-id' },
-        { provide: ApiV2Service, useValue: apiServiceMock },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              params: { apiId: 'api-id' },
-              queryParams: {},
-              queryParamMap: convertToParamMap({}),
-            },
-            paramMap: of(convertToParamMap({ apiId: 'api-id' })),
-            params: of({ apiId: 'api-id' }),
-            queryParamMap: of(convertToParamMap({})),
-            queryParams: of({}),
-            fragment: of(null),
-            data: of({}),
-          } as unknown as ActivatedRoute,
-        },
-        { provide: SnackBarService, useValue: snackBarServiceMock },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-      ],
+      declarations: [TestComponent],
+      imports: [WebhookSettingsDialogComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(WebhookSettingsDialogComponent);
-    loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookSettingsDialogHarness);
   });
 
-  it('should render the dialog content once the API is loaded', async () => {
-    expect(await harness.isLoading()).toBe(false);
-    expect(await harness.getTitleText()).toBe('Webhook Logs reporting settings');
-  });
-
-  it('should close the dialog when discard is clicked', async () => {
-    expect(dialogRefMock.close).not.toHaveBeenCalled();
-    // Make a change to ensure the save bar is visible (it only appears when form has unsaved changes)
-    const enabledToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-    await enabledToggle.toggle();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    // Verify save bar is visible before trying to click discard
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-    expect(await saveBar.isVisible()).toBe(true);
-
-    // Click discard button (which triggers resetClicked event and closes the dialog)
-    await harness.clickClose();
-    expect(dialogRefMock.close).toHaveBeenCalled();
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   describe('when analytics is enabled initially', () => {
+    const api = fakeProxyApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        sampling: { type: 'COUNT', value: '100' },
+        logging: {
+          content: {
+            messagePayload: false,
+            messageHeaders: false,
+            payload: false,
+            headers: false,
+          },
+        },
+      },
+    });
+
+    beforeEach(async () => await init(api));
+
+    it('should render the dialog content once the API is loaded', async () => {
+      const dialogHarness = await harnessLoader.getHarness(WebhookSettingsDialogHarness);
+      expect(dialogHarness).toBeDefined();
+      expect(await dialogHarness.isLoading()).toBe(false);
+      expect(await dialogHarness.getTitleText()).toBe('Webhook Logs reporting settings');
+    });
+
     it('should have top toggle enabled and checked', async () => {
-      const enabledToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
       expect(await enabledToggle.isChecked()).toBe(true);
       expect(await enabledToggle.isDisabled()).toBe(false);
     });
 
     it('should enable content data toggles when top toggle is turned on', async () => {
-      const enabledToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-      const requestBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
+      const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
 
       // Turn off and then back on
       await enabledToggle.toggle();
@@ -132,10 +124,14 @@ describe('WebhookSettingsDialogComponent', () => {
     });
 
     it('should have content data toggles enabled', async () => {
-      const requestBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
-      const requestHeadersToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }));
-      const responseBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }));
-      const responseHeadersToggle = await loader.getHarness(
+      const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
+      const requestHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }),
+      );
+      const responseBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }),
+      );
+      const responseHeadersToggle = await harnessLoader.getHarness(
         MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
       );
 
@@ -146,11 +142,15 @@ describe('WebhookSettingsDialogComponent', () => {
     });
 
     it('should disable and set content data toggles to false when top toggle is turned off', async () => {
-      const enabledToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-      const requestBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
-      const requestHeadersToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }));
-      const responseBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }));
-      const responseHeadersToggle = await loader.getHarness(
+      const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
+      const requestHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }),
+      );
+      const responseBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }),
+      );
+      const responseHeadersToggle = await harnessLoader.getHarness(
         MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
       );
 
@@ -173,67 +173,25 @@ describe('WebhookSettingsDialogComponent', () => {
       expect(await responseHeadersToggle.isChecked()).toBe(false);
       expect(await responseHeadersToggle.isDisabled()).toBe(true);
     });
+
+    it('should close the dialog when discard is clicked', async () => {
+      // Make a change to ensure the save bar is visible (it only appears when form has unsaved changes)
+      const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      await enabledToggle.toggle();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const dialogHarness = await harnessLoader.getHarness(WebhookSettingsDialogHarness);
+      await dialogHarness.clickClose();
+      expect(fixture.componentInstance.result).toBeUndefined();
+    });
   });
 
   describe('when analytics is disabled initially', () => {
-    beforeEach(async () => {
-      apiGetMock.mockReturnValue(
-        of(
-          createApiV4({
-            analytics: {
-              enabled: false,
-              sampling: { type: 'COUNT', value: '100' },
-              logging: {
-                content: {
-                  messagePayload: false,
-                  messageHeaders: false,
-                  payload: false,
-                  headers: false,
-                },
-              },
-            },
-          }),
-        ),
-      );
-      fixture = TestBed.createComponent(WebhookSettingsDialogComponent);
-      loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookSettingsDialogHarness);
-    });
-
-    it('should have top toggle enabled and unchecked', async () => {
-      const enabledToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-      expect(await enabledToggle.isChecked()).toBe(false);
-      expect(await enabledToggle.isDisabled()).toBe(false);
-    });
-
-    it('should have content data toggles disabled', async () => {
-      const requestBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
-      const requestHeadersToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }));
-      const responseBodyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }));
-      const responseHeadersToggle = await loader.getHarness(
-        MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
-      );
-
-      expect(await requestBodyToggle.isDisabled()).toBe(true);
-      expect(await requestHeadersToggle.isDisabled()).toBe(true);
-      expect(await responseBodyToggle.isDisabled()).toBe(true);
-      expect(await responseHeadersToggle.isDisabled()).toBe(true);
-    });
-  });
-
-  function createApiV4(overrides: Partial<ApiV4> = {}): ApiV4 {
-    return {
-      id: 'api-id',
-      name: 'Webhook API',
-      apiVersion: '1.0.0',
-      definitionVersion: 'V4',
-      type: 'PROXY',
-      originContext: { origin: 'MANAGEMENT' },
+    const api = fakeProxyApiV4({
+      id: API_ID,
       analytics: {
-        enabled: true,
+        enabled: false,
         sampling: { type: 'COUNT', value: '100' },
         logging: {
           content: {
@@ -244,7 +202,42 @@ describe('WebhookSettingsDialogComponent', () => {
           },
         },
       },
-      ...overrides,
-    };
+    });
+
+    beforeEach(async () => await init(api));
+
+    it('should have top toggle enabled and unchecked', async () => {
+      const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      expect(await enabledToggle.isChecked()).toBe(false);
+      expect(await enabledToggle.isDisabled()).toBe(false);
+    });
+
+    it('should have content data toggles disabled', async () => {
+      const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
+      const requestHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }),
+      );
+      const responseBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }),
+      );
+      const responseHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
+      );
+
+      expect(await requestBodyToggle.isDisabled()).toBe(true);
+      expect(await requestHeadersToggle.isDisabled()).toBe(true);
+      expect(await responseBodyToggle.isDisabled()).toBe(true);
+      expect(await responseHeadersToggle.isDisabled()).toBe(true);
+    });
+  });
+
+  function expectApiGetRequest(api: ApiV4) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
+    fixture.detectChanges();
   }
 });

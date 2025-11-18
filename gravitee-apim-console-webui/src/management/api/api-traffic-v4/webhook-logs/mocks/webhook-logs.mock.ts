@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpMethod } from '../../../../../entities/management-api-v2';
-import { WebhookLog, WebhookLogsResponse } from '../models';
+import { WebhookLog, WebhookLogsResponse } from '../models/webhook-logs.models';
 
 export const WEBHOOK_LOGS_MOCK_RESPONSE: WebhookLogsResponse = {
   pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 3, totalCount: 3 },

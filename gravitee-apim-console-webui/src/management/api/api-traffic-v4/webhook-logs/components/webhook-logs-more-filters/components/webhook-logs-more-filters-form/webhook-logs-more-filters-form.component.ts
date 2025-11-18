@@ -28,7 +28,7 @@ import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-
 
 import { DEFAULT_PERIOD, PERIODS } from '../../../../../runtime-logs/models';
 import { DATE_TIME_FORMATS } from '../../../../../../../../shared/utils/timeFrameRanges';
-import { WebhookMoreFiltersForm } from '../../../../models';
+import { WebhookMoreFiltersForm } from '../../../../models/webhook-logs.models';
 
 @Component({
   selector: 'webhook-logs-more-filters-form',

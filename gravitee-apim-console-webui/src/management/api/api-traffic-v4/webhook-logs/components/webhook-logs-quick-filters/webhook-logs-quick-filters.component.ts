@@ -15,7 +15,7 @@
  */
 import { isNumber } from 'angular';
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,14 +28,14 @@ import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
-import { ApplicationsFilterModule } from '../../../runtime-logs/components/api-runtime-logs-quick-filters/components';
 import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
+import { WebhookLogsApplicationsFilterComponent } from './components/webhook-logs-applications-filter/webhook-logs-applications-filter.component';
 import {
   DEFAULT_WEBHOOK_LOGS_FILTERS,
   WebhookLogsQuickFilters,
   WebhookLogsQuickFiltersInitialValues,
   WebhookMoreFiltersForm,
-} from '../../models';
+} from '../../models/webhook-logs.models';
 import { WebhookLogsMoreFiltersComponent } from '../webhook-logs-more-filters/webhook-logs-more-filters.component';
 
 type QuickFiltersFormValue = {
@@ -59,6 +59,7 @@ const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
     MatChipsModule,
@@ -66,7 +67,7 @@ const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    ApplicationsFilterModule,
+    WebhookLogsApplicationsFilterComponent,
     WebhookLogsMoreFiltersComponent,
   ],
 })

@@ -13,11 +13,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<gio-banner-info class="banner-warning">
-  <div class="banner-warning__content">
-    Reporting is disabled
-    <span class="mat-body"
-      >You're seeing outdated or no data because reporting is disabled. To view the latest data, please enable reporting.</span
-    >
-  </div>
-</gio-banner-info>
+<mat-form-field class="applications_form_field">
+  <mat-label>Applications</mat-label>
+  <gio-form-tags-input
+    [(ngModel)]="selectedApplications"
+    [placeholder]="'Search for an application'"
+    [autocompleteOptions]="autocompleteOptions"
+    [displayValueWith]="displayValueWith"
+    [useAutocompleteOptionValueOnly]="true"
+    [disabled]="disabled"
+  ></gio-form-tags-input>
+</mat-form-field>

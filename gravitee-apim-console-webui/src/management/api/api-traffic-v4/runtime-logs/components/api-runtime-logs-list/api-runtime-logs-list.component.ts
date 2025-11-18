@@ -14,82 +14,80 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, TemplateRef, viewChild, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
+import { GioAvatarModule } from '@gravitee/ui-particles-angular';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
+import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
-import { GioTableWrapperPagination } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import {
+  GioTableWrapperFilters,
+  GioTableWrapperPagination,
+} from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
-import { LogsListBaseComponent, LogsListColumnDef } from '../../../../api-traffic-v4/components/logs-list-base/logs-list-base.component';
 
 @Component({
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
   standalone: true,
-  imports: [MatIcon, MatTooltipModule, RouterLink, MatButtonModule, DatePipe, GioTooltipOnEllipsisModule, LogsListBaseComponent],
+  imports: [
+    GioAvatarModule,
+    GioTableWrapperModule,
+    MatIcon,
+    MatTableModule,
+    MatSort,
+    MatTooltipModule,
+    RouterLink,
+    MatButtonModule,
+    DatePipe,
+    GioTooltipOnEllipsisModule,
+  ],
 })
 export class ApiRuntimeLogsListComponent {
   logs = input.required<ConnectionLog[]>();
   pagination = input.required<Pagination>();
   isMessageApi = input.required<boolean>();
-  paginationUpdated = output<GioTableWrapperPagination>();
-
-  readonly columns = computed<LogsListColumnDef[]>(() => {
-    const requiredTemplates = [
-      this.timestampTemplate(),
-      this.methodTemplate(),
-      this.statusTemplate(),
-      this.uriTemplate(),
-      this.applicationTemplate(),
-      this.planTemplate(),
-      this.responseTimeTemplate(),
-      this.issuesTemplate(),
-      this.actionsTemplate(),
-    ];
-
-    if (requiredTemplates.some((template) => !template)) {
-      return [];
-    }
-
-    const baseColumns: LogsListColumnDef[] = [
-      { id: 'timestamp', label: 'Timestamp', template: this.timestampTemplate()! },
-      { id: 'method', label: 'Method', template: this.methodTemplate()! },
-      { id: 'status', label: 'Status', template: this.statusTemplate()! },
-      { id: 'URI', label: 'URI', template: this.uriTemplate()! },
-      { id: 'application', label: 'Application', template: this.applicationTemplate()! },
-      { id: 'plan', label: 'Plan', template: this.planTemplate()! },
-      { id: 'responseTime', label: 'Response time', template: this.responseTimeTemplate()! },
-    ];
-
-    if (!this.isMessageApi()) {
-      const endpointTemplate = this.endpointTemplate();
-      if (!endpointTemplate) {
-        return [];
-      }
-      baseColumns.push({ id: 'endpoint', label: 'Endpoint reached', template: endpointTemplate });
-    }
-
-    baseColumns.push(
-      { id: 'issues', label: 'Issues', template: this.issuesTemplate()! },
-      { id: 'actions', label: '', template: this.actionsTemplate()! },
-    );
-
-    return baseColumns;
+  readonly gioTableWrapperFilters = computed(() => {
+    const pagination = this.pagination();
+    return {
+      searchTerm: '',
+      pagination: {
+        index: pagination.page ?? 1,
+        size: pagination.perPage ?? 10,
+      },
+    };
   });
+  displayedColumns = computed(() => [
+    'timestamp',
+    'method',
+    'status',
+    'URI',
+    'application',
+    'plan',
+    'responseTime',
+    ...(this.isMessageApi() ? [] : ['endpoint']),
+    'issues',
+    'actions',
+  ]);
 
-  timestampTemplate = viewChild<TemplateRef<ConnectionLog>>('timestampTemplate');
-  methodTemplate = viewChild<TemplateRef<ConnectionLog>>('methodTemplate');
-  statusTemplate = viewChild<TemplateRef<ConnectionLog>>('statusTemplate');
-  uriTemplate = viewChild<TemplateRef<ConnectionLog>>('uriTemplate');
-  applicationTemplate = viewChild<TemplateRef<ConnectionLog>>('applicationTemplate');
-  planTemplate = viewChild<TemplateRef<ConnectionLog>>('planTemplate');
-  responseTimeTemplate = viewChild<TemplateRef<ConnectionLog>>('responseTimeTemplate');
-  endpointTemplate = viewChild<TemplateRef<ConnectionLog>>('endpointTemplate');
-  issuesTemplate = viewChild<TemplateRef<ConnectionLog>>('issuesTemplate');
-  actionsTemplate = viewChild<TemplateRef<ConnectionLog>>('actionsTemplate');
+  paginationUpdated = output<GioTableWrapperPagination>();
+  pageSizeOptions: number[] = [10, 25, 50, 100];
+
+  onFiltersChanged(event: GioTableWrapperFilters) {
+    const eventPagination = event.pagination;
+    const currentPagination = this.pagination();
+    if (
+      (currentPagination.perPage >= 0 && currentPagination.perPage !== eventPagination.size) ||
+      (currentPagination.page >= 0 && currentPagination.page !== eventPagination.index)
+    ) {
+      this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
+    }
+  }
 }

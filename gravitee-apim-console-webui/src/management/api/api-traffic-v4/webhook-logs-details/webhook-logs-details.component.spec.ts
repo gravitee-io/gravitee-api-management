@@ -21,7 +21,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { WebhookLogsDetailsComponent } from './webhook-logs-details.component';
 import { WebhookLogsDetailsHarness } from './webhook-logs-details.harness';
-import { WebhookLogsDetailsModule } from './webhook-logs-details.module';
 
 import { GioTestingModule } from '../../../../shared/testing';
 
@@ -31,16 +30,19 @@ describe('WebhookLogsDetailsComponent', () => {
   let routerNavigateSpy: ReturnType<typeof jest.spyOn>;
   let routerNavigateByUrlSpy: ReturnType<typeof jest.spyOn>;
 
-  const activatedRouteStub = {
-    snapshot: {
-      params: { requestId: 'request-1' },
-    },
-  } as unknown as ActivatedRoute;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WebhookLogsDetailsModule, RouterTestingModule, GioTestingModule, NoopAnimationsModule],
-      providers: [{ provide: ActivatedRoute, useValue: activatedRouteStub }],
+      imports: [WebhookLogsDetailsComponent, RouterTestingModule, GioTestingModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: { requestId: 'request-1' },
+            },
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WebhookLogsDetailsComponent);
@@ -66,7 +68,8 @@ describe('WebhookLogsDetailsComponent', () => {
   it('should navigate back when the back button is clicked', async () => {
     await harness.clickBack();
     if (routerNavigateSpy.mock.calls.length) {
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: activatedRouteStub });
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: activatedRoute });
     } else {
       expect(routerNavigateByUrlSpy).toHaveBeenCalled();
     }
@@ -77,8 +80,9 @@ describe('WebhookLogsDetailsComponent', () => {
 
     await harness.clickOpenSettings();
 
+    const activatedRoute = TestBed.inject(ActivatedRoute);
     expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
-      relativeTo: activatedRouteStub,
+      relativeTo: activatedRoute,
       queryParams: { openSettings: 'true' },
     });
   });

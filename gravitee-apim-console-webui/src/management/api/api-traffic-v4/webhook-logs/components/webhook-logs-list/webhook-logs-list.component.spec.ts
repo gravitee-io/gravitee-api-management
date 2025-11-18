@@ -23,7 +23,7 @@ import { WebhookLogsListHarness } from './webhook-logs-list.harness';
 
 import { LogsListBaseComponent } from '../../../components/logs-list-base';
 import { Pagination } from '../../../../../../entities/management-api-v2';
-import { WebhookAdditionalMetrics, WebhookLog } from '../../models';
+import { WebhookAdditionalMetrics, WebhookLog } from '../../models/webhook-logs.models';
 import { GioTestingModule } from '../../../../../../shared/testing';
 
 type WebhookLogWithId = WebhookLog & { id: string };

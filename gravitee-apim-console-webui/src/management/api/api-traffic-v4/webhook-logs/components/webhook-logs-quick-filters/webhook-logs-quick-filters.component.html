@@ -61,7 +61,10 @@
         </mat-form-field>
 
         <div class="quick-filters__applications">
-          <applications-filter formControlName="applications" (applicationCache)="onApplicationCache($event)"></applications-filter>
+          <webhook-logs-applications-filter
+            formControlName="applications"
+            (applicationCache)="onApplicationCache($event)"
+          ></webhook-logs-applications-filter>
         </div>
 
         <div class="quick-filters__buttons">

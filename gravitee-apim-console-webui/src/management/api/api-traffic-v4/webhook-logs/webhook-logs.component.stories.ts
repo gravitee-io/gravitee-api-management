@@ -24,7 +24,7 @@ import { WebhookLogsComponent } from './webhook-logs.component';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
-const apiMock = {
+const apiMock: ApiV4 = {
   id: 'api-webhook-demo',
   name: 'Acme Webhook Traffic',
   analytics: {
@@ -36,11 +36,11 @@ const apiMock = {
       },
     },
   },
-} as Partial<ApiV4> as ApiV4;
+} as ApiV4;
 
-const apiServiceMock = {
+const apiServiceMock: Partial<ApiV2Service> = {
   get: () => of(apiMock),
-} as unknown as ApiV2Service;
+};
 
 class MatDialogMock {
   open() {
@@ -57,7 +57,7 @@ const activatedRouteMock = {
     queryParams: {},
     queryParamMap: convertToParamMap({}),
   },
-} as unknown as ActivatedRoute;
+};
 
 const routerMock: Partial<Router> = {
   navigate: (...args: Parameters<Router['navigate']>) => {

@@ -22,7 +22,7 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { WebhookLogsMoreFiltersFormComponent } from './components/webhook-logs-more-filters-form/webhook-logs-more-filters-form.component';
 
 import { DEFAULT_PERIOD } from '../../../runtime-logs/models';
-import { WebhookMoreFiltersForm } from '../../models';
+import { WebhookMoreFiltersForm } from '../../models/webhook-logs.models';
 
 @Component({
   selector: 'webhook-logs-more-filters',

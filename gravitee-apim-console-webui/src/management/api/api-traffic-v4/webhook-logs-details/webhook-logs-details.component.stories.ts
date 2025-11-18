@@ -21,7 +21,6 @@ import { importProvidersFrom } from '@angular/core';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
 import { WebhookLogsDetailsComponent } from './webhook-logs-details.component';
-import { WebhookLogsDetailsModule } from './webhook-logs-details.module';
 
 const createActivatedRoute = (requestId: string) =>
   ({
@@ -38,7 +37,7 @@ export default {
       providers: [importProvidersFrom(GioMonacoEditorModule.forRoot({ theme: 'vs', baseUrl: '.' }))],
     }),
     moduleMetadata({
-      imports: [WebhookLogsDetailsModule, BrowserAnimationsModule, RouterTestingModule],
+      imports: [WebhookLogsDetailsComponent, BrowserAnimationsModule, RouterTestingModule],
     }),
   ],
   argTypes: {},

@@ -26,7 +26,7 @@ import { of } from 'rxjs';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
-import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog';
+import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog/webhook-settings-dialog.component';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
@@ -61,11 +61,11 @@ describe('WebhookLogsComponent', () => {
       queryParams: {},
       queryParamMap: convertToParamMap({}),
     },
-  } as unknown as ActivatedRoute;
+  };
 
-  const apiServiceMock = {
+  const apiServiceMock: Partial<ApiV2Service> = {
     get: jest.fn(),
-  } as unknown as ApiV2Service;
+  };
 
   const updateRouteSnapshot = (queryParams: Record<string, string | undefined>) => {
     (activatedRouteMock.snapshot as any).queryParams = queryParams;

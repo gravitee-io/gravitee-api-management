@@ -26,11 +26,16 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import moment, { unitOfTime } from 'moment';
 
-import { WebhookLog, WebhookLogsQuickFilters, WebhookLogsQuickFiltersInitialValues, WebhookLogsResponse } from './models';
+import {
+  WebhookLog,
+  WebhookLogsQuickFilters,
+  WebhookLogsQuickFiltersInitialValues,
+  WebhookLogsResponse,
+} from './models/webhook-logs.models';
 import { WEBHOOK_LOGS_MOCK_RESPONSE as webhookData } from './mocks/webhook-logs.mock';
-import { WebhookLogsListComponent } from './components/webhook-logs-list';
-import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog';
-import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quick-filters';
+import { WebhookLogsListComponent } from './components/webhook-logs-list/webhook-logs-list.component';
+import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog/webhook-settings-dialog.component';
+import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quick-filters/webhook-logs-quick-filters.component';
 
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
 import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner';
@@ -50,7 +55,6 @@ import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-l
     GioBannerModule,
     WebhookLogsQuickFiltersComponent,
     WebhookLogsListComponent,
-    WebhookSettingsDialogComponent,
     ApiNavigationModule,
     ReportingDisabledBannerComponent,
   ],

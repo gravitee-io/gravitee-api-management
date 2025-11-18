@@ -16,11 +16,17 @@
 import { isNumber } from 'angular';
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { editor } from 'monaco-editor';
+import { GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
 import { ConnectionLogDiagnostic } from '../../../../entities/management-api-v2';
-import { WebhookLog } from '../webhook-logs/models';
+import { WebhookLog } from '../webhook-logs/models/webhook-logs.models';
 import { getWebhookLogMockByRequestId, WEBHOOK_SAMPLE_LOG } from '../webhook-logs/mocks/webhook-logs.mock';
 
 type OverviewItem = { label: string; value: string | number; variant?: 'success' | 'warning' | 'error' };
@@ -49,7 +55,17 @@ interface ConnectionFailureDetails {
   templateUrl: './webhook-logs-details.component.html',
   styleUrls: ['./webhook-logs-details.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    GioClipboardModule,
+    GioMonacoEditorModule,
+  ],
 })
 export class WebhookLogsDetailsComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
