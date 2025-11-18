@@ -22,10 +22,10 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ApiLifecycleState, ApiV4 } from '../../../entities/management-api-v2';
+import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
-import { ApiType } from '../../../entities/management-api-v2';
+import { ApiType } from '../../../entities/management-api-v2/api/v4/apiType';
 
 @Injectable()
 export class ApiV4MenuService implements ApiMenuService {
@@ -39,7 +39,7 @@ export class ApiV4MenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const hasTcpListeners = api.listeners?.some((listener) => listener.type === 'TCP') ?? false;
+    const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const webhooksMenuEntry = this.addWebhooksMenuEntry(api);
 
     const subMenuItems: MenuItem[] = [
@@ -57,14 +57,16 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
-    ].filter((entry): entry is MenuItem => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
+    ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
   }
 
   private addConfigurationMenuEntry(): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : '')));
+    const iconRight$ = this.gioLicenseService
+      .isMissingFeature$(license.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const tabs: MenuItem[] = [
       {
@@ -317,9 +319,7 @@ export class ApiV4MenuService implements ApiMenuService {
           text: 'Open API in Developer Portal',
           targetUrl: this.apiDocumentationV2Service.getApiPortalUrl(api.id),
           disabled: api.lifecycleState !== 'PUBLISHED',
-          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(
-            (api.lifecycleState ?? 'UNPUBLISHED') as ApiLifecycleState,
-          ),
+          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(api.lifecycleState),
         },
       },
       tabs: tabs,

@@ -13,49 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { TestBed } from '@angular/core/testing';
-import { LICENSE_CONFIGURATION_TESTING, GioLicenseService } from '@gravitee/ui-particles-angular';
-import { of } from 'rxjs';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 
 import { ApiV4MenuService } from './api-v4-menu.service';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiV4MenuService', () => {
   let service: ApiV4MenuService;
-  let permissionService: { hasAnyMatching: jest.Mock };
-  let environmentSettingsService: { getSnapshot: jest.Mock };
-  let licenseService: { isMissingFeature$: jest.Mock };
-  let apiDocumentationV2Service: { getApiPortalUrl: jest.Mock; getApiNotInPortalTooltip: jest.Mock };
 
   beforeEach(() => {
-    permissionService = {
-      hasAnyMatching: jest.fn().mockReturnValue(true),
-    };
-    environmentSettingsService = {
-      getSnapshot: jest.fn().mockReturnValue({ apiScore: { enabled: false } }),
-    };
-    licenseService = {
-      isMissingFeature$: jest.fn().mockReturnValue(of(false)),
-    };
-    apiDocumentationV2Service = {
-      getApiPortalUrl: jest.fn().mockReturnValue('portal-url'),
-      getApiNotInPortalTooltip: jest.fn().mockReturnValue('tooltip'),
-    };
-
     TestBed.configureTestingModule({
       providers: [
         ApiV4MenuService,
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
-        { provide: GioPermissionService, useValue: permissionService },
-        { provide: EnvironmentSettingsService, useValue: environmentSettingsService },
-        { provide: GioLicenseService, useValue: licenseService },
-        { provide: ApiDocumentationV2Service, useValue: apiDocumentationV2Service },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: [
+            'api-definition-u',
+            'api-definition-r',
+            'api-member-r',
+            'api-plan-r',
+            'api-subscription-r',
+            'api-documentation-r',
+            'api-metadata-r',
+            'api-notification-r',
+            'api-audit-r',
+            'api-response_templates-r',
+            'api-analytics-r',
+            'api-log-r',
+            'api-log-u',
+            'api-alert-r',
+          ],
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: {
+            getSnapshot: () => ({ apiScore: { enabled: false } }),
+          },
+        },
+        {
+          provide: ApiDocumentationV2Service,
+          useValue: {
+            getApiPortalUrl: () => 'portal-url',
+            getApiNotInPortalTooltip: () => 'tooltip',
+          },
+        },
       ],
       imports: [GioTestingModule],
     });
@@ -91,10 +100,32 @@ describe('ApiV4MenuService', () => {
   });
 
   it('should not include Webhooks menu when user lacks api-definition-u permission', () => {
-    permissionService.hasAnyMatching.mockImplementation((permissions: unknown) => {
-      const perms = permissions as string[];
-      return !perms.includes('api-definition-u');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ApiV4MenuService,
+        { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-r'],
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: {
+            getSnapshot: () => ({ apiScore: { enabled: false } }),
+          },
+        },
+        {
+          provide: ApiDocumentationV2Service,
+          useValue: {
+            getApiPortalUrl: () => 'portal-url',
+            getApiNotInPortalTooltip: () => 'tooltip',
+          },
+        },
+      ],
+      imports: [GioTestingModule],
     });
+    service = TestBed.inject(ApiV4MenuService);
     const api = fakeApiV4();
 
     const menu = service.getMenu(api as ApiV4);
