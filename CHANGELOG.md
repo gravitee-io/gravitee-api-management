@@ -1,3 +1,10 @@
+# [6.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.4...6.3.0) (2025-11-18)
+
+
+### Features
+
+* add additional metrics to message metrics ([18b5cb4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/18b5cb42c8b52612098191ffa27cf899c657c3e4))
+
 ## [6.2.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.3...6.2.4) (2025-10-16)
 
 
