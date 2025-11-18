@@ -31,9 +31,9 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -59,6 +59,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.env.Environment;
@@ -82,7 +83,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
     @Inject
     private Vertx vertx;
 
-    private final List<String> headerNamesToRemove = List.of("Authorization");
+    private final List<String> headerNamesToRemove = List.of("Authorization", "Host");
 
     private @NotNull MultivaluedMap<String, String> getFilteredHeaders(HttpServletRequest httpRequest) {
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
@@ -156,9 +157,10 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
         HttpClientOptions options = new HttpClientOptions();
         options.setDefaultHost(kafbatServerHost);
         options.setDefaultPort(kafbatServerPort);
+        options.setDecompressionSupported(true);
         if (kafbatServerScheme.equalsIgnoreCase("https")) {
             options.setSsl(true);
-            options.setTrustAll(true);
+            options.setVerifyHost(false);
         }
 
         log.debug("HttpClient options: {}", options);
@@ -186,7 +188,8 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
             .onSuccess(request -> {
                 getFilteredHeaders(httpRequest).forEach(request::putHeader);
                 request.putHeader("Authorization", kafbatToken);
-                log.debug("Request headers: {}", request.headers());
+                request.putHeader("Host", kafbatServerHost);
+                log.debug("Request headers:\n{}", formatHeaders(request.headers()));
                 request
                     .response(asyncResponse -> {
                         if (asyncResponse.failed()) {
@@ -199,7 +202,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                             HttpClientResponse response = asyncResponse.result();
 
                             log.debug("Response status code: {}", response.statusCode());
-                            log.debug("Response headers: {}", response.headers());
+                            log.debug("Response headers:\n{}", formatHeaders(response.headers()));
 
                             response.bodyHandler(buffer -> {
                                 Response.ResponseBuilder responseBuilder;
@@ -210,10 +213,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                     responseBuilder = Response.ok(buffer.getBytes());
                                     response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
                                 } else {
-                                    log.trace("Response body: {}", buffer.toString());
-                                    String payload;
-                                    payload = buffer.toString();
-
+                                    String payload = buffer.toString(StandardCharsets.UTF_8);
                                     payload = payload.replace(
                                         """
                                         href="/""",
@@ -242,6 +242,8 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                         window.basePath = '%s';""".formatted(baseURI)
                                     );
 
+                                    log.trace("Response body: {}", payload);
+
                                     responseBuilder = Response.status(response.statusCode()).entity(payload);
                                     response
                                         .headers()
@@ -250,7 +252,10 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                                 responseBuilder.header(header.getKey(), header.getValue());
                                             }
                                         });
-                                    responseBuilder.header("content-length", payload.getBytes(StandardCharsets.UTF_8).length);
+                                    responseBuilder.header(
+                                        HttpHeaders.CONTENT_LENGTH.toString(),
+                                        payload.getBytes(StandardCharsets.UTF_8).length
+                                    );
                                 }
                                 finalResponse.resume(responseBuilder.build());
 
@@ -267,11 +272,18 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                         httpClient.close();
                     });
                 if (body != null) {
-                    request.setChunked(true);
                     request.write(body);
                 }
                 request.end();
             });
+    }
+
+    private String formatHeaders(MultiMap headers) {
+        return headers
+            .entries()
+            .stream()
+            .map(entry -> entry.getKey() + ":" + entry.getValue())
+            .collect(Collectors.joining("\n"));
     }
 
     private String computeKafbatToken(String jwtSecret) {
