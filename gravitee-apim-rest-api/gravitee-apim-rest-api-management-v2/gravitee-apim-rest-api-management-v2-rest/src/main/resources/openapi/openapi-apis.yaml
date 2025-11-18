@@ -9065,6 +9065,11 @@ components:
                     description: The warning diagnotics
                     items:
                       $ref: "#/components/schemas/ApiLogDiagnostic"
+                  additionalMetrics:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: A map of string keys to string values
 
         # Analytics - Logs
         ApiLogsResponse:

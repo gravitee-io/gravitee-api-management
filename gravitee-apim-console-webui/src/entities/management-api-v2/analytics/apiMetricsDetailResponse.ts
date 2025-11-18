@@ -48,4 +48,5 @@ export interface ApiMetricsDetailResponse {
   errorComponentName?: string;
   errorComponentType?: string;
   warnings?: ConnectionLogDiagnostic[];
+  additionalMetrics?: { [key: string]: string };
 }

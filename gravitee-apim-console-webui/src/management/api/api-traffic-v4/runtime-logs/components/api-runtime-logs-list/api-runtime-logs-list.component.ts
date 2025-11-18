@@ -31,6 +31,7 @@ import {
   GioTableWrapperPagination,
 } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
+import { ApiUtils } from '../../../../../../util/api.util';
 
 @Component({
   selector: 'api-runtime-logs-list',
@@ -92,17 +93,6 @@ export class ApiRuntimeLogsListComponent {
   }
 
   getMcpErrorLabel(error?: string): string {
-    if (!error) {
-      return '';
-    }
-    const mcpErrorLabels: Record<string, string> = {
-      '-32700': 'Parse Error',
-      '-32600': 'Invalid Request',
-      '-32601': 'Method not Found',
-      '-32602': 'Invalid Params',
-      '-32603': 'Internal Error',
-      '-32002': 'Resource not Found',
-    };
-    return mcpErrorLabels[error] ?? error;
+    return ApiUtils.getMcpErrorLabel(error);
   }
 }
