@@ -22,11 +22,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -52,16 +55,39 @@ public class PermissionsResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), "fake")).thenReturn(false);
+
+        GenericApiEntity genericApiEntity = mock(GenericApiEntity.class);
+        doReturn(genericApiEntity).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
+        Map<String, char[]> apiPermissions = new HashMap<>();
+        apiPermissions.put("API", new char[] { 'R' });
+        doReturn(apiPermissions)
+            .when(membershipService)
+            .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), eq(genericApiEntity), any());
 
         ApplicationListItem mockAppListItem = new ApplicationListItem();
         mockAppListItem.setId(APPLICATION);
-        Set<ApplicationListItem> mockApps = new HashSet<>(Arrays.asList(mockAppListItem));
-        doReturn(mockApps).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
+        Set<ApplicationListItem> activeApps = new HashSet<>(Arrays.asList(mockAppListItem));
+        doReturn(activeApps)
+            .when(applicationService)
+            .findByIdsAndStatus(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Collections.singleton(APPLICATION)),
+                eq(ApplicationStatus.ACTIVE)
+            );
+        doReturn(Collections.emptySet())
+            .when(applicationService)
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Collections.singleton("fake")), eq(ApplicationStatus.ACTIVE));
 
         ApplicationEntity mockAppEntity = new ApplicationEntity();
         mockAppEntity.setId(APPLICATION);
+        doReturn(mockAppEntity).when(applicationService).findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION));
 
-        doReturn(mockAppEntity).when(applicationService).findById(eq(GraviteeContext.getExecutionContext()), any());
+        Map<String, char[]> appPermissions = new HashMap<>();
+        appPermissions.put("APPLICATION", new char[] { 'R' });
+        doReturn(appPermissions)
+            .when(membershipService)
+            .getUserMemberPermissions(eq(GraviteeContext.getExecutionContext()), eq(mockAppEntity), anyString());
     }
 
     @Test
