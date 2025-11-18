@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.2...1.8.0) (2025-11-18)
+
+
+### Features
+
+* message metrics with additional and new additional types ([a588233](https://github.com/gravitee-io/gravitee-reporter-common/commit/a588233a86b9720f8081f25a53b7079768ee4f9d))
+
 ## [1.7.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.1...1.7.2) (2025-10-16)
 
 
