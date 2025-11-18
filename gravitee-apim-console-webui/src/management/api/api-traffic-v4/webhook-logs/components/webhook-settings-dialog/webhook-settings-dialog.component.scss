@@ -1,0 +1,129 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+// Hide save bar when it's not visible to remove blank space
+:host {
+  ::ng-deep gio-save-bar {
+    // When the save bar is hidden/collapsed, completely remove it from layout
+    &[style*='display: none'],
+    &[style*='height: 0'],
+    &[style*='visibility: hidden'] {
+      display: none !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden;
+      min-height: 0 !important;
+    }
+  }
+}
+
+// Storybook-specific styles for mat-dialog-title (only applies when not in a real dialog container)
+:host-context(.storybook-dialog-wrapper) {
+  ::ng-deep [mat-dialog-title] {
+    position: relative;
+    margin: 0 0 1px;
+    padding: 6px 0px 13px;
+    font-family: 'Kanit', 'Helvetica Neue', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: normal;
+    line-height: 28px;
+    color: rgba(0, 0, 0, 0.87);
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.settings-content {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  &__description {
+    margin: 0;
+    flex: 1;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  &__toggle {
+    flex-shrink: 0;
+  }
+}
+
+.settings {
+  &__form-control {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+      display: flex;
+      justify-items: center;
+      margin-bottom: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+    }
+
+    &__toggles {
+      display: flex;
+      flex-direction: column;
+      padding-left: 8px;
+    }
+  }
+}
+
+.logging-banner {
+  margin: 24px 0;
+}
+
+.sampling-summary {
+  &__description {
+    margin: 8px 0 16px;
+    font-size: 14px;
+    line-height: 20px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+
+    a {
+      color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      text-decoration: underline;
+    }
+  }
+
+  &__card {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'lighter40');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+
+    &--row {
+      justify-content: flex-start;
+    }
+  }
+
+  &__label {
+    font-weight: bold;
+    font-size: 14px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+  }
+
+  &__value {
+    font-size: 14px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+  }
+}

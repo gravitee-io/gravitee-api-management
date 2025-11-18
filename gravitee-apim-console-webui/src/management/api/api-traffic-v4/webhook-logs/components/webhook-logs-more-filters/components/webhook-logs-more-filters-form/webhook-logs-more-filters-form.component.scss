@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { WebhookLogsModule } from './webhook-logs/webhook-logs.module';
-import { WebhookLogsDetailsModule } from './webhook-logs-details/webhook-logs-details.module';
+$typography: map.get(gio.$mat-theme, typography);
 
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, WebhookLogsModule, WebhookLogsDetailsModule],
-})
-export class ApiTrafficV4Module {}
+.more-filters {
+  &__body {
+    &__title {
+      width: 100%;
+      margin-bottom: 16px;
+      @include mat.m2-typography-level($typography, subtitle-2);
+    }
+
+    &__block {
+      display: flex;
+      flex-direction: column;
+      padding-top: 16px;
+
+      mat-form-field {
+        padding-bottom: 0;
+      }
+    }
+  }
+}
