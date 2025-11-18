@@ -163,5 +163,41 @@ describe('SectionEditorDialogComponent', () => {
         });
       });
     });
+    describe('when adding a folder', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput('type', 'FOLDER');
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+      it('should not allow empty title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.getValue()).toBe('');
+        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+      });
+      it('should save the title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+
+        await titleInput.setValue('My new folder');
+
+        await dialog.clickAddButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'My new folder',
+        });
+      });
+      it('should close the dialog when canceling', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        await titleInput.setValue('My new folder');
+        await dialog.clickCancelButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toBeUndefined();
+      });
+    });
   });
 });

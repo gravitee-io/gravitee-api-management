@@ -31,6 +31,7 @@ import { GioTestingPermissionProvider } from '../../shared/components/gio-permis
 import {
   fakeNewLinkPortalNavigationItem,
   fakeNewPagePortalNavigationItem,
+  fakePortalNavigationFolder,
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -154,6 +155,37 @@ describe('PortalNavigationItemsComponent', () => {
             configuration: {
               url,
             },
+          }),
+        );
+        expectGetNavigationItems();
+      });
+    });
+    describe('adding a folder', () => {
+      beforeEach(async () => {
+        await harness.clickFolderMenuItem();
+        dialogHarness = await rootLoader.getHarness(SectionEditorDialogHarness);
+      });
+      it('opens the dialog when the Add button is clicked and Folder is selected', async () => {
+        expect(dialogHarness).toBeTruthy();
+      });
+      it('should not create the folder when the dialog is cancelled', async () => {
+        await dialogHarness.clickCancelButton();
+      });
+      it('should create the folder when the dialog is submitted', async () => {
+        const title = 'New Folder Title';
+        await dialogHarness.setTitleInputValue(title);
+        await dialogHarness.clickAddButton();
+
+        expectCreateNavigationItem(
+          {
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'FOLDER',
+          },
+          fakePortalNavigationFolder({
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'FOLDER',
           }),
         );
         expectGetNavigationItems();

@@ -42,6 +42,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return menu.getHarness(MatMenuItemHarness.with({ text: /Add Link/i }));
   }
 
+  async getFolderMenuItem(): Promise<MatMenuItemHarness> {
+    const menu = await this.getMenu();
+    return menu.getHarness(MatMenuItemHarness.with({ text: /Add Folder/i }));
+  }
+
   async clickPageMenuItem(): Promise<void> {
     const menuItem = await this.getPageMenuItem();
     return menuItem.click();
@@ -49,6 +54,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
 
   async clickLinkMenuItem(): Promise<void> {
     const menuItem = await this.getLinkMenuItem();
+    return menuItem.click();
+  }
+
+  async clickFolderMenuItem(): Promise<void> {
+    const menuItem = await this.getFolderMenuItem();
     return menuItem.click();
   }
 }
