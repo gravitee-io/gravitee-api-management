@@ -69,7 +69,7 @@ public interface PortalNavigationItemAdapter {
         expression = "java(portalNavigationItem.getParentId() != null ? PortalNavigationItemId.of(portalNavigationItem.getParentId()) : null)"
     )
     @Mapping(
-        target = "contentId",
+        target = "portalPageContentId",
         expression = "java(PortalPageContentId.of(parsePortalPageContentId(portalNavigationItem.getConfiguration())))"
     )
     PortalNavigationPage portalNavigationPageFromRepository(
@@ -98,7 +98,7 @@ public interface PortalNavigationItemAdapter {
             return switch (portalNavigationItem) {
                 case PortalNavigationPage page -> {
                     Map<String, String> config = new HashMap<>();
-                    config.put(PORTAL_PAGE_CONTENT_ID, page.getContentId().json());
+                    config.put(PORTAL_PAGE_CONTENT_ID, page.getPortalPageContentId().json());
                     yield OBJECT_MAPPER.writeValueAsString(config);
                 }
                 case PortalNavigationLink link -> {

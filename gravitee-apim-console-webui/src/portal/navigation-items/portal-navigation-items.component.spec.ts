@@ -102,9 +102,7 @@ describe('PortalNavigationItemsComponent', () => {
             title,
             area: 'TOP_NAVBAR',
             type: 'PAGE',
-            configuration: {
-              portalPageContentId: 'content-id',
-            },
+            portalPageContentId: 'content-id',
           }),
         );
         expectGetNavigationItems();
@@ -118,9 +116,7 @@ describe('PortalNavigationItemsComponent', () => {
           title,
           area: 'TOP_NAVBAR',
           type: 'PAGE',
-          configuration: {
-            portalPageContentId: 'content-id',
-          },
+          portalPageContentId: 'content-id',
         });
         expectCreateNavigationItem(fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }), createdItem);
         expectGetNavigationItems();
@@ -152,9 +148,7 @@ describe('PortalNavigationItemsComponent', () => {
             title,
             area: 'TOP_NAVBAR',
             type: 'LINK',
-            configuration: {
-              url,
-            },
+            url,
           }),
         );
         expectGetNavigationItems();

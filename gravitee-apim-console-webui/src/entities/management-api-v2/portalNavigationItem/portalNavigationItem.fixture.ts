@@ -34,7 +34,7 @@ export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPag
     type: 'PAGE',
     order: 1,
     area: 'HOMEPAGE',
-    contentId: 'page-content-1',
+    portalPageContentId: 'page-content-1',
   };
 
   if (isFunction(overrides)) {

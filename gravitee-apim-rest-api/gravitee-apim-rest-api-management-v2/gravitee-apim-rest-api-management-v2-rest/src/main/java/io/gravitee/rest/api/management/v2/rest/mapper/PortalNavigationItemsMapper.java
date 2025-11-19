@@ -33,7 +33,7 @@ public interface PortalNavigationItemsMapper {
     PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
 
     @Mapping(target = "type", constant = "PAGE")
-    @Mapping(target = "contentId", expression = "java(page.getContentId().id())")
+    @Mapping(target = "portalPageContentId", expression = "java(page.getPortalPageContentId().id())")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationPage page
     );
@@ -62,8 +62,8 @@ public interface PortalNavigationItemsMapper {
     }
 
     @Mapping(
-        target = "contentId",
-        expression = "java(page.getContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getContentId().toString()))"
+        target = "portalPageContentId",
+        expression = "java(page.getPortalPageContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getPortalPageContentId().toString()))"
     )
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage page

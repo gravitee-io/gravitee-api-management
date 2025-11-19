@@ -57,10 +57,10 @@ public class CreatePortalNavigationItemValidatorService {
         }
 
         if (item.getType() == PortalNavigationItemType.PAGE) {
-            final var contentId = item.getContentId();
+            final var contentId = item.getPortalPageContentId();
             // TODO check if content exists and create one otherwise, currently assigning a random id to avoid repo level errors
             if (contentId == null) {
-                item.setContentId(PortalPageContentId.random());
+                item.setPortalPageContentId(PortalPageContentId.random());
             }
         }
     }
