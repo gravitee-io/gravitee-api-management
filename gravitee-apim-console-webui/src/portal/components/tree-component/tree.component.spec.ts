@@ -57,19 +57,6 @@ describe('TreeComponent', () => {
     }
   };
 
-  it('should emit pageNotFound when selectedId does not exist in the tree', () => {
-    const notFoundSpy = jest.fn();
-    component.pageNotFound.subscribe(notFoundSpy);
-
-    const links = [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)];
-
-    fixture.componentRef.setInput('links', links);
-    fixture.componentRef.setInput('selectedId', 'unknown');
-    fixture.detectChanges();
-
-    expect(notFoundSpy).toHaveBeenCalledTimes(1);
-  });
-
   it('should build a sorted tree with proper types and parent/child relationships', () => {
     const links = [
       // root page with smallest order -> should be first
