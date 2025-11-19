@@ -67,10 +67,10 @@ class ResponseTimeRangeQueryAdapterTest {
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/from").asLong()))
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong()))
             .isBeforeOrEqualTo(start)
             .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/to").asLong()))
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lte").asLong()))
             .isAfterOrEqualTo(end)
             .isCloseTo(end, within(interval.toMillis(), ChronoUnit.MILLIS));
         // aggs
@@ -112,10 +112,10 @@ class ResponseTimeRangeQueryAdapterTest {
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/from").asLong()))
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong()))
             .isBeforeOrEqualTo(start)
             .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/to").asLong()))
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lte").asLong()))
             .isAfterOrEqualTo(end)
             .isCloseTo(end, within(interval.toMillis(), ChronoUnit.MILLIS));
         // aggs
