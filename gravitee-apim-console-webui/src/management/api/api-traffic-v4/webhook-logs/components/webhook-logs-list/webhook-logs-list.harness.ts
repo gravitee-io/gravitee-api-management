@@ -16,7 +16,7 @@
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { LogsListBaseHarness } from '../../../components/logs-list-base';
+import { LogsListBaseHarness } from '../../../components/logs-list-base/logs-list-base.harness';
 
 export class WebhookLogsListHarness extends LogsListBaseHarness {
   static hostSelector = 'webhook-logs-list';

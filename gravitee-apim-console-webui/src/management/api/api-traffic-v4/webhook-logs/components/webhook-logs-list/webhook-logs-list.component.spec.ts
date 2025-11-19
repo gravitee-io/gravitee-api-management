@@ -21,7 +21,7 @@ import { By } from '@angular/platform-browser';
 import { WebhookLogsListComponent } from './webhook-logs-list.component';
 import { WebhookLogsListHarness } from './webhook-logs-list.harness';
 
-import { LogsListBaseComponent } from '../../../components/logs-list-base';
+import { LogsListBaseComponent } from '../../../components/logs-list-base/logs-list-base.component';
 import { Pagination } from '../../../../../../entities/management-api-v2';
 import { WebhookAdditionalMetrics, WebhookLog } from '../../models/webhook-logs.models';
 import { GioTestingModule } from '../../../../../../shared/testing';

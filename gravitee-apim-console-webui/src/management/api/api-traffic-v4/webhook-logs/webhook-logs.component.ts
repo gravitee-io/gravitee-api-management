@@ -38,7 +38,7 @@ import { WebhookSettingsDialogComponent } from './components/webhook-settings-di
 import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quick-filters/webhook-logs-quick-filters.component';
 
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
-import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner';
+import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner/reporting-disabled-banner.component';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';

@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base';
+import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base/logs-list-base.component';
 import { GioTableWrapperPagination } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../../../../entities/management-api-v2';
 import { WebhookLog } from '../../models/webhook-logs.models';
