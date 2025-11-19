@@ -36,7 +36,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
     final HTTPFacetsQueryAdapter adapter = new HTTPFacetsQueryAdapter();
 
     @Test
-    void should_build_query_with_terms() throws JsonProcessingException {
+    void should_build_query() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
         var metrics = buildMetrics();
@@ -67,10 +67,16 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs.at("/API/aggs/APPLICATION/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
+        var latencyP90 = aggs
+            .at("/HTTP_GATEWAY_LATENCY#API/aggs/HTTP_GATEWAY_LATENCY#APPLICATION/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0")
+            .asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
-        var gatewayP90 = aggs.at("/API/aggs/APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0").asDouble();
+        var gatewayP90 = aggs
+            .at(
+                "/HTTP_GATEWAY_RESPONSE_TIME#API/aggs/HTTP_GATEWAY_RESPONSE_TIME#APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0"
+            )
+            .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
     }
 
@@ -110,7 +116,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var terms = aggs.at("/API/terms");
+        var terms = aggs.at("/HTTP_REQUESTS#API/terms");
         assertThat(terms).isNotEmpty();
 
         var field = terms.at("/field").asText();
@@ -162,10 +168,49 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var field = aggs.at("/HTTP_STATUS/range/field").asText();
+        var field = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS/range/field").asText();
         assertThat(field).isEqualTo("status");
 
-        var esRanges = aggs.at("/HTTP_STATUS/range/ranges");
+        var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS/range/ranges");
+        assertThat(esRanges).isNotEmpty();
+    }
+
+    @Test
+    void should_build_query_for_status_code_group_with_ranges() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
+
+        var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
+
+        var query = new FacetsQuery(timeRange, filters, metrics, facets);
+        var queryString = adapter.adapt(query);
+        var jsonQuery = JSON.readTree(queryString);
+
+        var filter = jsonQuery.at("/query/bool/filter");
+
+        var from = filter.at("/0/range/@timestamp/gte");
+        assertThat(from).isNotNull();
+        assertThat(from.asLong()).isEqualTo(FROM);
+
+        var to = filter.at("/0/range/@timestamp/lte");
+        assertThat(to).isNotNull();
+        assertThat(to.asLong()).isEqualTo(TO);
+
+        var term = filter.at("/1/terms/api-id");
+        assertThat(term).isNotNull();
+
+        var termsValue = term.at("/0");
+        assertThat(termsValue).isNotNull();
+        assertThat(termsValue.asText()).isEqualTo(API_ID);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var field = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/field").asText();
+        assertThat(field).isEqualTo("status");
+
+        var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/ranges");
         assertThat(esRanges).isNotEmpty();
     }
 }

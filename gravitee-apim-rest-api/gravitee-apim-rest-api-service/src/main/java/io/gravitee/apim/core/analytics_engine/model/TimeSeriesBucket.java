@@ -15,22 +15,8 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetsRequest(
-    TimeRange timeRange,
-    List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) {
-    public FacetsRequest emptyMetrics() {
-        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
-    }
-}
+public record TimeSeriesBucket(String key, Long timestamp) {}

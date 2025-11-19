@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
@@ -25,32 +26,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
-public class MeasuresResponseAdapter {
+public class MeasuresResponseAdapter extends AbstractResponseAdapter {
 
     public MeasuresResult adapt(SearchResponse esResponse, MeasuresQuery query) {
-        if (esResponse == null) {
-            log.debug("Returning empty response because the esResponse is null");
-            return empty(query);
-        }
-        if (esResponse.getTimedOut()) {
-            log.debug("Returning empty response because the esResponse timed out");
-            return empty(query);
-        }
+        return lookupForAggregations(esResponse)
+            .map(aggregations -> toMeasuresResult(aggregations, query))
+            .orElseGet(() -> empty(query));
+    }
 
-        var aggregations = esResponse.getAggregations();
-
-        if (aggregations == null || aggregations.isEmpty()) {
-            log.debug("Returning empty response because the esResponse does not contain aggregations");
-            return empty(query);
-        }
-
+    private MeasuresResult toMeasuresResult(Map<String, Aggregation> aggregations, MeasuresQuery query) {
         var metricAndMeasures = AggregationAdapter.toMetricsAndMeasures(aggregations, query);
         var metricResults = new ArrayList<MetricMeasuresResult>();
 

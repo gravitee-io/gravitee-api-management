@@ -19,15 +19,14 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetri
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequestMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +46,7 @@ public class AnalyticsEngineFixtures {
         var filters = Arrays.asList(filter);
         var metricName = MetricName.HTTP_REQUESTS;
         var measures = List.of(MeasureName.COUNT);
-        var metric = new MeasuresRequestMetricsInner().name(metricName).measures(measures);
+        var metric = new MetricRequest().name(metricName).measures(measures);
         return new MeasuresRequest().timeRange(timeRange()).filters(filters).metrics(List.of(metric));
     }
 
@@ -58,6 +57,17 @@ public class AnalyticsEngineFixtures {
             .timeRange(timeRange())
             .filters(Arrays.asList(filters))
             .by(List.of(FacetName.HTTP_STATUS))
+            .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
+            .metrics(List.of(metric));
+    }
+
+    public static TimeSeriesRequest aRequestCountTimeSeries(Filter... filters) {
+        var metric = new FacetMetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT));
+
+        return new TimeSeriesRequest()
+            .timeRange(timeRange())
+            .interval(new Interval("1h"))
+            .filters(Arrays.asList(filters))
             .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
             .metrics(List.of(metric));
     }

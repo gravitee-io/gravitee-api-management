@@ -35,8 +35,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
-import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
-import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
+import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -1329,7 +1328,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     }
 
     @Nested
-    class HTTPMeasures {
+    class Engine {
 
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
 
@@ -1337,47 +1336,52 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         private static final Instant TOMORROW = NOW.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
         private static final Instant YESTERDAY = NOW.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-        @Test
-        void should_return_http_measures() {
-            var timeRange = new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
-            var metrics = List.of(
-                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG)),
-                new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)),
-                new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE))
-            );
+        static io.gravitee.repository.analytics.engine.api.query.TimeRange buildTimeRange() {
+            return new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
+        }
 
-            var filter = new Filter(
-                Filter.Name.API,
-                Filter.Operator.IN,
-                List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
-            );
+        @Nested
+        class HTTPMeasures {
 
-            var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
-            var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+            static MeasuresQuery buildQuery() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG)),
+                    new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)),
+                    new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE))
+                );
 
-            assertThat(result).isNotNull();
+                var filter = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                );
 
-            var measures = result.measures();
-            assertThat(measures).hasSize(metrics.size());
+                return new MeasuresQuery(timeRange, List.of(filter), metrics);
+            }
 
-            for (var measure : measures) {
-                assertThat(measure.measures().values()).hasSize(1);
-                assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotZero());
+            @Test
+            void should_return_http_measures() {
+                var query = buildQuery();
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+
+                var measures = result.measures();
+                assertThat(measures).hasSize(query.metrics().size());
+
+                for (var measure : measures) {
+                    assertThat(measure.measures().values()).hasSize(1);
+                    assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotZero());
+                }
             }
         }
 
         @Nested
         class HTTPFacets {
 
-            private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-
-            private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.DAYS);
-            private static final Instant TOMORROW = NOW.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
-            private static final Instant YESTERDAY = NOW.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
-
-            @Test
-            void should_return_http_facets() {
-                var timeRange = new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
+            static FacetsQuery buildQuery() {
+                var timeRange = buildTimeRange();
                 var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
 
                 var ranges = List.of(
@@ -1394,7 +1398,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
                 );
 
-                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.HTTP_STATUS), ranges);
+                return new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.HTTP_STATUS), ranges);
+            }
+
+            @Test
+            void should_return_http_facet_buckets() {
+                var query = buildQuery();
                 var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
 
                 assertThat(result).isNotNull();
@@ -1414,6 +1423,34 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     bucket -> assertThat(bucket.key()).isEqualTo("400-499"),
                     bucket -> assertThat(bucket.key()).isEqualTo("500-599")
                 );
+            }
+        }
+
+        @Nested
+        class HTTPTimeSeries {
+
+            static TimeSeriesQuery buildQuery() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var interval = Duration.ofHours(1).toMillis();
+                var filter = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                );
+                return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics);
+            }
+
+            @Test
+            void should_return_http_time_series_buckets() {
+                var query = buildQuery();
+                var result = cut.searchHTTPTimeSeries(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+
+                assertThat(result.metrics()).hasSize(1);
+
+                assertThat(result.metrics().getFirst().buckets()).isNotEmpty();
             }
         }
     }

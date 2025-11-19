@@ -8,7 +8,7 @@ info:
 
         - **Measures**: Return aggregated values for specified metrics
         - **Facets**: Group data by facet values with optional sorting and limits, eventually leading to measures.
-        - **Time Series**: Return data points over time with optional grouping by facets, eventually leading to measures.
+        - **Time Series**: Return data points over time with optional grouping by facet, eventually leading to measures.
 
         Each endpoint allows to query multiple metrics at once within a time range, following the same top-level filters, parameters and dimensions.
 
@@ -37,457 +37,692 @@ servers:
               default: DEFAULT
 
 paths:
-    /environments/{envId}/analytics/definition/apis:
-        get:
-            operationId: queryApiSpecs
-            summary: Query available APIs for analytics
-            description: |
-                Returns a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
-            tags:
-                - definition
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-            responses:
-                "200":
-                    description: |
-                        The response contains a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ApiSpecsResponse"
-                            examples:
-                                apis:
-                                    summary: API Specs Response
-                                    value:
-                                        data:
-                                            - name: "HTTP_PROXY"
-                                              label: "HTTP Proxy"
-                                            - name: "MESSAGE"
-                                              label: "Message"
-                                            - name: "KAFKA"
-                                              label: "Kafka"
-                                            - name: "LLM"
-                                              label: "LLM"
-                                            - name: "MCP"
-                                              label: "MCP"
-                "500":
-                    description: Internal server error while getting available API specs.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+  /environments/{envId}/analytics/definition/apis:
+    get:
+      operationId: queryApiSpecs
+      summary: Query available APIs for analytics
+      description: |
+        Returns a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSpecsResponse"
+              examples:
+                apis:
+                  summary: API Specs Response
+                  value:
+                    data:
+                      - name: "HTTP_PROXY"
+                        label: "HTTP Proxy"
+                      - name: "MESSAGE"
+                        label: "Message"
+                      - name: "KAFKA"
+                        label: "Kafka"
+                      - name: "LLM"
+                        label: "LLM"
+                      - name: "MCP"
+                        label: "MCP"
+        "500":
+          description: Internal server error while getting available API specs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-    /environments/{envId}/analytics/definition/apis/{apiName}/metrics:
-        get:
-            operationId: queryMetricSpecs
-            summary: Query available metrics for an API type
-            description: |
-                Returns a list of available metrics for a specific API type, including their supported measures, facets, and filters.
-            tags:
-                - definition
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-                - $ref: "#/components/parameters/ApiName"
-            responses:
-                "200":
-                    description: |
-                        The response contains a list of available metrics for the specified API type, with their configurations including measures, facets, and filters.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/MetricSpecsResponse"
-                            examples:
-                                http-proxy-metrics:
-                                    summary: HTTP Proxy API Metrics
-                                    value:
-                                        data:
-                                            - name: "HTTP_REQUESTS"
-                                              label: "HTTP Requests"
-                                              apis: ["HTTP_PROXY", "LLM"]
-                                              type: "COUNTER"
-                                              measures: ["COUNT", "RPS"]
-                                              facets: ["API", "APPLICATION", "GATEWAY"]
-                                              filters: ["API", "APPLICATION", "HTTP_STATUS"]
-                                            - name: "HTTP_GATEWAY_RESPONSE_TIME"
-                                              label: "Gateway response time"
-                                              apis: ["HTTP_PROXY", "LLM"]
-                                              type: "GAUGE"
-                                              unit: "MILLISECONDS"
-                                              measures: ["AVG", "MIN", "MAX", "P50", "P90", "P95", "P99"]
-                                              facets: ["API", "APPLICATION", "GATEWAY"]
-                                              filters: ["API", "APPLICATION", "HTTP_STATUS"]
-                "400":
-                    description: Bad request - Invalid API name for metrics.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while getting metric specifications.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+  /environments/{envId}/analytics/definition/apis/{apiName}/metrics:
+    get:
+      operationId: queryMetricSpecs
+      summary: Query available metrics for an API type
+      description: |
+        Returns a list of available metrics for a specific API type, including their supported measures, facets, and filters.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/ApiName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available metrics for the specified API type, with their configurations including measures, facets, and filters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricSpecsResponse"
+              examples:
+                http-proxy-metrics:
+                  summary: HTTP Proxy API Metrics
+                  value:
+                    data:
+                      - name: "HTTP_REQUESTS"
+                        label: "HTTP Requests"
+                        apis: [ "HTTP_PROXY", "LLM" ]
+                        type: "COUNTER"
+                        measures: [ "COUNT", "RPS" ]
+                        facets: [ "API", "APPLICATION", "GATEWAY" ]
+                        filters: [ "API", "APPLICATION", "HTTP_STATUS" ]
+                      - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                        label: "Gateway response time"
+                        apis: [ "HTTP_PROXY", "LLM" ]
+                        type: "GAUGE"
+                        unit: "MILLISECONDS"
+                        measures: [ "AVG", "MIN", "MAX", "P50", "P90", "P95", "P99" ]
+                        facets: [ "API", "APPLICATION", "GATEWAY" ]
+                        filters: [ "API", "APPLICATION", "HTTP_STATUS" ]
+        "400":
+          description: Bad request - Invalid API name for metrics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting metric specifications.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-    /environments/{envId}/analytics/definition/metrics/{metricName}/filters:
-        get:
-            operationId: queryFilterSpecsForMetric
-            summary: Query available filters for a specific metric
-            description: |
-                Returns a list of available filters that can be applied to a specific metric within an API type, including their operators and value constraints.
-            tags:
-                - definition
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-                - $ref: "#/components/parameters/MetricName"
-            responses:
-                "200":
-                    description: |
-                        The response contains a list of available filters for the specified metric, including their supported operators, types, and optional enum values or ranges.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/FilterSpecsResponse"
-                            examples:
-                                http-requests-filters:
-                                    summary: HTTP Requests Metric Filters
-                                    value:
-                                        data:
-                                            - name: "API"
-                                              label: "API"
-                                              type: "KEYWORD"
-                                              operators: ["EQ", "IN"]
-                                            - name: "APPLICATION"
-                                              label: "Application"
-                                              type: "KEYWORD"
-                                              operators: ["EQ", "IN"]
-                                            - name: "HTTP_STATUS"
-                                              label: "Status Code"
-                                              type: "NUMBER"
-                                              operators: ["EQ", "LTE", "GTE"]
-                                              range:
-                                                  min: 100
-                                                  max: 600
-                                            - name: "HTTP_STATUS_CODE_GROUP"
-                                              label: "Status Code Group"
-                                              type: "ENUM"
-                                              operators: ["EQ", "IN"]
-                                              enumValues: ["1xx", "2xx", "3xx", "4xx", "5xx"]
-                "400":
-                    description: Bad request - Invalid metric name for filters.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "404":
-                    description: API type or metric not found.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while getting filter specifications for the metric.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+  /environments/{envId}/analytics/definition/metrics/{metricName}/filters:
+    get:
+      operationId: queryFilterSpecsForMetric
+      summary: Query available filters for a specific metric
+      description: |
+        Returns a list of available filters that can be applied to a specific metric within an API type, including their operators and value constraints.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/MetricName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available filters for the specified metric, including their supported operators, types, and optional enum values or ranges.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilterSpecsResponse"
+              examples:
+                http-requests-filters:
+                  summary: HTTP Requests Metric Filters
+                  value:
+                    data:
+                      - name: "API"
+                        label: "API"
+                        type: "KEYWORD"
+                        operators: [ "EQ", "IN" ]
+                      - name: "APPLICATION"
+                        label: "Application"
+                        type: "KEYWORD"
+                        operators: [ "EQ", "IN" ]
+                      - name: "HTTP_STATUS"
+                        label: "Status Code"
+                        type: "NUMBER"
+                        operators: [ "EQ", "LTE", "GTE" ]
+                        range:
+                          min: 100
+                          max: 600
+                      - name: "HTTP_STATUS_CODE_GROUP"
+                        label: "Status Code Group"
+                        type: "ENUM"
+                        operators: [ "EQ", "IN" ]
+                        enumValues: [ "1xx", "2xx", "3xx", "4xx", "5xx" ]
+        "400":
+          description: Bad request - Invalid metric name for filters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: API type or metric not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting filter specifications for the metric.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-    /environments/{envId}/analytics/definition/metrics/{metricName}/facets:
-        get:
-            operationId: queryFacetSpecsForMetric
-            summary: Query available facets for a specific metric
-            description: |
-                Returns a list of available facets that can be used to group data for a specific metric within an API type, including their data types.
-            tags:
-                - definition
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-                - $ref: "#/components/parameters/MetricName"
-            responses:
-                "200":
-                    description: |
-                        The response contains a list of available facets for the specified metric that can be used for grouping analytics data, including their data types.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/FacetSpecsResponse"
-                            examples:
-                                http-requests-facets:
-                                    summary: HTTP Requests Metric Facets
-                                    value:
-                                        data:
-                                            - name: "API"
-                                              label: "API"
-                                              type: "KEYWORD"
-                                            - name: "APPLICATION"
-                                              label: "Application"
-                                              type: "KEYWORD"
-                                            - name: "GATEWAY"
-                                              label: "Gateway"
-                                              type: "KEYWORD"
+  /environments/{envId}/analytics/definition/metrics/{metricName}/facets:
+    get:
+      operationId: queryFacetSpecsForMetric
+      summary: Query available facets for a specific metric
+      description: |
+        Returns a list of available facets that can be used to group data for a specific metric within an API type, including their data types.
+      tags:
+        - definition
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/MetricName"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available facets for the specified metric that can be used for grouping analytics data, including their data types.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacetSpecsResponse"
+              examples:
+                http-requests-facets:
+                  summary: HTTP Requests Metric Facets
+                  value:
+                    data:
+                      - name: "API"
+                        label: "API"
+                        type: "KEYWORD"
+                      - name: "APPLICATION"
+                        label: "Application"
+                        type: "KEYWORD"
+                      - name: "GATEWAY"
+                        label: "Gateway"
+                        type: "KEYWORD"
 
-                "400":
-                    description: Bad request - Invalid metric name for facets.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while getting facet specifications for the metric.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+        "400":
+          description: Bad request - Invalid metric name for facets.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while getting facet specifications for the metric.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-    /environments/{envId}/analytics/measures:
-        post:
-            operationId: queryMeasures
-            summary: Query measures analytics
-            description: |
-                Return aggregated values for specified metrics within a time range.
+  /environments/{envId}/analytics/measures:
+    post:
+      operationId: queryMeasures
+      summary: Query measures analytics
+      description: |
+        Return aggregated values for specified metrics within a time range.
 
-            tags:
-                - computation
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-            requestBody:
-                description: |
-                    A measures request is a request to obtain a single set of measures, without grouping them by bucket.
+      tags:
+        - computation
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+      requestBody:
+        description: |
+          A measures request is a request to obtain a single set of measures, without grouping them by bucket.
+          
+            - Measures requests allow to return aggregated values for the specified metric and measures.
+          
+            - Available measures can change depending on the required metric.
+          
+            - The measures object is always represented as the leaf node of the response for other types of analytics requests.
+          
+            - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
 
-                      - Measures requests allow to return aggregated values for the specified metric and measures.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeasuresRequest"
+            examples:
+              single-metric:
+                summary: Single metric with multiple measures request
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT", "RPS" ]
+              multiple-metrics:
+                summary: Multiple metrics request
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+                    - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                      measures: [ "AVG" ]
+      responses:
+        "200":
+          description: |
+            A measures response provides aggregated values for the metrics defined in the request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeasuresResponse"
+              examples:
+                single-metric:
+                  summary: Single metric with multiple values response
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        measures:
+                          - name: "COUNT"
+                            value: 2984
+                          - name: "RPS"
+                            value: 45.7
+                multiple-metrics:
+                  summary: Multiple metrics response
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        measures:
+                          - name: "COUNT"
+                            value: 2984
+                      - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                        measures:
+                          - name: "AVG"
+                            value: 89.5
+        "400":
+          description: Bad request - Invalid Measures Request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while computing measures.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-                      - Available measures can change depending on the required metric.
+  /environments/{envId}/analytics/facets:
+    post:
+      operationId: queryFacets
+      summary: Query facets analytics
+      description: |
+        Group data by facet values with optional ranging, sorting and limits.
+        
+        Facet requests are limited to 2 dimensions.
+        
+        Sorting and ranging always apply to the last given facet.
 
-                      - The measures object is always represented as the leaf node of the response for other types of analytics requests.
+      tags:
+        - computation
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+      requestBody:
+        description: |
+          A facets request is a request to obtain measures grouped by facet.
+          
+            - Each metric follows the same top-level facets, limits and order.
+          
+            - Each facet can be in turn grouped by one facet to provide a multi-dimensional representation of the data.
+          
+            - Facets are represented as a tree of facet buckets, following the order given in the `by` clause of the request.
+          
+            - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
 
-                      - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FacetsRequest"
+            examples:
+              single-facet-with-sort:
+                summary: Single facet with sort request
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  by: [ "API" ]
+                  limit: 5
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+                      sorts: [ { "measure": "COUNT", "order": "DESC" } ]
+              single-facet-with-ranges:
+                summary: Single facet with ranges request
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  by: [ "HTTP_STATUS" ]
+                  ranges: [
+                    { "from": 100, "to": 399 },
+                    { "from": 400, "to": 599 },
+                  ]
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+              multiple-facets:
+                summary: Multiple facets request
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  by: [ "API", "APPLICATION" ]
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
 
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/MeasuresRequest"
-                        examples:
-                            single-metric:
-                                summary: Single metric example
-                                value:
-                                    timeRange:
-                                        from: "2025-01-01T00:00:00Z"
-                                        to: "2025-01-31T23:59:59Z"
-                                    metrics:
-                                        - name: "HTTP_REQUESTS"
-                                          measures: ["COUNT", "RPS"]
-                            multiple-metrics:
-                                summary: Multiple metrics example
-                                value:
-                                    timeRange:
-                                        from: "2025-01-01T00:00:00Z"
-                                        to: "2025-01-31T23:59:59Z"
-                                    metrics:
-                                        - name: "HTTP_REQUESTS"
-                                          measures: ["COUNT"]
-                                        - name: "HTTP_GATEWAY_RESPONSE_TIME"
-                                          measures: ["AVG"]
-            responses:
-                "200":
-                    description: |
-                        A measures response provides aggregated values for the metrics defined in the request.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/MeasuresResponse"
-                            examples:
-                                single-metric:
-                                    summary: Single metric response
-                                    value:
-                                        metrics:
-                                            - name: "HTTP_REQUESTS"
-                                              measures:
-                                                  - name: "COUNT"
-                                                    value: 2984
-                                                  - name: "RPS"
-                                                    value: 45.7
-                                multiple-metrics:
-                                    summary: Multiple metrics response
-                                    value:
-                                        metrics:
-                                            - name: "HTTP_REQUESTS"
-                                              measures:
-                                                  - name: "COUNT"
-                                                    value: 2984
-                                            - name: "HTTP_GATEWAY_RESPONSE_TIME"
-                                              measures:
-                                                  - name: "AVG"
-                                                    value: 89.5
-                "400":
-                    description: Bad request - Invalid Measures Request.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while computing measures.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+      responses:
+        "200":
+          description: Facets analytics response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacetsResponse"
+              examples:
+                single-facet-with-sort:
+                  summary: Single facet with sort response
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "07ba30d4-7b42-418b-a3f9-2ad684947b82"
+                            name: "api-1"
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 1234
+                          - key: "a0131e80-d886-462a-8c0b-1d205e42cc12"
+                            name: "api-2"
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 989
+                single-facet-with-ranges:
+                  summary: Single facet with ranges
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "07ba30d4-7b42-418b-a3f9-2ad684947b82"
+                            name: "api-1"
+                            type: GROUP
+                            buckets:
+                              - key: "100-399"
+                                name: "100-399"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 989
+                              - key: "400-599"
+                                name: "400-599"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 784
+                          - key: "a0131e80-d886-462a-8c0b-1d205e42cc12"
+                            name: "api-2"
+                            type: GROUP
+                            buckets:
+                              - key: "100-399"
+                                name: "100-399"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 879
+                              - key: "400-599"
+                                name: "400-599"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 364
+                multiple-facets:
+                  summary: Single facet with ranges
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "07ba30d4-7b42-418b-a3f9-2ad684947b82"
+                            name: "api-1"
+                            type: GROUP
+                            buckets:
+                              - key: "4dad61f1-3977-4aee-b37d-a840a87a5dd1"
+                                name: "app-2"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 989
+                              - key: "4c5eb203-7e97-4bdf-92a0-d75bfe8fa4bc"
+                                name: "app-5"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 784
+                          - key: "a0131e80-d886-462a-8c0b-1d205e42cc12"
+                            name: "api-2"
+                            type: GROUP
+                            buckets:
+                              - key: "290ea4a9-8b1f-4532-9c39-42f1b6b42fce"
+                                name: "app-2"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 879
+                              - key: "6514fc4d-811e-4383-83cb-11628b99b6e9"
+                                name: "app-4"
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 364
+        "400":
+          description: Bad request - Invalid Facets Request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while computing facets.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-    /environments/{envId}/analytics/facets:
-        post:
-            operationId: queryFacets
-            summary: Query facets analytics
-            description: |
-                Group data by facet values with optional sorting and limits.
+  /environments/{envId}/analytics/time-series:
+    post:
+      operationId: queryTimeSeries
+      summary: Query time series analytics
+      description: |
+        Return data points over time with optional grouping by facets.
 
-            tags:
-                - computation
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-            requestBody:
-                description: |
-                    A facets request is a request to obtain measures grouped by facet.
+      tags:
+        - computation
+      parameters:
+        - $ref: "#/components/parameters/EnvId"
+      requestBody:
+        description: |
+          A time series request is a request to obtain data points over time, organized by a specified interval.
+          
+            - The time series buckets can be themselves nested by facets (at the moment, 1), allowing to group data by multiple nested facets over time.
+          
+            - Facets are represented as a tree of facet buckets, following the order given in the by clause of the request.
+          
+            - Each metric follows the same top-level interval, facets and filters.
+          
+            - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
 
-                      - Each metric follows the same top-level facets, limits and order.
-
-                      - Each facet can be in turn grouped by facets to provide a multi-dimensional representation of the data.
-
-                      - Facets are represented as a tree of facet buckets, following the order given in the by clause of the request.
-
-                      - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
-
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/FacetsRequest"
-                        example:
-                            timeRange:
-                                from: "2025-01-01T00:00:00Z"
-                                to: "2025-01-31T23:59:59Z"
-                            by: ["API"]
-                            limit: 5
-                            metrics:
-                                - name: "HTTP_REQUESTS"
-                                  measures: ["COUNT"]
-                                  limit: 2
-                                  sorts: [{ "measure": "COUNT", "order": "DESC" }]
-
-            responses:
-                "200":
-                    description: Facets analytics response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/FacetsResponse"
-                            example:
-                                metrics:
-                                    - name: "HTTP_REQUESTS"
-                                      buckets:
-                                          - key: "07ba30d4-7b42-418b-a3f9-2ad684947b82"
-                                            name: "api-1"
-                                            measures:
-                                                - name: "COUNT"
-                                                  value: 1234
-                                          - key: "a0131e80-d886-462a-8c0b-1d205e42cc12"
-                                            name: "api-2"
-                                            measures:
-                                                - name: "COUNT"
-                                                  value: 989
-                "400":
-                    description: Bad request - Invalid Facets Request.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while computing facets.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-
-    /environments/{envId}/analytics/time-series:
-        post:
-            operationId: queryTimeSeries
-            summary: Query time series analytics
-            description: |
-                Return data points over time with optional grouping by facets.
-
-            tags:
-                - computation
-            parameters:
-                - $ref: "#/components/parameters/EnvId"
-            requestBody:
-                description: |
-                    A time series request is a request to obtain data points over time, organized by a specified interval.
-
-                      - The time series buckets can be themselves nested by facets, allowing to group data by multiple nested facets over time.
-
-                      - Facets are represented as a tree of facet buckets, following the order given in the by clause of the request.
-
-                      - Each metric follows the same top-level interval, facets and filters.
-
-                      - Additional filters can be applied at the metric level, allowing to refine the representation of the metric.
-
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/TimeSeriesRequest"
-                        example:
-                            timeRange:
-                                from: "2025-01-01T00:00:00Z"
-                                to: "2025-01-31T23:59:59Z"
-                            interval: "1s"
-                            by: ["API"]
-                            metrics:
-                                - name: "HTTP_REQUESTS"
-            responses:
-                "200":
-                    description: Time series analytics response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/TimeSeriesResponse"
-                            example:
-                                interval: "1m"
-                                metrics:
-                                    - name: "HTTP_REQUESTS"
-                                      buckets:
-                                          - key: "2025-01-01T00:00:00Z"
-                                            timestamp: 1735689600000
-                                            buckets:
-                                                - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
-                                                  measures:
-                                                      - name: "COUNT"
-                                                        value: 1234
-                                                - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
-                                                  measures:
-                                                      - name: "COUNT"
-                                                        value: 989
-                                          - key: "2025-01-01T00:01:00Z"
-                                            timestamp: 1735689660000
-                                            buckets:
-                                                - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
-                                                  measures:
-                                                      - name: "COUNT"
-                                                        value: 873
-                                                - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
-                                                  measures:
-                                                      - name: "COUNT"
-                                                        value: 938
-                "400":
-                    description: Bad request - Invalid Time Series Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "500":
-                    description: Internal server error while computing time series.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimeSeriesRequest"
+            examples:
+              single-metric:
+                summary: Single metric request
+                value:
+                  timeRange:
+                    from: "2025-01-00T00:00:00Z"
+                    to: "2025-01-00T00:02:00Z"
+                  interval: 1m
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+              multiple-metrics:
+                summary: Multiple metrics request
+                value:
+                  timeRange:
+                    from: "2025-01-00T00:00:00Z"
+                    to: "2025-01-00T00:02:00Z"
+                  interval: 1m
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+                    - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                      measures: [ "AVG" ]
+              single-metric-with-facet:
+                summary: Single metric request with facet and range
+                value:
+                  timeRange:
+                    from: "2025-01-00T00:00:00Z"
+                    to: "2025-01-00T00:02:00Z"
+                  interval: 1m
+                  by: [ "API" ]
+                  ranges: [
+                    { from: 100, to: 399 },
+                    { from: 400, to: 599 },
+                  ]
+                  metrics:
+                    - name: "HTTP_REQUESTS"
+                      measures: [ "COUNT" ]
+      responses:
+        "200":
+          description: Time series analytics response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSeriesResponse"
+              examples:
+                single-metric:
+                  summary: Single metrics response
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "2025-01-01T00:00:00Z"
+                            timestamp: 1735689600000
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 1234
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689660000
+                            measures:
+                                  - name: "COUNT"
+                                    value: 873
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689720000
+                            type: LEAF
+                            measures:
+                                  - name: "COUNT"
+                                    value: 984
+                multiple-metric:
+                  summary: Multiple metrics response
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "2025-01-01T00:00:00Z"
+                            timestamp: 1735689600000
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 1234
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689660000
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 873
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689720000
+                            type: LEAF
+                            measures:
+                              - name: "COUNT"
+                                value: 984
+                      - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                        buckets:
+                          - key: "2025-01-01T00:00:00Z"
+                            timestamp: 1735689600000
+                            type: LEAF
+                            measures:
+                              - name: "AVG"
+                                value: 43.43
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689660000
+                            type: LEAF
+                            measures:
+                              - name: "AVG"
+                                value: 53.69
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689720000
+                            type: LEAF
+                            measures:
+                              - name: "AVG"
+                                value: 60.80
+                single-metric-with-facet-and-range:
+                  summary: Single metric response with facet and ranges
+                  value:
+                    metrics:
+                      - name: "HTTP_REQUESTS"
+                        buckets:
+                          - key: "2025-01-01T00:00:00Z"
+                            timestamp: 1735689600000
+                            type: GROUP
+                            buckets:
+                              - key: 100-399
+                                name: 100-399
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 587
+                              - key: 400-599
+                                name: 400-599
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 487
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689660000
+                            buckets:
+                              - key: 100-399
+                                name: 100-399
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 387
+                              - key: 400-599
+                                name: 400-599
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 489
+                          - key: "2025-01-01T00:01:00Z"
+                            timestamp: 1735689720000
+                            type: LEAF
+                            buckets:
+                              - key: 100-399
+                                name: 100-399
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 345
+                              - key: 400-599
+                                name: 400-599
+                                type: LEAF
+                                measures:
+                                  - name: "COUNT"
+                                    value: 743
+        "400":
+          description: Bad request - Invalid Time Series Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error while computing time series.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
     parameters:
@@ -950,10 +1185,10 @@ components:
                       filters: ["API", "APPLICATION", "HTTP_STATUS"]
 
         Interval:
-            description: |
-              Time interval for time series analytics queries.
-              Intervals can be expressed as a duration string (e.g. "1h", "24h") or as a number of milliseconds.
-            oneOf:
+          description: |
+            A fixed time interval for time series analytics queries.
+            Fixed intervals can be expressed as a duration string (e.g. "1h", "24h") or as a number of milliseconds.
+          oneOf:
                 - type: string
                   pattern: ^\d+[smhd]$
                   description: Shorthand for expressing interval in seconds, minutes, hours or days as a string
@@ -961,6 +1196,7 @@ components:
                 - type: number
                   description: Interval in milliseconds
                   example: 1000
+
         TimeRange:
             type: object
             required:
@@ -1073,22 +1309,7 @@ components:
                 metrics:
                     type: array
                     items:
-                        type: object
-                        required:
-                            - name
-                        properties:
-                            name:
-                                $ref: "#/components/schemas/MetricName"
-                            measures:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/MeasureName"
-                                description: List of measures to compute for this metric
-                            filters:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Filter"
-                                description: Request-level filters
+                        $ref: "#/components/schemas/MetricRequest"  
                     description: List of measure metric requests to process
             example:
                 timeRange:
@@ -1114,6 +1335,7 @@ components:
                     $ref: "#/components/schemas/TimeRange"
                 by:
                     type: array
+                    maximum: 2
                     items:
                         $ref: "#/components/schemas/FacetName"
                     description: List of facet names to group by (applies to all metrics)
@@ -1179,37 +1401,45 @@ components:
                 A time series request is a request to obtain data points over time, organized by a specified interval.
                 The time series buckets can be themselves nested by facets, allowing to group data by multiple nested facets over time.
             properties:
-                timeRange:
-                    $ref: "#/components/schemas/TimeRange"
-                interval:
-                    $ref: "#/components/schemas/Interval"
-                by:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/FacetName"
-                    description: List of facet names to group by (applies to all metrics). When specified, each time series bucket will be faceted by these facet values, allowing multi-dimensional analysis of metrics over time.
-                filters:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Filter"
-                    description: Top-level filters
-                    example:
-                        - name: "GATEWAY"
-                          operator: "EQ"
-                          value: "gateway-1"
-                        - name: "HTTP_STATUS"
-                          operator: "GTE"
-                          value: 200
-                metrics:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/MetricRequest"
-                    description: List of time series metric requests to process
+              interval:
+                $ref: "#/components/schemas/Interval"
+              timeRange:
+                $ref: "#/components/schemas/TimeRange"
+              by:
+                type: array
+                maximum: 1
+                items:
+                  $ref: "#/components/schemas/FacetName"
+                description: List of facet names to group time-series buckets (currently only one facet is supported)
+              limit:
+                type: integer
+                minimum: 1
+                description: Maximum number of nested buckets to return
+              filters:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Filter"
+                description: Top-level time series filters
+                example:
+                  - name: "APPLICATION"
+                    operator: "EQ"
+                    value: "aeacb40a-36e5-4294-8d9c-b6fa4752ec7b"
+                  - name: "HTTP_METHOD"
+                    operator: "IN"
+                    value: [ "GET", "POST" ]
+              metrics:
+                type: array
+                minimum: 1
+                items:
+                  $ref: "#/components/schemas/FacetMetricRequest"
+                description: List of facet metric requests to process
+              ranges:
+                $ref: "#/components/schemas/Ranges"
             example:
                 timeRange:
                     from: "2025-01-01T00:00:00Z"
                     to: "2025-01-31T23:59:59Z"
-                interval: "1h"
+                interval: 1h
                 by: ["API"]
                 filters:
                     - name: "API"
@@ -1239,6 +1469,9 @@ components:
                     items:
                         $ref: "#/components/schemas/Filter"
                     description: Request-level filters
+            example: 
+              name: "HTTP_REQUESTS"
+              measures: ["COUNT"]
 
         FacetMetricRequest:
             type: object
@@ -1353,48 +1586,66 @@ components:
                 $ref: "#/components/schemas/Bucket"
             description: List of buckets that can contain either measures or nested buckets
 
-        TimeSeriesBucket:
-            oneOf:
-                - type: object
-                  required:
-                      - key
-                      - timestamp
-                      - measures
-                  properties:
-                      key:
-                          type: string
-                          format: date-time
-                          description: Timestamp key (ISO 8601)
-                      timestamp:
-                          type: integer
-                          format: int64
-                          description: Timestamp in milliseconds since Unix epoch (optional)
-                          example: 1735689600000
-                      measures:
-                          $ref: "#/components/schemas/Measures"
-                - type: object
-                  required:
-                      - key
-                      - timestamp
-                      - buckets
-                  properties:
-                      key:
-                          type: string
-                          description: The bucket key is an ISO 8601 timestamp string.
-                      timestamp:
-                          type: integer
-                          format: int64
-                          description: Timestamp in milliseconds since Unix epoch
-                          example: 1735689600000
-                      buckets:
-                          $ref: "#/components/schemas/BucketList"
-            description: Time series bucket with timestamp. Can contain either measures (leaf) or nested buckets (for grouping by facets)
-
         TimeSeriesBucketList:
             type: array
             items:
                 $ref: "#/components/schemas/TimeSeriesBucket"
             description: List of time series buckets ordered chronologically. Nested buckets inside are regular BucketList, not TimeSeriesBucketList.
+
+        TimeSeriesBucket:
+          description: |
+            A time-series bucket represents a single time-series bucket. 
+            Buckets can be nested and eventually lead to a leaf bucket with measures.
+          oneOf:
+            - $ref: "#/components/schemas/TimeSeriesBucketLeaf"
+            - $ref: "#/components/schemas/TimeSeriesBucketGroup"
+          discriminator:
+            propertyName: type
+            mapping:
+              LEAF: "#/components/schemas/TimeSeriesBucketLeaf"
+              GROUP: "#/components/schemas/TimeSeriesBucketGroup"
+
+        TimeSeriesBucketLeaf:
+          description: A leaf bucket represents a set of measure values for a given time series key.
+          type: object
+          required: [key, timestamp, type, measures]
+          properties:
+            type:
+              type: string
+              enum: [ LEAF ]
+              description: Indicates this bucket is a time series leaf node containing measures.
+            key:
+              type: string
+              format: date-time
+              description: Timestamp key (ISO 8601)
+            timestamp:
+              type: integer
+              format: int64
+              description: Timestamp in milliseconds since Unix epoch (optional)
+              example: 1735689600000
+            measures:
+              $ref: "#/components/schemas/Measures"
+
+        TimeSeriesBucketGroup:
+          description: A bucket group represents a bucket that nests facet buckets for a given time series key.
+          type: object
+          required: [ key, timestamp, type, buckets ]
+          properties:
+            type:
+              type: string
+              enum: [ GROUP ]
+              description: Indicates this bucket is a time-series group node containing buckets.
+            key:
+              type: string
+              format: date-time
+              description: Timestamp key (ISO 8601)
+            timestamp:
+              type: integer
+              format: int64
+              description: Timestamp in milliseconds since Unix epoch (optional)
+              example: 1735689600000
+            buckets:
+              $ref: "#/components/schemas/BucketList"
 
         MeasuresResponse:
             type: object
@@ -1461,12 +1712,9 @@ components:
         TimeSeriesResponse:
             type: object
             required:
-                - interval
                 - metrics
             description: Response for time series query - contains time-ordered data points
             properties:
-                interval:
-                    $ref: "#/components/schemas/Interval"
                 metrics:
                     type: array
                     items:
@@ -1480,7 +1728,6 @@ components:
                                 $ref: "#/components/schemas/TimeSeriesBucketList"
                     description: List of time series metric responses. Root level buckets are TimeSeriesBucketList, nested buckets inside are regular BucketList.
             example:
-                interval: "1m"
                 metrics:
                     - name: "HTTP_REQUESTS"
                       buckets:
@@ -1575,7 +1822,7 @@ components:
                 parameters:
                     field: "requests[0].interval"
                     value: "-1d"
-                    interval: "-1d"
+                    interval.value: "-1d"
                 details:
                     - message: "Invalid interval value"
                       location: "requests[0].interval"

@@ -23,7 +23,9 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
-import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -36,11 +38,11 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-public class HTTPProxyDataPlaneQueryService implements DataPlaneAnalyticsQueryService {
+public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryService {
 
     private final AnalyticsRepository analyticsRepository;
 
-    public HTTPProxyDataPlaneQueryService(@Lazy AnalyticsRepository analyticsRepository) {
+    public HTTPDataPlaneAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
     }
 
@@ -72,6 +74,13 @@ public class HTTPProxyDataPlaneQueryService implements DataPlaneAnalyticsQuerySe
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+    }
+
+    @Override
+    public TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request) {
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchHTTPTimeSeries(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 }

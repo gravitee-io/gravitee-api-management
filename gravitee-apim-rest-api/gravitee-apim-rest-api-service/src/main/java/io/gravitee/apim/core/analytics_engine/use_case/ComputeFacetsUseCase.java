@@ -18,7 +18,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
-import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -52,7 +52,7 @@ public class ComputeFacetsUseCase {
 
     private List<FacetsResponse> executeQueries(
         ExecutionContext executionContext,
-        Map<DataPlaneAnalyticsQueryService, FacetsRequest> queryContext
+        Map<AnalyticsEngineQueryService, FacetsRequest> queryContext
     ) {
         var responses = new ArrayList<FacetsResponse>();
         queryContext.forEach((queryService, request) -> responses.add(queryService.searchFacets(executionContext, request)));

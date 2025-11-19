@@ -16,15 +16,12 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
-import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
-import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,38 +31,31 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 @UseCase
-public class ComputeMeasuresUseCase {
+public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
 
-    @Inject
-    private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
-
-    public ComputeMeasuresUseCase(AnalyticsQueryContextProvider queryContextResolver) {
-        this.queryContextProvider = queryContextResolver;
+    public ComputeTimeSeriesUseCase(AnalyticsQueryContextProvider queryContextProvider) {
+        this.queryContextProvider = queryContextProvider;
     }
 
-    public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
+    public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
 
-    public record Output(MeasuresResponse response) {}
+    public record Output(TimeSeriesResponse response) {}
 
     public Output execute(Input input) {
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var queryContext = queryContextProvider.resolve(input.request);
         var responses = executeQueries(executionContext, queryContext);
-        return new Output(MeasuresResponse.merge(responses));
+        return new Output(TimeSeriesResponse.merge(responses));
     }
 
-    private List<MeasuresResponse> executeQueries(
+    private List<TimeSeriesResponse> executeQueries(
         ExecutionContext executionContext,
-        Map<AnalyticsEngineQueryService, MeasuresRequest> queryContext
+        Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
-        var responses = new ArrayList<MeasuresResponse>();
-        queryContext.forEach((queryService, request) -> {
-            List<Filter> updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(request.filters());
-            MeasuresRequest filteredRequest = new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
-            responses.add(queryService.searchMeasures(executionContext, filteredRequest));
-        });
+        var responses = new ArrayList<TimeSeriesResponse>();
+        queryContext.forEach((queryService, request) -> responses.add(queryService.searchTimeSeries(executionContext, request)));
         return responses;
     }
 }

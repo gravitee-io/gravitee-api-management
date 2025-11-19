@@ -20,7 +20,8 @@ import io.gravitee.apim.core.analytics_engine.exception.UnsupportedMetricExcepti
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
-import io.gravitee.apim.core.analytics_engine.query_service.DataPlaneAnalyticsQueryService;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,9 @@ import java.util.Optional;
 @DomainService
 public class AnalyticsQueryContextProvider {
 
-    private final Map<MetricSpec.Name, DataPlaneAnalyticsQueryService> services = new HashMap<>();
+    private final Map<MetricSpec.Name, AnalyticsEngineQueryService> services = new HashMap<>();
 
-    public AnalyticsQueryContextProvider(List<DataPlaneAnalyticsQueryService> impl) {
+    public AnalyticsQueryContextProvider(List<AnalyticsEngineQueryService> impl) {
         for (var service : impl) {
             for (var metric : service.metrics()) {
                 services.put(metric, service);
@@ -43,8 +44,8 @@ public class AnalyticsQueryContextProvider {
         }
     }
 
-    public Map<DataPlaneAnalyticsQueryService, MeasuresRequest> resolve(MeasuresRequest measureRequest) {
-        var context = new HashMap<DataPlaneAnalyticsQueryService, MeasuresRequest>();
+    public Map<AnalyticsEngineQueryService, MeasuresRequest> resolve(MeasuresRequest measureRequest) {
+        var context = new HashMap<AnalyticsEngineQueryService, MeasuresRequest>();
         for (var metric : measureRequest.metrics()) {
             var service = resolve(metric.name());
             var request = context.computeIfAbsent(service, s -> measureRequest.emptyMetrics());
@@ -53,8 +54,8 @@ public class AnalyticsQueryContextProvider {
         return context;
     }
 
-    public Map<DataPlaneAnalyticsQueryService, FacetsRequest> resolve(FacetsRequest facetsRequest) {
-        var context = new HashMap<DataPlaneAnalyticsQueryService, FacetsRequest>();
+    public Map<AnalyticsEngineQueryService, FacetsRequest> resolve(FacetsRequest facetsRequest) {
+        var context = new HashMap<AnalyticsEngineQueryService, FacetsRequest>();
         for (var metric : facetsRequest.metrics()) {
             var service = resolve(metric.name());
             var request = context.computeIfAbsent(service, s -> facetsRequest.emptyMetrics());
@@ -63,7 +64,17 @@ public class AnalyticsQueryContextProvider {
         return context;
     }
 
-    public DataPlaneAnalyticsQueryService resolve(MetricSpec.Name metric) {
+    public Map<AnalyticsEngineQueryService, TimeSeriesRequest> resolve(TimeSeriesRequest timeSeriesRequest) {
+        var context = new HashMap<AnalyticsEngineQueryService, TimeSeriesRequest>();
+        for (var metric : timeSeriesRequest.metrics()) {
+            var service = resolve(metric.name());
+            var request = context.computeIfAbsent(service, s -> timeSeriesRequest.emptyMetrics());
+            request.metrics().add(metric);
+        }
+        return context;
+    }
+
+    public AnalyticsEngineQueryService resolve(MetricSpec.Name metric) {
         return Optional.ofNullable(services.get(metric)).orElseThrow(() -> new UnsupportedMetricException(metric.name()));
     }
 }

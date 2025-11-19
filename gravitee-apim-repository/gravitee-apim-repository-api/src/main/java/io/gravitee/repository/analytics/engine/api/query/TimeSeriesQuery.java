@@ -13,24 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.repository.analytics.engine.api.query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetsRequest(
+public record TimeSeriesQuery(
     TimeRange timeRange,
     List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
+    Long interval,
+    List<MetricMeasuresQuery> metrics,
+    List<Facet> facets,
     Integer limit,
     List<NumberRange> ranges
-) {
-    public FacetsRequest emptyMetrics() {
-        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
+) implements Query {
+    public TimeSeriesQuery(TimeRange timeRange, List<Filter> filters, Long interval, List<MetricMeasuresQuery> metrics) {
+        this(timeRange, filters, interval, metrics, List.of(), 0, List.of());
+    }
+
+    public TimeSeriesQuery(
+        TimeRange timeRange,
+        List<Filter> filters,
+        Long interval,
+        List<MetricMeasuresQuery> metrics,
+        List<Facet> facets
+    ) {
+        this(timeRange, filters, interval, metrics, facets, 0, List.of());
+    }
+
+    public FacetsQuery toFacetQuery() {
+        return new FacetsQuery(timeRange, filters, metrics, facets, limit, ranges);
     }
 }
