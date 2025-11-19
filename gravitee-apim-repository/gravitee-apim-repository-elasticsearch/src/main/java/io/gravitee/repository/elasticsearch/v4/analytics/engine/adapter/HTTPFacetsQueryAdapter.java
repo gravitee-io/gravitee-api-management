@@ -50,38 +50,50 @@ public class HTTPFacetsQueryAdapter {
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
     }
 
-    private JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+        var aggs = new JsonObject();
+        for (var metric : metrics) {
+            aggs.mergeIn(adaptFacets(metric, queryFacets, limit, ranges));
+        }
+        return aggs;
+    }
+
+    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
         var facets = new ArrayList<>(queryFacets);
         for (var it = facets.iterator(); it.hasNext(); ) {
             var facet = it.next();
             var isLast = facets.size() == 1;
-            aggs.put(facet.name(), adaptFacet(metrics, facet, limit, ranges, isLast));
+            var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
+            aggs.put(aggName, adaptFacet(metric, facet, limit, ranges, isLast));
             if (it.hasNext()) {
                 facets.remove(facet);
-                aggs.getJsonObject(facet.name()).put("aggs", adaptFacets(metrics, facets, limit, ranges));
+                aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, facets, limit, ranges));
             } else {
-                aggs.getJsonObject(facet.name()).put("aggs", measuresAdapter.adaptMetrics(metrics));
+                aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
             }
         }
         return aggs;
     }
 
-    private JsonObject adaptFacet(List<MetricMeasuresQuery> metrics, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
+    private JsonObject adaptFacet(MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
         if (last) {
-            return toLeaf(facet, metrics, limit, ranges);
+            return toLeaf(facet, metric, limit, ranges);
         }
         return json().put("terms", toTerms(facet));
     }
 
-    private JsonObject toLeaf(Facet facet, List<MetricMeasuresQuery> metrics, Integer limit, List<NumberRange> ranges) {
-        if (ranges == null || ranges.isEmpty()) {
-            return toTermsLeaf(facet, metrics, limit);
+    private JsonObject toLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit, List<NumberRange> ranges) {
+        if (facet == Facet.HTTP_STATUS_CODE_GROUP) {
+            return toRangeLeaf(Facet.HTTP_STATUS, metric, NumberRange.forStatusCodeGroup());
         }
-        return toRangeLeaf(facet, metrics, ranges);
+        if (ranges == null || ranges.isEmpty()) {
+            return toTermsLeaf(facet, metric, limit);
+        }
+        return toRangeLeaf(facet, metric, ranges);
     }
 
-    private JsonObject toRangeLeaf(Facet facet, List<MetricMeasuresQuery> metrics, List<NumberRange> ranges) {
+    private JsonObject toRangeLeaf(Facet facet, MetricMeasuresQuery metric, List<NumberRange> ranges) {
         var range = json().put("field", fieldResolver.fromFacet(facet));
         var queryRanges = range.put("ranges", new JsonArray()).getJsonArray("ranges");
         for (var rangeQuery : ranges) {
@@ -95,20 +107,20 @@ public class HTTPFacetsQueryAdapter {
         return json().put("key", key).put("from", range.from()).put("to", range.to());
     }
 
-    private JsonObject toTermsLeaf(Facet facet, List<MetricMeasuresQuery> metrics, Integer limit) {
+    private JsonObject toTermsLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit) {
         var terms = json().put("field", fieldResolver.fromFacet(facet));
         if (limit != null) {
             terms.put("size", limit);
         }
-        for (var metric : metrics) {
-            if (metric.sorts() != null && !metrics.isEmpty()) {
-                var order = json();
-                terms.put("order", order);
-                for (var sort : metric.sorts()) {
-                    order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
-                }
+
+        if (metric.sorts() != null && !metric.sorts().isEmpty()) {
+            var order = json();
+            terms.put("order", order);
+            for (var sort : metric.sorts()) {
+                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
             }
         }
+
         return json().put("terms", terms);
     }
 

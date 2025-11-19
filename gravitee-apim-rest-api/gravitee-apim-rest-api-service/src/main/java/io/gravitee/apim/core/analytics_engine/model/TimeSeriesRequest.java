@@ -22,15 +22,20 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetsRequest(
+public record TimeSeriesRequest(
     TimeRange timeRange,
+    Long interval,
     List<Filter> filters,
     List<FacetMetricMeasuresRequest> metrics,
     List<FacetSpec.Name> facets,
     Integer limit,
     List<NumberRange> ranges
 ) {
-    public FacetsRequest emptyMetrics() {
-        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
+    public TimeSeriesRequest(TimeRange timeRange, Long interval, List<Filter> filters) {
+        this(timeRange, interval, filters, new ArrayList<>(), List.of(), null, List.of());
+    }
+
+    public TimeSeriesRequest emptyMetrics() {
+        return new TimeSeriesRequest(timeRange, interval, filters, new ArrayList<>(), facets, limit, ranges);
     }
 }

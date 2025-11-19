@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.repository.analytics.engine.api.result;
 
-import java.util.ArrayList;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetsRequest(
-    TimeRange timeRange,
-    List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) {
-    public FacetsRequest emptyMetrics() {
-        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
+public record TimeSeriesBucketResult(String key, Long timestamp, List<FacetBucketResult> buckets, Map<Measure, Number> measures) {
+    public static TimeSeriesBucketResult ofBuckets(String key, Long timestamp, List<FacetBucketResult> buckets) {
+        return new TimeSeriesBucketResult(key, timestamp, buckets, null);
+    }
+
+    public static TimeSeriesBucketResult ofMeasures(String key, Long timestamp, Map<Measure, Number> measures) {
+        return new TimeSeriesBucketResult(key, timestamp, null, measures);
     }
 }
