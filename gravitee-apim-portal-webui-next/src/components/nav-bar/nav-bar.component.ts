@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, Input, input, InputSignal } from '@angular/core';
+import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { isEmpty } from 'lodash';
 
@@ -31,9 +31,6 @@ import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component
   styleUrls: ['./nav-bar.component.scss'],
 })
 export class NavBarComponent {
-  @Input()
-  siteTitle!: string;
-
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   currentUser: InputSignal<User> = input({});
   forceLogin: InputSignal<boolean> = input(false);

@@ -21,11 +21,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { AppComponent } from './app.component';
-import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
-import { Configuration } from '../entities/configuration/configuration';
-import { ConfigService } from '../services/config.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -44,49 +41,6 @@ describe('AppComponent', () => {
     it('should create the app', () => {
       const app = fixture.componentInstance;
       expect(app).toBeTruthy();
-    });
-
-    it(`should have the 'Developer Portal' title`, async () => {
-      const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
-      expect(companyTitleComponent).toBeTruthy();
-
-      expect(await companyTitleComponent.getTitle()).toEqual('Developer Portal');
-    });
-  });
-
-  describe('custom configuration', () => {
-    @Injectable()
-    class CustomConfigurationServiceStub {
-      get baseURL(): string {
-        return TESTING_BASE_URL;
-      }
-      get configuration(): Configuration {
-        return {
-          portalNext: {
-            siteTitle: 'My custom title',
-          },
-        };
-      }
-    }
-
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [AppComponent, AppTestingModule],
-        providers: [
-          {
-            provide: ConfigService,
-            useClass: CustomConfigurationServiceStub,
-          },
-        ],
-      }).compileComponents();
-      fixture = TestBed.createComponent(AppComponent);
-      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    });
-    it('should show configured title', async () => {
-      const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
-      expect(companyTitleComponent).toBeTruthy();
-
-      expect(await companyTitleComponent.getTitle()).toEqual('My custom title');
     });
   });
 
