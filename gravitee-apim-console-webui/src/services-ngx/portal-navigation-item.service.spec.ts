@@ -48,13 +48,13 @@ describe('PortalNavigationItemService', () => {
   describe('getNavigationItems', () => {
     it('should call the API', (done) => {
       const fakeResponse = fakePortalNavigationItemsResponse();
-      service.getNavigationItems().subscribe((response) => {
+      service.getNavigationItems('TOP_NAVBAR').subscribe((response) => {
         expect(response).toMatchObject(fakeResponse);
         done();
       });
 
       httpTestingController
-        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items` })
+        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
         .flush(fakeResponse);
     });
   });
@@ -72,7 +72,7 @@ describe('PortalNavigationItemService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
       });
       expect(req.request.body).toEqual(newPageItem);
       req.flush(fakeCreatedItem);
@@ -90,7 +90,7 @@ describe('PortalNavigationItemService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
       });
       expect(req.request.body).toEqual(newFolderItem);
       req.flush(fakeCreatedItem);
@@ -108,7 +108,7 @@ describe('PortalNavigationItemService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
       });
       expect(req.request.body).toEqual(newLinkItem);
       req.flush(fakeCreatedItem);

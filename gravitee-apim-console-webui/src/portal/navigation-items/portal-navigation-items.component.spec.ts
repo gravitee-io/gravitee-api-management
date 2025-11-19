@@ -197,10 +197,12 @@ describe('PortalNavigationItemsComponent', () => {
     httpTestingController.expectOne('assets/mocks/portal-menu-links.json').flush({ data: [] });
   }
   function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
-    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items` }).flush(response);
+    httpTestingController
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
+      .flush(response);
   }
   function expectCreateNavigationItem(requestBody: NewPortalNavigationItem, result: PortalNavigationItem) {
-    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/portal-navigation-items` });
+    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items` });
     expect(req.request.body).toEqual(requestBody);
     req.flush(result);
   }

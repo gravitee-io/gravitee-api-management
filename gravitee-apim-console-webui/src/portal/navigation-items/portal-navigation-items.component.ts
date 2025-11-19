@@ -168,7 +168,7 @@ export class PortalNavigationItemsComponent implements OnInit {
   }
 
   private refreshList(): Observable<PortalNavigationItem[]> {
-    return this.portalNavigationItemsService.getNavigationItems().pipe(
+    return this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR').pipe(
       map(({ items }) => {
         this.menuLinks = items;
         this.isEmpty = !this.menuLinks?.length;
