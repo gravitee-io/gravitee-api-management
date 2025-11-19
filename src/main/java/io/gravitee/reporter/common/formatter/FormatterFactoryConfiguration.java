@@ -29,7 +29,7 @@ import lombok.Singular;
 public class FormatterFactoryConfiguration {
 
   @Builder.Default
-  int elasticSearchVersion = 8;
+  int elasticSearchVersion = 9;
 
   @Singular
   Map<MetricsType, Rules> rules;
