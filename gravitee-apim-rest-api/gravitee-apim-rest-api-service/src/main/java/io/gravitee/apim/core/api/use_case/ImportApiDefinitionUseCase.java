@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;

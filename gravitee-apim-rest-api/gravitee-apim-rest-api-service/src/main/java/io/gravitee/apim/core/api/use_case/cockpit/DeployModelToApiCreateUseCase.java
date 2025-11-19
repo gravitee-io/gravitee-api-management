@@ -16,9 +16,9 @@
 package io.gravitee.apim.core.api.use_case.cockpit;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.cockpit.DeployModelToApiDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.audit.model.AuditInfo;

@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.promotion.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
