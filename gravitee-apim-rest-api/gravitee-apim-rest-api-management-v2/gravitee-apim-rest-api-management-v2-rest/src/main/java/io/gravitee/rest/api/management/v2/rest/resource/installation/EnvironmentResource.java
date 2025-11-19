@@ -116,7 +116,7 @@ public class EnvironmentResource extends AbstractResource {
     }
 
     @Path("/portal-navigation-items")
-    public PortalNavigationItemsResource getPortalNavigationItemResource() {
+    public PortalNavigationItemsResource getPortalNavigationItemsResource() {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,7 +44,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
     private PortalArea area;
 
     @Setter
-    @Nullable
+    @Nonnull
     private Integer order;
 
     @Setter
@@ -55,13 +56,15 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,
-        @Nonnull PortalArea area
+        @Nonnull PortalArea area,
+        @Nonnull Integer order
     ) {
         this.id = id;
         this.organizationId = organizationId;
         this.environmentId = environmentId;
         this.title = title;
         this.area = area;
+        this.order = order;
     }
 
     @Override
@@ -80,5 +83,24 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
     @Override
     public String toString() {
         return "PortalNavigationItem[id=" + id + ", title=" + title + "]";
+    }
+
+    public static PortalNavigationItem from(CreatePortalNavigationItem item, String organizationId, String environmentId) {
+        final var id = Optional.ofNullable(item.getId()).orElse(PortalNavigationItemId.random());
+        final var title = item.getTitle();
+        final var area = item.getArea();
+        final var parentId = item.getParentId();
+        final var contentId = item.getContentId();
+        final var url = item.getUrl();
+        final var order = item.getOrder();
+
+        final var newItem = switch (item.getType()) {
+            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order);
+            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId);
+            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url);
+        };
+        newItem.setParentId(parentId);
+
+        return newItem;
     }
 }

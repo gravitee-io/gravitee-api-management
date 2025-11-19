@@ -1,0 +1,107 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.management.v2.rest.mapper;
+
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import java.util.List;
+import java.util.UUID;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+
+@Mapper
+public interface PortalNavigationItemsMapper {
+    PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
+
+    @Mapping(target = "type", constant = "PAGE")
+    @Mapping(
+        target = "configuration",
+        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPageAllOfConfiguration().portalPageContentId(page.getPortalPageContentId().id()))"
+    )
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationPage page
+    );
+
+    @Mapping(target = "type", constant = "FOLDER")
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder
+    );
+
+    @Mapping(target = "type", constant = "LINK")
+    @Mapping(
+        target = "configuration",
+        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration().url(link.getUrl()))"
+    )
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
+    );
+
+    default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
+        return items.stream().map(this::map).toList();
+    }
+
+    default PortalNavigationItem map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
+        return switch (portalNavigationItem) {
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder -> new PortalNavigationItem(map(folder));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationItem(map(page));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
+        };
+    }
+
+    @Mapping(
+        target = "contentId",
+        expression = "java(page.getContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getContentId().toString()))"
+    )
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage page
+    );
+
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
+    );
+
+    @Mapping(target = "url", expression = "java(link.getUrl().toString())")
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
+    );
+
+    default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
+        BaseCreatePortalNavigationItem createPortalNavigationItem
+    ) {
+        return switch (createPortalNavigationItem) {
+            case CreatePortalNavigationFolder folder -> map(folder);
+            case CreatePortalNavigationPage page -> map(page);
+            case CreatePortalNavigationLink link -> map(link);
+            default -> throw new TechnicalDomainException(
+                String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
+            );
+        };
+    }
+
+    default PortalNavigationItemId map(UUID id) {
+        return id == null ? null : PortalNavigationItemId.of(id.toString());
+    }
+
+    default String map(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
+        return id != null ? id.json() : null;
+    }
+}

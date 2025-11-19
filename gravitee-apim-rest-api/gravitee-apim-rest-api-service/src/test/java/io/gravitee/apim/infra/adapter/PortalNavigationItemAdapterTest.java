@@ -213,10 +213,10 @@ class PortalNavigationItemAdapterTest {
                 "org-id",
                 "env-id",
                 "My Folder",
-                PortalArea.TOP_NAVBAR
+                PortalArea.TOP_NAVBAR,
+                1
             );
             entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
-            entity.setOrder(1);
 
             // When
             var repositoryItem = adapter.toRepository(entity);
@@ -242,9 +242,9 @@ class PortalNavigationItemAdapterTest {
                 "env-id",
                 "My Page",
                 PortalArea.HOMEPAGE,
+                2,
                 PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013")
             );
-            entity.setOrder(2);
 
             // When
             var repositoryItem = adapter.toRepository(entity);
@@ -269,9 +269,9 @@ class PortalNavigationItemAdapterTest {
                 "env-id",
                 "My Link",
                 PortalArea.TOP_NAVBAR,
+                3,
                 "https://example.com"
             );
-            entity.setOrder(3);
 
             // When
             var repositoryItem = adapter.toRepository(entity);
@@ -295,7 +295,8 @@ class PortalNavigationItemAdapterTest {
                 "org-id",
                 "env-id",
                 "My Folder",
-                PortalArea.TOP_NAVBAR
+                PortalArea.TOP_NAVBAR,
+                0
             );
 
             // When

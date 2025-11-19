@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.portal_page.exception;
 
-import jakarta.annotation.Nonnull;
+import io.gravitee.apim.core.exception.ConflictDomainException;
 
-public final class PortalNavigationFolder extends PortalNavigationItem {
+public class ItemAlreadyExistsException extends ConflictDomainException {
 
-    public PortalNavigationFolder(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order
-    ) {
-        super(id, organizationId, environmentId, title, area, order);
+    public ItemAlreadyExistsException(String itemId) {
+        super("Item with provided id already exists", itemId);
     }
 }

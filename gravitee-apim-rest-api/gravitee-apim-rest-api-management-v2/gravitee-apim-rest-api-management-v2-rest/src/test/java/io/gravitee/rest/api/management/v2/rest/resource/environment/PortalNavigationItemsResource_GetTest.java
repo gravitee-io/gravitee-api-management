@@ -16,12 +16,15 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -33,6 +36,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -44,9 +48,12 @@ import org.mockito.ArgumentCaptor;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResourceTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
+
+    @Inject
+    private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
@@ -106,7 +113,7 @@ class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(8));
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
 
         var capturedInput = inputCaptor.getValue();
         assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
@@ -239,7 +246,7 @@ class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(8));
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
 
         var capturedInput = inputCaptor.getValue();
         assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
@@ -250,7 +257,7 @@ class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_forbidden_when_no_permission() {
+    void should_not_return_portal_navigation_items_when_no_permission() {
         // Given
         when(
             permissionService.hasPermission(

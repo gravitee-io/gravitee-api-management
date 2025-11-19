@@ -39,6 +39,24 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
     }
 
     @Override
+    public PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id) {
+        try {
+            var result = portalNavigationItemRepository.findById(id.json());
+            if (result.isPresent() && result.get().getEnvironmentId().equals(environmentId)) {
+                return portalNavigationItemAdapter.toEntity(result.get());
+            }
+            return null;
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while finding portal navigation item by id %s and environmentId %s",
+                id,
+                environmentId
+            );
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
     public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
         try {
             var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(parentId.json(), environmentId);

@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.exception;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.exception.AbstractDomainException;
-
-public class PortalPageSpecificationException extends AbstractDomainException {
-
-    public PortalPageSpecificationException(String message) {
-        super(message);
-    }
+public enum PortalNavigationItemType {
+    PAGE,
+    FOLDER,
+    LINK,
 }

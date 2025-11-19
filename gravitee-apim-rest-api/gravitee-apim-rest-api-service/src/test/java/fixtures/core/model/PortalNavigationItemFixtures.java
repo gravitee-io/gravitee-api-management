@@ -19,14 +19,15 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
 
-    private static final String ORG_ID = "org-id";
-    private static final String ENV_ID = "env-id";
+    public static final String ORG_ID = "org-id";
+    public static final String ENV_ID = "env-id";
 
     public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
     private static final String GUIDES_ID = "00000000-0000-0000-0000-000000000002";
@@ -34,15 +35,16 @@ public class PortalNavigationItemFixtures {
     private static final String OVERVIEW_ID = "00000000-0000-0000-0000-000000000004";
     private static final String GETTING_STARTED_ID = "00000000-0000-0000-0000-000000000005";
     private static final String CATEGORY1_ID = "00000000-0000-0000-0000-000000000006";
-    private static final String PAGE11_ID = "00000000-0000-0000-0000-000000000007";
+    public static final String PAGE11_ID = "00000000-0000-0000-0000-000000000007";
     private static final String PAGE12_ID = "00000000-0000-0000-0000-000000000008";
+    private static final String LINK1_ID = "00000000-0000-0000-0000-000000000009";
 
     public static PortalNavigationFolder aFolder(String id, String title) {
         return aFolder(id, title, null);
     }
 
     public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
-        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR);
+        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR, 0);
         folder.setParentId(parentId);
         return folder;
     }
@@ -54,24 +56,49 @@ public class PortalNavigationItemFixtures {
             ENV_ID,
             title,
             PortalArea.TOP_NAVBAR,
+            0,
             PortalPageContentId.random()
         );
         page.setParentId(parentId);
         return page;
     }
 
+    public static PortalNavigationLink aLink(String id, String title, PortalNavigationItemId parentId) {
+        var link = new PortalNavigationLink(
+            PortalNavigationItemId.of(id),
+            ORG_ID,
+            ENV_ID,
+            title,
+            PortalArea.TOP_NAVBAR,
+            0,
+            "http://example.com"
+        );
+        link.setParentId(parentId);
+        return link;
+    }
+
     public static List<PortalNavigationItem> sampleNavigationItems() {
         var apis = aFolder(APIS_ID, "APIs");
+        apis.setOrder(0);
         var guides = aFolder(GUIDES_ID, "Guides");
+        guides.setOrder(1);
         var support = aPage(SUPPORT_ID, "Support", null);
+        support.setOrder(2);
+        var link1 = aLink(LINK1_ID, "Example Link", null);
+        support.setOrder(3);
 
         var overview = aPage(OVERVIEW_ID, "Overview", apis.getId());
+        overview.setOrder(0);
         var gettingStarted = aPage(GETTING_STARTED_ID, "Getting Started", apis.getId());
+        gettingStarted.setOrder(1);
         var category1 = aFolder(CATEGORY1_ID, "Category1", apis.getId());
+        category1.setOrder(2);
 
         var page11 = aPage(PAGE11_ID, "page11", category1.getId());
+        page11.setOrder(0);
         var page12 = aPage(PAGE12_ID, "page12", category1.getId());
+        page12.setOrder(1);
 
-        return List.of(apis, guides, support, overview, gettingStarted, category1, page11, page12);
+        return List.of(apis, guides, support, overview, gettingStarted, category1, page11, page12, link1);
     }
 }

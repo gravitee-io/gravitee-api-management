@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.exception;
 
-import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public final class PortalNavigationPage extends PortalNavigationItem {
+@Setter
+public class ConflictDomainException extends AbstractDomainException {
 
-    @Setter
-    @Nonnull
-    private PortalPageContentId portalPageContentId;
+    private String id;
 
-    public PortalNavigationPage(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull PortalPageContentId portalPageContentId
-    ) {
-        super(id, organizationId, environmentId, title, area, order);
-        this.portalPageContentId = portalPageContentId;
+    public ConflictDomainException(String message) {
+        super(message);
+    }
+
+    public ConflictDomainException(String message, String id) {
+        super(message);
+        this.setId(id);
     }
 }

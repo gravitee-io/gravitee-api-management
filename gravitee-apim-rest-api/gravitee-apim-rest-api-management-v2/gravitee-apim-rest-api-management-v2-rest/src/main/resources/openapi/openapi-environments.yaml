@@ -872,6 +872,27 @@ paths:
           $ref: "#/components/responses/PortalNavigationItemsResponse"
         default:
           $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create a portal navigation item
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: createPortalNavigationItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItem"
+        required: true
+      responses:
+        "201":
+          description: Portal navigation item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        default:
+          $ref: "#/components/responses/Error"
 
 components:
   schemas:
@@ -1692,34 +1713,45 @@ components:
       type: string
       description: The portal area (used by portal navigation items)
       enum: [ HOMEPAGE, TOP_NAVBAR ]
+      example: TOP_NAVBAR
+    PortalNavigationItemType:
+      type: string
+      description: The type of the navigation item
+      example: FOLDER
+      enum: [PAGE, FOLDER, LINK]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
       properties:
         id:
           type: string
+          format: uuid
           description: The unique ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         organizationId:
           type: string
           description: The organization ID
+          example: DEFAULT
         environmentId:
           type: string
           description: The environment ID
+          example: DEFAULT
         title:
           type: string
           description: The title of the navigation item
         type:
-          type: string
-          description: The type of the navigation item
-          enum: [ PAGE, FOLDER, LINK ]
+          $ref: "#/components/schemas/PortalNavigationItemType"
         area:
           $ref: "#/components/schemas/PortalArea"
         parentId:
           type: string
+          format: uuid
           description: The parent ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         order:
           type: integer
-          description: The order of the navigation item
+          description: The order of the navigation item (zero-based)
+          example: 2
       required: [ id, organizationId, environmentId, title, type, area, order ]
       discriminator:
         propertyName: type
@@ -1728,6 +1760,7 @@ components:
           FOLDER: "#/components/schemas/PortalNavigationFolder"
           LINK: "#/components/schemas/PortalNavigationLink"
     PortalNavigationPage:
+      description: Portal navigation item of type PAGE
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
@@ -1736,12 +1769,17 @@ components:
               properties:
                 portalPageContentId:
                   type: string
+                  format: uuid
                   description: The UUID of the portal page content
+                  example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
               required: [ portalPageContentId ]
+          required: [configuration]
     PortalNavigationFolder:
+      description: Portal navigation item of type FOLDER
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
     PortalNavigationLink:
+      description: Portal navigation item of type LINK
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
@@ -1751,7 +1789,9 @@ components:
                 url:
                   type: string
                   description: The URL for the link
+                  example: https://example.com
               required: [ url ]
+          required: [configuration]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
@@ -1763,6 +1803,82 @@ components:
           PAGE: "#/components/schemas/PortalNavigationPage"
           FOLDER: "#/components/schemas/PortalNavigationFolder"
           LINK: "#/components/schemas/PortalNavigationLink"
+
+    BaseCreatePortalNavigationItem:
+      type: object
+      description: Base portal navigation item
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the navigation item
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the navigation item
+        type:
+          $ref: "#/components/schemas/PortalNavigationItemType"
+        area:
+          $ref: "#/components/schemas/PortalArea"
+        order:
+          type: integer
+          minimum: 0
+          description: The order of the navigation item, from 0 to MAX + 1, where MAX is the maximum existing order within the target parent. If not provided or greater than MAX, the new item is appended to the end of the target parent.
+          example: 2
+        parentId:
+          type: string
+          format: uuid
+          description: The parent ID of the navigation item, if not provided item is created at root
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+      discriminator:
+        propertyName: type
+        mapping:
+          FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
+          PAGE: "#/components/schemas/CreatePortalNavigationPage"
+          LINK: "#/components/schemas/CreatePortalNavigationLink"
+      required: [title, type, area]
+    CreatePortalNavigationFolder:
+      type: object
+      title: "CreatePortalNavigationFolder"
+      description: Portal navigation folder to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+    CreatePortalNavigationPage:
+      type: object
+      title: "CreatePortalNavigationPage"
+      description: Portal navigation page to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            contentId:
+              type: string
+              format: uuid
+              description: The UUID of the portal page content
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+    CreatePortalNavigationLink:
+      type: object
+      title: "CreatePortalNavigationLink"
+      description: Portal navigation link to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            url:
+              type: string
+              format: uri
+              description: The URL for the link
+              example: https://example.com
+          required: [url]
+    CreatePortalNavigationItem:
+      oneOf:
+        - $ref: "#/components/schemas/CreatePortalNavigationPage"
+        - $ref: "#/components/schemas/CreatePortalNavigationFolder"
+        - $ref: "#/components/schemas/CreatePortalNavigationLink"
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/CreatePortalNavigationPage"
+          FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
+          LINK: "#/components/schemas/CreatePortalNavigationLink"
 
     PortalPageContent:
       type: object

@@ -21,10 +21,12 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -46,6 +48,79 @@ class PortalNavigationItemsQueryServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new PortalNavigationItemsQueryServiceImpl(repository);
+    }
+
+    @Nested
+    class FindByIdAndEnvironmentId {
+
+        @Test
+        void should_return_item_when_found_and_environment_matches() throws TechnicalException {
+            // Given
+            var itemId = "00000000-0000-0000-0000-000000000001";
+            var environmentId = "env-id";
+            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
+            repoItem.setId(itemId);
+            repoItem.setEnvironmentId(environmentId);
+            repoItem.setTitle("Test Item");
+            repoItem.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER);
+            repoItem.setArea(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR);
+            when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
+
+            // When
+            var result = service.findByIdAndEnvironmentId(environmentId, PortalNavigationItemId.of(itemId));
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getTitle()).isEqualTo("Test Item");
+            assertThat(result).isInstanceOf(PortalNavigationItem.class);
+        }
+
+        @Test
+        void should_return_null_when_item_not_found() throws TechnicalException {
+            // Given
+            var itemId = "00000000-0000-0000-0000-000000000001";
+            var environmentId = "env-id";
+            when(repository.findById(itemId)).thenReturn(Optional.empty());
+
+            // When
+            var result = service.findByIdAndEnvironmentId(environmentId, PortalNavigationItemId.of(itemId));
+
+            // Then
+            assertThat(result).isNull();
+        }
+
+        @Test
+        void should_return_null_when_environment_does_not_match() throws TechnicalException {
+            // Given
+            var itemId = "00000000-0000-0000-0000-000000000001";
+            var environmentId = "env-id";
+            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
+            repoItem.setId(itemId);
+            repoItem.setEnvironmentId("different-env");
+            when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
+
+            // When
+            var result = service.findByIdAndEnvironmentId(environmentId, PortalNavigationItemId.of(itemId));
+
+            // Then
+            assertThat(result).isNull();
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            // Given
+            var itemId = "00000000-0000-0000-0000-000000000001";
+            var environmentId = "env-id";
+            when(repository.findById(itemId)).thenThrow(new TechnicalException("Database error"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.findByIdAndEnvironmentId(environmentId, PortalNavigationItemId.of(itemId)))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage(
+                    "An error occurred while finding portal navigation item by id 00000000-0000-0000-0000-000000000001 and environmentId env-id"
+                )
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
     }
 
     @Nested

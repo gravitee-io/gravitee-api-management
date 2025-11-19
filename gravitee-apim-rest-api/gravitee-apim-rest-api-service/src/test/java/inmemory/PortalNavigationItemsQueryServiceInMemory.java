@@ -25,7 +25,24 @@ import java.util.List;
 public class PortalNavigationItemsQueryServiceInMemory
     implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
 
-    ArrayList<PortalNavigationItem> storage = new ArrayList<>();
+    ArrayList<PortalNavigationItem> storage;
+
+    public PortalNavigationItemsQueryServiceInMemory() {
+        this.storage = new ArrayList<>();
+    }
+
+    public PortalNavigationItemsQueryServiceInMemory(ArrayList<PortalNavigationItem> storage) {
+        this.storage = storage;
+    }
+
+    @Override
+    public PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id) {
+        return storage
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()) && id.equals(item.getId()))
+            .findFirst()
+            .orElse(null);
+    }
 
     @Override
     public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {

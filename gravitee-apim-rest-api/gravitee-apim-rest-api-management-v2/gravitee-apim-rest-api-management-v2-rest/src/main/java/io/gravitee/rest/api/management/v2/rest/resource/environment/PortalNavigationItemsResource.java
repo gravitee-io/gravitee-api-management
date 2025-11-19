@@ -17,9 +17,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -28,19 +30,31 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
+@Slf4j
 public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
+    private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+
+    @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
+
+    private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -59,6 +73,24 @@ public class PortalNavigationItemsResource extends AbstractResource {
             )
         );
 
-        return new PortalNavigationItemsResponse().items(PortalNavigationMapper.INSTANCE.map(result.items()));
+        return new PortalNavigationItemsResponse().items(mapper.map(result.items()));
+    }
+
+    @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createPortalNavigationItem(@Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem) {
+        final var executionContext = GraviteeContext.getExecutionContext();
+
+        final var output = createPortalNavigationItemUseCase.execute(
+            new CreatePortalNavigationItemUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                mapper.map(createPortalNavigationItem)
+            )
+        );
+
+        return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
     }
 }
