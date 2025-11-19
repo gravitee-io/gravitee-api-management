@@ -22,10 +22,8 @@
         {
           "range": {
             "@timestamp": {
-              "from": ${query.from()},
-              "to": ${query.to()},
-              "include_lower": true,
-              "include_upper": true
+              "gte": ${query.from()},
+              "lte": ${query.to()}
             }
           }
         }

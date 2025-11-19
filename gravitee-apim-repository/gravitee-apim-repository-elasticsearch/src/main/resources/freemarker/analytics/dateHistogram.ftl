@@ -36,10 +36,8 @@
         {
           "range": {
             "@timestamp": {
-              "from": ${roundedFrom},
-              "to": ${roundedTo},
-              "include_lower": true,
-              "include_upper": true
+              "gte": ${roundedFrom},
+              "lte": ${roundedTo}
             }
           }
         }
