@@ -80,8 +80,8 @@
     }
   }
 
-  .empty-content {
-    flex-grow: 1;
+  portal-tree-component {
+    height: 100%;
   }
 }
 
@@ -100,20 +100,17 @@
   }
 }
 
+.empty-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .empty-editor {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   padding: 16px;
   height: 100%;
-}
-
-.empty-content {
-  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  border-radius: 4px;
-  padding: 16px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }

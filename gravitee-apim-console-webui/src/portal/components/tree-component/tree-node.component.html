@@ -29,7 +29,7 @@
     </button>
   }
 
-  <mat-icon class="tree__icon" svgIcon="gio:{{ node().type.toLowerCase() }}"></mat-icon>
+  <mat-icon class="tree__icon" [attr.data-test-type]="node().type" svgIcon="gio:{{ node().type | lowercase }}"></mat-icon>
 
   <button type="button" class="tree__label" (click)="selectNode()">{{ node().label }}</button>
 </div>

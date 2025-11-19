@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ConfigureTestingGraviteeMarkdownEditor } from '@gravitee/gravitee-markdown';
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -58,12 +60,15 @@ describe('PortalNavigationItemsComponent', () => {
       ],
     }).compileComponents();
 
+    ConfigureTestingGraviteeMarkdownEditor();
+
     fixture = TestBed.createComponent(PortalNavigationItemsComponent);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PortalNavigationItemsHarness);
-    httpTestingController = TestBed.inject(HttpTestingController);
 
+    httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
+
     routerSpy = jest.spyOn(router, 'navigate');
   });
 
@@ -72,11 +77,56 @@ describe('PortalNavigationItemsComponent', () => {
     jest.clearAllMocks();
   });
 
+  describe('initial load', () => {
+    describe('with tree items', () => {
+      beforeEach(async () => {
+        const fakeResponse = fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({
+              id: 'nav-item-1',
+              title: 'Nav Item 1',
+              portalPageContentId: 'nav-item-1-content',
+            }),
+            fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' }),
+          ],
+        });
+
+        await expectGetNavigationItems(fakeResponse);
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+
+      it('should load and display navigation items', async () => {
+        expect(await harness.getNavigationItemTitles()).toEqual(['Nav Item 1', 'Nav Item 2']);
+      });
+      it('should have the first item selected by default', async () => {
+        expect(await harness.getSelectedNavigationItemTitle()).toBe('Nav Item 1');
+      });
+      it('should show default content of first page on load', async () => {
+        expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 1');
+      });
+    });
+    describe('with no tree items', () => {
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+      });
+
+      it('should show no item message', async () => {
+        expect(await harness.isNavigationTreeEmpty()).toBe(true);
+      });
+    });
+  });
+
   describe('adding a section', () => {
     let dialogHarness: SectionEditorDialogHarness;
+    const fakeResponse = fakePortalNavigationItemsResponse({
+      items: [fakePortalNavigationPage({ portalPageContentId: 'nav-item-1-content' })],
+    });
+    const fakeContentText = 'This is the content.';
     beforeEach(async () => {
-      expectGetMenuLinks();
+      expectGetMenuLinks(fakeResponse);
       await harness.clickAddButton();
+      fixture.detectChanges();
+      expectGetPageContent('nav-item-1-content', fakeContentText);
     });
     describe('adding a page', () => {
       beforeEach(async () => {
@@ -105,7 +155,7 @@ describe('PortalNavigationItemsComponent', () => {
             portalPageContentId: 'content-id',
           }),
         );
-        expectGetNavigationItems();
+        await expectGetNavigationItems(fakeResponse);
       });
       it('should navigate to the created page after creation', async () => {
         const title = 'New Page Title';
@@ -113,13 +163,14 @@ describe('PortalNavigationItemsComponent', () => {
         await dialogHarness.clickAddButton();
 
         const createdItem = fakePortalNavigationPage({
+          id: 'newly-created-id',
           title,
           area: 'TOP_NAVBAR',
           type: 'PAGE',
           portalPageContentId: 'content-id',
         });
         expectCreateNavigationItem(fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }), createdItem);
-        expectGetNavigationItems();
+        await expectGetNavigationItems(fakeResponse);
 
         expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
       });
@@ -151,7 +202,7 @@ describe('PortalNavigationItemsComponent', () => {
             url,
           }),
         );
-        expectGetNavigationItems();
+        await expectGetNavigationItems(fakeResponse);
       });
     });
     describe('adding a folder', () => {
@@ -182,19 +233,33 @@ describe('PortalNavigationItemsComponent', () => {
             type: 'FOLDER',
           }),
         );
-        expectGetNavigationItems();
+        await expectGetNavigationItems(fakeResponse);
       });
     });
   });
 
-  function expectGetMenuLinks() {
-    httpTestingController.expectOne('assets/mocks/portal-menu-links.json').flush({ data: [] });
+  function expectGetMenuLinks(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
+    httpTestingController.expectOne('assets/mocks/portal-menu-links.json').flush(response);
   }
-  function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
+  async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
+    expectGetMenuLinks(response);
+    // TODO: Restore when calling the backend API
+    // httpTestingController
+    //   .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
+    //   .flush(response);
+    // fixture.detectChanges();
+
+    // Used for the navId query param handling for getting page content
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  function expectGetPageContent(contentId: string, content: string) {
     httpTestingController
-      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
-      .flush(response);
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}` })
+      .flush({ id: contentId, content });
   }
+
   function expectCreateNavigationItem(requestBody: NewPortalNavigationItem, result: PortalNavigationItem) {
     const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items` });
     expect(req.request.body).toEqual(requestBody);

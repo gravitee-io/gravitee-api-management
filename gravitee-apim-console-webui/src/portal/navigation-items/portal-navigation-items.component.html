@@ -44,12 +44,8 @@
       </div>
     </header>
 
-    @if (isEmpty) {
-      <div class="empty-content">
-        <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
-      </div>
-    } @else {
-      <portal-tree-component [links]="menuLinks" [selectedId]="navId()" (select)="onSelect($event)" (pageNotFound)="onPageNotFound()" />
+    @if (menuLinks$ | async; as menuLinks) {
+      <portal-tree-component [links]="menuLinks" [selectedId]="navId()" (select)="onSelect($event)" />
     }
   </section>
 
@@ -60,31 +56,49 @@
       </div>
     </header>
 
-    @if (isEmpty) {
+    @if (selectedNavigationItem()) {
+      @switch (selectedNavigationItem().type) {
+        @case ('PAGE') {
+          <gmd-editor [formControl]="contentControl" />
+        }
+        @default {
+          <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
+        }
+      }
+    } @else if (navId()) {
       <div class="empty-editor">
-        <div class="empty-content">
-          <empty-state iconName="gio:code" title="Editor" message="Use GMD code to customize and edit your page content." />
-        </div>
-        <div class="empty-content">
-          <empty-state
-            iconName="gio:monitor"
-            title="Preview"
-            message="Use the page preview to see exactly how your content will look before you publish it."
-          />
-        </div>
-      </div>
-    } @else if (pageNotFound) {
-      <div class="empty-editor">
-        <div class="empty-content">
-          <empty-state
-            iconName="gio:alert-circle"
-            title="Page Not Found"
-            message="The requested page does not exist. Please select a page from the navigation items."
-          />
-        </div>
+        <mat-card appearance="outlined" class="empty-state">
+          <mat-card-content>
+            <empty-state
+              iconName="gio:alert-circle"
+              title="Page Not Found"
+              message="The requested page does not exist. Please select a page from the navigation items."
+            />
+          </mat-card-content>
+        </mat-card>
       </div>
     } @else {
-      <gmd-editor [formControl]="contentControl" />
+      <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
     }
   </section>
 </main>
+
+<ng-template #emptyEditorState>
+  <div class="empty-editor">
+    <mat-card appearance="outlined" class="empty-state">
+      <mat-card-content>
+        <empty-state iconName="gio:code" title="Editor" message="Use GMD code to customize and edit your page content." />
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="empty-state">
+      <mat-card-content>
+        <empty-state
+          iconName="gio:monitor"
+          title="Preview"
+          message="Use the page preview to see exactly how your content will look before you publish it."
+        />
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>

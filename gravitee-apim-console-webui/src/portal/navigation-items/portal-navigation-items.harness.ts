@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GraviteeMarkdownEditorHarness } from '@gravitee/gravitee-markdown';
+
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testing';
+
+import { TreeComponentHarness } from '../components/tree-component/tree.component.harness';
 
 export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
   private getMenu = this.locatorFor(MatMenuHarness);
+  private getTree = this.locatorFor(TreeComponentHarness);
+  private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
@@ -60,5 +66,30 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async clickFolderMenuItem(): Promise<void> {
     const menuItem = await this.getFolderMenuItem();
     return menuItem.click();
+  }
+
+  async getSelectedNavigationItemTitle(): Promise<string> {
+    const tree = await this.getTree();
+    return tree.getSelectedItemTitle();
+  }
+
+  async getSelectedNavigationItemType(): Promise<string> {
+    const tree = await this.getTree();
+    return tree.getSelectedItemType();
+  }
+
+  async getNavigationItemTitles(): Promise<string[]> {
+    const tree = await this.getTree();
+    return tree.getAllItemTitles();
+  }
+
+  async getEditorContentText(): Promise<string> {
+    const editor = await this.getGraviteeMarkdownEditor();
+    return editor.getEditorValue();
+  }
+
+  async isNavigationTreeEmpty(): Promise<boolean> {
+    const tree = await this.getTree();
+    return tree.isEmptyStateDisplayed();
   }
 }
