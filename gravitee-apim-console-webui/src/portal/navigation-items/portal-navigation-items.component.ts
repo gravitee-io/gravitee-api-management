@@ -16,17 +16,19 @@
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
-import { EMPTY, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
 
 import {
   SectionEditorDialogComponent,
@@ -43,10 +45,12 @@ import {
   PortalNavigationItemsResponse,
   PortalNavigationItem,
   PortalNavigationItemType,
+  PortalNavigationPage,
 } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
+import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -65,21 +69,53 @@ import { PortalNavigationItemService } from '../../services-ngx/portal-navigatio
     MatMenuTrigger,
     MatIconModule,
     MatMenuItem,
+    AsyncPipe,
+    MatCardModule,
+    NgTemplateOutlet,
   ],
 })
-export class PortalNavigationItemsComponent implements OnInit {
+export class PortalNavigationItemsComponent {
+  private destroyRef = inject(DestroyRef);
+
+  // UI State & Forms
+  addSectionMenuOpen = false;
   contentControl = new FormControl({
     value: '',
     disabled: true,
   });
 
-  menuLinks: PortalNavigationItem[] | null = null;
-  isEmpty = true;
-  pageNotFound = false;
+  // Route State
+  private readonly navId$ = this.activatedRoute.queryParams.pipe(map((params) => params['navId'] ?? null));
+  readonly navId = toSignal(this.navId$, { initialValue: null });
 
-  navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
-  addSectionMenuOpen = false;
-  private destroyRef = inject(DestroyRef);
+  // Menu Data State
+  private readonly refreshMenuList = new BehaviorSubject(1);
+  readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
+    switchMap(() => this.http.get<PortalNavigationItemsResponse>('assets/mocks/portal-menu-links.json')),
+    map((response) => response.items ?? []),
+    tap((items) => {
+      const currentNavId = this.navId();
+
+      // If no navId in query params, navigate to first PAGE item
+      if (items && items.length > 0 && !currentNavId) {
+        const firstPage = items.find((i) => i.type === 'PAGE');
+        if (firstPage) {
+          this.navigateToItemByNavId(firstPage.id);
+        }
+      }
+    }),
+    catchError(() => {
+      this.snackBarService.error('Failed to load navigation items');
+      return of([]);
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  readonly menuLinks = toSignal(this.menuLinks$, { initialValue: [] });
+  readonly selectedNavigationItem: Signal<SectionNode | null> = computed(() => {
+    const navId = this.navId();
+    const menuLinks = this.menuLinks();
+    return this.mapSelectedNavItemToNode(navId, menuLinks);
+  });
 
   constructor(
     private readonly http: HttpClient,
@@ -88,41 +124,62 @@ export class PortalNavigationItemsComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly portalNavigationItemsService: PortalNavigationItemService,
-  ) {}
-
-  ngOnInit(): void {
-    // TODO replace mock with real backend call when available
-    this.http.get<PortalNavigationItemsResponse>('assets/mocks/portal-menu-links.json').subscribe({
-      next: ({ items }) => {
-        this.menuLinks = items ?? [];
-        this.isEmpty = (this.menuLinks?.length ?? 0) === 0;
-      },
-      error: (err) => {
-        this.menuLinks = [];
-        this.isEmpty = true;
-        this.snackBarService.error('Failed to load portal navigation items: ' + err);
-      },
-    });
+    private readonly portalPageContentService: PortalPageContentService,
+  ) {
+    this.setupPageContentSubscription();
   }
 
   onSelect($event: SectionNode) {
-    this.pageNotFound = false;
-    this.router
-      .navigate(['.'], {
-        relativeTo: this.activatedRoute,
-        queryParams: { navId: $event.id },
-        queryParamsHandling: 'merge',
-      })
-      .catch((err) => this.snackBarService.error('Failed to navigate to portal navigation items: ' + err));
-  }
-
-  onPageNotFound() {
-    this.pageNotFound = true;
-    this.snackBarService.error('The requested Navigation Item does not exist.');
+    this.navigateToItemByNavId($event.id);
   }
 
   onAddSection(sectionType: PortalNavigationItemType) {
     this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
+  }
+
+  private setupPageContentSubscription(): void {
+    toObservable(this.selectedNavigationItem)
+      .pipe(
+        switchMap((item) => {
+          // Only fetch if it is a PAGE, otherwise return empty
+          if (item && item.type === 'PAGE') {
+            const pageContentId = (item.data as PortalNavigationPage).portalPageContentId;
+            return this.loadPageContent(pageContentId);
+          }
+          return of('');
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((content) => {
+        this.contentControl.setValue(content);
+      });
+  }
+
+  private loadPageContent(pageContentId: string): Observable<string> {
+    return this.portalPageContentService.getPageContent(pageContentId).pipe(
+      map(({ content }) => content),
+      catchError(() => {
+        this.snackBarService.error('Failed to load page content');
+        return of('');
+      }),
+    );
+  }
+
+  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
+    if (!navId) {
+      return null;
+    }
+
+    const foundItem = menuLinks?.find((item) => item.id === navId);
+
+    return foundItem
+      ? {
+          id: foundItem.id,
+          label: foundItem.title,
+          type: foundItem.type,
+          data: foundItem,
+        }
+      : null;
   }
 
   private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
@@ -145,13 +202,9 @@ export class PortalNavigationItemsComponent implements OnInit {
             url: result.url,
           });
         }),
-        switchMap((createdItem) => this.refreshList().pipe(map(() => createdItem))),
         tap(({ id }) => {
-          this.router.navigate(['.'], {
-            relativeTo: this.activatedRoute,
-            queryParams: { navId: id },
-            queryParamsHandling: 'merge',
-          });
+          this.refreshMenuList.next(1);
+          this.navigateToItemByNavId(id);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -167,13 +220,13 @@ export class PortalNavigationItemsComponent implements OnInit {
     );
   }
 
-  private refreshList(): Observable<PortalNavigationItem[]> {
-    return this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR').pipe(
-      map(({ items }) => {
-        this.menuLinks = items;
-        this.isEmpty = !this.menuLinks?.length;
-        return items;
-      }),
-    );
+  private navigateToItemByNavId(navId: string): void {
+    this.router
+      .navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: { navId },
+        queryParamsHandling: 'merge',
+      })
+      .catch(() => this.snackBarService.error('Failed to navigate to portal navigation item: ' + navId));
   }
 }
