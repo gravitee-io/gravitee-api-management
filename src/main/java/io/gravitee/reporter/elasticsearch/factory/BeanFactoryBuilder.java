@@ -20,6 +20,7 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.factory.es7.Elastic7xBeanFactory;
 import io.gravitee.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
+import io.gravitee.reporter.elasticsearch.factory.es9.Elastic9xBeanFactory;
 import io.gravitee.reporter.elasticsearch.factory.opensearch.OpenSearchBeanFactory;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Observable;
@@ -71,6 +72,7 @@ public class BeanFactoryBuilder {
         return switch (elasticsearchInfo.getVersion().getMajorVersion()) {
             case 7 -> new Elastic7xBeanFactory();
             case 8 -> new Elastic8xBeanFactory();
+            case 9 -> new Elastic9xBeanFactory();
             default -> null;
         };
     }

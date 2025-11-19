@@ -16,24 +16,20 @@
 package io.gravitee.reporter.elasticsearch.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
-import io.gravitee.reporter.common.formatter.FormatterFactoryConfiguration;
-import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.indexer.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.opensearch.OpenSearchIndexPreparer;
 import io.reactivex.rxjava3.core.Single;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,8 +38,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -109,6 +103,35 @@ class BeanFactoryBuilderTest {
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
             assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES8IndexPreparer.class);
+        }
+    }
+
+    @Nested
+    class ElasticSearch9 {
+
+        @Test
+        void should_instantiate_beans_for_elasticsearch_9_daily_mode() {
+            var reporterConfiguration = new ReporterConfiguration();
+            reporterConfiguration.setIndexMode("daily");
+            when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("9.2.1")));
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+
+            assertThat(beanFactory).isNotNull();
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES9IndexPreparer.class);
+        }
+
+        @Test
+        void should_instantiate_beans_for_elasticsearch_9_ilm_mode() {
+            var reporterConfiguration = new ReporterConfiguration();
+            reporterConfiguration.setIndexMode("ilm");
+
+            when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo("9.2.1")));
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
+
+            assertThat(beanFactory).isNotNull();
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES9IndexPreparer.class);
         }
     }
 
