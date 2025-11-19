@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 
 import { TreeNodeComponent } from './tree-node.component';
@@ -50,42 +50,6 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-
-  constructor() {
-    effect(() => {
-      const currentTree = this.tree();
-      const currentSelectedId = this.selectedId();
-
-      if (currentTree.length > 0) {
-        const isPageIdProvided = currentSelectedId !== null;
-        const pageExists = isPageIdProvided && this.findNode(currentTree, (node) => node.id === currentSelectedId);
-
-        if (isPageIdProvided && !pageExists) {
-          return;
-        }
-
-        if (!isPageIdProvided) {
-          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'PAGE');
-          if (firstPageNode) {
-            this.select.emit(firstPageNode);
-          }
-        }
-      }
-    });
-  }
-
-  private findNode(nodes: SectionNode[], predicate: (node: SectionNode) => boolean): SectionNode | null {
-    for (const node of nodes) {
-      if (predicate(node)) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNode(node.children, predicate);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);
