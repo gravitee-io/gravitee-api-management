@@ -24,7 +24,7 @@ public final class PortalNavigationPage extends PortalNavigationItem {
 
     @Setter
     @Nonnull
-    private PortalPageContentId portalPageContentId;
+    private PortalPageContentId contentId;
 
     public PortalNavigationPage(
         @Nonnull PortalNavigationItemId id,
@@ -33,9 +33,9 @@ public final class PortalNavigationPage extends PortalNavigationItem {
         @Nonnull String title,
         @Nonnull PortalArea area,
         @Nonnull Integer order,
-        @Nonnull PortalPageContentId portalPageContentId
+        @Nonnull PortalPageContentId contentId
     ) {
         super(id, organizationId, environmentId, title, area, order);
-        this.portalPageContentId = portalPageContentId;
+        this.contentId = contentId;
     }
 }

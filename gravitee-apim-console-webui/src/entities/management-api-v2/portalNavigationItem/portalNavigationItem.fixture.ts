@@ -34,9 +34,7 @@ export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPag
     type: 'PAGE',
     order: 1,
     area: 'HOMEPAGE',
-    configuration: {
-      portalPageContentId: 'page-content-1',
-    },
+    contentId: 'page-content-1',
   };
 
   if (isFunction(overrides)) {
@@ -79,9 +77,7 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     type: 'LINK',
     order: 1,
     area: 'HOMEPAGE',
-    configuration: {
-      url: 'https://example.com',
-    },
+    url: 'https://example.com',
   };
 
   if (isFunction(overrides)) {

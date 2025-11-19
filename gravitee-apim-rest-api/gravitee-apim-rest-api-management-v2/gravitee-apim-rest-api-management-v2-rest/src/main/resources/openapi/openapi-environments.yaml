@@ -1764,16 +1764,12 @@ components:
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
-            configuration:
-              type: object
-              properties:
-                portalPageContentId:
-                  type: string
-                  format: uuid
-                  description: The UUID of the portal page content
-                  example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-              required: [ portalPageContentId ]
-          required: [configuration]
+            contentId:
+              type: string
+              format: uuid
+              description: The UUID of the portal page content
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ contentId ]
     PortalNavigationFolder:
       description: Portal navigation item of type FOLDER
       allOf:
@@ -1783,15 +1779,12 @@ components:
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
-            configuration:
-              type: object
-              properties:
-                url:
-                  type: string
-                  description: The URL for the link
-                  example: https://example.com
-              required: [ url ]
-          required: [configuration]
+            url:
+              type: string
+              format: uri
+              description: The URL for the link
+              example: https://example.com
+          required: [ url ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"

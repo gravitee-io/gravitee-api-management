@@ -30,8 +30,6 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMappe
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
-import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration;
-import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPageAllOfConfiguration;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -135,10 +133,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("id", page.getId())
             .hasFieldOrPropertyWithValue("title", page.getTitle())
             .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
-            .hasFieldOrPropertyWithValue(
-                "configuration",
-                new PortalNavigationPageAllOfConfiguration().portalPageContentId(((CreatePortalNavigationPage) page).getContentId())
-            )
+            .hasFieldOrPropertyWithValue("contentId", ((CreatePortalNavigationPage) page).getContentId())
             .hasFieldOrPropertyWithValue("parentId", page.getParentId())
             .hasFieldOrPropertyWithValue("order", page.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
@@ -189,10 +184,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("id", link.getId())
             .hasFieldOrPropertyWithValue("title", link.getTitle())
             .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.LINK)
-            .hasFieldOrPropertyWithValue(
-                "configuration",
-                new PortalNavigationLinkAllOfConfiguration().url(((CreatePortalNavigationLink) link).getUrl().toString())
-            )
+            .hasFieldOrPropertyWithValue("url", ((CreatePortalNavigationLink) link).getUrl())
             .hasFieldOrPropertyWithValue("parentId", link.getParentId())
             .hasFieldOrPropertyWithValue("order", link.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);

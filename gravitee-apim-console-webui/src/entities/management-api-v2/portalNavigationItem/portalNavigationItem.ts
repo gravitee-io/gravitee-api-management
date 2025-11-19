@@ -16,29 +16,25 @@
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK';
 
-interface BasePortalNavigationItem {
+interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   id: string;
   organizationId: string;
   environmentId: string;
   title: string;
-  type: PortalNavigationItemType;
+  type: T;
   order: number;
   area: PortalArea;
   parentId?: string;
 }
 
-export interface PortalNavigationPage extends BasePortalNavigationItem {
-  configuration: {
-    portalPageContentId: string;
-  };
+export interface PortalNavigationPage extends BasePortalNavigationItem<'PAGE'> {
+  contentId: string;
 }
 
-export interface PortalNavigationFolder extends BasePortalNavigationItem {}
+export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {}
 
-export interface PortalNavigationLink extends BasePortalNavigationItem {
-  configuration: {
-    url: string;
-  };
+export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
+  url: string;
 }
 
 export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink;
