@@ -93,11 +93,7 @@ public class ResponseTimeRangeQueryAdapter {
         var from = query.from().minus(query.interval());
         var to = query.to().plus(query.interval());
 
-        ObjectNode timestamp = json()
-            .put("from", from.toEpochMilli())
-            .put("to", to.toEpochMilli())
-            .put("include_lower", true)
-            .put("include_upper", true);
+        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lte", to.toEpochMilli());
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
         var bool = json().set("filter", array().add(filterQuery).add(rangeFilter));
