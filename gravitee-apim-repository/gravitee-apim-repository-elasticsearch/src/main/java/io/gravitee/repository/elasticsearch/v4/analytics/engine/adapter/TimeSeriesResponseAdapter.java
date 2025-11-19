@@ -17,10 +17,10 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
-import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
-import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
+import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
+import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import java.util.List;
 import java.util.Map;
 
@@ -28,27 +28,27 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FacetsResponseAdapter extends AbstractResponseAdapter {
+public class TimeSeriesResponseAdapter extends AbstractResponseAdapter {
 
-    public FacetsResult adapt(SearchResponse esResponse, FacetsQuery query) {
+    public TimeSeriesResult adapt(SearchResponse esResponse, TimeSeriesQuery query) {
         return lookupForAggregations(esResponse)
-            .map(aggregations -> toFacetsResult(aggregations, query))
+            .map(aggregations -> toTimeSeriesResult(aggregations, query))
             .orElseGet(() -> empty(query));
     }
 
-    private FacetsResult toFacetsResult(Map<String, Aggregation> aggregations, FacetsQuery query) {
-        return new FacetsResult(AggregationAdapter.toMetricsAndBuckets(aggregations, query));
+    private TimeSeriesResult toTimeSeriesResult(Map<String, Aggregation> aggregations, TimeSeriesQuery query) {
+        return new TimeSeriesResult(AggregationAdapter.toMetricsAndTimeSeries(aggregations, query));
     }
 
-    private FacetsResult empty(FacetsQuery query) {
-        return new FacetsResult(emptyMetrics(query));
+    private TimeSeriesResult empty(TimeSeriesQuery query) {
+        return new TimeSeriesResult(emptyMetrics(query));
     }
 
-    private List<MetricFacetsResult> emptyMetrics(FacetsQuery query) {
+    private List<MetricTimeSeriesResult> emptyMetrics(TimeSeriesQuery query) {
         return query.metrics().stream().map(this::emptyBuckets).toList();
     }
 
-    private MetricFacetsResult emptyBuckets(MetricMeasuresQuery query) {
-        return new MetricFacetsResult(query.metric(), List.of());
+    private MetricTimeSeriesResult emptyBuckets(MetricMeasuresQuery query) {
+        return new MetricTimeSeriesResult(query.metric(), List.of());
     }
 }

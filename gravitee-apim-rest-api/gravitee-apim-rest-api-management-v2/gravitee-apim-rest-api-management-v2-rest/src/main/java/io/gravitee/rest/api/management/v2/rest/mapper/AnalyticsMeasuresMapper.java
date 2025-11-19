@@ -24,6 +24,10 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
@@ -40,13 +44,19 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequ
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
-import java.math.BigDecimal;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketGroup;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -59,12 +69,12 @@ public interface AnalyticsMeasuresMapper {
 
     MeasuresResponse fromResponseModel(io.gravitee.apim.core.analytics_engine.model.MeasuresResponse responseModel);
 
+    List<Measure> fromResponseModel(List<io.gravitee.apim.core.analytics_engine.model.Measure> responseModel);
+
     FacetsResponse fromResponseModel(io.gravitee.apim.core.analytics_engine.model.FacetsResponse responseModel);
 
     @Mapping(source = "metric", target = "name")
     FacetsResponseMetricsInner fromResponseModel(MetricFacetsResponse responseModel);
-
-    List<Measure> fromResponseModel(List<io.gravitee.apim.core.analytics_engine.model.Measure> responseModel);
 
     default Bucket fromResponseModel(FacetBucketResponse responseModel) {
         var bucket = new Bucket();
@@ -122,15 +132,42 @@ public interface AnalyticsMeasuresMapper {
         };
     }
 
-    default BigDecimal parseInterval(Interval interval) {
-        return BigDecimal.valueOf(parseIntervalDuration(interval).toMillis());
+    TimeSeriesResponse fromResponseModel(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse responseModel);
+
+    TimeSeriesResponseMetricsInner fromResponseModel(TimeSeriesMetricResponse responseModel);
+
+    default TimeSeriesBucket fromResponseModel(TimeSeriesBucketResponse responseModel) {
+        var bucket = new TimeSeriesBucket();
+        if (responseModel.buckets() == null) {
+            var leaf = new TimeSeriesBucketLeaf()
+                .type(TimeSeriesBucketLeaf.TypeEnum.LEAF)
+                .key(OffsetDateTime.parse(responseModel.key()))
+                .timestamp(responseModel.timestamp())
+                .measures(fromResponseModel(responseModel.measures()));
+            bucket.setActualInstance(leaf);
+            return bucket;
+        }
+        var group = new TimeSeriesBucketGroup()
+            .type(TimeSeriesBucketGroup.TypeEnum.GROUP)
+            .key(OffsetDateTime.parse(responseModel.key()))
+            .timestamp(responseModel.timestamp());
+        group.setBuckets(responseModel.buckets().stream().map(this::fromResponseModel).toList());
+        bucket.setActualInstance(group);
+        return bucket;
+    }
+
+    @Mapping(target = "facets", source = "by")
+    TimeSeriesRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest requestEntity);
+
+    default Long parseInterval(Interval interval) {
+        return parseIntervalDuration(interval).toMillis();
     }
 
     default Duration parseIntervalDuration(Interval interval) {
         return switch (interval.getActualInstance()) {
             case Number n -> Duration.ofMillis(n.longValue());
             case String s -> parseDurationString(s);
-            default -> null;
+            default -> throw new TechnicalDomainException("unknown value type for interval");
         };
     }
 

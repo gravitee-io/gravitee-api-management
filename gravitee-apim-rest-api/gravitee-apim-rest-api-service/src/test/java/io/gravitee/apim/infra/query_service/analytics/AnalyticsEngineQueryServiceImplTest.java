@@ -78,7 +78,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
-class DataPlaneAnalyticsQueryServiceImplTest {
+class AnalyticsEngineQueryServiceImplTest {
 
     private static final String ORGANIZATION_ID = "org#1";
     private static final String ENVIRONMENT_ID = "env#1";

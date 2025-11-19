@@ -62,6 +62,10 @@ public class HTTPMeasuresQueryAdapter {
         return json(query).toString();
     }
 
+    private JsonObject json(MeasuresQuery query) {
+        return new JsonObject().put("size", 0).put("query", queryAdapter.adapt(query)).put("aggs", adaptMetrics(query.metrics()));
+    }
+
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
@@ -75,10 +79,6 @@ public class HTTPMeasuresQueryAdapter {
             }
         }
         return aggs;
-    }
-
-    private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", queryAdapter.adapt(query)).put("aggs", adaptMetrics(query.metrics()));
     }
 
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
