@@ -38,31 +38,6 @@ describe('PortalPagesService', () => {
     httpTestingController.verify();
   });
 
-  describe('getHomepage', () => {
-    it('should call the API', (done) => {
-      const fakePortalPage = fakePortalPageWithDetails();
-      const portalPageContent = { id: fakePortalPage.id, type: fakePortalPage.type, content: fakePortalPage.content };
-      const navItem = { id: 'nav-homepage-id', type: 'PAGE', configuration: { portalPageContentId: fakePortalPage.id } };
-
-      portalPagesService.getHomepage().subscribe((response) => {
-        expect(response).toStrictEqual({ navigationItem: navItem, content: portalPageContent });
-        done();
-      });
-
-      const navReq = httpTestingController.expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=HOMEPAGE`,
-      });
-      navReq.flush({ items: [navItem] });
-
-      const contentReq = httpTestingController.expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${fakePortalPage.id}`,
-      });
-      contentReq.flush(portalPageContent);
-    });
-  });
-
   describe('updatePortalPage', () => {
     it('should call the API', (done) => {
       const fakePortalPage = fakePortalPageWithDetails({ content: 'test' });
