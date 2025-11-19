@@ -75,3 +75,10 @@
     padding: 8px 0;
   }
 }
+
+mat-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

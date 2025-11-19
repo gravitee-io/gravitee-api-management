@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component, computed, effect, input, output } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 import { TreeNodeComponent } from './tree-node.component';
 
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 export interface SectionNode {
   id: string;
@@ -35,7 +37,7 @@ type ProcessingNode = SectionNode & {
 @Component({
   selector: 'portal-tree-component',
   standalone: true,
-  imports: [TreeNodeComponent],
+  imports: [TreeNodeComponent, EmptyStateComponent, MatCardModule],
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
@@ -48,7 +50,6 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-  pageNotFound = output<void>();
 
   constructor() {
     effect(() => {
@@ -60,7 +61,6 @@ export class TreeComponent {
         const pageExists = isPageIdProvided && this.findNode(currentTree, (node) => node.id === currentSelectedId);
 
         if (isPageIdProvided && !pageExists) {
-          this.pageNotFound.emit();
           return;
         }
 
