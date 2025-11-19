@@ -69,7 +69,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId()).isNull();
-            assertThat(result.getContentId()).isEqualTo(page.getContentId().id());
+            assertThat(result.getPortalPageContentId()).isEqualTo(page.getPortalPageContentId().id());
         }
 
         @Test
@@ -161,7 +161,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId().id()).isEqualTo(page.getParentId());
-            assertThat(result.getContentId().id()).isEqualTo(((CreatePortalNavigationPage) page).getContentId());
+            assertThat(result.getPortalPageContentId().id()).isEqualTo(((CreatePortalNavigationPage) page).getPortalPageContentId());
         }
 
         @Test

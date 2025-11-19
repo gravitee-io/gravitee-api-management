@@ -78,7 +78,7 @@ describe('HomepageComponent', () => {
     }
 
     // Respond with a navigation page that references the portalPage content id
-    navReq.flush({ items: [{ id: 'nav-homepage-id', type: 'PAGE', configuration: { portalPageContentId: portalPage.id } }] });
+    navReq.flush({ items: [{ id: 'nav-homepage-id', type: 'PAGE', portalPageContentId: portalPage.id }] });
 
     // Then the service fetches the portal page content by content id
     httpTestingController

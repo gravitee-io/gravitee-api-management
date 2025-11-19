@@ -103,7 +103,7 @@ export class HomepageComponent {
   public togglePublish(): void {
     const isCurrentlyPublished = this.portalHomepagePublished();
     const nav = this.portalHomepage().navigationItem as PortalNavigationPage;
-    const pageId = nav.configuration.portalPageContentId;
+    const pageId = nav.portalPageContentId;
 
     const data: GioConfirmDialogData = {
       title: `${this.togglePublishActionText()} page?`,
@@ -151,7 +151,7 @@ export class HomepageComponent {
     const navForUpdate = this.portalHomepage()?.navigationItem ?? null;
     const pageId =
       navForUpdate?.type === 'PAGE'
-        ? ((navForUpdate as PortalNavigationPage).configuration.portalPageContentId ?? navForUpdate.id)
+        ? ((navForUpdate as PortalNavigationPage).portalPageContentId ?? navForUpdate.id)
         : (navForUpdate?.id ?? '');
     this.portalPagesService
       .patchPortalPage(pageId, {
@@ -188,7 +188,7 @@ export class HomepageComponent {
           return EMPTY;
         }
         const portalPage = firstPageItem as PortalNavigationPage;
-        const portalPageContentId = portalPage.configuration.portalPageContentId;
+        const portalPageContentId = portalPage.portalPageContentId;
         if (!portalPageContentId) {
           return EMPTY;
         }

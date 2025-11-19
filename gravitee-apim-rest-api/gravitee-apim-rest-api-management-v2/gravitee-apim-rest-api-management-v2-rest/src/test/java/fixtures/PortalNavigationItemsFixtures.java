@@ -39,7 +39,7 @@ public class PortalNavigationItemsFixtures {
         var parentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002");
         var contentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003");
         return new CreatePortalNavigationPage()
-            .contentId(contentId)
+            .portalPageContentId(contentId)
             .type(PortalNavigationItemType.PAGE)
             .id(id)
             .title(title)

@@ -88,7 +88,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(page.getEnvironmentId()).isEqualTo("env-id");
             assertThat(page.getTitle()).isEqualTo("My Page");
             assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE);
-            assertThat(page.getContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
+            assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(page.getOrder()).isEqualTo(2);
         }
 

@@ -90,7 +90,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         final var title = item.getTitle();
         final var area = item.getArea();
         final var parentId = item.getParentId();
-        final var contentId = item.getContentId();
+        final var contentId = item.getPortalPageContentId();
         final var url = item.getUrl();
         final var order = item.getOrder();
 

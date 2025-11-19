@@ -28,7 +28,7 @@ interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
 }
 
 export interface PortalNavigationPage extends BasePortalNavigationItem<'PAGE'> {
-  contentId: string;
+  portalPageContentId: string;
 }
 
 export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {}
@@ -48,7 +48,7 @@ interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
 }
 
 export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
-  contentId?: string;
+  portalPageContentId?: string;
 }
 
 export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {}

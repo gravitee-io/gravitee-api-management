@@ -32,6 +32,6 @@ public final class CreatePortalNavigationItem {
     private Integer order;
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;
-    private PortalPageContentId contentId;
+    private PortalPageContentId portalPageContentId;
     private String url;
 }

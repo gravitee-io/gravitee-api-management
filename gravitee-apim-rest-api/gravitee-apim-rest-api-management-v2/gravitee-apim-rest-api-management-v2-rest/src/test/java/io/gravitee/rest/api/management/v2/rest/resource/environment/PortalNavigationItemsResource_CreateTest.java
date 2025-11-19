@@ -133,7 +133,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("id", page.getId())
             .hasFieldOrPropertyWithValue("title", page.getTitle())
             .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
-            .hasFieldOrPropertyWithValue("contentId", ((CreatePortalNavigationPage) page).getContentId())
+            .hasFieldOrPropertyWithValue("portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
             .hasFieldOrPropertyWithValue("parentId", page.getParentId())
             .hasFieldOrPropertyWithValue("order", page.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
