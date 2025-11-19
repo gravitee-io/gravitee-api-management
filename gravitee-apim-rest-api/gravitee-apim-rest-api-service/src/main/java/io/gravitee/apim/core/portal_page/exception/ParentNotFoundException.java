@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.portal_page.exception;
 
-import jakarta.annotation.Nonnull;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
-public final class PortalNavigationFolder extends PortalNavigationItem {
+public class ParentNotFoundException extends NotFoundDomainException {
 
-    public PortalNavigationFolder(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order
-    ) {
-        super(id, organizationId, environmentId, title, area, order);
+    public ParentNotFoundException(String id) {
+        super("Parent item with provided id does not exist", id);
     }
 }

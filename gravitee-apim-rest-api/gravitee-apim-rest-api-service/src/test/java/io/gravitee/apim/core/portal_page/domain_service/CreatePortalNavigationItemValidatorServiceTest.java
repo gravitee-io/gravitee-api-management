@@ -1,0 +1,168 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.portal_page.domain_service;
+
+import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
+import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import java.util.ArrayList;
+import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class CreatePortalNavigationItemValidatorServiceTest {
+
+    private PortalNavigationItemsQueryServiceInMemory queryService;
+    private CreatePortalNavigationItemValidatorService validatorService;
+
+    @BeforeEach
+    void setUp() {
+        final var storage = new ArrayList<PortalNavigationItem>();
+        final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
+
+        queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
+        validatorService = new CreatePortalNavigationItemValidatorService(queryService);
+        queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    @Nested
+    class ValidateItem {
+
+        @Test
+        void should_fail_when_item_with_provided_id_already_exists() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.of(APIS_ID))
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(ItemAlreadyExistsException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Item with provided id already exists");
+        }
+
+        @Test
+        void should_fail_when_homepage_already_exists() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .build();
+            queryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID));
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(HomepageAlreadyExistsException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Homepage already exists");
+        }
+    }
+
+    @Nested
+    class ValidateParent {
+
+        @Test
+        void should_fail_when_parent_is_not_found() {
+            // Given
+            final String NON_EXISTENT_ID = "6c2c004d-c4f2-4a2b-b2c3-857a4dfcc842";
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+            createPortalNavigationItem.setParentId(PortalNavigationItemId.of(NON_EXISTENT_ID));
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(ParentNotFoundException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Parent item with provided id does not exist");
+        }
+
+        @Test
+        void should_fail_when_parent_is_not_folder() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+            createPortalNavigationItem.setParentId(PortalNavigationItemId.of(PAGE11_ID));
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(ParentTypeMismatchException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Parent item with id %s is not a folder", PAGE11_ID);
+        }
+
+        @Test
+        void should_fail_when_parent_is_in_different_area() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .build();
+            createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(ParentAreaMismatchException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Parent item with id %s belongs to a different area than the child item", APIS_ID);
+        }
+    }
+}

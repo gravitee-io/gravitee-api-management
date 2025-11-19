@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.portal_page.exception;
 
-import jakarta.annotation.Nonnull;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public final class PortalNavigationFolder extends PortalNavigationItem {
+public class ParentAreaMismatchException extends ValidationDomainException {
 
-    public PortalNavigationFolder(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order
-    ) {
-        super(id, organizationId, environmentId, title, area, order);
+    public ParentAreaMismatchException(String parentId) {
+        super(String.format("Parent item with id %s belongs to a different area than the child item", parentId));
     }
 }

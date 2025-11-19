@@ -1,0 +1,200 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.management.v2.rest.resource.environment;
+
+import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static jakarta.ws.rs.client.Entity.json;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import fixtures.PortalNavigationItemsFixtures;
+import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPageAllOfConfiguration;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Response;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author GraviteeSource Team
+ */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
+
+    private static final String ENVIRONMENT = "environment-id";
+
+    @Inject
+    private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+
+    @Inject
+    private EnvironmentService environmentService;
+
+    private WebTarget target;
+
+    @Override
+    protected String contextPath() {
+        return "/environments/" + ENVIRONMENT + "/portal-navigation-items";
+    }
+
+    @BeforeEach
+    public void setUp() {
+        target = rootTarget();
+
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.UPDATE
+            )
+        ).thenReturn(true);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
+
+    @Test
+    void should_not_create_portal_navigation_items_when_no_permission() {
+        // Given
+        final var folder = PortalNavigationItemFixtures.aFolder(UUID.randomUUID().toString(), "My Folder");
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.UPDATE
+            )
+        ).thenReturn(false);
+
+        // When
+        Response response = target.request().post(json(folder));
+
+        // Then
+        assertThat(response).hasStatus(FORBIDDEN_403);
+    }
+
+    @Test
+    void should_create_portal_navigation_page() {
+        // Given
+        final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(page), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(page));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", page.getId())
+            .hasFieldOrPropertyWithValue("title", page.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
+            .hasFieldOrPropertyWithValue(
+                "configuration",
+                new PortalNavigationPageAllOfConfiguration().portalPageContentId(((CreatePortalNavigationPage) page).getContentId())
+            )
+            .hasFieldOrPropertyWithValue("parentId", page.getParentId())
+            .hasFieldOrPropertyWithValue("order", page.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
+    }
+
+    @Test
+    void should_create_portal_navigation_folder() {
+        // Given
+        final var folder = PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(folder), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(folder));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", folder.getId())
+            .hasFieldOrPropertyWithValue("title", folder.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.FOLDER)
+            .hasFieldOrPropertyWithValue("parentId", folder.getParentId())
+            .hasFieldOrPropertyWithValue("order", folder.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
+    }
+
+    @Test
+    void should_create_portal_navigation_link() {
+        // Given
+        final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(link), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(link));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", link.getId())
+            .hasFieldOrPropertyWithValue("title", link.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.LINK)
+            .hasFieldOrPropertyWithValue(
+                "configuration",
+                new PortalNavigationLinkAllOfConfiguration().url(((CreatePortalNavigationLink) link).getUrl().toString())
+            )
+            .hasFieldOrPropertyWithValue("parentId", link.getParentId())
+            .hasFieldOrPropertyWithValue("order", link.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
+    }
+}
