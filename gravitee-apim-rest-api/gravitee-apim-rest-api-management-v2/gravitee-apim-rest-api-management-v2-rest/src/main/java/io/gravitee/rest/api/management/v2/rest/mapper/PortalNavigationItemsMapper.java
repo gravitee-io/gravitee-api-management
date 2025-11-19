@@ -33,10 +33,7 @@ public interface PortalNavigationItemsMapper {
     PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
 
     @Mapping(target = "type", constant = "PAGE")
-    @Mapping(
-        target = "configuration",
-        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPageAllOfConfiguration().portalPageContentId(page.getPortalPageContentId().id()))"
-    )
+    @Mapping(target = "contentId", expression = "java(page.getContentId().id())")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationPage page
     );
@@ -47,10 +44,7 @@ public interface PortalNavigationItemsMapper {
     );
 
     @Mapping(target = "type", constant = "LINK")
-    @Mapping(
-        target = "configuration",
-        expression = "java(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLinkAllOfConfiguration().url(link.getUrl()))"
-    )
+    @Mapping(target = "url", expression = "java(java.net.URI.create(link.getUrl()))")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
     );
