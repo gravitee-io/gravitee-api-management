@@ -15,23 +15,11 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
 import { PatchPortalPage } from '../entities/portal/patch-portal-page';
-import {
-  PortalNavigationItem,
-  PortalNavigationPage,
-  PortalNavigationItemsResponse,
-  PortalPageContent,
-} from '../entities/management-api-v2';
-
-export interface PortalHomepage {
-  navigationItem: PortalNavigationItem;
-  content: PortalPageContent;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -41,40 +29,6 @@ export class PortalPagesService {
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
-
-  /**
-   * Get the homepage portal page
-   */
-  getHomepage(): Observable<PortalHomepage | null> {
-    const navUrl = `${this.constants.env.v2BaseURL}/portal-navigation-items?area=HOMEPAGE`;
-    return this.http.get<PortalNavigationItemsResponse | null>(navUrl).pipe(
-      catchError(() => of(null)),
-      map((response) => {
-        const items = response?.items ?? [];
-        if (items.length === 0) {
-          return null;
-        }
-        const firstPageItem = items.find((i) => i.type === 'PAGE');
-        if (!firstPageItem) {
-          return null;
-        }
-        return firstPageItem as PortalNavigationPage;
-      }),
-      switchMap((portalNavigationPage) => {
-        if (!portalNavigationPage) {
-          return of(null);
-        }
-        return this.http
-          .get<PortalPageContent>(
-            `${this.constants.env.v2BaseURL}/portal-page-contents/${portalNavigationPage.configuration.portalPageContentId}`,
-          )
-          .pipe(
-            map((content) => ({ navigationItem: portalNavigationPage, content: content }) as PortalHomepage),
-            catchError(() => of(null)),
-          );
-      }),
-    );
-  }
 
   publishPage(pageId: string): Observable<PortalPageWithDetails> {
     return this.http.post<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${pageId}/_publish`, {});

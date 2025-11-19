@@ -19,7 +19,7 @@ import { Component, computed, DestroyRef, effect, inject, signal, WritableSignal
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
-import { EMPTY, Observable } from 'rxjs';
+import { EMPTY, Observable, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -27,9 +27,16 @@ import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } fro
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { PortalPagesService, PortalHomepage } from '../../services-ngx/portal-pages.service';
+import { PortalPagesService } from '../../services-ngx/portal-pages.service';
+import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
+import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { PortalNavigationPage } from '../../entities/management-api-v2';
+import { PortalNavigationPage, PortalPageContent } from '../../entities/management-api-v2';
+
+export interface PortalHomepage {
+  navigationItem: PortalNavigationPage;
+  content: PortalPageContent;
+}
 
 @Component({
   selector: 'homepage',
@@ -61,6 +68,8 @@ export class HomepageComponent {
 
   private readonly snackbarService = inject(SnackBarService);
   private readonly portalPagesService = inject(PortalPagesService);
+  private readonly portalNavigationItemService = inject(PortalNavigationItemService);
+  private readonly portalPageContentService = inject(PortalPageContentService);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
@@ -122,6 +131,7 @@ export class HomepageComponent {
         tap((updatedPage) => {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
           this.portalHomepage.set(
+            // TODO: handle updated navigation item when that feature is implemented
             currentNav
               ? { navigationItem: currentNav, content: { id: updatedPage.id, type: 'GRAVITEE_MARKDOWN', content: updatedPage.content } }
               : null,
@@ -167,7 +177,30 @@ export class HomepageComponent {
   }
 
   private getPortalHomepage(): Observable<PortalHomepage> {
-    return this.portalPagesService.getHomepage().pipe(
+    return this.portalNavigationItemService.getNavigationItems('HOMEPAGE').pipe(
+      switchMap((navResponse) => {
+        const items = navResponse?.items ?? [];
+        if (items.length === 0) {
+          return EMPTY;
+        }
+        const firstPageItem = items.find((i) => i.type === 'PAGE');
+        if (!firstPageItem) {
+          return EMPTY;
+        }
+        const portalPage = firstPageItem as PortalNavigationPage;
+        const portalPageContentId = portalPage.configuration.portalPageContentId;
+        if (!portalPageContentId) {
+          return EMPTY;
+        }
+        return this.portalPageContentService.getPageContent(portalPageContentId).pipe(
+          switchMap((content) => {
+            if (!content) {
+              return EMPTY;
+            }
+            return of({ navigationItem: portalPage, content } as PortalHomepage);
+          }),
+        );
+      }),
       catchError(() => {
         this.snackbarService.error('An error occurred while loading the homepage');
         return EMPTY;
