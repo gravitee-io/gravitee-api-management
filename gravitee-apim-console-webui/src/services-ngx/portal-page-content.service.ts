@@ -30,10 +30,10 @@ export class PortalPageContentService {
   ) {}
 
   public getPageContent(contentId: string): Observable<PortalPageContent> {
-    return this.http.get<PortalPageContent>(`${this.constants.env.baseURL}/portal-page-contents/${contentId}`);
+    return this.http.get<PortalPageContent>(`${this.constants.env.v2BaseURL}/portal-page-contents/${contentId}`);
   }
 
   public createPageContent(newPortalPageContent: NewPortalPageContent): Observable<PortalPageContent> {
-    return this.http.post<PortalPageContent>(`${this.constants.env.baseURL}/portal-page-contents`, newPortalPageContent);
+    return this.http.post<PortalPageContent>(`${this.constants.env.v2BaseURL}/portal-page-contents`, newPortalPageContent);
   }
 }
