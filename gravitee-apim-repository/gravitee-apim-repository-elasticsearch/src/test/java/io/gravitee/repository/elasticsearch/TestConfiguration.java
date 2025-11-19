@@ -119,7 +119,7 @@ public class TestConfiguration {
     private ElasticsearchContainer generateElasticsearchContainer() {
         final String dockerImage = "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion;
         final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(dockerImage);
-        if (elasticsearchVersion.startsWith("8")) {
+        if (Integer.parseInt(String.valueOf(elasticsearchVersion.charAt(0))) >= 8) {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }
         return elasticsearchContainer;
