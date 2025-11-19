@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.common.formatter.csv.SingleValueFormatter;
+import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,9 @@ public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
     appendString(buffer, log.getConnectorId());
 
     try {
+      ReportableSanitizationUtil.removeMessageMetadataWithNullValues(
+        log.getMessage()
+      );
       appendString(buffer, mapper.writeValueAsString(log.getMessage()));
     } catch (JsonProcessingException e) {
       LOG.error("Unable to process message", e);

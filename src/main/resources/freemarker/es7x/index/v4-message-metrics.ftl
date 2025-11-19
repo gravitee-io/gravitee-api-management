@@ -22,7 +22,9 @@
   ,"request-id":"${metrics.getRequestId()}"
   ,"api-id":"${metrics.getApiId()}"
   ,"api-name":"${metrics.getApiName()?j_string}"
+  <#if metrics.getClientIdentifier()??>
   ,"client-identifier":"${metrics.getClientIdentifier()}"
+  </#if>
   ,"correlation-id":"${metrics.getCorrelationId()}"
   <#if metrics.getParentCorrelationId()??>
   ,"parent-correlation-id":"${metrics.getParentCorrelationId()}"
@@ -54,7 +56,7 @@
   <#if metrics.getCustomMetrics()??>
   ,"custom": {
   <#list metrics.getCustomMetrics() as propKey, propValue>
-    "${propKey}":"${propValue}"<#sep>,
+    "${propKey}":"${propValue?j_string}"<#sep>,</#sep>
   </#list>
   }
   </#if>
@@ -73,7 +75,7 @@
     </#if>
     <#if (metrics.keywordAdditionalMetrics())??>
       <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
-        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
       </#list>
     </#if>
     <#if (metrics.boolAdditionalMetrics())??>
@@ -85,10 +87,10 @@
       <#list metrics.intAdditionalMetrics() as propKey, propValue>
         <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
       </#list>
-      </#if>
+    </#if>
     <#if (metrics.stringAdditionalMetrics())??>
       <#list metrics.stringAdditionalMetrics() as propKey, propValue>
-        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
       </#list>
     </#if>
     <#if (metrics.jsonAdditionalMetrics())??>

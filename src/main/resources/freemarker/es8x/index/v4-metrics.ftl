@@ -133,13 +133,13 @@
   <#if metrics.getCustomMetrics()??>
   ,"custom": {
   <#list metrics.getCustomMetrics() as propKey, propValue>
-    "${propKey}":"${propValue}"<#sep>,
+    "${propKey}":"${propValue?j_string}"<#sep>,</#sep>
   </#list>
   }
   </#if>
   <#if (metrics.longAdditionalMetrics())?? || (metrics.doubleAdditionalMetrics())?? || (metrics.keywordAdditionalMetrics())?? || (metrics.boolAdditionalMetrics())?? || (metrics.intAdditionalMetrics())?? || (metrics.stringAdditionalMetrics())?? || (metrics.jsonAdditionalMetrics())??>
   ,"additional-metrics": {
-      <#assign additionalMetrics = []>
+    <#assign additionalMetrics = []>
     <#if (metrics.longAdditionalMetrics())??>
       <#list metrics.longAdditionalMetrics() as propKey, propValue>
         <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
@@ -152,7 +152,7 @@
     </#if>
     <#if (metrics.keywordAdditionalMetrics())??>
       <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
-        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
       </#list>
     </#if>
     <#if (metrics.boolAdditionalMetrics())??>
@@ -167,13 +167,13 @@
     </#if>
     <#if (metrics.stringAdditionalMetrics())??>
       <#list metrics.stringAdditionalMetrics() as propKey, propValue>
-        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
       </#list>
     </#if>
     <#if (metrics.jsonAdditionalMetrics())??>
-        <#list metrics.jsonAdditionalMetrics() as propKey, propValue>
-            <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?js_string + '"']>
-        </#list>
+      <#list metrics.jsonAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?js_string + '"']>
+      </#list>
     </#if>
     ${additionalMetrics?join(',')}
   }

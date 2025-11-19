@@ -15,7 +15,9 @@
   ,"api-id":"${log.getApiId()}"
   ,"api-name":"${log.getApiName()?j_string}"
   ,"request-id":"${log.getRequestId()}"
+  <#if log.getClientIdentifier()??>
   ,"client-identifier":"${log.getClientIdentifier()}"
+  </#if>
   ,"correlation-id":"${log.getCorrelationId()}"
   <#if log.getParentCorrelationId()??>
   ,"parent-correlation-id":"${log.getParentCorrelationId()}"
@@ -49,7 +51,7 @@
     <#if log.getMessage().getMetadata()??>
     ,"metadata":{
     <#list log.getMessage().getMetadata() as metadataKey, metadataValue>
-      "${metadataKey}": "${metadataValue}"
+      "${metadataKey}": "${metadataValue?j_string}"
       <#sep>,</#sep>
     </#list>
     }

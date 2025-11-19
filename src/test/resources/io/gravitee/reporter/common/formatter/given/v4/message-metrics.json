@@ -17,6 +17,7 @@
   "error": false,
   "gatewayLatencyMs": 0,
   "customMetrics": {
-    "zone": "europe-west10-a"
+    "zone": "europe-west10-a",
+    "otherField": null
   }
 }

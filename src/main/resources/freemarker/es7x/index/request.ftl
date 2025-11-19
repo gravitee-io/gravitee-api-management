@@ -104,15 +104,15 @@
       <#if warning.getComponentName()??>
       ,"component-name":"${warning.getComponentName()}"
       </#if>
-    }<#sep>,
+    }<#sep>,</#sep>
     </#list>
   ]
   </#if>
   <#if metrics.getCustomMetrics()??>
-    ,"custom": {
+  ,"custom": {
     <#list metrics.getCustomMetrics() as propKey, propValue>
-      "${propKey}":"${propValue}"<#sep>,
+      "${propKey}":"${propValue?j_string}"<#sep>,</#sep>
     </#list>
-    }
+  }
   </#if>
 }</@compress>

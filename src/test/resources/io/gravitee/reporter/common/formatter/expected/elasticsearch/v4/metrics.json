@@ -26,5 +26,8 @@
   "status": 200,
   "response-content-length": 274,
   "gateway-response-time-ms": 144,
-  "gateway-latency-ms": 7
+  "gateway-latency-ms": 7,
+  "custom": {
+    "zone": "europe-north1-a"
+  }
 }

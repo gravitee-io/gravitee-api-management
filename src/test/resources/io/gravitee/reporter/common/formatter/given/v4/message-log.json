@@ -18,7 +18,8 @@
       "partition": 0,
       "offset": 431,
       "sourceTimestamp": 1692796318905,
-      "key": "message"
+      "key": "message",
+      "nullMetadata": null
     },
     "error": false
   }

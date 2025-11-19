@@ -34,6 +34,9 @@
   "securityToken": null,
   "errorMessage": null,
   "errorKey": null,
-  "customMetrics": null,
+  "customMetrics": {
+    "zone": "europe-north1-a",
+    "otherField": null
+  },
   "log": null
 }

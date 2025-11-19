@@ -23,10 +23,12 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
+import io.gravitee.reporter.api.v4.common.Message;
 import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
+import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -99,9 +101,7 @@ public class ElasticsearchFormatter<T extends Reportable>
       return getSource(monitor, esOptions);
     } else if (reportable instanceof Log log) {
       return getSource(log, esOptions);
-    }
-
-    if (
+    } else if (
       reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics metrics
     ) {
       return getSource(metrics, esOptions);
@@ -131,6 +131,10 @@ public class ElasticsearchFormatter<T extends Reportable>
     final Map<String, Object> data = new HashMap<>(10);
 
     addCommonFields(data, metrics, esOptions);
+
+    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(
+      metrics.getCustomMetrics()
+    );
 
     data.put("metrics", metrics);
 
@@ -325,6 +329,10 @@ public class ElasticsearchFormatter<T extends Reportable>
 
     addCommonFields(data, metrics, esOptions);
 
+    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(
+      metrics.getCustomMetrics()
+    );
+
     data.put("metrics", metrics);
 
     data.put(
@@ -366,6 +374,10 @@ public class ElasticsearchFormatter<T extends Reportable>
     final Map<String, Object> data = new HashMap<>(10);
 
     addCommonFields(data, metrics, esOptions);
+
+    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(
+      metrics.getCustomMetrics()
+    );
 
     data.put("metrics", metrics);
     data.put(
@@ -412,6 +424,10 @@ public class ElasticsearchFormatter<T extends Reportable>
     final Map<String, Object> data = new HashMap<>(5);
 
     addCommonFields(data, log, esOptions);
+
+    ReportableSanitizationUtil.removeMessageMetadataWithNullValues(
+      log.getMessage()
+    );
 
     data.put("log", log);
 

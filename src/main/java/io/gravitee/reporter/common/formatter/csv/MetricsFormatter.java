@@ -16,6 +16,7 @@
 package io.gravitee.reporter.common.formatter.csv;
 
 import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -73,6 +74,9 @@ public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
     );
 
     if (!customMetrics.isEmpty()) {
+      ReportableSanitizationUtil.removeCustomMetricsWithNullValues(
+        customMetrics
+      );
       for (
         Iterator<String> i = customMetrics.keySet().iterator();
         i.hasNext();

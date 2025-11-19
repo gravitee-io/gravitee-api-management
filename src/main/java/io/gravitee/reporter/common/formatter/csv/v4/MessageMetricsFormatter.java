@@ -17,6 +17,7 @@ package io.gravitee.reporter.common.formatter.csv.v4;
 
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.common.formatter.csv.SingleValueFormatter;
+import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class MessageMetricsFormatter
     final Map<String, String> customMetrics = metrics.getCustomMetrics() == null
       ? Map.of()
       : metrics.getCustomMetrics();
+    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(customMetrics);
 
     final Buffer buffer = Buffer.buffer();
 

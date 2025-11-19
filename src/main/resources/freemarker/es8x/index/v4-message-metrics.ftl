@@ -22,7 +22,9 @@
   ,"request-id":"${metrics.getRequestId()}"
   ,"api-id":"${metrics.getApiId()}"
   ,"api-name":"${metrics.getApiName()?j_string}"
+  <#if metrics.getClientIdentifier()??>
   ,"client-identifier":"${metrics.getClientIdentifier()}"
+  </#if>
   ,"correlation-id":"${metrics.getCorrelationId()}"
   <#if metrics.getParentCorrelationId()??>
   ,"parent-correlation-id":"${metrics.getParentCorrelationId()}"
@@ -54,49 +56,49 @@
   <#if metrics.getCustomMetrics()??>
   ,"custom": {
   <#list metrics.getCustomMetrics() as propKey, propValue>
-    "${propKey}":"${propValue}"<#sep>,
+    "${propKey}":"${propValue?j_string}"<#sep>,</#sep>
   </#list>
   }
   </#if>
   <#if (metrics.longAdditionalMetrics())?? || (metrics.doubleAdditionalMetrics())?? || (metrics.keywordAdditionalMetrics())?? || (metrics.boolAdditionalMetrics())?? || (metrics.intAdditionalMetrics())?? || (metrics.stringAdditionalMetrics())?? || (metrics.jsonAdditionalMetrics())??>
-      ,"additional-metrics": {
-      <#assign additionalMetrics = []>
-      <#if (metrics.longAdditionalMetrics())??>
-          <#list metrics.longAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
-          </#list>
-      </#if>
-      <#if (metrics.doubleAdditionalMetrics())??>
-          <#list metrics.doubleAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
-          </#list>
-      </#if>
-      <#if (metrics.keywordAdditionalMetrics())??>
-          <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
-          </#list>
-      </#if>
-      <#if (metrics.boolAdditionalMetrics())??>
-          <#list metrics.boolAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue?string('true', 'false')]>
-          </#list>
-      </#if>
-      <#if (metrics.intAdditionalMetrics())??>
-          <#list metrics.intAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
-          </#list>
-      </#if>
-      <#if (metrics.stringAdditionalMetrics())??>
-          <#list metrics.stringAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue + '"']>
-          </#list>
-      </#if>
-      <#if (metrics.jsonAdditionalMetrics())??>
-          <#list metrics.jsonAdditionalMetrics() as propKey, propValue>
-              <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?js_string + '"']>
-          </#list>
-      </#if>
+  ,"additional-metrics": {
+    <#assign additionalMetrics = []>
+    <#if (metrics.longAdditionalMetrics())??>
+      <#list metrics.longAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
+      </#list>
+    </#if>
+    <#if (metrics.doubleAdditionalMetrics())??>
+      <#list metrics.doubleAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
+      </#list>
+    </#if>
+    <#if (metrics.keywordAdditionalMetrics())??>
+      <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
+      </#list>
+    </#if>
+    <#if (metrics.boolAdditionalMetrics())??>
+      <#list metrics.boolAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue?string('true', 'false')]>
+      </#list>
+    </#if>
+    <#if (metrics.intAdditionalMetrics())??>
+      <#list metrics.intAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":' + propValue]>
+      </#list>
+    </#if>
+    <#if (metrics.stringAdditionalMetrics())??>
+      <#list metrics.stringAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
+      </#list>
+    </#if>
+    <#if (metrics.jsonAdditionalMetrics())??>
+      <#list metrics.jsonAdditionalMetrics() as propKey, propValue>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?js_string + '"']>
+      </#list>
+    </#if>
       ${additionalMetrics?join(',')}
-      }
+  }
   </#if>
 }</@compress>

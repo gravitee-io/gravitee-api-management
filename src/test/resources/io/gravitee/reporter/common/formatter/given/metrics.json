@@ -32,6 +32,7 @@
   "subscription": "04975880-f147-43bc-9758-80f147e3bcbb",
   "zone": null,
   "customMetrics": {
-    "zone": "europe-north1-a"
+    "zone": "europe-north1-a",
+    "otherField": null
   }
 }
