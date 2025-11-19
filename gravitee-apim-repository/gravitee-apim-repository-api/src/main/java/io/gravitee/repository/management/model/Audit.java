@@ -76,6 +76,7 @@ public class Audit {
         USER_FIELD,
         NOTIFICATION_TEMPLATE,
         SHARED_POLICY_GROUP,
+        CLUSTER,
     }
 
     private String id;
