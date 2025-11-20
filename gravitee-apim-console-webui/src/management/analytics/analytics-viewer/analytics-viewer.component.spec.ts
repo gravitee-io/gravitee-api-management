@@ -16,11 +16,13 @@
 import { GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { AnalyticsViewerComponent } from './analytics-viewer.component';
 
-import { CONSTANTS_TESTING } from '../../../shared/testing';
 import { Constants } from '../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 
 // Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
 globalThis.ResizeObserver =
@@ -40,7 +42,7 @@ describe('AnalyticsViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AnalyticsViewerComponent],
+      imports: [AnalyticsViewerComponent, GioTestingModule],
       providers: [
         {
           provide: GraviteeDashboardService,
@@ -49,6 +51,20 @@ describe('AnalyticsViewerComponent', () => {
         {
           provide: Constants,
           useValue: CONSTANTS_TESTING,
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} },
+          },
+        },
+        {
+          provide: Router,
+          useValue: {
+            navigate: jest.fn().mockResolvedValue(true),
+            initialNavigation: jest.fn(),
+          },
         },
       ],
     }).compileComponents();

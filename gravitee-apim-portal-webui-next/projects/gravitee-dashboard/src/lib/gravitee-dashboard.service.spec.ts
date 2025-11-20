@@ -16,7 +16,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Observable } from 'rxjs';
 
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { RequestType } from './components/widget/model/widget/widget';
@@ -43,8 +42,8 @@ describe('GraviteeDashboardService', () => {
   });
 
   describe('getMetrics', () => {
-    it('should make POST request for measures endpoint', () => {
-      const basePath = 'http://test.api/';
+    it('should make POST request for measures endpoint', done => {
+      const basePath = 'http://test.api';
       const endpoint = 'measures';
       const request = {
         type: 'measures' as const,
@@ -63,8 +62,9 @@ describe('GraviteeDashboardService', () => {
         ],
       };
 
-      (service.getMetrics(basePath, endpoint, request) as Observable<MeasuresResponse>).subscribe((response: MeasuresResponse) => {
+      service.getMetrics(basePath, endpoint, request).subscribe(response => {
         expect(response).toEqual(mockResponse);
+        done();
       });
 
       const req = httpTestingController.expectOne(`${basePath}/analytics/${endpoint}`);

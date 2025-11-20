@@ -16,7 +16,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
+import { Filter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
@@ -26,20 +29,37 @@ describe('GraviteeDashboardComponent', () => {
   let fixture: ComponentFixture<GraviteeDashboardComponent>;
   let httpTestingController: HttpTestingController;
   const mockBaseURL = 'http://customURL';
+  const mockFilters: Filter[] = [];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GraviteeDashboardComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} },
+          },
+        },
+        {
+          provide: Router,
+          useValue: {
+            navigate: jest.fn().mockResolvedValue(true),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(GraviteeDashboardComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
 
-    const mockWidgets: Widget[] = [];
-    component.widgets.set(mockWidgets);
     fixture.componentRef.setInput('baseURL', mockBaseURL);
+    fixture.componentRef.setInput('filters', mockFilters);
+    fixture.componentRef.setInput('widgetConfigs', []);
     fixture.detectChanges();
   });
 
@@ -61,14 +81,15 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    component.widgets.set(widgets);
+    fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
 
-    expect(component.widgets().length).toBe(1);
-    expect(component.widgets()[0].response).toBeUndefined();
+    const dashboardWidgets = component.dashboardWidgets();
+    expect(dashboardWidgets.length).toBe(1);
+    expect(dashboardWidgets[0].response).toBeUndefined();
   });
 
-  it('should not load data for widgets with existing response', () => {
+  it('should reload data for widgets even if they have existing response', waitForAsync(() => {
     const mockResponse: MeasuresResponse = {
       metrics: [
         {
@@ -96,12 +117,20 @@ describe('GraviteeDashboardComponent', () => {
       },
     ];
 
-    component.widgets.set(widgets);
+    fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
 
-    expect(component.widgets()[0].response).toBeDefined();
-    expect(component.widgets()[0].response).toEqual(mockResponse);
-  });
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockResponse);
+
+    fixture.whenStable().then(() => {
+      const updatedWidgets = component.dashboardWidgets();
+      expect(updatedWidgets.length).toBe(1);
+      expect(updatedWidgets[0].response).toBeDefined();
+      expect(updatedWidgets[0].response).toEqual(mockResponse);
+    });
+  }));
 
   it('should load data for widgets with request but no response', waitForAsync(() => {
     const mockResponse: MeasuresResponse = {
@@ -129,8 +158,7 @@ describe('GraviteeDashboardComponent', () => {
         },
       },
     ];
-
-    component.widgets.set(widgets);
+    fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
 
     const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
@@ -138,7 +166,7 @@ describe('GraviteeDashboardComponent', () => {
     req.flush(mockResponse);
 
     fixture.whenStable().then(() => {
-      const updatedWidgets = component.widgets();
+      const updatedWidgets = component.dashboardWidgets();
       expect(updatedWidgets.length).toBe(1);
       expect(updatedWidgets[0].response).toBeDefined();
       expect(updatedWidgets[0].response).toEqual(mockResponse);

@@ -17,14 +17,14 @@
 -->
 
 <gridster [options]="options()" class="grid">
-  @if (items()) {
-    @for (item of items()!; track item.id) {
-      <gridster-item [item]="item.layout">
-        <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
-          <gd-widget-title>{{ item.title }}</gd-widget-title>
+  @for (item of items()!; track item.id) {
+    <gridster-item [item]="item.layout">
+      <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
+        <gd-widget-title>{{ item.title }}</gd-widget-title>
 
-          <gd-widget-body>
-            @if (item.response) {
+        <gd-widget-body>
+          @if (item.response) {
+            @if (item.response?.metrics?.length) {
               @switch (item.type) {
                 @case ('pie') {
                   @if (isFacetsWidget(item)) {
@@ -51,13 +51,13 @@
                 }
               }
             } @else {
-              <div>No DATA - Type: {{ item.type }}</div>
+              <div>No DATA to display</div>
             }
-          </gd-widget-body>
-        </gd-widget>
-      </gridster-item>
-    }
-  } @else {
-    <div>No widgets to display</div>
+          } @else {
+            <div>Loading...</div>
+          }
+        </gd-widget-body>
+      </gd-widget>
+    </gridster-item>
   }
 </gridster>

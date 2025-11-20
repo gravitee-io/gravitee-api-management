@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardComponent, Widget, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
+import { GraviteeDashboardComponent, Widget, GraviteeDashboardService, Filter } from '@gravitee/gravitee-dashboard';
 
 import { inject, Component } from '@angular/core';
+
+import { ApiFilterService } from './filters/api-filter.service';
+import { ApplicationFilterService } from './filters/application-filter.service';
 
 import { Constants } from '../../../entities/Constants';
 
@@ -28,4 +31,20 @@ import { Constants } from '../../../entities/Constants';
 export class AnalyticsViewerComponent {
   widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
   readonly baseURL = inject(Constants).env.v2BaseURL;
+
+  private readonly apisResultsLoader = inject(ApiFilterService).resultsLoader;
+  private readonly applicationsResultsLoader = inject(ApplicationFilterService).resultsLoader;
+
+  filters: Filter[] = [
+    {
+      key: 'API',
+      label: 'API',
+      dataLoader: this.apisResultsLoader,
+    },
+    {
+      key: 'APPLICATION',
+      label: 'Application',
+      dataLoader: this.applicationsResultsLoader,
+    },
+  ];
 }
