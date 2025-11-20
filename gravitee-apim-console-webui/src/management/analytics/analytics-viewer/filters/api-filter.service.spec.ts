@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FacetName } from './enum/facet-name';
-import { RequestFilter, GlobalRequest, Order } from './request';
+import { TestBed } from '@angular/core/testing';
 
-export interface FacetsRequest extends GlobalRequest<'facets'> {
-  by: FacetName[];
-  limit?: number;
-  order?: Order;
-  filters?: RequestFilter[];
-}
+import { ApiFilterService } from './api-filter.service';
+
+import { GioTestingModule } from '../../../../shared/testing';
+
+describe('ApiFilterService', () => {
+  let service: ApiFilterService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [GioTestingModule],
+    });
+    service = TestBed.inject(ApiFilterService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});

@@ -58,7 +58,6 @@ export class GridComponent {
       },
       outerMargin: true,
       setGridSize: true,
-      fixedColWidth: 50,
       fixedRowHeight: 125,
     };
   }
