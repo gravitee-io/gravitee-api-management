@@ -23,6 +23,7 @@ import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.node.api.Node;
+import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -33,6 +34,10 @@ import io.gravitee.reporter.api.monitor.JvmInfo;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.monitor.OsInfo;
 import io.gravitee.reporter.api.monitor.ProcessInfo;
+import io.gravitee.reporter.api.v4.common.MessageConnectorType;
+import io.gravitee.reporter.api.v4.common.MessageOperation;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
+import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,10 +46,10 @@ import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -59,7 +64,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ElasticsearchReporterTest.TestConfig.class })
-public class ElasticsearchReporterTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class ElasticsearchReporterTest {
 
     @Autowired
     private ElasticsearchReporter reporter;
@@ -83,7 +89,7 @@ public class ElasticsearchReporterTest {
     }
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(ignore -> testScheduler);
 
@@ -91,7 +97,7 @@ public class ElasticsearchReporterTest {
     }
 
     @AfterEach
-    public void tearsDown() throws Exception {
+    void tearsDown() throws Exception {
         this.reporter.stop();
 
         // reset it
@@ -99,7 +105,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    void shouldReportMetrics() throws InterruptedException {
+    void should_report_metrics() throws InterruptedException {
         final Metrics requestMetrics = Metrics.on(Instant.now().toEpochMilli()).build();
         requestMetrics.setTransactionId("transactionId");
         requestMetrics.setTenant("tenant");
@@ -124,10 +130,54 @@ public class ElasticsearchReporterTest {
         requestMetrics.setSecurityType(API_KEY);
         requestMetrics.setSecurityToken("apiKey");
 
+        requestMetrics.setCustomMetrics(Map.of("foo", "bar"));
+
+        reportAndAssert(requestMetrics);
+    }
+
+    @Test
+    void should_report_message_metrics() throws InterruptedException {
+        final MessageMetrics messageMetrics = MessageMetrics
+            .builder()
+            .apiId("api")
+            .apiName("API Name")
+            .clientIdentifier("client")
+            .connectorId("webhook")
+            .connectorType(MessageConnectorType.ENTRYPOINT)
+            .contentLength(42)
+            .correlationId("123456789-a")
+            .count(1)
+            .countIncrement(8)
+            .error(false)
+            .errorCount(0)
+            .errorCountIncrement(2)
+            .gatewayLatencyMs(3L)
+            .operation(MessageOperation.PUBLISH)
+            .parentCorrelationId("b-987654321")
+            .requestId("0000000-r")
+            .timestamp(Instant.now().toEpochMilli())
+            .customMetrics(Map.of("foo", "bar"))
+            .additionalMetrics(
+                Set.of(
+                    new AdditionalMetric.StringMetric("string_additional", "on top of it"),
+                    new AdditionalMetric.JSONMetric("json_additional", "{\"hello\":\"world\"}"),
+                    new AdditionalMetric.DoubleMetric("double_additional", 3.14),
+                    new AdditionalMetric.IntegerMetric("int_additional", 42),
+                    new AdditionalMetric.LongMetric("long_additional", 1L),
+                    new AdditionalMetric.KeywordMetric("keyword_additional", "alpha"),
+                    new AdditionalMetric.BooleanMetric("bool_additional", true)
+                )
+            )
+            .build();
+
+        reportAndAssert(messageMetrics);
+    }
+
+    private void reportAndAssert(Reportable reportable) throws InterruptedException {
         // bulk of three line
-        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
-        TestObserver<Void> metrics2 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
-        TestObserver<Void> metrics3 = Completable.fromRunnable(() -> reporter.report(requestMetrics)).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
+        TestObserver<Void> metrics2 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
+        TestObserver<Void> metrics3 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -142,7 +192,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    void shoutReportHealth() throws InterruptedException {
+    void shout_report_health() throws InterruptedException {
         final Response defaultResponse = new Response();
         defaultResponse.setStatus(200);
         final Request defaultRequest = new Request();
@@ -191,7 +241,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    void shouldReportMonitor() throws Exception {
+    void should_report_monitor() throws Exception {
         final JvmInfo jvmInfo = new JvmInfo(100, 20000);
 
         JvmInfo.GarbageCollector youngInfo = new JvmInfo.GarbageCollector();
@@ -260,7 +310,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    void shouldReportLog() throws InterruptedException {
+    void should_report_log() throws InterruptedException {
         Log log = new Log(Instant.now().toEpochMilli());
 
         log.setApi("my-api");
@@ -311,7 +361,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    void reportTest() throws InterruptedException {
+    void report_test() throws InterruptedException {
         TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(mockRequestMetrics())).test();
 
         // advance time manually
