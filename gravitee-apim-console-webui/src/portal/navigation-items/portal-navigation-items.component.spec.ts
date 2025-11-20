@@ -126,7 +126,7 @@ describe('PortalNavigationItemsComponent', () => {
     });
     const fakeContentText = 'This is the content.';
     beforeEach(async () => {
-      expectGetMenuLinks(fakeResponse);
+      await expectGetNavigationItems(fakeResponse);
       await harness.clickAddButton();
       fixture.detectChanges();
       expectGetPageContent('nav-item-1-content', fakeContentText);
@@ -287,16 +287,10 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
-  function expectGetMenuLinks(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
-    httpTestingController.expectOne('assets/mocks/portal-menu-links.json').flush(response);
-  }
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
-    expectGetMenuLinks(response);
-    // TODO: Restore when calling the backend API
-    // httpTestingController
-    //   .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
-    //   .flush(response);
-    // fixture.detectChanges();
+    httpTestingController
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
+      .flush(response);
 
     // Used for the navId query param handling for getting page content
     await fixture.whenStable();
