@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -106,6 +107,35 @@ class VertxWebSocketTest {
             }
 
             verify(httpServerRequest).rxToWebSocket();
+        }
+
+        @Test
+        void should_upgrade_to_websocket_with_subprotocol() {
+            var response = mock(io.vertx.rxjava3.core.http.HttpServerResponse.class);
+            var serverWebSocket = mock(ServerWebSocket.class);
+
+            when(httpServerRequest.response()).thenReturn(response);
+            when(response.putHeader(eq(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL), eq("jwt"))).thenReturn(response);
+            when(httpServerRequest.rxToWebSocket()).thenReturn(Single.just(serverWebSocket));
+
+            final TestObserver<WebSocket> obs = cut.upgrade("jwt").test();
+
+            obs.assertValue(cut);
+            assertTrue(cut.upgraded());
+            verify(response).putHeader(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL, "jwt");
+        }
+
+        @Test
+        void should_not_set_header_when_subprotocol_is_null() {
+            var serverWebSocket = mock(ServerWebSocket.class);
+
+            when(httpServerRequest.rxToWebSocket()).thenReturn(Single.just(serverWebSocket));
+
+            final TestObserver<WebSocket> obs = cut.upgrade(null).test();
+
+            obs.assertValue(cut);
+            assertTrue(cut.upgraded());
+            verify(httpServerRequest, never()).response();
         }
     }
 

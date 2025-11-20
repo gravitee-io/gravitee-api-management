@@ -24,6 +24,7 @@ import static io.vertx.rxjava3.core.http.WebSocketFrame.textFrame;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -53,18 +54,25 @@ public class VertxWebSocket implements WebSocket {
 
     @Override
     public Single<WebSocket> upgrade() {
+        return upgrade(null);
+    }
+
+    public Single<WebSocket> upgrade(String subProtocol) {
         if (!upgraded) {
-            return Single.defer(() ->
-                httpServerRequest
+            return Single.defer(() -> {
+                if (subProtocol != null && !subProtocol.isEmpty()) {
+                    httpServerRequest.response().putHeader(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL, subProtocol);
+                }
+
+                return httpServerRequest
                     .rxToWebSocket()
                     .doOnSuccess(serverWebSocket -> {
                         webSocket = serverWebSocket;
                         upgraded = true;
                     })
-                    .map(serverWebSocket -> this)
-            );
+                    .map(serverWebSocket -> this);
+            });
         }
-
         return Single.just(this);
     }
 
