@@ -22,8 +22,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +39,8 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     public PortalNavigationItem create(PortalNavigationItem portalNavigationItem) {
         try {
             final var repoItem = portalNavigationItemAdapter.toRepository(portalNavigationItem);
-            portalNavigationItemRepository.create(repoItem);
-            return portalNavigationItem;
+            final var createdItem = portalNavigationItemRepository.create(repoItem);
+            return portalNavigationItemAdapter.toEntity(createdItem);
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
                 "An error occurred while creating portal navigation item with id %s and environmentId %s",
@@ -57,8 +55,8 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
         try {
             final var repoItem = portalNavigationItemAdapter.toRepository(portalNavigationItem);
-            portalNavigationItemRepository.update(repoItem);
-            return portalNavigationItem;
+            final var updatedItem = portalNavigationItemRepository.update(repoItem);
+            return portalNavigationItemAdapter.toEntity(updatedItem);
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
                 "An error occurred while updating portal navigation item with id %s and environmentId %s",

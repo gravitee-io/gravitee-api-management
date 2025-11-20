@@ -63,6 +63,11 @@ class PortalNavigationItemsCrudServiceImplTest {
     @Nested
     class CreatePortalNavigationItem {
 
+        @BeforeEach
+        void setUp() throws TechnicalException {
+            when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
         @Test
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
@@ -170,6 +175,11 @@ class PortalNavigationItemsCrudServiceImplTest {
 
     @Nested
     class UpdatePortalNavigationItem {
+
+        @BeforeEach
+        void setUp() throws TechnicalException {
+            when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        }
 
         @Test
         void should_update_a_folder() throws TechnicalException {
