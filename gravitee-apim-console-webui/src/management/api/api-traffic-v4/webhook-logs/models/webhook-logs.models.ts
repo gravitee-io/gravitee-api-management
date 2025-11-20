@@ -44,7 +44,7 @@ export interface WebhookAdditionalMetrics {
 /**
  * Webhook log extends ConnectionLog with webhook-specific fields
  */
-export interface WebhookLog extends ConnectionLog {
+export interface WebhookLog extends Omit<ConnectionLog, 'additionalMetrics'> {
   callbackUrl: string;
   duration: string;
   additionalMetrics?: WebhookAdditionalMetrics;
