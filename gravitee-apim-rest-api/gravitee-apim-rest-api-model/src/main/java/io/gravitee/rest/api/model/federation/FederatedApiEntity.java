@@ -67,7 +67,7 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     private Set<String> groups;
 
-    private Visibility visibility;
+    private Visibility visibility = Visibility.PRIVATE;
 
     private PrimaryOwnerEntity primaryOwner;
 
