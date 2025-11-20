@@ -34,6 +34,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -906,5 +907,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GetPortalPageContentUseCase getPortalPageContentUseCase() {
         return mock(GetPortalPageContentUseCase.class);
+    }
+
+    @Bean
+    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator() {
+        return mock(AnalyticsQueryFilterDecorator.class);
     }
 }
