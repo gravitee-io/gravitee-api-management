@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { Component, DestroyRef, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Moment } from 'moment';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
+
+import { DEFAULT_PERIOD, PERIODS, SimpleFilter } from '../../../../../runtime-logs/models';
+import { DATE_TIME_FORMATS } from '../../../../../../../../shared/utils/timeFrameRanges';
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
-
-import { DEFAULT_PERIOD, PERIODS } from '../../../../../runtime-logs/models';
-import { DATE_TIME_FORMATS } from '../../../../../../../../shared/utils/timeFrameRanges';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { WebhookMoreFiltersForm } from '../../../../models/webhook-logs.models';
 
 @Component({
@@ -45,83 +44,113 @@ import { WebhookMoreFiltersForm } from '../../../../models/webhook-logs.models';
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
   ],
-  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
+  providers: [
+    { provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS },
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => WebhookLogsMoreFiltersFormComponent),
+      multi: true,
+    },
+  ],
 })
-export class WebhookLogsMoreFiltersFormComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
-  @Input() formValues: WebhookMoreFiltersForm;
+export class WebhookLogsMoreFiltersFormComponent implements ControlValueAccessor {
   @Input() callbackUrls: string[] = [];
-  @Output() valuesChangeEvent: EventEmitter<WebhookMoreFiltersForm> = new EventEmitter<WebhookMoreFiltersForm>();
-  @Output() isInvalidEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   readonly periods = PERIODS;
-  datesForm: UntypedFormGroup;
-  moreFiltersForm: UntypedFormGroup;
-  minDate: Moment;
+  disabled = false;
+  minDate: Moment | null = null;
 
-  constructor(private readonly cdr: ChangeDetectorRef) {}
+  form: FormGroup<{
+    period: FormControl<SimpleFilter | null>;
+    from: FormControl<Moment | null>;
+    to: FormControl<Moment | null>;
+    callbackUrls: FormControl<string[]>;
+  }>;
 
-  ngOnInit() {
-    this.datesForm = new UntypedFormGroup({
-      period: new UntypedFormControl(this.formValues.period ?? DEFAULT_PERIOD),
-      from: new UntypedFormControl(this.formValues.from),
-      to: new UntypedFormControl(this.formValues.to),
+  private onChange: (value: WebhookMoreFiltersForm) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly destroyRef: DestroyRef,
+  ) {
+    this.form = this.fb.group({
+      period: this.fb.control<SimpleFilter | null>(DEFAULT_PERIOD),
+      from: this.fb.control<Moment | null>(null),
+      to: this.fb.control<Moment | null>(null),
+      callbackUrls: this.fb.control<string[]>([], { nonNullable: true }),
     });
-    this.minDate = this.formValues.from;
-    this.onDatesChange();
 
-    this.moreFiltersForm = new UntypedFormGroup({
-      callbackUrls: new UntypedFormControl(this.formValues.callbackUrls ?? []),
+    // Subscribe to form value changes and notify parent
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const value = this.getFormValue();
+      this.onChange(value);
     });
-    this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
+
+    // Handle period changes - reset dates when period is selected
+    this.form.controls.period.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.form.controls.from.setValue(null, { emitEvent: false, onlySelf: true });
+      this.form.controls.to.setValue(null, { emitEvent: false, onlySelf: true });
+      this.minDate = null;
+    });
+
+    // Handle from date changes - update minDate for 'to' date picker and reset period
+    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
+      this.minDate = from ?? null;
+      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+    });
+
+    // Handle to date changes - reset period
+    this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+    });
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+  // ControlValueAccessor implementation
+  writeValue(obj: WebhookMoreFiltersForm | null): void {
+    const value: WebhookMoreFiltersForm = obj ?? {
+      period: DEFAULT_PERIOD,
+      from: null,
+      to: null,
+      callbackUrls: [],
+    };
+
+    this.form.patchValue(
+      {
+        period: value.period ?? DEFAULT_PERIOD,
+        from: value.from ?? null,
+        to: value.to ?? null,
+        callbackUrls: value.callbackUrls ?? [],
+      },
+      { emitEvent: false },
+    );
+    this.minDate = value.from ?? null;
   }
 
-  onDatesChange() {
-    this.datesForm
-      .get('period')
-      .valueChanges.pipe(
-        tap(() => {
-          this.datesForm.get('from').setValue(null, { emitEvent: false, onlySelf: true });
-          this.datesForm.get('to').setValue(null, { emitEvent: false, onlySelf: true });
-          this.minDate = null;
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.emitValues());
-
-    this.datesForm
-      .get('from')
-      .valueChanges.pipe(
-        tap((from) => {
-          this.minDate = from;
-          this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.emitValues());
-
-    this.datesForm
-      .get('to')
-      .valueChanges.pipe(
-        tap(() => this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true })),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.emitValues());
+  registerOnChange(fn: (value: WebhookMoreFiltersForm) => void): void {
+    this.onChange = fn;
   }
 
-  private emitValues() {
-    this.datesForm.updateValueAndValidity({ emitEvent: false });
-    this.isInvalidEvent.emit(this.datesForm.invalid);
-    this.valuesChangeEvent.emit({
-      ...this.datesForm.getRawValue(),
-      callbackUrls: this.moreFiltersForm.get('callbackUrls').value ?? [],
-    });
-    this.cdr.detectChanges();
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (isDisabled) {
+      this.form.disable({ emitEvent: false });
+    } else {
+      this.form.enable({ emitEvent: false });
+    }
+  }
+
+  private getFormValue(): WebhookMoreFiltersForm {
+    const rawValue = this.form.getRawValue();
+    return {
+      period: rawValue.period ?? undefined,
+      from: rawValue.from !== undefined ? rawValue.from : null,
+      to: rawValue.to !== undefined ? rawValue.to : null,
+      callbackUrls: rawValue.callbackUrls ?? [],
+    };
   }
 }

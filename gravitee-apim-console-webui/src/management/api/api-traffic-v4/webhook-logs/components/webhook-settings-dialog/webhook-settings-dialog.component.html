@@ -85,6 +85,20 @@
         </div>
       </div>
     </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="close()" data-testid="webhook-settings-dialog-cancel">
+        Cancel
+      </button>
+      <button
+        [disabled]="form.invalid || form.pristine || !hasFormChanged()"
+        mat-raised-button
+        type="button"
+        color="primary"
+        (click)="save()"
+        data-testid="webhook-settings-dialog-save"
+      >
+        Save
+      </button>
+    </mat-dialog-actions>
   </form>
-  <gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (resetClicked)="close()" (submitted)="save()"></gio-save-bar>
 }

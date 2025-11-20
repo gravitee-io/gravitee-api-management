@@ -22,6 +22,8 @@ import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTableModule } from '@angular/material/table';
 import { editor } from 'monaco-editor';
 import { GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
@@ -63,6 +65,8 @@ interface ConnectionFailureDetails {
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatExpansionModule,
+    MatTableModule,
     GioClipboardModule,
     GioMonacoEditorModule,
   ],
@@ -75,13 +79,13 @@ export class WebhookLogsDetailsComponent {
 
   overviewRequest: OverviewItem[] = [];
   overviewResponse: OverviewItem[] = [];
-  deliveryAttempts: DeliveryAttempt[] = [];
+  deliveryAttemptsDataSource: DeliveryAttempt[] = [];
+  displayedColumns: string[] = ['attempt', 'timestamp', 'duration', 'status'];
   requestHeaders: HeaderItem[] = [];
   responseHeaders: HeaderItem[] = [];
   requestBody = '';
   responseBody = '';
   selectedLog: WebhookLog | null = null;
-  deliveryAttemptsExpanded = true;
   connectionFailure: ConnectionFailureDetails | null = null;
   readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
     renderLineHighlight: 'none',
@@ -144,8 +148,8 @@ export class WebhookLogsDetailsComponent {
       return;
     }
 
-    this.deliveryAttempts = this.buildDeliveryAttempts(log);
-    const attemptsCount = this.deliveryAttempts.length || (log.additionalMetrics?.['int_webhook_retry-count'] ?? 1);
+    this.deliveryAttemptsDataSource = this.buildDeliveryAttempts(log);
+    const attemptsCount = this.deliveryAttemptsDataSource.length || (log.additionalMetrics?.['int_webhook_retry-count'] ?? 1);
 
     this.overviewRequest = [
       { label: 'Date', value: this.formatDate(log.timestamp) },
@@ -260,13 +264,6 @@ export class WebhookLogsDetailsComponent {
     return `${size} B`;
   }
 
-  statusVariant(status?: number | null): 'success' | 'warning' | 'error' | null {
-    if (status === null || status === undefined) {
-      return null;
-    }
-    return this.toVariant(status);
-  }
-
   private formatDate(value: string): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -278,7 +275,7 @@ export class WebhookLogsDetailsComponent {
   private resetViewState(): void {
     this.overviewRequest = [];
     this.overviewResponse = [];
-    this.deliveryAttempts = [];
+    this.deliveryAttemptsDataSource = [];
     this.requestHeaders = [];
     this.responseHeaders = [];
     this.requestBody = '';

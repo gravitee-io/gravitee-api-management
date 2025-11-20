@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class WebhookSettingsDialogHarness extends ComponentHarness {
   static hostSelector = 'webhook-settings-dialog';
 
   private readonly titleLocator = this.locatorForOptional('[mat-dialog-title]');
   private readonly contentLocator = this.locatorForOptional('mat-dialog-content');
-  private readonly saveBarLocator = this.locatorForOptional(GioSaveBarHarness);
+  private readonly cancelButtonLocator = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="webhook-settings-dialog-cancel"]' }),
+  );
+  private readonly saveButtonLocator = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="webhook-settings-dialog-save"]' }),
+  );
 
   async getTitleText(): Promise<string | null> {
     const title = await this.titleLocator();
@@ -38,12 +43,18 @@ export class WebhookSettingsDialogHarness extends ComponentHarness {
   }
 
   async clickClose(): Promise<void> {
-    // The discard button (reset action) is provided by gio-save-bar
-    // The save bar only appears when the form has unsaved changes
-    const saveBar = await this.saveBarLocator();
-    if (!saveBar) {
-      throw new Error('Save bar not found in webhook settings dialog. Make sure the form has unsaved changes.');
+    const cancelButton = await this.cancelButtonLocator();
+    if (!cancelButton) {
+      throw new Error('Cancel button not found in webhook settings dialog.');
     }
-    await saveBar.clickReset();
+    await cancelButton.click();
+  }
+
+  async clickSave(): Promise<void> {
+    const saveButton = await this.saveButtonLocator();
+    if (!saveButton) {
+      throw new Error('Save button not found in webhook settings dialog.');
+    }
+    await saveButton.click();
   }
 }

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
@@ -28,21 +29,17 @@ import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
 import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog/webhook-settings-dialog.component';
 
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { Constants } from '../../../../entities/Constants';
-import { CONSTANTS_TESTING } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 const API_ID = 'api-test-id';
 const defaultApi = {
   id: API_ID,
   analytics: { enabled: true, logging: { mode: { endpoint: true } } },
+  definitionVersion: 'V4',
 } as ApiV4;
-
-type RouterNavigateSpy = {
-  mockRestore: () => void;
-  mock: { calls: unknown[] };
-};
 
 type JestMockFn = ((...args: unknown[]) => unknown) & {
   mockReturnValue: (...args: unknown[]) => JestMockFn;
@@ -52,54 +49,32 @@ type JestMockFn = ((...args: unknown[]) => unknown) & {
 describe('WebhookLogsComponent', () => {
   let fixture: ComponentFixture<WebhookLogsComponent>;
   let harness: WebhookLogsHarness;
-  let routerNavigateSpy: RouterNavigateSpy | null = null;
+  let routerNavigateSpy: jest.SpyInstance;
   let dialogOpenSpy: JestMockFn;
-
-  const activatedRouteMock = {
-    snapshot: {
-      params: { apiId: API_ID },
-      queryParams: {},
-      queryParamMap: convertToParamMap({}),
-    },
-  };
-
-  const apiServiceMock: Partial<ApiV2Service> = {
-    get: jest.fn(),
-  };
-
-  const updateRouteSnapshot = (queryParams: Record<string, string | undefined>) => {
-    (activatedRouteMock.snapshot as any).queryParams = queryParams;
-    (activatedRouteMock.snapshot as any).queryParamMap = convertToParamMap(queryParams);
-  };
+  let httpTestingController: HttpTestingController;
+  let activatedRoute: ActivatedRoute;
 
   const setupComponent = async (options?: { queryParams?: Record<string, string | undefined>; api?: ApiV4 }) => {
     const { queryParams = {}, api = defaultApi } = options ?? {};
-    updateRouteSnapshot(queryParams);
-    (activatedRouteMock.snapshot as any).params = { apiId: API_ID };
-
-    apiServiceMock.get = jest.fn().mockReturnValue(of(api));
-
-    fixture = TestBed.createComponent(WebhookLogsComponent);
-
-    const router = TestBed.inject(Router);
-    routerNavigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true as any);
-
-    fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookLogsHarness);
-  };
-
-  beforeEach(async () => {
-    dialogOpenSpy = jest.fn().mockReturnValue({
-      afterClosed: () => of(undefined),
-    });
 
     TestBed.configureTestingModule({
-      imports: [WebhookLogsComponent, NoopAnimationsModule, RouterTestingModule, MatIconTestingModule],
+      imports: [WebhookLogsComponent, NoopAnimationsModule, RouterTestingModule, MatIconTestingModule, GioTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: activatedRouteMock },
-        { provide: ApiV2Service, useValue: apiServiceMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: queryParams,
+              queryParamMap: convertToParamMap(queryParams),
+            },
+            params: of({ apiId: API_ID }),
+            queryParams: of(queryParams),
+          },
+        },
         { provide: Constants, useValue: CONSTANTS_TESTING },
-        provideHttpClient(),
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
     });
 
@@ -110,12 +85,36 @@ describe('WebhookLogsComponent', () => {
     });
 
     await TestBed.compileComponents();
+
+    fixture = TestBed.createComponent(WebhookLogsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    activatedRoute = TestBed.inject(ActivatedRoute);
+
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true as any);
+
+    fixture.detectChanges();
+
+    // Handle API GET request
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      method: 'GET',
+    });
+    req.flush(api);
+
+    await fixture.whenStable();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookLogsHarness);
+  };
+
+  beforeEach(() => {
+    dialogOpenSpy = jest.fn().mockReturnValue({
+      afterClosed: () => of(undefined),
+    });
   });
 
   afterEach(() => {
-    if (routerNavigateSpy) {
-      routerNavigateSpy.mockRestore();
-    }
+    httpTestingController?.verify();
+    routerNavigateSpy?.mockRestore();
   });
 
   it('should render demo logs and navigate to the details page when clicking the details action', async () => {
@@ -128,7 +127,7 @@ describe('WebhookLogsComponent', () => {
     await logsListHarness!.clickDetailsButtonAtRow(0);
 
     expect(routerNavigateSpy).toHaveBeenCalledWith(['./', 'req-1'], {
-      relativeTo: activatedRouteMock,
+      relativeTo: activatedRoute,
     });
   });
 
@@ -164,7 +163,7 @@ describe('WebhookLogsComponent', () => {
 
     expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
     expect(dialogOpenSpy).toHaveBeenCalledWith(WebhookSettingsDialogComponent, {
-      width: '750px',
+      width: GIO_DIALOG_WIDTH.MEDIUM,
       data: API_ID,
     });
   });

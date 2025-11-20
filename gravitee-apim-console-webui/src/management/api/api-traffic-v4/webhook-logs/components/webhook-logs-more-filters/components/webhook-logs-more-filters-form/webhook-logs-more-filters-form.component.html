@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-@if (datesForm) {
-  <form [formGroup]="datesForm">
+@if (form) {
+  <form [formGroup]="form">
     <div class="more-filters__body__block">
       <span class="more-filters__body__title">Date</span>
       <mat-form-field>
@@ -40,17 +40,14 @@
         <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" formControlName="to" />
         <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
         <owl-date-time #toDateTimePicker></owl-date-time>
-        @if (datesForm.get('to').hasError('owlDateTimeMin')) {
+        @if (form.controls.to.hasError('owlDateTimeMin')) {
           <mat-error>
-            <span> Date time value must be after {{ datesForm.get('from').value | date: 'yyyy-MM-dd HH:mm:ss' }} </span>
+            <span> Date time value must be after {{ form.controls.from.value?.toDate() | date: 'yyyy-MM-dd HH:mm:ss' }} </span>
           </mat-error>
         }
       </mat-form-field>
     </div>
-  </form>
-}
-@if (moreFiltersForm) {
-  <form [formGroup]="moreFiltersForm">
+
     <div class="more-filters__body__block">
       <span class="more-filters__body__title">Callback URL</span>
       <mat-form-field>

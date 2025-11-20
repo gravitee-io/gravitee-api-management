@@ -22,7 +22,7 @@
       <div>
         <div class="card__header__title">Details</div>
       </div>
-      <a mat-button mat-raised-button [routerLink]="['..']" aria-label="Back to webhook logs">Back to webhook logs</a>
+      <a mat-raised-button [routerLink]="['..']" aria-label="Back to webhook logs">Back to webhook logs</a>
     </div>
 
     @if (selectedLog) {
@@ -78,65 +78,52 @@
           </div>
         </section>
 
-        <section class="section section--delivery-attempts">
-          <header
-            class="section__header"
-            role="button"
-            tabindex="0"
-            (click)="deliveryAttemptsExpanded = !deliveryAttemptsExpanded"
-            (keydown.enter)="deliveryAttemptsExpanded = !deliveryAttemptsExpanded"
-            (keydown.space)="deliveryAttemptsExpanded = !deliveryAttemptsExpanded; $event.preventDefault()"
-          >
-            <h2 class="section__title">Delivery attempts</h2>
-            <button mat-icon-button type="button" aria-label="Toggle delivery attempts">
-              <mat-icon>{{ deliveryAttemptsExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-            </button>
-          </header>
-          @if (deliveryAttemptsExpanded) {
-            <table class="attempts-table" aria-label="Webhook delivery attempts">
-              <thead>
-                <tr>
-                  <th scope="col">Attempt</th>
-                  <th scope="col">Timestamp</th>
-                  <th scope="col">Duration</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (deliveryAttempts.length) {
-                  @for (attempt of deliveryAttempts; track attempt.attempt) {
-                    <tr>
-                      <td>{{ attempt.attempt }}</td>
-                      <td>{{ formatAttemptTimestamp(attempt.timestamp) }}</td>
-                      <td>{{ formatAttemptDuration(attempt.duration) }}</td>
-                      <td>
-                        <span
-                          [class.gio-badge-success]="statusVariant(attempt.status) === 'success'"
-                          [class.gio-badge-warning]="statusVariant(attempt.status) === 'warning'"
-                          [class.gio-badge-error]="statusVariant(attempt.status) === 'error'"
-                        >
-                          {{ attempt.status }}
-                        </span>
-                      </td>
-                    </tr>
-                  }
-                } @else {
-                  <tr class="attempts-table__empty">
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </section>
+        <mat-expansion-panel class="section section--delivery-attempts" expanded="true">
+          <mat-expansion-panel-header class="section__header">
+            <mat-panel-title class="section__title">Delivery attempts</mat-panel-title>
+          </mat-expansion-panel-header>
+          <table mat-table [dataSource]="deliveryAttemptsDataSource" aria-label="Webhook delivery attempts">
+            <ng-container matColumnDef="attempt">
+              <th mat-header-cell *matHeaderCellDef>Attempt</th>
+              <td mat-cell *matCellDef="let attempt">{{ attempt.attempt }}</td>
+            </ng-container>
 
-        <section class="section section--overview">
-          <header class="section__header">
-            <h2 class="section__title">Request sent by gateway</h2>
-          </header>
+            <ng-container matColumnDef="timestamp">
+              <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+              <td mat-cell *matCellDef="let attempt">{{ formatAttemptTimestamp(attempt.timestamp) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="duration">
+              <th mat-header-cell *matHeaderCellDef>Duration</th>
+              <td mat-cell *matCellDef="let attempt">{{ formatAttemptDuration(attempt.duration) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let attempt">
+                <span
+                  [class.gio-badge-success]="attempt.status < 400"
+                  [class.gio-badge-warning]="attempt.status >= 400 && attempt.status <= 499"
+                  [class.gio-badge-error]="attempt.status >= 500 || attempt.status === 0"
+                >
+                  {{ attempt.status }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <tr class="mat-mdc-row" *matNoDataRow>
+              <td class="mat-mdc-cell" [attr.colspan]="displayedColumns.length">-</td>
+            </tr>
+          </table>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel class="section section--overview" expanded="true">
+          <mat-expansion-panel-header class="section__header">
+            <mat-panel-title class="section__title">Request sent by gateway</mat-panel-title>
+          </mat-expansion-panel-header>
           <div class="overview">
             <div class="overview__card">
               <header class="overview__card-header">Headers</header>
@@ -169,12 +156,12 @@
               }
             </div>
           </div>
-        </section>
+        </mat-expansion-panel>
 
-        <section class="section section--overview">
-          <header class="section__header">
-            <h2 class="section__title">Response from callback URL endpoint</h2>
-          </header>
+        <mat-expansion-panel class="section section--overview" expanded="true">
+          <mat-expansion-panel-header class="section__header">
+            <mat-panel-title class="section__title">Response from callback URL endpoint</mat-panel-title>
+          </mat-expansion-panel-header>
           <div class="overview">
             <div class="overview__card">
               <div class="overview__card-header">Headers</div>
@@ -207,7 +194,7 @@
               }
             </div>
           </div>
-        </section>
+        </mat-expansion-panel>
       </div>
     } @else {
       <mat-card class="empty-card">

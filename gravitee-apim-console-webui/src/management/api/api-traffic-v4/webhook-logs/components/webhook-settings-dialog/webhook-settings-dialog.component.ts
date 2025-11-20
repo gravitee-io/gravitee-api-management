@@ -18,9 +18,10 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { GioBannerModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -39,10 +40,10 @@ import { Analytics, Api, ApiV4, SamplingTypeEnum } from '../../../../../../entit
     RouterModule,
     ReactiveFormsModule,
     MatDialogModule,
+    MatButtonModule,
     MatSlideToggleModule,
     GioBannerModule,
     GioFormSlideToggleModule,
-    GioSaveBarModule,
   ],
 })
 export class WebhookSettingsDialogComponent implements OnInit {
@@ -51,7 +52,13 @@ export class WebhookSettingsDialogComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
   private apiId: string = inject(MAT_DIALOG_DATA);
 
-  form: UntypedFormGroup | null = null;
+  form: FormGroup<{
+    enabled: FormControl<boolean>;
+    requestBody: FormControl<boolean>;
+    requestHeaders: FormControl<boolean>;
+    responseBody: FormControl<boolean>;
+    responseHeaders: FormControl<boolean>;
+  }> | null = null;
   isLoading = true;
   initialFormValue: Record<string, unknown> = {};
   private api!: ApiV4;
@@ -73,9 +80,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((api) => {
         if (!this.isApiV4(api)) {
-          this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
-          this.dialogRef.close();
-          return;
+          throw new Error('Expected v4 API');
         }
         this.api = api;
         this.analytics = api.analytics;
@@ -149,12 +154,12 @@ export class WebhookSettingsDialogComponent implements OnInit {
     // Content data toggles should be disabled if analytics is disabled
     const contentDataDisabled = !enabledValue;
 
-    this.form = new UntypedFormGroup({
-      enabled: new UntypedFormControl({ value: enabledValue, disabled: false }),
-      requestBody: new UntypedFormControl({ value: requestBodyValue, disabled: contentDataDisabled }),
-      requestHeaders: new UntypedFormControl({ value: requestHeadersValue, disabled: contentDataDisabled }),
-      responseBody: new UntypedFormControl({ value: responseBodyValue, disabled: contentDataDisabled }),
-      responseHeaders: new UntypedFormControl({ value: responseHeadersValue, disabled: contentDataDisabled }),
+    this.form = new FormGroup({
+      enabled: new FormControl<boolean>({ value: enabledValue, disabled: false }),
+      requestBody: new FormControl<boolean>({ value: requestBodyValue, disabled: contentDataDisabled }),
+      requestHeaders: new FormControl<boolean>({ value: requestHeadersValue, disabled: contentDataDisabled }),
+      responseBody: new FormControl<boolean>({ value: responseBodyValue, disabled: contentDataDisabled }),
+      responseHeaders: new FormControl<boolean>({ value: responseHeadersValue, disabled: contentDataDisabled }),
     });
 
     this.initialFormValue = this.form.getRawValue();
@@ -164,23 +169,25 @@ export class WebhookSettingsDialogComponent implements OnInit {
     if (!this.form) {
       return;
     }
-    const contentDataControls = ['requestBody', 'requestHeaders', 'responseBody', 'responseHeaders'] as const;
-    this.form
-      .get('enabled')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((enabled) => {
-        contentDataControls.forEach((controlName) => {
-          const control = this.form?.get(controlName);
-          if (!enabled) {
-            // When analytics is disabled, set all content data toggles to false and disable them
-            control?.setValue(false, { emitEvent: false });
-            control?.disable({ emitEvent: false });
-          } else {
-            // When analytics is enabled, enable all content data toggles
-            control?.enable({ emitEvent: false });
-          }
-        });
-      });
+    this.form.controls.enabled.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((enabled) => {
+      if (!enabled) {
+        // When analytics is disabled, set all content data toggles to false and disable them
+        this.form!.controls.requestBody.setValue(false, { emitEvent: false });
+        this.form!.controls.requestBody.disable({ emitEvent: false });
+        this.form!.controls.requestHeaders.setValue(false, { emitEvent: false });
+        this.form!.controls.requestHeaders.disable({ emitEvent: false });
+        this.form!.controls.responseBody.setValue(false, { emitEvent: false });
+        this.form!.controls.responseBody.disable({ emitEvent: false });
+        this.form!.controls.responseHeaders.setValue(false, { emitEvent: false });
+        this.form!.controls.responseHeaders.disable({ emitEvent: false });
+      } else {
+        // When analytics is enabled, enable all content data toggles
+        this.form!.controls.requestBody.enable({ emitEvent: false });
+        this.form!.controls.requestHeaders.enable({ emitEvent: false });
+        this.form!.controls.responseBody.enable({ emitEvent: false });
+        this.form!.controls.responseHeaders.enable({ emitEvent: false });
+      }
+    });
   }
 
   get samplingModeLabel(): string {
@@ -227,6 +234,14 @@ export class WebhookSettingsDialogComponent implements OnInit {
 
   get reporterSettingsLink(): string[] {
     return ['/management', 'apis', this.apiId, 'deployment', 'reporter-settings'];
+  }
+
+  hasFormChanged(): boolean {
+    if (!this.form) {
+      return false;
+    }
+    const currentValue = this.form.getRawValue();
+    return Object.keys(this.initialFormValue).some((key) => currentValue[key] !== this.initialFormValue[key]);
   }
 
   private getSamplingDisplayType(type: SamplingTypeEnum | undefined | null, value?: string | null): SamplingDisplayType {

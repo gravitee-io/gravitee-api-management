@@ -23,7 +23,7 @@
           <mat-label>Search Logs</mat-label>
           <mat-icon matPrefix>search</mat-icon>
           <input matInput placeholder="Search request ID, URL, or application" formControlName="searchTerm" />
-          @if (quickFiltersForm.get('searchTerm').value) {
+          @if (quickFiltersForm.controls.searchTerm.value) {
             <button matSuffix mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
               <mat-icon>close</mat-icon>
             </button>
@@ -80,7 +80,7 @@
               mat-stroked-button
               type="button"
               class="action__button"
-              [disabled]="loading"
+              [disabled]="loading()"
               data-testid="more-button"
               (click)="openMoreFilters()"
             >
@@ -95,7 +95,7 @@
               class="action__button"
               [attr.aria-label]="'Refresh'"
               (click)="refresh.emit()"
-              [disabled]="loading"
+              [disabled]="loading()"
               data-testid="refresh-button"
             >
               <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
@@ -112,7 +112,7 @@
       <mat-chip-listbox class="quick-filters__chip_list">
         <span>Filters applied:</span>
         @if (currentFilters.searchTerm) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="clearSearch()">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="clearSearch()">
             <span class="quick-filters__chip__key">Search:</span>
             <span class="quick-filters__chip__value">{{ currentFilters.searchTerm }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -120,7 +120,7 @@
         }
 
         @if (currentFilters.period) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="removePeriod()">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removePeriod()">
             <span class="quick-filters__chip__key">Period:</span>
             <span class="quick-filters__chip__value">{{ currentFilters.period.label }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -128,7 +128,7 @@
         }
 
         @if (currentFilters.from) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="removeDateRange()">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeDateRange()">
             <span class="quick-filters__chip__key">From:</span>
             <span class="quick-filters__chip__value">{{ currentFilters.from | date: 'yyyy-MM-dd HH:mm:ss' }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -136,7 +136,7 @@
         }
 
         @if (currentFilters.to) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="removeDateRange()">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeDateRange()">
             <span class="quick-filters__chip__key">To:</span>
             <span class="quick-filters__chip__value">{{ currentFilters.to | date: 'yyyy-MM-dd HH:mm:ss' }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -144,7 +144,7 @@
         }
 
         @for (status of currentFilters.statuses; track status) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="removeStatus(status)">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeStatus(status)">
             <span class="quick-filters__chip__key">Status:</span>
             <span class="quick-filters__chip__value">{{ status }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -155,7 +155,7 @@
           <mat-chip-option
             class="quick-filters__chip"
             [removable]="true"
-            [disabled]="loading"
+            [disabled]="loading()"
             (removed)="removeApplication(application.value)"
           >
             <span class="quick-filters__chip__key">Application:</span>
@@ -164,7 +164,7 @@
           </mat-chip-option>
         }
         @for (callbackUrl of currentFilters.callbackUrls; track callbackUrl) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading" (removed)="removeCallbackUrl(callbackUrl)">
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeCallbackUrl(callbackUrl)">
             <span class="quick-filters__chip__key">Callback:</span>
             <span class="quick-filters__chip__value">{{ callbackUrl }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
@@ -176,7 +176,7 @@
           class="quick-filters__reset"
           data-testId="reset-filters-button"
           (click)="resetAllFilters()"
-          [disabled]="loading"
+          [disabled]="loading()"
         >
           <mat-icon svgIcon="gio:x-circle"></mat-icon>
           <span class="quick-filters__reset__label">Reset filters</span>

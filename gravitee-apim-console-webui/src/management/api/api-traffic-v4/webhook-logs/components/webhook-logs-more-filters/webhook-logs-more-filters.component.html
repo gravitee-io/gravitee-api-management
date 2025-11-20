@@ -24,12 +24,7 @@
   </div>
   <div class="more-filters__body">
     @if (showMoreFilters) {
-      <webhook-logs-more-filters-form
-        [formValues]="currentValues"
-        [callbackUrls]="callbackUrls"
-        (valuesChangeEvent)="onValuesChange($event)"
-        (isInvalidEvent)="onInvalidChange($event)"
-      ></webhook-logs-more-filters-form>
+      <webhook-logs-more-filters-form [formControl]="moreFiltersFormControl" [callbackUrls]="callbackUrls"></webhook-logs-more-filters-form>
     }
   </div>
   <div class="more-filters__footer">

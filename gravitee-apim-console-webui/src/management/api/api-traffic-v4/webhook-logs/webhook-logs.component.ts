@@ -16,15 +16,17 @@
 import { isNumber } from 'angular';
 
 import { Component, inject, OnInit } from '@angular/core';
-import { map, shareReplay } from 'rxjs/operators';
+import { map, shareReplay, take } from 'rxjs/operators';
 import { ReplaySubject } from 'rxjs';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
-import moment, { unitOfTime } from 'moment';
+import { GioBannerModule, GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import moment from 'moment';
+
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 import {
   WebhookLog,
@@ -39,8 +41,9 @@ import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quic
 
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
 import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner/reporting-disabled-banner.component';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { Api, ApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
 
 @Component({
@@ -64,13 +67,16 @@ export class WebhookLogsComponent implements OnInit {
   private router = inject(Router);
   private apiService = inject(ApiV2Service);
   private dialog = inject(MatDialog);
+  private snackBarService = inject(SnackBarService);
   private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
 
   isReportingDisabled$ = this.api$.pipe(
     map((api) => {
-      const apiV4 = api as ApiV4;
-      const loggingMode = apiV4.analytics?.logging?.mode;
-      return !apiV4.analytics?.enabled || (!loggingMode?.endpoint && !loggingMode?.entrypoint);
+      if (!this.isApiV4(api)) {
+        return false;
+      }
+      const loggingMode = api.analytics?.logging?.mode;
+      return !api.analytics?.enabled || (!loggingMode?.endpoint && !loggingMode?.entrypoint);
     }),
   );
   webhookLogsSubject$ = new ReplaySubject<WebhookLogsResponse>(1);
@@ -82,7 +88,7 @@ export class WebhookLogsComponent implements OnInit {
   callbackUrlOptions: string[] = [];
   private readonly periods = PERIODS;
   currentFilters: WebhookLogsQuickFilters = {};
-  loading = true;
+  loading = false;
 
   ngOnInit(): void {
     // TODO: Backend Integration Required
@@ -129,7 +135,6 @@ export class WebhookLogsComponent implements OnInit {
     };
 
     this.applyFilters(this.quickFiltersInitialValues);
-    this.loading = false;
 
     this.openSettingsDialogIfRequested();
   }
@@ -161,9 +166,9 @@ export class WebhookLogsComponent implements OnInit {
     this.filteredLogs = this.allLogs.filter((log) => {
       const matchesSearch = !searchTerm || this.logMatchesSearchTerm(log, searchTerm);
       const matchesStatus = !statuses?.length || statuses.includes(log.status);
-      const matchesApplication = !applications?.length || applications.includes(log.application?.id);
+      const matchesApplication = !applications?.length || (log.application?.id && applications.includes(log.application.id));
       const matchesPeriod = !range || this.logMatchesPeriod(log, range);
-      const matchesCallback = !callbackUrls?.length || callbackUrls.includes(log.callbackUrl);
+      const matchesCallback = !callbackUrls?.length || (log.callbackUrl && callbackUrls.includes(log.callbackUrl));
       return matchesSearch && matchesStatus && matchesApplication && matchesPeriod && matchesCallback;
     });
 
@@ -239,16 +244,17 @@ export class WebhookLogsComponent implements OnInit {
     if (!period || period.value === DEFAULT_PERIOD.value) {
       return undefined;
     }
-    const value = period.value;
-    const operation = value.charAt(0);
-    const unit = value.charAt(value.length - 1) as unitOfTime.DurationConstructor;
-    const duration = Number(value.substring(1, value.length - 1));
-    if (Number.isNaN(duration) || !['-', '+'].includes(operation)) {
-      return undefined;
-    }
     const now = moment();
-    const fromMoment = operation === '-' ? now.clone().subtract(duration, unit) : now.clone().add(duration, unit);
-    return { from: fromMoment.valueOf(), to: now.valueOf() };
+    const operation = period.value.charAt(0);
+    const timeUnit: DurationConstructor = period.value.charAt(period.value.length - 1) as DurationConstructor;
+    const duration = Number(period.value.substring(1, period.value.length - 1));
+    let from;
+    if (operation === '-') {
+      from = now.clone().subtract(duration, timeUnit);
+    } else {
+      from = now.clone().add(duration, timeUnit);
+    }
+    return { from: from.valueOf(), to: now.valueOf() };
   }
 
   private logMatchesPeriod(log: WebhookLog, range: { from: number; to: number }): boolean {
@@ -263,7 +269,9 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   private logMatchesSearchTerm(log: WebhookLog, term: string): boolean {
-    const searchableFields = [log.callbackUrl, log.uri, log.requestId, log.application?.name].filter(Boolean) as string[];
+    const searchableFields: string[] = [log.callbackUrl, log.uri, log.requestId, log.application?.name].filter(
+      (field): field is string => typeof field === 'string' && field.length > 0,
+    );
     return searchableFields.some((field) => field.toLowerCase().includes(term));
   }
 
@@ -365,18 +373,25 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   openSettingsDialog(): void {
-    const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
-      width: '750px',
-      data: this.activatedRoute.snapshot.params.apiId,
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result?.saved) {
-        // TODO: Backend Integration Required
-        // - Reload webhook logs data after settings are saved (if analytics settings affect log availability)
-        // - Consider showing a success message or notification
-        // - Check if API redeployment is needed and show appropriate banner
+    this.api$.pipe(take(1)).subscribe((api) => {
+      if (!this.isApiV4(api)) {
+        this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
+        return;
       }
+
+      const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: this.activatedRoute.snapshot.params.apiId,
+      });
+
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result?.saved) {
+          // TODO: Backend Integration Required
+          // - Reload webhook logs data after settings are saved (if analytics settings affect log availability)
+          // - Consider showing a success message or notification
+          // - Check if API redeployment is needed and show appropriate banner
+        }
+      });
     });
   }
 
@@ -418,5 +433,9 @@ export class WebhookLogsComponent implements OnInit {
     }
     const parsed = Number(value);
     return Number.isNaN(parsed) ? undefined : parsed;
+  }
+
+  private isApiV4(api: Api): api is ApiV4 {
+    return api?.definitionVersion === 'V4';
   }
 }
