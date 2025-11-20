@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionContext;
@@ -165,6 +168,23 @@ class ApiDocumentTransformerTest {
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
         assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_HTTP_PROXY");
+    }
+
+    @Test
+    void transform_api_entity_federated_verify_api_type() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.FEDERATED);
+        api.setType(ApiType.PROXY);
+        List<Listener> listeners = List.of(HttpListener.builder().paths(List.of()).build());
+        api.setListeners(listeners);
+        api.setVisibility(Visibility.PUBLIC);
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+        assertThat(doc.get(FIELD_VISIBILITY)).isEqualTo("PUBLIC");
+        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("FEDERATED");
+        assertThat(doc.get(FIELD_STATUS)).isNull();
+        assertThat(doc.get(FIELD_STATUS_SORTED)).isNull();
     }
 
     @Test
