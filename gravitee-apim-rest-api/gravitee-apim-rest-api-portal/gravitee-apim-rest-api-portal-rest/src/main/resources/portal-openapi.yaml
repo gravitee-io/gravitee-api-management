@@ -3136,6 +3136,42 @@ paths:
                                     $ref: "#/components/schemas/PortalMenuLink"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /portal-navigation-items:
+        get:
+            tags:
+                - Portal
+            summary: Get the portal navigation items for Portal NEXT.
+            operationId: getPortalNextNavigationItems
+            description: |
+                Get all the navigation items to be displayed in the sidebar of portal next only.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: area
+                  in: query
+                  required: true
+                  description: The area of the navigation items (e.g., 'APPLICATION', 'API', etc.)
+                  schema:
+                      $ref: "#/components/schemas/PortalArea"
+                - name: parentId
+                  in: query
+                  required: false
+                  description: The parent ID to filter navigation items.
+                  schema:
+                      type: string
+                - name: loadChildren
+                  in: query
+                  required: false
+                  description: Whether to load child navigation items.
+                  schema:
+                      type: boolean
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemsSuccess"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
 components:
     requestBodies:
@@ -6253,6 +6289,92 @@ components:
                             ]
                         }
             required: [entrypointId]
+        PortalArea:
+            type: string
+            description: The portal area (used by portal navigation items)
+            enum: [HOMEPAGE, TOP_NAVBAR]
+        BasePortalNavigationItem:
+            type: object
+            description: Base portal navigation item
+            properties:
+                id:
+                    type: string
+                    description: The unique ID of the navigation item
+                organizationId:
+                    type: string
+                    description: The organization ID
+                environmentId:
+                    type: string
+                    description: The environment ID
+                title:
+                    type: string
+                    description: The title of the navigation item
+                type:
+                    type: string
+                    description: The type of the navigation item
+                    enum: [PAGE, FOLDER, LINK]
+                area:
+                    $ref: "#/components/schemas/PortalArea"
+                parentId:
+                    type: string
+                    description: The parent ID of the navigation item
+                order:
+                    type: integer
+                    description: The order of the navigation item
+            required: [id, organizationId, environmentId, title, type, area, order]
+            discriminator:
+                propertyName: type
+                mapping:
+                    PAGE: "#/components/schemas/PortalNavigationPage"
+                    FOLDER: "#/components/schemas/PortalNavigationFolder"
+                    LINK: "#/components/schemas/PortalNavigationLink"
+        PortalNavigationPage:
+            allOf:
+                - $ref: "#/components/schemas/BasePortalNavigationItem"
+                - properties:
+                      portalPageContentId:
+                          type: string
+                          description: The UUID of the portal page content
+                  required: [portalPageContentId]
+        PortalNavigationFolder:
+            allOf:
+                - $ref: "#/components/schemas/BasePortalNavigationItem"
+        PortalNavigationLink:
+            allOf:
+                - $ref: "#/components/schemas/BasePortalNavigationItem"
+                - properties:
+                      url:
+                          type: string
+                          description: The URL for the link
+                  required: [url]
+        PortalNavigationItem:
+            oneOf:
+                - $ref: "#/components/schemas/PortalNavigationPage"
+                - $ref: "#/components/schemas/PortalNavigationFolder"
+                - $ref: "#/components/schemas/PortalNavigationLink"
+            discriminator:
+                propertyName: type
+                mapping:
+                    PAGE: "#/components/schemas/PortalNavigationPage"
+                    FOLDER: "#/components/schemas/PortalNavigationFolder"
+                    LINK: "#/components/schemas/PortalNavigationLink"
+
+        PortalPageContent:
+            type: object
+            description: Portal page content
+            properties:
+                id:
+                    type: string
+                    description: The unique ID of the portal page content
+                type:
+                    type: string
+                    description: Content type
+                    enum:
+                        - GRAVITEE_MARKDOWN
+                content:
+                    type: string
+                    description: The content of the page
+            required: [id, type, content]
 
     responses:
         InternalServerError:
@@ -6329,6 +6451,14 @@ components:
                     schema:
                         type: string
                         format: binary
+        PortalNavigationItemsSuccess:
+            description: List of portal navigation items
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/PortalNavigationItem"
 
     securitySchemes:
         BasicAuth:
