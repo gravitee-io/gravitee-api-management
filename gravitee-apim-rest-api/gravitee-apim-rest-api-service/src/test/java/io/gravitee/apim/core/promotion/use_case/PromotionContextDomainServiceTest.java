@@ -96,7 +96,7 @@ class PromotionContextDomainServiceTest {
         apiCrudService.initWith(List.of(api));
         apiQueryServiceInMemory.initWith(List.of(api));
 
-        var result = service.getPromotionContext(promotion.getId());
+        var result = service.getPromotionContext(promotion.getId(), true);
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isEqualTo(promotion);
@@ -119,7 +119,7 @@ class PromotionContextDomainServiceTest {
         apiCrudService.initWith(List.of(v2Api));
         apiQueryServiceInMemory.initWith(List.of(v2Api));
 
-        var result = service.getPromotionContext(promotion.getId());
+        var result = service.getPromotionContext(promotion.getId(), true);
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isEqualTo(promotion);
@@ -147,7 +147,7 @@ class PromotionContextDomainServiceTest {
         apiCrudService.initWith(List.of(v2Api));
         apiQueryServiceInMemory.initWith(List.of(v2Api));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId()));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         assertThat(throwable).hasMessage("An error occurred while try to parse promotion definition version promotion-id");
     }
@@ -165,7 +165,7 @@ class PromotionContextDomainServiceTest {
         apiCrudService.initWith(List.of(v2Api));
         apiQueryServiceInMemory.initWith(List.of(v2Api));
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId()));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage("Could not determine definition version for promotion promotion-id");
     }
@@ -186,7 +186,7 @@ class PromotionContextDomainServiceTest {
             List.of(ApiFixtures.aProxyApiV4().toBuilder().id("target-v4-api").crossId(CROSS_ID).environmentId(TARGET_ENV_ID).build())
         );
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId()));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage(
             "An API with the same crossId already exists with a different definition version in the target environment"
@@ -212,10 +212,34 @@ class PromotionContextDomainServiceTest {
             List.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").build())
         );
 
-        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId()));
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
         assertThat(throwable).hasMessage(
             "An API with the same crossId already exists with a different definition version in the target environment"
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void should_allow_promotion_rejection_when_versions_missmatch() {
+        Promotion promotion = Promotion.builder()
+            .id(PROMOTION_ID)
+            .apiId(API_ID)
+            .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8))
+            .targetEnvCockpitId("TARGET-ENV")
+            .build();
+
+        promotionCrudService.initWith(List.of(promotion));
+        apiQueryServiceInMemory.initWith(
+            List.of(ApiFixtures.aProxyApiV2().toBuilder().id("target-v2-api").crossId(CROSS_ID).environmentId("TARGET-ENV-ID").build())
+        );
+        apiCrudService.initWith(
+            List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).environmentId("DEFAULT").build())
+        );
+        environmentCrudService.initWith(
+            List.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").build())
+        );
+
+        assertThat(service.getPromotionContext(promotion.getId(), false)).isNotNull();
     }
 }

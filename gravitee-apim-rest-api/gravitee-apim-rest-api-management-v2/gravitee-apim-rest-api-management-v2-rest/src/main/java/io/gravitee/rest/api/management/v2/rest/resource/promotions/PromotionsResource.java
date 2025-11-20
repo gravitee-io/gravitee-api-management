@@ -46,7 +46,7 @@ public class PromotionsResource extends AbstractResource {
     @Path("{promotionId}/_process")
     @Produces(MediaType.APPLICATION_JSON)
     public Response processPromotion(@PathParam("promotionId") String promotionId, boolean isAccepted) {
-        var promotionContext = promotionContextDomainService.getPromotionContext(promotionId);
+        var promotionContext = promotionContextDomainService.getPromotionContext(promotionId, isAccepted);
         var expectedDefinitionVersion = promotionContext.expectedDefinitionVersion();
         var promotion = promotionContext.promotion();
         var existingPromotedApi = promotionContext.existingPromotedApi();
