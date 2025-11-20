@@ -51,6 +51,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -78,10 +79,11 @@ export class PortalNavigationItemsComponent {
   private destroyRef = inject(DestroyRef);
 
   // UI State & Forms
+  private isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
   addSectionMenuOpen = false;
   contentControl = new FormControl({
     value: '',
-    disabled: true,
+    disabled: this.isReadOnly,
   });
 
   // Route State
@@ -151,7 +153,7 @@ export class PortalNavigationItemsComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((content) => {
-        this.contentControl.setValue(content);
+        this.contentControl.reset(content);
       });
   }
 

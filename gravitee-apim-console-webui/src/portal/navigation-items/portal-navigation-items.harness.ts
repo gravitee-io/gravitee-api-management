@@ -20,14 +20,19 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testing';
 
 import { TreeComponentHarness } from '../components/tree-component/tree.component.harness';
+import { EmptyStateComponentHarness } from '../../shared/components/empty-state/empty-state.component.harness';
 
 export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
+  private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
   private getMenu = this.locatorFor(MatMenuHarness);
   private getTree = this.locatorFor(TreeComponentHarness);
   private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
+  private getEmptyEditor = this.locatorForOptional(
+    EmptyStateComponentHarness.with({ title: 'Editor', message: 'Use GMD code to customize and edit your page content.' }),
+  );
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
@@ -78,6 +83,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return tree.getSelectedItemType();
   }
 
+  async selectNavigationItemByTitle(title: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectItemByTitle(title);
+  }
+
   async getNavigationItemTitles(): Promise<string[]> {
     const tree = await this.getTree();
     return tree.getAllItemTitles();
@@ -88,8 +98,23 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return editor.getEditorValue();
   }
 
+  async setEditorContentText(content: string): Promise<void> {
+    const editor = await this.getGraviteeMarkdownEditor();
+    return editor.setEditorValue(content);
+  }
+
+  async isEditorEmptyStateDisplayed(): Promise<boolean> {
+    const emptyState = await this.getEmptyEditor();
+    return emptyState !== null;
+  }
+
   async isNavigationTreeEmpty(): Promise<boolean> {
     const tree = await this.getTree();
     return tree.isEmptyStateDisplayed();
+  }
+
+  async isSaveButtonDisabled(): Promise<boolean> {
+    const button = await this.getSaveButton();
+    return button.isDisabled();
   }
 }

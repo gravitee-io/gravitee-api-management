@@ -55,7 +55,7 @@ describe('PortalNavigationItemsComponent', () => {
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-documentation-c'],
+          useValue: ['environment-documentation-c', 'environment-documentation-u'],
         },
       ],
     }).compileComponents();
@@ -103,6 +103,9 @@ describe('PortalNavigationItemsComponent', () => {
       });
       it('should show default content of first page on load', async () => {
         expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 1');
+      });
+      it('should have the save button disabled', async () => {
+        expect(await harness.isSaveButtonDisabled()).toBe(true);
       });
     });
     describe('with no tree items', () => {
@@ -238,6 +241,52 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('selecting a navigation item', () => {
+    beforeEach(async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-3',
+            title: 'Nav Item 3',
+            portalPageContentId: 'nav-item-3-content',
+          }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+    });
+
+    it('should load page content when a PAGE item is selected', async () => {
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+
+      await harness.selectNavigationItemByTitle('Nav Item 3');
+      expectGetPageContent('nav-item-3-content', 'This is the content of Nav Item 3');
+      expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 3');
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+
+    it('should show empty message when non-PAGE is selected', async () => {
+      await harness.selectNavigationItemByTitle('Nav Item 2');
+      expect(await harness.isEditorEmptyStateDisplayed()).toBe(true);
+    });
+
+    it('should disable save button after selecting a PAGE after editing its content', async () => {
+      await harness.setEditorContentText('Edited content');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+
+      await harness.selectNavigationItemByTitle('Nav Item 3');
+      expectGetPageContent('nav-item-3-content', 'This is the content of Nav Item 3');
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+  });
+
   function expectGetMenuLinks(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
     httpTestingController.expectOne('assets/mocks/portal-menu-links.json').flush(response);
   }
@@ -258,6 +307,8 @@ describe('PortalNavigationItemsComponent', () => {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}` })
       .flush({ id: contentId, content });
+
+    fixture.detectChanges();
   }
 
   function expectCreateNavigationItem(requestBody: NewPortalNavigationItem, result: PortalNavigationItem) {
