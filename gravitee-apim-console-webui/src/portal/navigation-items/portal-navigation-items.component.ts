@@ -19,7 +19,6 @@ import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particle
 import { Component, computed, DestroyRef, inject, Signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
@@ -42,7 +41,6 @@ import { SectionNode, TreeComponent } from '../components/tree-component/tree.co
 import {
   NewPortalNavigationItem,
   PortalArea,
-  PortalNavigationItemsResponse,
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationPage,
@@ -93,7 +91,7 @@ export class PortalNavigationItemsComponent {
   // Menu Data State
   private readonly refreshMenuList = new BehaviorSubject(1);
   readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
-    switchMap(() => this.http.get<PortalNavigationItemsResponse>('assets/mocks/portal-menu-links.json')),
+    switchMap(() => this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR')),
     map((response) => response.items ?? []),
     tap((items) => {
       const currentNavId = this.navId();
@@ -120,7 +118,6 @@ export class PortalNavigationItemsComponent {
   });
 
   constructor(
-    private readonly http: HttpClient,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
