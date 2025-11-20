@@ -84,6 +84,17 @@ public class WebSocketConnector extends HttpConnector {
                 .rxWebSocket(webSocketConnectOptions)
                 .flatMap(endpointWebSocket -> {
                     endpointWebSocket.pause();
+
+                    endpointWebSocket
+                        .headers()
+                        .forEach((name, value) -> {
+                            ctx.response().headers().add(name, value);
+                        });
+
+                    for (CharSequence header : hopHeaders()) {
+                        ctx.response().headers().remove(header.toString());
+                    }
+
                     return request
                         .webSocket()
                         .upgrade()
