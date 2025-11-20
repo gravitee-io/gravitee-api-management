@@ -26,6 +26,9 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -61,6 +64,28 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
             soft.assertThat(spec.getPlans()).containsKey("plan-name");
+        });
+    }
+
+    @Test
+    void should_remove_page_content() {
+        var export = exportEntity();
+        PageSourceEntity source = new PageSourceEntity();
+        source.setType("http-fetcher");
+        export.setPages(
+            List.of(PageEntity.builder().name("page-name").type(PageType.SWAGGER.name()).content("content").source(source).build())
+        );
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(spec.getId()).isEqualTo("api-id");
+            soft.assertThat(spec.getName()).isEqualTo("api-name");
+            soft.assertThat(spec.getCrossId()).isEqualTo("api-cross-id");
+            soft.assertThat(spec.getListeners()).hasSize(1);
+            soft.assertThat(spec.getEndpointGroups()).hasSize(1);
+            soft.assertThat(spec.getPlans()).hasSize(1);
+            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPages()).containsKey("page-name");
+            soft.assertThat(spec.getPages().get("page-name").getContent()).isNull();
         });
     }
 
