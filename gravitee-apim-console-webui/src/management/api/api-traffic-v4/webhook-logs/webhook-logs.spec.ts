@@ -24,6 +24,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
@@ -32,7 +33,6 @@ import { WebhookSettingsDialogComponent } from './components/webhook-settings-di
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { Constants } from '../../../../entities/Constants';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 const API_ID = 'api-test-id';
 const defaultApi = {

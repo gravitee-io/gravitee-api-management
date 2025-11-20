@@ -16,7 +16,7 @@
 import { isNumber } from 'angular';
 
 import { Component, inject, OnInit } from '@angular/core';
-import { map, shareReplay, take } from 'rxjs/operators';
+import { map, shareReplay, switchMap, take } from 'rxjs/operators';
 import { ReplaySubject } from 'rxjs';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -373,18 +373,24 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   openSettingsDialog(): void {
-    this.api$.pipe(take(1)).subscribe((api) => {
-      if (!this.isApiV4(api)) {
-        this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
-        return;
-      }
+    this.api$
+      .pipe(
+        take(1),
+        switchMap((api) => {
+          if (!this.isApiV4(api)) {
+            this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
+            return [];
+          }
 
-      const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
-        data: this.activatedRoute.snapshot.params.apiId,
-      });
+          const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
+            width: GIO_DIALOG_WIDTH.MEDIUM,
+            data: this.activatedRoute.snapshot.params.apiId,
+          });
 
-      dialogRef.afterClosed().subscribe((result) => {
+          return dialogRef.afterClosed();
+        }),
+      )
+      .subscribe((result) => {
         if (result?.saved) {
           // TODO: Backend Integration Required
           // - Reload webhook logs data after settings are saved (if analytics settings affect log availability)
@@ -392,7 +398,6 @@ export class WebhookLogsComponent implements OnInit {
           // - Check if API redeployment is needed and show appropriate banner
         }
       });
-    });
   }
 
   onLogDetailsClicked(log: WebhookLog): void {
