@@ -127,7 +127,13 @@ public class EnvironmentsResource extends AbstractResource {
     }
 
     @Path("portal-menu-links")
+    @Deprecated
     public PortalMenuLinksResource getPortalMenuLinksResource() {
         return resourceContext.getResource(PortalMenuLinksResource.class);
+    }
+
+    @Path("portal-navigation-items")
+    public PortalNavigationItemsResource getPortalNavigationItemsResource() {
+        return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
 }
