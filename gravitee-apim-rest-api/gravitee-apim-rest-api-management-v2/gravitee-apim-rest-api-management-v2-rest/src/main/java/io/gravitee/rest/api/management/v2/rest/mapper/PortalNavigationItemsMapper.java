@@ -44,7 +44,6 @@ public interface PortalNavigationItemsMapper {
     );
 
     @Mapping(target = "type", constant = "LINK")
-    @Mapping(target = "url", expression = "java(java.net.URI.create(link.getUrl()))")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
     );
@@ -73,7 +72,6 @@ public interface PortalNavigationItemsMapper {
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
     );
 
-    @Mapping(target = "url", expression = "java(link.getUrl().toString())")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
     );

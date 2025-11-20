@@ -27,6 +27,7 @@ import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
@@ -124,6 +125,25 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(PageContentNotFoundException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Page content not found");
+        }
+
+        @Test
+        void should_fail_if_url_is_invalid() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.LINK)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("invalid-url")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidUrlFormatException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Provided url is invalid");
         }
     }
 

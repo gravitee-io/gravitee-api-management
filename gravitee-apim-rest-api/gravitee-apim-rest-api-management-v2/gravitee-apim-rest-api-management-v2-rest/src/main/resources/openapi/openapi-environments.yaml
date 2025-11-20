@@ -1781,7 +1781,6 @@ components:
         - properties:
             url:
               type: string
-              format: uri
               description: The URL for the link
               example: https://example.com
           required: [ url ]
@@ -1857,7 +1856,6 @@ components:
         - properties:
             url:
               type: string
-              format: uri
               description: The URL for the link
               example: https://example.com
           required: [url]
