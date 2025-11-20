@@ -100,7 +100,7 @@ describe('WebhookLogsComponent', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'GET',
     });
-    req.flush(api);
+    req.flush(api || defaultApi);
 
     await fixture.whenStable();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookLogsHarness);
@@ -164,7 +164,7 @@ describe('WebhookLogsComponent', () => {
     expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
     expect(dialogOpenSpy).toHaveBeenCalledWith(WebhookSettingsDialogComponent, {
       width: GIO_DIALOG_WIDTH.MEDIUM,
-      data: API_ID,
+      data: { api: defaultApi },
     });
   });
 
