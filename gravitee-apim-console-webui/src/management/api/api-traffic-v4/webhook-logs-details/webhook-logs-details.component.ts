@@ -27,6 +27,7 @@ import { MatTableModule } from '@angular/material/table';
 import { editor } from 'monaco-editor';
 import { GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
+import { FormatDurationPipe } from '../../../../shared/pipes/format-duration.pipe';
 import { ConnectionLogDiagnostic } from '../../../../entities/management-api-v2';
 import { WebhookLog } from '../webhook-logs/models/webhook-logs.models';
 import { getWebhookLogMockByRequestId, WEBHOOK_SAMPLE_LOG } from '../webhook-logs/mocks/webhook-logs.mock';
@@ -69,6 +70,7 @@ interface ConnectionFailureDetails {
     MatTableModule,
     GioClipboardModule,
     GioMonacoEditorModule,
+    FormatDurationPipe,
   ],
 })
 export class WebhookLogsDetailsComponent {
@@ -76,11 +78,12 @@ export class WebhookLogsDetailsComponent {
   private readonly router = inject(Router);
 
   readonly requestId = this.activatedRoute.snapshot.params.requestId;
+  readonly isNumber = isNumber;
 
   overviewRequest: OverviewItem[] = [];
   overviewResponse: OverviewItem[] = [];
   deliveryAttemptsDataSource: DeliveryAttempt[] = [];
-  displayedColumns: string[] = ['attempt', 'timestamp', 'duration', 'status'];
+  readonly displayedColumns: string[] = ['attempt', 'timestamp', 'duration', 'status'];
   requestHeaders: HeaderItem[] = [];
   responseHeaders: HeaderItem[] = [];
   requestBody = '';
@@ -129,10 +132,6 @@ export class WebhookLogsDetailsComponent {
     return date.toLocaleString();
   }
 
-  formatAttemptDuration(duration: number): string {
-    return duration >= 1000 ? `${(duration / 1000).toFixed(1)} s` : `${duration} ms`;
-  }
-
   openLogSettings(): void {
     this.router.navigate(['../'], {
       relativeTo: this.activatedRoute,
@@ -159,8 +158,8 @@ export class WebhookLogsDetailsComponent {
     ];
 
     this.overviewResponse = [
-      { label: 'Status', value: log.status, variant: this.toVariant(log.status) },
-      { label: 'Total duration', value: this.formatDuration(log) },
+      { label: 'Status', value: log.status },
+      { label: 'Total duration', value: log.duration || `${(log.gatewayResponseTime / 1000).toFixed(1)} s` },
       { label: 'Payload size', value: this.formatPayloadSize(log) },
       { label: 'Last error', value: log.additionalMetrics?.['string_webhook_last-error'] ?? '—' },
     ];
@@ -174,16 +173,8 @@ export class WebhookLogsDetailsComponent {
 
   private buildDeliveryAttempts(log: WebhookLog): DeliveryAttempt[] {
     const rawTimeline = log.additionalMetrics?.['json_webhook_retry-timeline'];
-    if (!rawTimeline) {
-      return [
-        {
-          attempt: 1,
-          timestamp: log.timestamp,
-          duration: log.gatewayResponseTime,
-          status: log.status,
-          reason: log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
-        },
-      ];
+    if (!rawTimeline || rawTimeline === '[]') {
+      return [this.createSingleDeliveryAttempt(log)];
     }
 
     try {
@@ -194,16 +185,31 @@ export class WebhookLogsDetailsComponent {
         status: number;
         reason?: string;
       }>;
+
+      if (!parsed || parsed.length === 0) {
+        return [this.createSingleDeliveryAttempt(log)];
+      }
+
       return parsed.map((item, index) => ({
         attempt: item.attempt ?? index + 1,
-        timestamp: isNumber(item.timestamp) ? new Date(item.timestamp).toISOString() : item.timestamp,
-        duration: item.duration,
-        status: item.status,
-        reason: item.reason,
+        timestamp: isNumber(item.timestamp) ? new Date(item.timestamp).toISOString() : (item.timestamp ?? log.timestamp),
+        duration: item.duration ?? log.gatewayResponseTime,
+        status: item.status ?? log.status,
+        reason: item.reason ?? log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
       }));
     } catch {
-      return [];
+      return [this.createSingleDeliveryAttempt(log)];
     }
+  }
+
+  private createSingleDeliveryAttempt(log: WebhookLog): DeliveryAttempt {
+    return {
+      attempt: 1,
+      timestamp: log.timestamp,
+      duration: log.gatewayResponseTime,
+      status: log.status,
+      reason: log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
+    };
   }
 
   private parseHeaders(raw?: string | null): HeaderItem[] {
@@ -221,16 +227,6 @@ export class WebhookLogsDetailsComponent {
     }
   }
 
-  private toVariant(status: number): 'success' | 'warning' | 'error' {
-    if (status <= 0 || status >= 500) {
-      return 'error';
-    }
-    if (status >= 400) {
-      return 'warning';
-    }
-    return 'success';
-  }
-
   private buildConnectionFailure(log: WebhookLog): ConnectionFailureDetails | null {
     if (log.status !== 0) {
       return null;
@@ -244,13 +240,6 @@ export class WebhookLogsDetailsComponent {
       diagnostics: log.warnings ?? [],
       lastError: log.additionalMetrics?.['string_webhook_last-error'] ?? null,
     };
-  }
-
-  private formatDuration(log: WebhookLog): string {
-    if (log.duration) {
-      return log.duration;
-    }
-    return `${(log.gatewayResponseTime / 1000).toFixed(1)} s`;
   }
 
   private formatPayloadSize(log: WebhookLog): string {

@@ -23,7 +23,7 @@ import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
-import { ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
+import { fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiV4MenuService', () => {
   let service: ApiV4MenuService;
@@ -35,22 +35,7 @@ describe('ApiV4MenuService', () => {
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
         {
           provide: GioTestingPermissionProvider,
-          useValue: [
-            'api-definition-u',
-            'api-definition-r',
-            'api-member-r',
-            'api-plan-r',
-            'api-subscription-r',
-            'api-documentation-r',
-            'api-metadata-r',
-            'api-notification-r',
-            'api-audit-r',
-            'api-response_templates-r',
-            'api-analytics-r',
-            'api-log-r',
-            'api-log-u',
-            'api-alert-r',
-          ],
+          useValue: ['api-log-r', 'api-log-u'],
         },
         {
           provide: EnvironmentSettingsService,
@@ -78,7 +63,7 @@ describe('ApiV4MenuService', () => {
   it('should include Webhooks menu when webhook entrypoint is present', () => {
     const api = fakeApiV4();
 
-    const menu = service.getMenu(api as ApiV4);
+    const menu = service.getMenu(api);
 
     expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
   });
@@ -94,12 +79,54 @@ describe('ApiV4MenuService', () => {
       ],
     }));
 
-    const menu = service.getMenu(api as ApiV4);
+    const menu = service.getMenu(api);
 
     expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(false);
   });
 
-  it('should not include Webhooks menu when user lacks api-definition-u permission', () => {
+  it('should include Webhooks menu when user has api-log-r permission', () => {
+    const api = fakeApiV4();
+
+    const menu = service.getMenu(api);
+
+    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
+  });
+
+  it('should include Webhooks menu when user has api-log-u permission', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ApiV4MenuService,
+        { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-log-u'],
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: {
+            getSnapshot: () => ({ apiScore: { enabled: false } }),
+          },
+        },
+        {
+          provide: ApiDocumentationV2Service,
+          useValue: {
+            getApiPortalUrl: () => 'portal-url',
+            getApiNotInPortalTooltip: () => 'tooltip',
+          },
+        },
+      ],
+      imports: [GioTestingModule],
+    });
+    service = TestBed.inject(ApiV4MenuService);
+
+    const api = fakeApiV4();
+    const menu = service.getMenu(api);
+
+    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
+  });
+
+  it('should not include Webhooks menu when user lacks api-log-r and api-log-u permissions', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -126,9 +153,9 @@ describe('ApiV4MenuService', () => {
       imports: [GioTestingModule],
     });
     service = TestBed.inject(ApiV4MenuService);
-    const api = fakeApiV4();
 
-    const menu = service.getMenu(api as ApiV4);
+    const api = fakeApiV4();
+    const menu = service.getMenu(api);
 
     expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(false);
   });

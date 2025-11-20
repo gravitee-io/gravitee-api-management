@@ -384,7 +384,7 @@ export class WebhookLogsComponent implements OnInit {
 
           const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
             width: GIO_DIALOG_WIDTH.MEDIUM,
-            data: this.activatedRoute.snapshot.params.apiId,
+            data: { api },
           });
 
           return dialogRef.afterClosed();
@@ -406,10 +406,6 @@ export class WebhookLogsComponent implements OnInit {
     }
 
     this.router.navigate(['./', log.requestId], { relativeTo: this.activatedRoute });
-  }
-
-  openSettings() {
-    this.openSettingsDialog();
   }
 
   private openSettingsDialogIfRequested(): void {

@@ -24,10 +24,10 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
-import { WebhookSettingsDialogComponent } from './webhook-settings-dialog.component';
+import { WebhookSettingsDialogComponent, WebhookSettingsDialogData } from './webhook-settings-dialog.component';
 import { WebhookSettingsDialogHarness } from './webhook-settings-dialog.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../../shared/testing';
 import { ApiV4, fakeProxyApiV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
@@ -37,13 +37,13 @@ import { ApiV4, fakeProxyApiV4 } from '../../../../../../entities/management-api
 })
 class TestComponent {
   public result?: any;
-  public apiId: string;
+  public dialogData: WebhookSettingsDialogData;
   constructor(private readonly matDialog: MatDialog) {}
 
   public openDialog() {
     this.matDialog
-      .open<WebhookSettingsDialogComponent, string>(WebhookSettingsDialogComponent, {
-        data: this.apiId,
+      .open<WebhookSettingsDialogComponent, WebhookSettingsDialogData>(WebhookSettingsDialogComponent, {
+        data: this.dialogData,
       })
       .afterClosed()
       .subscribe((result) => (this.result = result));
@@ -60,12 +60,10 @@ describe('WebhookSettingsDialogComponent', () => {
     fixture = TestBed.createComponent(TestComponent);
     harnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.componentInstance.apiId = API_ID;
+    fixture.componentInstance.dialogData = { api };
     const openDialogButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '#open-dialog-test' }));
     await openDialogButton.click();
     fixture.detectChanges();
-
-    expectApiGetRequest(api);
   };
 
   beforeEach(async () => {
@@ -230,14 +228,4 @@ describe('WebhookSettingsDialogComponent', () => {
       expect(await responseHeadersToggle.isDisabled()).toBe(true);
     });
   });
-
-  function expectApiGetRequest(api: ApiV4) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-        method: 'GET',
-      })
-      .flush(api);
-    fixture.detectChanges();
-  }
 });

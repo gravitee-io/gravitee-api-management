@@ -83,5 +83,11 @@ $typography: map.get(gio.$mat-theme, typography);
   &__value {
     @include mat.m2-typography-level($typography, 'body-2');
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    display: flex;
+    gap: 24px;
+
+    &-item {
+      white-space: nowrap;
+    }
   }
 }

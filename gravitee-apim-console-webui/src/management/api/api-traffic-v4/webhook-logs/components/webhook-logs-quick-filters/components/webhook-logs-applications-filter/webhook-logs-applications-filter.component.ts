@@ -49,7 +49,7 @@ export class WebhookLogsApplicationsFilterComponent implements ControlValueAcces
   private _applicationsCache: MultiFilter = [];
 
   public autocompleteOptions: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
-    return this.applicationService.list(null, searchTerm).pipe(
+    return this.applicationService.list(undefined, searchTerm).pipe(
       map((apps) => {
         return apps?.data?.map((application) => {
           const data = {
@@ -101,6 +101,7 @@ export class WebhookLogsApplicationsFilterComponent implements ControlValueAcces
   public get selectedApplications(): string[] {
     return this._selectedApplications;
   }
+
   public set selectedApplications(value: string[]) {
     if (value !== this._selectedApplications) {
       this._selectedApplications = value;

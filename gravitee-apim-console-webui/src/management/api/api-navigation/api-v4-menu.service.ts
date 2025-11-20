@@ -454,11 +454,7 @@ export class ApiV4MenuService implements ApiMenuService {
         (listener) => listener.type === 'SUBSCRIPTION' && listener.entrypoints?.some((entrypoint) => entrypoint.type === 'webhook'),
       ) ?? false;
 
-    if (!hasWebhookEntrypoint) {
-      return null;
-    }
-
-    if (!this.permissionService.hasAnyMatching(['api-definition-u'])) {
+    if (!hasWebhookEntrypoint || !this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
       return null;
     }
 

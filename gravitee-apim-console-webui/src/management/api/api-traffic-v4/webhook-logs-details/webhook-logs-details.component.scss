@@ -39,7 +39,7 @@ $typography: map.get(gio.$mat-theme, typography);
   flex-direction: column;
   gap: 20px;
 
-  &--overview {
+  &--details {
     background: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter96');
   }
 
@@ -69,11 +69,6 @@ $typography: map.get(gio.$mat-theme, typography);
     font-size: 18px;
     line-height: 24px;
     font-weight: bold;
-  }
-
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
   }
 
   &--failure {
@@ -149,9 +144,10 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 }
 
-.attempts-table {
+.delivery-attempts-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   border-radius: 12px;
   overflow: hidden;
@@ -293,12 +289,6 @@ $typography: map.get(gio.$mat-theme, typography);
   &__warnings-message {
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
   }
-}
-
-.placeholder {
-  margin: 0;
-  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  text-align: center;
 }
 
 .empty-card {

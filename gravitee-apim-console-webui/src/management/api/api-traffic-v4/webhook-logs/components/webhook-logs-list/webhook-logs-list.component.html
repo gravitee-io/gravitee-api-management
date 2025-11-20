@@ -24,9 +24,13 @@
   (paginationUpdated)="paginationUpdated.emit($event)"
 >
   <ng-template #timestampTemplate let-log>
-    <a [routerLink]="['./', log.requestId]">
-      {{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}
-    </a>
+    @if (log?.timestamp) {
+      <a [routerLink]="['./', log.requestId]">
+        {{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}
+      </a>
+    } @else {
+      <span>—</span>
+    }
   </ng-template>
 
   <ng-template #statusTemplate let-log>
@@ -34,12 +38,12 @@
       [class.gio-badge-success]="log.status < 400"
       [class.gio-badge-warning]="log.status >= 400 && log.status <= 499"
       [class.gio-badge-error]="log.status >= 500 || log.status === 0"
-      >{{ log.status }}</span
+      >{{ log.status != null ? log.status : '—' }}</span
     >
   </ng-template>
 
   <ng-template #callbackUrlTemplate let-log>
-    <span class="callback-url">{{ log.callbackUrl }}</span>
+    <span class="callback-url">{{ log.callbackUrl || '—' }}</span>
   </ng-template>
 
   <ng-template #applicationTemplate let-log>
@@ -47,7 +51,7 @@
   </ng-template>
 
   <ng-template #sentToDlqTemplate let-log>
-    {{ log.additionalMetrics?.['bool_webhook_dlq'] ? 'TRUE' : 'FALSE' }}
+    {{ log.additionalMetrics?.['bool_webhook_dlq'] != null ? (log.additionalMetrics!['bool_webhook_dlq'] ? 'TRUE' : 'FALSE') : '—' }}
   </ng-template>
 
   <ng-template #actionsTemplate let-log>

@@ -21,7 +21,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
-import { WebhookSettingsDialogComponent } from './webhook-settings-dialog.component';
+import { WebhookSettingsDialogComponent, WebhookSettingsDialogData } from './webhook-settings-dialog.component';
 
 import { ApiV4, fakeApiV4 } from '../../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
@@ -56,11 +56,6 @@ const apiCount = createApiWithSampling('COUNT', '100');
 const apiProbability = createApiWithSampling('PROBABILITY', '0.5');
 const apiTemporal = createApiWithSampling('TEMPORAL', 'PT10S');
 
-const createApiService = (api: ApiV4) => ({
-  get: (_: string) => of(api),
-  update: (_: string, updatedApi: ApiV4) => of(updatedApi),
-});
-
 export default {
   title: 'API / Traffic / Webhook Logs / Settings Dialog',
   component: WebhookSettingsDialogComponent,
@@ -82,6 +77,12 @@ export default {
           useValue: {
             success: () => {},
             error: () => {},
+          },
+        },
+        {
+          provide: ApiV2Service,
+          useValue: {
+            update: (_: string, updatedApi: ApiV4) => of(updatedApi),
           },
         },
       ],
@@ -106,11 +107,7 @@ export const CountPerTimeWindow: StoryObj = {
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: apiCountPerTimeWindow.id,
-        },
-        {
-          provide: ApiV2Service,
-          useValue: createApiService(apiCountPerTimeWindow),
+          useValue: { api: apiCountPerTimeWindow } as WebhookSettingsDialogData,
         },
       ],
     }),
@@ -123,11 +120,7 @@ export const Count: StoryObj = {
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: apiCount.id,
-        },
-        {
-          provide: ApiV2Service,
-          useValue: createApiService(apiCount),
+          useValue: { api: apiCount } as WebhookSettingsDialogData,
         },
       ],
     }),
@@ -140,11 +133,7 @@ export const Probability: StoryObj = {
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: apiProbability.id,
-        },
-        {
-          provide: ApiV2Service,
-          useValue: createApiService(apiProbability),
+          useValue: { api: apiProbability } as WebhookSettingsDialogData,
         },
       ],
     }),
@@ -157,11 +146,7 @@ export const Temporal: StoryObj = {
       providers: [
         {
           provide: MAT_DIALOG_DATA,
-          useValue: apiTemporal.id,
-        },
-        {
-          provide: ApiV2Service,
-          useValue: createApiService(apiTemporal),
+          useValue: { api: apiTemporal } as WebhookSettingsDialogData,
         },
       ],
     }),

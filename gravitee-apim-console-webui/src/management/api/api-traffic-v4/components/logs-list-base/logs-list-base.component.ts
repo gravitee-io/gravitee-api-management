@@ -66,10 +66,9 @@ export class LogsListBaseComponent<T = unknown> {
   onFiltersChanged(event: GioTableWrapperFilters) {
     const eventPagination = event.pagination;
     const currentPagination = this.pagination();
-    if (
-      (currentPagination.perPage >= 0 && currentPagination.perPage !== eventPagination.size) ||
-      (currentPagination.page >= 0 && currentPagination.page !== eventPagination.index)
-    ) {
+    const currentPerPage = currentPagination.perPage ?? 0;
+    const currentPage = currentPagination.page ?? 0;
+    if ((currentPerPage >= 0 && currentPerPage !== eventPagination.size) || (currentPage >= 0 && currentPage !== eventPagination.index)) {
       this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
     }
   }

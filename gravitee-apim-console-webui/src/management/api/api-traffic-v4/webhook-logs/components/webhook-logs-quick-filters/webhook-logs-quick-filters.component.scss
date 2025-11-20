@@ -51,10 +51,6 @@ $typography: map.get(gio.$mat-theme, typography);
   &__buttons {
     display: flex;
     align-items: center;
-
-    button {
-      height: 48px;
-    }
   }
 
   .action {
@@ -100,7 +96,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__applied {
     display: flex;
-    flex-direction: row;
     align-items: center;
   }
 

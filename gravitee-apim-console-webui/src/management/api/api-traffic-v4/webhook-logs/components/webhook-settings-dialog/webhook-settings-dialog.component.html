@@ -76,8 +76,8 @@
           <span class="sampling-summary__label">Sampling settings:</span>
           <span class="sampling-summary__value">
             @if (samplingCountPerWindowParts) {
-              Message count: {{ samplingCountPerWindowParts.count ?? '—' }}&nbsp;&nbsp;&nbsp;&nbsp;Time window:
-              {{ samplingCountPerWindowParts.window ?? '—' }}
+              <span class="sampling-summary__value-item">Message count: {{ samplingCountPerWindowParts.count ?? '—' }}</span>
+              <span class="sampling-summary__value-item">Time window: {{ samplingCountPerWindowParts.window ?? '—' }}</span>
             } @else {
               {{ samplingSettingsSummary }}
             }

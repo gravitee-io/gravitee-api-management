@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
-
 .table-wrapper {
   border-top: 0;
 }
@@ -28,19 +25,5 @@
     align-items: center;
     justify-content: center;
     margin-top: 32px;
-  }
-
-  .mat-column-timestamp {
-    min-width: 100px;
-    width: 200px;
-  }
-
-  .mat-column-actions {
-    width: 0;
-  }
-
-  .mat-column-timestamp,
-  .mat-column-actions {
-    padding: 0 8px;
   }
 }

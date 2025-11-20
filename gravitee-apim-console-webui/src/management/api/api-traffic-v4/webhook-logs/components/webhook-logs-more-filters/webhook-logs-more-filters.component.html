@@ -24,7 +24,50 @@
   </div>
   <div class="more-filters__body">
     @if (showMoreFilters) {
-      <webhook-logs-more-filters-form [formControl]="moreFiltersFormControl" [callbackUrls]="callbackUrls"></webhook-logs-more-filters-form>
+      <form [formGroup]="form">
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Date</span>
+          <mat-form-field>
+            <mat-label>Period</mat-label>
+            <mat-select formControlName="period" aria-label="Period selection">
+              @for (period of periods; track period.value) {
+                <mat-option [value]="period">{{ period.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>From</mat-label>
+            <input matInput [owlDateTime]="fromDateTimePicker" formControlName="from" />
+            <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #fromDateTimePicker></owl-date-time>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>To</mat-label>
+            <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" formControlName="to" />
+            <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #toDateTimePicker></owl-date-time>
+            @if (form.controls.to.hasError('owlDateTimeMin')) {
+              <mat-error>
+                <span> Date time value must be after {{ form.controls.from.value?.toDate() | date: 'yyyy-MM-dd HH:mm:ss' }} </span>
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Callback URL</span>
+          <mat-form-field>
+            <mat-label>Callback URL</mat-label>
+            <mat-select formControlName="callbackUrls" [multiple]="true">
+              @for (url of callbackUrls; track url) {
+                <mat-option [value]="url">{{ url }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
     }
   </div>
   <div class="more-filters__footer">

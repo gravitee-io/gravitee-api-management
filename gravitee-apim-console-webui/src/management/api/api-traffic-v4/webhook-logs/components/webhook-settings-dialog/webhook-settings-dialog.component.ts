@@ -29,6 +29,11 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { Analytics, Api, ApiV4, SamplingTypeEnum } from '../../../../../../entities/management-api-v2';
+import { isApiV4 } from '../../../../../../util';
+
+export interface WebhookSettingsDialogData {
+  api: ApiV4;
+}
 
 @Component({
   selector: 'webhook-settings-dialog',
@@ -50,7 +55,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private apiService = inject(ApiV2Service);
   private snackBarService = inject(SnackBarService);
-  private apiId: string = inject(MAT_DIALOG_DATA);
+  private readonly data = inject<WebhookSettingsDialogData>(MAT_DIALOG_DATA);
 
   form: FormGroup<{
     enabled: FormControl<boolean>;
@@ -61,10 +66,12 @@ export class WebhookSettingsDialogComponent implements OnInit {
   }> | null = null;
   isLoading = true;
   initialFormValue: Record<string, unknown> = {};
-  private api!: ApiV4;
+  private api: ApiV4;
   analytics?: Analytics;
 
-  constructor(public dialogRef: MatDialogRef<WebhookSettingsDialogComponent>) {}
+  constructor(public dialogRef: MatDialogRef<WebhookSettingsDialogComponent>) {
+    this.api = this.data.api;
+  }
 
   ngOnInit(): void {
     // TODO: Backend Integration Verification
@@ -75,19 +82,10 @@ export class WebhookSettingsDialogComponent implements OnInit {
     // - Consider adding loading indicators during save operation
     // - Verify error handling covers all edge cases (network errors, validation errors, etc.)
 
-    this.apiService
-      .get(this.apiId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((api) => {
-        if (!this.isApiV4(api)) {
-          throw new Error('Expected v4 API');
-        }
-        this.api = api;
-        this.analytics = api.analytics;
-        this.buildForm(this.analytics);
-        this.handleEnabledChanges();
-        this.isLoading = false;
-      });
+    this.analytics = this.api.analytics;
+    this.buildForm(this.analytics);
+    this.handleEnabledChanges();
+    this.isLoading = false;
   }
 
   close(): void {
@@ -118,8 +116,8 @@ export class WebhookSettingsDialogComponent implements OnInit {
     this.apiService
       .update(this.api.id, { ...this.api, analytics })
       .pipe(
-        tap((updatedApi) => {
-          if (this.isApiV4(updatedApi)) {
+        tap((updatedApi: Api) => {
+          if (isApiV4(updatedApi)) {
             this.api = updatedApi;
             this.analytics = updatedApi.analytics;
           }
@@ -139,10 +137,6 @@ export class WebhookSettingsDialogComponent implements OnInit {
       .subscribe();
   }
 
-  private isApiV4(api: Api): api is ApiV4 {
-    return api?.definitionVersion === 'V4';
-  }
-
   private buildForm(analytics?: Analytics): void {
     const enabledValue = analytics?.enabled ?? false;
     const requestBodyValue = analytics?.logging?.content?.messagePayload ?? false;
@@ -155,11 +149,11 @@ export class WebhookSettingsDialogComponent implements OnInit {
     const contentDataDisabled = !enabledValue;
 
     this.form = new FormGroup({
-      enabled: new FormControl<boolean>({ value: enabledValue, disabled: false }),
-      requestBody: new FormControl<boolean>({ value: requestBodyValue, disabled: contentDataDisabled }),
-      requestHeaders: new FormControl<boolean>({ value: requestHeadersValue, disabled: contentDataDisabled }),
-      responseBody: new FormControl<boolean>({ value: responseBodyValue, disabled: contentDataDisabled }),
-      responseHeaders: new FormControl<boolean>({ value: responseHeadersValue, disabled: contentDataDisabled }),
+      enabled: new FormControl<boolean>({ value: enabledValue, disabled: false }, { nonNullable: true }),
+      requestBody: new FormControl<boolean>({ value: requestBodyValue, disabled: contentDataDisabled }, { nonNullable: true }),
+      requestHeaders: new FormControl<boolean>({ value: requestHeadersValue, disabled: contentDataDisabled }, { nonNullable: true }),
+      responseBody: new FormControl<boolean>({ value: responseBodyValue, disabled: contentDataDisabled }, { nonNullable: true }),
+      responseHeaders: new FormControl<boolean>({ value: responseHeadersValue, disabled: contentDataDisabled }, { nonNullable: true }),
     });
 
     this.initialFormValue = this.form.getRawValue();
@@ -233,7 +227,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
   }
 
   get reporterSettingsLink(): string[] {
-    return ['/management', 'apis', this.apiId, 'deployment', 'reporter-settings'];
+    return ['/management', 'apis', this.api.id, 'deployment', 'reporter-settings'];
   }
 
   hasFormChanged(): boolean {

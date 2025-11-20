@@ -93,7 +93,7 @@ describe('WebhookLogsListComponent', () => {
     expect(rowCells[1][1]).toBe('502');
     expect(rowCells[1][2]).toBe('https://callback-error.test');
     expect(rowCells[1][3]).toBe('—');
-    expect(rowCells[1][4]).toBe('FALSE');
+    expect(rowCells[1][4]).toBe('—');
   });
 
   it('should emit log details when action button is clicked', async () => {

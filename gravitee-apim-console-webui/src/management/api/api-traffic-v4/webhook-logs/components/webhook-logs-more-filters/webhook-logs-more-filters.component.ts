@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, DestroyRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Moment } from 'moment';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { WebhookLogsMoreFiltersFormComponent } from './components/webhook-logs-more-filters-form/webhook-logs-more-filters-form.component';
-
-import { DEFAULT_PERIOD } from '../../../runtime-logs/models';
+import { DEFAULT_PERIOD, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
+import { DATE_TIME_FORMATS } from '../../../../../../shared/utils/timeFrameRanges';
 import { WebhookMoreFiltersForm } from '../../models/webhook-logs.models';
 
 @Component({
@@ -31,7 +36,20 @@ import { WebhookMoreFiltersForm } from '../../models/webhook-logs.models';
   templateUrl: './webhook-logs-more-filters.component.html',
   styleUrls: ['./webhook-logs-more-filters.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatIconModule, GioIconsModule, WebhookLogsMoreFiltersFormComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DatePipe,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatSelectModule,
+    OwlDateTimeModule,
+    OwlMomentDateTimeModule,
+    GioIconsModule,
+  ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
 })
 export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
   @Output() closeMoreFiltersEvent = new EventEmitter<void>();
@@ -40,45 +58,82 @@ export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
   @Input() formValues: WebhookMoreFiltersForm = { period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] };
   @Input() callbackUrls: string[] = [];
 
-  moreFiltersFormControl: FormControl<WebhookMoreFiltersForm>;
+  form: FormGroup<{
+    period: FormControl<SimpleFilter | null>;
+    from: FormControl<Moment | null>;
+    to: FormControl<Moment | null>;
+    callbackUrls: FormControl<string[]>;
+  }>;
   isInvalid = false;
+  minDate: Moment | null = null;
+  readonly periods = PERIODS;
 
-  constructor(private readonly destroyRef: DestroyRef) {
-    this.moreFiltersFormControl = new FormControl<WebhookMoreFiltersForm>(
-      { period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] },
-      { nonNullable: true },
-    );
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly destroyRef: DestroyRef,
+  ) {
+    this.form = this.fb.group({
+      period: this.fb.control<SimpleFilter | null>(DEFAULT_PERIOD),
+      from: this.fb.control<Moment | null>(null),
+      to: this.fb.control<Moment | null>(null),
+      callbackUrls: this.fb.control<string[]>([], { nonNullable: true }),
+    });
   }
 
   ngOnInit(): void {
-    this.isInvalid = this.moreFiltersFormControl.invalid;
+    this.isInvalid = this.form.invalid;
 
-    this.moreFiltersFormControl.statusChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.isInvalid = this.moreFiltersFormControl.invalid;
+    this.form.statusChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.isInvalid = this.form.invalid;
+    });
+
+    this.form.controls.period.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.form.controls.from.setValue(null, { emitEvent: false, onlySelf: true });
+      this.form.controls.to.setValue(null, { emitEvent: false, onlySelf: true });
+      this.minDate = null;
+    });
+
+    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
+      this.minDate = from ?? null;
+      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+    });
+
+    this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.formValues && this.moreFiltersFormControl) {
+    if (changes.formValues && this.form) {
       this.updateFormFromInput(this.formValues);
     }
   }
 
   private updateFormFromInput(formValues: WebhookMoreFiltersForm): void {
-    if (this.moreFiltersFormControl) {
+    if (this.form) {
       const values: WebhookMoreFiltersForm = {
         period: formValues?.period ?? DEFAULT_PERIOD,
         from: formValues?.from ?? null,
         to: formValues?.to ?? null,
         callbackUrls: formValues?.callbackUrls ?? [],
       };
-      this.moreFiltersFormControl.patchValue(values, { emitEvent: false });
-      this.isInvalid = this.moreFiltersFormControl.invalid;
+      this.form.patchValue(
+        {
+          period: values.period ?? DEFAULT_PERIOD,
+          from: values.from ?? null,
+          to: values.to ?? null,
+          callbackUrls: values.callbackUrls ?? [],
+        },
+        { emitEvent: false },
+      );
+      this.minDate = values.from ?? null;
+      this.isInvalid = this.form.invalid;
     }
   }
 
   resetMoreFilters(): void {
-    this.moreFiltersFormControl.patchValue({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+    this.form.patchValue({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+    this.minDate = null;
     this.apply();
   }
 
@@ -87,7 +142,14 @@ export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
   }
 
   apply(): void {
-    this.applyMoreFiltersEvent.emit(this.moreFiltersFormControl.value);
+    const rawValue = this.form.getRawValue();
+    const value: WebhookMoreFiltersForm = {
+      period: rawValue.period ?? undefined,
+      from: rawValue.from !== undefined ? rawValue.from : null,
+      to: rawValue.to !== undefined ? rawValue.to : null,
+      callbackUrls: rawValue.callbackUrls ?? [],
+    };
+    this.applyMoreFiltersEvent.emit(value);
     this.close();
   }
 }

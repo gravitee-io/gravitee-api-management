@@ -146,6 +146,22 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.quickFiltersForm.controls.searchTerm.setValue('', { emitEvent: true });
   }
 
+  openMoreFilters(): void {
+    this.showMoreFilters = true;
+  }
+
+  applyMoreFilters(values: WebhookMoreFiltersForm) {
+    this.moreFiltersValues = values;
+    if (this.currentFilters?.period !== values.period && values.period) {
+      this.quickFiltersForm.controls.period.setValue(values.period, { emitEvent: false, onlySelf: true });
+    }
+    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
+    this.filtersChanged.emit(this.mapFormValues(formValues, values));
+    this.currentFilters = this.mapFormValues(formValues, values);
+    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.showMoreFilters = false;
+  }
+
   addStatusFromInput(event: MatChipInputEvent): void {
     const inputValue = (event.value ?? '').trim();
     if (!inputValue) {
@@ -169,46 +185,17 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.quickFiltersForm.controls.applications.setValue(updated);
   }
 
-  openMoreFilters(): void {
-    this.showMoreFilters = true;
-  }
-
-  applyMoreFilters(values: WebhookMoreFiltersForm) {
-    this.moreFiltersValues = values;
-    if (this.currentFilters?.period !== values.period && values.period) {
-      this.quickFiltersForm.controls.period.setValue(values.period, { emitEvent: false, onlySelf: true });
-    }
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, values));
-    this.currentFilters = this.mapFormValues(formValues, values);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
-    this.showMoreFilters = false;
-  }
-
   removePeriod(): void {
-    this.moreFiltersValues = { ...this.moreFiltersValues, period: DEFAULT_PERIOD };
-    this.quickFiltersForm.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false });
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, this.moreFiltersValues));
-    this.currentFilters = this.mapFormValues(formValues, this.moreFiltersValues);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.applyMoreFilters({ ...this.moreFiltersValues, period: DEFAULT_PERIOD });
   }
 
   removeDateRange(): void {
-    this.moreFiltersValues = { ...this.moreFiltersValues, from: null, to: null };
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, this.moreFiltersValues));
-    this.currentFilters = this.mapFormValues(formValues, this.moreFiltersValues);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.applyMoreFilters({ ...this.moreFiltersValues, from: null, to: null });
   }
 
   removeCallbackUrl(url: string): void {
     const updated = (this.moreFiltersValues.callbackUrls ?? []).filter((value) => value !== url);
-    this.moreFiltersValues = { ...this.moreFiltersValues, callbackUrls: updated };
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, this.moreFiltersValues));
-    this.currentFilters = this.mapFormValues(formValues, this.moreFiltersValues);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.applyMoreFilters({ ...this.moreFiltersValues, callbackUrls: updated });
   }
 
   get selectedStatuses(): number[] {
