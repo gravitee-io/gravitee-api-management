@@ -44,8 +44,8 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
     public PortalPageContent create(PortalPageContent content) {
         try {
             final var repoContent = portalPageContentAdapter.toRepository(content);
-            portalPageContentRepository.create(repoContent);
-            return content;
+            final var createdContent = portalPageContentRepository.create(repoContent);
+            return portalPageContentAdapter.toEntity(createdContent);
         } catch (TechnicalException e) {
             final var errorMessage = String.format("An error occurred while creating portal page content with id %s", content.getId());
             throw new TechnicalDomainException(errorMessage, e);

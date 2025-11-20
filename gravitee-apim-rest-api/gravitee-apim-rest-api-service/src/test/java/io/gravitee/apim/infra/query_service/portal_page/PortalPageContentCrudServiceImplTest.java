@@ -16,7 +16,9 @@
 package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -59,6 +61,11 @@ class PortalPageContentCrudServiceImplTest {
 
     @Nested
     class CreatePageContent {
+
+        @BeforeEach
+        void setUp() throws TechnicalException {
+            when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        }
 
         @Test
         void should_create_a_page_content() throws TechnicalException {
