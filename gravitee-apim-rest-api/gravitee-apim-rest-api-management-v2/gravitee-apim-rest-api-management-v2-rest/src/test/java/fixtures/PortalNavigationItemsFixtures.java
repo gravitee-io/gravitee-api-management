@@ -67,7 +67,7 @@ public class PortalNavigationItemsFixtures {
         var parentId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         var url = "http://example.com";
         return new CreatePortalNavigationLink()
-            .url(URI.create(url))
+            .url(url)
             .type(PortalNavigationItemType.LINK)
             .id(id)
             .title(title)

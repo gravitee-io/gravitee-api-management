@@ -16,8 +16,8 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.net.URL;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -71,6 +72,12 @@ public class CreatePortalNavigationItemValidatorService {
                 }
             }
         }
+
+        if (item.getType() == PortalNavigationItemType.LINK) {
+            if (!isValidUrl(item.getUrl())) {
+                throw new InvalidUrlFormatException();
+            }
+        }
     }
 
     private void validateParent(CreatePortalNavigationItem item, String environmentId) {
@@ -88,6 +95,15 @@ public class CreatePortalNavigationItemValidatorService {
         }
         if (!parentItem.getArea().equals(item.getArea())) {
             throw new ParentAreaMismatchException(parentId.toString());
+        }
+    }
+
+    private boolean isValidUrl(String url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
