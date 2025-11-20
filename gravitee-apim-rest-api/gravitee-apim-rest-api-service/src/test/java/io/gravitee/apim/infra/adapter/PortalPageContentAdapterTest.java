@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.repository.management.model.PortalPageContent;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -70,6 +71,27 @@ class PortalPageContentAdapterTest {
             var markdownContent = (GraviteeMarkdownPageContent) entity;
             assertThat(markdownContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(markdownContent.getContent()).isEqualTo("Simple content without configuration");
+        }
+    }
+
+    @Nested
+    class ToRepository {
+
+        @Test
+        void should_map_gravitee_markdown_content_to_repository() {
+            // Given
+            final var entityContent = new GraviteeMarkdownPageContent(
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"),
+                "# Welcome\n\nThis is a sample page content."
+            );
+
+            // When
+            var repositoryContent = adapter.toRepository(entityContent);
+
+            // Then
+            assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
+            assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
+            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent());
         }
     }
 }

@@ -23,10 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
-import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
@@ -35,6 +37,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.ArrayList;
 import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,17 +49,19 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreatePortalNavigationItemValidatorServiceTest {
 
-    private PortalNavigationItemsQueryServiceInMemory queryService;
+    private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
+    private PortalPageContentQueryServiceInMemory pageContentQueryService;
     private CreatePortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
     void setUp() {
         final var storage = new ArrayList<PortalNavigationItem>();
-        final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
 
-        queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = new CreatePortalNavigationItemValidatorService(queryService);
-        queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+        pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
+        validatorService = new CreatePortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService);
+        navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+        pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }
 
     @Nested
@@ -90,7 +95,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .area(PortalArea.HOMEPAGE)
                 .order(0)
                 .build();
-            queryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID));
+            navigationItemsQueryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID));
 
             // When
             final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
@@ -98,6 +103,27 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(HomepageAlreadyExistsException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Homepage already exists");
+        }
+
+        @Test
+        void should_fail_when_page_content_is_not_found() {
+            // Given
+            final var NON_EXISTENT_ID = PortalPageContentId.random();
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .portalPageContentId(NON_EXISTENT_ID)
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.PAGE)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(PageContentNotFoundException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Page content not found");
         }
     }
 

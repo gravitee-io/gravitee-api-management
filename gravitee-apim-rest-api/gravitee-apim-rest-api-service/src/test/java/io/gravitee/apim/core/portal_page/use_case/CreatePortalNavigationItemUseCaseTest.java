@@ -28,12 +28,15 @@ import static org.mockito.Mockito.mock;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.junit.function.ThrowingRunnable;
@@ -52,6 +55,7 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private CreatePortalNavigationItemValidatorService validatorService;
+    private PortalPageContentCrudServiceInMemory pageContentCrudService;
 
     @BeforeEach
     void setUp() {
@@ -59,8 +63,9 @@ class CreatePortalNavigationItemUseCaseTest {
 
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = new CreatePortalNavigationItemValidatorService(queryService);
-        useCase = new CreatePortalNavigationItemUseCase(crudService, queryService, validatorService);
+        validatorService = mock(CreatePortalNavigationItemValidatorService.class);
+        pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+        useCase = new CreatePortalNavigationItemUseCase(crudService, queryService, validatorService, pageContentCrudService);
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
@@ -87,23 +92,22 @@ class CreatePortalNavigationItemUseCaseTest {
     @Test
     void should_not_create_item_if_validation_fails() {
         // Given
-        final CreatePortalNavigationItemValidatorService spyValidator = mock(CreatePortalNavigationItemValidatorService.class);
         doThrow(new RuntimeException("Custom exception from validator"))
-            .when(spyValidator)
+            .when(validatorService)
             .validate(any(CreatePortalNavigationItem.class), anyString());
 
-        crudService = new PortalNavigationItemsCrudServiceInMemory(new ArrayList<>(queryService.storage()));
-        useCase = new CreatePortalNavigationItemUseCase(crudService, queryService, spyValidator);
         final var numberOfItems = queryService.storage().size();
 
-        // When
         final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.FOLDER)
             .title("title")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .build();
+        createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
+        // When
         final ThrowingRunnable throwing = () ->
             useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
@@ -111,6 +115,33 @@ class CreatePortalNavigationItemUseCaseTest {
         Exception exception = assertThrows(RuntimeException.class, throwing);
         assertThat(exception.getMessage()).isEqualTo("Custom exception from validator");
         assertThat(queryService.storage()).hasSize(numberOfItems);
+    }
+
+    @Test
+    void should_create_default_page_content_when_content_id_is_null() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.PAGE)
+            .title("title")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .build();
+        final var numberOfContents = pageContentCrudService.storage().size();
+
+        // When
+        final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // When
+        final var contentId = ((PortalNavigationPage) output.item()).getPortalPageContentId();
+        final var contents = pageContentCrudService.storage();
+        assertThat(contents)
+            .hasSize(numberOfContents + 1)
+            .anySatisfy(content -> {
+                assertThat(content.getId()).isEqualTo(contentId);
+                assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
+                assertThat(((GraviteeMarkdownPageContent) content).getContent()).isEqualTo("default page content");
+            });
     }
 
     @Nested

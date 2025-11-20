@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
@@ -25,15 +27,16 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
 public class CreatePortalNavigationItemValidatorService {
 
-    private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationItemsQueryService navigationItemsQueryService;
+    private final PortalPageContentQueryService pageContentQueryService;
 
     public void validate(CreatePortalNavigationItem item, String environmentId) {
         validateItem(item, environmentId);
@@ -43,14 +46,17 @@ public class CreatePortalNavigationItemValidatorService {
     private void validateItem(CreatePortalNavigationItem item, String environmentId) {
         final var itemId = item.getId();
         if (itemId != null) {
-            final var existingItem = this.queryService.findByIdAndEnvironmentId(environmentId, itemId);
+            final var existingItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, itemId);
             if (existingItem != null) {
                 throw new ItemAlreadyExistsException(itemId.toString());
             }
         }
 
         if (item.getArea().equals(PortalArea.HOMEPAGE)) {
-            final var existingHomepage = this.queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, item.getArea());
+            final var existingHomepage = this.navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+                environmentId,
+                item.getArea()
+            );
             if (!existingHomepage.isEmpty()) {
                 throw new HomepageAlreadyExistsException();
             }
@@ -58,9 +64,11 @@ public class CreatePortalNavigationItemValidatorService {
 
         if (item.getType() == PortalNavigationItemType.PAGE) {
             final var contentId = item.getPortalPageContentId();
-            // TODO check if content exists and create one otherwise, currently assigning a random id to avoid repo level errors
-            if (contentId == null) {
-                item.setPortalPageContentId(PortalPageContentId.random());
+            if (contentId != null) {
+                final var existingPageContent = this.pageContentQueryService.findById(contentId);
+                if (existingPageContent.isEmpty()) {
+                    throw new PageContentNotFoundException(contentId.toString());
+                }
             }
         }
     }
@@ -71,7 +79,7 @@ public class CreatePortalNavigationItemValidatorService {
             return;
         }
 
-        final var parentItem = this.queryService.findByIdAndEnvironmentId(environmentId, parentId);
+        final var parentItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentId);
         if (parentItem == null) {
             throw new ParentNotFoundException(parentId.toString());
         }
