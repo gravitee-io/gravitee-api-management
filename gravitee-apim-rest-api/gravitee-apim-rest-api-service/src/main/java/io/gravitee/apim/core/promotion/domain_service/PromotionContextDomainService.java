@@ -65,20 +65,20 @@ public class PromotionContextDomainService {
      * Once all V2 APIs are migrated and V2 no longer supported, this validation step can be removed,
      * and the promotion can be applied directly through the corresponding UseCase.
      */
-    public PromotionContext getPromotionContext(String promotionId) {
+    public PromotionContext getPromotionContext(String promotionId, boolean isAccepted) {
         var promotion = promotionCrudService.getById(promotionId);
         var api = apiCrudService.get(promotion.getApiId());
         var environment = environmentCrudService.getByCockpitId(promotion.getTargetEnvCockpitId());
         var targetApiOpt = apiQueryService.findByEnvironmentIdAndCrossId(environment.getId(), api.getCrossId());
         var expectedDefinitionVersion = getPromotionDefinitionVersion(promotion);
 
-        targetApiOpt.ifPresent(targetApi -> {
-            if (targetApi.getDefinitionVersion() != expectedDefinitionVersion) {
+        if (isAccepted && targetApiOpt.isPresent()) {
+            if (targetApiOpt.get().getDefinitionVersion() != expectedDefinitionVersion) {
                 throw new IllegalStateException(
                     "An API with the same crossId already exists with a different definition version in the target environment"
                 );
             }
-        });
+        }
 
         return new PromotionContext(promotion, expectedDefinitionVersion, targetApiOpt.orElse(null), environment.getId());
     }
