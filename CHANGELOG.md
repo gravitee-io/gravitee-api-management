@@ -1,3 +1,16 @@
+## [6.3.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.3.0...6.3.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* document reverting 6.3 commit ([45b6f73](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/45b6f7324c2dddc854e86a9b93e7cdf520c33f71))
+* document reverting 6.3.0 commit ([037c797](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/037c797df54c0ecc1501ec63d11bb88a5d089d49))
+
+
+### Reverts
+
+* Revert "feat: add additional metrics to message metrics" ([d865e4a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/d865e4ab447eec07c74c829b47149afcb30e01f2))
+
 # [6.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.4...6.3.0) (2025-11-18)
 
 
