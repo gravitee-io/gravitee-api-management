@@ -6,6 +6,8 @@
 <#-- @ftlvariable name="contentLength" type="java.lang.Long" -->
 <#-- @ftlvariable name="count" type="java.lang.Long" -->
 <#-- @ftlvariable name="errorCount" type="java.lang.Long" -->
+<#-- @ftlvariable name="countIncrement" type="java.lang.Long" -->
+<#-- @ftlvariable name="errorCountIncrement" type="java.lang.Long" -->
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
 <#if index??>
 { "index" : { "_index" : "${index}", "_id" : "${metrics.getCorrelationId()}-${metrics.getConnectorType().getLabel()}"} }
@@ -39,13 +41,13 @@
   ,"count":${count}
   </#if>
   <#if errorCount??>
-  ,"error-count":"${errorCount}"
+  ,"error-count":${errorCount}
   </#if>
   <#if countIncrement??>
     ,"count-increment":${countIncrement}
   </#if>
   <#if errorCountIncrement??>
-    ,"error-count-increment":"${errorCountIncrement}"
+    ,"error-count-increment":${errorCountIncrement}
   </#if>
   <#if metrics.isError()>
   ,"error":"${metrics.isError()?c}"
