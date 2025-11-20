@@ -17,11 +17,13 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +37,7 @@ public class CreatePortalNavigationItemUseCase {
     private final PortalNavigationItemCrudService crudService;
     private final PortalNavigationItemsQueryService queryService;
     private final CreatePortalNavigationItemValidatorService validatorService;
+    private final PortalPageContentCrudService pageContentCrudService;
 
     public Output execute(Input input) {
         final CreatePortalNavigationItem itemToCreate = input.item();
@@ -48,6 +51,11 @@ public class CreatePortalNavigationItemUseCase {
         final var newMaxOrder = this.retrieveSiblingItems(itemToCreate.getParentId(), environmentId, itemToCreate.getArea()).size();
         // Limit the new item's order to at most new max order
         itemToCreate.setOrder(order == null ? newMaxOrder : Math.min(order, newMaxOrder));
+
+        if (itemToCreate.getType() == PortalNavigationItemType.PAGE && itemToCreate.getPortalPageContentId() == null) {
+            final var defaultPageContent = pageContentCrudService.createDefault();
+            itemToCreate.setPortalPageContentId(defaultPageContent.getId());
+        }
 
         final var newItem = PortalNavigationItem.from(itemToCreate, organizationId, environmentId);
         final var output = new Output(this.crudService.create(newItem));

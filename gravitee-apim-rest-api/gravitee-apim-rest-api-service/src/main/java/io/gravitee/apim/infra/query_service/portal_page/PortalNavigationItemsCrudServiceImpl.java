@@ -32,7 +32,6 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
 
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalNavigationItemAdapter portalNavigationItemAdapter = PortalNavigationItemAdapter.INSTANCE;
-    private static final Logger logger = LoggerFactory.getLogger(PortalNavigationItemsCrudServiceImpl.class);
 
     public PortalNavigationItemsCrudServiceImpl(@Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalNavigationItemRepository = portalNavigationItemRepository;
