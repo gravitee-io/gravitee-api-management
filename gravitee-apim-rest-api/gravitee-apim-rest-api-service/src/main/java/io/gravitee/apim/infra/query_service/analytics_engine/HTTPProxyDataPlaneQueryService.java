@@ -18,6 +18,8 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.*;
 import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.HTTP_ERRORS;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
@@ -63,6 +65,13 @@ public class HTTPProxyDataPlaneQueryService implements DataPlaneAnalyticsQuerySe
     public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchHTTPMeasures(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+    }
+
+    @Override
+    public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 }

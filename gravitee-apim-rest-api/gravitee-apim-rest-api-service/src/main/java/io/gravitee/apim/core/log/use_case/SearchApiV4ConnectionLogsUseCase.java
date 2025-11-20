@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @UseCase
@@ -98,6 +99,7 @@ public class SearchApiV4ConnectionLogsUseCase {
             .errorKey(connectionLog.getErrorKey())
             .message(connectionLog.getMessage())
             .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
+            .additionalMetrics(connectionLog.getAdditionalMetrics() != null ? connectionLog.getAdditionalMetrics() : Map.of())
             .build();
     }
 

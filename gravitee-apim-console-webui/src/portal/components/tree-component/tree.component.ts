@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 import { TreeNodeComponent } from './tree-node.component';
 
-import { PortalMenuLink } from '../../../entities/management-api-v2';
-
-export type SectionNodeType = 'page' | 'folder' | 'link';
+import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 export interface SectionNode {
   id: string;
   label: string;
-  type: SectionNodeType;
-  data?: PortalMenuLink;
+  type: PortalNavigationItemType;
+  data?: PortalNavigationItem;
   children?: SectionNode[];
-}
-
-interface ApiPortalMenuLink {
-  id: string;
-  name: string;
-  type: string;
-  target?: string | null;
-  visibility: string;
-  order: number;
-  parentId?: string | null;
 }
 
 type ProcessingNode = SectionNode & {
@@ -47,12 +37,12 @@ type ProcessingNode = SectionNode & {
 @Component({
   selector: 'portal-tree-component',
   standalone: true,
-  imports: [TreeNodeComponent],
+  imports: [TreeNodeComponent, EmptyStateComponent, MatCardModule],
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
 export class TreeComponent {
-  links = input<PortalMenuLink[] | null>(null);
+  links = input<PortalNavigationItem[] | null>(null);
   tree = computed(() => {
     const links = this.links();
     return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
@@ -60,63 +50,25 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-  pageNotFound = output<void>();
 
-  constructor() {
-    effect(() => {
-      const currentTree = this.tree();
-      const currentSelectedId = this.selectedId();
-
-      if (currentTree.length > 0) {
-        const isPageIdProvided = currentSelectedId !== null;
-        const pageExists = isPageIdProvided && this.findNode(currentTree, (node) => node.id === currentSelectedId);
-
-        if (isPageIdProvided && !pageExists) {
-          this.pageNotFound.emit();
-          return;
-        }
-
-        if (!isPageIdProvided) {
-          const firstPageNode = this.findNode(currentTree, (node) => node.type === 'page');
-          if (firstPageNode) {
-            this.select.emit(firstPageNode);
-          }
-        }
-      }
-    });
-  }
-
-  private findNode(nodes: SectionNode[], predicate: (node: SectionNode) => boolean): SectionNode | null {
-    for (const node of nodes) {
-      if (predicate(node)) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNode(node.children, predicate);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  private mapLinksToNodes(links: ApiPortalMenuLink[]): SectionNode[] {
+  private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);
     const roots = this.connectNodes(nodesById);
     return this.sortAndCleanTree(roots);
   }
 
-  private createNodesMap(links: ApiPortalMenuLink[]): Map<string, ProcessingNode> {
+  private createNodesMap(links: PortalNavigationItem[]): Map<string, ProcessingNode> {
     const nodes = new Map<string, ProcessingNode>();
 
     for (const link of links) {
-      const type = this.getNodeType(link);
+      const type = link.type;
 
       nodes.set(link.id, {
         id: link.id,
-        label: link.name,
+        label: link.title,
         type,
-        data: link as PortalMenuLink,
-        children: type === 'folder' ? [] : undefined,
+        data: link,
+        children: type === 'FOLDER' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);
@@ -147,15 +99,5 @@ export class TreeComponent {
         ...node,
         children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
       }));
-  }
-
-  private getNodeType(link: ApiPortalMenuLink) {
-    if (link.target === null || link.type === 'FOLDER') {
-      return 'folder';
-    }
-    if (['LINK', 'EXTERNAL'].includes(link.type)) {
-      return 'link';
-    }
-    return 'page';
   }
 }

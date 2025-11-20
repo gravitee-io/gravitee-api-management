@@ -27,9 +27,11 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,6 +257,34 @@ public class JdbcGenericNotificationConfigRepository
                     }
                 }
             );
+        }
+    }
+
+    @Override
+    public Set<GenericNotificationConfig> findAll() throws TechnicalException {
+        LOGGER.debug("JdbcGenericNotificationConfigRepository.findAll()");
+        try {
+            List<GenericNotificationConfig> configs = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
+
+            Map<String, GenericNotificationConfig> map = new HashMap<>();
+            for (GenericNotificationConfig cfg : configs) {
+                map.put(cfg.getId(), cfg);
+                cfg.setHooks(new ArrayList<>());
+            }
+
+            jdbcTemplate.query("SELECT id, hook FROM " + GENERIC_NOTIFICATION_CONFIG_HOOKS, rs -> {
+                String id = rs.getString(1);
+                GenericNotificationConfig cfg = map.get(id);
+                if (cfg != null) {
+                    cfg.getHooks().add(rs.getString(2));
+                }
+            });
+
+            LOGGER.debug("JdbcGenericNotificationConfigRepository.findAll() - Done and found {} configs", configs.size());
+            return new HashSet<>(configs);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to load all GenericNotificationConfigs", ex);
+            throw new TechnicalException("Failed to load all GenericNotificationConfigs", ex);
         }
     }
 }

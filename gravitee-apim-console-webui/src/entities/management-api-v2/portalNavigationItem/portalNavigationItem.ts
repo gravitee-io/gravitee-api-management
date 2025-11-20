@@ -16,51 +16,44 @@
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK';
 
-interface BasePortalNavigationItem {
+interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   id: string;
   organizationId: string;
   environmentId: string;
   title: string;
-  type: PortalNavigationItemType;
+  type: T;
   order: number;
   area: PortalArea;
   parentId?: string;
 }
 
-export interface PortalNavigationPage extends BasePortalNavigationItem {
-  configuration: {
-    portalPageContentId: string;
-  };
+export interface PortalNavigationPage extends BasePortalNavigationItem<'PAGE'> {
+  portalPageContentId: string;
 }
 
-export interface PortalNavigationFolder extends BasePortalNavigationItem {}
+export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {}
 
-export interface PortalNavigationLink extends BasePortalNavigationItem {
-  configuration: {
-    url: string;
-  };
+export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
+  url: string;
 }
 
 export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink;
 
-interface BaseNewPortalNavigationItem {
+interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
+  type: T;
   area: PortalArea;
   parentId?: string;
   order?: number;
 }
 
-export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'PAGE';
-  contentId: string;
+export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
+  portalPageContentId?: string;
 }
 
-export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'FOLDER';
-}
+export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {}
 
-export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem {
-  type: 'LINK';
+export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem<'LINK'> {
   url: string;
 }
 

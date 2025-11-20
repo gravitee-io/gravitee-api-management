@@ -39,6 +39,7 @@
       [initialValues]="initialValues"
       [plans]="apiPlans$ | async"
       [entrypoints]="entrypoints$ | async"
+      [apiType]="apiType()"
       (refresh)="refresh()"
     ></api-runtime-logs-quick-filters>
   }
@@ -47,7 +48,7 @@
     <api-runtime-logs-list
       [pagination]="logs.pagination"
       [logs]="logs.data"
-      [isMessageApi]="isMessageApi()"
+      [apiType]="apiType()"
       (paginationUpdated)="paginationUpdated($event)"
     ></api-runtime-logs-list>
   }

@@ -42,6 +42,7 @@ public class ConnectionLogQuery {
         private Set<String> applicationIds;
         private Set<String> planIds;
         private Set<HttpMethod> methods;
+        private Set<String> mcpMethods;
         private Set<Integer> statuses;
         private Set<String> entrypointIds;
         private Set<String> apiIds;

@@ -1295,8 +1295,8 @@ spec:
           label: Status Code
           type: NUMBER
           range:
-              min: 100
-              max: 600
+              from: 100
+              to: 599
           operators:
               - EQ
               - LTE

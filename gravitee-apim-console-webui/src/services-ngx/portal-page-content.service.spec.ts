@@ -48,7 +48,7 @@ describe('PortalPageContentService', () => {
       });
 
       httpTestingController
-        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal-page-contents/${contentId}` })
+        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}` })
         .flush(fakePageContent);
     });
   });
@@ -65,7 +65,7 @@ describe('PortalPageContentService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/portal-page-contents`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents`,
       });
       expect(req.request.body).toEqual(newPageContent);
       req.flush(fakeCreatedContent);

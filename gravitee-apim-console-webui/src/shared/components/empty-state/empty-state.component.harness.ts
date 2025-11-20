@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
+
+interface EmptyStateHarnessFilters extends BaseHarnessFilters {
+  title?: string;
+  message?: string;
+}
 
 export class EmptyStateComponentHarness extends ComponentHarness {
   public static hostSelector = 'empty-state';
   protected getTitleElement = this.locatorFor('[data-test-id="empty-title"]');
   protected getMessageElement = this.locatorFor('[data-test-id="empty-message"]');
   protected getIconHarness = this.locatorFor(MatIconHarness);
+
+  static with(options: EmptyStateHarnessFilters = {}): HarnessPredicate<EmptyStateComponentHarness> {
+    return new HarnessPredicate(EmptyStateComponentHarness, options)
+      .addOption('title', options.title, async (harness, title) => {
+        return HarnessPredicate.stringMatches(harness.getTitle(), title);
+      })
+      .addOption('message', options.message, async (harness, message) => {
+        return HarnessPredicate.stringMatches(harness.getMessage(), message);
+      });
+  }
 
   /**
    * Gets the displayed title text.

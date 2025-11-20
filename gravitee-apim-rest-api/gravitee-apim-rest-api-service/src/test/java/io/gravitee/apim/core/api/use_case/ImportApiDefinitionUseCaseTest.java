@@ -34,7 +34,7 @@ import fixtures.definition.ApiDefinitionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
-import io.gravitee.apim.core.api.exception.ApiCreatedWithErrorException;
+import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -407,8 +407,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page name must not be null or empty");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
@@ -423,9 +423,9 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .isInstanceOf(ApiImportedWithErrorException.class)
                 .hasMessage(
-                    "API created with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
+                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
                 );
         }
 
@@ -441,8 +441,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
@@ -464,8 +464,8 @@ class ImportApiDefinitionUseCaseTest {
                 .build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test
@@ -748,8 +748,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page name must not be null or empty");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
@@ -764,9 +764,9 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .isInstanceOf(ApiImportedWithErrorException.class)
                 .hasMessage(
-                    "API created with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
+                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
                 );
         }
 
@@ -782,8 +782,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
@@ -805,8 +805,8 @@ class ImportApiDefinitionUseCaseTest {
                 .build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiCreatedWithErrorException.class)
-                .hasMessage("API created with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test

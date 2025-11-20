@@ -77,7 +77,7 @@ public class PortalPageServiceImpl implements PortalPageService {
     private String getDefaultPortalPageContent() {
         if (defaultPortalPageContent == null) {
             try {
-                var resource = new ClassPathResource("templates/default-portal-page.md");
+                var resource = new ClassPathResource("templates/default-portal-homepage-content.md");
                 defaultPortalPageContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new IllegalStateException("Could not load default portal page template", e);

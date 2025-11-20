@@ -109,6 +109,8 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
@@ -146,11 +148,13 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.query_service.analytics_engine.HTTPProxyDataPlaneQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
@@ -860,6 +864,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase() {
+        return mock(CreatePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public CreatePortalNavigationItemValidatorService createPortalNavigationItemValidatorService() {
+        return mock(CreatePortalNavigationItemValidatorService.class);
+    }
+
+    @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase() {
         return mock(ListPortalNavigationItemsUseCase.class);
     }
@@ -897,6 +911,16 @@ public class ResourceContextConfiguration {
     @Bean
     public ProcessPromotionUseCase processPromotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
+    }
+
+    @Bean
+    public AnalyticsRepository analyticsRepository() {
+        return mock(AnalyticsRepository.class);
+    }
+
+    @Bean
+    public HTTPProxyDataPlaneQueryService httpProxyDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
+        return new HTTPProxyDataPlaneQueryService(analyticsRepository);
     }
 
     @Bean

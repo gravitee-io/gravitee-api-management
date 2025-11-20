@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.analytics_engine.query_service;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -29,4 +31,6 @@ public interface DataPlaneAnalyticsQueryService {
     Set<MetricSpec.Name> metrics();
 
     MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request);
+
+    FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request);
 }

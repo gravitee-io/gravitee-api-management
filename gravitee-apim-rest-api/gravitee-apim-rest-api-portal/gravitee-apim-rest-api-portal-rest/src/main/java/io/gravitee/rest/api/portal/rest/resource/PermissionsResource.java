@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -31,7 +32,9 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -49,8 +52,8 @@ public class PermissionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentUserPermissions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId) {
         final String userId = getAuthenticatedUser();
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (apiId != null) {
-            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             if (!accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
                 throw new ApiNotFoundException(apiId);
             }
@@ -60,17 +63,20 @@ public class PermissionsResource extends AbstractResource {
 
             return Response.ok(permissions).build();
         } else if (applicationId != null) {
-            ApplicationListItem applicationListItem = applicationService
-                .findByUser(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
-                .stream()
-                .filter(a -> a.getId().equals(applicationId))
-                .findFirst()
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+            Set<ApplicationListItem> activeApps = applicationService.findByIdsAndStatus(
+                executionContext,
+                Collections.singleton(applicationId),
+                ApplicationStatus.ACTIVE
+            );
 
-            ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), applicationListItem.getId());
+            if (activeApps.isEmpty()) {
+                throw new ApplicationNotFoundException(applicationId);
+            }
+
+            ApplicationEntity application = applicationService.findById(executionContext, applicationId);
 
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), application, userId);
+            permissions = membershipService.getUserMemberPermissions(executionContext, application, userId);
 
             return Response.ok(permissions).build();
         }

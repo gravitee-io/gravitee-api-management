@@ -473,8 +473,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.16.0.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.16.0.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.17.1.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.17.1.zip
 
 api:
   enabled: true
@@ -735,6 +735,9 @@ api:
       timeout: 10000
       # proxy:
       #   type: HTTP
+      #   excludeHosts:
+      #     - '*.internal.com'
+      #     - 'internal.mycompany.com'
       #   http:
       #     host: localhost
       #     port: 3128

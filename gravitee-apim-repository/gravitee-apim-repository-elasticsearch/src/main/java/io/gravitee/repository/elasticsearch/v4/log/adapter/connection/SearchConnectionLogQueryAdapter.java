@@ -61,6 +61,8 @@ public class SearchConnectionLogQueryAdapter {
 
         addHttpMethodsFilter(filter, mustFilterList);
 
+        addMcpMethodsFilter(filter, mustFilterList);
+
         addStatusesFilter(filter, mustFilterList);
 
         addEntrypointIdsFilter(filter, mustFilterList);
@@ -132,6 +134,12 @@ public class SearchConnectionLogQueryAdapter {
         }
     }
 
+    private static void addMcpMethodsFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getMcpMethods())) {
+            mustFilterList.add(buildV4Terms(ConnectionLogField.MCP_METHOD, filter.getMcpMethods()));
+        }
+    }
+
     private static void addPlansFilter(ConnectionLogQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getPlanIds())) {
             mustFilterList.add(buildV2AndV4Terms(ConnectionLogField.PLAN_ID, filter.getPlanIds()));
@@ -185,6 +193,10 @@ public class SearchConnectionLogQueryAdapter {
 
     private static JsonObject buildSort() {
         return JsonObject.of(ConnectionLogField.TIMESTAMP, JsonObject.of("order", "desc"));
+    }
+
+    private static JsonObject buildV4Terms(ConnectionLogField.Field field, Collection<?> value) {
+        return JsonObject.of("terms", JsonObject.of(field.v4Metrics(), value.toArray()));
     }
 
     private static JsonObject buildV2AndV4Terms(ConnectionLogField.Field field, Collection<?> value) {

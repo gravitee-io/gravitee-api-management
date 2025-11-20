@@ -17,28 +17,47 @@
 -->
 
 <gridster [options]="options()" class="grid">
-  @for (item of items(); track item) {
-    <gridster-item [item]="item.layout">
-      <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
-        <gd-widget-title>{{ item.label }}</gd-widget-title>
+  @if (items()) {
+    @for (item of items()!; track item.id) {
+      <gridster-item [item]="item.layout">
+        <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
+          <gd-widget-title>{{ item.title }}</gd-widget-title>
 
-        <gd-widget-body>
-          @switch (item.type) {
-            @case ('pie') {
-              <gd-pie-chart type="pie" />
+          <gd-widget-body>
+            @if (item.response) {
+              @switch (item.type) {
+                @case ('pie') {
+                  @if (isFacetsResponse(item.response)) {
+                    <gd-pie-chart type="pie" [data]="item.response" />
+                  }
+                }
+                @case ('polarArea') {
+                  @if (isFacetsResponse(item.response)) {
+                    <gd-pie-chart type="polarArea" [data]="item.response" />
+                  }
+                }
+                @case ('doughnut') {
+                  @if (isFacetsResponse(item.response)) {
+                    <gd-pie-chart type="doughnut" [data]="item.response" />
+                  }
+                }
+                @case ('stats') {
+                  @if (isMeasuresResponse(item.response)) {
+                    <gd-stats [data]="item.response" />
+                  }
+                }
+                @default {
+                  <div>Not yet Formatted - Type: {{ item.type }}</div>
+                }
+              }
+            } @else {
+              <div>No DATA - Type: {{ item.type }}</div>
             }
-            @case ('polarArea') {
-              <gd-pie-chart type="polarArea" />
-            }
-            @case ('doughnut') {
-              <gd-pie-chart type="doughnut" />
-            }
-            @default {
-              <div>Not yet implemented</div>
-            }
-          }
-        </gd-widget-body>
-      </gd-widget>
-    </gridster-item>
+          </gd-widget-body>
+        </gd-widget>
+      </gridster-item>
+    }
+  } @else {
+    <div>No widgets to display</div>
   }
 </gridster>

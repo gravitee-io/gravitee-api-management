@@ -16,7 +16,7 @@
 import { applicationConfig, moduleMetadata, StoryObj } from '@storybook/angular';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
-import { Widget } from './widget';
+import { Widget } from './model/widget/widget';
 import { WidgetComponent, WidgetTitleComponent, WidgetBodyComponent } from './widget.component';
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
 
@@ -109,9 +109,8 @@ export const WidgetWithPieChart: StoryObj<WidgetStoryArgs> = {
     widgetBody: '<gd-pie-chart type="pie" />',
     item: {
       id: 'widget-custom',
-      label: 'Custom Analytics',
+      title: 'Custom Analytics',
       type: 'pie',
-      filter: 'last-30-days',
       layout: { cols: 3, rows: 3, x: 0, y: 0 },
     },
   },

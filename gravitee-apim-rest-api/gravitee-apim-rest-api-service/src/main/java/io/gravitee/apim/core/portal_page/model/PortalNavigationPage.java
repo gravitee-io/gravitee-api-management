@@ -32,9 +32,10 @@ public final class PortalNavigationPage extends PortalNavigationItem {
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
+        @Nonnull Integer order,
         @Nonnull PortalPageContentId portalPageContentId
     ) {
-        super(id, organizationId, environmentId, title, area);
+        super(id, organizationId, environmentId, title, area, order);
         this.portalPageContentId = portalPageContentId;
     }
 }

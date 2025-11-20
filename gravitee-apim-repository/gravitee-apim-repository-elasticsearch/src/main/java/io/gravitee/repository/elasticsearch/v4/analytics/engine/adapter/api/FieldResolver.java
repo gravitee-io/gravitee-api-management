@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api;
 
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 
 /**
@@ -25,4 +26,5 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 public interface FieldResolver {
     String fromMetric(Metric metric);
     String fromFilter(Filter filter);
+    String fromFacet(Facet facet);
 }

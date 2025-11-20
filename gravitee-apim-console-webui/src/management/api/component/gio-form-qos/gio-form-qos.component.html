@@ -15,26 +15,30 @@
     limitations under the License.
 
 -->
-<div class="gio-form-qos">
-  <h3>Quality of service</h3>
-  <gio-banner-info>
-    Define the guaranteed level of message delivery.
-    <div gioBannerBody>
-      A given quality of service may or may not be supported by a given endpoint. Support also depends on the protocol used for the
-      entrypoint. Please check the documentation for QoS compatibility.
-      <a
-        href="https://documentation.gravitee.io/apim/guides/api-configuration/v4-api-configuration/quality-of-service"
-        aria-label="learn more"
-        rel="noopener"
-        target="_blank"
-        >Learn more</a
-      >
-    </div>
-  </gio-banner-info>
-  <mat-form-field class="gio-form-qos__select">
-    <mat-label>Quality of Service</mat-label>
-    <mat-select [name]="id + '-qos'" aria-label="Quality of service" required [(ngModel)]="selectedQos">
-      <mat-option *ngFor="let qos of supportedQos" [value]="qos">{{ qos }}</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
+@if (supportedQos?.length) {
+  <div class="gio-form-qos">
+    <h3>Quality of service</h3>
+    <gio-banner-info>
+      Define the guaranteed level of message delivery.
+      <div gioBannerBody>
+        A given quality of service may or may not be supported by a given endpoint. Support also depends on the protocol used for the
+        entrypoint. Please check the documentation for QoS compatibility.
+        <a
+          href="https://documentation.gravitee.io/apim/guides/api-configuration/v4-api-configuration/quality-of-service"
+          aria-label="learn more"
+          rel="noopener"
+          target="_blank"
+          >Learn more</a
+        >
+      </div>
+    </gio-banner-info>
+    <mat-form-field class="gio-form-qos__select">
+      <mat-label>Quality of Service</mat-label>
+      <mat-select [name]="id + '-qos'" aria-label="Quality of service" required [(ngModel)]="selectedQos">
+        @for (qos of supportedQos; track qos) {
+          <mat-option [value]="qos">{{ qos }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+}

@@ -54,9 +54,9 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(8)
+            .hasSize(9)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("APIs", "Guides", "Support", "Overview", "Getting Started", "Category1", "page11", "page12");
+            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "page11", "page12");
     }
 
     @Test

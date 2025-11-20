@@ -15,20 +15,41 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, inject, OnInit } from '@angular/core';
+import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+import { Component, computed, DestroyRef, inject, Signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+
+import {
+  SectionEditorDialogComponent,
+  SectionEditorDialogData,
+  SectionEditorDialogMode,
+} from './section-editor-dialog/section-editor-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
-import { PortalMenuLink } from '../../entities/management-api-v2';
+import {
+  NewPortalNavigationItem,
+  PortalArea,
+  PortalNavigationItem,
+  PortalNavigationItemType,
+  PortalNavigationPage,
+} from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
+import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -42,56 +63,169 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
     GioCardEmptyStateModule,
     MatButton,
     TreeComponent,
-    HttpClientModule,
+    GioPermissionModule,
+    MatMenuModule,
+    MatMenuTrigger,
+    MatIconModule,
+    MatMenuItem,
+    AsyncPipe,
+    MatCardModule,
+    NgTemplateOutlet,
   ],
 })
-export class PortalNavigationItemsComponent implements OnInit {
+export class PortalNavigationItemsComponent {
+  private destroyRef = inject(DestroyRef);
+
+  // UI State & Forms
+  private isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
+  addSectionMenuOpen = false;
   contentControl = new FormControl({
     value: '',
-    disabled: true,
+    disabled: this.isReadOnly,
   });
 
-  menuLinks: PortalMenuLink[] | null = null;
-  isEmpty = true;
-  pageNotFound = false;
+  // Route State
+  private readonly navId$ = this.activatedRoute.queryParams.pipe(map((params) => params['navId'] ?? null));
+  readonly navId = toSignal(this.navId$, { initialValue: null });
 
-  navId = toSignal(inject(ActivatedRoute).queryParams.pipe(map((params) => params['navId'] ?? null)));
+  // Menu Data State
+  private readonly refreshMenuList = new BehaviorSubject(1);
+  readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
+    switchMap(() => this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR')),
+    map((response) => response.items ?? []),
+    tap((items) => {
+      const currentNavId = this.navId();
+
+      // If no navId in query params, navigate to first PAGE item
+      if (items && items.length > 0 && !currentNavId) {
+        const firstPage = items.find((i) => i.type === 'PAGE');
+        if (firstPage) {
+          this.navigateToItemByNavId(firstPage.id);
+        }
+      }
+    }),
+    catchError(() => {
+      this.snackBarService.error('Failed to load navigation items');
+      return of([]);
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  readonly menuLinks = toSignal(this.menuLinks$, { initialValue: [] });
+  readonly selectedNavigationItem: Signal<SectionNode | null> = computed(() => {
+    const navId = this.navId();
+    const menuLinks = this.menuLinks();
+    return this.mapSelectedNavItemToNode(navId, menuLinks);
+  });
 
   constructor(
-    private readonly http: HttpClient,
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-  ) {}
-
-  ngOnInit(): void {
-    // TODO replace mock with real backend call when available
-    this.http.get<{ data: PortalMenuLink[] }>('assets/mocks/portal-menu-links.json').subscribe({
-      next: ({ data }) => {
-        this.menuLinks = data ?? [];
-        this.isEmpty = (this.menuLinks?.length ?? 0) === 0;
-      },
-      error: (err) => {
-        this.menuLinks = [];
-        this.isEmpty = true;
-        this.snackBarService.error('Failed to load portal navigation items: ' + err);
-      },
-    });
+    private readonly matDialog: MatDialog,
+    private readonly portalNavigationItemsService: PortalNavigationItemService,
+    private readonly portalPageContentService: PortalPageContentService,
+  ) {
+    this.setupPageContentSubscription();
   }
 
   onSelect($event: SectionNode) {
-    this.pageNotFound = false;
+    this.navigateToItemByNavId($event.id);
+  }
+
+  onAddSection(sectionType: PortalNavigationItemType) {
+    this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
+  }
+
+  private setupPageContentSubscription(): void {
+    toObservable(this.selectedNavigationItem)
+      .pipe(
+        switchMap((item) => {
+          // Only fetch if it is a PAGE, otherwise return empty
+          if (item && item.type === 'PAGE') {
+            const pageContentId = (item.data as PortalNavigationPage).portalPageContentId;
+            return this.loadPageContent(pageContentId);
+          }
+          return of('');
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((content) => {
+        this.contentControl.reset(content);
+      });
+  }
+
+  private loadPageContent(pageContentId: string): Observable<string> {
+    return this.portalPageContentService.getPageContent(pageContentId).pipe(
+      map(({ content }) => content),
+      catchError(() => {
+        this.snackBarService.error('Failed to load page content');
+        return of('');
+      }),
+    );
+  }
+
+  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
+    if (!navId) {
+      return null;
+    }
+
+    const foundItem = menuLinks?.find((item) => item.id === navId);
+
+    return foundItem
+      ? {
+          id: foundItem.id,
+          label: foundItem.title,
+          type: foundItem.type,
+          data: foundItem,
+        }
+      : null;
+  }
+
+  private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
+    this.matDialog
+      .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          type,
+          mode,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((result) => {
+          return this.create({
+            title: result.title,
+            type,
+            area,
+            url: result.url,
+          });
+        }),
+        tap(({ id }) => {
+          this.refreshMenuList.next(1);
+          this.navigateToItemByNavId(id);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private create(newPortalNavigationItem: NewPortalNavigationItem): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.createNavigationItem(newPortalNavigationItem).pipe(
+      catchError(() => {
+        this.snackBarService.error('Failed to create navigation item');
+        return EMPTY;
+      }),
+    );
+  }
+
+  private navigateToItemByNavId(navId: string): void {
     this.router
       .navigate(['.'], {
         relativeTo: this.activatedRoute,
-        queryParams: { navId: $event.id },
+        queryParams: { navId },
         queryParamsHandling: 'merge',
       })
-      .catch((err) => this.snackBarService.error('Failed to navigate to portal navigation items: ' + err));
-  }
-
-  onPageNotFound() {
-    this.pageNotFound = true;
-    this.snackBarService.error('The requested Navigation Item does not exist.');
+      .catch(() => this.snackBarService.error('Failed to navigate to portal navigation item: ' + navId));
   }
 }

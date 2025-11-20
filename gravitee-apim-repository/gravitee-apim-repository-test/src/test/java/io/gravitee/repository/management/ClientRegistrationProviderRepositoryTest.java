@@ -20,7 +20,6 @@ import static org.junit.Assert.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
-import io.gravitee.repository.management.model.Subscription;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -149,6 +148,65 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
     }
 
     @Test
+    public void shouldCreateWithTruststoreAndKeystore() throws Exception {
+        final ClientRegistrationProvider clientRegistrationProvider = new ClientRegistrationProvider();
+        clientRegistrationProvider.setId("new-dcr-with-ssl");
+        clientRegistrationProvider.setEnvironmentId("envId");
+        clientRegistrationProvider.setName("new DCR with SSL");
+        clientRegistrationProvider.setDescription("Description for my new DCR with SSL");
+        clientRegistrationProvider.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");
+        clientRegistrationProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
+        clientRegistrationProvider.setClientId("my-client-id");
+        clientRegistrationProvider.setClientSecret("my-client-secret");
+        clientRegistrationProvider.setScopes(Arrays.asList("scope1", "scope2"));
+        clientRegistrationProvider.setCreatedAt(new Date(1000000000000L));
+        clientRegistrationProvider.setUpdatedAt(new Date(1486771200000L));
+
+        // Set truststore fields
+        clientRegistrationProvider.setTrustStoreType("JKS");
+        clientRegistrationProvider.setTrustStorePath("/path/to/truststore.jks");
+        clientRegistrationProvider.setTrustStoreContent("truststore-content-base64");
+        clientRegistrationProvider.setTrustStorePassword("truststore-password");
+
+        // Set keystore fields
+        clientRegistrationProvider.setKeyStoreType("PKCS12");
+        clientRegistrationProvider.setKeyStorePath("/path/to/keystore.p12");
+        clientRegistrationProvider.setKeyStoreContent("keystore-content-base64");
+        clientRegistrationProvider.setKeyStorePassword("keystore-password");
+        clientRegistrationProvider.setKeyStoreAlias("my-alias");
+        clientRegistrationProvider.setKeyPassword("key-password");
+
+        int nbClientRegistrationProvidersBeforeCreation = clientRegistrationProviderRepository.findAll().size();
+        clientRegistrationProviderRepository.create(clientRegistrationProvider);
+        int nbClientRegistrationProvidersAfterCreation = clientRegistrationProviderRepository.findAll().size();
+
+        Assert.assertEquals(nbClientRegistrationProvidersBeforeCreation + 1, nbClientRegistrationProvidersAfterCreation);
+
+        Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("new-dcr-with-ssl");
+        Assert.assertTrue("Client registration provider with SSL saved not found", optional.isPresent());
+
+        final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
+
+        // Verify truststore fields
+        Assert.assertEquals("Invalid truststore type.", "JKS", clientRegistrationProviderSaved.getTrustStoreType());
+        Assert.assertEquals("Invalid truststore path.", "/path/to/truststore.jks", clientRegistrationProviderSaved.getTrustStorePath());
+        Assert.assertEquals(
+            "Invalid truststore content.",
+            "truststore-content-base64",
+            clientRegistrationProviderSaved.getTrustStoreContent()
+        );
+        Assert.assertEquals("Invalid truststore password.", "truststore-password", clientRegistrationProviderSaved.getTrustStorePassword());
+
+        // Verify keystore fields
+        Assert.assertEquals("Invalid keystore type.", "PKCS12", clientRegistrationProviderSaved.getKeyStoreType());
+        Assert.assertEquals("Invalid keystore path.", "/path/to/keystore.p12", clientRegistrationProviderSaved.getKeyStorePath());
+        Assert.assertEquals("Invalid keystore content.", "keystore-content-base64", clientRegistrationProviderSaved.getKeyStoreContent());
+        Assert.assertEquals("Invalid keystore password.", "keystore-password", clientRegistrationProviderSaved.getKeyStorePassword());
+        Assert.assertEquals("Invalid keystore alias.", "my-alias", clientRegistrationProviderSaved.getKeyStoreAlias());
+        Assert.assertEquals("Invalid key password.", "key-password", clientRegistrationProviderSaved.getKeyPassword());
+    }
+
+    @Test
     public void shouldUpdate() throws Exception {
         Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("oidc1");
         Assert.assertTrue("Client registration provider to update not found", optional.isPresent());
@@ -160,6 +218,18 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         identityProvider.setDescription("OIDC 1 Client registration provider");
         identityProvider.setCreatedAt(new Date(1000000000000L));
         identityProvider.setUpdatedAt(new Date(1486771200000L));
+
+        // Set truststore and keystore fields
+        identityProvider.setTrustStoreType("JKS");
+        identityProvider.setTrustStorePath("/path/to/truststore.jks");
+        identityProvider.setTrustStoreContent("updated-truststore-content");
+        identityProvider.setTrustStorePassword("updated-truststore-password");
+        identityProvider.setKeyStoreType("PKCS12");
+        identityProvider.setKeyStorePath("/path/to/keystore.p12");
+        identityProvider.setKeyStoreContent("updated-keystore-content");
+        identityProvider.setKeyStorePassword("updated-keystore-password");
+        identityProvider.setKeyStoreAlias("updated-alias");
+        identityProvider.setKeyPassword("updated-key-password");
 
         int nbIdentityProvidersBeforeUpdate = clientRegistrationProviderRepository.findAll().size();
         clientRegistrationProviderRepository.update(identityProvider);
@@ -194,6 +264,103 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
             "Invalid client registration provider updatedAt.",
             compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt())
         );
+
+        // Verify truststore fields are updated
+        Assert.assertEquals(
+            "Invalid updated truststore type.",
+            identityProvider.getTrustStoreType(),
+            identityProviderUpdated.getTrustStoreType()
+        );
+        Assert.assertEquals(
+            "Invalid updated truststore path.",
+            identityProvider.getTrustStorePath(),
+            identityProviderUpdated.getTrustStorePath()
+        );
+        Assert.assertEquals(
+            "Invalid updated truststore content.",
+            identityProvider.getTrustStoreContent(),
+            identityProviderUpdated.getTrustStoreContent()
+        );
+        Assert.assertEquals(
+            "Invalid updated truststore password.",
+            identityProvider.getTrustStorePassword(),
+            identityProviderUpdated.getTrustStorePassword()
+        );
+
+        // Verify keystore fields are updated
+        Assert.assertEquals(
+            "Invalid updated keystore type.",
+            identityProvider.getKeyStoreType(),
+            identityProviderUpdated.getKeyStoreType()
+        );
+        Assert.assertEquals(
+            "Invalid updated keystore path.",
+            identityProvider.getKeyStorePath(),
+            identityProviderUpdated.getKeyStorePath()
+        );
+        Assert.assertEquals(
+            "Invalid updated keystore content.",
+            identityProvider.getKeyStoreContent(),
+            identityProviderUpdated.getKeyStoreContent()
+        );
+        Assert.assertEquals(
+            "Invalid updated keystore password.",
+            identityProvider.getKeyStorePassword(),
+            identityProviderUpdated.getKeyStorePassword()
+        );
+        Assert.assertEquals(
+            "Invalid updated keystore alias.",
+            identityProvider.getKeyStoreAlias(),
+            identityProviderUpdated.getKeyStoreAlias()
+        );
+        Assert.assertEquals("Invalid updated key password.", identityProvider.getKeyPassword(), identityProviderUpdated.getKeyPassword());
+    }
+
+    @Test
+    public void shouldCreateWithNullTruststoreAndKeystore() throws Exception {
+        final ClientRegistrationProvider clientRegistrationProvider = new ClientRegistrationProvider();
+        clientRegistrationProvider.setId("new-dcr-null-ssl");
+        clientRegistrationProvider.setEnvironmentId("envId");
+        clientRegistrationProvider.setName("new DCR with null SSL");
+        clientRegistrationProvider.setDescription("Description for my new DCR with null SSL");
+        clientRegistrationProvider.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");
+        clientRegistrationProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
+        clientRegistrationProvider.setClientId("my-client-id");
+        clientRegistrationProvider.setClientSecret("my-client-secret");
+        clientRegistrationProvider.setScopes(Arrays.asList("scope1"));
+        clientRegistrationProvider.setCreatedAt(new Date(1000000000000L));
+        clientRegistrationProvider.setUpdatedAt(new Date(1486771200000L));
+
+        // Leave truststore and keystore fields as null to test nullable columns
+        clientRegistrationProvider.setTrustStoreType(null);
+        clientRegistrationProvider.setTrustStorePath(null);
+        clientRegistrationProvider.setTrustStoreContent(null);
+        clientRegistrationProvider.setTrustStorePassword(null);
+        clientRegistrationProvider.setKeyStoreType(null);
+        clientRegistrationProvider.setKeyStorePath(null);
+        clientRegistrationProvider.setKeyStoreContent(null);
+        clientRegistrationProvider.setKeyStorePassword(null);
+        clientRegistrationProvider.setKeyStoreAlias(null);
+        clientRegistrationProvider.setKeyPassword(null);
+
+        clientRegistrationProviderRepository.create(clientRegistrationProvider);
+
+        Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("new-dcr-null-ssl");
+        Assert.assertTrue("Client registration provider with null SSL saved not found", optional.isPresent());
+
+        final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
+
+        // Verify that null values are preserved
+        Assert.assertNull("Truststore type should be null", clientRegistrationProviderSaved.getTrustStoreType());
+        Assert.assertNull("Truststore path should be null", clientRegistrationProviderSaved.getTrustStorePath());
+        Assert.assertNull("Truststore content should be null", clientRegistrationProviderSaved.getTrustStoreContent());
+        Assert.assertNull("Truststore password should be null", clientRegistrationProviderSaved.getTrustStorePassword());
+        Assert.assertNull("Keystore type should be null", clientRegistrationProviderSaved.getKeyStoreType());
+        Assert.assertNull("Keystore path should be null", clientRegistrationProviderSaved.getKeyStorePath());
+        Assert.assertNull("Keystore content should be null", clientRegistrationProviderSaved.getKeyStoreContent());
+        Assert.assertNull("Keystore password should be null", clientRegistrationProviderSaved.getKeyStorePassword());
+        Assert.assertNull("Keystore alias should be null", clientRegistrationProviderSaved.getKeyStoreAlias());
+        Assert.assertNull("Key password should be null", clientRegistrationProviderSaved.getKeyPassword());
     }
 
     @Test

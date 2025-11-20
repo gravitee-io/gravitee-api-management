@@ -25,7 +25,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
+import { ApiType, ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
 import {
   GioTableWrapperFilters,
   GioTableWrapperPagination,
@@ -53,7 +53,7 @@ import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/
 export class ApiRuntimeLogsListComponent {
   logs = input.required<ConnectionLog[]>();
   pagination = input.required<Pagination>();
-  isMessageApi = input.required<boolean>();
+  apiType = input.required<ApiType>();
   readonly gioTableWrapperFilters = computed(() => {
     const pagination = this.pagination();
     return {
@@ -68,11 +68,11 @@ export class ApiRuntimeLogsListComponent {
     'timestamp',
     'method',
     'status',
-    'URI',
+    ...(this.apiType() === 'MCP_PROXY' ? ['mcpMethod', 'mcpError'] : ['URI']),
     'application',
     'plan',
     'responseTime',
-    ...(this.isMessageApi() ? [] : ['endpoint']),
+    ...(this.apiType() === 'MESSAGE' ? [] : ['endpoint']),
     'issues',
     'actions',
   ]);
@@ -89,5 +89,20 @@ export class ApiRuntimeLogsListComponent {
     ) {
       this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
     }
+  }
+
+  getMcpErrorLabel(error?: string): string {
+    if (!error) {
+      return '';
+    }
+    const mcpErrorLabels: Record<string, string> = {
+      '-32700': 'Parse Error',
+      '-32600': 'Invalid Request',
+      '-32601': 'Method not Found',
+      '-32602': 'Invalid Params',
+      '-32603': 'Internal Error',
+      '-32002': 'Resource not Found',
+    };
+    return mcpErrorLabels[error] ?? error;
   }
 }

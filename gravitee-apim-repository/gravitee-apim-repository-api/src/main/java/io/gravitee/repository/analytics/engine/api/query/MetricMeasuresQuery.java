@@ -15,12 +15,24 @@
  */
 package io.gravitee.repository.analytics.engine.api.query;
 
-import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricMeasuresQuery(Metric metric, Set<Measure> measures) {}
+public record MetricMeasuresQuery(Metric metric, Set<Measure> measures, List<Sort> sorts) {
+    public MetricMeasuresQuery(Metric metric, Set<Measure> measures) {
+        this(metric, measures, List.of());
+    }
+
+    public record Sort(Measure measure, Sort.Order order) {
+        public enum Order {
+            ASC,
+            DESC,
+        }
+    }
+}

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.PreconditionFaile
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ThrowableMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.UnrecognizedPropertyExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ValidationExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.ConflictDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.NotAllowedDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.NotFoundDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.TechnicalDomainExceptionMapper;
@@ -106,6 +107,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(TechnicalDomainExceptionMapper.class);
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
+        register(ConflictDomainExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

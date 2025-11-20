@@ -35,6 +35,7 @@ export interface ConnectionLog {
   errorComponentName?: string;
   errorComponentType?: string;
   warnings?: ConnectionLogDiagnostic[];
+  additionalMetrics?: { [key: string]: string };
 }
 
 export interface ConnectionLogDiagnostic {

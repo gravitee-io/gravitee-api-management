@@ -30,13 +30,18 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainServiceTestInitializer;
+import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
@@ -49,6 +54,7 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,6 +98,8 @@ class ProcessPromotionUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainService =
         new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudServiceInMemory);
+    private final ImportDefinitionUpdateDomainServiceTestInitializer importDefinitionUpdateDomainService =
+        new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudServiceInMemory);
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private ProcessPromotionUseCase useCase;
@@ -103,7 +111,8 @@ class ProcessPromotionUseCaseTest {
         useCase = new ProcessPromotionUseCase(
             promotionCrudService,
             cockpitPromotionServiceProvider,
-            importDefinitionCreateDomainService.initialize()
+            importDefinitionCreateDomainService.initialize(),
+            importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID)
         );
 
         UuidString.overrideGenerator(() -> UUID);
@@ -201,7 +210,8 @@ class ProcessPromotionUseCaseTest {
     }
 
     @Test
-    void should_throw_exception_when_promote_to_update_api() {
+    void should_update_v4_api_using_promotion() {
+        promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
         var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
@@ -213,27 +223,19 @@ class ProcessPromotionUseCaseTest {
             .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    PROMOTION,
-                    DefinitionVersion.V4,
-                    true,
-                    ApiFixtures.aProxyApiV4()
-                        .toBuilder()
-                        .id("already-promoted-api")
-                        .crossId(CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .build(),
-                    ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                    AUDIT
-                )
+        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                ApiFixtures.aProxyApiV4().toBuilder().id("already-promoted-api").crossId(CROSS_ID).environmentId(ENVIRONMENT_ID).build(),
+                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
+                AUDIT
             )
         );
-
-        assertThat(throwable)
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("Coming soon - Api update using promotion is not yet supported");
+        assertThat(result).isNotNull();
     }
 
     @Test
@@ -246,7 +248,21 @@ class ProcessPromotionUseCaseTest {
 
         when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        configureImportService();
+        importDefinitionCreateDomainService.parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                ),
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
+        );
+        importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
+        when(
+            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
+        ).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
         var result = useCase.execute(
@@ -273,21 +289,51 @@ class ProcessPromotionUseCaseTest {
             });
     }
 
-    private void configureImportService() {
-        importDefinitionCreateDomainService.parametersQueryService.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+    @Test
+    void should_return_promotion_subentities_errors() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
+        var aleadyPromotedApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(API_ID)
+            .crossId(CROSS_ID)
+            .environmentId(ENVIRONMENT.getId())
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
+
+        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(
+                new ProcessPromotionUseCase.Input(
+                    PROMOTION,
+                    DefinitionVersion.V4,
+                    true,
+                    ApiFixtures.aProxyApiV4()
+                        .toBuilder()
+                        .id("already-promoted-api")
+                        .crossId(CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build(),
+                    ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .plans(Set.of(new PlanWithFlows()))
+                        .metadata(Set.of(new NewApiMetadata()))
+                        .pages(List.of(new Page()))
+                        .build(),
+                    AUDIT
+                )
             )
         );
-        importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
-        when(
-            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThat(throwable)
+            .isInstanceOf(ApiImportedWithErrorException.class)
+            .hasMessageContainingAll(
+                "API imported with error:",
+                "(Metadata) null",
+                "(Plans) Cannot invoke \"io.gravitee.definition.model.DefinitionVersion.ordinal()\""
+            );
     }
 }

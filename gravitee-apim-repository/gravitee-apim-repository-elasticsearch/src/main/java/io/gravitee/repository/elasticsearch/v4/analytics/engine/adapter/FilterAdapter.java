@@ -16,7 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.query.Filter;
-import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -35,7 +35,7 @@ public class FilterAdapter {
         this.fieldResolver = fieldResolver;
     }
 
-    public JsonArray adapt(MeasuresQuery query) {
+    public JsonArray adapt(Query query) {
         var filters = JsonArray.of(TimeRangeAdapter.adapt(query));
         for (var filter : query.filters()) {
             filters.add(filter(filter));

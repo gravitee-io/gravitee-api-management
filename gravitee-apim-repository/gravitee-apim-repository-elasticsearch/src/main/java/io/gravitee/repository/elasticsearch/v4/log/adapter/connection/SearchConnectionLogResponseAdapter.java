@@ -17,7 +17,9 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asBooleanOrFalse;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asIntOr;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.ADDITIONAL_METRICS;
 import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.ERROR_COMPONENT_NAME;
 import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.ERROR_COMPONENT_TYPE;
 import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.ERROR_KEY;
@@ -64,7 +66,8 @@ public class SearchConnectionLogResponseAdapter {
             .responseContentLength(asIntOr(json.get(ConnectionLogField.RESPONSE_CONTENT_LENGTH), 0))
             .errorKey(asTextOrNull(json.get(ERROR_KEY)))
             .errorComponentName(asTextOrNull(json.get(ERROR_COMPONENT_NAME)))
-            .errorComponentType(asTextOrNull(json.get(ERROR_COMPONENT_TYPE)));
+            .errorComponentType(asTextOrNull(json.get(ERROR_COMPONENT_TYPE)))
+            .additionalMetrics(asMapOrNull(json.get(ADDITIONAL_METRICS)));
 
         if (index.contains(Type.REQUEST.getType())) {
             return connectionLog

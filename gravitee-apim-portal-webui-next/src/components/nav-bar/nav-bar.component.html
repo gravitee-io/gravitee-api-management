@@ -16,7 +16,7 @@
 
 -->
 <div class="nav-bar__container">
-  <app-company-title [title]="siteTitle" [logo]="logo()" />
+  <app-company-title [logo]="logo()" />
   @if (!forceLogin() || isLoggedIn()) {
     @if (isMobile()) {
       <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />

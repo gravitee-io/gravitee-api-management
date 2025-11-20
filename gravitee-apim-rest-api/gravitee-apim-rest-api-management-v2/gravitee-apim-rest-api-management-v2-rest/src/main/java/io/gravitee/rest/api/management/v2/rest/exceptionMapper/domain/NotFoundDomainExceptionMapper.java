@@ -33,6 +33,6 @@ public class NotFoundDomainExceptionMapper extends AbstractDomainExceptionMapper
         return new Error()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
             .message(nfe.getMessage())
-            .parameters(Map.of("id", nfe.getId()));
+            .parameters(nfe.getId() != null ? Map.of("id", nfe.getId()) : null);
     }
 }

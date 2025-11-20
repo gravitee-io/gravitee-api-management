@@ -51,6 +51,22 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="mcpMethod">
+      <th mat-header-cell *matHeaderCellDef id="mcp-method">MCP Method</th>
+      <td mat-cell *matCellDef="let log">
+        {{ log.additionalMetrics['keyword_mcp-proxy_method'] }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="mcpError">
+      <th mat-header-cell *matHeaderCellDef id="mcp-error">MCP Error</th>
+      <td mat-cell *matCellDef="let log">
+        @if (log.additionalMetrics['long_mcp-proxy_response-error-code']) {
+          <span class="gio-badge-error">{{ getMcpErrorLabel(log.additionalMetrics['long_mcp-proxy_response-error-code']) }}</span>
+        }
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="URI">
       <th mat-header-cell *matHeaderCellDef>URI</th>
       <td class="uri-column" mat-cell *matCellDef="let log">{{ log.uri }}</td>

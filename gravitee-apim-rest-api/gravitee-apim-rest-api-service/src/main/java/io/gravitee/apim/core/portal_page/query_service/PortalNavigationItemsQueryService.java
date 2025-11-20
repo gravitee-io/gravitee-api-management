@@ -21,6 +21,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.List;
 
 public interface PortalNavigationItemsQueryService {
+    PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
+
     List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);

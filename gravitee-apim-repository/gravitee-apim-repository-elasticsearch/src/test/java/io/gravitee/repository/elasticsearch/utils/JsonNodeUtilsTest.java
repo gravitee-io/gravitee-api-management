@@ -18,7 +18,10 @@ package io.gravitee.repository.elasticsearch.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -72,5 +75,24 @@ class JsonNodeUtilsTest {
     void should_get_default_long() {
         final JsonNode jsonNode = JsonNodeFactory.instance.objectNode().put("key", 1);
         assertThat(JsonNodeUtils.asLongOr(jsonNode.get("absent-key"), -1)).isEqualTo(-1);
+    }
+
+    @Test
+    void should_get_map() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode inner = mapper.createObjectNode();
+        inner.put("keyword_mcp-proxy_method", "initialize");
+        assertThat(JsonNodeUtils.asMapOrNull(inner)).isEqualTo(Map.of("keyword_mcp-proxy_method", "initialize"));
+    }
+
+    @Test
+    void should_get_map_null() {
+        assertThat(JsonNodeUtils.asMapOrNull(null)).isEqualTo(null);
+    }
+
+    @Test
+    void should_get_map_incorrect_input() {
+        final JsonNode jsonNode = JsonNodeFactory.instance.objectNode().put("key", 1);
+        assertThat(JsonNodeUtils.asMapOrNull(jsonNode.get("key"))).isEqualTo(null);
     }
 }

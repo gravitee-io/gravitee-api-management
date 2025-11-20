@@ -6,6 +6,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.10.0
 - Allow to configure Expression Language whitelist.
 - Improve redis rate limit configuration to allow username for acl configuration [issues/10966](https://github.com/gravitee-io/issues/issues/10966).
+- allow configuration of httpClient proxy excludes [issues/10855](https://github.com/gravitee-io/issues/issues/10855).
 
 ### 4.9.0
 

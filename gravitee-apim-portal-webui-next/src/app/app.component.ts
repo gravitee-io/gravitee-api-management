@@ -36,7 +36,7 @@ export class AppComponent {
   logo = inject(ThemeService).logo;
   favicon = inject(ThemeService).favicon;
   customLinks = inject(PortalMenuLinksService).links;
-  siteTitle: string;
+  private siteTitle: string;
 
   constructor(
     private configService: ConfigService,

@@ -1,63 +1,75 @@
 {
-  "id": "webhook-metrics-message-api",
-  "name": "webhook-metrics-message-api",
-  "apiVersion": "1.0",
-  "definitionVersion": "4.0.0",
-  "type": "message",
-  "description": "API v4 using webhook entrypoint",
-  "listeners": [
-    {
-      "type": "subscription",
-      "paths": [
+    "id": "webhook-metrics-message-api",
+    "name": "webhook-metrics-message-api",
+    "apiVersion": "1.0",
+    "definitionVersion": "4.0.0",
+    "type": "message",
+    "description": "API v4 using webhook entrypoint",
+    "listeners": [
         {
-          "path": "/test"
+            "type": "subscription",
+            "paths": [
+                {
+                    "path": "/test"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "webhook",
+                    "configuration": {
+                        "logging": {
+                            "request": {
+                                "headers": true,
+                                "payload": true
+                            },
+                            "response": {
+                                "headers": true,
+                                "payload": true
+                            },
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
         }
-      ],
-      "entrypoints": [
+    ],
+    "endpointGroups": [
         {
-          "type": "webhook"
+            "name": "default",
+            "type": "mock",
+            "endpoints": [
+                {
+                    "name": "mock",
+                    "type": "mock",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "messageInterval": 10,
+                        "messageContent": "message"
+                    }
+                }
+            ]
         }
-      ]
-    }
-  ],
-  "endpointGroups": [
-    {
-      "name": "default",
-      "type": "mock",
-      "endpoints": [
-        {
-          "name": "mock",
-          "type": "mock",
-          "inheritConfiguration": false,
-          "configuration": {
-            "messageInterval": 10,
-            "messageContent": "message"
-          }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": true,
+        "logging": {
+            "condition": "",
+            "content": {
+                "headers": true,
+                "messageHeaders": true,
+                "payload": true,
+                "messagePayload": true,
+                "messageMetadata": true
+            },
+            "phase": {
+                "request": true,
+                "response": true
+            },
+            "mode": {
+                "endpoint": true,
+                "entrypoint": true
+            }
         }
-      ]
     }
-  ],
-  "flows": [
-  ],
-  "analytics": {
-    "enabled": true,
-    "logging": {
-      "condition": "",
-      "content": {
-        "headers": true,
-        "messageHeaders": true,
-        "payload": true,
-        "messagePayload": true,
-        "messageMetadata": true
-      },
-      "phase": {
-        "request": true,
-        "response": true
-      },
-      "mode": {
-        "endpoint": true,
-        "entrypoint": true
-      }
-    }
-  }
 }

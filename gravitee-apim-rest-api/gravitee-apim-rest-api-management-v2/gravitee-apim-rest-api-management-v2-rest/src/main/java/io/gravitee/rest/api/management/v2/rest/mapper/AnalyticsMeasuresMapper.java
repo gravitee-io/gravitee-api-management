@@ -15,15 +15,28 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketGroup;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetricRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
@@ -31,7 +44,9 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -44,7 +59,38 @@ public interface AnalyticsMeasuresMapper {
 
     MeasuresResponse fromResponseModel(io.gravitee.apim.core.analytics_engine.model.MeasuresResponse responseModel);
 
+    FacetsResponse fromResponseModel(io.gravitee.apim.core.analytics_engine.model.FacetsResponse responseModel);
+
+    @Mapping(source = "metric", target = "name")
+    FacetsResponseMetricsInner fromResponseModel(MetricFacetsResponse responseModel);
+
+    List<Measure> fromResponseModel(List<io.gravitee.apim.core.analytics_engine.model.Measure> responseModel);
+
+    default Bucket fromResponseModel(FacetBucketResponse responseModel) {
+        var bucket = new Bucket();
+        if (responseModel.buckets() == null) {
+            var leaf = new BucketLeaf()
+                .type(BucketLeaf.TypeEnum.LEAF)
+                .key(responseModel.key())
+                .name(responseModel.key())
+                .measures(fromResponseModel(responseModel.measures()));
+            bucket.setActualInstance(leaf);
+            return bucket;
+        }
+        var group = new BucketGroup().type(BucketGroup.TypeEnum.GROUP).key(responseModel.key()).name(responseModel.key());
+        group.setBuckets(responseModel.buckets().stream().map(this::fromResponseModel).toList());
+        bucket.setActualInstance(group);
+        return bucket;
+    }
+
     MeasuresRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest requestEntity);
+
+    FacetMetricMeasuresRequest fromRequestEntity(FacetMetricRequest facetMetricRequest);
+
+    MetricMeasuresRequest fromRequestEntity(MetricRequest metricRequest);
+
+    @Mapping(target = "facets", source = "by")
+    FacetsRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest requestEntity);
 
     default TimeRange fromTimeRangeEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange timeRangeEntity) {
         return new TimeRange(toInstant(timeRangeEntity.getFrom()), toInstant(timeRangeEntity.getTo()));

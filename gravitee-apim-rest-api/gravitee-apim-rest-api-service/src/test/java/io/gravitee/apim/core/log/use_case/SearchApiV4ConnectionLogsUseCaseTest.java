@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -120,6 +121,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
                             .gatewayResponseTime(42)
                             .endpoint("https://my-api-example.com")
                             .warnings(List.of())
+                            .additionalMetrics(Map.of())
                             .build()
                     )
                 );

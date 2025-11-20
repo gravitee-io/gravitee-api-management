@@ -22,7 +22,7 @@ import { SectionNode } from './tree.component';
 @Component({
   selector: 'app-tree-node',
   standalone: true,
-  imports: [CommonModule, MatIconModule, TreeNodeComponent],
+  imports: [CommonModule, MatIconModule],
   templateUrl: './tree-node.component.html',
   styleUrls: ['./tree-node.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

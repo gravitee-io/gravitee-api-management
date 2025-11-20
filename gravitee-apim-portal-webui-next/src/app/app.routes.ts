@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 
+import { GraviteeDashboardComponent, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
 
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
@@ -36,6 +38,7 @@ import { CategoriesViewComponent } from './catalog/categories-view/categories-vi
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { GuidesPageComponent } from './guides/components/guides-page.component';
+import { GuidesRedirectToFirstIdComponent } from './guides/components/guides-redirect-to-first-id.component';
 import { GuidesComponent } from './guides/guides.component';
 import { environmentPagesResolver } from './guides/resolvers/environment-pages.resolver';
 import { LogInComponent } from './log-in/log-in.component';
@@ -226,11 +229,22 @@ export const routes: Routes = [
     resolve: { pages: environmentPagesResolver },
     children: [
       {
+        path: '',
+        component: GuidesRedirectToFirstIdComponent,
+      },
+      {
         path: ':pageId',
         component: GuidesPageComponent,
         data: { breadcrumb: { alias: 'pageName' } },
       },
     ],
+  },
+  {
+    path: 'analytics',
+    component: GraviteeDashboardComponent,
+    resolve: {
+      widgets: () => inject(GraviteeDashboardService).getWidgets(),
+    },
   },
   {
     path: 'log-in',

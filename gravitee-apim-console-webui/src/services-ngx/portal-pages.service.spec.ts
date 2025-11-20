@@ -38,24 +38,6 @@ describe('PortalPagesService', () => {
     httpTestingController.verify();
   });
 
-  describe('getHomepage', () => {
-    it('should call the API', (done) => {
-      const fakePortalPage = fakePortalPageWithDetails();
-
-      portalPagesService.getHomepage().subscribe((response) => {
-        expect(response).toStrictEqual(fakePortalPage);
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages?type=homepage&expands=content`,
-      });
-
-      req.flush(fakePortalPage);
-    });
-  });
-
   describe('updatePortalPage', () => {
     it('should call the API', (done) => {
       const fakePortalPage = fakePortalPageWithDetails({ content: 'test' });

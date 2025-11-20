@@ -28,14 +28,14 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationItemComparatorTest {
 
     @Test
-    void should_order_items_by_parentId_nulls_first_then_by_order_nulls_last() {
+    void should_order_items_by_parentId_nulls_first_then_by_order() {
         var parent = PortalNavigationItemId.random();
 
         var itemWithNullParent = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "A");
         itemWithNullParent.setOrder(2);
 
-        var itemWithParentOrderNull = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "B", parent);
-        itemWithParentOrderNull.setOrder(null);
+        var itemWithParentOrder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "B", parent);
+        itemWithParentOrder.setOrder(0);
 
         var itemWithParentOrder1 = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "C", parent);
         itemWithParentOrder1.setOrder(1);
@@ -44,13 +44,13 @@ class PortalNavigationItemComparatorTest {
         itemWithParentOrder2.setOrder(2);
 
         List<PortalNavigationItem> items = new ArrayList<>(
-            List.of(itemWithParentOrder2, itemWithNullParent, itemWithParentOrder1, itemWithParentOrderNull)
+            List.of(itemWithParentOrder2, itemWithNullParent, itemWithParentOrder1, itemWithParentOrder)
         );
 
         items.sort(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder());
 
         assertThat(items.getFirst()).isEqualTo(itemWithNullParent); // null parent first
-        // then items with same parent ordered by order (nulls last -> itemWithParentOrder1 (1), itemWithParentOrder2 (2), itemWithParentOrderNull (null))
-        assertThat(items.subList(1, 4)).containsExactly(itemWithParentOrder1, itemWithParentOrder2, itemWithParentOrderNull);
+        // then items with same parent ordered by order (itemWithParentOrder (0), itemWithParentOrder1 (1), itemWithParentOrder2 (2))
+        assertThat(items.subList(1, 4)).containsExactly(itemWithParentOrder, itemWithParentOrder1, itemWithParentOrder2);
     }
 }

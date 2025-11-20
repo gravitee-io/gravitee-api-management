@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardService, GridComponent, Widget } from '@gravitee/gravitee-dashboard';
+import { GraviteeDashboardComponent, GraviteeDashboardService, Widget } from '@gravitee/gravitee-dashboard';
 
-import { Component, inject } from '@angular/core';
+import { inject, Component } from '@angular/core';
 
 @Component({
   selector: 'analytics-viewer',
-  imports: [GridComponent],
+  imports: [GraviteeDashboardComponent],
   templateUrl: './analytics-viewer.component.html',
   styleUrl: './analytics-viewer.component.scss',
 })

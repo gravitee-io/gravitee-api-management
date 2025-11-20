@@ -15,4 +15,4 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
-public record NumberRange(Number min, Number max) {}
+public record NumberRange(Number from, Number to) {}

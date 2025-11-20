@@ -38,6 +38,7 @@ public class ConnectionLogField {
     public static final String ERROR_KEY = "error-key";
     public static final String ERROR_COMPONENT_NAME = "error-component-name";
     public static final String ERROR_COMPONENT_TYPE = "error-component-type";
+    public static final String ADDITIONAL_METRICS = "additional-metrics";
     public static final String WARNINGS = "warnings";
 
     // Fields with different names in each index
@@ -49,10 +50,15 @@ public class ConnectionLogField {
     public static final Field CLIENT_IDENTIFIER = new Field("subscription", "client-identifier");
     public static final Field TRANSACTION_ID = new Field("transaction", "transaction-id");
     public static final Field HTTP_METHOD = new Field("method", "http-method");
+    public static final Field MCP_METHOD = new Field("additional-metrics.keyword_mcp-proxy_method");
     public static final Field GATEWAY_RESPONSE_TIME = new Field("response-time", "gateway-response-time-ms");
     public static final Field ENTRYPOINT_ID = new Field(null, "entrypoint-id");
     public static final Field REQUEST_ENDED = new Field(null, "request-ended");
     public static final Field ENDPOINT = new Field("endpoint", "endpoint");
 
-    public record Field(String v2Request, String v4Metrics) {}
+    public record Field(String v2Request, String v4Metrics) {
+        public Field(String v4Metrics) {
+            this(null, v4Metrics);
+        }
+    }
 }

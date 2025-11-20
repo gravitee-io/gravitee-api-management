@@ -17,7 +17,9 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
@@ -44,6 +46,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseS
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FacetsResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFacetsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPMeasuresQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MeasuresResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -94,7 +98,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         new SearchResponseStatusOverTimeAdapter();
 
     private final HTTPMeasuresQueryAdapter httpMeasuresQueryAdapter = new HTTPMeasuresQueryAdapter();
+    private final HTTPFacetsQueryAdapter httpFacetsQueryAdapter = new HTTPFacetsQueryAdapter();
     private final MeasuresResponseAdapter measuresResponseAdapter = new MeasuresResponseAdapter();
+    private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -291,6 +297,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return client
             .search(index, null, esQuery)
             .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = httpFacetsQueryAdapter.adapt(query);
+
+        log.debug("HTTP facets query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> facetsResponseAdapter.adapt(response, query))
             .blockingGet();
     }
 

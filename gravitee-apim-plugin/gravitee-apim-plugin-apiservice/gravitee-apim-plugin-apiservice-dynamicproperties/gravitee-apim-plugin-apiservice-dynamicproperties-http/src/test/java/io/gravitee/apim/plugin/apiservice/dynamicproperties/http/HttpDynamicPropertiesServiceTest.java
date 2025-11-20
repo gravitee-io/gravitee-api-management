@@ -57,7 +57,6 @@ import io.gravitee.node.api.cluster.Member;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneMember;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
@@ -512,7 +511,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(0, propertyEvent -> {
                     Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
@@ -873,11 +872,12 @@ class HttpDynamicPropertiesServiceTest {
     }
 
     private HttpDynamicPropertiesService buildServiceFor(AbstractApi api) {
-        if (api instanceof Api asHttpApi) {
-            return new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asHttpApi, applicationContext));
-        } else if (api instanceof NativeApi asNativeApi) {
-            return new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asNativeApi, applicationContext));
-        }
-        return null;
+        return switch (api) {
+            case Api asHttpApi -> new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asHttpApi, applicationContext));
+            case NativeApi asNativeApi -> new HttpDynamicPropertiesService(
+                new DefaultManagementDeploymentContext(asNativeApi, applicationContext)
+            );
+            case null, default -> throw new IllegalArgumentException("Api must be an instance of Api or NativeApi");
+        };
     }
 }

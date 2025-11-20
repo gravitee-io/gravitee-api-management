@@ -20,7 +20,6 @@ import { Observable } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
 import { PatchPortalPage } from '../entities/portal/patch-portal-page';
-import { PortalPagesResponse } from '../entities/portal/portal-pages-response';
 
 @Injectable({
   providedIn: 'root',
@@ -30,13 +29,6 @@ export class PortalPagesService {
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
-
-  /**
-   * Get the homepage portal page
-   */
-  getHomepage(): Observable<PortalPagesResponse> {
-    return this.http.get<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages?type=homepage&expands=content`);
-  }
 
   publishPage(pageId: string): Observable<PortalPageWithDetails> {
     return this.http.post<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${pageId}/_publish`, {});

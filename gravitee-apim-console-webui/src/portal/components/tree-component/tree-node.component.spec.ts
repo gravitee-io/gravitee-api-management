@@ -29,7 +29,7 @@ describe('TreeNodeComponent', () => {
   const baseNode: SectionNode = {
     id: 'n1',
     label: 'Node 1',
-    type: 'page',
+    type: 'PAGE',
   };
 
   beforeEach(async () => {
@@ -85,7 +85,7 @@ describe('TreeNodeComponent', () => {
     const folderNode: SectionNode = {
       id: 'f1',
       label: 'Folder 1',
-      type: 'folder',
+      type: 'FOLDER',
       children: [baseNode],
     };
 
@@ -113,8 +113,8 @@ describe('TreeNodeComponent', () => {
   });
 
   it('should propagate selectedId and events to children when expanded', () => {
-    const child: SectionNode = { id: 'c1', label: 'Child', type: 'page' };
-    const folderNode: SectionNode = { id: 'f2', label: 'Folder 2', type: 'folder', children: [child] };
+    const child: SectionNode = { id: 'c1', label: 'Child', type: 'PAGE' };
+    const folderNode: SectionNode = { id: 'f2', label: 'Folder 2', type: 'FOLDER', children: [child] };
 
     fixture.componentRef.setInput('node', folderNode);
     fixture.componentRef.setInput('selectedId', 'c1');

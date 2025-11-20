@@ -16,7 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.analytics.engine.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
@@ -51,15 +51,14 @@ public class MeasuresResponseAdapter {
             return empty(query);
         }
 
-        var metricsAndMeasures = AggregationAdapter.toMetricsAndMeasures(aggregations, query);
+        var metricAndMeasures = AggregationAdapter.toMetricsAndMeasures(aggregations, query);
+        var metricResults = new ArrayList<MetricMeasuresResult>();
 
-        var result = new MeasuresResult(new ArrayList<>());
-
-        for (var entry : metricsAndMeasures.entrySet()) {
-            result.measures().add(new MetricMeasuresResult(entry.getKey(), entry.getValue()));
+        for (var entry : metricAndMeasures.entrySet()) {
+            metricResults.add(new MetricMeasuresResult(entry.getKey(), entry.getValue()));
         }
 
-        return result;
+        return new MeasuresResult(metricResults);
     }
 
     private MeasuresResult empty(MeasuresQuery query) {

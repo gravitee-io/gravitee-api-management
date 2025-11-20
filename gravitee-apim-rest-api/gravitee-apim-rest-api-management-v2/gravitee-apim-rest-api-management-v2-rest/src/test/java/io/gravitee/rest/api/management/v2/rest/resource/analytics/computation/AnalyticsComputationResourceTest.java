@@ -17,10 +17,23 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.computation;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.AnalyticsEngineFixtures.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
-import inmemory.HTTPProxyDataPlaneQueryServiceInMemory;
-import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
+import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
@@ -29,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import jakarta.ws.rs.client.Entity;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -44,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class AnalyticsComputationResourceTest extends ApiResourceTest {
 
     @Autowired
-    HTTPProxyDataPlaneQueryServiceInMemory httpProxyDataPlaneQueryService;
+    AnalyticsRepository analyticsRepository;
 
     @Override
     protected String contextPath() {
@@ -56,14 +70,18 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @BeforeEach
         void setUp() {
-            httpProxyDataPlaneQueryService.initWith(
-                List.of(
-                    new io.gravitee.apim.core.analytics_engine.model.MeasuresResponse(
-                        List.of(
-                            new MetricMeasuresResponse(
-                                MetricSpec.Name.HTTP_REQUESTS,
-                                List.of(new io.gravitee.apim.core.analytics_engine.model.Measure(MetricSpec.Measure.COUNT, 42))
-                            )
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+            when(
+                analyticsRepository.searchHTTPMeasures(
+                    eq(queryContext),
+                    argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_REQUESTS)
+                )
+            ).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.HTTP_REQUESTS,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
                         )
                     )
                 )
@@ -86,6 +104,65 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                         )
                     )
                 );
+        }
+    }
+
+    @Nested
+    class Facets {
+
+        @BeforeEach
+        void setUp() {
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+
+            when(
+                analyticsRepository.searchHTTPFacets(eq(queryContext), argThat(query -> query.facets().getFirst() == Facet.HTTP_STATUS))
+            ).thenReturn(
+                new FacetsResult(
+                    List.of(
+                        new MetricFacetsResult(
+                            Metric.HTTP_REQUESTS,
+                            List.of(
+                                FacetBucketResult.ofMeasures(
+                                    "100-199",
+                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 100)
+                                ),
+                                FacetBucketResult.ofMeasures(
+                                    "200-299",
+                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 200)
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        @Test
+        void should_return_request_count() {
+            var response = rootTarget().path("facets").request().post(Entity.json(aRequestCountFacetRequest()));
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(FacetsResponse.class)
+                .isEqualTo(
+                    new FacetsResponse().metrics(
+                        List.of(
+                            new FacetsResponseMetricsInner()
+                                .name(MetricName.HTTP_REQUESTS)
+                                .buckets(List.of(expectLeafBucket("100-199", 100), expectLeafBucket("200-299", 200)))
+                        )
+                    )
+                );
+        }
+
+        private static Bucket expectLeafBucket(String key, Number count) {
+            var bucket = new Bucket();
+            var leaf = new BucketLeaf().type(BucketLeaf.TypeEnum.LEAF);
+            leaf.setKey(key);
+            leaf.setName(key);
+            leaf.setMeasures(List.of(new Measure().name(MeasureName.COUNT).value(count)));
+            bucket.setActualInstance(leaf);
+            return bucket;
         }
     }
 }
