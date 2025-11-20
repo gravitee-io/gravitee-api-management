@@ -1,3 +1,15 @@
+# [7.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.3.1...7.0.0) (2025-11-20)
+
+
+### Features
+
+* add additional metrics to message metrics ([7bd9b11](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/7bd9b116d79ac1c28681703162f1110adf06bcf8))
+
+
+### BREAKING CHANGES
+
+* usage of new reporter api objects
+
 ## [6.3.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.3.0...6.3.1) (2025-11-20)
 
 
