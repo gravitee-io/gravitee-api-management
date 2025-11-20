@@ -37,6 +37,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -926,5 +927,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GetPortalPageContentUseCase getPortalPageContentUseCase() {
         return mock(GetPortalPageContentUseCase.class);
+    }
+
+    @Bean
+    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator() {
+        return mock(AnalyticsQueryFilterDecorator.class);
     }
 }
