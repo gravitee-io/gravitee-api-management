@@ -52,7 +52,7 @@
   <section class="panel editor-panel">
     <header class="panel-header editor-panel__header">
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        <button mat-flat-button disabled>Save</button>
+        <button mat-stroked-button [disabled]="contentControl.pristine">Save</button>
       </div>
     </header>
 
