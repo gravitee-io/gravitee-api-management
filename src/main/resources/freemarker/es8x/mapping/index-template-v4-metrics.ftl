@@ -262,30 +262,6 @@
                             "type": "double"
                         }
                     }
-                },
-                {
-                    "additional_int_metrics": {
-                        "path_match": "additional-metrics.int_*",
-                        "mapping": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                {
-                    "additional_string_metrics": {
-                        "path_match": "additional-metrics.string_*",
-                        "mapping": {
-                            "type": "text"
-                        }
-                    }
-                },
-                {
-                    "additional_json_metrics": {
-                        "path_match": "additional-metrics.json_*",
-                        "mapping": {
-                            "type": "text"
-                        }
-                    }
                 }
             ]
         }
