@@ -37,7 +37,7 @@ public class PortalNavigationItemFixtures {
     private static final String CATEGORY1_ID = "00000000-0000-0000-0000-000000000006";
     public static final String PAGE11_ID = "00000000-0000-0000-0000-000000000007";
     private static final String PAGE12_ID = "00000000-0000-0000-0000-000000000008";
-    private static final String LINK1_ID = "00000000-0000-0000-0000-000000000009";
+    public static final String LINK1_ID = "00000000-0000-0000-0000-000000000009";
 
     public static PortalNavigationFolder aFolder(String id, String title) {
         return aFolder(id, title, null);

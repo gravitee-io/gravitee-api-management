@@ -25,13 +25,13 @@ import java.util.List;
 public class PortalNavigationItemsQueryServiceInMemory
     implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
 
-    ArrayList<PortalNavigationItem> storage;
+    List<PortalNavigationItem> storage;
 
     public PortalNavigationItemsQueryServiceInMemory() {
         this.storage = new ArrayList<>();
     }
 
-    public PortalNavigationItemsQueryServiceInMemory(ArrayList<PortalNavigationItem> storage) {
+    public PortalNavigationItemsQueryServiceInMemory(List<PortalNavigationItem> storage) {
         this.storage = storage;
     }
 

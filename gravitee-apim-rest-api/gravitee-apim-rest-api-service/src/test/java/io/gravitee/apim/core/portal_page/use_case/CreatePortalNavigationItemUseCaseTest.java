@@ -29,8 +29,8 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -56,7 +56,7 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemDomainService domainService;
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
-    private CreatePortalNavigationItemValidatorService validatorService;
+    private PortalNavigationItemValidatorService validatorService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
 
     @BeforeEach
@@ -65,7 +65,7 @@ class CreatePortalNavigationItemUseCaseTest {
 
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = mock(CreatePortalNavigationItemValidatorService.class);
+        validatorService = mock(PortalNavigationItemValidatorService.class);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
         useCase = new CreatePortalNavigationItemUseCase(domainService, validatorService);

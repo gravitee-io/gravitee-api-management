@@ -25,13 +25,13 @@ import java.util.OptionalInt;
 public class PortalNavigationItemsCrudServiceInMemory
     implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService {
 
-    private ArrayList<PortalNavigationItem> storage;
+    private List<PortalNavigationItem> storage;
 
     public PortalNavigationItemsCrudServiceInMemory() {
         this.storage = new ArrayList<>();
     }
 
-    public PortalNavigationItemsCrudServiceInMemory(ArrayList<PortalNavigationItem> storage) {
+    public PortalNavigationItemsCrudServiceInMemory(List<PortalNavigationItem> storage) {
         this.storage = storage;
     }
 

@@ -52,7 +52,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
-    private CreatePortalNavigationItemValidatorService validatorService;
+    private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
     void setUp() {
@@ -60,7 +60,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = new CreatePortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService);
+        validatorService = new PortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService);
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }

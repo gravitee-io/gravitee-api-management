@@ -33,6 +33,9 @@ import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -111,12 +114,16 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
@@ -873,8 +880,39 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public CreatePortalNavigationItemValidatorService createPortalNavigationItemValidatorService() {
-        return mock(CreatePortalNavigationItemValidatorService.class);
+    public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalPageContentQueryService portalPageContentQueryService
+    ) {
+        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+    }
+
+    @Bean
+    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
+        PortalNavigationItemCrudService portalNavigationItemCrudService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService
+    ) {
+        return new UpdatePortalNavigationItemUseCase(
+            portalNavigationItemCrudService,
+            portalNavigationItemsQueryService,
+            portalNavigationItemValidatorService
+        );
+    }
+
+    @Bean
+    public PortalNavigationItemCrudService portalNavigationItemCrudService() {
+        return new PortalNavigationItemsCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
+        return new PortalNavigationItemsQueryServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageContentQueryService portalPageContentQueryService() {
+        return new PortalPageContentQueryServiceInMemory();
     }
 
     @Bean
