@@ -83,10 +83,12 @@ public class WebSocketConnector extends HttpConnector {
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxWebSocket(webSocketConnectOptions)
                 .flatMap(endpointWebSocket -> {
+                    String selectedSubProtocol = endpointWebSocket.subProtocol();
                     endpointWebSocket.pause();
-                    return request
-                        .webSocket()
-                        .upgrade()
+
+                    VertxWebSocket vertxWebSocket = (VertxWebSocket) request.webSocket();
+                    return vertxWebSocket
+                        .upgrade(selectedSubProtocol)
                         .doOnSuccess(requestWebSocket -> {
                             ServerWebSocket serverWebSocket = ((VertxWebSocket) requestWebSocket).getDelegate();
                             // Entrypoint to Endpoint
