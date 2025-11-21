@@ -19,11 +19,7 @@ import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.use_case.ListAllPortalMenuLinksForEnvironmentUseCase;
 import io.gravitee.apim.core.portal_menu_link.use_case.ListPublicPortalMenuLinksForEnvironmentUseCase;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -33,6 +29,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Deprecated
 public class PortalMenuLinksResource extends AbstractResource {
 
     @Inject
