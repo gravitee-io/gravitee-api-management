@@ -350,8 +350,7 @@ class SyncApiReactorTest {
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
         assertThat(cut.httpSecurityChain).isNotNull();
-        assertThat(cut.processorChainHooks).hasSize(1);
-        assertThat(cut.processorChainHooks.get(0)).isInstanceOf(TracingHook.class);
+        assertThat(cut.processorChainHooks).isEmpty();
         assertThat(cut.invokerHooks).hasSize(1);
         assertThat(cut.invokerHooks.get(0)).isInstanceOf(TracingHook.class);
     }

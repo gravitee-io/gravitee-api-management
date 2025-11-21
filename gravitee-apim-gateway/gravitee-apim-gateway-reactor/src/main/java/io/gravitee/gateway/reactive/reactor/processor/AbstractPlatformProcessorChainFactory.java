@@ -51,18 +51,13 @@ public abstract class AbstractPlatformProcessorChainFactory {
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
-        String port,
-        boolean tracing
+        String port
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.reporterService = reporterService;
         this.eventProducer = eventProducer;
         this.node = node;
         this.port = port;
-
-        if (tracing) {
-            processorHooks.add(new TracingHook("Processor"));
-        }
     }
 
     public ProcessorChain preProcessorChain() {
