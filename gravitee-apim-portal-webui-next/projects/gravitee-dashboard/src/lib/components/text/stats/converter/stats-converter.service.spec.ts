@@ -16,6 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { StatsConverterService } from './stats-converter.service';
+import { MeasuresResponse } from '../../../widget/model/response/measures-response';
 
 describe('StatsConverterService', () => {
   let service: StatsConverterService;
@@ -27,5 +28,255 @@ describe('StatsConverterService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('convert', () => {
+    it('should convert measures with different unit types', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: 45.6 },
+              { name: 'MIN', value: 10 },
+              { name: 'MAX', value: 1200 },
+              { name: 'COUNT', value: 1234 },
+              { name: 'RPS', value: 5.5 },
+              { name: 'PERCENTAGE', value: 75.8 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['45 ms', '10 ms', '1,200 ms', '1,234', '5 req/s', '75 %']);
+    });
+
+    it('should truncate decimal values using Math.trunc', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: 45.999 },
+              { name: 'MIN', value: 10.123 },
+              { name: 'MAX', value: 1200.789 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['45 ms', '10 ms', '1,200 ms']);
+    });
+
+    it('should handle zero values', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: 0 },
+              { name: 'COUNT', value: 0 },
+              { name: 'RPS', value: 0 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['0 ms', '0', '0 req/s']);
+    });
+
+    it('should handle negative values', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: -45.6 },
+              { name: 'MIN', value: -10 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['-45 ms', '-10 ms']);
+    });
+
+    it('should handle large values with proper formatting', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'COUNT', value: 1234567 },
+              { name: 'AVG', value: 999999.99 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['1,234,567', '999,999 ms']);
+    });
+
+    it('should handle percentile measures (P50, P90, P95, P99)', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'P50', value: 50.5 },
+              { name: 'P90', value: 90.9 },
+              { name: 'P95', value: 95.95 },
+              { name: 'P99', value: 99.99 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['50 ms', '90 ms', '95 ms', '99 ms']);
+    });
+
+    it('should return empty array when data is null', () => {
+      const result = service.convert(null as any);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when data is undefined', () => {
+      const result = service.convert(undefined as any);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when metrics is undefined', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: undefined,
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when metrics is empty', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when measures is undefined', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: undefined as any,
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when measures is empty', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should only use the first metric when multiple metrics are present', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [
+              { name: 'AVG', value: 45 },
+              { name: 'COUNT', value: 100 },
+            ],
+          },
+          {
+            name: 'HTTP_ERRORS',
+            measures: [
+              { name: 'AVG', value: 999 },
+              { name: 'COUNT', value: 200 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['45 ms', '100']);
+    });
+
+    it('should handle single measure', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [{ name: 'AVG', value: 42 }],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['42 ms']);
+    });
+
+    it('should format numbers according to locale', () => {
+      const data: MeasuresResponse = {
+        type: 'measures',
+        metrics: [
+          {
+            name: 'HTTP_REQUESTS',
+            measures: [{ name: 'COUNT', value: 1234567 }],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      // toLocaleString() should format with thousand separators
+      expect(result[0]).toContain(',');
+      expect(result[0]).toBe('1,234,567');
+    });
   });
 });

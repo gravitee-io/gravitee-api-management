@@ -17,8 +17,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { MeasureName } from './components/widget/model/request/enum/measure-name';
-import { MetricName } from './components/widget/model/request/enum/metric-name';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
@@ -67,8 +65,8 @@ describe('GraviteeDashboardComponent', () => {
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
-          measures: [{ name: MeasureName.COUNT, value: 100 }],
+          name: 'HTTP_REQUESTS',
+          measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
     };

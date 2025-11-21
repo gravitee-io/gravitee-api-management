@@ -18,8 +18,6 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 
-import { MeasureName } from './components/widget/model/request/enum/measure-name';
-import { MetricName } from './components/widget/model/request/enum/metric-name';
 import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { RequestType } from './components/widget/model/widget/widget';
@@ -61,8 +59,8 @@ describe('GraviteeDashboardService', () => {
         type: 'measures',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
-            measures: [{ name: MeasureName.COUNT, value: 100 }],
+            name: 'HTTP_REQUESTS',
+            measures: [{ name: 'COUNT', value: 100 }],
           },
         ],
       };
@@ -93,11 +91,11 @@ describe('GraviteeDashboardService', () => {
         type: 'facets',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
+            name: 'HTTP_REQUESTS',
             buckets: [
               {
                 key: 'test-key',
-                measures: [{ name: MeasureName.COUNT, value: 50 }],
+                measures: [{ name: 'COUNT', value: 50 }],
               },
             ],
           },

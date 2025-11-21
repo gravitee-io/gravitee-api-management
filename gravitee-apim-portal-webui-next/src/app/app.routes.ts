@@ -244,6 +244,7 @@ export const routes: Routes = [
     component: GraviteeDashboardComponent,
     resolve: {
       widgets: () => inject(GraviteeDashboardService).getWidgets(),
+      baseURL: () => 'https://apim-master-api.team-apim.gravitee.dev/management/v2/organizations/DEFAULT/environments/DEFAULT',
     },
   },
   {

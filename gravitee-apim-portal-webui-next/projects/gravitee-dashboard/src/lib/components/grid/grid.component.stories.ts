@@ -17,8 +17,6 @@ import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/an
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { GridComponent } from './grid.component';
-import { MeasureName } from '../widget/model/request/enum/measure-name';
-import { MetricName } from '../widget/model/request/enum/metric-name';
 import { FacetsResponse } from '../widget/model/response/facets-response';
 import { MeasuresResponse } from '../widget/model/response/measures-response';
 import { Widget } from '../widget/model/widget/widget';
@@ -38,15 +36,15 @@ const commonItems: Widget[] = [
       type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           buckets: [
-            { key: 'North America', measures: [{ name: MeasureName.COUNT, value: 35 }] },
-            { key: 'Europe', measures: [{ name: MeasureName.COUNT, value: 28 }] },
-            { key: 'Asia Pacific', measures: [{ name: MeasureName.COUNT, value: 20 }] },
-            { key: 'South America', measures: [{ name: MeasureName.COUNT, value: 8 }] },
-            { key: 'Africa', measures: [{ name: MeasureName.COUNT, value: 5 }] },
-            { key: 'Middle East', measures: [{ name: MeasureName.COUNT, value: 3 }] },
-            { key: 'Oceania', measures: [{ name: MeasureName.COUNT, value: 1 }] },
+            { key: 'North America', measures: [{ name: 'COUNT', value: 35 }] },
+            { key: 'Europe', measures: [{ name: 'COUNT', value: 28 }] },
+            { key: 'Asia Pacific', measures: [{ name: 'COUNT', value: 20 }] },
+            { key: 'South America', measures: [{ name: 'COUNT', value: 8 }] },
+            { key: 'Africa', measures: [{ name: 'COUNT', value: 5 }] },
+            { key: 'Middle East', measures: [{ name: 'COUNT', value: 3 }] },
+            { key: 'Oceania', measures: [{ name: 'COUNT', value: 1 }] },
           ],
         },
       ],
@@ -61,12 +59,12 @@ const commonItems: Widget[] = [
       type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_ERRORS,
+          name: 'HTTP_ERRORS',
           buckets: [
-            { key: 'SELECT', measures: [{ name: MeasureName.COUNT, value: 45 }] },
-            { key: 'INSERT', measures: [{ name: MeasureName.COUNT, value: 20 }] },
-            { key: 'UPDATE', measures: [{ name: MeasureName.COUNT, value: 15 }] },
-            { key: 'DELETE', measures: [{ name: MeasureName.COUNT, value: 5 }] },
+            { key: 'SELECT', measures: [{ name: 'COUNT', value: 45 }] },
+            { key: 'INSERT', measures: [{ name: 'COUNT', value: 20 }] },
+            { key: 'UPDATE', measures: [{ name: 'COUNT', value: 15 }] },
+            { key: 'DELETE', measures: [{ name: 'COUNT', value: 5 }] },
           ],
         },
       ],
@@ -81,11 +79,11 @@ const commonItems: Widget[] = [
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_GATEWAY_LATENCY,
+          name: 'HTTP_GATEWAY_LATENCY',
           measures: [
-            { name: MeasureName.COUNT, value: 1234 },
-            { name: MeasureName.AVG, value: 45.6 },
-            { name: MeasureName.MAX, value: 1200 },
+            { name: 'COUNT', value: 1234 },
+            { name: 'AVG', value: 45.6 },
+            { name: 'MAX', value: 1200 },
           ],
         },
       ],
@@ -100,11 +98,11 @@ const commonItems: Widget[] = [
       type: 'facets',
       metrics: [
         {
-          name: MetricName.MESSAGE_ERRORS,
+          name: 'MESSAGE_ERRORS',
           buckets: [
-            { key: '4xx', measures: [{ name: MeasureName.COUNT, value: 12 }] },
-            { key: '5xx', measures: [{ name: MeasureName.COUNT, value: 3 }] },
-            { key: 'Success', measures: [{ name: MeasureName.COUNT, value: 985 }] },
+            { key: '4xx', measures: [{ name: 'COUNT', value: 12 }] },
+            { key: '5xx', measures: [{ name: 'COUNT', value: 3 }] },
+            { key: 'Success', measures: [{ name: 'COUNT', value: 985 }] },
           ],
         },
       ],
@@ -119,12 +117,12 @@ const commonItems: Widget[] = [
       type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_ENDPOINT_RESPONSE_TIME,
+          name: 'HTTP_ENDPOINT_RESPONSE_TIME',
           buckets: [
-            { key: '< 100ms', measures: [{ name: MeasureName.COUNT, value: 600 }] },
-            { key: '100-500ms', measures: [{ name: MeasureName.COUNT, value: 300 }] },
-            { key: '500ms-1s', measures: [{ name: MeasureName.COUNT, value: 80 }] },
-            { key: '> 1s', measures: [{ name: MeasureName.COUNT, value: 20 }] },
+            { key: '< 100ms', measures: [{ name: 'COUNT', value: 600 }] },
+            { key: '100-500ms', measures: [{ name: 'COUNT', value: 300 }] },
+            { key: '500ms-1s', measures: [{ name: 'COUNT', value: 80 }] },
+            { key: '> 1s', measures: [{ name: 'COUNT', value: 20 }] },
           ],
         },
       ],
@@ -139,12 +137,12 @@ const commonItems: Widget[] = [
       type: 'facets',
       metrics: [
         {
-          name: MetricName.APIS,
+          name: 'APIS',
           buckets: [
-            { key: 'Active', measures: [{ name: MeasureName.COUNT, value: 150 }] },
-            { key: 'Inactive', measures: [{ name: MeasureName.COUNT, value: 50 }] },
-            { key: 'New', measures: [{ name: MeasureName.COUNT, value: 30 }] },
-            { key: 'Returning', measures: [{ name: MeasureName.COUNT, value: 120 }] },
+            { key: 'Active', measures: [{ name: 'COUNT', value: 150 }] },
+            { key: 'Inactive', measures: [{ name: 'COUNT', value: 50 }] },
+            { key: 'New', measures: [{ name: 'COUNT', value: 30 }] },
+            { key: 'Returning', measures: [{ name: 'COUNT', value: 120 }] },
           ],
         },
       ],
