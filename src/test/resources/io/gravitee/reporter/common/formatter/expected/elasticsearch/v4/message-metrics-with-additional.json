@@ -22,10 +22,10 @@
   "additional-metrics": {
     "long_tokenCount": 12,
     "double_valueAvg": 12.6,
-    "keyword_name": "the name",
+    "keyword_name": "the \"name\"",
     "bool_name": true,
     "int_name": 42,
-    "string_name": "the string name",
+    "string_name": "the \"string\" name",
     "json_name": "{\"hello\":\"world\"}"
   }
 }

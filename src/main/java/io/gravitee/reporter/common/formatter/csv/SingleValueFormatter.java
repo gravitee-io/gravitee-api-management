@@ -218,7 +218,7 @@ public abstract class SingleValueFormatter<T extends Reportable>
     if (keywordAdditionalMetrics != null) {
       keywordAdditionalMetrics
         .values()
-        .forEach(value -> appendString(buffer, value));
+        .forEach(value -> appendString(buffer, value, true, false));
     }
     Map<String, Boolean> boolAdditionalMetrics =
       withAdditional.boolAdditionalMetrics();
@@ -237,7 +237,7 @@ public abstract class SingleValueFormatter<T extends Reportable>
     if (stringAdditionalMetrics != null) {
       stringAdditionalMetrics
         .values()
-        .forEach(value -> appendString(buffer, value));
+        .forEach(value -> appendString(buffer, value, true, false));
     }
     Map<String, String> jsonAdditionalMetrics =
       withAdditional.jsonAdditionalMetrics();
