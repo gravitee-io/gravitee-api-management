@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -38,11 +39,14 @@ public class ComputeMeasuresUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
 
+    private final AnalyticsQueryValidator validator;
+
     @Inject
     private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
-    public ComputeMeasuresUseCase(AnalyticsQueryContextProvider queryContextResolver) {
+    public ComputeMeasuresUseCase(AnalyticsQueryContextProvider queryContextResolver, AnalyticsQueryValidator validator) {
         this.queryContextProvider = queryContextResolver;
+        this.validator = validator;
     }
 
     public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
@@ -50,6 +54,8 @@ public class ComputeMeasuresUseCase {
     public record Output(MeasuresResponse response) {}
 
     public Output execute(Input input) {
+        validator.validateMeasuresRequest(input.request);
+
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var queryContext = queryContextProvider.resolve(input.request);
         var responses = executeQueries(executionContext, queryContext);
