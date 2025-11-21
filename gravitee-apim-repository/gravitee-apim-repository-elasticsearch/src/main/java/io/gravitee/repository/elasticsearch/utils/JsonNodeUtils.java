@@ -32,13 +32,14 @@ public class JsonNodeUtils {
     }
 
     /**
-     * This method returns the jsonNode elements as a Map<String, String>.
-     * If the jsonNode is null, or the elements are not all String pairs of key-values, the result will be null.
+     * Converts a {@link JsonNode} to a {@link Map} where keys are strings and values are of type {@code T}.
+     * If the input is {@code null} or cannot be converted, it returns {@code null}.
      *
-     * @param jsonNode
-     * @return Map<String, String>
+     * @param jsonNode the {@link JsonNode} to convert; may be {@code null}
+     * @return a {@link Map} representation of the {@link JsonNode}, or {@code null} if the input
+     *         is {@code null} or cannot be converted
      */
-    public static Map<String, String> asMapOrNull(JsonNode jsonNode) {
+    public static <T> Map<String, T> asMapOrNull(JsonNode jsonNode) {
         if (jsonNode == null) {
             return null;
         }

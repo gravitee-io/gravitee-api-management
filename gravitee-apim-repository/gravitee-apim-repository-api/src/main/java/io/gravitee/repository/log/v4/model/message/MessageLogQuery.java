@@ -30,12 +30,6 @@ public class MessageLogQuery {
 
     private Filter filter;
 
-    @Data
     @Builder(toBuilder = true)
-    public static class Filter {
-
-        private final String apiId;
-        private final String requestId;
-        private final String connectorType;
-    }
+    public record Filter(String apiId, String requestId, String connectorType, String connectorId, String operation) {}
 }
