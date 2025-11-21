@@ -35,8 +35,10 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
@@ -98,6 +100,27 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountMeasureRequest();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("measures").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountMeasureRequest();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("measures").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
         void should_return_request_count() {
             var response = rootTarget().path("measures").request().post(Entity.json(aRequestCountMeasureRequest()));
 
@@ -144,6 +167,54 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+        }
+
+        @Test
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountFacetRequest();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountFacetRequest();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_no_facet() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of());
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_too_much_facets() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of(FacetName.API, FacetName.APPLICATION, FacetName.HTTP_STATUS));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_incompatible_facet() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of(FacetName.KAFKA_TOPIC));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
         }
 
         @Test
@@ -204,6 +275,51 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+        }
+
+        @Test
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountTimeSeries();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountTimeSeries();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_too_much_facets() {
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_incompatible_facet() {
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.KAFKA_TOPIC));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_negative_interval() {
+            var invalidRequest = aRequestCountTimeSeries().interval(new Interval("-1m"));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
         }
 
         @Test

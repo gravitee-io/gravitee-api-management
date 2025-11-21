@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -35,8 +36,11 @@ public class ComputeFacetsUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
 
-    public ComputeFacetsUseCase(AnalyticsQueryContextProvider queryContextResolver) {
+    private final AnalyticsQueryValidator validator;
+
+    public ComputeFacetsUseCase(AnalyticsQueryContextProvider queryContextResolver, AnalyticsQueryValidator validator) {
         this.queryContextProvider = queryContextResolver;
+        this.validator = validator;
     }
 
     public record Input(AuditInfo auditInfo, FacetsRequest request) {}
@@ -44,6 +48,8 @@ public class ComputeFacetsUseCase {
     public record Output(FacetsResponse response) {}
 
     public ComputeFacetsUseCase.Output execute(ComputeFacetsUseCase.Input input) {
+        validator.validateFacetsRequest(input.request);
+
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var queryContext = queryContextProvider.resolve(input.request);
         var responses = executeQueries(executionContext, queryContext);

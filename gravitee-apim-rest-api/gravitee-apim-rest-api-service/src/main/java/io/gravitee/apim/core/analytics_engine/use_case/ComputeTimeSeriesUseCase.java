@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -35,8 +36,11 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
 
-    public ComputeTimeSeriesUseCase(AnalyticsQueryContextProvider queryContextProvider) {
+    private final AnalyticsQueryValidator validator;
+
+    public ComputeTimeSeriesUseCase(AnalyticsQueryContextProvider queryContextProvider, AnalyticsQueryValidator validator) {
         this.queryContextProvider = queryContextProvider;
+        this.validator = validator;
     }
 
     public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
@@ -44,6 +48,8 @@ public class ComputeTimeSeriesUseCase {
     public record Output(TimeSeriesResponse response) {}
 
     public Output execute(Input input) {
+        validator.validateTimeSeriesRequest(input.request);
+
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var queryContext = queryContextProvider.resolve(input.request);
         var responses = executeQueries(executionContext, queryContext);
