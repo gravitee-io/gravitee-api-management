@@ -3115,6 +3115,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
     /portal-menu-links:
         get:
+            deprecated: true
             tags:
                 - Portal
             summary: Get the portal menu links for Portal NEXT.
@@ -3140,10 +3141,10 @@ paths:
         get:
             tags:
                 - Portal
-            summary: Get the portal navigation items for Portal NEXT.
-            operationId: getPortalNextNavigationItems
+            summary: Get the portal navigation items.
+            operationId: getPortalNavigationItems
             description: |
-                Get all the navigation items to be displayed in the sidebar of portal next only.
+                Get all the navigation items to be displayed in given area.
             security:
                 - {}
                 - BasicAuth: []
@@ -6300,12 +6301,6 @@ components:
                 id:
                     type: string
                     description: The unique ID of the navigation item
-                organizationId:
-                    type: string
-                    description: The organization ID
-                environmentId:
-                    type: string
-                    description: The environment ID
                 title:
                     type: string
                     description: The title of the navigation item

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -33,7 +34,7 @@ public interface PortalNavigationItemMapper {
 
     PortalArea map(io.gravitee.rest.api.portal.rest.model.PortalArea area);
 
-    default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(List<PortalNavigationItem> items) {
+    default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(@Nonnull List<PortalNavigationItem> items) {
         return items.stream().map(this::getBasePortalNavigationItem).toList();
     }
 

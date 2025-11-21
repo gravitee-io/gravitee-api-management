@@ -41,7 +41,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPortalNextNavigationItems(
+    public Response getPortalNavigationItems(
         @Nonnull @QueryParam("area") PortalArea area,
         @Nullable @QueryParam("parentId") String parentId,
         @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren
