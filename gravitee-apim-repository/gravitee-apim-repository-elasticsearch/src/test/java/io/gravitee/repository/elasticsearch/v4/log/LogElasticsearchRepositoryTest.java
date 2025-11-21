@@ -15,9 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log;
 
-import static org.assertj.core.api.Assertions.as;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -31,27 +29,28 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import jakarta.annotation.PostConstruct;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.*;
+
 public class LogElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
     private final QueryContext queryContext = new QueryContext("org#1", "env#1");
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
     @Autowired
     private LogElasticsearchRepository logV4Repository;
@@ -1148,6 +1147,174 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .extracting(AggregatedMessageLog::getRequestId, AggregatedMessageLog::getCorrelationId)
                     .containsExactly(tuple("d789ffdc-d092-4675-97a9-213cf569350d", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48"));
             });
+        }
+    }
+
+    @Nested
+    class SearchMessageMetrics {
+
+        @Test
+        void should_find_one_hit_with_webhook_and_additional_data() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(
+                        MessageLogQuery.Filter.builder()
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("webhook")
+                            .apiId("eec4f752-f4bc-4c63-bc70-9eaaa2be24d5")
+                            .requestId("55138ad4-9c01-4e78-b027-b60ad9742441")
+                            .build()
+                    )
+                    .page(1)
+                    .size(2)
+                    .build()
+            );
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result).isNotNull();
+                soft.assertThat(result.total()).isEqualTo(1);
+                soft.assertThat(result.data()).hasSize(1);
+                soft
+                    .assertThat(result.data())
+                    .first()
+                    .isInstanceOfSatisfying(MessageMetrics.class, messageMetrics -> {
+                        soft.assertThat(messageMetrics.getTimestamp()).isEqualTo(today + "T06:58:41.222Z");
+                        soft.assertThat(messageMetrics.getApiId()).isEqualTo("eec4f752-f4bc-4c63-bc70-9eaaa2be24d5");
+                        soft.assertThat(messageMetrics.getRequestId()).isEqualTo("55138ad4-9c01-4e78-b027-b60ad9742441");
+                        soft.assertThat(messageMetrics.getConnectorId()).isEqualTo("webhook");
+                        soft.assertThat(messageMetrics.getConnectorType()).isEqualTo("entrypoint");
+                        soft.assertThat(messageMetrics.getOperation()).isEqualTo("subscribe");
+                        soft.assertThat(messageMetrics.getContentLength()).isEqualTo(12L);
+                        soft
+                            .assertThat(messageMetrics.getClientIdentifier())
+                            .isEqualTo("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0");
+                        soft.assertThat(messageMetrics.getGateway()).isEqualTo("a125e26c-b289-4dbf-a5e2-6cb2897dbf20");
+                        soft.assertThat(messageMetrics.getCount()).isEqualTo(1L);
+                        soft.assertThat(messageMetrics.getCountIncrement()).isEqualTo(1L);
+                        soft.assertThat(messageMetrics.getErrorCount()).isEqualTo(1L);
+                        soft.assertThat(messageMetrics.getErrorCountIncrement()).isEqualTo(1L);
+                        soft.assertThat(messageMetrics.getGatewayLatencyMs()).isEqualTo(512L);
+                        soft.assertThat(messageMetrics.getCustom()).containsExactly(Map.entry("bespoke", "all mine"));
+                        soft
+                            .assertThat(messageMetrics.getAdditionalMetrics())
+                            .containsAllEntriesOf(
+                                Map.of(
+                                    "int_test",
+                                    42,
+                                    "long_test",
+                                    100000000000000L,
+                                    "double_test",
+                                    3.1415,
+                                    "bool_test",
+                                    true,
+                                    "keyword_test",
+                                    "foo",
+                                    "string_test",
+                                    "hello world",
+                                    "json_test",
+                                    "{\"message\": \"hello\"}"
+                                )
+                            );
+                    });
+            });
+        }
+
+        @Test
+        void should_find_two_hits_with_webhook_and_additional_data() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(
+                        MessageLogQuery.Filter.builder()
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("webhook")
+                            .apiId("eec4f752-f4bc-4c63-bc70-9eaaa2be24d5")
+                            .build()
+                    )
+                    .page(1)
+                    .size(3)
+                    .build()
+            );
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result).isNotNull();
+                soft.assertThat(result.total()).isEqualTo(2);
+                soft.assertThat(result.data()).hasSize(2);
+                soft
+                    .assertThat(result.data())
+                    .extracting(MessageMetrics::getCorrelationId)
+                    .containsExactly("55138ad4-9987-4ecd-b2a5-0abe18692111", "8919324a-9c01-4e78-b027-b60ad9742441");
+                soft
+                    .assertThat(result.data())
+                    .extracting(MessageMetrics::getRequestId)
+                    .containsExactly("8919324a-9987-4ecd-b2a5-0abe18692111", "55138ad4-9c01-4e78-b027-b60ad9742441");
+            });
+        }
+
+        @Test
+        void should_find_all_entrypoint() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(MessageLogQuery.Filter.builder().connectorType("entrypoint").build())
+                    .page(1)
+                    .size(10)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.data()).hasSize(6);
+        }
+
+        @Test
+        void should_find_all_endpoint_subscribe() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(MessageLogQuery.Filter.builder().connectorType("endpoint").operation("subscribe").build())
+                    .page(1)
+                    .size(10)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data()).hasSize(3);
+        }
+
+        @Test
+        void should_find_all() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder().filter(MessageLogQuery.Filter.builder().build()).page(1).size(20).build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(10);
+            assertThat(result.data()).hasSize(10);
+        }
+
+        @Test
+        void should_find_none() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(
+                        MessageLogQuery.Filter.builder()
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("webhook")
+                            .apiId("foo")
+                            .build()
+                    )
+                    .page(1)
+                    .size(10)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isZero();
+            assertThat(result.data()).isEmpty();
         }
     }
 }
