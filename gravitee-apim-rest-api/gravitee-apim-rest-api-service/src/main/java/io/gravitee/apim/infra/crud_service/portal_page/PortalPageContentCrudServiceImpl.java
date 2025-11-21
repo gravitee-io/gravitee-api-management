@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.portal_page;
+package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
