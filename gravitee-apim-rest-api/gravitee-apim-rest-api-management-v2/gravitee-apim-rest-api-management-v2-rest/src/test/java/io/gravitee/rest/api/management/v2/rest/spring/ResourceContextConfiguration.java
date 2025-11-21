@@ -113,6 +113,7 @@ import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationIt
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
@@ -866,6 +867,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase() {
         return mock(CreatePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase() {
+        return mock(UpdatePortalNavigationItemUseCase.class);
     }
 
     @Bean
