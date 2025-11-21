@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -72,6 +73,8 @@ public class ApiExport {
 
     @Builder.Default
     private List<Resource> resources = new ArrayList<>();
+
+    private PrimaryOwnerEntity primaryOwnerEntity;
 
     private FlowExecution flowExecution;
     private List<Flow> flows;

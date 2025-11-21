@@ -17,14 +17,17 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import java.util.Optional;
 import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -53,6 +56,19 @@ public interface ImportExportApiMapper {
         final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiV4.getApi());
         apiExport.setPicture(exportApiV4.getApiPicture());
         apiExport.setBackground(exportApiV4.getApiBackground());
+        if (exportApiV4.getApi().getPrimaryOwner() != null) {
+            PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+            Optional.of(exportApiV4)
+                .map(ExportApiV4::getApi)
+                .map(ApiV4::getPrimaryOwner)
+                .ifPresent(po -> {
+                    primaryOwnerEntity.setEmail(po.getEmail());
+                    primaryOwnerEntity.setId(po.getId());
+                    primaryOwnerEntity.setDisplayName(po.getDisplayName());
+                    primaryOwnerEntity.setType(po.getType() != null ? po.getType().name() : null);
+                });
+            apiExport.setPrimaryOwnerEntity(primaryOwnerEntity);
+        }
         return apiExport;
     }
 

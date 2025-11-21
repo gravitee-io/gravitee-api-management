@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.exception.ApiCreatedWithErrorException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -35,11 +36,13 @@ import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,7 +92,16 @@ public class ImportDefinitionCreateDomainService {
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
         var environmentId = auditInfo.environmentId();
         var organizationId = auditInfo.organizationId();
-        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, auditInfo.actor().userId());
+
+        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
+            organizationId,
+            environmentId,
+            Optional.ofNullable(importDefinition)
+                .map(ImportDefinition::getApiExport)
+                .map(ApiExport::getPrimaryOwnerEntity)
+                .map(PrimaryOwnerEntity::getId)
+                .orElse(auditInfo.actor().userId())
+        );
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
 
         var createdApi = createApiDomainService.create(
