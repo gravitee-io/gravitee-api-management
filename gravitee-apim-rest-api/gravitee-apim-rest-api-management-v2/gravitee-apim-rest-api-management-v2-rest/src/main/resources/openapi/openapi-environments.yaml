@@ -893,6 +893,34 @@ paths:
                 $ref: "#/components/schemas/PortalNavigationItem"
         default:
           $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Portal Navigation Items
+      summary: Update portal navigation item
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalNavigationItem
+      parameters:
+        - name: navId
+          in: query
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+      responses:
+        "200":
+          description: Updated portal navigation item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        default:
+          $ref: "#/components/responses/Error"
 
 components:
   schemas:

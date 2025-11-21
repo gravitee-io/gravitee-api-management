@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,5 +38,17 @@ public final class PortalNavigationLink extends PortalNavigationItem {
     ) {
         super(id, organizationId, environmentId, title, area, order);
         this.url = url;
+    }
+
+    @Override
+    public void update(CreatePortalNavigationItem navItem) {
+        super.update(navItem);
+        if (navItem.getUrl() != null) {
+            String newUrl = navItem.getUrl().trim();
+            if (newUrl.isBlank()) {
+                throw new InvalidDataException("URL is required for LINK navigation items.");
+            }
+            this.setUrl(newUrl);
+        }
     }
 }

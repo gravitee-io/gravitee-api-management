@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
 
 public final class PortalNavigationFolder extends PortalNavigationItem {
@@ -28,5 +29,13 @@ public final class PortalNavigationFolder extends PortalNavigationItem {
         @Nonnull Integer order
     ) {
         super(id, organizationId, environmentId, title, area, order);
+    }
+
+    @Override
+    public void update(CreatePortalNavigationItem navItem) {
+        super.update(navItem);
+        if (this.getTitle().isBlank()) {
+            throw new InvalidDataException("Title is required for FOLDER navigation items.");
+        }
     }
 }
