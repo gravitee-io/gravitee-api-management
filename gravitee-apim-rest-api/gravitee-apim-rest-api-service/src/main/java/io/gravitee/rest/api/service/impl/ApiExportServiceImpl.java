@@ -204,32 +204,29 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             Map.Entry<String, JsonNode> pageJsonNode = iterator.next();
             PageEntity page = objectMapper.treeToValue(pageJsonNode.getValue(), PageEntity.class);
 
-            if (
-                (PageType.MARKDOWN.name().equals(page.getType()) || PageType.SWAGGER.name().equals(page.getType())) &&
-                page.getSource() != null &&
-                "github-fetcher".equals(page.getSource().getType())
-            ) {
-                // Remove auto-fetched pages that was generated from ROOT github source
-                if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+            if (page.getSource() != null) {
+                String pageType = page.getSource().getType();
+                boolean isMarkdownOrSwagger =
+                    PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType());
+                boolean isAutoFetch =
+                    "github-fetcher".equals(pageType) ||
+                    "gitlab-fetcher".equals(pageType) ||
+                    "git-fetcher".equals(pageType) ||
+                    "http-fetcher".equals(pageType) ||
+                    "bitbucket-fetcher".equals(pageType);
+
+                if (isMarkdownOrSwagger && isAutoFetch) {
+                    // Remove auto-fetched pages that was generated from ROOT github source
+                    if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+                        iterator.remove();
+                    } else {
+                        ((ObjectNode) pageJsonNode.getValue()).remove("content");
+                        ((ObjectNode) pageJsonNode.getValue()).remove("metadata");
+                    }
+                } else if (PageType.FOLDER.name().equals(page.getType()) && isAutoFetch) {
+                    // Remove auto-generated folders generated from ROOT github fetcher
                     iterator.remove();
-                } else {
-                    ((ObjectNode) pageJsonNode.getValue()).remove("content");
-                    ((ObjectNode) pageJsonNode.getValue()).remove("metadata");
                 }
-            } else if (
-                PageType.FOLDER.name().equals(page.getType()) &&
-                page.getSource() != null &&
-                "github-fetcher".equals(page.getSource().getType())
-            ) {
-                // Remove auto-generated folders generated from ROOT github fetcher
-                iterator.remove();
-            } else if (
-                (PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType())) &&
-                page.getSource() != null &&
-                ("http-fetcher".equals(page.getSource().getType()))
-            ) {
-                ((ObjectNode) pageJsonNode.getValue()).remove("content");
-                ((ObjectNode) pageJsonNode.getValue()).remove("metadata");
             }
         }
     }

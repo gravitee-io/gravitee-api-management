@@ -26,6 +26,8 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -114,7 +116,43 @@ public interface ApiCRDAdapter {
 
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
-            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(this::pageKey, identity()))
+            ? definition
+                .getPages()
+                .stream()
+                .map(page -> {
+                    PageSourceEntity source = page.getSource();
+                    if (source == null) {
+                        return page;
+                    }
+
+                    String pageType = source.getType();
+                    boolean isMarkdownOrSwagger =
+                        PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType());
+                    boolean isAutoFetch =
+                        "github-fetcher".equals(pageType) ||
+                        "gitlab-fetcher".equals(pageType) ||
+                        "git-fetcher".equals(pageType) ||
+                        "http-fetcher".equals(pageType) ||
+                        "bitbucket-fetcher".equals(pageType);
+
+                    if (isMarkdownOrSwagger && isAutoFetch) {
+                        // Remove auto-fetched pages that was generated from ROOT github source
+                        if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+                            return null;
+                        } else {
+                            page.setContent(null);
+                            page.setMetadata(null);
+                        }
+                    } else if (PageType.FOLDER.name().equals(page.getType()) && isAutoFetch) {
+                        // Remove auto-generated folders generated from ROOT github fetcher
+                        return null;
+                    }
+
+                    return page;
+                })
+                .filter(Objects::nonNull)
+                .map(this::toCRDPage)
+                .collect(toMap(this::pageKey, identity()))
             : null;
     }
 
