@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommandPayload;
@@ -45,6 +46,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
     private final PortalPageService portalPageService;
+    private final CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
     @Override
     public String supportType() {
@@ -97,6 +99,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             );
 
             portalPageService.createDefaultPortalHomePage(environment.getId());
+            createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));
