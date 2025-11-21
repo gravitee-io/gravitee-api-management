@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static org.apache.lucene.document.Field.Store.NO;
 import static org.apache.lucene.document.Field.Store.YES;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -126,9 +127,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
         }
-
-        doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
-        doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
+        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+            doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
+        }
 
         String portalStatus = api.getLifecycleState() == ApiLifecycleState.PUBLISHED
             ? ApiLifecycleState.PUBLISHED.name()
