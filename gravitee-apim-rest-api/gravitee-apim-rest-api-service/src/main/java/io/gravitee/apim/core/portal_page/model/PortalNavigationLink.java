@@ -38,4 +38,10 @@ public final class PortalNavigationLink extends PortalNavigationItem {
         super(id, organizationId, environmentId, title, area, order);
         this.url = url;
     }
+
+    @Override
+    public void update(UpdatePortalNavigationItem navItem) {
+        super.update(navItem);
+        this.setUrl(navItem.getUrl().trim());
+    }
 }

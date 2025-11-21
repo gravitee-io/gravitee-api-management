@@ -894,6 +894,40 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /portal-navigation-items/{navId}:
+    put:
+      tags:
+        - Portal Navigation Items
+      summary: Update a portal navigation item
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        ParentId is the unique identifier of the parent item.
+        * Optional parent ID. If provided, the item is set to that parent.
+        * If omitted, the item is moved to the root level.
+      operationId: updatePortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalNavigationItem"
+      responses:
+        "200":
+          description: Updated portal navigation item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   schemas:
     # Analytics
@@ -1718,7 +1752,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [PAGE, FOLDER, LINK]
+      enum: [ PAGE, FOLDER, LINK ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -1828,7 +1862,7 @@ components:
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
-      required: [title, type, area]
+      required: [ title, type, area ]
     CreatePortalNavigationFolder:
       type: object
       title: "CreatePortalNavigationFolder"
@@ -1858,7 +1892,7 @@ components:
               type: string
               description: The URL for the link
               example: https://example.com
-          required: [url]
+          required: [ url ]
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
@@ -1870,6 +1904,68 @@ components:
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
+
+    BaseUpdatePortalNavigationItem:
+      type: object
+      description: Base portal navigation item for Update
+      properties:
+        type:
+          $ref: "#/components/schemas/PortalNavigationItemType"
+        title:
+          type: string
+          description: The title of the navigation item
+        order:
+          type: integer
+          minimum: 0
+          description: The order of the navigation item, from 0 to MAX, where MAX is the maximum existing order within the target parent. If greater than MAX, the item is moved to the end of the target parent.
+          example: 2
+        parentId:
+          type: string
+          format: uuid
+          description: The parent ID of the navigation item, if not provided item is moved to the root level
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+      discriminator:
+        propertyName: type
+        mapping:
+          FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
+          PAGE: "#/components/schemas/UpdatePortalNavigationPage"
+          LINK: "#/components/schemas/UpdatePortalNavigationLink"
+      required: [ type, title, order ]
+    UpdatePortalNavigationFolder:
+      type: object
+      title: "UpdatePortalNavigationFolder"
+      description: Portal navigation folder to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+    UpdatePortalNavigationPage:
+      type: object
+      title: "UpdatePortalNavigationPage"
+      description: Portal navigation page to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+    UpdatePortalNavigationLink:
+      type: object
+      title: "UpdatePortalNavigationLink"
+      description: Portal navigation link to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            url:
+              type: string
+              description: The URL for the link
+              example: https://example.com
+          required: [ url ]
+    UpdatePortalNavigationItem:
+      oneOf:
+        - $ref: "#/components/schemas/UpdatePortalNavigationPage"
+        - $ref: "#/components/schemas/UpdatePortalNavigationFolder"
+        - $ref: "#/components/schemas/UpdatePortalNavigationLink"
+      discriminator:
+        propertyName: type
+        mapping:
+          PAGE: "#/components/schemas/UpdatePortalNavigationPage"
+          FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
+          LINK: "#/components/schemas/UpdatePortalNavigationLink"
 
     PortalPageContent:
       type: object

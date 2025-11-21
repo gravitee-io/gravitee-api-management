@@ -18,10 +18,14 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
 import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
@@ -96,4 +100,29 @@ public interface PortalNavigationItemsMapper {
     default String map(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
         return id != null ? id.json() : null;
     }
+
+    default io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        BaseUpdatePortalNavigationItem updatePortalNavigationItem
+    ) {
+        return switch (updatePortalNavigationItem) {
+            case UpdatePortalNavigationFolder folder -> map(folder);
+            case UpdatePortalNavigationPage page -> map(page);
+            case UpdatePortalNavigationLink link -> map(link);
+            default -> throw new TechnicalDomainException(
+                String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
+            );
+        };
+    }
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage page
+    );
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder folder
+    );
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link
+    );
 }

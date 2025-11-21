@@ -103,4 +103,8 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
 
         return newItem;
     }
+
+    public void update(UpdatePortalNavigationItem navItem) {
+        this.setTitle(navItem.getTitle().trim());
+    }
 }

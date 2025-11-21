@@ -16,8 +16,8 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class CreatePortalNavigationItemUseCase {
 
     private final PortalNavigationItemDomainService domainService;
-    private final CreatePortalNavigationItemValidatorService validatorService;
+    private final PortalNavigationItemValidatorService validatorService;
 
     public Output execute(Input input) {
         final CreatePortalNavigationItem itemToCreate = input.item();

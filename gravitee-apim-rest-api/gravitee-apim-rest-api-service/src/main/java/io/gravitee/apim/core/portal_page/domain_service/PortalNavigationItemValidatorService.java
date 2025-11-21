@@ -26,15 +26,20 @@ import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.net.URL;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
-public class CreatePortalNavigationItemValidatorService {
+public class PortalNavigationItemValidatorService {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalPageContentQueryService pageContentQueryService;
@@ -104,6 +109,34 @@ public class CreatePortalNavigationItemValidatorService {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
+        enforceTypeConsistency(existingItem, toUpdate.getType());
+
+        if (toUpdate.getTitle().isBlank()) {
+            throw new InvalidDataException("Title is required for navigation items.");
+        }
+
+        if (toUpdate.getType() == PortalNavigationItemType.LINK) {
+            if (!isValidUrl(toUpdate.getUrl())) {
+                throw new InvalidUrlFormatException();
+            }
+        }
+    }
+
+    private void enforceTypeConsistency(PortalNavigationItem existing, PortalNavigationItemType requestedType) {
+        PortalNavigationItemType existingType = switch (existing) {
+            case PortalNavigationFolder ignored -> PortalNavigationItemType.FOLDER;
+            case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
+            case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
+        };
+
+        if (existingType != requestedType) {
+            throw new InvalidDataException(
+                "Navigation item type cannot be changed or is mismatched (expected %s, got %s).".formatted(existingType, requestedType)
+            );
         }
     }
 }

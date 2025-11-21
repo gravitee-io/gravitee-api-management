@@ -36,8 +36,11 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +50,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class PortalNavigationItemsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
@@ -92,5 +98,10 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @Path("{navId}")
+    public PortalNavigationItemResource getPortalNavigationItemResource() {
+        return resourceContext.getResource(PortalNavigationItemResource.class);
     }
 }
