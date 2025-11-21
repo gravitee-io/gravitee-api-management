@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
 
+import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
+import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.PermissionService;
@@ -28,9 +30,12 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -54,31 +59,90 @@ public class AnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDe
 
     @Override
     public List<Filter> getUpdatedFilters(@NotNull List<Filter> filters) {
-        if (!filters.isEmpty()) {
+        if (filters.isEmpty()) {
+            var apiIds = this.allowedApiIds();
+
+            var filter = new Filter(API, IN, apiIds);
+            filters.add(filter);
+
             return filters;
         }
 
-        List<String> apiIds = this.findApiIds();
+        if (isAdmin()) {
+            return filters;
+        }
 
-        Filter f = new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, apiIds);
-        filters.add(f);
+        List<Filter> updatedFilters = filters
+            .stream()
+            .map(filter -> {
+                if (filter.name() == API) {
+                    switch (filter.operator()) {
+                        case IN:
+                            if (filter.value() instanceof Iterable<?> values) {
+                                var wantedApiIds = new HashSet<String>();
+                                values.forEach(value -> wantedApiIds.add(value.toString()));
 
-        return filters;
+                                var apiIds = this.allowedApiIds(wantedApiIds);
+
+                                return new Filter(filter.name(), filter.operator(), apiIds);
+                            } else {
+                                throw new IllegalArgumentException("Filter value must be an Iterable");
+                            }
+                        case EQ:
+                            var wantedApiIds = new HashSet<>(Collections.singletonList(filter.value().toString()));
+
+                            var apiIds = this.allowedApiIds(wantedApiIds);
+
+                            return new Filter(filter.name(), IN, apiIds);
+                        default:
+                            return filter;
+                    }
+                }
+
+                return filter;
+            })
+            .toList();
+
+        return updatedFilters;
     }
 
+    // Find all API IDs a user can access.
     @NotNull
-    private List<String> findApiIds() {
+    private Set<String> allowedApiIds() {
+        return allowedApiIds(null);
+    }
+
+    // Find all API IDs a user can access.
+    // If the wantedApiIds is null, the method will return all APIs the user can access.
+    // If the wantedApiIds parameter is not empty, those IDs will set a limit to the IDs that can be returned. empty values are ignored.
+    // If the wantedApiIds parameter is empty an empty list will be returned.
+    @NotNull
+    private Set<String> allowedApiIds(Set<String> wantedApiIds) {
+        if (wantedApiIds != null && wantedApiIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
             Set<String> idsByEnvironment = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
-            return idsByEnvironment.stream().toList();
+
+            if (wantedApiIds == null) {
+                return idsByEnvironment;
+            }
+
+            idsByEnvironment.retainAll(wantedApiIds);
+        }
+
+        var query = new ApiQuery();
+        if (wantedApiIds != null) {
+            query.setIds(wantedApiIds);
         }
 
         return apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), false)
+            .findIdsByUser(executionContext, getAuthenticatedUser(), query, false)
             .stream()
             .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-            .toList();
+            .collect(Collectors.toSet());
     }
 
     protected boolean isAdmin() {
