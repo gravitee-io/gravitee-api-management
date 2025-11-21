@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardComponent, GraviteeDashboardService, Widget } from '@gravitee/gravitee-dashboard';
+import { GraviteeDashboardComponent, Widget, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
 
 import { inject, Component } from '@angular/core';
+
+import { Constants } from '../../../entities/Constants';
 
 @Component({
   selector: 'analytics-viewer',
@@ -25,4 +27,5 @@ import { inject, Component } from '@angular/core';
 })
 export class AnalyticsViewerComponent {
   widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
+  readonly baseURL = inject(Constants).env.v2BaseURL;
 }

@@ -16,7 +16,6 @@
 import { Bucket, Metric, MetricsResponse } from './response';
 
 export interface TimeSeriesResponse extends MetricsResponse<TimeSeries> {
-  type: 'time-series';
   buckets: TimeSeriesBucket[];
 }
 

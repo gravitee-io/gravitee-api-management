@@ -23,19 +23,25 @@ import { FacetsResponse } from '../response/facets-response';
 import { MeasuresResponse } from '../response/measures-response';
 import { TimeSeriesResponse } from '../response/time-series-response';
 
-export type WidgetType = PieType | 'stats' | 'top';
-export type RequestType = 'measures' | 'facets' | 'time-series';
+export type WidgetType = PieType | 'stats' | 'top' | 'bar' | 'line';
+export type RequestType = keyof RequestResponseMap;
 
-export type MetricsRequest = MeasuresRequest | FacetsRequest | TimeSeriesRequest;
+export type Request = MeasuresRequest | FacetsRequest | TimeSeriesRequest;
 export type MetricsResponse = MeasuresResponse | FacetsResponse | TimeSeriesResponse;
 
-export interface Widget<R extends MetricsRequest = MetricsRequest> {
+interface RequestResponseMap {
+  measures: MeasuresResponse;
+  facets: FacetsResponse;
+  'time-series': TimeSeriesResponse;
+}
+
+export interface Widget<R extends Request = Request> {
   id: string;
   title: string;
   type: WidgetType;
   layout: WidgetLayout;
   request?: R;
-  response?: Extract<MetricsResponse, { type: R['type'] }>;
+  response?: RequestResponseMap[R['type']];
 }
 
 export interface Measure {
@@ -48,4 +54,16 @@ export interface WidgetLayout {
   rows: number;
   x: number;
   y: number;
+}
+
+export function isMeasuresWidget(widget: Widget): widget is Widget<MeasuresRequest> {
+  return widget.request?.type === 'measures';
+}
+
+export function isFacetsWidget(widget: Widget): widget is Widget<FacetsRequest> {
+  return widget.request?.type === 'facets';
+}
+
+export function isTimeSeriesWidget(widget: Widget): widget is Widget<TimeSeriesRequest> {
+  return widget.request?.type === 'time-series';
 }

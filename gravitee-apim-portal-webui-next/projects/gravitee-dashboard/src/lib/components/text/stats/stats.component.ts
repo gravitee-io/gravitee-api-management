@@ -28,7 +28,7 @@ export class StatsComponent {
   data = model.required<MeasuresResponse>();
   converter = inject(StatsConverterService);
 
-  dataFormated = computed(() => {
+  dataFormatted = computed(() => {
     return this.converter.convert(this.data());
   });
 }

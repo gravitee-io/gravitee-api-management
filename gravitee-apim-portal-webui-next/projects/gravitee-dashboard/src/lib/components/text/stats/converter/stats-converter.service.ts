@@ -16,6 +16,7 @@
 import { Injectable } from '@angular/core';
 
 import { Converter } from '../../../converter';
+import { MeasureUnit } from '../../../widget/model/request/enum/measure-name';
 import { MeasuresResponse } from '../../../widget/model/response/measures-response';
 
 @Injectable({
@@ -23,6 +24,12 @@ import { MeasuresResponse } from '../../../widget/model/response/measures-respon
 })
 export class StatsConverterService implements Converter {
   convert(data: MeasuresResponse) {
-    return data?.metrics?.[0]?.measures?.map(({ value }) => value) ?? [];
+    return (
+      data?.metrics?.[0]?.measures?.map(({ name, value }) => {
+        const unit = MeasureUnit[name];
+        const formattedValue = Math.round(value).toLocaleString();
+        return unit ? `${formattedValue} ${unit}` : formattedValue;
+      }) ?? []
+    );
   }
 }

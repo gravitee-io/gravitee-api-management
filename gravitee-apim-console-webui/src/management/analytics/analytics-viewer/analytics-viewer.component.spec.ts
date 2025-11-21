@@ -19,6 +19,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AnalyticsViewerComponent } from './analytics-viewer.component';
 
+import { CONSTANTS_TESTING } from '../../../shared/testing';
+import { Constants } from '../../../entities/Constants';
+
 // Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
 globalThis.ResizeObserver =
   globalThis.ResizeObserver ||
@@ -42,6 +45,10 @@ describe('AnalyticsViewerComponent', () => {
         {
           provide: GraviteeDashboardService,
           useValue: mockGraviteeDashboardService,
+        },
+        {
+          provide: Constants,
+          useValue: CONSTANTS_TESTING,
         },
       ],
     }).compileComponents();

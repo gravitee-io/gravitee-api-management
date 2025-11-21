@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 import { MetricName } from '../request/enum/metric-name';
-import { Measure, RequestType } from '../widget/widget';
+import { Measure } from '../widget/widget';
 
 export interface MetricsResponse<D extends Metric> {
-  type: RequestType;
   interval?: string;
   metrics?: D[]; //remove ? after remove mock
 }
@@ -28,6 +27,7 @@ export interface Metric {
 
 export interface Bucket {
   key: string;
+  name: string;
   buckets?: Bucket[];
   measures?: Measure[];
 }
