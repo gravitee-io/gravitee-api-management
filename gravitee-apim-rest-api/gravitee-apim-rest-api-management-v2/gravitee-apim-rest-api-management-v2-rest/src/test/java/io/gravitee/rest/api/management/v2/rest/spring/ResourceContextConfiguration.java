@@ -38,6 +38,7 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -880,8 +881,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsDefinitionQueryService analyticsDefinitionProvider() {
+    public AnalyticsDefinitionQueryService analyticsDefinitionQueryService() {
         return new AnalyticsDefinitionYAMLQueryService();
+    }
+
+    @Bean
+    public AnalyticsQueryValidator analyticsQueryValidator(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+        return new AnalyticsQueryValidator(analyticsDefinitionQueryService);
     }
 
     @Bean
@@ -905,8 +911,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ComputeMeasuresUseCase computeMeasuresUseCase(AnalyticsQueryContextProvider analyticsQueryContextProvider) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider);
+    public ComputeMeasuresUseCase computeMeasuresUseCase(
+        AnalyticsQueryContextProvider analyticsQueryContextProvider,
+        AnalyticsQueryValidator analyticsQueryValidator
+    ) {
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator);
     }
 
     @Bean

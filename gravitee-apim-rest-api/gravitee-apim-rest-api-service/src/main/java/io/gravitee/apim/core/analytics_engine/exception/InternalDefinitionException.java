@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.apim.core.analytics_engine.exception;
+
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record TimeSeriesBucket(String key, Long timestamp) {}
+public class InternalDefinitionException extends TechnicalDomainException {
+
+    public InternalDefinitionException(String message) {
+        super(message);
+    }
+
+    public static InternalDefinitionException forUnknownMetric(String metric) {
+        return new InternalDefinitionException("Unknown metric " + metric);
+    }
+}

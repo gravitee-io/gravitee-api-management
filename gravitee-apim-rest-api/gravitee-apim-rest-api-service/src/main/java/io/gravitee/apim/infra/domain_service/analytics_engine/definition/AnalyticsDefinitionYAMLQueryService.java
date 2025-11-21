@@ -24,6 +24,8 @@ import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import java.util.List;
+import java.util.Optional;
+import javax.swing.text.html.Option;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -82,6 +84,15 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
             .stream()
             .filter(facet -> metric.facets().contains(facet.name()))
             .toList();
+    }
+
+    @Override
+    public Optional<MetricSpec> findMetric(MetricSpec.Name metricName) {
+        return spec
+            .metrics()
+            .stream()
+            .filter(metric -> metric.name().equals(metricName))
+            .findFirst();
     }
 
     private MetricSpec getMetricByName(MetricSpec.Name metricSpecName) {

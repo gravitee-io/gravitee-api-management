@@ -1335,6 +1335,7 @@ components:
                     $ref: "#/components/schemas/TimeRange"
                 by:
                     type: array
+                    minimum: 1
                     maximum: 2
                     items:
                         $ref: "#/components/schemas/FacetName"
