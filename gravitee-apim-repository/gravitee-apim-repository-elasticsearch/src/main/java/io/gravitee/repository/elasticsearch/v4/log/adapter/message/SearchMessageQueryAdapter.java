@@ -21,9 +21,9 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class SearchMessageLogQueryAdapter {
+public class SearchMessageQueryAdapter {
 
-    private SearchMessageLogQueryAdapter() {}
+    private SearchMessageQueryAdapter() {}
 
     public static String adapt(MessageLogQuery query) {
         var jsonContent = new HashMap<String, Object>();
@@ -46,14 +46,22 @@ public class SearchMessageLogQueryAdapter {
         }
 
         var terms = new ArrayList<JsonObject>();
-        if (filter.getApiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
+        if (filter.apiId() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("api-id", filter.apiId())));
         }
-        if (filter.getRequestId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("request-id", filter.getRequestId())));
+        if (filter.requestId() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("request-id", filter.requestId())));
         }
-        if (filter.getConnectorType() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("connector-type", filter.getConnectorType())));
+        if (filter.connectorType() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("connector-type", filter.connectorType())));
+        }
+
+        if (filter.connectorId() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("connector-id", filter.connectorId())));
+        }
+
+        if (filter.operation() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("operation", filter.operation())));
         }
 
         if (!terms.isEmpty()) {
