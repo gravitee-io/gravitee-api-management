@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
 
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { WebhookLogsComponent } from './webhook-logs/webhook-logs.component';
-import { WebhookLogsDetailsComponent } from './webhook-logs-details/webhook-logs-details.component';
+import { Component } from '@angular/core';
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, WebhookLogsComponent, WebhookLogsDetailsComponent],
+@Component({
+  selector: 'reporting-disabled-banner',
+  templateUrl: './reporting-disabled-banner.component.html',
+  styleUrls: ['./reporting-disabled-banner.component.scss'],
+  standalone: true,
+  imports: [GioBannerModule],
 })
-export class ApiTrafficV4Module {}
+export class ReportingDisabledBannerComponent {}

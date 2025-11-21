@@ -1,0 +1,7 @@
+.banner-warning {
+  margin-bottom: 24px;
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+}
