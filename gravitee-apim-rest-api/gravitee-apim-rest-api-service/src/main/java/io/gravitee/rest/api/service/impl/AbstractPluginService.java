@@ -123,7 +123,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     protected String validateConfiguration(String pluginId, String configuration) {
         if (pluginId != null && configuration != null) {
             String schema = getSchema(pluginId);
-            return jsonSchemaService.validate(schema, configuration);
+            return jsonSchemaService.validate(pluginId, schema, configuration);
         }
         return configuration;
     }

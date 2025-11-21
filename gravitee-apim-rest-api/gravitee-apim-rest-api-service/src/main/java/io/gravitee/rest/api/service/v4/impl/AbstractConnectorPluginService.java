@@ -195,7 +195,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
     protected String validatePluginConfigurationAgainstSchema(String pluginId, String configuration, UnaryOperator<String> schemaProvider) {
         if (pluginId != null && configuration != null) {
             String schema = schemaProvider.apply(pluginId);
-            return jsonSchemaService.validate(schema, configuration);
+            return jsonSchemaService.validate(pluginId, schema, configuration);
         }
         return configuration;
     }

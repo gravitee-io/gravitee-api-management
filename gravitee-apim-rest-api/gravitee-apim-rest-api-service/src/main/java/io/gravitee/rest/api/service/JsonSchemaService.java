@@ -20,5 +20,5 @@ package io.gravitee.rest.api.service;
  * @author GraviteeSource Team
  */
 public interface JsonSchemaService {
-    String validate(String schema, String configuration);
+    String validate(String pluginId, String schema, String configuration);
 }

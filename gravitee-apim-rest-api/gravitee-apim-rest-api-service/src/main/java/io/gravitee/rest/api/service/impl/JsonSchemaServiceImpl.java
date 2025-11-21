@@ -35,9 +35,9 @@ public class JsonSchemaServiceImpl implements JsonSchemaService {
     }
 
     @Override
-    public String validate(String schema, String configuration) {
+    public String validate(String pluginId, String schema, String configuration) {
         try {
-            return validator.validate(schema, configuration);
+            return validator.validate(pluginId, schema, configuration);
         } catch (InvalidJsonException e) {
             throw new InvalidDataException(e.getMessage());
         }
