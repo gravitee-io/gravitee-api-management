@@ -137,8 +137,7 @@ class ElasticsearchReporterTest {
 
     @Test
     void should_report_message_metrics() throws InterruptedException {
-        final MessageMetrics messageMetrics = MessageMetrics
-            .builder()
+        final MessageMetrics messageMetrics = MessageMetrics.builder()
             .apiId("api")
             .apiName("API Name")
             .clientIdentifier("client")
@@ -198,8 +197,7 @@ class ElasticsearchReporterTest {
         final Request defaultRequest = new Request();
         defaultRequest.setUri("https://api.gravitee.io/echo/echo");
         defaultRequest.setMethod(HttpMethod.GET);
-        final Step defaultStep = EndpointStatus
-            .forStep("default-step")
+        final Step defaultStep = EndpointStatus.forStep("default-step")
             .responseTime(117)
             .success()
             .request(defaultRequest)
@@ -212,16 +210,17 @@ class ElasticsearchReporterTest {
         anotherRequest.setUri("https://api.gravitee.io/echo/echo");
         anotherRequest.setMethod(HttpMethod.GET);
 
-        final Step anotherStep = EndpointStatus
-            .forStep("another-step")
+        final Step anotherStep = EndpointStatus.forStep("another-step")
             .responseTime(57)
             .fail("NPE")
             .request(defaultRequest)
             .response(defaultResponse)
             .build();
 
-        final EndpointStatus endpointHealthStatus = EndpointStatus
-            .forEndpoint("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab", "https://api.gravitee.io/echo/")
+        final EndpointStatus endpointHealthStatus = EndpointStatus.forEndpoint(
+            "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab",
+            "https://api.gravitee.io/echo/"
+        )
             .on(Instant.now().toEpochMilli())
             .step(defaultStep)
             .step(anotherStep)
@@ -292,8 +291,7 @@ class ElasticsearchReporterTest {
         processInfo.openFileDescriptors = 1;
         processInfo.timestamp = 10;
 
-        final Monitor monitor = Monitor
-            .on("b187fe8f-98fa-4aa9-87fe-8f98facaa956")
+        final Monitor monitor = Monitor.on("b187fe8f-98fa-4aa9-87fe-8f98facaa956")
             .at(Instant.now().toEpochMilli())
             .jvm(jvmInfo)
             .os(osInfo)

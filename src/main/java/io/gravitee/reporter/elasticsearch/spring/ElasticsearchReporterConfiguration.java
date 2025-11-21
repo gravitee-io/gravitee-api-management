@@ -88,8 +88,7 @@ public class ElasticsearchReporterConfiguration {
     public FreeMarkerComponent freeMarkerComponent(
         @Value("${reporters.elasticsearch.template_mapping.path:#{null}}") String templateMappingPath
     ) {
-        return FreeMarkerComponent
-            .builder()
+        return FreeMarkerComponent.builder()
             .path(templateMappingPath != null ? Path.of(templateMappingPath) : null)
             .classLoader(getClass().getClassLoader())
             .classLoaderTemplateBase("freemarker")

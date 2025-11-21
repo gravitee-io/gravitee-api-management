@@ -59,21 +59,20 @@ public class PipelineConfigurationTest {
     @Test
     public void should_create_default_pipeline() {
         String pipeline = pipelineConfiguration.createPipeline();
-        assertThat(new JsonObject(pipeline))
-            .isEqualTo(
-                new JsonObject(
-                    Map.of(
-                        "description",
-                        "Gravitee pipeline",
-                        "processors",
-                        new JsonArray(
-                            Stream
-                                .concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
-                                .collect(Collectors.toList())
+        assertThat(new JsonObject(pipeline)).isEqualTo(
+            new JsonObject(
+                Map.of(
+                    "description",
+                    "Gravitee pipeline",
+                    "processors",
+                    new JsonArray(
+                        Stream.concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream()).collect(
+                            Collectors.toList()
                         )
                     )
                 )
-            );
+            )
+        );
     }
 
     @Test
@@ -82,23 +81,21 @@ public class PipelineConfigurationTest {
             "geoip, testAnother, unknown, user_agent, this does not exists",
             null,
             freeMarkerComponent
-        )
-            .createPipeline();
-        assertThat(new JsonObject(pipeline))
-            .isEqualTo(
-                new JsonObject(
-                    Map.of(
-                        "description",
-                        "Gravitee pipeline",
-                        "processors",
-                        new JsonArray(
-                            Stream
-                                .concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
-                                .collect(Collectors.toList())
+        ).createPipeline();
+        assertThat(new JsonObject(pipeline)).isEqualTo(
+            new JsonObject(
+                Map.of(
+                    "description",
+                    "Gravitee pipeline",
+                    "processors",
+                    new JsonArray(
+                        Stream.concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream()).collect(
+                            Collectors.toList()
                         )
                     )
                 )
-            );
+            )
+        );
     }
 
     @Nested

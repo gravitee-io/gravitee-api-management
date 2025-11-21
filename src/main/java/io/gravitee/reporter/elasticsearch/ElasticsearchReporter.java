@@ -94,18 +94,17 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                 .subscribe();
 
             FormatterFactoryConfiguration formatterFactoryConfiguration = beanFactory.createFormatterFactoryConfiguration();
-            bulkProcessor =
-                new BulkProcessor(
-                    new ElasticBulkSender(client),
-                    reporterConfiguration.getBulkConfiguration(),
-                    new ElasticBulkTransformer(
-                        new FormatterFactory(node, formatterFactoryConfiguration).getFormatter(Type.ELASTICSEARCH),
-                        pipelineConfiguration,
-                        beanFactory.createIndexNameGenerator(reporterConfiguration)
-                    ),
-                    new NoneBulkCompressor(),
-                    new BulkDropper()
-                );
+            bulkProcessor = new BulkProcessor(
+                new ElasticBulkSender(client),
+                reporterConfiguration.getBulkConfiguration(),
+                new ElasticBulkTransformer(
+                    new FormatterFactory(node, formatterFactoryConfiguration).getFormatter(Type.ELASTICSEARCH),
+                    pipelineConfiguration,
+                    beanFactory.createIndexNameGenerator(reporterConfiguration)
+                ),
+                new NoneBulkCompressor(),
+                new BulkDropper()
+            );
             bulkProcessor.start();
         }
     }

@@ -126,8 +126,9 @@ class BeanFactoryBuilderTest {
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
-                .isInstanceOf(OpenSearchIndexPreparer.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(
+                OpenSearchIndexPreparer.class
+            );
         }
 
         @DisplayName("should instantiate beans for OpenSearch ilm mode")
@@ -142,8 +143,9 @@ class BeanFactoryBuilderTest {
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
-                .isInstanceOf(OpenSearchIndexPreparer.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(
+                OpenSearchIndexPreparer.class
+            );
         }
     }
 
