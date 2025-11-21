@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.9.0...1.9.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* escape double quotes in keyword additional metrics with csv and tests ([db42d31](https://github.com/gravitee-io/gravitee-reporter-common/commit/db42d31968fcd0f3b9c733d009d0d3b3f612d6f3))
+
 # [1.9.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.8.0...1.9.0) (2025-11-21)
 
 
