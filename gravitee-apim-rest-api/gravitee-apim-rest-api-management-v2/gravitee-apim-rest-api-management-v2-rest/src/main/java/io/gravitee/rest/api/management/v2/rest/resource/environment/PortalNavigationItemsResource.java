@@ -19,6 +19,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
@@ -36,6 +37,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
@@ -53,6 +55,9 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
+
+    @Inject
+    private UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase;
 
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -92,5 +97,27 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    public Response updatePortalNavigationItem(
+        @QueryParam("navId") String navigationItemId,
+        @Valid @NotNull final BaseCreatePortalNavigationItem updatePortalNavigationItem
+    ) {
+        var navItemToUpdate = mapper.map(updatePortalNavigationItem);
+        navItemToUpdate.setId(PortalNavigationItemId.of(navigationItemId));
+
+        var input = new UpdatePortalNavigationItemUseCase.Input(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            navItemToUpdate
+        );
+
+        var output = updatePortalNavigationItemUseCase.execute(input);
+
+        return Response.ok(mapper.map(output.updatedItem())).build();
     }
 }
