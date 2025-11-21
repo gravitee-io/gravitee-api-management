@@ -24,3 +24,4 @@ export * from './lib/components/grid/grid.component';
 export * from './lib/components/widget/model/widget/widget';
 export * from './lib/components/widget/widget.component';
 export * from './lib/components/chart/pie-chart/pie-chart.component';
+export * from './lib/components/filter/dropdown-search/dropdown-search.component';

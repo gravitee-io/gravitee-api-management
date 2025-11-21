@@ -16,14 +16,15 @@
 import { Component, effect, inject, input, model } from '@angular/core';
 import { forkJoin, of, switchMap } from 'rxjs';
 
+import { DropdownSearchComponent } from './components/filter/dropdown-search/dropdown-search.component';
 import { GridComponent } from './components/grid/grid.component';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 @Component({
   selector: 'gd-dashboard',
-  imports: [GridComponent],
-  template: `<gd-grid [items]="widgets()" />`,
+  imports: [GridComponent, DropdownSearchComponent],
+  template: `<gd-dropdown-search /> <gd-grid [items]="widgets()" />`,
   styles: ``,
 })
 export class GraviteeDashboardComponent {
