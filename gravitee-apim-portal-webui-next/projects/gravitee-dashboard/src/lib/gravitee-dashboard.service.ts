@@ -17,12 +17,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
 
-import { FacetName } from './components/widget/model/request/enum/facet-name';
-import { FilterName } from './components/widget/model/request/enum/filter-name';
-import { MeasureName } from './components/widget/model/request/enum/measure-name';
-import { MetricName } from './components/widget/model/request/enum/metric-name';
 import { GlobalRequest } from './components/widget/model/request/request';
 import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
@@ -33,6 +28,7 @@ import { RequestType, Widget } from './components/widget/model/widget/widget';
   providedIn: 'root',
 })
 export class GraviteeDashboardService {
+  analyticsPath = 'analytics';
   constructor(private readonly http: HttpClient) {}
 
   public getWidgets(): Widget[] {
@@ -45,32 +41,18 @@ export class GraviteeDashboardService {
           cols: 1,
           rows: 1,
           y: 0,
-          x: 1,
+          x: 0,
         },
         request: {
           type: 'measures',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          filters: [
-            {
-              name: FilterName.API,
-              operator: 'EQ',
-              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
-            },
-          ],
           metrics: [
             {
-              name: 'HTTP_GATEWAY_RESPONSE_TIME',
-              measures: [MeasureName.P90, MeasureName.P95, MeasureName.P99],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              name: 'HTTP_REQUESTS',
+              measures: ['COUNT'],
             },
           ],
         },
@@ -83,32 +65,18 @@ export class GraviteeDashboardService {
           cols: 1,
           rows: 1,
           y: 0,
-          x: 2,
+          x: 1,
         },
         request: {
           type: 'measures',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          filters: [
-            {
-              name: FilterName.API,
-              operator: 'EQ',
-              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
-            },
-          ],
           metrics: [
             {
-              name: 'HTTP_GATEWAY_RESPONSE_TIME',
-              measures: [MeasureName.P90, MeasureName.P95, MeasureName.P99],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              name: 'HTTP_ERRORS',
+              measures: ['PERCENTAGE'],
             },
           ],
         },
@@ -121,70 +89,42 @@ export class GraviteeDashboardService {
           cols: 1,
           rows: 1,
           y: 0,
-          x: 3,
+          x: 2,
         },
         request: {
           type: 'measures',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          filters: [
-            {
-              name: FilterName.API,
-              operator: 'EQ',
-              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
-            },
-          ],
           metrics: [
             {
-              name: 'HTTP_GATEWAY_RESPONSE_TIME',
-              measures: [MeasureName.P90, MeasureName.P95, MeasureName.P99],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              name: 'HTTP_GATEWAY_LATENCY',
+              measures: ['AVG'],
             },
           ],
         },
       },
       {
         id: '4',
-        title: 'Subscriptions',
+        title: 'Average Response Time',
         type: 'stats',
         layout: {
           cols: 1,
           rows: 1,
           y: 0,
-          x: 4,
+          x: 3,
         },
         request: {
           type: 'measures',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          filters: [
-            {
-              name: FilterName.API,
-              operator: 'EQ',
-              value: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
-            },
-          ],
           metrics: [
             {
               name: 'HTTP_GATEWAY_RESPONSE_TIME',
-              measures: [MeasureName.P90, MeasureName.P95, MeasureName.P99],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              measures: ['AVG'],
             },
           ],
         },
@@ -197,221 +137,114 @@ export class GraviteeDashboardService {
           cols: 1,
           rows: 2,
           y: 1,
-          x: 1,
+          x: 0,
         },
         request: {
           type: 'facets',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          by: [FacetName.API, FacetName.APPLICATION],
+          by: ['HTTP_STATUS_CODE_GROUP'],
           metrics: [
             {
               name: 'HTTP_REQUESTS',
-              measures: [MeasureName.RPS],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              measures: ['COUNT'],
             },
           ],
         },
       },
       {
         id: '6',
-        title: 'Response Time',
-        type: 'pie',
+        title: 'Response Time (mock)',
+        type: 'line',
         layout: {
           cols: 3,
           rows: 2,
           y: 1,
-          x: 2,
+          x: 1,
         },
         request: {
           type: 'facets',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          by: [FacetName.API, FacetName.APPLICATION],
+          by: ['API', 'APPLICATION'],
           metrics: [
             {
               name: 'HTTP_REQUESTS',
-              measures: [MeasureName.RPS],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              measures: ['RPS'],
             },
           ],
         },
       },
       {
         id: '7',
-        title: 'Response Statuses',
-        type: 'doughnut',
+        title: 'Response Statues (mock)',
+        type: 'line',
         layout: {
           cols: 3,
           rows: 2,
           y: 3,
-          x: 1,
+          x: 0,
         },
         request: {
           type: 'facets',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          by: [FacetName.API, FacetName.APPLICATION],
+          by: ['HTTP_STATUS_CODE_GROUP'],
           metrics: [
             {
               name: 'HTTP_REQUESTS',
-              measures: [MeasureName.RPS],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              measures: ['COUNT'],
             },
           ],
         },
       },
       {
         id: '8',
-        title: 'Consumption by Application',
-        type: 'polarArea',
+        title: 'Top 5 Requested Applications',
+        type: 'doughnut',
         layout: {
           cols: 1,
           rows: 2,
           y: 3,
-          x: 4,
+          x: 3,
         },
         request: {
           type: 'facets',
           timeRange: {
-            from: '2025-01-01T00:00:00Z',
-            to: '2025-01-31T23:59:59Z',
+            from: '2025-10-07T06:50:30Z',
+            to: '2025-12-07T11:35:30Z',
           },
-          by: [FacetName.API, FacetName.APPLICATION],
+          limit: 5,
+          by: ['APPLICATION'],
           metrics: [
             {
               name: 'HTTP_REQUESTS',
-              measures: [MeasureName.RPS],
-              filters: [
-                {
-                  name: FilterName.TENANT,
-                  operator: 'EQ',
-                  value: 'europe',
-                },
-              ],
+              measures: ['COUNT'],
             },
           ],
-        },
-      },
-      {
-        id: '9',
-        title: 'Top Application',
-        type: 'top',
-        layout: {
-          cols: 1,
-          rows: 3,
-          y: 1,
-          x: 5,
-        },
-      },
-      {
-        id: '10',
-        title: 'Top API',
-        type: 'top',
-        layout: {
-          cols: 1,
-          rows: 3,
-          y: 2,
-          x: 0,
         },
       },
     ];
   }
 
-  public getMetrics(basePath: string, endpoint: RequestType, request: GlobalRequest<RequestType>) {
+  public getMetrics(
+    basePath: string,
+    endpoint: RequestType,
+    request: GlobalRequest<RequestType>,
+  ): Observable<MeasuresResponse | FacetsResponse | TimeSeriesResponse> {
     if (endpoint === 'measures') {
-      return this.http.post<MeasuresResponse>(`${basePath}/${endpoint}`, request);
+      return this.http.post<MeasuresResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
     }
     if (endpoint === 'facets') {
-      return this.http.post<FacetsResponse>(`${basePath}/${endpoint}`, request);
-    }
-    if (endpoint === 'time-series') {
-      return this.http.post<TimeSeriesResponse>(`${basePath}/${endpoint}`, request);
+      return this.http.post<FacetsResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
     }
 
     throw new Error(`Endpoint ${endpoint} not supported`);
-  }
-
-  public getMetricsMock(
-    basePath: string,
-    endpoint: string,
-    _request: GlobalRequest<RequestType>,
-  ): Observable<MeasuresResponse | TimeSeriesResponse | FacetsResponse> {
-    switch (endpoint) {
-      case 'measures':
-        return of(this.getMeasures());
-      case 'facets':
-        return of(this.getFacets());
-      default:
-        throw new Error(`Endpoint ${endpoint} not supported`);
-    }
-  }
-
-  private getMeasures(): MeasuresResponse {
-    return { type: 'measures', metrics: [{ name: MetricName.HTTP_REQUESTS, measures: [{ name: MeasureName.AVG, value: 133 }] }] };
-  }
-
-  private getFacets(): FacetsResponse {
-    return {
-      type: 'facets',
-      metrics: [
-        {
-          name: MetricName.HTTP_REQUESTS,
-          buckets: [
-            {
-              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71',
-              measures: [
-                {
-                  name: MeasureName.COUNT,
-                  value: 1234,
-                },
-              ],
-            },
-            {
-              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71-test',
-              measures: [
-                {
-                  name: MeasureName.COUNT,
-                  value: 989,
-                },
-              ],
-            },
-            {
-              key: '8528bd43-c264-4719-8d9e-ad8afb34ce71-test2',
-              measures: [
-                {
-                  name: MeasureName.COUNT,
-                  value: 590,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    };
   }
 }

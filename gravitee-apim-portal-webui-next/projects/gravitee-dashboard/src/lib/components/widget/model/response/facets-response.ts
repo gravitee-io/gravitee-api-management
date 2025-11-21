@@ -15,14 +15,8 @@
  */
 import { Bucket, Metric, MetricsResponse } from './response';
 
-export interface FacetsResponse extends MetricsResponse<Facets> {
-  type: 'facets';
-}
+export interface FacetsResponse extends MetricsResponse<Facets> {}
 
 export interface Facets extends Metric {
   buckets: Bucket[];
-}
-
-export function isFacetsResponse(response: MetricsResponse<Metric>): response is FacetsResponse {
-  return response?.type === 'facets';
 }

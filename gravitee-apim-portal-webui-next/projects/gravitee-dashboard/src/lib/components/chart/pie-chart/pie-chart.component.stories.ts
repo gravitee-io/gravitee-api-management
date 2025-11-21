@@ -17,8 +17,6 @@ import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/an
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { PieChartComponent, PieType } from './pie-chart.component';
-import { MeasureName } from '../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../widget/model/request/enum/metric-name';
 import { FacetsResponse } from '../../widget/model/response/facets-response';
 
 interface PieChartStoryArgs {
@@ -67,15 +65,15 @@ export default {
   },
   render: args => {
     const metricsData: FacetsResponse = {
-      type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           buckets: args.buckets.map(bucket => ({
             key: bucket.key,
+            name: bucket.key,
             measures: [
               {
-                name: MeasureName.COUNT,
+                name: 'COUNT',
                 value: bucket.value,
               },
             ],

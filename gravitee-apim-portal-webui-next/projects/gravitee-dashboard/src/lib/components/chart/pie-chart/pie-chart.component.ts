@@ -47,6 +47,10 @@ export class PieChartComponent {
         legend: {
           display: true,
           position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+          },
         },
       },
     } satisfies ChartConfiguration<PieType>['options'];

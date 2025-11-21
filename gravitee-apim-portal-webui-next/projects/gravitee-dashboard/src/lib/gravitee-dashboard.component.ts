@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, inject, model } from '@angular/core';
+import { Component, effect, inject, input, model } from '@angular/core';
 import { forkJoin, of, switchMap } from 'rxjs';
 
 import { GridComponent } from './components/grid/grid.component';
@@ -28,6 +28,7 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
 })
 export class GraviteeDashboardComponent {
   dashboardService = inject(GraviteeDashboardService);
+  baseURL = input.required<string>();
   widgets = model.required<Widget[]>();
 
   constructor() {
@@ -48,11 +49,7 @@ export class GraviteeDashboardComponent {
   private loadWidgetData(widget: Widget) {
     if (!widget.request) return of(widget);
 
-    const metrics$ = this.dashboardService.getMetricsMock('basePath', widget.request.type, widget.request);
+    const metrics$ = this.dashboardService.getMetrics(this.baseURL(), widget.request.type, widget.request);
     return metrics$.pipe(switchMap(response => of({ ...widget, response: response } satisfies Widget)));
-  }
-
-  private updateWidgetInSignal(updatedWidget: Widget) {
-    this.widgets.update(widgets => widgets.map(w => (w.id === updatedWidget.id ? updatedWidget : w)));
   }
 }

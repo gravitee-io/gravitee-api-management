@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { RequestType } from '../widget/widget';
 import { FilterName } from './enum/filter-name';
 import { MeasureName } from './enum/measure-name';
-import { RequestType } from '../widget/widget';
+import { MetricName } from './enum/metric-name';
 
 export interface GlobalRequest<E extends RequestType> {
   type: E;
@@ -25,7 +26,7 @@ export interface GlobalRequest<E extends RequestType> {
 }
 
 export interface MetricRequest {
-  name: string;
+  name: MetricName;
   measures: MeasureName[];
   filters?: Filter[];
 }

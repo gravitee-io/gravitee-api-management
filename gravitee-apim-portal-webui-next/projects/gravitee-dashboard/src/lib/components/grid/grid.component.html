@@ -27,22 +27,22 @@
             @if (item.response) {
               @switch (item.type) {
                 @case ('pie') {
-                  @if (isFacetsResponse(item.response)) {
+                  @if (isFacetsWidget(item)) {
                     <gd-pie-chart type="pie" [data]="item.response" />
                   }
                 }
                 @case ('polarArea') {
-                  @if (isFacetsResponse(item.response)) {
+                  @if (isFacetsWidget(item)) {
                     <gd-pie-chart type="polarArea" [data]="item.response" />
                   }
                 }
                 @case ('doughnut') {
-                  @if (isFacetsResponse(item.response)) {
+                  @if (isFacetsWidget(item)) {
                     <gd-pie-chart type="doughnut" [data]="item.response" />
                   }
                 }
                 @case ('stats') {
-                  @if (isMeasuresResponse(item.response)) {
+                  @if (isMeasuresWidget(item)) {
                     <gd-stats [data]="item.response" />
                   }
                 }

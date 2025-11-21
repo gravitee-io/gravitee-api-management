@@ -18,9 +18,7 @@ import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterIt
 
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
 import { StatsComponent } from '../text/stats/stats.component';
-import { isFacetsResponse } from '../widget/model/response/facets-response';
-import { isMeasuresResponse } from '../widget/model/response/measures-response';
-import { Widget } from '../widget/model/widget/widget';
+import { isFacetsWidget, isMeasuresWidget, Widget } from '../widget/model/widget/widget';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
@@ -41,8 +39,8 @@ export class GridComponent {
   items = input<Widget[]>();
   options = input<GridsterConfig>(this.getGridsterOptions());
 
-  protected readonly isFacetsResponse = isFacetsResponse;
-  protected readonly isMeasuresResponse = isMeasuresResponse;
+  protected readonly isMeasuresWidget = isMeasuresWidget;
+  protected readonly isFacetsWidget = isFacetsWidget;
 
   private getGridsterOptions(): GridsterConfig {
     return {
@@ -61,7 +59,7 @@ export class GridComponent {
       outerMargin: true,
       setGridSize: true,
       fixedColWidth: 50,
-      fixedRowHeight: 150,
+      fixedRowHeight: 125,
     };
   }
 }

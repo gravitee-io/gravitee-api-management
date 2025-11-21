@@ -25,13 +25,16 @@ import { PieType } from '../pie-chart.component';
 })
 export class PieConverterService implements Converter {
   public convert(data: FacetsResponse): ChartData<PieType, number[]> {
-    let labels: string[] = [];
-    let dataValues: number[] = [];
+    const labels: string[] = [];
+    const dataValues: number[] = [];
 
-    if (data?.metrics) {
-      const bucketsWithMeasures = data.metrics.flatMap(metric => metric.buckets ?? []).filter(bucket => bucket?.measures?.length);
-      labels = bucketsWithMeasures.map(bucket => bucket.key);
-      dataValues = bucketsWithMeasures.map(bucket => bucket.measures![0].value);
+    if (data?.metrics?.length) {
+      for (const bucket of data.metrics[0].buckets) {
+        if (bucket.measures?.length) {
+          labels.push(bucket.name);
+          dataValues.push(bucket.measures[0].value);
+        }
+      }
     }
     return {
       labels: labels,

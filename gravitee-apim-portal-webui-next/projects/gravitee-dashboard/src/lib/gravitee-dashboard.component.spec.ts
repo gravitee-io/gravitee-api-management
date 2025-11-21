@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { MeasureName } from './components/widget/model/request/enum/measure-name';
-import { MetricName } from './components/widget/model/request/enum/metric-name';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
@@ -26,6 +24,8 @@ import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
 describe('GraviteeDashboardComponent', () => {
   let component: GraviteeDashboardComponent;
   let fixture: ComponentFixture<GraviteeDashboardComponent>;
+  let httpTestingController: HttpTestingController;
+  const mockBaseURL = 'http://customURL';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -35,10 +35,16 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture = TestBed.createComponent(GraviteeDashboardComponent);
     component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
 
     const mockWidgets: Widget[] = [];
     component.widgets.set(mockWidgets);
+    fixture.componentRef.setInput('baseURL', mockBaseURL);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should create', () => {
@@ -64,11 +70,10 @@ describe('GraviteeDashboardComponent', () => {
 
   it('should not load data for widgets with existing response', () => {
     const mockResponse: MeasuresResponse = {
-      type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
-          measures: [{ name: MeasureName.COUNT, value: 100 }],
+          name: 'HTTP_REQUESTS',
+          measures: [{ name: 'COUNT', value: 100 }],
         },
       ],
     };
@@ -99,6 +104,15 @@ describe('GraviteeDashboardComponent', () => {
   });
 
   it('should load data for widgets with request but no response', waitForAsync(() => {
+    const mockResponse: MeasuresResponse = {
+      metrics: [
+        {
+          name: 'HTTP_REQUESTS',
+          measures: [{ name: 'AVG', value: 150 }],
+        },
+      ],
+    };
+
     const widgets: Widget[] = [
       {
         id: '1',
@@ -119,11 +133,15 @@ describe('GraviteeDashboardComponent', () => {
     component.widgets.set(widgets);
     fixture.detectChanges();
 
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockResponse);
+
     fixture.whenStable().then(() => {
       const updatedWidgets = component.widgets();
       expect(updatedWidgets.length).toBe(1);
       expect(updatedWidgets[0].response).toBeDefined();
-      expect(updatedWidgets[0].response?.type).toBe('measures');
+      expect(updatedWidgets[0].response).toEqual(mockResponse);
     });
   }));
 });

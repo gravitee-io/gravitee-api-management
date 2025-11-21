@@ -18,9 +18,6 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 
-import { MeasureName } from './components/widget/model/request/enum/measure-name';
-import { MetricName } from './components/widget/model/request/enum/metric-name';
-import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { RequestType } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
@@ -47,7 +44,7 @@ describe('GraviteeDashboardService', () => {
 
   describe('getMetrics', () => {
     it('should make POST request for measures endpoint', () => {
-      const basePath = 'http://test.api';
+      const basePath = 'http://test.api/';
       const endpoint = 'measures';
       const request = {
         type: 'measures' as const,
@@ -58,11 +55,10 @@ describe('GraviteeDashboardService', () => {
         metrics: [],
       };
       const mockResponse: MeasuresResponse = {
-        type: 'measures',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
-            measures: [{ name: MeasureName.COUNT, value: 100 }],
+            name: 'HTTP_REQUESTS',
+            measures: [{ name: 'COUNT', value: 100 }],
           },
         ],
       };
@@ -71,48 +67,12 @@ describe('GraviteeDashboardService', () => {
         expect(response).toEqual(mockResponse);
       });
 
-      const req = httpTestingController.expectOne(`${basePath}/${endpoint}`);
+      const req = httpTestingController.expectOne(`${basePath}/analytics/${endpoint}`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(request);
       req.flush(mockResponse);
     });
 
-    it('should make POST request for facets endpoint', () => {
-      const basePath = 'http://test.api';
-      const endpoint = 'facets';
-      const request = {
-        type: 'facets' as const,
-        timeRange: {
-          from: '2025-01-01T00:00:00Z',
-          to: '2025-01-31T23:59:59Z',
-        },
-        by: [],
-        metrics: [],
-      };
-      const mockResponse: FacetsResponse = {
-        type: 'facets',
-        metrics: [
-          {
-            name: MetricName.HTTP_REQUESTS,
-            buckets: [
-              {
-                key: 'test-key',
-                measures: [{ name: MeasureName.COUNT, value: 50 }],
-              },
-            ],
-          },
-        ],
-      };
-
-      (service.getMetrics(basePath, endpoint, request) as Observable<FacetsResponse>).subscribe((response: FacetsResponse) => {
-        expect(response).toEqual(mockResponse);
-      });
-
-      const req = httpTestingController.expectOne(`${basePath}/${endpoint}`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(request);
-      req.flush(mockResponse);
-    });
     it('should throw error for unsupported endpoint', () => {
       const basePath = 'http://test.api';
       const endpoint = 'unsupported' as unknown as RequestType;

@@ -16,14 +16,8 @@
 import { Metric, MetricsResponse } from './response';
 import { Measure } from '../widget/widget';
 
-export interface MeasuresResponse extends MetricsResponse<MeasureMetric> {
-  type: 'measures';
-}
+export interface MeasuresResponse extends MetricsResponse<MeasureMetric> {}
 
 export interface MeasureMetric extends Metric {
   measures: Measure[];
-}
-
-export function isMeasuresResponse(response: MetricsResponse<Metric>): response is MeasuresResponse {
-  return response?.type === 'measures';
 }

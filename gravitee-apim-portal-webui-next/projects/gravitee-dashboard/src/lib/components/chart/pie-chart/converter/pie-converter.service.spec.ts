@@ -16,8 +16,6 @@
 import { TestBed } from '@angular/core/testing';
 
 import { PieConverterService } from './pie-converter.service';
-import { MeasureName } from '../../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../../widget/model/request/enum/metric-name';
 import { FacetsResponse } from '../../../widget/model/response/facets-response';
 
 describe('PieConverterService', () => {
@@ -35,18 +33,19 @@ describe('PieConverterService', () => {
   describe('convert', () => {
     it('should convert FacetsResponse to ChartData with labels and data', () => {
       const data: FacetsResponse = {
-        type: 'facets',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
+            name: 'HTTP_REQUESTS',
             buckets: [
               {
                 key: 'bucket-1',
-                measures: [{ name: MeasureName.COUNT, value: 100 }],
+                name: 'bucket-1',
+                measures: [{ name: 'COUNT', value: 100 }],
               },
               {
                 key: 'bucket-2',
-                measures: [{ name: MeasureName.COUNT, value: 200 }],
+                name: 'bucket-2',
+                measures: [{ name: 'COUNT', value: 200 }],
               },
             ],
           },
@@ -61,7 +60,6 @@ describe('PieConverterService', () => {
 
     it('should return empty arrays when metrics is empty', () => {
       const data: FacetsResponse = {
-        type: 'facets',
         metrics: [],
       };
 
@@ -73,22 +71,24 @@ describe('PieConverterService', () => {
 
     it('should filter out buckets without measures', () => {
       const data: FacetsResponse = {
-        type: 'facets',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
+            name: 'HTTP_REQUESTS',
             buckets: [
               {
                 key: 'bucket-1',
-                measures: [{ name: MeasureName.COUNT, value: 100 }],
+                name: 'bucket-1',
+                measures: [{ name: 'COUNT', value: 100 }],
               },
               {
                 key: 'bucket-2',
+                name: 'bucket-2',
                 measures: [],
               },
               {
                 key: 'bucket-3',
-                measures: [{ name: MeasureName.COUNT, value: 300 }],
+                name: 'bucket-3',
+                measures: [{ name: 'COUNT', value: 300 }],
               },
             ],
           },
