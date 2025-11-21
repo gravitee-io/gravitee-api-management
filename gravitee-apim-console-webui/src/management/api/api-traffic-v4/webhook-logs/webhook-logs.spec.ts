@@ -18,17 +18,16 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { HarnessLoader } from '@angular/cdk/testing';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
 import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog/webhook-settings-dialog.component';
+import { WebhookSettingsDialogHarness } from './components/webhook-settings-dialog/webhook-settings-dialog.harness';
 
 import { ApiV4 } from '../../../../entities/management-api-v2';
 import { Constants } from '../../../../entities/Constants';
@@ -41,24 +40,19 @@ const defaultApi = {
   definitionVersion: 'V4',
 } as ApiV4;
 
-type JestMockFn = ((...args: unknown[]) => unknown) & {
-  mockReturnValue: (...args: unknown[]) => JestMockFn;
-  mock: { calls: unknown[] };
-};
-
 describe('WebhookLogsComponent', () => {
   let fixture: ComponentFixture<WebhookLogsComponent>;
   let harness: WebhookLogsHarness;
   let routerNavigateSpy: jest.SpyInstance;
-  let dialogOpenSpy: JestMockFn;
   let httpTestingController: HttpTestingController;
   let activatedRoute: ActivatedRoute;
+  let rootLoader: HarnessLoader;
 
   const setupComponent = async (options?: { queryParams?: Record<string, string | undefined>; api?: ApiV4 }) => {
     const { queryParams = {}, api = defaultApi } = options ?? {};
 
     TestBed.configureTestingModule({
-      imports: [WebhookLogsComponent, NoopAnimationsModule, RouterTestingModule, MatIconTestingModule, GioTestingModule],
+      imports: [WebhookLogsComponent, WebhookSettingsDialogComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -78,24 +72,17 @@ describe('WebhookLogsComponent', () => {
       ],
     });
 
-    TestBed.overrideProvider(MatDialog, {
-      useValue: {
-        open: dialogOpenSpy,
-      } as Partial<MatDialog>,
-    });
-
     await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(WebhookLogsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     activatedRoute = TestBed.inject(ActivatedRoute);
-
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true as any);
 
     fixture.detectChanges();
 
-    // Handle API GET request
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'GET',
@@ -105,12 +92,6 @@ describe('WebhookLogsComponent', () => {
     await fixture.whenStable();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, WebhookLogsHarness);
   };
-
-  beforeEach(() => {
-    dialogOpenSpy = jest.fn().mockReturnValue({
-      afterClosed: () => of(undefined),
-    });
-  });
 
   afterEach(() => {
     httpTestingController?.verify();
@@ -160,12 +141,12 @@ describe('WebhookLogsComponent', () => {
     await setupComponent();
 
     await harness.clickConfigureReporting();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
-    expect(dialogOpenSpy).toHaveBeenCalledWith(WebhookSettingsDialogComponent, {
-      width: GIO_DIALOG_WIDTH.MEDIUM,
-      data: { api: defaultApi },
-    });
+    const dialog = await rootLoader.getHarness(WebhookSettingsDialogHarness);
+    expect(dialog).not.toBeNull();
   });
 
   it('should show the reporting disabled banner when analytics are disabled', async () => {

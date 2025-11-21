@@ -39,25 +39,13 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field class="quick-filters__status">
-          <mat-label>Status</mat-label>
-          <mat-chip-grid #statusChipList aria-label="Status chips" formControlName="statuses">
-            @for (status of selectedStatuses; track status) {
-              <mat-chip-row removable="true" selectable="false" [value]="status" (removed)="removeStatus(status)">
-                {{ status }}
-                <button matChipRemove type="button" aria-label="Remove status">
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </mat-chip-row>
+        <mat-form-field class="quick-filters__status" appearance="outline">
+          <mat-label>HTTP Status</mat-label>
+          <mat-select formControlName="statuses" multiple aria-label="Filter by HTTP Status">
+            @for (httpStatus of httpStatusChoices; track httpStatus) {
+              <mat-option [value]="httpStatus.value">{{ httpStatus.label }}</mat-option>
             }
-            <input
-              type="number"
-              placeholder="HTTP status"
-              [matChipInputAddOnBlur]="true"
-              [matChipInputFor]="statusChipList"
-              (matChipInputTokenEnd)="addStatusFromInput($event)"
-            />
-          </mat-chip-grid>
+          </mat-select>
         </mat-form-field>
 
         <div class="quick-filters__applications">
@@ -146,7 +134,7 @@
         @for (status of currentFilters.statuses; track status) {
           <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeStatus(status)">
             <span class="quick-filters__chip__key">Status:</span>
-            <span class="quick-filters__chip__value">{{ status }}</span>
+            <span class="quick-filters__chip__value">{{ getStatusLabel(status) }}</span>
             <mat-icon matChipRemove>cancel</mat-icon>
           </mat-chip-option>
         }

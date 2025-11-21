@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, input, Input, OnInit, Output, effect } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Moment } from 'moment';
@@ -51,11 +51,11 @@ import { WebhookMoreFiltersForm } from '../../models/webhook-logs.models';
   ],
   providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
 })
-export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
+export class WebhookLogsMoreFiltersComponent implements OnInit {
   @Output() closeMoreFiltersEvent = new EventEmitter<void>();
   @Output() applyMoreFiltersEvent = new EventEmitter<WebhookMoreFiltersForm>();
-  @Input() showMoreFilters = false;
-  @Input() formValues: WebhookMoreFiltersForm = { period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] };
+  showMoreFilters = input(false);
+  formValues = input<WebhookMoreFiltersForm>({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
   @Input() callbackUrls: string[] = [];
 
   form: FormGroup<{
@@ -77,6 +77,9 @@ export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
       from: this.fb.control<Moment | null>(null),
       to: this.fb.control<Moment | null>(null),
       callbackUrls: this.fb.control<string[]>([], { nonNullable: true }),
+    });
+    effect(() => {
+      this.updateFormFromInput(this.formValues());
     });
   }
 
@@ -101,12 +104,6 @@ export class WebhookLogsMoreFiltersComponent implements OnInit, OnChanges {
     this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.formValues && this.form) {
-      this.updateFormFromInput(this.formValues);
-    }
   }
 
   private updateFormFromInput(formValues: WebhookMoreFiltersForm): void {

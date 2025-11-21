@@ -19,7 +19,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, effect, EventEmitter, Input, OnDestroy, OnInit, Output, input } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -38,10 +38,11 @@ import {
   WebhookMoreFiltersForm,
 } from '../../models/webhook-logs.models';
 import { WebhookLogsMoreFiltersComponent } from '../webhook-logs-more-filters/webhook-logs-more-filters.component';
+import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
 
 type QuickFiltersFormValue = {
   searchTerm: string;
-  statuses: number[];
+  statuses: string[];
   applications: string[];
   period: SimpleFilter;
 };
@@ -92,9 +93,10 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
   readonly periods = PERIODS;
   readonly defaultFilters = DEFAULT_WEBHOOK_LOGS_FILTERS;
   readonly comparePeriods = (a: SimpleFilter, b: SimpleFilter) => a?.value === b?.value;
+  readonly httpStatusChoices = [...httpStatuses];
   quickFiltersForm: FormGroup<{
     searchTerm: FormControl<string>;
-    statuses: FormControl<number[]>;
+    statuses: FormControl<string[]>;
     applications: FormControl<string[]>;
     period: FormControl<SimpleFilter>;
   }>;
@@ -125,7 +127,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.applicationsCache = this.initialValues?.applications ?? [];
     this.quickFiltersForm = new FormGroup({
       searchTerm: new FormControl<string>(this.initialValues?.searchTerm ?? '', { nonNullable: true }),
-      statuses: new FormControl<number[]>(this.initialValues?.statuses ?? [], { nonNullable: true }),
+      statuses: new FormControl<string[]>(this.initialValues?.statuses?.map((status) => String(status)) ?? [], { nonNullable: true }),
       applications: new FormControl<string[]>(this.initialValues?.applications?.map((app) => app.value) ?? [], { nonNullable: true }),
       period: new FormControl<SimpleFilter>(this.initialValues?.period ?? DEFAULT_PERIOD, { nonNullable: true }),
     });
@@ -162,22 +164,11 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.showMoreFilters = false;
   }
 
-  addStatusFromInput(event: MatChipInputEvent): void {
-    const inputValue = (event.value ?? '').trim();
-    if (!inputValue) {
-      event.chipInput?.clear();
-      return;
-    }
-    const parsed = Number(inputValue);
-    if (!Number.isNaN(parsed)) {
-      this.addStatus(parsed);
-    }
-    event.chipInput?.clear();
-  }
-
   removeStatus(status: number): void {
-    const updated = this.selectedStatuses.filter((value) => value !== status);
-    this.quickFiltersForm.controls.statuses.setValue(updated);
+    const statusString = String(status);
+    const currentStatuses = this.quickFiltersForm.controls.statuses.value ?? [];
+    const updated = currentStatuses.filter((value) => value !== statusString);
+    this.quickFiltersForm.controls.statuses.setValue(updated.length > 0 ? updated : []);
   }
 
   removeApplication(id: string): void {
@@ -198,12 +189,14 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.applyMoreFilters({ ...this.moreFiltersValues, callbackUrls: updated });
   }
 
-  get selectedStatuses(): number[] {
-    return this.quickFiltersForm.controls.statuses.value ?? [];
-  }
-
   get selectedApplications(): string[] {
     return this.quickFiltersForm.controls.applications.value ?? [];
+  }
+
+  getStatusLabel(status: number): string {
+    const statusString = String(status);
+    const statusOption = this.httpStatusChoices.find((s) => s.value === statusString);
+    return statusOption?.label || statusString;
   }
 
   onApplicationCache(cache: MultiFilter): void {
@@ -256,7 +249,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
     const trimmedTerm = searchTerm?.trim();
     return {
       searchTerm: trimmedTerm?.length ? trimmedTerm : undefined,
-      statuses: statuses?.length > 0 ? statuses : undefined,
+      statuses: statuses?.length > 0 ? statuses.map((status) => Number(status)).filter((num) => !Number.isNaN(num)) : undefined,
       applications: this.applicationsFromValues(applications),
       period: period && period.value !== DEFAULT_PERIOD.value ? period : undefined,
     };
@@ -276,12 +269,5 @@ export class WebhookLogsQuickFiltersComponent implements OnInit, OnDestroy {
       return undefined;
     }
     return ids.map((id) => this.applicationsCache.find((app) => app.value === id) ?? { value: id, label: id }).filter(Boolean);
-  }
-
-  private addStatus(status: number): void {
-    if (this.selectedStatuses.includes(status)) {
-      return;
-    }
-    this.quickFiltersForm.controls.statuses.setValue([...this.selectedStatuses, status]);
   }
 }

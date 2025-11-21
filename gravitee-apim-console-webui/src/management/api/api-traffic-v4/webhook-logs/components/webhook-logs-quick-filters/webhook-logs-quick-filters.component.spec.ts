@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import moment from 'moment';
@@ -22,7 +21,7 @@ import moment from 'moment';
 import { WebhookLogsQuickFiltersComponent } from './webhook-logs-quick-filters.component';
 
 import { Constants } from '../../../../../../entities/Constants';
-import { CONSTANTS_TESTING } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { DEFAULT_PERIOD } from '../../../runtime-logs/models';
 
 describe('WebhookLogsQuickFiltersComponent', () => {
@@ -31,7 +30,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WebhookLogsQuickFiltersComponent, NoopAnimationsModule, HttpClientTestingModule],
+      imports: [WebhookLogsQuickFiltersComponent, NoopAnimationsModule, GioTestingModule],
       providers: [
         {
           provide: Constants,
@@ -50,6 +49,19 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should initialize form with statuses as strings when initialValues contains number statuses', () => {
+    const newFixture = TestBed.createComponent(WebhookLogsQuickFiltersComponent);
+    const newComponent = newFixture.componentInstance;
+    newComponent.initialValues = {
+      statuses: [200, 404, 500],
+    };
+    newComponent.ngOnInit();
+    newFixture.detectChanges();
+
+    const statusesValue = newComponent.quickFiltersForm?.get('statuses')?.value;
+    expect(statusesValue).toEqual(['200', '404', '500']);
+  });
+
   it('should emit filters when form changes', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
     component.onApplicationCache([
@@ -60,7 +72,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
     component.quickFiltersForm.setValue({
       searchTerm: 'foo',
-      statuses: [200, 500],
+      statuses: ['200', '500'],
       applications: ['app-1'],
       period: DEFAULT_PERIOD,
     });
@@ -130,7 +142,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
     component.quickFiltersForm.setValue({
       searchTerm: 'acme',
-      statuses: [200],
+      statuses: ['200'],
       applications: ['app-1'],
       period: DEFAULT_PERIOD,
     });

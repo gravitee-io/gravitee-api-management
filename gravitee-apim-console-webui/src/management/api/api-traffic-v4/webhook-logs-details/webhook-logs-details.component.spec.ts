@@ -16,7 +16,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterTestingModule } from '@angular/router/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { WebhookLogsDetailsComponent } from './webhook-logs-details.component';
@@ -35,7 +34,7 @@ describe('WebhookLogsDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WebhookLogsDetailsComponent, RouterTestingModule, GioTestingModule, NoopAnimationsModule],
+      imports: [WebhookLogsDetailsComponent, GioTestingModule, NoopAnimationsModule],
       providers: [
         {
           provide: ActivatedRoute,

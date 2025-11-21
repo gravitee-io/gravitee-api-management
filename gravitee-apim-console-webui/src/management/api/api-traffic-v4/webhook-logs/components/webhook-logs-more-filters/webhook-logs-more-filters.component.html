@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="more-filters" [class.more-filters__hidden]="!showMoreFilters">
+<div class="more-filters" [class.more-filters__hidden]="!showMoreFilters()">
   <div class="more-filters__header">
     <span class="more-filters__header__title">Filter your results</span>
     <button mat-icon-button type="button" aria-label="Close" (click)="close()">
@@ -23,7 +23,7 @@
     </button>
   </div>
   <div class="more-filters__body">
-    @if (showMoreFilters) {
+    @if (showMoreFilters()) {
       <form [formGroup]="form">
         <div class="more-filters__body__block">
           <span class="more-filters__body__title">Date</span>
@@ -77,7 +77,7 @@
     </button>
   </div>
 </div>
-@if (showMoreFilters) {
+@if (showMoreFilters()) {
   <div
     class="main-page"
     role="button"
