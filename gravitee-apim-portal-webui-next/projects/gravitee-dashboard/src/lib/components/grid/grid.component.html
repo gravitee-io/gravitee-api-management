@@ -42,7 +42,7 @@
                   }
                 }
                 @case ('stats') {
-                  @if (isMeasuresResponse(item.response)) {
+                  @if (isMeasuresResponse(item.request?.type, item.response)) {
                     <gd-stats [data]="item.response" />
                   }
                 }

@@ -17,7 +17,6 @@ import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { StatsComponent } from './stats.component';
 import { MeasureName } from '../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../widget/model/request/enum/metric-name';
 import { MeasuresResponse } from '../../widget/model/response/measures-response';
 
 interface StatsStoryArgs {
@@ -57,7 +56,7 @@ export default {
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           measures: args.measures,
         },
       ],
@@ -80,9 +79,9 @@ export const Default: StoryObj<StatsStoryArgs> = {
   args: {
     storyId: 'default',
     measures: [
-      { name: MeasureName.COUNT, value: 1234 },
-      { name: MeasureName.AVG, value: 45.6 },
-      { name: MeasureName.MAX, value: 1200 },
+      { name: 'COUNT', value: 1234 },
+      { name: 'AVG', value: 45.6 },
+      { name: 'MAX', value: 1200 },
     ],
   },
 };

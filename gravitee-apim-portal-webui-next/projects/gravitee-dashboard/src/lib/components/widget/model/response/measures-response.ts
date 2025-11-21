@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Metric, MetricsResponse } from './response';
-import { Measure } from '../widget/widget';
+import { Measure, RequestType } from '../widget/widget';
 
 export interface MeasuresResponse extends MetricsResponse<MeasureMetric> {
   type: 'measures';
@@ -24,6 +24,6 @@ export interface MeasureMetric extends Metric {
   measures: Measure[];
 }
 
-export function isMeasuresResponse(response: MetricsResponse<Metric>): response is MeasuresResponse {
-  return response?.type === 'measures';
+export function isMeasuresResponse(type: RequestType | undefined, _response: MetricsResponse<Metric>): _response is MeasuresResponse {
+  return type === 'measures';
 }

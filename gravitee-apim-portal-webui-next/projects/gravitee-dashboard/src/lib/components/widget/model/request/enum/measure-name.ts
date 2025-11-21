@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum MeasureName {
-  AVG,
-  MIN,
-  MAX,
-  P50,
-  P90,
-  P95,
-  P99,
-  COUNT,
-  RPS,
-  PERCENTAGE,
-}
+export type MeasureName = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' | 'COUNT' | 'RPS' | 'PERCENTAGE';
+
+type UnitValue = 'ms' | '%' | 'req/s' | '';
+
+export const MeasureUnit: Record<MeasureName, UnitValue> = {
+  AVG: 'ms',
+  MIN: 'ms',
+  MAX: 'ms',
+  P50: 'ms',
+  P90: 'ms',
+  P95: 'ms',
+  P99: 'ms',
+
+  PERCENTAGE: '%',
+  RPS: 'req/s',
+  COUNT: '',
+};

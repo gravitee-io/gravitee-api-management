@@ -16,8 +16,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PieChartComponent } from './pie-chart.component';
-import { MeasureName } from '../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../widget/model/request/enum/metric-name';
 import { FacetsResponse } from '../../widget/model/response/facets-response';
 
 describe('PieChartComponent', () => {
@@ -36,13 +34,13 @@ describe('PieChartComponent', () => {
       type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           buckets: [
             {
               key: 'test-key-1',
               measures: [
                 {
-                  name: MeasureName.COUNT,
+                  name: 'COUNT',
                   value: 100,
                 },
               ],
@@ -66,13 +64,13 @@ describe('PieChartComponent', () => {
       type: 'facets',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           buckets: [
             {
               key: 'bucket-1',
               measures: [
                 {
-                  name: MeasureName.COUNT,
+                  name: 'COUNT',
                   value: 100,
                 },
               ],
@@ -81,7 +79,7 @@ describe('PieChartComponent', () => {
               key: 'bucket-2',
               measures: [
                 {
-                  name: MeasureName.COUNT,
+                  name: 'COUNT',
                   value: 200,
                 },
               ],
@@ -90,7 +88,7 @@ describe('PieChartComponent', () => {
               key: 'bucket-3',
               measures: [
                 {
-                  name: MeasureName.COUNT,
+                  name: 'COUNT',
                   value: 150,
                 },
               ],

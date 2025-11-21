@@ -38,3 +38,8 @@
 .widget-title-container.is-draggable {
   cursor: move;
 }
+
+:host(gd-widget-title) {
+  font-size: 16px;
+  font-weight: bold;
+}

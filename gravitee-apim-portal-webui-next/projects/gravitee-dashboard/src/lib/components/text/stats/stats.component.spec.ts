@@ -16,8 +16,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StatsComponent } from './stats.component';
-import { MeasureName } from '../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../widget/model/request/enum/metric-name';
 import { MeasuresResponse } from '../../widget/model/response/measures-response';
 
 describe('StatsComponent', () => {
@@ -36,10 +34,10 @@ describe('StatsComponent', () => {
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           measures: [
-            { name: MeasureName.COUNT, value: 10 },
-            { name: MeasureName.AVG, value: 25 },
+            { name: 'COUNT', value: 10 },
+            { name: 'AVG', value: 25 },
           ],
         },
       ],
@@ -70,8 +68,8 @@ describe('StatsComponent', () => {
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
-          measures: [{ name: MeasureName.COUNT, value: 42 }],
+          name: 'HTTP_REQUESTS',
+          measures: [{ name: 'COUNT', value: 42 }],
         },
       ],
     };
@@ -87,10 +85,10 @@ describe('StatsComponent', () => {
       type: 'measures',
       metrics: [
         {
-          name: MetricName.HTTP_REQUESTS,
+          name: 'HTTP_REQUESTS',
           measures: [
-            { name: MeasureName.COUNT, value: 15 },
-            { name: MeasureName.AVG, value: 30 },
+            { name: 'COUNT', value: 15 },
+            { name: 'AVG', value: 30 },
           ],
         },
       ],

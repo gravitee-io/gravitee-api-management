@@ -16,8 +16,6 @@
 import { TestBed } from '@angular/core/testing';
 
 import { PieConverterService } from './pie-converter.service';
-import { MeasureName } from '../../../widget/model/request/enum/measure-name';
-import { MetricName } from '../../../widget/model/request/enum/metric-name';
 import { FacetsResponse } from '../../../widget/model/response/facets-response';
 
 describe('PieConverterService', () => {
@@ -38,15 +36,15 @@ describe('PieConverterService', () => {
         type: 'facets',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
+            name: 'HTTP_REQUESTS',
             buckets: [
               {
                 key: 'bucket-1',
-                measures: [{ name: MeasureName.COUNT, value: 100 }],
+                measures: [{ name: 'COUNT', value: 100 }],
               },
               {
                 key: 'bucket-2',
-                measures: [{ name: MeasureName.COUNT, value: 200 }],
+                measures: [{ name: 'COUNT', value: 200 }],
               },
             ],
           },
@@ -76,11 +74,11 @@ describe('PieConverterService', () => {
         type: 'facets',
         metrics: [
           {
-            name: MetricName.HTTP_REQUESTS,
+            name: 'HTTP_REQUESTS',
             buckets: [
               {
                 key: 'bucket-1',
-                measures: [{ name: MeasureName.COUNT, value: 100 }],
+                measures: [{ name: 'COUNT', value: 100 }],
               },
               {
                 key: 'bucket-2',
@@ -88,7 +86,7 @@ describe('PieConverterService', () => {
               },
               {
                 key: 'bucket-3',
-                measures: [{ name: MeasureName.COUNT, value: 300 }],
+                measures: [{ name: 'COUNT', value: 300 }],
               },
             ],
           },

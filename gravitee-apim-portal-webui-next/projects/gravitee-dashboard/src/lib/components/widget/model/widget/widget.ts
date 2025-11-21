@@ -23,7 +23,7 @@ import { FacetsResponse } from '../response/facets-response';
 import { MeasuresResponse } from '../response/measures-response';
 import { TimeSeriesResponse } from '../response/time-series-response';
 
-export type WidgetType = PieType | 'stats' | 'top';
+export type WidgetType = PieType | 'stats' | 'top' | 'bar' | 'line';
 export type RequestType = 'measures' | 'facets' | 'time-series';
 
 export type MetricsRequest = MeasuresRequest | FacetsRequest | TimeSeriesRequest;
