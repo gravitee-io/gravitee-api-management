@@ -339,7 +339,7 @@ paths:
       description: |
         Group data by facet values with optional ranging, sorting and limits.
         
-        Facet requests are limited to 2 dimensions.
+        Facet requests are limited to 3 dimensions in the by clause.
         
         Sorting and ranging always apply to the last given facet.
 
@@ -532,7 +532,7 @@ paths:
         description: |
           A time series request is a request to obtain data points over time, organized by a specified interval.
           
-            - The time series buckets can be themselves nested by facets (at the moment, 1), allowing to group data by multiple nested facets over time.
+            - The time series buckets can be themselves nested by facets (up to 2), allowing to group data by multiple nested facets over time.
           
             - Facets are represented as a tree of facet buckets, following the order given in the by clause of the request.
           
@@ -1336,14 +1336,14 @@ components:
                 by:
                     type: array
                     minimum: 1
-                    maximum: 2
+                    maximum: 3
                     items:
                         $ref: "#/components/schemas/FacetName"
                     description: List of facet names to group by (applies to all metrics)
                 limit:
                     type: integer
                     minimum: 1
-                    description: Maximum number of buckets to return
+                    description: Maximum number of buckets to return (applies to all metrics)
                 filters:
                     type: array
                     items:
@@ -1408,10 +1408,10 @@ components:
                 $ref: "#/components/schemas/TimeRange"
               by:
                 type: array
-                maximum: 1
+                maximum: 2
                 items:
                   $ref: "#/components/schemas/FacetName"
-                description: List of facet names to group time-series buckets (currently only one facet is supported)
+                description: List of facet names to group time-series buckets (up to two facets)
               limit:
                 type: integer
                 minimum: 1
