@@ -120,6 +120,30 @@ public class AggregationAdapter {
         return metricsAndMeasures;
     }
 
+    private static Map<Measure, Number> getMeasuresWithDefaults(
+        Metric metric,
+        Map<Metric, Map<Measure, Number>> metricAndMeasures,
+        Query query
+    ) {
+        var measures = metricAndMeasures.get(metric);
+        if (measures != null) {
+            return measures;
+        }
+
+        var expectedMeasures = query
+            .metrics()
+            .stream()
+            .filter(m -> m.metric() == metric)
+            .flatMap(m -> m.measures().stream())
+            .toList();
+
+        var defaultMeasures = new HashMap<Measure, Number>();
+        for (var measure : expectedMeasures) {
+            defaultMeasures.put(measure, 0);
+        }
+        return defaultMeasures;
+    }
+
     private static List<TimeSeriesBucketResult> toTimeSeriesBucketResults(Metric metric, Aggregation aggregation, TimeSeriesQuery query) {
         var result = new ArrayList<TimeSeriesBucketResult>();
         var buckets = aggregation.getBuckets();
@@ -143,7 +167,8 @@ public class AggregationAdapter {
             } else {
                 var aggregations = toAggregations(bucket, aggNames);
                 var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
-                result.add(TimeSeriesBucketResult.ofMeasures(key, timestamp, metricAndMeasures.get(metric)));
+                var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
+                result.add(TimeSeriesBucketResult.ofMeasures(key, timestamp, measures));
             }
         }
 
@@ -160,8 +185,9 @@ public class AggregationAdapter {
         if (facets.isEmpty()) {
             var aggregations = toAggregations(bucket, aggNames);
             var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
+            var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
             var key = bucket.get("key").asText();
-            return List.of(FacetBucketResult.ofMeasures(key, metricAndMeasures.get(metric)));
+            return List.of(FacetBucketResult.ofMeasures(key, measures));
         }
 
         var nextFacets = new ArrayList<>(facets);
@@ -214,7 +240,8 @@ public class AggregationAdapter {
         if (facets.isEmpty()) {
             var aggregations = toAggregations(bucket, aggNames);
             var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
-            return FacetBucketResult.ofMeasures(key, metricAndMeasures.get(metric));
+            var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
+            return FacetBucketResult.ofMeasures(key, measures);
         }
         var nextFacets = new ArrayList<>(facets);
         var nextFacet = nextFacets.removeFirst();
@@ -237,7 +264,8 @@ public class AggregationAdapter {
                 var key = bucket.get("key").asText();
                 var aggregations = toAggregations(bucket, aggNames);
                 var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
-                results.add(FacetBucketResult.ofMeasures(key, metricAndMeasures.get(metric)));
+                var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
+                results.add(FacetBucketResult.ofMeasures(key, measures));
             }
             return results;
         }
@@ -321,7 +349,6 @@ public class AggregationAdapter {
         return lookupForCount(agg)
             .or(() -> lookupForValue(agg))
             .or(() -> lookupForValues(agg))
-            .or(() -> lookupForAggregation(agg))
             .orElse(0);
     }
 
@@ -350,13 +377,6 @@ public class AggregationAdapter {
             .flatMap(keyValues -> ofNullable(keyValues.values()))
             .flatMap(values -> values.stream().filter(Objects::nonNull).findFirst())
             .map(Float::floatValue);
-    }
-
-    private static Optional<Number> lookupForAggregation(Aggregation agg) {
-        return ofNullable(agg.getAggregations())
-            .map(Map::values)
-            .flatMap(values -> values.stream().findFirst())
-            .flatMap(AggregationAdapter::lookupForValue);
     }
 
     private static Metric getMetricFromName(String aggregationName) {
