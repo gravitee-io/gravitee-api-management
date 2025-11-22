@@ -38,8 +38,8 @@ import java.util.List;
 @DomainService
 public class AnalyticsQueryValidator {
 
-    private static final int MAX_FACETS_QUERY_FACETS_SIZE = 2;
-    private static final int MAX_TIME_SERIES_QUERY_FACETS_SIZE = 1;
+    private static final int MAX_FACETS_QUERY_FACETS_SIZE = 3;
+    private static final int MAX_TIME_SERIES_QUERY_FACETS_SIZE = 2;
 
     private final AnalyticsDefinitionQueryService definition;
 
