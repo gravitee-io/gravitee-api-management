@@ -70,7 +70,7 @@ export class SharedPolicyGroupStudioComponent {
   private readonly snackBarService = inject(SnackBarService);
   private refresh$ = new BehaviorSubject<void>(undefined);
 
-  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
+  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group_configuration-u']);
   protected sharedPolicyGroup = toSignal(
     this.refresh$.pipe(
       switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId)),

@@ -161,7 +161,7 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION),
                 eq(ENV_ID),
                 eq(RolePermissionAction.UPDATE)
             )
