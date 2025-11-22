@@ -17,7 +17,7 @@ import { Component, Input } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatCard } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 
 import { GioShortNumberPipeModule } from '../../../../shared/utils/shortNumber.pipe.module';
@@ -32,7 +32,7 @@ export type v4ApisRequestStats = {
 
 @Component({
   selector: 'dashboard-api-request-stats',
-  imports: [CommonModule, MatTooltip, MatCard, MatIcon, DecimalPipe, GioShortNumberPipeModule, GioLoaderModule],
+  imports: [CommonModule, MatTooltip, MatCardModule, MatIcon, DecimalPipe, GioShortNumberPipeModule, GioLoaderModule],
   templateUrl: './dashboard-api-request-stats.component.html',
   styleUrls: ['./dashboard-api-request-stats.component.scss'],
 })

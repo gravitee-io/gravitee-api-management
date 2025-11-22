@@ -28,14 +28,17 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 14px;
 }
 
+mat-card-header {
+  padding-bottom: 12px;
+  border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+}
+
 .card {
   width: 100%;
   flex: 1 1 100%;
   min-height: 250px;
 
   &__header {
-    @include mat.m2-typography-level($typography, 'body-1');
-    border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
     padding: 16px;
     display: flex;
     align-items: center;
