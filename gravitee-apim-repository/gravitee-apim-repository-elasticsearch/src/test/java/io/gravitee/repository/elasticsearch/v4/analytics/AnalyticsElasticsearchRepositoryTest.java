@@ -1398,11 +1398,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
                 );
 
-                return new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.HTTP_STATUS), ranges);
+                return new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.API, Facet.HTTP_STATUS), ranges);
             }
 
             @Test
-            void should_return_http_facet_buckets() {
+            void should_return_http_facet_buckets_with_ranges() {
                 var query = buildQuery();
                 var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
 
@@ -1414,9 +1414,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(metric.metric()).isEqualTo(Metric.HTTP_REQUESTS);
 
-                assertThat(metric.buckets()).hasSize(5);
+                assertThat(metric.buckets()).hasSize(2);
 
-                assertThat(metric.buckets()).satisfiesExactly(
+                var firstBucket = metric.buckets().getFirst();
+
+                assertThat(firstBucket.buckets()).satisfiesExactly(
                     bucket -> assertThat(bucket.key()).isEqualTo("100-199"),
                     bucket -> assertThat(bucket.key()).isEqualTo("200-299"),
                     bucket -> assertThat(bucket.key()).isEqualTo("300-399"),
@@ -1438,7 +1440,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     Filter.Operator.IN,
                     List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
                 );
-                return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics);
+                var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
+                return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics, facets);
             }
 
             @Test
@@ -1450,7 +1453,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics()).hasSize(1);
 
-                assertThat(result.metrics().getFirst().buckets()).isNotEmpty();
+                var timeSeriesBuckets = result.metrics().getFirst().buckets();
+                assertThat(timeSeriesBuckets).isNotEmpty();
+
+                var facetBuckets = timeSeriesBuckets.getFirst().buckets();
+                assertThat(facetBuckets).isNotEmpty();
             }
         }
     }
