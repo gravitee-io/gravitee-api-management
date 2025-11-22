@@ -58,10 +58,8 @@ public class HTTPTimeSeriesQueryAdapter {
     public JsonObject adaptTimeSeries(MetricMeasuresQuery metric, TimeSeriesQuery query) {
         var dateHistogram = DateHistogramAdapter.adapt(query.interval(), query.timeRange());
         if (query.facets() != null && !query.facets().isEmpty()) {
-            // Only pass the current metric, not all metrics
             dateHistogram.put("aggs", facetsQueryAdapter.adaptFacets(List.of(metric), query.facets(), query.limit(), query.ranges()));
         } else {
-            // Only pass the current metric, not all metrics
             dateHistogram.put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
         }
         var aggName = AggregationAdapter.adaptName(metric.metric(), TIME_SERIES_AGG_NAME);
