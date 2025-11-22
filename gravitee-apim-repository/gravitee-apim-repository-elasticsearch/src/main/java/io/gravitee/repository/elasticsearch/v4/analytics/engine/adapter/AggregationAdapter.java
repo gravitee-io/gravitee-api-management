@@ -123,21 +123,22 @@ public class AggregationAdapter {
     private static List<TimeSeriesBucketResult> toTimeSeriesBucketResults(Metric metric, Aggregation aggregation, TimeSeriesQuery query) {
         var result = new ArrayList<TimeSeriesBucketResult>();
         var buckets = aggregation.getBuckets();
-        var aggNames = adaptNames(query);
+
+        var aggNames = query
+            .metrics()
+            .stream()
+            .filter(m -> m.metric() == metric)
+            .flatMap(m -> m.measures().stream())
+            .map(measure -> adaptName(metric, measure))
+            .toList();
 
         for (var bucket : buckets) {
             var key = bucket.get("key_as_string").asText();
             var timestamp = bucket.get("key").asLong();
+
             if (query.facets() != null && !query.facets().isEmpty()) {
-                var facet = query.facets().getFirst();
-                var facetAggName = adaptName(metric, facet);
-                var facetAgg = bucket.get(facetAggName);
-                var facetBuckets = toBucketList(facetAgg.get("buckets"));
-                var facetBucketResults = new ArrayList<FacetBucketResult>();
-                for (var facetBucket : facetBuckets) {
-                    var emptyFacets = List.<Facet>of(); // we only allow one facet for time series, for now. Hence, the empty list.
-                    facetBucketResults.add(toFacetBucketResult(metric, facetBucket, emptyFacets, aggNames, query.toFacetQuery()));
-                }
+                var facets = new ArrayList<>(query.facets());
+                var facetBucketResults = toFacetBucketResults(metric, bucket, facets, aggNames, query.toFacetQuery());
                 result.add(TimeSeriesBucketResult.ofBuckets(key, timestamp, facetBucketResults));
             } else {
                 var aggregations = toAggregations(bucket, aggNames);
@@ -147,6 +148,41 @@ public class AggregationAdapter {
         }
 
         return result;
+    }
+
+    private static List<FacetBucketResult> toFacetBucketResults(
+        Metric metric,
+        JsonNode bucket,
+        List<Facet> facets,
+        List<String> aggNames,
+        FacetsQuery query
+    ) {
+        if (facets.isEmpty()) {
+            var aggregations = toAggregations(bucket, aggNames);
+            var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
+            var key = bucket.get("key").asText();
+            return List.of(FacetBucketResult.ofMeasures(key, metricAndMeasures.get(metric)));
+        }
+
+        var nextFacets = new ArrayList<>(facets);
+        var nextFacet = nextFacets.removeFirst();
+        var nextAggName = adaptName(metric, nextFacet);
+        var next = bucket.get(nextAggName);
+
+        if (next == null) {
+            return List.of();
+        }
+
+        var facetBuckets = toBucketList(next.get("buckets"));
+        var results = new ArrayList<FacetBucketResult>();
+
+        for (var facetBucket : facetBuckets) {
+            var key = facetBucket.get("key").asText();
+            var nestedResults = toFacetBucketResults(metric, facetBucket, new ArrayList<>(nextFacets), aggNames, query);
+            results.add(FacetBucketResult.ofBuckets(key, nestedResults));
+        }
+
+        return results;
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
@@ -195,7 +231,7 @@ public class AggregationAdapter {
         List<String> aggNames,
         FacetsQuery query
     ) {
-        List<FacetBucketResult> results = new ArrayList<>();
+        var results = new ArrayList<FacetBucketResult>();
         if (facets.isEmpty()) {
             for (var bucket : buckets) {
                 var key = bucket.get("key").asText();
@@ -206,11 +242,23 @@ public class AggregationAdapter {
             return results;
         }
 
+        var nextFacets = new ArrayList<>(facets);
+        var nextFacet = nextFacets.removeFirst();
+        var nextAggName = adaptName(metric, nextFacet);
+
         for (var bucket : buckets) {
             var key = bucket.get("key").asText();
-            var next = bucket.get(facets.removeFirst().name());
+            var next = bucket.get(nextAggName);
+            if (next == null) {
+                continue;
+            }
             var nextBuckets = next.get("buckets");
-            results.add(FacetBucketResult.ofBuckets(key, toFacetBucketResults(metric, toBucketList(nextBuckets), facets, aggNames, query)));
+            results.add(
+                FacetBucketResult.ofBuckets(
+                    key,
+                    toFacetBucketResults(metric, toBucketList(nextBuckets), new ArrayList<>(nextFacets), aggNames, query)
+                )
+            );
         }
 
         return results;

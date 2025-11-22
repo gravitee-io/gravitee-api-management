@@ -60,19 +60,24 @@ public class HTTPFacetsQueryAdapter {
 
     public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
-        var facets = new ArrayList<>(queryFacets);
-        for (var it = facets.iterator(); it.hasNext(); ) {
-            var facet = it.next();
-            var isLast = facets.size() == 1;
-            var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
-            aggs.put(aggName, adaptFacet(metric, facet, limit, ranges, isLast));
-            if (it.hasNext()) {
-                facets.remove(facet);
-                aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, facets, limit, ranges));
-            } else {
-                aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
-            }
+
+        if (queryFacets.isEmpty()) {
+            return aggs;
         }
+
+        var facet = queryFacets.getFirst();
+        var isLast = queryFacets.size() == 1;
+        var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
+
+        aggs.put(aggName, adaptFacet(metric, facet, limit, ranges, isLast));
+
+        if (isLast) {
+            aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
+        } else {
+            var remainingFacets = queryFacets.subList(1, queryFacets.size());
+            aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, remainingFacets, limit, ranges));
+        }
+
         return aggs;
     }
 
