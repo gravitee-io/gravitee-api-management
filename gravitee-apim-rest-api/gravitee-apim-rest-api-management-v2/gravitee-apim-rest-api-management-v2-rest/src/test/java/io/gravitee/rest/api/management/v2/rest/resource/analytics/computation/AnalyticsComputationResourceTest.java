@@ -202,7 +202,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_fail_with_too_much_facets() {
             var invalidRequest = aRequestCountFacetRequest();
-            invalidRequest.setBy(List.of(FacetName.API, FacetName.APPLICATION, FacetName.HTTP_STATUS));
+            invalidRequest.setBy(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN, FacetName.HTTP_STATUS));
             var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
@@ -300,7 +300,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_too_much_facets() {
-            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION));
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN));
             var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
