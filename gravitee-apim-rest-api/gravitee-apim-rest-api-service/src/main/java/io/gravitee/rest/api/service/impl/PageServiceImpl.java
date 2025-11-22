@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -52,6 +53,8 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.settings.OpenAPIDocViewer;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -184,6 +187,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Autowired
     private HtmlSanitizer htmlSanitizer;
+
+    @Autowired
+    private ConfigService configService;
 
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
@@ -358,7 +364,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             gson.fromJson(content, Object.class);
             return true;
-        } catch (com.google.gson.JsonSyntaxException ex) {
+        } catch (JsonSyntaxException ex) {
             return false;
         }
     }
@@ -431,11 +437,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             Optional<Page> optionalPage = pageRepository.findById(pageId);
             if (optionalPage.isPresent()) {
                 Page page = optionalPage.get();
-                if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(page.getType())) {
+                if (SYSTEM_FOLDER.name().equalsIgnoreCase(page.getType())) {
                     return PageSituation.SYSTEM_FOLDER;
                 }
 
-                if (PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
+                if (TRANSLATION.name().equalsIgnoreCase(page.getType())) {
                     return PageSituation.TRANSLATION;
                 }
 
@@ -447,11 +453,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 Optional<Page> optionalParent = pageRepository.findById(parentId);
                 if (optionalParent.isPresent()) {
                     Page parentPage = optionalParent.get();
-                    if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+                    if (SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
                         return PageSituation.IN_SYSTEM_FOLDER;
                     }
 
-                    if (PageType.FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+                    if (FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
                         String grandParentId = parentPage.getParentId();
                         if (grandParentId == null) {
                             return PageSituation.IN_FOLDER_IN_ROOT;
@@ -460,10 +466,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
                         if (optionalGrandParent.isPresent()) {
                             Page grandParentPage = optionalGrandParent.get();
-                            if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+                            if (SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
                                 return PageSituation.IN_FOLDER_IN_SYSTEM_FOLDER;
                             }
-                            if (PageType.FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+                            if (FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
                                 return PageSituation.IN_FOLDER_IN_FOLDER;
                             }
                         }
@@ -478,7 +484,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId) {
         boolean result = false;
-        if (PageType.MARKDOWN.name().equals(page.getType())) {
+        if (MARKDOWN.name().equals(page.getType())) {
             Optional<GenericPlanEntity> optPlan = planSearchService
                 .findByApi(executionContext, apiId)
                 .stream()
@@ -579,9 +585,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiPageEntity.getApi());
             transformSwagger(executionContext, pageEntity, genericApiEntity);
         } else {
-            if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+            if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
                 sanitizeMarkdown(pageEntity);
-            } else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+            } else if (SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
                 SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
                 Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
                 transformers.add(new PageConfigurationOAITransformer(pageEntity));
@@ -596,9 +602,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         // First apply templating if required
         transformWithTemplate(executionContext, pageEntity, genericApiEntity.getId());
 
-        if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+        if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
             sanitizeMarkdown(pageEntity);
-        } else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+        } else if (SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
             // If swagger page, let's try to apply transformations
             SwaggerDescriptor<?> descriptor;
 
@@ -651,7 +657,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private void sanitizeMarkdown(PageEntity pageEntity) {
-        if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+        if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
             final HtmlSanitizer.SanitizeInfos safe = this.htmlSanitizer.isSafe(pageEntity.getContent());
             if (!safe.isSafe()) {
                 pageEntity.setContent(this.htmlSanitizer.sanitize(pageEntity.getContent()));
@@ -684,17 +690,17 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             Stream<Page> pagesStream = pageRepository.search(queryToCriteria(query, environmentId)).stream();
             if (!withTranslations) {
-                pagesStream = pagesStream.filter(page -> !PageType.TRANSLATION.name().equals(page.getType()));
+                pagesStream = pagesStream.filter(page -> !TRANSLATION.name().equals(page.getType()));
             }
             if (!withLinks) {
-                pagesStream = pagesStream.filter(page -> !PageType.LINK.name().equals(page.getType()));
+                pagesStream = pagesStream.filter(page -> !LINK.name().equals(page.getType()));
             }
 
-            List<PageEntity> pages = pagesStream.map(this::convert).collect(Collectors.toList());
+            List<PageEntity> pages = pagesStream.map(this::convert).collect(toList());
 
             if (acceptedLocale == null || acceptedLocale.isEmpty()) {
                 pages.forEach(p -> {
-                    if (!PageType.TRANSLATION.name().equals(p.getType())) {
+                    if (!TRANSLATION.name().equals(p.getType())) {
                         List<PageEntity> translations = convert(getTranslations(p.getId()));
                         if (translations != null && !translations.isEmpty()) {
                             p.setTranslations(translations);
@@ -703,7 +709,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 });
             } else {
                 pages.forEach(p -> {
-                    if (!PageType.TRANSLATION.name().equals(p.getType())) {
+                    if (!TRANSLATION.name().equals(p.getType())) {
                         Page translation = getTranslation(p, acceptedLocale);
                         if (translation != null) {
                             String translationName = translation.getName();
@@ -746,7 +752,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private Page getTranslation(PageEntity pageToTranslate, String acceptedLocale) {
         if (
-            PageType.LINK.name().equals(pageToTranslate.getType()) &&
+            LINK.name().equals(pageToTranslate.getType()) &&
             pageToTranslate.getConfiguration() != null &&
             "true".equals(pageToTranslate.getConfiguration().get(PageConfigurationKeys.LINK_INHERIT))
         ) {
@@ -756,7 +762,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 linkTranslation = new Page();
                 linkTranslation.setName(relatedTranslation.getName());
                 linkTranslation.setContent(relatedTranslation.getContent());
-                linkTranslation.setConfiguration(Collections.emptyMap());
+                linkTranslation.setConfiguration(emptyMap());
             }
             return linkTranslation;
         }
@@ -766,7 +772,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private Page getTranslation(String pageId, String acceptedLocale) {
         try {
             Optional<Page> optTranslation = this.pageRepository.search(
-                    new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()
+                    new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build()
                 )
                 .stream()
                 .filter(t -> acceptedLocale.equalsIgnoreCase(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
@@ -868,7 +874,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 );
             }
 
-            if (PageType.TRANSLATION.equals(newPageType)) {
+            if (TRANSLATION.equals(newPageType)) {
                 checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true);
 
                 Optional<Page> optTranslatedPage = this.pageRepository.findById(newPageEntity.getParentId());
@@ -879,15 +885,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
             }
 
-            if (PageType.FOLDER.equals(newPageType)) {
+            if (FOLDER.equals(newPageType)) {
                 checkFolderConsistency(newPageEntity);
             }
 
-            if (PageType.LINK.equals(newPageType)) {
+            if (LINK.equals(newPageType)) {
                 String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
                 String content = newPageEntity.getContent();
                 if (content == null || content.isEmpty()) {
-                    throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a category Id");
+                    throw new PageActionException(LINK, "be created. It must have a URL, a page Id or a category Id");
                 }
                 if (
                     "root".equals(content) ||
@@ -906,9 +912,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
             }
 
-            if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
+            if (SWAGGER == newPageType || MARKDOWN == newPageType) {
                 checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
                 createRevision = true;
+
+                if (SWAGGER == newPageType) {
+                    applyDefaultSwaggerViewerIfNeeded(executionContext, newPageEntity);
+                }
             }
             if (newPageEntity.getContent() == null && newPageEntity.getSource() != null && newPageType != ROOT) {
                 fetchPage(newPageEntity);
@@ -961,7 +971,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             // add document in search engine
-            if (PageType.isIndexable(PageType.valueOf(pageEntity.getType()))) {
+            if (isIndexable(PageType.valueOf(pageEntity.getType()))) {
                 index(executionContext, pageEntity);
             }
 
@@ -975,7 +985,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void createPageRevision(Page page) {
         try {
             if (
-                PageType.valueOf(page.getType()) == PageType.TRANSLATION &&
+                PageType.valueOf(page.getType()) == TRANSLATION &&
                 page.getConfiguration() != null &&
                 !page.getConfiguration().isEmpty() &&
                 page.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT).equalsIgnoreCase("true")
@@ -995,6 +1005,56 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
         if (newPageParentSituation == PageSituation.SYSTEM_FOLDER || newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
             throw new PageActionException(newPageType, "be created under a system folder");
+        }
+    }
+
+    private void applyDefaultSwaggerViewerIfNeeded(ExecutionContext ctx, NewPageEntity page) {
+        Map<String, String> config = ensurePageConfiguration(page);
+
+        if (hasExistingViewer(config)) {
+            log.debug("SWAGGER page already has viewer configured, skipping default");
+            return;
+        }
+
+        String defaultViewer = getDefaultViewerFromSettings(ctx);
+        if (defaultViewer != null) {
+            log.debug("Applying default viewer '{}' to new SWAGGER page", defaultViewer);
+            config.put(PageConfigurationKeys.SWAGGER_VIEWER, defaultViewer);
+        }
+    }
+
+    private Map<String, String> ensurePageConfiguration(NewPageEntity page) {
+        Map<String, String> config = page.getConfiguration();
+        if (config == null) {
+            config = new HashMap<>();
+            page.setConfiguration(config);
+        }
+        return config;
+    }
+
+    private boolean hasExistingViewer(Map<String, String> config) {
+        return StringUtils.isNotBlank(config.get(PageConfigurationKeys.SWAGGER_VIEWER));
+    }
+
+    private String getDefaultViewerFromSettings(ExecutionContext ctx) {
+        try {
+            PortalSettingsEntity settings = configService.getPortalSettings(ctx);
+            if (settings == null) {
+                log.warn("Portal settings not found, cannot apply default viewer");
+                return null;
+            }
+
+            OpenAPIDocViewer viewer = settings.getOpenAPIDocViewer();
+            if (viewer == null || viewer.getOpenAPIDocType() == null) {
+                log.debug("OpenAPI viewer settings not configured");
+                return null;
+            }
+
+            String defaultViewer = viewer.getOpenAPIDocType().getDefaultType();
+            return StringUtils.isNotBlank(defaultViewer) ? defaultViewer : null;
+        } catch (Exception e) {
+            log.error("Failed to retrieve default viewer from settings", e);
+            return null;
         }
     }
 
@@ -1021,27 +1081,23 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation)
         throws TechnicalException {
         if (parentId == null || parentId.isEmpty()) {
-            throw new PageActionException(PageType.TRANSLATION, "have no parentId");
+            throw new PageActionException(TRANSLATION, "have no parentId");
         }
         if (
             configuration == null ||
             configuration.get(PageConfigurationKeys.TRANSLATION_LANG) == null ||
             configuration.get(PageConfigurationKeys.TRANSLATION_LANG).isEmpty()
         ) {
-            throw new PageActionException(PageType.TRANSLATION, "have no configured language");
+            throw new PageActionException(TRANSLATION, "have no configured language");
         }
 
         Optional<Page> optTranslatedPage = this.pageRepository.findById(parentId);
         if (optTranslatedPage.isPresent()) {
             Page translatedPage = optTranslatedPage.get();
             PageType translatedPageType = PageType.valueOf(translatedPage.getType());
-            if (
-                PageType.ROOT == translatedPageType ||
-                PageType.SYSTEM_FOLDER == translatedPageType ||
-                PageType.TRANSLATION == translatedPageType
-            ) {
+            if (ROOT == translatedPageType || SYSTEM_FOLDER == translatedPageType || TRANSLATION == translatedPageType) {
                 throw new PageActionException(
-                    PageType.TRANSLATION,
+                    TRANSLATION,
                     "have a parent with type " +
                         translatedPageType.name() +
                         ". Parent " +
@@ -1055,7 +1111,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 Page existingTranslation = getTranslation(parentId, newTranslationLang);
 
                 if (existingTranslation != null) {
-                    throw new PageActionException(PageType.TRANSLATION, "be created. A translation for this language already exist");
+                    throw new PageActionException(TRANSLATION, "be created. A translation for this language already exist");
                 }
             }
         } else {
@@ -1068,11 +1124,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
 
         if (
-            PageType.LINK.name().equalsIgnoreCase(relatedPage.getType()) ||
-            PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(relatedPage.getType()) ||
-            (PageType.FOLDER.name().equalsIgnoreCase(relatedPage.getType()) && relatedPageSituation == PageSituation.IN_SYSTEM_FOLDER)
+            LINK.name().equalsIgnoreCase(relatedPage.getType()) ||
+            SYSTEM_FOLDER.name().equalsIgnoreCase(relatedPage.getType()) ||
+            (FOLDER.name().equalsIgnoreCase(relatedPage.getType()) && relatedPageSituation == PageSituation.IN_SYSTEM_FOLDER)
         ) {
-            throw new PageActionException(PageType.LINK, "be related to a Link, a System folder or a folder in a System folder");
+            throw new PageActionException(LINK, "be related to a Link, a System folder or a folder in a System folder");
         }
     }
 
@@ -1136,7 +1192,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // - Markdown
             // - Translation
             boolean createRevision = false;
-            if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
+            if (LINK.name().equalsIgnoreCase(pageType)) {
                 String newResourceRef = updatePageEntity.getContent();
                 String actualResourceRef = pageToUpdate.getContent();
 
@@ -1149,7 +1205,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) &&
                         (updatePageEntity.getContent() != null && updatePageEntity.getContent().isEmpty())
                     ) {
-                        throw new PageActionException(PageType.LINK, "be created. An external Link must have a URL");
+                        throw new PageActionException(LINK, "be created. An external Link must have a URL");
                     }
 
                     if (
@@ -1172,7 +1228,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
             }
 
-            if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
+            if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
                 String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty())
                     ? updatePageEntity.getParentId()
                     : pageToUpdate.getParentId();
@@ -1190,7 +1246,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().equals(pageToUpdate.getParentId())) {
                 checkUpdatedPageSituation(updatePageEntity, pageType, pageId);
-                if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
+                if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
                     Optional<Page> optionalTranslatedPage = pageRepository.findById(updatePageEntity.getParentId());
                     if (optionalTranslatedPage.isPresent()) {
                         updatePageEntity.setPublished(optionalTranslatedPage.get().isPublished());
@@ -1325,8 +1381,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (
                 (pageToUpdate.isPublished() != page.isPublished() || !Objects.equals(pageToUpdate.getVisibility(), page.getVisibility())) &&
-                !PageType.LINK.name().equalsIgnoreCase(pageType) &&
-                !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
+                !LINK.name().equalsIgnoreCase(pageType) &&
+                !TRANSLATION.name().equalsIgnoreCase(pageType)
             ) {
                 // if just publishing the page, updatePageEntity.getVisibility() will return null. In that case, we must keep the existing visibility status.
                 String newVisibility = updatePageEntity.getVisibility() == null
@@ -1389,7 +1445,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private boolean isSwaggerOrMarkdown(String pageType) {
-        return PageType.SWAGGER.name().equalsIgnoreCase(pageType) || PageType.MARKDOWN.name().equalsIgnoreCase(pageType);
+        return SWAGGER.name().equalsIgnoreCase(pageType) || MARKDOWN.name().equalsIgnoreCase(pageType);
     }
 
     private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
@@ -1397,31 +1453,31 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         switch (pageType) {
             case "SYSTEM_FOLDER":
                 if (newParentSituation != PageSituation.ROOT) {
-                    throw new PageActionException(PageType.SYSTEM_FOLDER, " be moved in this folder");
+                    throw new PageActionException(SYSTEM_FOLDER, " be moved in this folder");
                 }
                 break;
             case "MARKDOWN":
                 if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.MARKDOWN, " be moved in a system folder or in a folder of a system folder");
+                    throw new PageActionException(MARKDOWN, " be moved in a system folder or in a folder of a system folder");
                 }
                 break;
             case "SWAGGER":
                 if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.SWAGGER, " be moved in a system folder or in a folder of a system folder");
+                    throw new PageActionException(SWAGGER, " be moved in a system folder or in a folder of a system folder");
                 }
                 break;
             case "FOLDER":
                 PageSituation folderSituation = getPageSituation(pageId);
                 if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved anywhere other than in a system folder");
+                    throw new PageActionException(FOLDER, " be moved anywhere other than in a system folder");
                 } else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved in a system folder");
+                    throw new PageActionException(FOLDER, " be moved in a system folder");
                 }
                 break;
             case "LINK":
                 if (newParentSituation != PageSituation.SYSTEM_FOLDER && newParentSituation != PageSituation.IN_SYSTEM_FOLDER) {
                     throw new PageActionException(
-                        PageType.LINK,
+                        LINK,
                         " be moved anywhere other than in a system folder or in a folder of a system folder"
                     );
                 }
@@ -1433,7 +1489,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     newParentSituation == PageSituation.TRANSLATION
                 ) {
                     throw new PageActionException(
-                        PageType.TRANSLATION,
+                        TRANSLATION,
                         "be updated. Parent " +
                             updatePageEntity.getParentId() +
                             " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER"
@@ -1448,7 +1504,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void changeRelatedPagesPublicationStatusAndVisibility(String pageId, Boolean published, String newVisibility) {
         try {
             // Update related page's links
-            this.pageRepository.search(new PageCriteria.Builder().type(PageType.LINK.name()).build())
+            this.pageRepository.search(new PageCriteria.Builder().type(LINK.name()).build())
                 .stream()
                 .filter(p -> pageId.equals(p.getContent()))
                 .forEach(p -> {
@@ -1475,7 +1531,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void changeTranslationPagesPublicationStatusAndVisibility(String translatedPageId, Boolean published, String newVisibility) {
         try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(PageType.TRANSLATION.name()).build())
+            this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(TRANSLATION.name()).build())
                 .stream()
                 .forEach(p -> {
                     try {
@@ -1515,7 +1571,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void deleteRelatedTranslations(String pageId) {
         try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build())
+            this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build())
                 .stream()
                 .forEach(p -> {
                     try {
@@ -1710,7 +1766,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
-            return Collections.emptyList();
+            return emptyList();
         }
     }
 
@@ -1809,7 +1865,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
         fetchPage(newPage);
 
-        newPage.setType(PageType.fromPageExtensionAndContent(FilenameUtils.getExtension(filePath), newPage.getContent()));
+        newPage.setType(fromPageExtensionAndContent(FilenameUtils.getExtension(filePath), newPage.getContent()));
     }
 
     private void updatePageSourceConfigurationFromFetcherConfiguration(PageSourceEntity pageSource, Fetcher fetcher, String filePath) {
@@ -1921,7 +1977,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             .referenceId(apiId)
                             .referenceType(PageReferenceType.API.name())
                             .name(pathElement)
-                            .type(PageType.FOLDER.name())
+                            .type(FOLDER.name())
                             .build()
                     );
                     PageEntity folder;
@@ -1931,7 +1987,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         newPage.setPublished(newPageEntity.isPublished());
                         newPage.setLastContributor(newPageEntity.getLastContributor());
                         newPage.setName(pathElement);
-                        newPage.setType(PageType.FOLDER);
+                        newPage.setType(FOLDER);
                         newPage.setVisibility(Visibility.PUBLIC);
                         newPage.setSource(newPageEntity.getSource());
                         folder = createPage(executionContext, apiId, newPage);
@@ -1981,7 +2037,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             // root page exists ?
             List<Page> searchResult = pageRepository.search(
-                new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()).type(PageType.ROOT.name()).build()
+                new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()).type(ROOT.name()).build()
             );
 
             Page page = convert(rootPage);
@@ -2125,7 +2181,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
             Page page = optPage.get();
             // if the folder is not empty, throw exception
-            if (PageType.FOLDER.name().equalsIgnoreCase(page.getType())) {
+            if (FOLDER.name().equalsIgnoreCase(page.getType())) {
                 List<Page> search = pageRepository.search(
                     new PageCriteria.Builder()
                         .referenceId(page.getReferenceId())
@@ -2158,8 +2214,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     .filter(plan -> plan.getGeneralConditions() != null)
                     .filter(
                         plan -> // check the page and the parent for translations.
-                            (PageType.TRANSLATION.name().equals(page.getType()) &&
-                                plan.getGeneralConditions().equals(page.getParentId())) ||
+                            (TRANSLATION.name().equals(page.getType()) && plan.getGeneralConditions().equals(page.getParentId())) ||
                             plan.getGeneralConditions().equals(page.getId())
                     )
                     .filter(p -> PlanStatus.CLOSED != p.getPlanStatus())
@@ -2176,7 +2231,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageRevisionService.deleteAllByPageId(pageId);
 
             // delete links and translations related to the page
-            if (!PageType.LINK.name().equalsIgnoreCase(page.getType()) && !PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
+            if (!LINK.name().equalsIgnoreCase(page.getType()) && !TRANSLATION.name().equalsIgnoreCase(page.getType())) {
                 this.deleteRelatedPages(page.getId());
             }
 
@@ -2416,7 +2471,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private List<Page> getTranslations(String pageId) {
         try {
             List<Page> searchResult = this.pageRepository.search(
-                new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()
+                new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build()
             );
             searchResult.sort((p1, p2) -> {
                 String lang1 = p1.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG);
@@ -2547,7 +2602,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (pageEntity != null) {
             var pageType = pageEntity.getType();
 
-            if (pageEntity.getParentId() != null && PageType.TRANSLATION.name().equals(pageType)) {
+            if (pageEntity.getParentId() != null && TRANSLATION.name().equals(pageType)) {
                 final Optional<Page> optParent;
                 try {
                     optParent = pageRepository.findById(pageEntity.getParentId());
@@ -2559,18 +2614,16 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
             }
 
-            if (markdownSanitize && PageType.MARKDOWN.name().equals(pageType)) {
+            if (markdownSanitize && MARKDOWN.name().equals(pageType)) {
                 this.transformWithTemplate(executionContext, pageEntity, apiId);
                 if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
-                    return Arrays.asList(pageEntity.getMessages().toString());
+                    return asList(pageEntity.getMessages().toString());
                 }
                 HtmlSanitizer.SanitizeInfos sanitizeInfos = this.htmlSanitizer.isSafe(pageEntity.getContent());
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }
-            } else if (
-                swaggerValidateSafeContent && PageType.SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null
-            ) {
+            } else if (swaggerValidateSafeContent && SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null) {
                 OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
                 if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
                     return openApiDescriptor.getMessages();
@@ -2619,17 +2672,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     ) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
-            auditService.createAuditLog(executionContext, Collections.singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
+            auditService.createAuditLog(executionContext, singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
         } else {
-            auditService.createApiAuditLog(
-                executionContext,
-                apiId,
-                Collections.singletonMap(PAGE, pageId),
-                event,
-                createdAt,
-                oldValue,
-                newValue
-            );
+            auditService.createApiAuditLog(executionContext, apiId, singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
         }
     }
 
@@ -2685,7 +2730,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         newSysFolder.setName(systemFolderType.folderName());
         newSysFolder.setOrder(order);
         newSysFolder.setPublished(true);
-        newSysFolder.setType(PageType.SYSTEM_FOLDER);
+        newSysFolder.setType(SYSTEM_FOLDER);
         newSysFolder.setVisibility(Visibility.PUBLIC);
         return createPage(executionContext, apiId, newSysFolder);
     }
@@ -2782,7 +2827,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public void createOrUpdatePages(final ExecutionContext executionContext, List<PageEntity> pages, String apiId) {
-        final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
+        final PageEntityTreeNode pageEntityTreeNode = new PageEntityTreeNode(new PageEntity());
         pageEntityTreeNode.appendListToTree(pages);
         createOrUpdateChildrenPages(executionContext, apiId, null, pageEntityTreeNode.children);
     }
@@ -2797,7 +2842,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
             List<PageEntity> apiDocs = this.search(
                 executionContext.getEnvironmentId(),
-                new PageQuery.Builder().api(apiId).type(PageType.SWAGGER).build()
+                new PageQuery.Builder().api(apiId).type(SWAGGER).build()
             );
 
             if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
@@ -2848,7 +2893,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         String parentId,
         List<PageEntityTreeNode> children
     ) {
-        for (final PageServiceImpl.PageEntityTreeNode child : children) {
+        for (final PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
             pageEntityToImport.setReferenceId(apiId);
