@@ -28,19 +28,30 @@ import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import jakarta.ws.rs.client.Entity;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,6 +97,27 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+        }
+
+        @Test
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountMeasureRequest();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("measures").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountMeasureRequest();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("measures").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
         }
 
         @Test
@@ -138,7 +170,55 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         }
 
         @Test
-        void should_return_request_count() {
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountFacetRequest();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountFacetRequest();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_no_facet() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of());
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_too_much_facets() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN, FacetName.HTTP_STATUS));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_incompatible_facet() {
+            var invalidRequest = aRequestCountFacetRequest();
+            invalidRequest.setBy(List.of(FacetName.KAFKA_TOPIC));
+            var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_return_request_counts() {
             var response = rootTarget().path("facets").request().post(Entity.json(aRequestCountFacetRequest()));
 
             assertThat(response)
@@ -160,6 +240,116 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             var leaf = new BucketLeaf().type(BucketLeaf.TypeEnum.LEAF);
             leaf.setKey(key);
             leaf.setName(key);
+            leaf.setMeasures(List.of(new Measure().name(MeasureName.COUNT).value(count)));
+            bucket.setActualInstance(leaf);
+            return bucket;
+        }
+    }
+
+    @Nested
+    class TimeSeries {
+
+        @BeforeEach
+        void setUp() {
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+            var interval = Duration.ofHours(1).toMillis();
+
+            when(analyticsRepository.searchHTTPTimeSeries(eq(queryContext), argThat(query -> query.interval() == interval))).thenReturn(
+                new TimeSeriesResult(
+                    List.of(
+                        new MetricTimeSeriesResult(
+                            Metric.HTTP_REQUESTS,
+                            List.of(
+                                TimeSeriesBucketResult.ofMeasures(
+                                    "2025-11-07T00:00:00Z",
+                                    1762473600000L,
+                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 100)
+                                ),
+                                TimeSeriesBucketResult.ofMeasures(
+                                    "2025-11-08T00:00:00Z",
+                                    1762560000000L,
+                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 200)
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        @Test
+        void should_fail_with_invalid_time_range() {
+            var invalidRequest = aRequestCountTimeSeries();
+            var from = invalidRequest.getTimeRange().getFrom();
+            var to = invalidRequest.getTimeRange().getTo();
+            invalidRequest.getTimeRange().from(to).to(from);
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_invalid_measure_for_metric() {
+            var invalidRequest = aRequestCountTimeSeries();
+            var metric = invalidRequest.getMetrics().getFirst();
+            metric.setMeasures(List.of(MeasureName.AVG));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_too_much_facets() {
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_incompatible_facet() {
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.KAFKA_TOPIC));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_fail_with_negative_interval() {
+            var invalidRequest = aRequestCountTimeSeries().interval(new Interval("-1m"));
+            var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
+
+            assertThat(response).hasStatus(400);
+        }
+
+        @Test
+        void should_return_request_counts() {
+            var response = rootTarget().path("time-series").request().post(Entity.json(aRequestCountTimeSeries()));
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(TimeSeriesResponse.class)
+                .isEqualTo(
+                    new TimeSeriesResponse().metrics(
+                        List.of(
+                            new TimeSeriesResponseMetricsInner()
+                                .name(MetricName.HTTP_REQUESTS)
+                                .buckets(
+                                    List.of(
+                                        expectLeafBucket("2025-11-07T00:00:00Z", 1762473600000L, 100),
+                                        expectLeafBucket("2025-11-08T00:00:00Z", 1762560000000L, 200)
+                                    )
+                                )
+                        )
+                    )
+                );
+        }
+
+        private static TimeSeriesBucket expectLeafBucket(String key, Long timestamp, Number count) {
+            var bucket = new TimeSeriesBucket();
+            var leaf = new TimeSeriesBucketLeaf().type(TimeSeriesBucketLeaf.TypeEnum.LEAF);
+            leaf.setKey(OffsetDateTime.parse(key));
+            leaf.setTimestamp(timestamp);
             leaf.setMeasures(List.of(new Measure().name(MeasureName.COUNT).value(count)));
             bucket.setActualInstance(leaf);
             return bucket;

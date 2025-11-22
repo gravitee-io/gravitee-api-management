@@ -20,6 +20,8 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
@@ -27,10 +29,12 @@ import java.util.Set;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface DataPlaneAnalyticsQueryService {
+public interface AnalyticsEngineQueryService {
     Set<MetricSpec.Name> metrics();
 
     MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request);
 
     FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request);
+
+    TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request);
 }

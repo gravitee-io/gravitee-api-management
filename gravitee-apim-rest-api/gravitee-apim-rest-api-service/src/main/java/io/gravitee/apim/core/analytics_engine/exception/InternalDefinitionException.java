@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.apim.core.analytics_engine.exception;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetsRequest(
-    TimeRange timeRange,
-    List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) {
-    public FacetsRequest emptyMetrics() {
-        return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
+public class InternalDefinitionException extends TechnicalDomainException {
+
+    public InternalDefinitionException(String message) {
+        super(message);
+    }
+
+    public static InternalDefinitionException forUnknownMetric(String metric) {
+        return new InternalDefinitionException("Unknown metric " + metric);
     }
 }

@@ -38,6 +38,7 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -149,7 +150,7 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.query_service.analytics_engine.HTTPProxyDataPlaneQueryService;
+import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -880,8 +881,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsDefinitionQueryService analyticsDefinitionProvider() {
+    public AnalyticsDefinitionQueryService analyticsDefinitionQueryService() {
         return new AnalyticsDefinitionYAMLQueryService();
+    }
+
+    @Bean
+    public AnalyticsQueryValidator analyticsQueryValidator(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+        return new AnalyticsQueryValidator(analyticsDefinitionQueryService);
     }
 
     @Bean
@@ -905,8 +911,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ComputeMeasuresUseCase computeMeasuresUseCase(AnalyticsQueryContextProvider analyticsQueryContextProvider) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider);
+    public ComputeMeasuresUseCase computeMeasuresUseCase(
+        AnalyticsQueryContextProvider analyticsQueryContextProvider,
+        AnalyticsQueryValidator analyticsQueryValidator
+    ) {
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator);
     }
 
     @Bean
@@ -920,8 +929,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public HTTPProxyDataPlaneQueryService httpProxyDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
-        return new HTTPProxyDataPlaneQueryService(analyticsRepository);
+    public HTTPDataPlaneAnalyticsQueryService httpProxyDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
+        return new HTTPDataPlaneAnalyticsQueryService(analyticsRepository);
     }
 
     @Bean

@@ -24,13 +24,19 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import java.util.List;
 import java.util.Map;
 import org.mapstruct.Mapper;
@@ -44,6 +50,13 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface AnalyticsMeasuresAdapter {
     AnalyticsMeasuresAdapter INSTANCE = Mappers.getMapper(AnalyticsMeasuresAdapter.class);
+
+    TimeSeriesQuery fromRequest(TimeSeriesRequest request);
+
+    TimeSeriesResponse fromResult(TimeSeriesResult result);
+
+    @Mapping(target = "name", source = "metric")
+    TimeSeriesMetricResponse fromResult(MetricTimeSeriesResult result);
 
     FacetsQuery fromRequest(FacetsRequest request);
 

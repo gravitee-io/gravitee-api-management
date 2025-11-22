@@ -19,8 +19,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
@@ -49,7 +51,9 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapt
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FacetsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFacetsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPMeasuresQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPTimeSeriesQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MeasuresResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.TimeSeriesResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -99,8 +103,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     private final HTTPMeasuresQueryAdapter httpMeasuresQueryAdapter = new HTTPMeasuresQueryAdapter();
     private final HTTPFacetsQueryAdapter httpFacetsQueryAdapter = new HTTPFacetsQueryAdapter();
+    private final HTTPTimeSeriesQueryAdapter httpTimeSeriesQueryAdapter = new HTTPTimeSeriesQueryAdapter();
     private final MeasuresResponseAdapter measuresResponseAdapter = new MeasuresResponseAdapter();
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
+    private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -310,6 +316,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return client
             .search(index, null, esQuery)
             .map(response -> facetsResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = httpTimeSeriesQueryAdapter.adapt(query);
+
+        log.debug("HTTP time series query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
             .blockingGet();
     }
 

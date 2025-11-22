@@ -23,6 +23,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface AnalyticsDefinitionQueryService {
     List<ApiSpec> getApis();
@@ -32,6 +33,8 @@ public interface AnalyticsDefinitionQueryService {
     List<FilterSpec> getFilters(MetricSpec.Name metricSpecName);
 
     List<FacetSpec> getFacets(MetricSpec.Name metricSpecName);
+
+    Optional<MetricSpec> findMetric(MetricSpec.Name metricName);
 
     default ApiSpec.Name validateApiName(String apiName) {
         try {
