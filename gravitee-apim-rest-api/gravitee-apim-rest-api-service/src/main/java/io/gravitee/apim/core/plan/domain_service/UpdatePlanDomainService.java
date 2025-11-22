@@ -116,6 +116,9 @@ public class UpdatePlanDomainService {
 
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
+
+        checkIfShardingTagsMismatch(api, planToUpdate);
+
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
@@ -126,6 +129,35 @@ public class UpdatePlanDomainService {
         }
 
         return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo);
+    }
+
+    private void checkIfShardingTagsMismatch(Api api, Plan planToUpdate) {
+        List<Plan> plansForApi = planQueryService.findAllByApiId(api.getId());
+        long otherPlansCount = plansForApi.stream().filter(p -> !p.getId().equals(planToUpdate.getId())).count();
+        if (otherPlansCount == 0) {
+            var planTags = planToUpdate.getTags();
+            var apiTags = api.getTags();
+            boolean matches;
+            if ((planTags == null || planTags.isEmpty()) && (apiTags == null || apiTags.isEmpty())) {
+                matches = true;
+            } else if (planTags == null || planTags.isEmpty() || apiTags == null || apiTags.isEmpty()) {
+                matches = false;
+            } else {
+                // At least one common tag is required (not strict equality)
+                matches = planTags.stream().anyMatch(apiTags::contains);
+            }
+            if (!matches) {
+                throw new ValidationDomainException(
+                    "Plan tags mismatch the tags defined by the API",
+                    Map.of(
+                        "planTags",
+                        planTags == null ? "" : String.join(",", planTags),
+                        "apiTags",
+                        apiTags == null ? "" : String.join(",", apiTags)
+                    )
+                );
+            }
+        }
     }
 
     private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<Flow> flows, Api api, AuditInfo auditInfo) {
