@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -33,6 +34,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
@@ -48,6 +50,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +110,9 @@ public class PageService_CreateTest {
 
     @Mock
     private HtmlSanitizer htmlSanitizer;
+
+    @Mock
+    private io.gravitee.rest.api.service.ConfigService configService;
 
     private PageEntity getPage(String resource, String contentType) throws IOException {
         URL url = Resources.getResource(resource);
@@ -599,5 +605,142 @@ public class PageService_CreateTest {
         when(newPage.getSource()).thenReturn(source);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
         pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+    }
+
+    @Test
+    public void shouldApplyDefaultViewerWhenNotConfigured() throws TechnicalException {
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer viewer = new io.gravitee.rest.api.model.settings.OpenAPIDocViewer();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType docType =
+            new io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType();
+        docType.setDefaultType("Redoc");
+        viewer.setOpenAPIDocType(docType);
+        settings.setOpenAPIDocViewer(viewer);
+        when(configService.getPortalSettings(any())).thenReturn(settings);
+
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setType(PageType.SWAGGER);
+        newPage.setName("Test");
+        newPage.setVisibility(Visibility.PUBLIC);
+        newPage.setConfiguration(null); // No viewer configured
+
+        Page created = new Page();
+        created.setId("test-id");
+        created.setType("SWAGGER");
+        created.setVisibility("PUBLIC");
+        created.setReferenceType(PageReferenceType.API);
+        created.setReferenceId(API_ID);
+        when(pageRepository.create(any())).thenReturn(created);
+
+        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+
+        verify(pageRepository).create(
+            argThat(p -> p.getConfiguration() != null && "Redoc".equals(p.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER)))
+        );
+    }
+
+    @Test
+    public void shouldNotOverrideExistingViewer() throws TechnicalException {
+        // Setup portal settings with Redoc as default
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer viewer = new io.gravitee.rest.api.model.settings.OpenAPIDocViewer();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType docType =
+            new io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType();
+        docType.setDefaultType("Redoc");
+        viewer.setOpenAPIDocType(docType);
+        settings.setOpenAPIDocViewer(viewer);
+
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setType(PageType.SWAGGER);
+        newPage.setName("Test");
+        newPage.setVisibility(Visibility.PUBLIC);
+        Map<String, String> config = new HashMap<>();
+        config.put(PageConfigurationKeys.SWAGGER_VIEWER, "Swagger");
+        newPage.setConfiguration(config); // User explicitly set Swagger
+
+        Page created = new Page();
+        created.setId("test-id");
+        created.setType("SWAGGER");
+        created.setVisibility("PUBLIC");
+        created.setReferenceType(PageReferenceType.API);
+        created.setReferenceId(API_ID);
+        when(pageRepository.create(any())).thenReturn(created);
+
+        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+
+        verify(pageRepository).create(argThat(p -> "Swagger".equals(p.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER))));
+    }
+
+    @Test
+    public void shouldApplyDefaultViewerToNewSwaggerPage() throws TechnicalException {
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setName("Test Swagger");
+        newPage.setType(PageType.SWAGGER);
+        newPage.setVisibility(Visibility.PUBLIC);
+        newPage.setConfiguration(new HashMap<>());
+
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer viewer = new io.gravitee.rest.api.model.settings.OpenAPIDocViewer();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType docType =
+            new io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType();
+        docType.setDefaultType("Redoc");
+        viewer.setOpenAPIDocType(docType);
+        settings.setOpenAPIDocViewer(viewer);
+
+        Page createdPage = new Page();
+        createdPage.setId("page-123");
+        createdPage.setName("Test Swagger");
+        createdPage.setType(PageType.SWAGGER.name());
+        createdPage.setReferenceId(API_ID);
+        createdPage.setReferenceType(PageReferenceType.API);
+        createdPage.setVisibility("PUBLIC");
+        createdPage.setCreatedAt(new Date());
+        createdPage.setUpdatedAt(new Date());
+
+        when(configService.getPortalSettings(any())).thenReturn(settings);
+        when(pageRepository.create(any(Page.class))).thenReturn(createdPage);
+        when(pageRepository.search(any())).thenReturn(Collections.emptyList());
+
+        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+
+        verify(pageRepository).create(
+            argThat(p -> p.getConfiguration() != null && "Redoc".equals(p.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER)))
+        );
+    }
+
+    @Test
+    public void shouldNotOverrideExistingViewerConfiguration() throws TechnicalException {
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setName("Test Swagger");
+        newPage.setType(PageType.SWAGGER);
+        newPage.setVisibility(Visibility.PUBLIC);
+        Map<String, String> config = new HashMap<>();
+        config.put(PageConfigurationKeys.SWAGGER_VIEWER, "Swagger");
+        newPage.setConfiguration(config);
+
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer viewer = new io.gravitee.rest.api.model.settings.OpenAPIDocViewer();
+        io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType docType =
+            new io.gravitee.rest.api.model.settings.OpenAPIDocViewer.OpenAPIDocType();
+        docType.setDefaultType("Redoc");
+        viewer.setOpenAPIDocType(docType);
+        settings.setOpenAPIDocViewer(viewer);
+
+        Page createdPage = new Page();
+        createdPage.setId("page-123");
+        createdPage.setType(PageType.SWAGGER.name());
+        createdPage.setReferenceId(API_ID);
+        createdPage.setReferenceType(PageReferenceType.API);
+        createdPage.setVisibility("PUBLIC");
+        createdPage.setCreatedAt(new Date());
+        createdPage.setUpdatedAt(new Date());
+
+        when(configService.getPortalSettings(any())).thenReturn(settings);
+        when(pageRepository.create(any(Page.class))).thenReturn(createdPage);
+        when(pageRepository.search(any())).thenReturn(Collections.emptyList());
+
+        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+
+        verify(pageRepository).create(argThat(p -> "Swagger".equals(p.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER))));
     }
 }

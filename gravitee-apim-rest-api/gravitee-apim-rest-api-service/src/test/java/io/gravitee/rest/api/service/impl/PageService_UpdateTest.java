@@ -653,4 +653,106 @@ public class PageService_UpdateTest {
 
         verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
     }
+
+    // Test: Update all SWAGGER pages with new default viewer
+    @Test
+    public void shouldUpdateAllSwaggerPagesWithNewViewer() throws TechnicalException {
+        String newViewer = "Redoc";
+
+        Page envPage = new Page();
+        envPage.setId("env-page-1");
+        envPage.setType(PageType.SWAGGER.name());
+        envPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        envPage.setReferenceId("DEFAULT");
+        envPage.setConfiguration(new HashMap<>());
+        envPage.setUpdatedAt(new java.util.Date());
+
+        Page apiPage = new Page();
+        apiPage.setId("api-page-1");
+        apiPage.setType(PageType.SWAGGER.name());
+        apiPage.setReferenceType(PageReferenceType.API);
+        apiPage.setReferenceId("api-1");
+        apiPage.setConfiguration(new HashMap<>());
+        apiPage.setUpdatedAt(new java.util.Date());
+
+        when(
+            pageRepository.search(
+                argThat(criteria -> criteria != null && PageReferenceType.ENVIRONMENT.name().equals(criteria.getReferenceType()))
+            )
+        ).thenReturn(Collections.singletonList(envPage));
+
+        when(pageRepository.search(argThat(criteria -> criteria != null && criteria.getReferenceType() == null))).thenReturn(
+            asList(envPage, apiPage)
+        );
+
+        when(pageRepository.update(any(Page.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, times(2)).update(any(Page.class));
+    }
+
+    // Test: Skip pages that already have the correct viewer
+    @Test
+    public void shouldSkipPagesWithCorrectViewer() throws TechnicalException {
+        String newViewer = "Redoc";
+
+        Page page = new Page();
+        page.setId("page-1");
+        page.setType(PageType.SWAGGER.name());
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId("api-1");
+        Map<String, String> config = new HashMap<>();
+        config.put(PageConfigurationKeys.SWAGGER_VIEWER, "Redoc");
+        page.setConfiguration(config);
+        page.setUpdatedAt(new java.util.Date());
+
+        when(pageRepository.search(any())).thenReturn(Collections.singletonList(page));
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, never()).update(any(Page.class));
+    }
+
+    // Test: Handle empty page list
+    @Test
+    public void shouldHandleEmptyPageList() throws TechnicalException {
+        String newViewer = "Redoc";
+        when(pageRepository.search(any())).thenReturn(Collections.emptyList());
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, never()).update(any(Page.class));
+    }
+
+    // Test: Continue processing on individual page errors
+    @Test
+    public void shouldContinueOnIndividualPageErrors() throws TechnicalException {
+        String newViewer = "Redoc";
+
+        Page goodPage = new Page();
+        goodPage.setId("good-page");
+        goodPage.setType(PageType.SWAGGER.name());
+        goodPage.setReferenceType(PageReferenceType.API);
+        goodPage.setReferenceId("api-1");
+        goodPage.setConfiguration(new HashMap<>());
+        goodPage.setUpdatedAt(new java.util.Date());
+
+        Page badPage = new Page();
+        badPage.setId("bad-page");
+        badPage.setType(PageType.SWAGGER.name());
+        badPage.setReferenceType(PageReferenceType.API);
+        badPage.setReferenceId("api-2");
+        badPage.setConfiguration(new HashMap<>());
+        badPage.setUpdatedAt(new java.util.Date());
+
+        when(pageRepository.search(any())).thenReturn(asList(goodPage, badPage));
+
+        when(pageRepository.update(goodPage)).thenReturn(goodPage);
+        when(pageRepository.update(badPage)).thenThrow(new TechnicalException("Update failed"));
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, times(2)).update(any(Page.class));
+    }
 }

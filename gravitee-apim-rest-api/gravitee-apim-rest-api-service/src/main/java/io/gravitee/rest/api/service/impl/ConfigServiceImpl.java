@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.settings.PortalReCaptcha;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -53,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
@@ -80,6 +82,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
+
+    @Lazy
+    @Autowired
+    private PageService pageService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -322,8 +328,35 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     public void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity) {
+        String newDefaultViewer = extractDefaultViewer(portalSettingsEntity);
+        String currentDefaultViewer = extractDefaultViewer(getPortalSettings(executionContext));
         Object[] objects = getObjectArray(portalSettingsEntity);
         saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
+
+        // Update existing SWAGGER pages if default viewer changed
+        if (hasDefaultViewerChanged(currentDefaultViewer, newDefaultViewer)) {
+            updateExistingSwaggerPages(executionContext, currentDefaultViewer, newDefaultViewer);
+        }
+    }
+
+    private String extractDefaultViewer(PortalSettingsEntity settings) {
+        if (settings == null || settings.getOpenAPIDocViewer() == null || settings.getOpenAPIDocViewer().getOpenAPIDocType() == null) {
+            return null;
+        }
+        return settings.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType();
+    }
+
+    private boolean hasDefaultViewerChanged(String currentViewer, String newViewer) {
+        return newViewer != null && !newViewer.equals(currentViewer);
+    }
+
+    private void updateExistingSwaggerPages(ExecutionContext executionContext, String currentViewer, String newViewer) {
+        LOGGER.debug("Default viewer changed from '{}' to '{}', updating existing SWAGGER pages", currentViewer, newViewer);
+        try {
+            pageService.updateAllSwaggerPagesViewer(executionContext, newViewer);
+        } catch (Exception e) {
+            LOGGER.error("Failed to update existing SWAGGER pages with new default viewer", e);
+        }
     }
 
     @Override
