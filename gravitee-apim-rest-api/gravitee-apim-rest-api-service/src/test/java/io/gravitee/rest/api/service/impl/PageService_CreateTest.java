@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.impl.PageServiceImplTests.executionContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import freemarker.template.TemplateException;
@@ -33,8 +33,11 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.settings.OpenAPIDocViewer;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -104,6 +107,18 @@ public class PageService_CreateTest {
 
     @Mock
     private ApiTemplateService apiTemplateService;
+
+    @Mock
+    private ConfigService configService;
+
+    @Mock
+    private PortalSettingsEntity portalSettings;
+
+    @Mock
+    private OpenAPIDocViewer openAPIDocViewer;
+
+    @Mock
+    private OpenAPIDocViewer.OpenAPIDocType openAPIDocType;
 
     @Mock
     private HtmlSanitizer htmlSanitizer;
@@ -599,5 +614,31 @@ public class PageService_CreateTest {
         when(newPage.getSource()).thenReturn(source);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
         pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+    }
+
+    @Test
+    public void shouldApplySelectedDefaultViewerToNewSwaggerPage() throws TechnicalException {
+        when(configService.getPortalSettings(any())).thenReturn(portalSettings);
+        when(portalSettings.getOpenAPIDocViewer()).thenReturn(openAPIDocViewer);
+        when(openAPIDocViewer.getOpenAPIDocType()).thenReturn(openAPIDocType);
+        when(openAPIDocType.getDefaultType()).thenReturn("redoc");
+
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setType(PageType.SWAGGER);
+        newPage.setConfiguration(new HashMap<>());
+
+        Page repoPage = new Page();
+        repoPage.setId("ID");
+        repoPage.setType(PageType.SWAGGER.name());
+        repoPage.setReferenceType(PageReferenceType.API);
+        repoPage.setReferenceId(API_ID);
+        repoPage.setVisibility(Visibility.PUBLIC.name());
+        repoPage.setContent("test");
+        repoPage.setName("Swagger Page");
+        repoPage.setOrder(1);
+        when(pageRepository.create(any())).thenReturn(repoPage);
+        pageService.createPage(executionContext, API_ID, newPage);
+
+        verify(pageRepository).create(argThat(page -> "redoc".equals(page.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER))));
     }
 }
