@@ -28,20 +28,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractResponseAdapter {
 
-    protected Optional<Map<String, Aggregation>> lookupForAggregations(SearchResponse esResponse) {
-        if (esResponse == null) {
-            log.warn("Returning empty response because the esResponse is null");
+    protected Optional<Map<String, Aggregation>> lookupForAggregations(SearchResponse elasticsearchResponse) {
+        if (elasticsearchResponse == null) {
+            log.warn("Returning empty response because the elasticsearch response is null");
             return Optional.empty();
         }
-        if (esResponse.getTimedOut()) {
-            log.warn("Returning empty response because the esResponse timed out");
+        if (elasticsearchResponse.getTimedOut()) {
+            log.warn("Returning empty response because the elasticsearch response has timed out");
             return Optional.empty();
         }
 
-        var aggregations = esResponse.getAggregations();
+        var aggregations = elasticsearchResponse.getAggregations();
 
         if (aggregations == null || aggregations.isEmpty()) {
-            log.warn("Returning empty response because the esResponse does not contain aggregations");
+            log.warn("Returning empty response because the elasticsearch response does not contain aggregations");
             return Optional.empty();
         }
         return Optional.of(aggregations);
