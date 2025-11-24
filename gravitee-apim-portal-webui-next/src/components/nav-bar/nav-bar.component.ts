@@ -17,9 +17,9 @@ import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { isEmpty } from 'lodash';
 
+import { PortalNavigationItem } from '../../entities/portal-navigation/portal-navigation';
 import { User } from '../../entities/user/user';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
-import { PortalMenuLink } from '../../services/portal-menu-links.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
 import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component';
@@ -31,7 +31,7 @@ import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component
   styleUrls: ['./nav-bar.component.scss'],
 })
 export class NavBarComponent {
-  customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
+  customLinks: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   currentUser: InputSignal<User> = input({});
   forceLogin: InputSignal<boolean> = input(false);
   logo: InputSignal<string> = input('');

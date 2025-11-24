@@ -18,8 +18,8 @@ import { MatAnchor, MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
 
+import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation';
 import { User } from '../../../entities/user/user';
-import { PortalMenuLink } from '../../../services/portal-menu-links.service';
 import { UserAvatarComponent } from '../../user-avatar/user-avatar.component';
 import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.component';
 
@@ -31,7 +31,7 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
-  customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
+  customLinks: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });

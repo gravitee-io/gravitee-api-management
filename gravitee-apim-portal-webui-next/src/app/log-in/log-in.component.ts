@@ -33,7 +33,7 @@ import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { IdentityProviderService } from '../../services/identity-provider.service';
-import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 @Component({
   selector: 'app-log-in',
@@ -68,7 +68,7 @@ export class LogInComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly currentUserService: CurrentUserService,
-    private readonly portalMenuLinksService: PortalMenuLinksService,
+    private readonly portalNavigationItemsService: PortalNavigationItemsService,
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
   ) {}
@@ -78,7 +78,7 @@ export class LogInComponent {
       .login(this.logInForm.value.username, this.logInForm.value.password)
       .pipe(
         switchMap(_ => this.currentUserService.loadUser()),
-        switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
+        switchMap(_ => this.portalNavigationItemsService.loadTopNavBarItems()),
         tap(_ => this.router.navigate([this.redirectUrl()])),
         takeUntilDestroyed(this.destroyRef),
       )

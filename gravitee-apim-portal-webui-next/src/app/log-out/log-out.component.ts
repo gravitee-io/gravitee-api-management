@@ -20,7 +20,7 @@ import { switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
-import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 @Component({
   selector: 'app-log-out',
@@ -33,7 +33,7 @@ export class LogOutComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly currentUserService: CurrentUserService,
-    private readonly portalMenuLinksService: PortalMenuLinksService,
+    private readonly portalNavigationItemsService: PortalNavigationItemsService,
     private readonly router: Router,
   ) {}
 
@@ -43,7 +43,7 @@ export class LogOutComponent implements OnInit {
         .logout()
         .pipe(
           tap(_ => this.currentUserService.clear()),
-          switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
+          switchMap(_ => this.portalNavigationItemsService.loadTopNavBarItems()),
           tap(_ => this.router.navigate([''])),
           takeUntilDestroyed(this.destroyRef),
         )

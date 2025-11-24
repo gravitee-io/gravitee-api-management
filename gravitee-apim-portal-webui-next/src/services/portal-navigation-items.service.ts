@@ -13,38 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
-
-export type PortalMenuLinkType = 'external';
-
-export interface PortalMenuLink {
-  id: string;
-  type: PortalMenuLinkType;
-  name: string;
-  target: string;
-  order: number;
-}
+import { PortalArea, PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PortalMenuLinksService {
-  public links: WritableSignal<PortalMenuLink[]> = signal([]);
+export class PortalNavigationItemsService {
+  public topNavbar: WritableSignal<PortalNavigationItem[]> = signal([]);
 
   constructor(
     private readonly http: HttpClient,
     private configService: ConfigService,
   ) {}
 
-  loadCustomLinks(): Observable<unknown> {
-    return this.http.get<PortalMenuLink[]>(`${this.configService.baseURL}/portal-menu-links`).pipe(
-      catchError(_ => of([])),
-      tap(value => this.links.set(value)),
-    );
+  loadNavigationItems(area: PortalArea, loadChildren?: boolean, parentId?: string): Observable<PortalNavigationItem[]> {
+    let params = new HttpParams();
+    params = params.set('area', area);
+    if (loadChildren !== undefined) {
+      params = params.set('loadChildren', String(loadChildren));
+    }
+    if (parentId) {
+      params = params.set('parentId', parentId);
+    }
+
+    return this.http
+      .get<PortalNavigationItem[]>(`${this.configService.baseURL}/portal-navigation-items`, { params })
+      .pipe(catchError(_ => of([])));
+  }
+
+  loadTopNavBarItems(): Observable<PortalNavigationItem[]> {
+    return this.loadNavigationItems('TOP_NAVBAR', true).pipe(tap(value => this.topNavbar.set(value)));
   }
 }

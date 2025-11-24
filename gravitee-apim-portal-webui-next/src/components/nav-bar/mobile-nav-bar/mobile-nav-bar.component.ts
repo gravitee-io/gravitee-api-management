@@ -22,8 +22,8 @@ import { isEmpty } from 'lodash';
 import { catchError, map } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation';
 import { User } from '../../../entities/user/user';
-import { PortalMenuLink } from '../../../services/portal-menu-links.service';
 import { PortalService } from '../../../services/portal.service';
 
 @Component({
@@ -34,7 +34,7 @@ import { PortalService } from '../../../services/portal.service';
 })
 export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
-  customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
+  customLinks: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   hasHomepage = toSignal(
     inject(PortalService)
       .getPortalHomepages()
