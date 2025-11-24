@@ -31,22 +31,18 @@ import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import jakarta.annotation.PostConstruct;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.*;
 
 public class LogElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
@@ -1251,6 +1247,37 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .assertThat(result.data())
                     .extracting(MessageMetrics::getRequestId)
                     .containsExactly("8919324a-9987-4ecd-b2a5-0abe18692111", "55138ad4-9c01-4e78-b027-b60ad9742441");
+            });
+        }
+
+        @Test
+        void should_find_one_hits_in_time_range() {
+            var result = logV4Repository.searchMessageMetrics(
+                queryContext,
+                MessageLogQuery.builder()
+                    .filter(
+                        MessageLogQuery.Filter.builder()
+                            .apiId("eec4f752-f4bc-4c63-bc70-9eaaa2be24d5")
+                            .from(OffsetDateTime.parse(today + "T06:58:00.000Z").toInstant().toEpochMilli())
+                            .to(OffsetDateTime.parse(today + "T06:59:00.000Z").toInstant().toEpochMilli())
+                            .build()
+                    )
+                    .page(1)
+                    .size(2)
+                    .build()
+            );
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result).isNotNull();
+                soft.assertThat(result.data()).hasSize(1);
+                soft
+                    .assertThat(result.data())
+                    .extracting(MessageMetrics::getCorrelationId)
+                    .containsExactly("8919324a-9c01-4e78-b027-b60ad9742441");
+                soft
+                    .assertThat(result.data())
+                    .extracting(MessageMetrics::getRequestId)
+                    .containsExactly("55138ad4-9c01-4e78-b027-b60ad9742441");
             });
         }
 

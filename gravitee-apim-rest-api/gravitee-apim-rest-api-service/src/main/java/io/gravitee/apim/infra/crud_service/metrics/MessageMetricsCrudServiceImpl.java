@@ -63,6 +63,8 @@ public class MessageMetricsCrudServiceImpl implements MessageMetricsCrudService 
                             .connectorId(filters.connectorId())
                             .connectorType(filters.connectorType())
                             .operation(filters.operation())
+                            .from(filters.from())
+                            .to(filters.to())
                             .build()
                     )
                     .page(pageable.getPageNumber())

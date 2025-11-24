@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.metrics.param;
 
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorType;
 import io.gravitee.rest.api.management.v2.rest.model.MessageOperation;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.QueryParam;
 import lombok.Data;
 
@@ -27,10 +28,20 @@ import lombok.Data;
 @Data
 public class SearchMessageMetricsParam {
 
+    public static final String FROM_QUERY_PARAM_NAME = "from";
+    public static final String TO_QUERY_PARAM_NAME = "to";
     public static final String OPERATION_PARAM_NAME = "operation";
     public static final String CONNECTOR_TYPE_PARAM_NAME = "connectorType";
     public static final String CONNECTOR_ID_PARAM_NAME = "connectorId";
     public static final String REQUEST_ID_PARAM_NAME = "requestId";
+
+    @QueryParam(FROM_QUERY_PARAM_NAME)
+    @Min(0)
+    Long from;
+
+    @QueryParam(TO_QUERY_PARAM_NAME)
+    @Min(0)
+    Long to;
 
     @EnumValue(MessageOperation.class)
     @QueryParam(OPERATION_PARAM_NAME)

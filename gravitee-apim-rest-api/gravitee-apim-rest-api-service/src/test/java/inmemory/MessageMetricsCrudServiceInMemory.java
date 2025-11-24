@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.analytics.SearchMessageMetricsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -90,6 +91,15 @@ public class MessageMetricsCrudServiceInMemory implements MessageMetricsCrudServ
 
         if (filters.operation() != null) {
             predicate = predicate.and(messageMetrics -> Objects.equals(filters.operation(), messageMetrics.getOperation()));
+        }
+
+        long from = filters.from();
+        long to = filters.to();
+        if (from > 0 && from < to) {
+            predicate = predicate.and(messageMetrics -> {
+                long timestamp = OffsetDateTime.parse(messageMetrics.getTimestamp()).toInstant().toEpochMilli();
+                return timestamp >= from && timestamp < to;
+            });
         }
 
         return predicate;

@@ -274,6 +274,69 @@ class ApiMessageMetricsResourceTest extends ApiResourceTest {
     }
 
     @Test
+    void should_filter_on_time_range() {
+        String expectedCorrelationId = "this is the one we want to find";
+        messageMetricsCrudServiceInMemory.initWith(
+            List.of(
+                MessageMetrics.builder()
+                    .apiId(API)
+                    .timestamp("2025-11-11T05:59:44.893Z")
+                    .connectorType("entrypoint")
+                    .connectorId("webhook")
+                    .operation("subscribe")
+                    .requestId("123456789")
+                    .correlationId("don't want this one (too soon)")
+                    .build(),
+                MessageMetrics.builder()
+                    .apiId(API)
+                    .timestamp("2025-11-11T06:30:45.893Z")
+                    .connectorType("entrypoint")
+                    .connectorId("webhook")
+                    .operation("subscribe")
+                    .requestId("123456789")
+                    .correlationId(expectedCorrelationId)
+                    .build(),
+                MessageMetrics.builder()
+                    .apiId(API)
+                    .timestamp("2025-11-11T07:00:44.893Z")
+                    .connectorType("entrypoint")
+                    .connectorId("webhook")
+                    .operation("subscribe")
+                    .requestId("123456789")
+                    .correlationId("don't want this one (too late)")
+                    .build()
+            )
+        );
+
+        final Response response = messageMetricsTarget
+            .queryParam(SearchMessageMetricsParam.CONNECTOR_ID_PARAM_NAME, "webhook")
+            .queryParam(SearchMessageMetricsParam.CONNECTOR_TYPE_PARAM_NAME, "entrypoint")
+            .queryParam(SearchMessageMetricsParam.OPERATION_PARAM_NAME, "subscribe")
+            .queryParam(SearchMessageMetricsParam.REQUEST_ID_PARAM_NAME, "123456789")
+            .queryParam(
+                SearchMessageMetricsParam.FROM_QUERY_PARAM_NAME,
+                OffsetDateTime.of(2025, 11, 11, 6, 0, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli()
+            )
+            .queryParam(
+                SearchMessageMetricsParam.TO_QUERY_PARAM_NAME,
+                OffsetDateTime.of(2025, 11, 11, 7, 0, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli()
+            )
+            .request()
+            .get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(MessageMetricsResponse.class)
+            .extracting(MessageMetricsResponse::getData)
+            .satisfies(data -> {
+                assertThat(data).hasSize(1);
+                assertThat(data)
+                    .first()
+                    .satisfies(m -> assertThat(m.getCorrelationId()).isEqualTo(expectedCorrelationId));
+            });
+    }
+
+    @Test
     void should_get_400_error_on_invalid_connector_type() {
         final Response response = messageMetricsTarget
             .queryParam(SearchMessageMetricsParam.CONNECTOR_TYPE_PARAM_NAME, "invalid-connector-type")
