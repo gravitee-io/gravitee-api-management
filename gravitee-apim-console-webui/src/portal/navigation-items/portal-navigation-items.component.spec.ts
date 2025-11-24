@@ -287,6 +287,161 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('resizing the sections panel', () => {
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+    });
+
+    it('should have default panel width of 350px', () => {
+      const component = fixture.componentInstance;
+      expect(component.panelWidth()).toBe(350);
+    });
+
+    it('should increase panel width when dragging right', () => {
+      const component = fixture.componentInstance;
+      const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
+
+      const initialWidth = component.panelWidth();
+      expect(initialWidth).toBe(350);
+
+      // Simulate mousedown
+      const mousedownEvent = new MouseEvent('mousedown', {
+        clientX: 100,
+        bubbles: true,
+        cancelable: true,
+      });
+      resizeHandle.dispatchEvent(mousedownEvent);
+      fixture.detectChanges();
+
+      // Simulate mousemove (dragging right by 50px)
+      const mousemoveEvent = new MouseEvent('mousemove', {
+        clientX: 150,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mousemoveEvent);
+      fixture.detectChanges();
+
+      expect(component.panelWidth()).toBe(400);
+
+      // Simulate mouseup
+      const mouseupEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mouseupEvent);
+      fixture.detectChanges();
+    });
+
+    it('should decrease panel width when dragging left', () => {
+      const component = fixture.componentInstance;
+      const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
+
+      const initialWidth = component.panelWidth();
+      expect(initialWidth).toBe(350);
+
+      // Simulate mousedown
+      const mousedownEvent = new MouseEvent('mousedown', {
+        clientX: 100,
+        bubbles: true,
+        cancelable: true,
+      });
+      resizeHandle.dispatchEvent(mousedownEvent);
+      fixture.detectChanges();
+
+      // Simulate mousemove (dragging left by 50px)
+      const mousemoveEvent = new MouseEvent('mousemove', {
+        clientX: 50,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mousemoveEvent);
+      fixture.detectChanges();
+
+      expect(component.panelWidth()).toBe(300);
+
+      // Simulate mouseup
+      const mouseupEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mouseupEvent);
+      fixture.detectChanges();
+    });
+
+    it('should constrain panel width to minimum of 280px', () => {
+      const component = fixture.componentInstance;
+      const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
+
+      const initialWidth = component.panelWidth();
+      expect(initialWidth).toBe(350);
+
+      // Simulate mousedown
+      const mousedownEvent = new MouseEvent('mousedown', {
+        clientX: 100,
+        bubbles: true,
+        cancelable: true,
+      });
+      resizeHandle.dispatchEvent(mousedownEvent);
+      fixture.detectChanges();
+
+      // Simulate mousemove (dragging left by 200px, which would go below minimum)
+      const mousemoveEvent = new MouseEvent('mousemove', {
+        clientX: -100,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mousemoveEvent);
+      fixture.detectChanges();
+
+      expect(component.panelWidth()).toBe(280);
+
+      // Simulate mouseup
+      const mouseupEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mouseupEvent);
+      fixture.detectChanges();
+    });
+
+    it('should constrain panel width to maximum of 600px', () => {
+      const component = fixture.componentInstance;
+      const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
+
+      const initialWidth = component.panelWidth();
+      expect(initialWidth).toBe(350);
+
+      // Simulate mousedown
+      const mousedownEvent = new MouseEvent('mousedown', {
+        clientX: 100,
+        bubbles: true,
+        cancelable: true,
+      });
+      resizeHandle.dispatchEvent(mousedownEvent);
+      fixture.detectChanges();
+
+      // Simulate mousemove (dragging right by 300px, which would exceed maximum)
+      const mousemoveEvent = new MouseEvent('mousemove', {
+        clientX: 400,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mousemoveEvent);
+      fixture.detectChanges();
+
+      expect(component.panelWidth()).toBe(600);
+
+      // Simulate mouseup
+      const mouseupEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(mouseupEvent);
+      fixture.detectChanges();
+    });
+  });
+
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
