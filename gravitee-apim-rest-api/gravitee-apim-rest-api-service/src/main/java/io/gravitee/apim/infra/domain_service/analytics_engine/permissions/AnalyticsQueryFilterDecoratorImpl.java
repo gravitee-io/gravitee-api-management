@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.rest.api.model.permissions.RoleScope;
