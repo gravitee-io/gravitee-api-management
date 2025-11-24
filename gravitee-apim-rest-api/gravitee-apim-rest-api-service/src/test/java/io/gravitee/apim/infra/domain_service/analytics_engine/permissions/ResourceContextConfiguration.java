@@ -36,10 +36,10 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryFilterDecoratorImpl analyticsQueryFilterDecorator(
+    public ApiAnalyticsQueryFilterDecoratorImpl apiAnalyticsQueryFilterDecorator(
         ApiAuthorizationService apiAuthorizationServiceV4,
         PermissionService permissionService
     ) {
-        return new AnalyticsQueryFilterDecoratorImpl(apiAuthorizationServiceV4, permissionService);
+        return new ApiAnalyticsQueryFilterDecoratorImpl(apiAuthorizationServiceV4, permissionService);
     }
 }

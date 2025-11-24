@@ -37,14 +37,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
  * @author GraviteeSource Team
  */
-public class AnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
+public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
 
     List<String> allApiIds = List.of(
         UUID.randomUUID().toString(),
@@ -64,7 +63,7 @@ public class AnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTe
         var EqualityFilter = new Filter(FilterSpec.Name.API, FilterSpec.Operator.EQ, "43985673406573406");
         var filters = new ArrayList<>(Arrays.asList(EqualityFilter));
 
-        var updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(filters);
+        var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
 
         assertThat(updatedFilters).isEqualTo(filters);
     }
@@ -77,7 +76,7 @@ public class AnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTe
         when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn(new HashSet<>(allApiIds));
 
         var emptyFilters = new ArrayList<Filter>();
-        var updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
+        var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
 
         assertThat(updatedFilters).singleElement();
 
@@ -105,7 +104,7 @@ public class AnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTe
         ).thenReturn(true);
 
         var emptyFilters = new ArrayList<Filter>();
-        var updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
+        var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
 
         assertThat(updatedFilters).singleElement();
 
