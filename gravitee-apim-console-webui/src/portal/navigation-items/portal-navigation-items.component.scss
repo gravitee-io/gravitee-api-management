@@ -19,6 +19,8 @@
 
 @use '../../scss/gio-layout' as gio-layout;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 :host {
   @include gio-layout.gio-responsive-content-container;
   display: flex;
@@ -47,6 +49,10 @@
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+
+  &__title {
+    @include mat.m2-typography-level($typography, 'subtitle-1');
+  }
 
   &__actions {
     margin-left: auto;
@@ -80,8 +86,14 @@
     }
   }
 
-  portal-tree-component {
+  &__tree__container {
     height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 350px;
+    portal-tree-component {
+      height: 100%;
+    }
   }
 }
 
