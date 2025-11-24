@@ -18,12 +18,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.CreatePortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
@@ -37,11 +36,10 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateDefaultPortalNavigationItemsUseCaseTest {
 
-    private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+    private PortalNavigationItemDomainService portalNavigationItemDomainService;
     private CreateDefaultPortalNavigationItemsUseCase useCase;
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
-    private CreatePortalNavigationItemValidatorService validatorService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
 
     @BeforeEach
@@ -50,15 +48,9 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
 
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = mock(CreatePortalNavigationItemValidatorService.class);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        createPortalNavigationItemUseCase = new CreatePortalNavigationItemUseCase(
-            crudService,
-            queryService,
-            validatorService,
-            pageContentCrudService
-        );
-        useCase = new CreateDefaultPortalNavigationItemsUseCase(createPortalNavigationItemUseCase, pageContentCrudService);
+        portalNavigationItemDomainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
+        useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService);
     }
 
     @Test
