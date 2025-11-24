@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
