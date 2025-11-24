@@ -187,11 +187,11 @@ public class AggregationAdapter {
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
-        Metric metric,
-        JsonNode bucket,
-        List<Facet> facets,
-        List<String> aggNames,
-        FacetsQuery query
+            Metric metric,
+            JsonNode bucket,
+            List<Facet> facets,
+            List<String> aggNames,
+            FacetsQuery query
     ) {
         if (facets.isEmpty()) {
             var aggregations = toAggregations(bucket, aggNames);
@@ -216,7 +216,12 @@ public class AggregationAdapter {
         for (var facetBucket : facetBuckets) {
             var key = facetBucket.get(ES_KEY_PROP).asText();
             var nestedResults = toFacetBucketResults(metric, facetBucket, new ArrayList<>(nextFacets), aggNames, query);
-            results.add(FacetBucketResult.ofBuckets(key, nestedResults));
+
+            if (nextFacets.isEmpty()) {
+                results.addAll(nestedResults);
+            } else {
+                results.add(FacetBucketResult.ofBuckets(key, nestedResults));
+            }
         }
 
         return results;
