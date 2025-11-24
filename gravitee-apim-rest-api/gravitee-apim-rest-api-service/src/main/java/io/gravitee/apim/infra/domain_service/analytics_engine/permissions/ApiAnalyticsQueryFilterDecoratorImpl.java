@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDecorator {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
+    private static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
     private final ApiAuthorizationService apiAuthorizationService;
 
@@ -82,7 +83,7 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(ORGANIZATION_ADMIN);
+        return isUserInRole(ORGANIZATION_ADMIN) || isUserInRole(ENVIRONMENT_ADMIN);
     }
 
     protected String getAuthenticatedUser() {
