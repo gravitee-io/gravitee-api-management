@@ -91,6 +91,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -99,6 +101,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.mock.env.MockEnvironment;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ImportApiDefinitionUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2024-04-23T11:06:00Z");
@@ -254,7 +257,7 @@ class ImportApiDefinitionUseCaseTest {
 
         @Test
         void should_create_a_new_api_with_primary_owner_as_in_definition() {
-            var importDefinition = anImportDefinition();
+            var importDefinition = anApiProxyImportDefinition();
             final String customId = "a-custom-id";
             importDefinition.getApiExport().setId(customId);
 
@@ -267,7 +270,7 @@ class ImportApiDefinitionUseCaseTest {
             importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
-            var expected = expectedApi();
+            var expected = expectedProxyApi();
             expected.setId(customId);
             SoftAssertions.assertSoftly(soft -> {
                 var createdApi = apiCrudService.get(customId);
