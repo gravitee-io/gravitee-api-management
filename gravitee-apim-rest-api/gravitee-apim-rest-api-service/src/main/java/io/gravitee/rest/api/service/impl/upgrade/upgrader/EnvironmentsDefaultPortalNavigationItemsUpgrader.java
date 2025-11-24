@@ -52,7 +52,7 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgrader implements Upgrade
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        for (var environment : environmentRepository.findAll()) {
+        for (final var environment : environmentRepository.findAll()) {
             createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
         }
         return true;
