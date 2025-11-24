@@ -18,7 +18,7 @@
 <portal-header title="Manage your navigation" subtitle="Manage and edit your Developer Portal pages with Markdown" />
 
 <main class="page-layout">
-  <section class="panel sections-panel">
+  <section class="panel sections-panel" [style.width.px]="panelWidth()">
     <header class="panel-header sections-panel__header">
       <h3>Navigation items</h3>
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-c'] }">
@@ -50,6 +50,11 @@
       </mat-card>
     }
   </section>
+
+  <div class="resize-handle-container" (mousedown)="onResizeStart($event)">
+    <hr class="resize-handle" aria-label="Resize navigation panel" aria-orientation="vertical" />
+    <mat-icon svgIcon="gio:drag-indicator"></mat-icon>
+  </div>
 
   <section class="panel editor-panel">
     <header class="panel-header editor-panel__header">

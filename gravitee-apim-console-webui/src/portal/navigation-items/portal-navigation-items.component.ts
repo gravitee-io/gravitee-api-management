@@ -16,7 +16,7 @@
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { Component, computed, DestroyRef, inject, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -117,6 +117,12 @@ export class PortalNavigationItemsComponent {
     return this.mapSelectedNavItemToNode(navId, menuLinks);
   });
 
+  // --- Resize Configuration ---
+  private readonly ngZone = inject(NgZone);
+  private readonly MIN_PANEL_WIDTH = 280;
+  private readonly MAX_PANEL_WIDTH = 600;
+  panelWidth = signal(350);
+
   constructor(
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
@@ -134,6 +140,35 @@ export class PortalNavigationItemsComponent {
 
   onAddSection(sectionType: PortalNavigationItemType) {
     this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
+  }
+
+  onResizeStart(event: MouseEvent): void {
+    event.preventDefault();
+
+    const startX = event.clientX;
+    const startWidth = this.panelWidth();
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    this.ngZone.runOutsideAngular(() => {
+      const onMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - startX;
+        const newWidth = Math.max(this.MIN_PANEL_WIDTH, Math.min(this.MAX_PANEL_WIDTH, startWidth + deltaX));
+
+        this.ngZone.run(() => this.panelWidth.set(newWidth));
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
   }
 
   private setupPageContentSubscription(): void {

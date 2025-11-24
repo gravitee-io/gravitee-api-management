@@ -30,8 +30,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .page-layout {
   display: grid;
-  grid-template-columns: 2fr 7fr;
-  gap: 2px;
+  grid-template-columns: auto auto 1fr;
+  gap: 0;
   flex-grow: 1;
   min-height: 0;
 }
@@ -77,6 +77,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .sections-panel {
   padding: 16px;
+  width: 350px;
+  min-width: 280px;
+  max-width: 600px;
+  resize: none;
+  overflow: hidden;
 
   &__header {
     padding-bottom: 16px;
@@ -90,7 +95,8 @@ $typography: map.get(gio.$mat-theme, typography);
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
-    width: 350px;
+    width: 100%;
+
     portal-tree-component {
       height: 100%;
     }
@@ -125,4 +131,41 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 16px;
   padding: 16px;
   height: 100%;
+}
+
+.resize-handle-container {
+  position: relative;
+  width: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .resize-handle {
+    width: 2px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
+    cursor: col-resize;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter70);
+    }
+  }
+
+  mat-icon {
+    position: absolute;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter60);
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
 }
