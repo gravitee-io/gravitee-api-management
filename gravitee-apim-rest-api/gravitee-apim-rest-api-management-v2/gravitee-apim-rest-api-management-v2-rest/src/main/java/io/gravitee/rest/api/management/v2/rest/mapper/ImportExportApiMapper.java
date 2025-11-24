@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+<<<<<<< HEAD
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -31,6 +32,9 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.mapper.CorsMapper;
+=======
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+>>>>>>> 5832b9666c (fix: set primary owner for v4 api export)
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
@@ -40,9 +44,19 @@ import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+<<<<<<< HEAD
 import io.gravitee.rest.api.model.context.OriginContext;
 import jakarta.annotation.Nullable;
 import java.util.Map;
+=======
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import java.util.Optional;
+>>>>>>> 5832b9666c (fix: set primary owner for v4 api export)
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -183,6 +197,22 @@ public interface ImportExportApiMapper {
         final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiV4.getApi());
         apiExport.setPicture(exportApiV4.getApiPicture());
         apiExport.setBackground(exportApiV4.getApiBackground());
+        Optional.ofNullable(exportApiV4)
+            .map(ExportApiV4::getApi)
+            .map(ApiV4::getPrimaryOwner)
+            .ifPresent(po -> {
+                var type = Optional.ofNullable(po.getType())
+                    .map(t -> PrimaryOwnerEntity.Type.valueOf(t.getValue()))
+                    .orElse(PrimaryOwnerEntity.Type.USER);
+
+                PrimaryOwnerEntity primaryOwnerEntity = PrimaryOwnerEntity.builder()
+                    .id(po.getId())
+                    .email(po.getEmail())
+                    .displayName(po.getDisplayName())
+                    .type(type)
+                    .build();
+                apiExport.setPrimaryOwner(primaryOwnerEntity);
+            });
         return apiExport;
     }
 
