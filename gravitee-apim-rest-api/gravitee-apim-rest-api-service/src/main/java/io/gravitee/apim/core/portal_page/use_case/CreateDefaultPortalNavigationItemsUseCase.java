@@ -79,7 +79,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             folderCoreConcepts.getId()
         );
 
-        createPortalLink("Docs", organizationId, environmentId, DOCS_URL, folderGuides.getId());
+        createPortalLink("Docs", organizationId, environmentId, DOCS_URL, null);
     }
 
     private PortalNavigationItem createPortalFolder(

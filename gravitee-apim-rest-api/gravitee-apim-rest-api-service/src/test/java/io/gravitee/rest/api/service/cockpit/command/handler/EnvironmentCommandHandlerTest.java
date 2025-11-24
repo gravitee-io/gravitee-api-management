@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -61,11 +62,19 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private PortalPageService portalPageService;
 
+    @Mock
+    private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
+
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService, accessPointService, portalPageService);
+        cut = new EnvironmentCommandHandler(
+            environmentService,
+            accessPointService,
+            portalPageService,
+            createDefaultPortalNavigationItemsUseCase
+        );
     }
 
     @Test
@@ -77,11 +86,12 @@ public class EnvironmentCommandHandlerTest {
     @SneakyThrows
     public void handle() throws InterruptedException {
         String envId = "env#1";
+        String orgId = "orga#1";
         EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
             .id(envId)
             .cockpitId("env#cockpit-1")
             .hrids(Collections.singletonList("env-1"))
-            .organizationId("orga#1")
+            .organizationId(orgId)
             .description("Environment description")
             .name("Environment name")
             .accessPoints(
@@ -96,7 +106,7 @@ public class EnvironmentCommandHandlerTest {
         when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
         when(
             environmentService.createOrUpdate(
-                eq("orga#1"),
+                eq(orgId),
                 eq(envId),
                 argThat(
                     newEnvironment ->
@@ -106,7 +116,7 @@ public class EnvironmentCommandHandlerTest {
                         newEnvironment.getName().equals(environmentPayload.name())
                 )
             )
-        ).thenReturn(EnvironmentEntity.builder().id(envId).build());
+        ).thenReturn(EnvironmentEntity.builder().id(envId).organizationId(orgId).build());
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
@@ -114,6 +124,7 @@ public class EnvironmentCommandHandlerTest {
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(portalPageService).createDefaultPortalHomePage(envId);
+        verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
     }
 
     @Test
