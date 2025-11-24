@@ -552,8 +552,8 @@ paths:
                 summary: Single metric request
                 value:
                   timeRange:
-                    from: "2025-01-00T00:00:00Z"
-                    to: "2025-01-00T00:02:00Z"
+                    from: "2025-11-22T16:40:30Z"
+                    to: "2025-11-22T16:45:30Z"
                   interval: 1m
                   metrics:
                     - name: "HTTP_REQUESTS"
@@ -562,8 +562,8 @@ paths:
                 summary: Multiple metrics request
                 value:
                   timeRange:
-                    from: "2025-01-00T00:00:00Z"
-                    to: "2025-01-00T00:02:00Z"
+                    from: "2025-11-22T16:40:30Z"
+                    to: "2025-11-22T16:45:30Z"
                   interval: 1m
                   metrics:
                     - name: "HTTP_REQUESTS"
@@ -574,8 +574,8 @@ paths:
                 summary: Single metric request with facet and range
                 value:
                   timeRange:
-                    from: "2025-01-00T00:00:00Z"
-                    to: "2025-01-00T00:02:00Z"
+                    from: "2025-11-22T16:40:30Z"
+                    to: "2025-11-22T16:45:30Z"
                   interval: 1m
                   by: [ "API" ]
                   ranges: [
