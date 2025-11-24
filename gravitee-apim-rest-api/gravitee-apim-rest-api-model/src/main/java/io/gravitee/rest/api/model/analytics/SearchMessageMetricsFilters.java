@@ -18,4 +18,11 @@ package io.gravitee.rest.api.model.analytics;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record SearchMessageMetricsFilters(String operation, String connectorType, String connectorId, String requestId) {}
+public record SearchMessageMetricsFilters(
+    long from,
+    long to,
+    String operation,
+    String connectorType,
+    String connectorId,
+    String requestId
+) {}

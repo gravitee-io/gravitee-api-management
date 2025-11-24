@@ -31,5 +31,5 @@ public class MessageLogQuery {
     private Filter filter;
 
     @Builder(toBuilder = true)
-    public record Filter(String apiId, String requestId, String connectorType, String connectorId, String operation) {}
+    public record Filter(String apiId, String requestId, String connectorType, String connectorId, String operation, long from, long to) {}
 }

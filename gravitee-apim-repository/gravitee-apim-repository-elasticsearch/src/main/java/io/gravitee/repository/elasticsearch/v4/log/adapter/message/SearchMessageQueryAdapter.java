@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -55,15 +56,15 @@ public class SearchMessageQueryAdapter {
         if (filter.connectorType() != null) {
             terms.add(JsonObject.of("term", JsonObject.of("connector-type", filter.connectorType())));
         }
-
         if (filter.connectorId() != null) {
             terms.add(JsonObject.of("term", JsonObject.of("connector-id", filter.connectorId())));
         }
-
         if (filter.operation() != null) {
             terms.add(JsonObject.of("term", JsonObject.of("operation", filter.operation())));
         }
-
+        if (filter.from() > 0 && filter.from() < filter.to()) {
+            terms.add(JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", filter.from(), "lte", filter.to()))));
+        }
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }
