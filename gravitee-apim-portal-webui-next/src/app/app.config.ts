@@ -30,7 +30,7 @@ import { httpRequestInterceptor } from '../interceptors/http-request.interceptor
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
-import { PortalMenuLinksService } from '../services/portal-menu-links.service';
+import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { ThemeService } from '../services/theme.service';
 
 function initApp(
@@ -38,7 +38,7 @@ function initApp(
   configService: ConfigService,
   themeService: ThemeService,
   currentUserService: CurrentUserService,
-  portalMenuLinksService: PortalMenuLinksService,
+  portalNavigationItemsService: PortalNavigationItemsService,
   router: Router,
 ): () => Observable<unknown> {
   return () =>
@@ -47,7 +47,7 @@ function initApp(
         combineLatest([
           themeService.loadTheme(),
           configService.loadConfiguration(),
-          portalMenuLinksService.loadCustomLinks(),
+          portalNavigationItemsService.loadTopNavBarItems(),
           authService.load().pipe(switchMap(_ => currentUserService.loadUser())),
         ]),
       ),
@@ -70,7 +70,7 @@ export const appConfig: ApplicationConfig = {
         inject(ConfigService),
         inject(ThemeService),
         inject(CurrentUserService),
-        inject(PortalMenuLinksService),
+        inject(PortalNavigationItemsService),
         inject(Router),
       );
       return initializerFn();

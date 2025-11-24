@@ -16,12 +16,13 @@
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Injectable } from '@angular/core';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { AppComponent } from './app.component';
-import { PortalMenuLinksService } from '../services/portal-menu-links.service';
+import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('AppComponent', () => {
@@ -45,37 +46,36 @@ describe('AppComponent', () => {
   });
 
   describe('custom links', () => {
-    @Injectable()
-    class PortalMenuLinksServiceStub {
-      links = () => [
+    beforeEach(async () => {
+      const mockItems: PortalNavigationItem[] = [
         {
-          id: 'link-id-1',
-          type: 'external',
-          name: 'link-name-1',
-          target: 'link-target-1',
-          order: 1,
+          id: 'l1',
+          organizationId: 'org1',
+          environmentId: 'env1',
+          title: 'link-name-1',
+          type: 'LINK',
+          area: 'TOP_NAVBAR',
+          order: 0,
+          url: '/link1',
         },
         {
-          id: 'link-id-2',
-          type: 'external',
-          name: 'link-name-2',
-          target: 'link-target-2',
-          order: 2,
+          id: 'l2',
+          organizationId: 'org1',
+          environmentId: 'env1',
+          title: 'link-name-2',
+          type: 'LINK',
+          area: 'TOP_NAVBAR',
+          order: 1,
+          url: '/link2',
         },
       ];
-    }
 
-    beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [AppComponent, AppTestingModule],
-        providers: [
-          {
-            provide: PortalMenuLinksService,
-            useClass: PortalMenuLinksServiceStub,
-          },
-        ],
+        providers: [provideHttpClientTesting(), { provide: PortalNavigationItemsService, useValue: { topNavbar: signal(mockItems) } }],
       }).compileComponents();
       fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
       harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     });
     it('should show custom links', async () => {

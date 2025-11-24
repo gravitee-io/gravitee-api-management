@@ -19,14 +19,23 @@
   <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
   <app-nav-bar-button i18n="@@guides" [path]="['guides']">Guides</app-nav-bar-button>
   @for (link of customLinks(); track link.id) {
-    <a
-      [href]="link.target"
-      mat-stroked-button
-      color="primary"
-      class="menu-items__custom_link"
-      [target]="link.type === 'external' ? '_blank' : ''">
-      {{ link.name }}
-    </a>
+    @switch (link.type) {
+      @case ('LINK') {
+        <a [href]="[link.url]" mat-stroked-button color="primary" class="menu-items__custom_link">
+          {{ link.title }}
+        </a>
+      }
+      @case ('PAGE') {
+        <a [routerLink]="['/page', link.portalPageContentId]" mat-stroked-button color="primary" class="menu-items__custom_link">
+          {{ link.title }}
+        </a>
+      }
+      @case ('FOLDER') {
+        <a [routerLink]="['/folder', link.id]" mat-stroked-button color="primary" class="menu-items__custom_link">
+          {{ link.title }}
+        </a>
+      }
+    }
   }
 </div>
 
