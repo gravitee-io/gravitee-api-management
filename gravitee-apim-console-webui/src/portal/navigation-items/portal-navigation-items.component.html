@@ -45,12 +45,19 @@
     </header>
 
     @if (menuLinks$ | async; as menuLinks) {
-      <portal-tree-component [links]="menuLinks" [selectedId]="navId()" (select)="onSelect($event)" />
+      <mat-card appearance="outlined" class="sections-panel__tree__container">
+        <portal-tree-component [links]="menuLinks" [selectedId]="navId()" (select)="onSelect($event)" />
+      </mat-card>
     }
   </section>
 
   <section class="panel editor-panel">
     <header class="panel-header editor-panel__header">
+      @if (selectedNavigationItem()) {
+        <div class="panel-header__title">
+          {{ selectedNavigationItem().label }}
+        </div>
+      }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
         <button mat-stroked-button [disabled]="contentControl.pristine">Save</button>
       </div>
