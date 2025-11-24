@@ -65,15 +65,15 @@ describe('TreeNodeComponent', () => {
     expect(row.attributes['aria-selected']).toBe('true');
   });
 
-  it('should emit nodeSelected when clicking label (no toggle for page nodes)', () => {
+  it('should emit nodeSelected when clicking row', () => {
     const spy = jest.fn();
     component.nodeSelected.subscribe(spy);
 
     // page nodes do not have a toggle button
-    const toggleBtn = fixture.debugElement.query(By.css('.tree__toggle'));
+    const toggleBtn = fixture.debugElement.query(By.css('.tree__button__expand'));
     expect(toggleBtn).toBeNull();
 
-    const labelBtn = fixture.debugElement.query(By.css('.tree__label'));
+    const labelBtn = fixture.debugElement.query(By.css('.tree__row'));
     labelBtn.triggerEventHandler('click');
     fixture.detectChanges();
 
@@ -92,23 +92,24 @@ describe('TreeNodeComponent', () => {
     fixture.componentRef.setInput('node', folderNode);
     fixture.detectChanges();
 
-    const toggleBtn = fixture.debugElement.query(By.css('.tree__toggle'));
-    expect(toggleBtn).toBeTruthy();
-
+    const row = fixture.debugElement.query(By.css('.tree__row'));
     // default is expanded
-    expect(toggleBtn.attributes['aria-expanded']).toBe('true');
+    expect(row.attributes['aria-expanded']).toBe('true');
     expect(fixture.debugElement.query(By.css('.tree__children'))).toBeTruthy();
+
+    const toggleBtn = fixture.debugElement.query(By.css('.tree__icon[data-test-icon="toggle"]'));
+    expect(toggleBtn).toBeTruthy();
 
     // click to collapse
     toggleBtn.triggerEventHandler('click');
     fixture.detectChanges();
-    expect(toggleBtn.attributes['aria-expanded']).toBe('false');
+    expect(row.attributes['aria-expanded']).toBe('false');
     expect(fixture.debugElement.query(By.css('.tree__children'))).toBeNull();
 
     // click again to expand
     toggleBtn.triggerEventHandler('click');
     fixture.detectChanges();
-    expect(toggleBtn.attributes['aria-expanded']).toBe('true');
+    expect(row.attributes['aria-expanded']).toBe('true');
     expect(fixture.debugElement.query(By.css('.tree__children'))).toBeTruthy();
   });
 
@@ -130,7 +131,7 @@ describe('TreeNodeComponent', () => {
     const selectedSpy = jest.fn();
     component.nodeSelected.subscribe(selectedSpy);
 
-    const childLabel = fixture.debugElement.queryAll(By.css('.tree__label'))[1];
+    const childLabel = fixture.debugElement.queryAll(By.css('.tree__row'))[1];
     childLabel.triggerEventHandler('click');
     fixture.detectChanges();
 

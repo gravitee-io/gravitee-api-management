@@ -18,31 +18,47 @@
 <div
   class="tree__row"
   role="treeitem"
-  [attr.aria-level]="level() + 1"
+  tabindex="0"
   [class.selected]="isSelected()"
-  [attr.aria-selected]="isSelected()"
+  [class.folder]="node().type === 'FOLDER'"
+  [class.child]="level() > 0"
   [style.--level]="level()"
+  [attr.aria-level]="level() + 1"
+  [attr.aria-selected]="isSelected()"
+  [attr.aria-expanded]="node().type === 'FOLDER' ? isExpanded() : null"
+  (click)="selectNode()"
+  (keydown.enter)="selectNode()"
+  (keydown.arrowright)="node().type === 'FOLDER' && isExpanded.set(true)"
+  (keydown.arrowleft)="node().type === 'FOLDER' && isExpanded.set(false)"
 >
   @if (node().type === 'FOLDER') {
-    <button type="button" class="tree__toggle" (click)="toggleNode()" aria-label="Toggle" [attr.aria-expanded]="isExpanded()">
-      <span class="arrow" [class.open]="isExpanded()"><mat-icon svgIcon="gio:nav-arrow-right"></mat-icon></span>
-    </button>
+    <mat-icon
+      class="tree__icon"
+      [attr.data-test-icon]="'toggle'"
+      [svgIcon]="isExpanded() ? 'gio:nav-arrow-down' : 'gio:nav-arrow-right'"
+      aria-hidden="true"
+      (click)="toggleNode(); $event.stopPropagation()"
+    />
   }
 
-  <mat-icon class="tree__icon" [attr.data-test-type]="node().type" svgIcon="gio:{{ node().type | lowercase }}"></mat-icon>
+  <mat-icon
+    class="tree__icon tree__icon__type"
+    [attr.data-test-type]="node().type"
+    svgIcon="gio:{{ node().type | lowercase }}"
+    aria-hidden="true"
+  />
 
-  <button type="button" class="tree__label" (click)="selectNode()">{{ node().label }}</button>
+  <span class="tree__label">{{ node().label }}</span>
+
+  <button type="button" mat-icon-button class="tree__button more-actions" aria-label="More actions" (click)="$event.stopPropagation()">
+    <mat-icon svgIcon="gio:more-vertical" />
+  </button>
 </div>
 
 @if (node().children?.length && isExpanded()) {
   <div class="tree__children">
     @for (child of node().children; track child) {
-      <app-tree-node
-        [node]="child"
-        [level]="level() + 1"
-        [selectedId]="selectedId()"
-        (nodeSelected)="nodeSelected.emit($event)"
-      ></app-tree-node>
+      <app-tree-node [node]="child" [level]="level() + 1" [selectedId]="selectedId()" (nodeSelected)="nodeSelected.emit($event)" />
     }
   </div>
 }
