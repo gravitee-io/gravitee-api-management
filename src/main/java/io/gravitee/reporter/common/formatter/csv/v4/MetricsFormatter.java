@@ -30,10 +30,10 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
 
   @Override
   protected Buffer format0(Metrics metrics) {
+    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
     final Map<String, String> customMetrics = metrics.getCustomMetrics() == null
       ? Map.of()
       : metrics.getCustomMetrics();
-    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(customMetrics);
 
     final Buffer buffer = Buffer.buffer();
 
