@@ -16,19 +16,13 @@
 
 -->
 @if (links() && links().length > 0) {
-  <div class="sections-card">
-    <div class="sections-group__content">
-      <div class="tree" role="tree">
-        @for (node of tree(); track node) {
-          <app-tree-node [node]="node" [level]="0" [selectedId]="selectedId()" (nodeSelected)="select.emit($event)"></app-tree-node>
-        }
-      </div>
-    </div>
+  <div class="tree" role="tree">
+    @for (node of tree(); track node) {
+      <app-tree-node [node]="node" [level]="0" [selectedId]="selectedId()" (nodeSelected)="select.emit($event)"></app-tree-node>
+    }
   </div>
 } @else {
-  <mat-card appearance="outlined">
-    <mat-card-content>
-      <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
-    </mat-card-content>
-  </mat-card>
+  <div class="tree__empty-state">
+    <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
+  </div>
 }

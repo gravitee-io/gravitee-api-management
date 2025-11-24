@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, computed, input, output } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 
 import { TreeNodeComponent } from './tree-node.component';
 
@@ -37,7 +36,7 @@ type ProcessingNode = SectionNode & {
 @Component({
   selector: 'portal-tree-component',
   standalone: true,
-  imports: [TreeNodeComponent, EmptyStateComponent, MatCardModule],
+  imports: [TreeNodeComponent, EmptyStateComponent],
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
