@@ -50,3 +50,13 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-bottom: 24px;
   }
 }
+
+.verbose-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: text-bottom;
+  height: 20px;
+  width: 20px;
+  margin-right: 4px;
+  color: mat.m2-get-color-from-palette(mat.$m2-orange-palette, 600);
+}
