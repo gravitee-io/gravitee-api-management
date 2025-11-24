@@ -91,6 +91,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -99,6 +101,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.mock.env.MockEnvironment;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ImportApiDefinitionUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2024-04-23T11:06:00Z");
@@ -242,6 +245,42 @@ class ImportApiDefinitionUseCaseTest {
                         new IndexableApi(
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                            Collections.emptySet()
+                        )
+                    );
+            });
+        }
+
+        @Test
+        void should_create_a_new_api_with_primary_owner_as_in_definition() {
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "a-custom-id";
+            importDefinition.getApiExport().setId(customId);
+
+            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder()
+                .id("NEW-USER-ID")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .email(USER_EMAIL)
+                .displayName("Jane1 Doe1")
+                .build();
+            importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            var expected = expectedProxyApi();
+            expected.setId(customId);
+            SoftAssertions.assertSoftly(soft -> {
+                var createdApi = apiCrudService.get(customId);
+                soft.assertThat(createdApi).isEqualTo(expected);
+                soft.assertThat(createdApi.getCreatedAt()).isNotNull();
+                soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
+
+                soft
+                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                    .containsExactly(
+                        new IndexableApi(
+                            expected,
+                            new PrimaryOwnerEntity("NEW-USER-ID", USER_EMAIL, "Jane1 Doe1", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
                             Collections.emptySet()
                         )
