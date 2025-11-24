@@ -187,11 +187,11 @@ public class AggregationAdapter {
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
-            Metric metric,
-            JsonNode bucket,
-            List<Facet> facets,
-            List<String> aggNames,
-            FacetsQuery query
+        Metric metric,
+        JsonNode bucket,
+        List<Facet> facets,
+        List<String> aggNames,
+        FacetsQuery query
     ) {
         if (facets.isEmpty()) {
             var aggregations = toAggregations(bucket, aggNames);
