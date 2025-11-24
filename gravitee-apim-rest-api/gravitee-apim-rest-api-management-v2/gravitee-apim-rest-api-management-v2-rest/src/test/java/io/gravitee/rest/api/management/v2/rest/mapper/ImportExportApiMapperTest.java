@@ -20,7 +20,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.ListenerModelFixtures;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
+import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -75,5 +81,67 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         assertThat(result.getCors().getExposeHeaders()).isEqualTo(expectedCors.getExposeHeaders());
         assertThat(result.getCors().getMaxAge()).isEqualTo(expectedCors.getMaxAge());
         assertThat(result.getCors().getRunPolicies()).isEqualTo(expectedCors.getRunPolicies());
+    }
+
+    @Test
+    void shouldMapPrimaryOwnerAndMediaFields() {
+        // Given
+        var po = new PrimaryOwner().id("po-id").email("po@gravitee.io").displayName("John Doe").type(MembershipMemberType.USER);
+
+        var api = new ApiV4();
+        api.setPrimaryOwner(po);
+
+        var exportApiV4 = new ExportApiV4();
+        exportApiV4.setApi(api);
+        exportApiV4.setApiPicture("picture-bytes");
+        exportApiV4.setApiBackground("bg-bytes");
+
+        // When
+        ImportDefinition importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApiV4);
+
+        // Then
+        var apiExport = importDefinition.getApiExport();
+        assertThat(apiExport).isNotNull();
+        assertThat(apiExport.getPicture()).isEqualTo("picture-bytes");
+        assertThat(apiExport.getBackground()).isEqualTo("bg-bytes");
+        assertThat(apiExport.getPrimaryOwner()).isNotNull();
+        assertThat(apiExport.getPrimaryOwner().id()).isEqualTo("po-id");
+        assertThat(apiExport.getPrimaryOwner().email()).isEqualTo("po@gravitee.io");
+        assertThat(apiExport.getPrimaryOwner().displayName()).isEqualTo("John Doe");
+        assertThat(apiExport.getPrimaryOwner().type()).isEqualTo(PrimaryOwnerEntity.Type.USER);
+    }
+
+    @Test
+    void shouldDefaultPrimaryOwnerTypeToUserWhenNull() {
+        // Given
+        var po = new PrimaryOwner().id("po-id").email("po@gravitee.io").displayName("John Doe"); // no type set
+
+        var api = new ApiV4();
+        api.setPrimaryOwner(po);
+
+        var exportApiV4 = new ExportApiV4();
+        exportApiV4.setApi(api);
+
+        // When
+        var importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApiV4);
+
+        // Then
+        assertThat(importDefinition.getApiExport().getPrimaryOwner()).isNotNull();
+        assertThat(importDefinition.getApiExport().getPrimaryOwner().type()).isEqualTo(PrimaryOwnerEntity.Type.USER);
+    }
+
+    @Test
+    void shouldNotSetPrimaryOwnerWhenAbsent() {
+        // Given
+        var api = new ApiV4();
+        // no primary owner
+        var exportApiV4 = new ExportApiV4();
+        exportApiV4.setApi(api);
+
+        // When
+        var importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApiV4);
+
+        // Then
+        assertThat(importDefinition.getApiExport().getPrimaryOwner()).isNull();
     }
 }
