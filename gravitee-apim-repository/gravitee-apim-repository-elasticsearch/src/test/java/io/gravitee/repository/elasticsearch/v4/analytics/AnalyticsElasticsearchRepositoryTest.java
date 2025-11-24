@@ -1277,9 +1277,36 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Long>> data = aggregate.values();
-                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 40L, 40L, null));
+                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 0L, 0L, null));
+                assertThat(data).containsKey("downstream-publish-messages-total");
+                assertThat(data).containsKey("upstream-publish-messages-total");
                 assertThat(data.get("downstream-publish-messages-total")).isEqualTo(trend);
                 assertThat(data.get("upstream-publish-messages-total")).isEqualTo(trend);
+            });
+        }
+
+        @Test
+        void should_build_trend_series_aligned_to_interval_in_number_per_second() {
+            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.TREND);
+            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.TREND);
+            HistogramQuery query = buildHistogramQuery(
+                List.of(agg1, agg2),
+                null,
+                NATIVE_API_ID,
+                NOW.minusSeconds(360),
+                NOW.plusSeconds(360),
+                Duration.ofMinutes(1)
+            );
+
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 66L, 66L, null));
+                assertThat(data).containsKey("downstream-publish-message-bytes");
+                assertThat(data).containsKey("upstream-publish-message-bytes");
+                assertThat(data.get("downstream-publish-message-bytes")).isEqualTo(trend);
+                assertThat(data.get("upstream-publish-message-bytes")).isEqualTo(trend);
             });
         }
 

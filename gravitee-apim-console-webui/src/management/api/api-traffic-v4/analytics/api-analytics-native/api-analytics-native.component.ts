@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -141,7 +141,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'line',
       apiId: this.apiId,
-      title: 'Message Production Rate',
+      title: 'Message Production Rate (messages/sec)',
       tooltip: 'Messages published from clients to gateway and from gateway to broker over time',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
@@ -162,7 +162,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'line',
       apiId: this.apiId,
-      title: 'Data Production Rate',
+      title: 'Data Production Rate (bytes/sec)',
       tooltip: 'Data volume published from clients to gateway and from gateway to broker over time',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
@@ -186,7 +186,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'line',
       apiId: this.apiId,
-      title: 'Message Consumption Rate',
+      title: 'Message Consumption Rate (messages/sec)',
       tooltip: 'Messages consumed from broker by gateway and delivered to clients over time',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
@@ -207,7 +207,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'line',
       apiId: this.apiId,
-      title: 'Data Consumption Rate',
+      title: 'Data Consumption Rate (bytes/sec)',
       tooltip: 'Data volume consumed from broker by gateway and delivered to clients over time',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
@@ -231,7 +231,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'bar',
       apiId: this.apiId,
-      title: 'Authentication Success vs. Failure',
+      title: 'Authentication Success vs. Failure (number per second)',
       tooltip: 'Total authentication successes and failures over time (combined downstream + upstream)',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
@@ -272,7 +272,6 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
-    private readonly destroyRef: DestroyRef,
   ) {
     effect(() => {
       this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
