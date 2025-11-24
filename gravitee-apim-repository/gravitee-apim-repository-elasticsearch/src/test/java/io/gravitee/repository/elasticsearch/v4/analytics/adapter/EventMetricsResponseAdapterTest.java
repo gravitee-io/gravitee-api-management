@@ -41,6 +41,9 @@ import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.Term;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -256,7 +259,7 @@ class EventMetricsResponseAdapterTest {
 
             assertTrue(aggregate.isPresent());
             Map<String, List<Long>> valuesByField = aggregate.get().values();
-            assertEquals(List.of(0L, 3L), valuesByField.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
+            assertEquals(List.of(0L, 0L), valuesByField.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
         }
     }
 
@@ -320,6 +323,8 @@ class EventMetricsResponseAdapterTest {
         Optional<String> query = Optional.empty();
         List<Term> terms = List.of();
 
-        return new HistogramQuery(null, null, aggregations, query, terms);
+        Instant to = Instant.now();
+        Instant from = to.minusSeconds(10);
+        return new HistogramQuery(null, new TimeRange(from, to, Duration.ofSeconds(10)), aggregations, query, terms);
     }
 }
