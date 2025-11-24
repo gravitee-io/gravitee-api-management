@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -27,7 +28,6 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import joptsimple.internal.Strings;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     private static final String FIRST_API_CALL_PATH = "portal-first-api-call-page-content.md";
     private static final String DOCS_URL = "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal";
 
-    private final CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+    private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService pageContentCrudService;
 
     /**
@@ -88,12 +88,9 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String environmentId,
         PortalNavigationItemId parentId
     ) {
-        final var input = new CreatePortalNavigationItemUseCase.Input(
-            organizationId,
-            environmentId,
-            createCommonItemBuilder(title, parentId).type(PortalNavigationItemType.FOLDER).build()
-        );
-        return createPortalNavigationItemUseCase.execute(input).item();
+        final var createItem = buildCommonItem(title, parentId);
+        createItem.setType(PortalNavigationItemType.FOLDER);
+        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
 
     private PortalNavigationItem createPortalPage(
@@ -103,12 +100,10 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         PortalPageContentId portalPageContentId,
         PortalNavigationItemId parentId
     ) {
-        final var input = new CreatePortalNavigationItemUseCase.Input(
-            organizationId,
-            environmentId,
-            createCommonItemBuilder(title, parentId).type(PortalNavigationItemType.PAGE).portalPageContentId(portalPageContentId).build()
-        );
-        return createPortalNavigationItemUseCase.execute(input).item();
+        final var createItem = buildCommonItem(title, parentId);
+        createItem.setType(PortalNavigationItemType.PAGE);
+        createItem.setPortalPageContentId(portalPageContentId);
+        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
 
     private PortalNavigationItem createPortalLink(
@@ -118,12 +113,14 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String url,
         PortalNavigationItemId parentId
     ) {
-        final var input = new CreatePortalNavigationItemUseCase.Input(
-            organizationId,
-            environmentId,
-            createCommonItemBuilder(title, parentId).type(PortalNavigationItemType.LINK).url(url).build()
-        );
-        return createPortalNavigationItemUseCase.execute(input).item();
+        final var createItem = buildCommonItem(title, parentId);
+        createItem.setType(PortalNavigationItemType.LINK);
+        createItem.setUrl(url);
+        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
+    }
+
+    private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId) {
+        return CreatePortalNavigationItem.builder().title(title).area(PortalArea.TOP_NAVBAR).parentId(parentId).build();
     }
 
     private PortalPageContent createPortalPageContent(String contentPath) {
@@ -131,20 +128,16 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         return pageContentCrudService.create(content);
     }
 
-    private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder createCommonItemBuilder(
-        String title,
-        PortalNavigationItemId parentId
-    ) {
-        return CreatePortalNavigationItem.builder().title(title).area(PortalArea.TOP_NAVBAR).parentId(parentId);
-    }
-
     private String loadContent(String contentPath) {
-        try {
-            final var resource = new ClassPathResource(String.format("templates/%s", contentPath));
-            return resource.getContentAsString(StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            LOGGER.warn("Failed to load content from {}", contentPath, e);
-            return Strings.EMPTY;
+        try (
+            final var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("templates/%s", contentPath))
+        ) {
+            if (is == null) {
+                throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));
+            }
+            return new String(is.readAllBytes());
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not load default portal page template", e);
         }
     }
 }
