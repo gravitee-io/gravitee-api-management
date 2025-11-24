@@ -524,6 +524,8 @@ paths:
       description: |
         Return data points over time with optional grouping by facets.
 
+        Time series responses will include the lower and upper bound of the time range as the first and last buckets.
+
       tags:
         - computation
       parameters:
