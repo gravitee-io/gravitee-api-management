@@ -22,7 +22,6 @@ import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,15 +89,15 @@ public class HTTPFacetsQueryAdapter {
 
     private JsonObject toLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit, List<NumberRange> ranges) {
         if (facet == Facet.HTTP_STATUS_CODE_GROUP) {
-            return toRangeLeaf(Facet.HTTP_STATUS, metric, NumberRange.forStatusCodeGroup());
+            return toRangeLeaf(Facet.HTTP_STATUS, NumberRange.forStatusCodeGroup());
         }
         if (ranges == null || ranges.isEmpty()) {
             return toTermsLeaf(facet, metric, limit);
         }
-        return toRangeLeaf(facet, metric, ranges);
+        return toRangeLeaf(facet, ranges);
     }
 
-    private JsonObject toRangeLeaf(Facet facet, MetricMeasuresQuery metric, List<NumberRange> ranges) {
+    private JsonObject toRangeLeaf(Facet facet, List<NumberRange> ranges) {
         var range = json().put("field", fieldResolver.fromFacet(facet));
         var queryRanges = range.put("ranges", new JsonArray()).getJsonArray("ranges");
         for (var rangeQuery : ranges) {
