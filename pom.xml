@@ -33,7 +33,7 @@
 
     <properties>
         <gravitee-apim.version>4.10.0-SNAPSHOT</gravitee-apim.version>
-        <gravitee-reporter-common.version>1.9.1</gravitee-reporter-common.version>
+        <gravitee-reporter-common.version>1.9.2</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
         <commons-validator.version>1.10.0</commons-validator.version>
         <testcontainers.version>1.21.3</testcontainers.version>
