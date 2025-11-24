@@ -15,94 +15,7 @@
  */
 package inmemory.spring;
 
-import inmemory.A2aAgentFetcherInMemory;
-import inmemory.AccessPointQueryServiceInMemory;
-import inmemory.ApiAuthorizationDomainServiceInMemory;
-import inmemory.ApiCRDExportDomainServiceInMemory;
-import inmemory.ApiCategoryOrderQueryServiceInMemory;
-import inmemory.ApiCategoryQueryServiceInMemory;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiExposedEntrypointDomainServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApiMetadataQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
-import inmemory.ApiSpecGenCrudServiceInMemory;
-import inmemory.ApiSpecGenQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.ApplicationMetadataCrudServiceInMemory;
-import inmemory.ApplicationMetadataQueryServiceInMemory;
-import inmemory.ApplicationQueryServiceInMemory;
-import inmemory.AsyncJobCrudServiceInMemory;
-import inmemory.AsyncJobQueryServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.AuditMetadataQueryServiceInMemory;
-import inmemory.AuditQueryServiceInMemory;
-import inmemory.CategoryApiCrudServiceInMemory;
-import inmemory.CategoryQueryServiceInMemory;
-import inmemory.ConnectionLogsCrudServiceInMemory;
-import inmemory.EndpointPluginQueryServiceInMemory;
-import inmemory.EntrypointPluginQueryServiceInMemory;
-import inmemory.EnvironmentCrudServiceInMemory;
-import inmemory.EventCrudInMemory;
-import inmemory.EventQueryServiceInMemory;
-import inmemory.FlowCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.ImportApplicationCRDDomainServiceInMemory;
-import inmemory.IndexerInMemory;
-import inmemory.InstallationAccessQueryServiceInMemory;
-import inmemory.InstanceQueryServiceInMemory;
-import inmemory.IntegrationAgentInMemory;
-import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationQueryServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.MessageLogCrudServiceInMemory;
-import inmemory.MetadataCrudServiceInMemory;
-import inmemory.NewtAIProviderInMemory;
-import inmemory.NoopSwaggerOpenApiResolver;
-import inmemory.NoopTemplateResolverDomainService;
-import inmemory.NotificationCRDDomainServiceInMemory;
-import inmemory.OasProviderInMemory;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.ParametersDomainServiceInMemory;
-import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.PolicyPluginQueryServiceInMemory;
-import inmemory.PortalMenuLinkCrudServiceInMemory;
-import inmemory.PortalMenuLinkQueryServiceInMemory;
-import inmemory.PrimaryOwnerDomainServiceInMemory;
-import inmemory.PromotionCrudServiceInMemory;
-import inmemory.PromotionQueryServiceInMemory;
-import inmemory.ResourcePluginCrudServiceInMemory;
-import inmemory.ResourcePluginQueryServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.ScoringFunctionCrudServiceInMemory;
-import inmemory.ScoringFunctionQueryServiceInMemory;
-import inmemory.ScoringProviderInMemory;
-import inmemory.ScoringReportCrudServiceInMemory;
-import inmemory.ScoringReportQueryServiceInMemory;
-import inmemory.ScoringRulesetCrudServiceInMemory;
-import inmemory.ScoringRulesetQueryServiceInMemory;
-import inmemory.SpecGenNotificationProviderInMemory;
-import inmemory.SpecGenProviderInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TagQueryServiceInMemory;
-import inmemory.ThemeCrudServiceInMemory;
-import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
-import inmemory.ThemeQueryServiceInMemory;
-import inmemory.ThemeServiceLegacyWrapperInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UpdateCategoryApiDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
-import inmemory.UserDomainServiceInMemory;
-import inmemory.ValidateResourceDomainServiceInMemory;
-import inmemory.WorkflowQueryServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
@@ -163,6 +76,11 @@ public class InMemoryConfiguration {
     @Bean
     public ConnectionLogsCrudServiceInMemory connectionLogRepository() {
         return new ConnectionLogsCrudServiceInMemory();
+    }
+
+    @Bean
+    public MessageMetricsCrudServiceInMemory messageMetricsCrudService() {
+        return new MessageMetricsCrudServiceInMemory();
     }
 
     @Bean

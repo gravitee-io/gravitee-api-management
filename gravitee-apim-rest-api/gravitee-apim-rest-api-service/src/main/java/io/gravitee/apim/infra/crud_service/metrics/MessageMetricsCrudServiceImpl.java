@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.crud_service.log;
+package io.gravitee.apim.infra.crud_service.metrics;
 
-import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
-import io.gravitee.apim.core.log.model.AggregatedMessageLog;
+import io.gravitee.apim.core.metrics.crud_service.MessageMetricsCrudService;
+import io.gravitee.apim.core.metrics.model.MessageMetrics;
 import io.gravitee.apim.infra.adapter.MessageLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.gravitee.rest.api.model.analytics.SearchMessageMetricsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -31,47 +32,54 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 @Slf4j
-class MessageLogCrudServiceImpl implements MessageLogCrudService {
+public class MessageMetricsCrudServiceImpl implements MessageMetricsCrudService {
 
     private final LogRepository logRepository;
 
-    public MessageLogCrudServiceImpl(@Lazy LogRepository logRepository) {
+    public MessageMetricsCrudServiceImpl(@Lazy LogRepository logRepository) {
         this.logRepository = logRepository;
     }
 
     @Override
-    public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(
+    public SearchLogsResponse<MessageMetrics> searchApiMessageMetrics(
         ExecutionContext executionContext,
         String apiId,
-        String requestId,
+        SearchMessageMetricsFilters filters,
         Pageable pageable
     ) {
         try {
-            var response = logRepository.searchAggregatedMessageLog(
+            var response = logRepository.searchMessageMetrics(
                 executionContext.getQueryContext(),
                 MessageLogQuery.builder()
-                    .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
+                    .filter(
+                        MessageLogQuery.Filter.builder()
+                            .apiId(apiId)
+                            .requestId(filters.requestId())
+                            .connectorId(filters.connectorId())
+                            .connectorType(filters.connectorType())
+                            .operation(filters.operation())
+                            .build()
+                    )
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()
             );
             return mapToMessageResponse(response);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search message of api [apiId={}, requestId={}]", apiId, requestId, e);
-            throw new TechnicalManagementException("Error while searching message logs of api " + apiId + " request " + requestId, e);
+            throw new TechnicalManagementException("An error occurs while searching message metrics for api [" + apiId + "]", e);
         }
     }
 
-    private SearchLogsResponse<AggregatedMessageLog> mapToMessageResponse(
-        LogResponse<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> logs
+    private SearchLogsResponse<MessageMetrics> mapToMessageResponse(
+        LogResponse<io.gravitee.repository.log.v4.model.message.MessageMetrics> logs
     ) {
         var total = logs.total();
-        var data = MessageLogAdapter.INSTANCE.mapToAggregatedMessageLogs(logs.data());
+        var data = MessageLogAdapter.INSTANCE.mapToMessageMetrics(logs.data());
 
         return new SearchLogsResponse<>(total, data);
     }
