@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class AnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDecorator {
+public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDecorator {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 

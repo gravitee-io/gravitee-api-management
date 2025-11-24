@@ -50,7 +50,7 @@ public abstract class AbstractPermissionsTest {
     ApiAuthorizationService apiAuthorizationService;
 
     @Inject
-    AnalyticsQueryFilterDecoratorImpl analyticsQueryFilterDecorator;
+    ApiAnalyticsQueryFilterDecoratorImpl apiAnalyticsQueryFilterDecorator;
 
     static final Authentication authentication = mock(Authentication.class);
 
