@@ -81,15 +81,15 @@ import java.util.stream.Collectors;
 /**
  * Builds Elasticsearch JSON queries for event-metrics analytics:
  * - VALUE: latest value per composite bucket (top_metrics), summed during response parsing.
- * - DELTA: end - start per composite bucket via two time windows, summed during response parsing.
- * - TREND: per-interval derivative with non-negative clamping; summed and aligned during response parsing.
- * Strict rules:
- * - No pagination (composite size capped, handled elsewhere if needed).
- * - Exists filters are ANDed (one exists per requested metric).
- * - Root time range is applied only for VALUE and TREND (not for DELTA).
+ * - DELTA: end - start per composite bucket using two time windows; negatives are clamped during response parsing.
+ * - TREND: per-interval derivative (based on max per interval) with non-negative clamping; summed and aligned during response parsing.
+ * Rules:
+ * - No pagination (composite size is capped to 1000).
+ * - Exists filters use OR semantics (at least one requested metric must exist).
+ * - Root time range is applied for VALUE and TREND; DELTA uses per-window filters instead.
  * - Composite keys:
  *   - VALUE: gw-id, api-id, org-id, env-id
- *   - DELTA/TREND: gw-id, api-id, org-id, env-id, app-id, plan-id, topic
+ *   - DELTA/TREND: gw-id, api-id, org-id, env-id, app-id, plan-id, topic (with missing buckets for app-id/plan-id/topic)
  */
 public final class EventMetricsQueryAdapter {
 
