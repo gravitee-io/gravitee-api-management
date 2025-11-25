@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.UriBuilder;
@@ -60,6 +61,11 @@ public class UriBuilderRequestFilterTest {
 
     @Mock
     protected UriBuilder requestUriBuilder;
+
+    @Mock
+    protected InstallationAccessQueryService installationAccessQueryService;
+
+    private UriInfo uriInfo;
 
     private static final int PROTOCOL_DEFAULT_PORT = -1;
 
@@ -248,10 +254,28 @@ public class UriBuilderRequestFilterTest {
         when(baseUriBuilder.host(any())).thenReturn(baseUriBuilder); // in case of chaining builder calls
         when(requestUriBuilder.host(any())).thenReturn(requestUriBuilder); // in case of chaining builder calls
 
-        UriInfo uriInfo = mock(UriInfo.class);
+        uriInfo = mock(UriInfo.class);
         when(uriInfo.getBaseUriBuilder()).thenReturn(baseUriBuilder);
         when(uriInfo.getRequestUriBuilder()).thenReturn(requestUriBuilder);
+
+        // Mock absolute path for API context detection - default to UNKNOWN context
+        givenApiContext("/unknown/path");
+
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+    }
+
+    private void givenApiContext(String absolutePath) {
+        java.net.URI uri = mock(java.net.URI.class);
+        when(uri.getPath()).thenReturn(absolutePath);
+        when(uriInfo.getAbsolutePath()).thenReturn(uri);
+    }
+
+    private void givenPortalContext() {
+        givenApiContext("/portal/environments/DEFAULT");
+    }
+
+    private void givenManagementContext() {
+        givenApiContext("/management/organizations/DEFAULT");
     }
 
     private void verifyUriBuildersKeptOriginalScheme() {
@@ -318,5 +342,238 @@ public class UriBuilderRequestFilterTest {
         List<Invocation> invocations = new ArrayList<>(mockingDetails(mock).getInvocations());
         invocations.sort(Comparator.comparingInt(Invocation::getSequenceNumber));
         return invocations;
+    }
+
+    @Test
+    public void prefixHeaderWithoutTrailingSlashCausesUriBuildersPathSet() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/api");
+        givenBuilderPaths("/portal/resource", "/portal/resource/123");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/api/portal/resource", "/api/portal/resource/123");
+    }
+
+    @Test
+    public void prefixHeaderWithTrailingSlashNormalizesToAvoidDoubleSlashes() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/api/");
+        givenBuilderPaths("/portal/resource", "/portal/resource/123");
+
+        filter.filter(containerRequestContext);
+
+        // Should normalize: "/api/" + "/portal/resource" => "/api/portal/resource" (not "/api//portal/resource")
+        verifyUriBuildersChangedPathTo("/api/portal/resource", "/api/portal/resource/123");
+    }
+
+    @Test
+    public void prefixHeaderWithMultipleTrailingSlashesNormalizesToAvoidDoubleSlashes() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/api/v1/");
+        givenBuilderPaths("/management/orgs", "/management/orgs/DEFAULT");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/api/v1/management/orgs", "/api/v1/management/orgs/DEFAULT");
+    }
+
+    @Test
+    public void prefixHeaderWithEmptyPathHandledCorrectly() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/prefix/");
+        givenBuilderPaths("", "");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/prefix", "/prefix");
+    }
+
+    @Test
+    public void prefixHeaderWithNullPathHandledCorrectly() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/prefix");
+        givenBuilderPaths(null, null);
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/prefix", "/prefix");
+    }
+
+    @Test
+    public void prefixHeaderWithPathNotStartingWithSlashNormalized() throws IOException {
+        givenHeaders("X-Forwarded-Prefix", "/api");
+        givenBuilderPaths("resource", "resource/123");
+
+        filter.filter(containerRequestContext);
+
+        // Should normalize: "/api" + "resource" => "/api/resource"
+        verifyUriBuildersChangedPathTo("/api/resource", "/api/resource/123");
+    }
+
+    private void givenBuilderPaths(String basePath, String requestPath) {
+        java.net.URI baseUri = mock(java.net.URI.class);
+        java.net.URI requestUri = mock(java.net.URI.class);
+        when(baseUri.getPath()).thenReturn(basePath);
+        when(requestUri.getPath()).thenReturn(requestPath);
+        when(baseUriBuilder.build()).thenReturn(baseUri);
+        when(requestUriBuilder.build()).thenReturn(requestUri);
+    }
+
+    private void verifyUriBuildersChangedPathTo(String expectedBasePath, String expectedRequestPath) {
+        String actualBasePath = getMethodArgBeforeLastBuild(baseUriBuilder, "replacePath", String.class);
+        String actualRequestPath = getMethodArgBeforeLastBuild(requestUriBuilder, "replacePath", String.class);
+        assertNotNull("Base path should have been set", actualBasePath);
+        assertNotNull("Request path should have been set", actualRequestPath);
+        assertEquals("Base path should be normalized without double slashes", expectedBasePath, actualBasePath);
+        assertEquals("Request path should be normalized without double slashes", expectedRequestPath, actualRequestPath);
+    }
+
+    @Test
+    public void portalContextFallsBackToConfiguredSchemeWhenNoProtoHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenPortalContext();
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedSchemeTo("https");
+    }
+
+    @Test
+    public void portalContextFallsBackToConfiguredHostWhenNoHostHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenPortalContext();
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedHostTo("portal.gravitee.io");
+        verifyUriBuildersChangedPortTo(8443);
+    }
+
+    @Test
+    public void portalContextFallsBackToConfiguredHostWithDefaultPortWhenNoHostHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenPortalContext();
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io/portal");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedHostTo("portal.gravitee.io");
+        verifyUriBuildersChangedPortTo(PROTOCOL_DEFAULT_PORT);
+    }
+
+    @Test
+    public void portalContextFallsBackToConfiguredPathWhenNoPrefixHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenPortalContext();
+        givenBuilderPaths("/portal/environments", "/portal/environments/DEFAULT");
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io/api/portal");
+        when(installationAccessQueryService.getPortalApiPath()).thenReturn("/api/portal");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/api/portal/environments", "/api/portal/environments/DEFAULT");
+    }
+
+    @Test
+    public void portalContextFallsBackToConfiguredPathWithTrailingSlashNormalized() throws IOException {
+        givenHeaders(); // no headers
+        givenPortalContext();
+        givenBuilderPaths("/portal/environments", "/portal/environments/DEFAULT");
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io/gateway/portal/");
+        when(installationAccessQueryService.getPortalApiPath()).thenReturn("/gateway/portal/");
+
+        filter.filter(containerRequestContext);
+
+        // Path replacement: /portal -> /gateway/portal/, then remaining path /environments should be normalized
+        verifyUriBuildersChangedPathTo("/gateway/portal/environments", "/gateway/portal/environments/DEFAULT");
+    }
+
+    @Test
+    public void managementContextFallsBackToConfiguredSchemeWhenNoProtoHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenManagementContext();
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:8443/management");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedSchemeTo("https");
+    }
+
+    @Test
+    public void managementContextFallsBackToConfiguredHostWhenNoHostHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenManagementContext();
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:9443/management");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedHostTo("console.gravitee.io");
+        verifyUriBuildersChangedPortTo(9443);
+    }
+
+    @Test
+    public void managementContextFallsBackToConfiguredHostWithDefaultPortWhenNoHostHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenManagementContext();
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/management");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedHostTo("console.gravitee.io");
+        verifyUriBuildersChangedPortTo(PROTOCOL_DEFAULT_PORT);
+    }
+
+    @Test
+    public void managementContextFallsBackToConfiguredPathWhenNoPrefixHeader() throws IOException {
+        givenHeaders(); // no headers
+        givenManagementContext();
+        givenBuilderPaths("/management/organizations", "/management/organizations/DEFAULT");
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/api/console");
+        when(installationAccessQueryService.getConsoleApiPath()).thenReturn("/api/console");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/api/console/organizations", "/api/console/organizations/DEFAULT");
+    }
+
+    @Test
+    public void managementContextFallsBackToConfiguredPathWithTrailingSlashNormalized() throws IOException {
+        givenHeaders(); // no headers
+        givenManagementContext();
+        givenBuilderPaths("/management/organizations", "/management/organizations/DEFAULT");
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/gateway/console/");
+        when(installationAccessQueryService.getConsoleApiPath()).thenReturn("/gateway/console/");
+
+        filter.filter(containerRequestContext);
+
+        verifyUriBuildersChangedPathTo("/gateway/console/organizations", "/gateway/console/organizations/DEFAULT");
+    }
+
+    // Test that headers take precedence over fallback
+
+    @Test
+    public void portalContextHeadersTakePrecedenceOverFallback() throws IOException {
+        givenHeaders("X-Forwarded-Proto", "http", "X-Forwarded-Host", "custom.host:1234");
+        givenPortalContext();
+        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+
+        filter.filter(containerRequestContext);
+
+        // Headers should take precedence
+        verifyUriBuildersChangedSchemeTo("http");
+        verifyUriBuildersChangedHostTo("custom.host");
+        verifyUriBuildersChangedPortTo(1234);
+    }
+
+    @Test
+    public void managementContextHeadersTakePrecedenceOverFallback() throws IOException {
+        givenHeaders("X-Forwarded-Proto", "http", "X-Forwarded-Host", "custom.host:5678");
+        givenManagementContext();
+        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:9443/management");
+
+        filter.filter(containerRequestContext);
+
+        // Headers should take precedence
+        verifyUriBuildersChangedSchemeTo("http");
+        verifyUriBuildersChangedHostTo("custom.host");
+        verifyUriBuildersChangedPortTo(5678);
     }
 }
