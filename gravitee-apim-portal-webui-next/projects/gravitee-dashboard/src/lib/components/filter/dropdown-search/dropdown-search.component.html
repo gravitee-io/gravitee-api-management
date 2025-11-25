@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,18 +15,27 @@
     limitations under the License.
 
 -->
-<p>dropdown-search works!</p>
-<mat-chip-set aria-label="Dog selection">
-  <mat-chip>
-    <img matChipAvatar src="https://material.angular.dev/assets/img/examples/shiba1.jpg" alt="Photo of a Shiba Inu" />
-    Dog one
-  </mat-chip>
-  <mat-chip>
-    <img matChipAvatar src="https://material.angular.dev/assets/img/examples/shiba1.jpg" alt="Photo of a Shiba Inu" />
-    Dog two
-  </mat-chip>
-  <mat-chip>
-    <img matChipAvatar src="https://material.angular.dev/assets/img/examples/shiba1.jpg" alt="Photo of a Shiba Inu" />
-    Dog three
-  </mat-chip>
-</mat-chip-set>
+<div
+  #trigger
+  class="gio-select-search__trigger"
+  [class.disabled]="isDisabled"
+  [class.opened]="isOpen()"
+  (click)="toggleOverlay($event)"
+  tabindex="-1"
+  role="listbox"
+  [attr.aria-multiselectable]="multiple"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-haspopup]="true"
+  [attr.aria-label]="label()">
+  <span class="gio-select-search__trigger__label">
+    {{ label() }}
+
+    @if (selectedCount() > 0) {
+      <span class="gio-select-search__trigger__count">
+        {{ selectedCount() }}
+      </span>
+    }
+  </span>
+
+  <mat-icon class="search" [class.opened-icon]="isOpen()"> expand_more </mat-icon>
+</div>

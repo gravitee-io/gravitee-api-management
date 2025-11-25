@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Overlay, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
+import { ComponentPortal } from '@angular/cdk/portal';
 import {
   Component,
   ElementRef,
@@ -28,20 +30,13 @@ import {
   Signal,
   computed,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatOptionModule } from '@angular/material/core';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { Overlay, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
-import { ComponentPortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { MatIcon } from '@angular/material/icon';
 import { merge, Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 
-import { GioSelectSearchOverlayComponent } from './gio-select-search-overlay.component';
+import { DropdownSearchOverlayComponent } from './dropdown-search-overlay/dropdown-search-overlay.component';
 
 export interface SelectOption {
   value: string;
@@ -65,7 +60,7 @@ type ResultsState = ResultsLoaderOutput & {
 
 @Component({
   selector: 'gd-dropdown-search',
-  imports: [MatAccordion, MatCard, MatCardContent, MatChip, MatChipSet],
+  imports: [MatIcon],
   templateUrl: './dropdown-search.component.html',
   styleUrl: './dropdown-search.component.scss',
   providers: [
@@ -74,15 +69,17 @@ type ResultsState = ResultsLoaderOutput & {
       useExisting: forwardRef(() => DropdownSearchComponent),
       multi: true,
     },
+  ],
 })
 export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy {
+  @ViewChild('trigger', { static: false }) trigger!: ElementRef<HTMLElement>;
   // INPUTS
   options = input<SelectOption[]>([]);
   label = input.required<string>();
   placeholder = input<string>('Search...');
   resultsLoader = input<(data: ResultsLoaderInput) => Observable<ResultsLoaderOutput>>(({ searchTerm }) => {
     const data: SelectOption[] = searchTerm
-      ? this.options().filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
+      ? this.options().filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
       : this.options();
     return of({ data, hasNextPage: false });
   });
@@ -95,8 +92,6 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
   // FORM CONTROL INTEGRATION
   protected _value: string[] = [];
   protected isDisabled = false;
-  private onChange = (_value: string[]) => {};
-  private onTouched = () => {};
 
   // PAGINATION & SEARCH STATE
   private searchParams = signal<{ searchTerm: string; page: number }>({
@@ -112,18 +107,16 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     })),
   );
 
-  private resultsState: Signal<ResultsState> = toSignal(this.loadResults$());
+  private resultsState: Signal<ResultsState | undefined> = toSignal(this.loadResults$());
 
   // OVERLAY & COMPONENT REFERENCES
   private overlayRef: OverlayRef | null = null;
-  private componentRef: ComponentRef<GioSelectSearchOverlayComponent> = null;
+  private componentRef: ComponentRef<DropdownSearchOverlayComponent> | null = null;
 
   // INJECTED SERVICES
   private readonly overlay = inject(Overlay);
   private readonly overlayPositionBuilder = inject(OverlayPositionBuilder);
   private readonly destroyRef = inject(DestroyRef);
-
-  @ViewChild('trigger', { static: false }) trigger!: ElementRef<HTMLElement>;
 
   constructor() {
     effect(() => {
@@ -166,6 +159,8 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
       this.openOverlay();
     }
   }
+  private onChange = (_value: string[]) => {};
+  private onTouched = () => {};
 
   // OVERLAY MANAGEMENT
   private openOverlay() {
@@ -201,31 +196,32 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
     });
 
-    const portal = new ComponentPortal(GioSelectSearchOverlayComponent);
+    const portal = new ComponentPortal(DropdownSearchOverlayComponent);
     this.componentRef = this.overlayRef.attach(portal);
+    const componentRef = this.componentRef;
 
     // Pass data to overlay component
-    this.updateOverlayData(this.componentRef);
+    this.updateOverlayData(componentRef);
 
     // Handle selection changes
-    this.componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValue: string) => {
+    componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValue: string) => {
       this.onSelectionChange(selectedValue);
-      this.componentRef.instance.selectedValues = [...this._value];
+      componentRef.instance.selectedValues = [...this._value];
     });
 
-    this.componentRef.instance.clearSelectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    componentRef.instance.clearSelectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.updateValue([]);
-      this.componentRef.instance.selectedValues = [...this._value];
+      componentRef.instance.selectedValues = [...this._value];
     });
 
-    this.componentRef.instance.loadMoreChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.searchParams.update((params) => ({
+    componentRef.instance.loadMoreChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.searchParams.update(params => ({
         ...params,
         page: params.page + 1,
       }));
     });
 
-    this.componentRef.instance.searchChange.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe((searchTerm: string) => {
+    componentRef.instance.searchChange.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe((searchTerm: string) => {
       this.searchParams.set({
         searchTerm: searchTerm,
         page: 1, // Reset page to 1 on new search
@@ -237,16 +233,16 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     this.isOpen.set(true);
   }
 
-  private updateOverlayData(componentRef: ComponentRef<GioSelectSearchOverlayComponent>) {
+  private updateOverlayData(componentRef: ComponentRef<DropdownSearchOverlayComponent>) {
     if (!componentRef || !componentRef.instance) {
       return;
     }
 
-    componentRef.instance.options.set(this.resultsState().data);
+    componentRef.instance.options.set(this.resultsState()?.data ?? []);
     componentRef.instance.selectedValues = [...this._value];
     componentRef.instance.placeholder = this.placeholder();
-    componentRef.instance.isLoading = this.resultsState().isLoading;
-    componentRef.instance.hasNextPage = this.resultsState().hasNextPage;
+    componentRef.instance.isLoading = this.resultsState()?.isLoading ?? false;
+    componentRef.instance.hasNextPage = this.resultsState()?.hasNextPage ?? false;
   }
 
   private closeOverlay() {
@@ -311,7 +307,7 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
   }
 
   private accumulateNewOptions(newOptions: SelectOption[], hasNextPage: boolean): ResultsState {
-    const newUniqueOptions = newOptions.filter((option) => !this.accumulatedOptions.some(({ value }) => value === option.value));
+    const newUniqueOptions = newOptions.filter(option => !this.accumulatedOptions.some(({ value }) => value === option.value));
     this.accumulatedOptions = [...this.accumulatedOptions, ...newUniqueOptions];
 
     return {
@@ -321,4 +317,3 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     };
   }
 }
-

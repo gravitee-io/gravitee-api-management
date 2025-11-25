@@ -1,18 +1,32 @@
-import { Component, ElementRef, signal, ViewChild, AfterViewInit, DestroyRef, inject, OnInit } from '@angular/core';
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
+import { Component, ElementRef, signal, ViewChild, AfterViewInit, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { distinctUntilChanged, startWith, tap } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
-import { MatOptionModule } from '@angular/material/core';
-import { MatCardModule } from '@angular/material/card';
-import { CdkScrollable } from '@angular/cdk/scrolling';
+import { distinctUntilChanged, startWith, tap } from 'rxjs/operators';
 
 export interface SelectOption {
   value: string;
@@ -30,8 +44,6 @@ export interface SelectOption {
     MatInputModule,
     MatButtonModule,
     MatCheckboxModule,
-    GioIconsModule,
-    GioLoaderModule,
     MatOptionModule,
     MatCardModule,
     CdkScrollable,
@@ -40,6 +52,9 @@ export interface SelectOption {
   styleUrl: './dropdown-search-overlay.component.scss',
 })
 export class DropdownSearchOverlayComponent implements OnInit, AfterViewInit {
+  @ViewChild('searchInput', { static: false }) searchInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(CdkScrollable) scrollable: CdkScrollable | undefined;
+
   // Input from gio-select-search component
   options = signal<SelectOption[]>([]);
   selectedValues: string[] = [];
@@ -48,9 +63,6 @@ export class DropdownSearchOverlayComponent implements OnInit, AfterViewInit {
   hasNextPage = false;
 
   searchControl = new FormControl('');
-
-  @ViewChild('searchInput', { static: false }) searchInput!: ElementRef<HTMLInputElement>;
-  @ViewChild(CdkScrollable) scrollable: CdkScrollable | undefined;
 
   // Output to gio-select-search component
   selectionChange = new Subject<string>();

@@ -15,18 +15,18 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DropdownSearchOverlayComponent } from './dropdown-search-overlay.component';
+import { FilterBarComponent } from './filter-bar.component';
 
-describe('DropdownSearchOverlayComponent', () => {
-  let component: DropdownSearchOverlayComponent;
-  let fixture: ComponentFixture<DropdownSearchOverlayComponent>;
+describe('FilterBarComponent', () => {
+  let component: FilterBarComponent;
+  let fixture: ComponentFixture<FilterBarComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DropdownSearchOverlayComponent],
+      imports: [FilterBarComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DropdownSearchOverlayComponent);
+    fixture = TestBed.createComponent(FilterBarComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

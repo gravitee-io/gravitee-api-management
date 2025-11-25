@@ -15,18 +15,18 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DropdownSearchOverlayComponent } from './dropdown-search-overlay.component';
+import { TimeFrameComponent } from './time-frame.component';
 
-describe('DropdownSearchOverlayComponent', () => {
-  let component: DropdownSearchOverlayComponent;
-  let fixture: ComponentFixture<DropdownSearchOverlayComponent>;
+describe('TimeFrameComponent', () => {
+  let component: TimeFrameComponent;
+  let fixture: ComponentFixture<TimeFrameComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DropdownSearchOverlayComponent],
+      imports: [TimeFrameComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DropdownSearchOverlayComponent);
+    fixture = TestBed.createComponent(TimeFrameComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

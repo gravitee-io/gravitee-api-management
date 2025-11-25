@@ -19,7 +19,7 @@
   <!-- Search input -->
   <div class="gio-select-search__search">
     <mat-form-field class="gio-select-search__search-field" appearance="outline">
-      <mat-icon matPrefix svgIcon="gio:search"></mat-icon>
+      <mat-icon matPrefix svgIcon="gio:search" />
       <input matInput [formControl]="searchControl" [placeholder]="placeholder" #searchInput />
       @if (searchControl.value) {
         <button matSuffix mat-icon-button type="button" (click)="searchControl.setValue('')" [attr.aria-label]="'Clear search'">
@@ -38,19 +38,19 @@
           [disabled]="option.disabled"
           [value]="option.value"
           class="gio-select-search__option-checkbox"
-          color="primary"
-        />
+          color="primary" />
         <span class="gio-select-search__option-label">{{ option.label }}</span>
       </div>
     }
 
     @if (isLoading) {
       <div class="gio-select-search__loading-more">
-        <gio-loader />
+        <!--         <gio-loader />-->
+        Loading...
       </div>
     } @else if (options().length === 0) {
       <div class="gio-select-search__option disabled-option">
-        <mat-checkbox disabled checked="false" class="gio-select-search__option-checkbox"> </mat-checkbox>
+        <mat-checkbox disabled checked="false" class="checkbox" />
         <span class="gio-select-search__option-label">No options available</span>
       </div>
     }
@@ -61,8 +61,7 @@
       type="button"
       [disabled]="selectedValues.length === 0"
       (click)="clearSelection()"
-      [attr.aria-label]="'Clear selection'"
-    >
+      [attr.aria-label]="'Clear selection'">
       Clear Selection
       @if (selectedValues.length > 0) {
         ({{ selectedValues.length }})
