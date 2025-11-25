@@ -1,0 +1,218 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<!-- Reusable status badge template -->
+<ng-template #statusBadge let-status>
+  @if (status != null) {
+    <span
+      [class.gio-badge-success]="status < 400"
+      [class.gio-badge-warning]="status >= 400 && status <= 499"
+      [class.gio-badge-error]="status >= 500 || status === 0"
+    >
+      {{ status }}
+    </span>
+  } @else {
+    -
+  }
+</ng-template>
+
+<a mat-flat-button routerLink=".." aria-label="Back to logs"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to webhook logs</a>
+<div>
+  @if (selectedLog) {
+    <div class="mat-h2">Log</div>
+    <div class="mat-h3">Overview</div>
+    @if (connectionFailure) {
+      <gio-banner-error>
+        Connection failure
+        <div gioBannerBody>The connection to the callback URL endpoint failed.</div>
+      </gio-banner-error>
+    }
+    <mat-card>
+      <mat-card-content>
+        <div class="card__container">
+          <div class="card__section">
+            <span class="mat-body-strong">Request</span>
+            <dl class="card__section__kv">
+              @for (item of overviewRequest; track item.label) {
+                <dt class="mat-caption">{{ item.label }}</dt>
+                <dd class="gio-caption-2">{{ item.value }}</dd>
+              }
+            </dl>
+          </div>
+          <div class="card__section">
+            <span class="mat-body-strong">Response</span>
+            <dl class="card__section__kv">
+              @for (item of overviewResponse; track item.label) {
+                <dt class="mat-caption">{{ item.label }}</dt>
+                <dd class="gio-caption-2">
+                  @if (item.label === 'Status' && isNumber(item.value)) {
+                    <ng-container *ngTemplateOutlet="statusBadge; context: { $implicit: item.value }"></ng-container>
+                  } @else {
+                    {{ item.value }}
+                  }
+                </dd>
+              }
+            </dl>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-expansion-panel class="mat-elevation-z0 delivery-attempts-panel" expanded="true">
+        <mat-expansion-panel-header class="section__header">
+          <div class="mat-h3">Delivery attempts</div>
+        </mat-expansion-panel-header>
+        <gio-table-wrapper [length]="deliveryAttemptsDataSource.length" [disableSearchInput]="true">
+          <table mat-table [dataSource]="deliveryAttemptsDataSource" aria-label="Webhook delivery attempts" class="delivery-attempts-table">
+            <ng-container matColumnDef="attempt">
+              <th mat-header-cell *matHeaderCellDef>Attempt</th>
+              <td mat-cell *matCellDef="let attempt">{{ attempt.attempt ?? '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="timestamp">
+              <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+              <td mat-cell *matCellDef="let attempt">{{ attempt.timestamp ? formatAttemptTimestamp(attempt.timestamp) : '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="duration">
+              <th mat-header-cell *matHeaderCellDef>Duration</th>
+              <td mat-cell *matCellDef="let attempt">{{ attempt.duration != null ? (attempt.duration | formatDuration) : '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let attempt">
+                <ng-container *ngTemplateOutlet="statusBadge; context: { $implicit: attempt.status }"></ng-container>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <tr class="mat-mdc-row" *matNoDataRow>
+              @for (column of displayedColumns; track column) {
+                <td class="mat-mdc-cell">-</td>
+              }
+            </tr>
+          </table>
+        </gio-table-wrapper>
+      </mat-expansion-panel>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <div class="mat-h3">Request sent by gateway</div>
+
+        <div class="card__container">
+          <div class="card__section">
+            <header class="mat-body-strong">Headers</header>
+            @if (requestHeaders.length) {
+              <dl class="card__section__kv">
+                @for (header of requestHeaders; track header.key) {
+                  <dt class="mat-caption">{{ header.key }}</dt>
+                  <dd class="gio-caption-2">{{ header.value }}</dd>
+                }
+              </dl>
+            } @else {
+              <p class="payload__empty">No request headers captured.</p>
+            }
+          </div>
+          <div class="card__section">
+            <header class="mat-body-strong">Body</header>
+
+            @if (requestBody) {
+              <div gioMonacoClipboardCopy class="editor">
+                <gio-monaco-editor
+                  disabled
+                  [languageConfig]="languageConfig"
+                  [options]="monacoEditorOptions"
+                  [singleLineMode]="false"
+                  [ngModel]="requestBody"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            } @else {
+              <p class="payload__empty">No request body captured.</p>
+            }
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-content>
+        <div class="mat-h3">Response from callback URL endpoint</div>
+
+        <div class="card__container">
+          <div class="card__section">
+            <header class="mat-body-strong">Headers</header>
+            @if (responseHeaders.length) {
+              <dl class="card__section__kv">
+                @for (header of responseHeaders; track header.key) {
+                  <dt class="mat-caption">{{ header.key }}</dt>
+                  <dd class="gio-caption-2">{{ header.value }}</dd>
+                }
+              </dl>
+            } @else {
+              <p class="payload__empty">No response headers captured.</p>
+            }
+          </div>
+          <div class="card__section">
+            <header class="mat-body-strong">Body</header>
+
+            @if (responseBody) {
+              <div gioMonacoClipboardCopy class="editor">
+                <gio-monaco-editor
+                  disabled
+                  [languageConfig]="languageConfig"
+                  [options]="monacoEditorOptions"
+                  [singleLineMode]="false"
+                  [ngModel]="responseBody"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            } @else {
+              <p class="payload__empty">No response body captured.</p>
+            }
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card class="empty-card">
+      <mat-card-content>
+        <mat-icon class="icon" svgIcon="gio:search"></mat-icon>
+        <div class="mat-h3" aria-label="No webhook logs available">No log available</div>
+        <div class="empty-card__body">
+          <span class="empty-card__body__subtitle"> Modify the reporting settings to record additional data for future requests. </span>
+        </div>
+
+        <div class="empty-card__actions__button">
+          <button
+            mat-flat-button
+            color="primary"
+            class="webhook-logs-card__actions__button"
+            (click)="openLogSettings()"
+            data-testId="open-settings-button"
+          >
+            Open log settings
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

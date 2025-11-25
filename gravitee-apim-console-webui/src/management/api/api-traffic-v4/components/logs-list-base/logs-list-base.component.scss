@@ -1,0 +1,13 @@
+.table-wrapper {
+  border-top: 0;
+}
+
+.table {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+  }
+}

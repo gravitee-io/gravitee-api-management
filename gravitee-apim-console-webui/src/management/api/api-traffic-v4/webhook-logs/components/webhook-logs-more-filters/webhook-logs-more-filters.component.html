@@ -1,0 +1,88 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="more-filters" [class.more-filters__hidden]="!showMoreFilters()">
+  <div class="more-filters__header">
+    <span class="more-filters__header__title">Filter your results</span>
+    <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+      <mat-icon class="gio-connector-dialog__title__cancel" svgIcon="gio:cancel"></mat-icon>
+    </button>
+  </div>
+  <div class="more-filters__body">
+    @if (showMoreFilters()) {
+      <form [formGroup]="form">
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Date</span>
+          <mat-form-field>
+            <mat-label>Period</mat-label>
+            <mat-select formControlName="period" aria-label="Period selection">
+              @for (period of periods; track period.value) {
+                <mat-option [value]="period">{{ period.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>From</mat-label>
+            <input matInput [owlDateTime]="fromDateTimePicker" formControlName="from" />
+            <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #fromDateTimePicker></owl-date-time>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>To</mat-label>
+            <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" formControlName="to" />
+            <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #toDateTimePicker></owl-date-time>
+            @if (form.controls.to.hasError('owlDateTimeMin')) {
+              <mat-error> Date Time value must be after {{ minDateDisplay | date: 'medium' }} </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Callback URL</span>
+          <mat-form-field>
+            <mat-label>Callback URL</mat-label>
+            <mat-select formControlName="callbackUrls" [multiple]="true">
+              @for (url of callbackUrls; track url) {
+                <mat-option [value]="url">{{ url }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
+    }
+  </div>
+  <div class="more-filters__footer">
+    <button mat-stroked-button class="large clear__button" type="button" (click)="resetMoreFilters()">Clear all</button>
+    <button mat-flat-button class="large apply__button" color="primary" type="button" (click)="apply()" [disabled]="isInvalid">
+      Show results
+    </button>
+  </div>
+</div>
+<!-- allows user to close slide out by clicking outside of the component -->
+@if (showMoreFilters()) {
+  <div
+    class="main-page"
+    role="button"
+    tabindex="0"
+    (click)="close()"
+    (keydown.enter)="close()"
+    (keydown.space)="close(); $event.preventDefault()"
+  ></div>
+}

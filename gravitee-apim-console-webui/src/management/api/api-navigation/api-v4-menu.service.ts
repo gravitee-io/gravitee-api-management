@@ -40,6 +40,7 @@ export class ApiV4MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
+    const webhooksMenuEntry = this.addWebhooksMenuEntry(api);
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
@@ -52,6 +53,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       ...(api.type !== 'LLM_PROXY' ? [this.addApiTrafficMenuEntry(hasTcpListeners, api.type)] : []),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
+      ...(webhooksMenuEntry ? [webhooksMenuEntry] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
@@ -373,7 +375,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addApiTrafficMenuEntry(hasTcpListeners: boolean, apiType: ApiType): MenuItem {
+  private addApiTrafficMenuEntry(hasTcpListeners: boolean, apiType: ApiType): MenuItem | null {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       const baseMenuItem = {
         displayName: 'API Traffic',
@@ -394,7 +396,7 @@ export class ApiV4MenuService implements ApiMenuService {
     return null;
   }
 
-  private addLogs(hasTcpListeners: boolean): MenuItem {
+  private addLogs(hasTcpListeners: boolean): MenuItem | null {
     if (this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
       return {
         displayName: 'Logs',
@@ -443,6 +445,23 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       routerLink: 'v4/debug',
       tabs: undefined,
+    };
+  }
+
+  private addWebhooksMenuEntry(api: ApiV4): MenuItem | null {
+    const hasWebhookEntrypoint =
+      api.listeners?.some(
+        (listener) => listener.type === 'SUBSCRIPTION' && listener.entrypoints?.some((entrypoint) => entrypoint.type === 'webhook'),
+      ) ?? false;
+
+    if (!hasWebhookEntrypoint || !this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
+      return null;
+    }
+
+    return {
+      displayName: 'Webhooks',
+      icon: 'webhook',
+      routerLink: 'v4/webhook-logs',
     };
   }
 }

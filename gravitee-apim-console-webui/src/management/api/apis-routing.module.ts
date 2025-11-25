@@ -61,6 +61,8 @@ import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiDocumentationV4DocumentationPagesTabComponent } from './documentation-v4/documentation-pages-tab/api-documentation-v4-documentation-pages-tab.component';
 import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
+import { WebhookLogsComponent } from './api-traffic-v4/webhook-logs/webhook-logs.component';
+import { WebhookLogsDetailsComponent } from './api-traffic-v4/webhook-logs-details/webhook-logs-details.component';
 import { ApisGuard } from './apis.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
@@ -1060,6 +1062,30 @@ const apisRoutes: Routes = [
           },
         },
         component: ApiRuntimeLogsDetailsComponent,
+      },
+      {
+        path: 'v4/webhook-logs',
+        data: {
+          permissions: {
+            anyOf: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-webhook-logs',
+          },
+        },
+        component: WebhookLogsComponent,
+      },
+      {
+        path: 'v4/webhook-logs/:requestId',
+        data: {
+          permissions: {
+            anyOf: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-webhook-logs',
+          },
+        },
+        component: WebhookLogsDetailsComponent,
       },
       {
         path: 'v4/entrypoints',
