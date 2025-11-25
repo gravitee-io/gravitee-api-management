@@ -22,5 +22,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AnalyticsQueryFilterDecorator {
-    List<Filter> getUpdatedFilters(List<Filter> filters);
+    List<Filter> applyPermissionBasedFilters(List<Filter> filters);
 }

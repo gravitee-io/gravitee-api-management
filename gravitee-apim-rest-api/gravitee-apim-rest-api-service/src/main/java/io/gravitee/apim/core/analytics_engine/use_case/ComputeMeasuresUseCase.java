@@ -68,7 +68,7 @@ public class ComputeMeasuresUseCase {
     ) {
         var responses = new ArrayList<MeasuresResponse>();
         queryContext.forEach((queryService, request) -> {
-            List<Filter> updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(request.filters());
+            List<Filter> updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters());
             MeasuresRequest filteredRequest = new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
             responses.add(queryService.searchMeasures(executionContext, filteredRequest));
         });
