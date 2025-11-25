@@ -20,13 +20,13 @@ import { Component } from '@angular/core';
   template: `
     <nav mat-tab-nav-bar class="navigation-tabs" [tabPanel]="tabPanel">
       <a mat-tab-link routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive" routerLink="dashboard"
-        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:dashboard-dots"></mat-icon> Dashboard</a
+        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:dashboard-dots"></mat-icon> V2 Dashboard</a
       >
       <a mat-tab-link routerLinkActive #rla2="routerLinkActive" [active]="rla2.isActive" routerLink="logs"
-        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:table-rows"></mat-icon> Logs</a
+        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:table-rows"></mat-icon> V2 Logs</a
       >
       <a mat-tab-link routerLinkActive #rla3="routerLinkActive" [active]="rla3.isActive" routerLink="dashboard-v4"
-        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:dashboard-dots"></mat-icon> Analytics (beta)</a
+        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:dashboard-dots"></mat-icon> V4 Dashboard</a
       >
     </nav>
     <mat-tab-nav-panel #tabPanel>
