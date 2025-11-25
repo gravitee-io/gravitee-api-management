@@ -38,11 +38,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>

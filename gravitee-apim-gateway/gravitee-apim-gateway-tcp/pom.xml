@@ -46,13 +46,6 @@
             <artifactId>vertx-rx-java3</artifactId>
         </dependency>
 
-        <!-- Used to instantiate a Buffer through BufferFactory -->
-        <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
 
     </dependencies>
 

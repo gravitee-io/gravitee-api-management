@@ -51,12 +51,6 @@
         </dependency>
         <!-- Tests -->
         <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.simplify4u</groupId>
             <artifactId>slf4j2-mock</artifactId>
             <scope>test</scope>

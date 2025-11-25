@@ -155,14 +155,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Buffer is required for testing purpose -->
-        <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-api</artifactId>

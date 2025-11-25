@@ -172,12 +172,6 @@
         </dependency>
         <!-- Used to instantiate a Buffer through BufferFactory -->
         <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-junit5</artifactId>
             <scope>test</scope>
