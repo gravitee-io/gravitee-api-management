@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -117,7 +118,7 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
     // If the wantedApiIds parameter is empty, an empty list will be returned.
     @NotNull
     private List<String> allowedApiIds(Set<String> wantedApiIds) {
-        if (wantedApiIds != null && wantedApiIds.isEmpty()) {
+        if (CollectionUtils.isInitializedAndEmpty(wantedApiIds)) {
             return List.of();
         }
 
