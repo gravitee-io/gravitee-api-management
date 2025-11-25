@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.9.1...1.9.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* handle immutable maps ([13e155b](https://github.com/gravitee-io/gravitee-reporter-common/commit/13e155b8b73b5d6e8f6a743c1b0cf915798c5280))
+
 ## [1.9.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.9.0...1.9.1) (2025-11-21)
 
 
