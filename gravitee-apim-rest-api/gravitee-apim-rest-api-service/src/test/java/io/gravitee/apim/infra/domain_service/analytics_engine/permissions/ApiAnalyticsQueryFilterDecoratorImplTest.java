@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Builder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -191,6 +192,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
     @DisplayName("non-administrators see a subset of the metrics")
     class NonAdministratorUsers {
 
+        @Builder
         record EqTestArguments(
             String role,
             String wantedApiId,
@@ -310,9 +312,35 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         static Stream<EqTestArguments> eqTestParams() {
             return nonAdminRoles().mapMulti((role, consumer) -> {
-                consumer.accept(new EqTestArguments(role, apiId3, EQ, apiId3, "User has access to the ID requested"));
-                consumer.accept(new EqTestArguments(role, apiId7, IN, List.of(), "User doesn't have access to the ID requested"));
-                consumer.accept(new EqTestArguments(role, "invalid-api-id", IN, List.of(), "User requests invalid API ID"));
+                consumer.accept(
+                    EqTestArguments.builder()
+                        .description("User has access to the ID requested")
+                        .role(role)
+                        .wantedApiId(apiId3)
+                        .expectedOperator(EQ)
+                        .expectedApiIds(apiId3)
+                        .build()
+                );
+
+                consumer.accept(
+                    EqTestArguments.builder()
+                        .description("User doesn't have access to the API ID requested")
+                        .role(role)
+                        .wantedApiId(apiId7)
+                        .expectedOperator(IN)
+                        .expectedApiIds(List.of())
+                        .build()
+                );
+
+                consumer.accept(
+                    EqTestArguments.builder()
+                        .description("User requests an invalid API ID")
+                        .role(role)
+                        .wantedApiId("invalid-api-id")
+                        .expectedOperator(IN)
+                        .expectedApiIds(List.of())
+                        .build()
+                );
             });
         }
 
