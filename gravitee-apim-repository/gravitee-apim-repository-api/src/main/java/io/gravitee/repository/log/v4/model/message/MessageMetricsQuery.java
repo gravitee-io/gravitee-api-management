@@ -20,10 +20,10 @@ import lombok.Data;
 
 @Builder(toBuilder = true)
 @Data
-public class MessageLogQuery {
+public class MessageMetricsQuery {
 
     @Builder.Default
-    private int size = 5;
+    private int size = 10;
 
     @Builder.Default
     private int page = 1;
@@ -31,5 +31,5 @@ public class MessageLogQuery {
     private Filter filter;
 
     @Builder(toBuilder = true)
-    public record Filter(String apiId, String requestId, String connectorType) {}
+    public record Filter(String apiId, String requestId, String connectorType, String connectorId, String operation, long from, long to) {}
 }

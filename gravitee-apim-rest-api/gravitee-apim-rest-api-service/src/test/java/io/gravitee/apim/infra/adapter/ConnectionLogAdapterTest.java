@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Test;
 class ConnectionLogAdapterTest {
 
     @Test
-    public void should_convert_connection_log_to_connection_log_entity() {
-        final ConnectionLog toConvert = ConnectionLog.builder()
+    void should_convert_connection_log_to_connection_log_entity() {
+        final Metrics toConvert = Metrics.builder()
             .apiId("api-id")
             .requestId("request-id")
             .timestamp("timestamp")
@@ -62,8 +62,8 @@ class ConnectionLogAdapterTest {
     }
 
     @Test
-    public void should_convert_connection_logs_to_connection_log_entities() {
-        final ConnectionLog toConvert = ConnectionLog.builder()
+    void should_convert_connection_logs_to_connection_log_entities() {
+        final Metrics toConvert = Metrics.builder()
             .apiId("api-id")
             .requestId("request-id")
             .timestamp("timestamp")

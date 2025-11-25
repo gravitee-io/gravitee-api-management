@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.metrics.param;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.EnumValue;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.EnumValueValidator;
 import java.lang.reflect.Field;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

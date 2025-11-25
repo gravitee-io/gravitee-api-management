@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.log.spring;
 
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.v4.log.LogElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.v4.log.MetricsElasticsearchRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,5 +27,10 @@ public class LogConfiguration {
     @Bean
     public LogElasticsearchRepository logElasticsearchRepository(RepositoryConfiguration configuration) {
         return new LogElasticsearchRepository(configuration);
+    }
+
+    @Bean
+    public MetricsElasticsearchRepository metricsElasticsearchRepository(RepositoryConfiguration configuration) {
+        return new MetricsElasticsearchRepository(configuration);
     }
 }

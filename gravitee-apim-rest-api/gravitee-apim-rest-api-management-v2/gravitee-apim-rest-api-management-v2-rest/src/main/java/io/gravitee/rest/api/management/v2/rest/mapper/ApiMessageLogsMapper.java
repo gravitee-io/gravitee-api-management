@@ -15,22 +15,36 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.log.model.AggregatedMessageLog;
+import io.gravitee.apim.core.log.model.MessageMetrics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
+import io.gravitee.rest.api.management.v2.rest.model.ConnectorType;
+import io.gravitee.rest.api.management.v2.rest.model.MessageOperation;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchMessageLogsParam;
+import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import java.util.List;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { DateMapper.class })
 public interface ApiMessageLogsMapper {
-    Logger logger = LoggerFactory.getLogger(ApiMessageLogsMapper.class);
     ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
-    @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
-    ApiMessageLog map(AggregatedMessageLog connectionLog);
+    List<ApiMessageLog> map(List<MessageMetrics> messageMetricsList);
 
-    List<ApiMessageLog> mapToList(List<AggregatedMessageLog> logs);
+    @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
+    @Mapping(target = "operation", expression = "java(mapOperation(messageMetrics.getOperation()))")
+    @Mapping(target = "connectorType", expression = "java(mapConnectorType(messageMetrics.getConnectorType()))")
+    ApiMessageLog map(MessageMetrics messageMetrics);
+
+    SearchMessageLogsFilters map(SearchMessageLogsParam searchMessageMetricsParam);
+
+    default MessageOperation mapOperation(String operation) {
+        return Optional.ofNullable(operation).map(MessageOperation::fromValue).orElse(null);
+    }
+
+    default ConnectorType mapConnectorType(String connectorType) {
+        return Optional.ofNullable(connectorType).map(ConnectorType::fromValue).orElse(null);
+    }
 }

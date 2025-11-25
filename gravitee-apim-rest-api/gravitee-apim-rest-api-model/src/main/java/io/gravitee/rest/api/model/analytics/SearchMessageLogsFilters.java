@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.message;
+package io.gravitee.rest.api.model.analytics;
 
 import lombok.Builder;
-import lombok.Data;
 
 @Builder(toBuilder = true)
-@Data
-public class MessageLogQuery {
-
-    @Builder.Default
-    private int size = 5;
-
-    @Builder.Default
-    private int page = 1;
-
-    private Filter filter;
-
-    @Builder(toBuilder = true)
-    public record Filter(String apiId, String requestId, String connectorType) {}
-}
+public record SearchMessageLogsFilters(long from, long to, String operation, String connectorType, String connectorId, String requestId) {}

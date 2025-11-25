@@ -15,30 +15,26 @@
  */
 package io.gravitee.repository.noop.log.v4;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
-import io.gravitee.repository.log.v4.api.LogRepository;
+import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
-import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
-import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.message.MessageMetrics;
+import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
-public class NoOpLogRepository implements LogRepository {
-
-    @Override
-    public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
-        return Optional.empty();
-    }
+public class NoOpMetricsRepository implements MetricsRepository {
 
     @Override
-    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query) {
+    public LogResponse<MessageMetrics> searchMessageMetrics(QueryContext queryContext, MessageMetricsQuery metricsQuery) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 
     @Override
-    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query) {
+    public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 }

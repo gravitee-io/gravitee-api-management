@@ -48,5 +48,5 @@ public interface MessageLogAdapter {
         return MessageOperation.fromLabel(messageLog.getOperation());
     }
 
-    List<io.gravitee.apim.core.metrics.model.MessageMetrics> mapToMessageMetrics(List<MessageMetrics> data);
+    List<io.gravitee.apim.core.log.model.MessageMetrics> mapToMessageMetrics(List<MessageMetrics> data);
 }

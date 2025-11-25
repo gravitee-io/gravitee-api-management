@@ -16,8 +16,8 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
@@ -34,14 +34,14 @@ import org.mapstruct.factory.Mappers;
 public interface ConnectionLogAdapter {
     ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
 
-    BaseConnectionLog toEntity(ConnectionLog connectionLog);
+    BaseConnectionLog toEntity(Metrics connectionLog);
 
-    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
+    List<BaseConnectionLog> toEntitiesList(List<Metrics> connectionLogs);
 
     ConnectionLogDetail toEntity(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail);
 
-    ConnectionLogQuery.Filter.ResponseTimeRange convert(Range range);
-    List<ConnectionLogQuery.Filter.ResponseTimeRange> convert(List<Range> range);
+    MetricsQuery.Filter.ResponseTimeRange convert(Range range);
+    List<MetricsQuery.Filter.ResponseTimeRange> convert(List<Range> range);
 
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 }

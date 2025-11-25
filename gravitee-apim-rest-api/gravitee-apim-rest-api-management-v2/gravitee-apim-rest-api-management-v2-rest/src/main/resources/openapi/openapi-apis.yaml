@@ -585,65 +585,65 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_migrate:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-            - name: mode
-              in: query
-              required: false
-              description: Migrate in dry run.
-              schema:
-                  type: string
-                  enum:
-                      - DRY_RUN
-                      - FORCE
-        post:
-            tags:
-                - APIs
-            summary: Migrate an API
-            x-experimental: true
-            description: |-
-                ⚠️ Experimental endpoints - subject to change
-                Migrate an APIv2 to APIv4.
-
-                Return a 400 HTTP Error:
-                 - when API isn’t V2.
-
-                User must have the API_DEFINITION[UPDATE] permission.
-            operationId: migrateApi
-            responses:
-                "200":
-                    $ref: "#/components/responses/MigrationReportResponses"
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - name: mode
+          in: query
+          required: false
+          description: Migrate in dry run.
+          schema:
+            type: string
+            enum:
+              - DRY_RUN
+              - FORCE
+      post:
+        tags:
+          - APIs
+        summary: Migrate an API
+        x-experimental: true
+        description: |-
+          ⚠️ Experimental endpoints - subject to change
+          Migrate an APIv2 to APIv4.
+          
+          Return a 400 HTTP Error:
+           - when API isn’t V2.
+          
+          User must have the API_DEFINITION[UPDATE] permission.
+        operationId: migrateApi
+        responses:
+          "200":
+            $ref: "#/components/responses/MigrationReportResponses"
+          default:
+            $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/_promote:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        post:
-            tags:
-                - APIs
-            summary: Promote an API
-            description: |-
-                Promote the API to another environment.
-                User must have the API_DEFINITION[UPDATE] permission.
-            operationId: promoteApi
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/PromotionRequest"
-                required: true
-            responses:
-                "200":
-                    description: Promotion successfully created
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Promotion"
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - APIs
+        summary: Promote an API
+        description: |-
+          Promote the API to another environment.
+          User must have the API_DEFINITION[UPDATE] permission.
+        operationId: promoteApi
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromotionRequest"
+          required: true
+        responses:
+          "200":
+            description: Promotion successfully created
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Promotion"
+          default:
+            $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/_stop:
         parameters:
@@ -2103,102 +2103,102 @@ paths:
 
     # API Analytics
     /environments/{envId}/apis/{apiId}/analytics:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Perform analytics on API data
+        description: |-
+          Perform analytics on API data based on the provided query parameters.
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: performApiAnalytics
         parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        get:
-            tags:
-                - API Analytics
-            summary: Perform analytics on API data
+          - name: from
+            in: query
+            required: false
+            description: Start timestamp (epoch millis)
+            schema:
+              type: integer
+              format: int64
+          - name: to
+            in: query
+            required: false
+            description: End timestamp (epoch millis)
+            schema:
+              type: integer
+              format: int64
+          - name: interval
+            in: query
+            required: false
+            description: Interval in milliseconds
+            schema:
+              type: integer
+              format: int64
+          - name: field
+            in: query
+            required: false
+            description: Field to aggregate on
+            schema:
+              type: string
+          - name: size
+            in: query
+            required: false
+            description: Size of the result set
+            schema:
+              type: integer
+              format: int32
+          - name: type
+            in: query
+            required: false
+            description: Type of analytics (STATS, COUNT, HISTOGRAM, GROUP_BY)
+            schema:
+              $ref: "#/components/schemas/AnalyticsType"
+          - name: ranges
+            in: query
+            required: false
+            description: Ranges for aggregation, e.g. "100:199;200:299"
+            schema:
+              type: string
+          - name: aggregations
+            in: query
+            required: false
+            description: Aggregations to apply, e.g. "avg:response-time,avg:api-response-time"
+            schema:
+              type: string
+          - name: order
+            in: query
+            required: false
             description: |-
-                Perform analytics on API data based on the provided query parameters.
-                User must have the API_ANALYTICS[READ] permission.
-            operationId: performApiAnalytics
-            parameters:
-                - name: from
-                  in: query
-                  required: false
-                  description: Start timestamp (epoch millis)
-                  schema:
-                      type: integer
-                      format: int64
-                - name: to
-                  in: query
-                  required: false
-                  description: End timestamp (epoch millis)
-                  schema:
-                      type: integer
-                      format: int64
-                - name: interval
-                  in: query
-                  required: false
-                  description: Interval in milliseconds
-                  schema:
-                      type: integer
-                      format: int64
-                - name: field
-                  in: query
-                  required: false
-                  description: Field to aggregate on
-                  schema:
-                      type: string
-                - name: size
-                  in: query
-                  required: false
-                  description: Size of the result set
-                  schema:
-                      type: integer
-                      format: int32
-                - name: type
-                  in: query
-                  required: false
-                  description: Type of analytics (STATS, COUNT, HISTOGRAM, GROUP_BY)
-                  schema:
-                      $ref: "#/components/schemas/AnalyticsType"
-                - name: ranges
-                  in: query
-                  required: false
-                  description: Ranges for aggregation, e.g. "100:199;200:299"
-                  schema:
-                      type: string
-                - name: aggregations
-                  in: query
-                  required: false
-                  description: Aggregations to apply, e.g. "avg:response-time,avg:api-response-time"
-                  schema:
-                      type: string
-                - name: order
-                  in: query
-                  required: false
-                  description: |-
-                      Parameter format `<descending '-'><type 'avg' or 'count'>:<field>`.  
-                      Example: `-avg:gateway-response-time-ms` will sort descending by average response time,  
-                      `count:_key` will order ascending by count in bucket.
-                  schema:
-                      type: string
-                - name: query
-                  in: query
-                  required: false
-                  description: Custom search query
-                  schema:
-                      type: string
-                - name: terms
-                  description: Optional filters like plan-id, application-id applied in the dashboard, e.g. "plan-id:xyz,application-id:abc"
-                  in: query
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          type: string
-            responses:
-                "200":
-                    $ref: "#/components/responses/ApiAnalyticsResponse"
-                default:
-                    description: Unexpected error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+              Parameter format `<descending '-'><type 'avg' or 'count'>:<field>`.  
+              Example: `-avg:gateway-response-time-ms` will sort descending by average response time,  
+              `count:_key` will order ascending by count in bucket.
+            schema:
+              type: string
+          - name: query
+            in: query
+            required: false
+            description: Custom search query
+            schema:
+              type: string
+          - name: terms
+            description: Optional filters like plan-id, application-id applied in the dashboard, e.g. "plan-id:xyz,application-id:abc"
+            in: query
+            explode: false
+            schema:
+              type: array
+              items:
+                type: string
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsResponse"
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
 
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
@@ -2329,23 +2329,23 @@ paths:
                     $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/analytics/{requestId}:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-            - $ref: "#/components/parameters/requestIdParam"
-        get:
-            tags:
-                - API Analytics
-            summary: Get API metric for a request
-            description: |-
-                Get API metric for a request.
-                User must have the API_ANALYTICS[READ] permission.
-            operationId: getApiMetricsDetail
-            responses:
-                "200":
-                    $ref: "#/components/responses/ApiMetricsDetailResponse"
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/requestIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API metric for a request
+        description: |-
+          Get API metric for a request.
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getApiMetricsDetail
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiMetricsDetailResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
@@ -2404,18 +2404,18 @@ paths:
                 - $ref: "#/components/parameters/perPageParam"
             tags:
                 - API Analytics
-            summary: Get API Messages logs
+            summary: Get API Aggregated Messages logs (with endpoint and entrypoint messages)
             description: |-
-                Get API Messages logs.
+                Get API Aggregated Messages logs (with endpoint and entrypoint messages).
 
                 User must have the API_LOG[READ] permission.
-            operationId: getApiMessageLogs
+            operationId: getApiAggregatedMessageLogs
             responses:
                 "200":
-                    $ref: "#/components/responses/ApiMessageLogsResponse"
+                    $ref: "#/components/responses/ApiAggregatedMessageLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/message-metrics:
+    /environments/{envId}/apis/{apiId}/logs/messages:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
@@ -2423,23 +2423,23 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
-                - $ref: "#/components/parameters/messageMetricsConnectorType"
-                - $ref: "#/components/parameters/messageMetricsConnectorId"
-                - $ref: "#/components/parameters/messageMetricsOperation"
-                - $ref: "#/components/parameters/messageMetricsRequestId"
+                - $ref: "#/components/parameters/messageLogsConnectorType"
+                - $ref: "#/components/parameters/messageLogsConnectorId"
+                - $ref: "#/components/parameters/messageLogsOperation"
+                - $ref: "#/components/parameters/requestIdParam"
                 - $ref: "#/components/parameters/from"
                 - $ref: "#/components/parameters/to"
             tags:
                 - API Analytics
-            summary: Get API Messages metrics
+            summary: Get API Messages logs
             description: |-
-                Get API Messages metrics. Allow filtering. 
+                Get API Messages logs. Allow filtering. 
 
                 User must have the API_LOG[READ] permission.
-            operationId: getApiMessageMetrics
+            operationId: getApiMessageLogs
             responses:
                 "200":
-                    $ref: "#/components/responses/ApiMessageMetricsResponse"
+                    $ref: "#/components/responses/ApiMessageLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2970,49 +2970,49 @@ paths:
 
     # NewAI
     /environments/{envId}/apis/{apiId}/el/_generate:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        post:
-            tags:
-                - newtai
-            summary: Generate Expression Language
-            description: |-
-                Generate Expression Language.
-            operationId: generateEl
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/GenerateExpressionLanguage"
-                required: true
-            responses:
-                "200":
-                    $ref: "#/components/responses/GenerateExpressionLanguageResponse"
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - newtai
+        summary: Generate Expression Language
+        description: |-
+          Generate Expression Language.
+        operationId: generateEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateExpressionLanguage"
+          required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+          default:
+            $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/el/feedback:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        post:
-            tags:
-                - newtai
-            summary: Submit Newt AI generated Expression Language feedback
-            description: |-
-                Submit feedback for the Newt AI generated Expression Language.
-            operationId: feedbackEl
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/ExpressionLanguageFeedback"
-                required: true
-            responses:
-                "204":
-                    description: Feedback successfully submitted
-                default:
-                    $ref: "#/components/responses/Error"
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - newtai
+        summary: Submit Newt AI generated Expression Language feedback
+        description: |-
+          Submit feedback for the Newt AI generated Expression Language.
+        operationId: feedbackEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpressionLanguageFeedback"
+          required: true
+        responses:
+          "204":
+            description: Feedback successfully submitted
+          default:
+            $ref: "#/components/responses/Error"
 
     # DebugMode
     /environments/{envId}/apis/{apiId}/debug:
@@ -3869,27 +3869,27 @@ components:
                     description: New order for the specified API
 
         GenerateExpressionLanguage:
-            type: object
-            description: Request an expression language generation
-            required:
-                - message
-            properties:
-                message:
-                    description: Prompt of generation.
-                    type: string
+          type: object
+          description: Request an expression language generation
+          required:
+            - message
+          properties:
+            message:
+              description: Prompt of generation.
+              type: string
 
         ExpressionLanguageFeedback:
-            type: object
-            description: Feedback of expression language generation
-            required:
-                - answerHelpful
-                - feedbackRequestId
-            properties:
-                feedbackRequestId:
-                    $ref: "#/components/schemas/FeedbackRequestId"
-                answerHelpful:
-                    description: Indicates if the answer was helpful.
-                    type: boolean
+          type: object
+          description: Feedback of expression language generation
+          required:
+            - answerHelpful
+            - feedbackRequestId
+          properties:
+            feedbackRequestId:
+              $ref: "#/components/schemas/FeedbackRequestId"
+            answerHelpful:
+              description: Indicates if the answer was helpful.
+              type: boolean
 
         ApiDeployment:
             type: object
@@ -3959,17 +3959,17 @@ components:
                     items:
                         type: string
                 categories:
-                    type: array
-                    items:
-                        type: string
+                  type: array
+                  items:
+                    type: string
                 published:
-                    type: array
-                    items:
-                        type: string
+                  type: array
+                  items:
+                    type: string
                 visibilities:
-                    type: array
-                    items:
-                        type: string
+                  type: array
+                  items:
+                    type: string
         ApiType:
             type: string
             description: API's type.
@@ -4974,96 +4974,96 @@ components:
                 - MANUAL
 
         PromotionRequest:
-            type: object
-            properties:
-                targetEnvCockpitId:
-                    type: string
-                    description: The target environment id where the promotion should be done.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                targetEnvName:
-                    type: string
-                    description: The target environment name where the promotion should be done.
-                    example: prod
+          type: object
+          properties:
+            targetEnvCockpitId:
+              type: string
+              description: The target environment id where the promotion should be done.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            targetEnvName:
+              type: string
+              description: The target environment name where the promotion should be done.
+              example: prod
 
         Promotion:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: The promotion id.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                apiDefinition:
-                    type: string
-                    description: The api definition.
-                apiId:
-                    type: string
-                    description: The api id.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                status:
-                    type: string
-                    description: The status of the promotion.
-                    enum:
-                        - CREATED
-                        - TO_BE_VALIDATED
-                        - ACCEPTED
-                        - REJECTED
-                        - ERROR
-                targetEnvCockpitId:
-                    type: string
-                    description: The target environment id where the promotion should be done.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                targetEnvName:
-                    type: string
-                    description: The target environment name where the promotion should be done.
-                    example: prod
-                sourceEnvCockpitId:
-                    type: string
-                    description: The source environment id where the promotion should come from.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                sourceEnvName:
-                    type: string
-                    description: The source environment name where the promotion should come from.
-                    example: dev
-                createdAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the promotion was created.
-                    example: 2023-05-25T12:40:46.184Z
-                updatedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the promotion was updated.
-                    example: 2023-05-25T12:40:46.184Z
-                author:
-                    $ref: "#/components/schemas/PromotionAuthor"
-                targetApiId:
-                    type: string
-                    description: The target api id.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+          type: object
+          properties:
+            id:
+              type: string
+              description: The promotion id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            apiDefinition:
+              type: string
+              description: The api definition.
+            apiId:
+              type: string
+              description: The api id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            status:
+              type: string
+              description: The status of the promotion.
+              enum:
+                - CREATED
+                - TO_BE_VALIDATED
+                - ACCEPTED
+                - REJECTED
+                - ERROR
+            targetEnvCockpitId:
+              type: string
+              description: The target environment id where the promotion should be done.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            targetEnvName:
+              type: string
+              description: The target environment name where the promotion should be done.
+              example: prod
+            sourceEnvCockpitId:
+              type: string
+              description: The source environment id where the promotion should come from.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            sourceEnvName:
+              type: string
+              description: The source environment name where the promotion should come from.
+              example: dev
+            createdAt:
+              type: string
+              format: date-time
+              description: The datetime when the promotion was created.
+              example: 2023-05-25T12:40:46.184Z
+            updatedAt:
+              type: string
+              format: date-time
+              description: The datetime when the promotion was updated.
+              example: 2023-05-25T12:40:46.184Z
+            author:
+              $ref: "#/components/schemas/PromotionAuthor"
+            targetApiId:
+              type: string
+              description: The target api id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
 
         PromotionAuthor:
-            type: object
-            properties:
-                userId:
-                    type: string
-                    description: The user id.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                displayName:
-                    type: string
-                    description: The display name of the user who created the promotion.
-                    example: John Doe
-                email:
-                    type: string
-                    description: The email of the user who created the promotion.
-                    example: email@example.com
-                source:
-                    type: string
-                    description: The source of the use who created the promotion.
-                    example: cockpit
-                sourceId:
-                    type: string
-                    description: The id of the user who created the promotion source.
-                    example: 89eb0e39-1706-49c1-ab0e-391706d9c10a
+          type: object
+          properties:
+            userId:
+              type: string
+              description: The user id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            displayName:
+              type: string
+              description: The display name of the user who created the promotion.
+              example: John Doe
+            email:
+              type: string
+              description: The email of the user who created the promotion.
+              example: email@example.com
+            source:
+              type: string
+              description: The source of the use who created the promotion.
+              example: cockpit
+            sourceId:
+              type: string
+              description: The id of the user who created the promotion source.
+              example: 89eb0e39-1706-49c1-ab0e-391706d9c10a
 
         CreatePlan:
             oneOf:
@@ -5993,20 +5993,21 @@ components:
             required: [hosts]
 
         McpSelector:
-            type: object
-            title: "McpSelector"
-            required:
-                - methods
-            allOf:
-                - $ref: "#/components/schemas/BaseSelector"
-                - type: object
-                  properties:
-                      methods:
-                          type: array
-                          description: MCP Methods to select on
-                          items:
-                              type: string
-                          uniqueItems: true
+          type: object
+          title: "McpSelector"
+          required:
+            - methods
+          allOf:
+            - $ref: "#/components/schemas/BaseSelector"
+            - type: object
+              properties:
+                methods:
+                  type: array
+                  description: MCP Methods to select on
+                  items:
+                    type: string
+                  uniqueItems: true
+
 
         ## API V2 specific schemas
         ApiEntrypoint:
@@ -6840,63 +6841,63 @@ components:
                     description: The flag indicating if the request has ended.
                     example: true
                 gatewayResponseTime:
-                    type: integer
-                    description: The response time in ms
-                    example: 12
+                  type: integer
+                  description: The response time in ms
+                  example: 12
                 uri:
-                    type: string
-                    description: URI of the request.
-                    example: /my-api
+                  type: string
+                  description: URI of the request.
+                  example: /my-api
                 endpoint:
-                    type: string
-                    description: The endpoint URL.
-                    example: "https://my-api-example.com"
+                  type: string
+                  description: The endpoint URL.
+                  example: "https://my-api-example.com"
                 message:
-                    type: string
-                    description: The error message.
-                    example: "The timeout period of 1000ms has been exceeded"
+                  type: string
+                  description: The error message.
+                  example: "The timeout period of 1000ms has been exceeded"
                 errorKey:
-                    type: string
-                    description: The error key.
-                    example: "TIMEOUT_ERROR"
+                  type: string
+                  description: The error key.
+                  example: "TIMEOUT_ERROR"
                 errorComponentName:
-                    type: string
-                    description: The name of the component that generated the error.
-                    example: "security"
+                  type: string
+                  description: The name of the component that generated the error.
+                  example: "security"
                 errorComponentType:
-                    type: string
-                    description: The type of the component that generated the error.
-                    example: "ENDPOINT"
+                  type: string
+                  description: The type of the component that generated the error.
+                  example: "ENDPOINT"
                 warnings:
-                    type: array
-                    description: The warning diagnotics
-                    items:
-                        $ref: "#/components/schemas/ApiLogDiagnostic"
+                  type: array
+                  description: The warning diagnotics
+                  items:
+                    $ref: "#/components/schemas/ApiLogDiagnostic"
                 additionalMetrics:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: A map of string keys to string values
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: A map of string keys to string values
 
         ApiLogDiagnostic:
-            type: object
-            properties:
-                componentType:
-                    type: string
-                    description: The type of the component from where the diagnostic has been emitted
-                    example: POLICY
-                componentName:
-                    type: string
-                    description: The name of the component from where the diagnostic has been emitted
-                    example: transform-header
-                key:
-                    type: string
-                    description: The diagnostic key.
-                    example: TRANSFORM_HEADERS_FAILURE
-                message:
-                    type: string
-                    description: The diagnostic message.
-        ApiMessageLog:
+          type: object
+          properties:
+            componentType:
+              type: string
+              description: The type of the component from where the diagnostic has been emitted
+              example: POLICY
+            componentName:
+              type: string
+              description: The name of the component from where the diagnostic has been emitted
+              example: transform-header
+            key:
+              type: string
+              description: The diagnostic key.
+              example: TRANSFORM_HEADERS_FAILURE
+            message:
+              type: string
+              description: The diagnostic message.
+        ApiAggregatedMessageLog:
             type: object
             properties:
                 requestId:
@@ -6948,7 +6949,7 @@ components:
                     type: string
                     description: The request's body.
                     example: my body
-        ApiMessageMetrics:
+        ApiMessageLog:
             type: object
             description: Metrics data for a sampled message.
             properties:
@@ -8130,120 +8131,120 @@ components:
             required:
                 - analyticsType
             discriminator:
-                propertyName: analyticsType
-                mapping:
-                    STATS: "#/components/schemas/StatsAnalytics"
-                    COUNT: "#/components/schemas/CountAnalytics"
-                    HISTOGRAM: "#/components/schemas/HistogramAnalytics"
-                    GROUP_BY: "#/components/schemas/GroupByAnalytics"
+              propertyName: analyticsType
+              mapping:
+                STATS: "#/components/schemas/StatsAnalytics"
+                COUNT: "#/components/schemas/CountAnalytics"
+                HISTOGRAM: "#/components/schemas/HistogramAnalytics"
+                GROUP_BY: "#/components/schemas/GroupByAnalytics"
         StatsAnalytics:
-            allOf:
-                - $ref: "#/components/schemas/GenericAnalytics"
-                - type: object
-                  properties:
-                      avg:
+                  allOf:
+                    - $ref: "#/components/schemas/GenericAnalytics"
+                    - type: object
+                      properties:
+                        avg:
                           type: number
                           format: float
                           description: Average value of the metric.
-                      min:
+                        min:
                           type: number
                           format: float
                           description: Minimum value of the metric.
-                      max:
+                        max:
                           type: number
                           format: float
                           description: Maximum value of the metric.
-                      sum:
+                        sum:
                           type: number
                           format: float
                           description: Sum of all metric values.
-                      count:
+                        count:
                           type: number
                           format: float
                           description: Total number of data points.
-                      rps:
+                        rps:
                           type: number
                           format: float
                           description: Requests per second.
-                      rpm:
+                        rpm:
                           type: number
                           format: float
                           description: Requests per minute.
-                      rph:
+                        rph:
                           type: number
                           format: float
                           description: Requests per hour.
         CountAnalytics:
-            allOf:
-                - $ref: "#/components/schemas/GenericAnalytics"
-                - type: object
-                  properties:
-                      count:
-                          type: integer
-                          format: int64
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+            - type: object
+              properties:
+                count:
+                  type: integer
+                  format: int64
         HistogramAnalytics:
-            allOf:
-                - $ref: "#/components/schemas/GenericAnalytics"
-                - type: object
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+            - type: object
+              properties:
+                timestamp:
+                  type: object
+                  title: HistogramTimestamp
                   properties:
-                      timestamp:
+                    from:
+                      type: integer
+                      format: int64
+                    to:
+                      type: integer
+                      format: int64
+                    interval:
+                      type: integer
+                      format: int64
+                values:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      buckets:
+                        type: array
+                        items:
                           type: object
-                          title: HistogramTimestamp
                           properties:
-                              from:
-                                  type: integer
-                                  format: int64
-                              to:
-                                  type: integer
-                                  format: int64
-                              interval:
-                                  type: integer
-                                  format: int64
-                      values:
-                          type: array
-                          items:
-                              type: object
-                              properties:
-                                  buckets:
-                                      type: array
-                                      items:
-                                          type: object
-                                          properties:
-                                              name:
-                                                  type: string
-                                              data:
-                                                  type: array
-                                                  items:
-                                                      type: integer
-                                                      format: int64
-                                  field:
-                                      type: string
-                                  name:
-                                      type: string
-                                  metadata:
-                                      type: object
-                                      additionalProperties:
-                                          type: object
-                                          additionalProperties:
-                                              type: string
-        GroupByAnalytics:
-            allOf:
-                - $ref: "#/components/schemas/GenericAnalytics"
-                - type: object
-                  properties:
-                      values:
-                          type: object
-                          additionalProperties:
-                              type: integer
-                              format: int64
+                            name:
+                              type: string
+                            data:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                      field:
+                        type: string
+                      name:
+                        type: string
                       metadata:
+                        type: object
+                        additionalProperties:
                           type: object
                           additionalProperties:
-                              type: object
-                              additionalProperties:
-                                  type: string
+                            type: string
+        GroupByAnalytics:
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+            - type: object
+              properties:
+                values:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                    format: int64
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    additionalProperties:
+                      type: string
 
-        # API Health
+      # API Health
         HealthCheckLog:
             type: object
             description: A healh check log
@@ -8344,28 +8345,28 @@ components:
                     description: The url or host of the entrypoint depending on the API type
                     example: https://my-api.domain.com/echo
         MigrationStateType:
-            type: string
-            description: |
-                * MIGRATED: API is migrated
-                * MIGRATABLE: DRY_RUN and can works
-                * CAN_BE_FORCED: if you force, we upgrade
-                * IMPOSSIBLE: we don’t know howto upgrade
-            enum:
-                - MIGRATED
-                - MIGRATABLE
-                - CAN_BE_FORCED
-                - IMPOSSIBLE
+          type: string
+          description: |
+            * MIGRATED: API is migrated
+            * MIGRATABLE: DRY_RUN and can works
+            * CAN_BE_FORCED: if you force, we upgrade
+            * IMPOSSIBLE: we don’t know howto upgrade
+          enum:
+            - MIGRATED
+            - MIGRATABLE
+            - CAN_BE_FORCED
+            - IMPOSSIBLE
 
         FeedbackRequestId:
-            description: newt AI feedback request id.
-            type: object
-            properties:
-                chatId:
-                    type: string
-                userMessageId:
-                    type: string
-                agentMessageId:
-                    type: string
+          description: newt AI feedback request id.
+          type: object
+          properties:
+            chatId:
+              type: string
+            userMessageId:
+              type: string
+            agentMessageId:
+              type: string
 
     parameters:
         #############
@@ -8542,32 +8543,25 @@ components:
         ###############################
         # Other Query Parameters      #
         ###############################
-        messageMetricsConnectorType:
+        messageLogsConnectorType:
             name: connectorType
             in: query
             description: Connector type to filter on. If unset, no filtering is applied.
             schema:
                 $ref: "#/components/schemas/ConnectorType"
-        messageMetricsConnectorId:
+        messageLogsConnectorId:
             name: connectorId
             in: query
             description: Connector ID (plugin ID) to filter on. If unset, no filtering is applied.
             schema:
                 type: string
                 example: webhook
-        messageMetricsOperation:
+        messageLogsOperation:
             name: operation
             in: query
             description: Operation to filter on. If unset, no filtering is applied.
             schema:
                 $ref: "#/components/schemas/MessageOperation"
-        messageMetricsRequestId:
-            name: requestId
-            in: query
-            description: Request UUID to filter on. If unset, no filtering is applied.
-            schema:
-                type: string
-
         apisSearchExpandsParam:
             name: expands
             in: query
@@ -8945,23 +8939,23 @@ components:
 
         # Analytics
         ApiAnalyticsResponse:
-            description: Successful analytics response
-            content:
-                application/json:
-                    schema:
-                        title: "ApiAnalyticsResponse"
-                        oneOf:
-                            - $ref: "#/components/schemas/StatsAnalytics"
-                            - $ref: "#/components/schemas/CountAnalytics"
-                            - $ref: "#/components/schemas/HistogramAnalytics"
-                            - $ref: "#/components/schemas/GroupByAnalytics"
-                        discriminator:
-                            propertyName: analyticsType
-                            mapping:
-                                STATS: "#/components/schemas/StatsAnalytics"
-                                COUNT: "#/components/schemas/CountAnalytics"
-                                HISTOGRAM: "#/components/schemas/HistogramAnalytics"
-                                GROUP_BY: "#/components/schemas/GroupByAnalytics"
+          description: Successful analytics response
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsResponse"
+                oneOf:
+                  - $ref: "#/components/schemas/StatsAnalytics"
+                  - $ref: "#/components/schemas/CountAnalytics"
+                  - $ref: "#/components/schemas/HistogramAnalytics"
+                  - $ref: "#/components/schemas/GroupByAnalytics"
+                discriminator:
+                    propertyName: analyticsType
+                    mapping:
+                        STATS: "#/components/schemas/StatsAnalytics"
+                        COUNT: "#/components/schemas/CountAnalytics"
+                        HISTOGRAM: "#/components/schemas/HistogramAnalytics"
+                        GROUP_BY: "#/components/schemas/GroupByAnalytics"
         ApiAnalyticsRequestsCountResponse:
             description: Analytics for requests count by entrypoint
             content:
@@ -9102,106 +9096,106 @@ components:
                                         format: int64
 
         ApiMetricsDetailResponse:
-            description: API metric for a particular request
-            content:
-                application/json:
-                    schema:
-                        title: "ApiMetricsDetailResponse"
-                        description: API metrics detail for a request ID.
-                        properties:
-                            timestamp:
-                                type: string
-                                format: date-time
-                                description: The date (as timestamp) of the metric.
-                                example: 2023-05-18T12:40:46.184Z
-                            apiId:
-                                type: string
-                                description: The id of the api.
-                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                            requestId:
-                                type: string
-                                description: The id of the request.
-                                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
-                            transactionId:
-                                type: string
-                                description: The id of the transaction.
-                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                            host:
-                                type: string
-                                description: The host used for the request
-                                example: mycompany.example.com
-                            plan:
-                                $ref: "#/components/schemas/BasePlan"
-                            application:
-                                $ref: "#/components/schemas/BaseApplication"
-                            gateway:
-                                type: string
-                                description: The id of the gateway.
-                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                            uri:
-                                type: string
-                                description: URI of the request.
-                                example: /my-api
-                            status:
-                                type: integer
-                                description: The response status
-                                example: 200
-                            requestContentLength:
-                                type: integer
-                                description: The request content length
-                                example: 42
-                            responseContentLength:
-                                type: integer
-                                description: The response content length
-                                example: 42
-                            remoteAddress:
-                                type: string
-                                description: the remote address
-                                example:
-                            gatewayLatency:
-                                type: integer
-                                description: The gateway latency
-                                example: 42
-                            gatewayResponseTime:
-                                type: integer
-                                description: The gateway response time
-                                example: 42
-                            endpointResponseTime:
-                                type: integer
-                                description: The endpoint response time
-                                example: 42
-                            method:
-                                $ref: "#/components/schemas/HttpMethod"
-                            endpoint:
-                                type: string
-                                description: The endpoint URL.
-                                example: "https://my-api-example.com"
-                            message:
-                                type: string
-                                description: The error message.
-                                example: "The timeout period of 1000ms has been exceeded"
-                            errorKey:
-                                type: string
-                                description: The error key.
-                                example: "TIMEOUT_ERROR"
-                            errorComponentName:
-                                type: string
-                                description: The name of the component that generated the error.
-                                example: "security"
-                            errorComponentType:
-                                type: string
-                                description: The type of the component that generated the error.
-                                example: "ENDPOINT"
-                            warnings:
-                                type: array
-                                description: The warning diagnotics
-                                items:
-                                    $ref: "#/components/schemas/ApiLogDiagnostic"
-                            additionalMetrics:
-                                type: object
-                                additionalProperties:
-                                    type: string
-                                description: A map of string keys to string values
+          description: API metric for a particular request
+          content:
+            application/json:
+              schema:
+                title: "ApiMetricsDetailResponse"
+                description: API metrics detail for a request ID.
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) of the metric.
+                    example: 2023-05-18T12:40:46.184Z
+                  apiId:
+                    type: string
+                    description: The id of the api.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  requestId:
+                    type: string
+                    description: The id of the request.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                  transactionId:
+                    type: string
+                    description: The id of the transaction.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  host:
+                    type: string
+                    description: The host used for the request
+                    example: mycompany.example.com
+                  plan:
+                    $ref: "#/components/schemas/BasePlan"
+                  application:
+                    $ref: "#/components/schemas/BaseApplication"
+                  gateway:
+                    type: string
+                    description: The id of the gateway.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  uri:
+                    type: string
+                    description: URI of the request.
+                    example: /my-api
+                  status:
+                    type: integer
+                    description: The response status
+                    example: 200
+                  requestContentLength:
+                    type: integer
+                    description: The request content length
+                    example: 42
+                  responseContentLength:
+                    type: integer
+                    description: The response content length
+                    example: 42
+                  remoteAddress:
+                    type: string
+                    description: the remote address
+                    example:
+                  gatewayLatency:
+                    type: integer
+                    description: The gateway latency
+                    example: 42
+                  gatewayResponseTime:
+                    type: integer
+                    description: The gateway response time
+                    example: 42
+                  endpointResponseTime:
+                    type: integer
+                    description: The endpoint response time
+                    example: 42
+                  method:
+                    $ref: "#/components/schemas/HttpMethod"
+                  endpoint:
+                    type: string
+                    description: The endpoint URL.
+                    example: "https://my-api-example.com"
+                  message:
+                    type: string
+                    description: The error message.
+                    example: "The timeout period of 1000ms has been exceeded"
+                  errorKey:
+                    type: string
+                    description: The error key.
+                    example: "TIMEOUT_ERROR"
+                  errorComponentName:
+                    type: string
+                    description: The name of the component that generated the error.
+                    example: "security"
+                  errorComponentType:
+                    type: string
+                    description: The type of the component that generated the error.
+                    example: "ENDPOINT"
+                  warnings:
+                    type: array
+                    description: The warning diagnotics
+                    items:
+                      $ref: "#/components/schemas/ApiLogDiagnostic"
+                  additionalMetrics:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: A map of string keys to string values
 
         # Analytics - Logs
         ApiLogsResponse:
@@ -9220,18 +9214,18 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
-        ApiMessageMetricsResponse:
+        ApiMessageLogsResponse:
             description: Page of Message metrics
             content:
                 application/json:
                     schema:
-                        title: "MessageMetricsResponse"
+                        title: "ApiMessageLogsResponse"
                         properties:
                             data:
                                 description: List of Message metrics.
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/ApiMessageMetrics"
+                                    $ref: "#/components/schemas/ApiMessageLog"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
                             links:
@@ -9277,18 +9271,18 @@ components:
                                 $ref: "#/components/schemas/ApiLogRequestContent"
                             endpointResponse:
                                 $ref: "#/components/schemas/ApiLogResponseContent"
-        ApiMessageLogsResponse:
+        ApiAggregatedMessageLogsResponse:
             description: Page of API Messages Logs
             content:
                 application/json:
                     schema:
-                        title: "ApiMessageLogsResponse"
+                        title: "ApiAggregatedMessageLogsResponse"
                         properties:
                             data:
                                 description: List of API Messages logs.
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/ApiMessageLog"
+                                    $ref: "#/components/schemas/ApiAggregatedMessageLog"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
                             links:
@@ -9485,37 +9479,38 @@ components:
                                 $ref: "#/components/schemas/Links"
 
         MigrationReportResponses:
-            description: Migration report
-            content:
-                application/json:
-                    schema:
-                        title: "MigrationReportResponses"
-                        properties:
-                            state:
-                                $ref: "#/components/schemas/MigrationStateType"
-                            issues:
-                                description: List of issues.
-                                type: array
-                                items:
-                                    type: object
-                                    properties:
-                                        message:
-                                            type: string
-                                        state:
-                                            $ref: "#/components/schemas/MigrationStateType"
+          description: Migration report
+          content:
+            application/json:
+              schema:
+                title: "MigrationReportResponses"
+                properties:
+                  state:
+                    $ref: '#/components/schemas/MigrationStateType'
+                  issues:
+                    description: List of issues.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                        state:
+                          $ref: '#/components/schemas/MigrationStateType'
 
         GenerateExpressionLanguageResponse:
-            description: Response an expression language generation
-            content:
-                application/json:
-                    schema:
-                        title: "GenerateExpressionLanguageResponse"
-                        properties:
-                            message:
-                                description: Expression language generated.
-                                type: string
-                            feedbackRequestId:
-                                $ref: "#/components/schemas/FeedbackRequestId"
+          description: Response an expression language generation
+          content:
+            application/json:
+              schema:
+                title: "GenerateExpressionLanguageResponse"
+                properties:
+                  message:
+                    description: Expression language generated.
+                    type: string
+                  feedbackRequestId:
+                    $ref: '#/components/schemas/FeedbackRequestId'
+
 
     securitySchemes:
         BasicAuth:

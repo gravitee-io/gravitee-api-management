@@ -17,16 +17,20 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
+import io.gravitee.apim.core.log.use_case.SearchApiAggregatedMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiV4ConnectionLogsUseCase;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiAggregatedMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAggregatedMessageLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchMessageLogsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -36,12 +40,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
 public class ApiLogsResource extends AbstractResource {
@@ -53,10 +52,13 @@ public class ApiLogsResource extends AbstractResource {
     private SearchApiV4ConnectionLogsUseCase searchConnectionLogsUsecase;
 
     @Inject
-    private SearchApiMessageLogsUseCase searchApiMessageLogsUseCase;
+    private SearchApiAggregatedMessageLogsUseCase searchApiAggregatedMessageLogsUseCase;
 
     @Inject
     private SearchApiConnectionLogDetailUseCase searchConnectionLogUsecase;
+
+    @Inject
+    private SearchApiMessageLogsUseCase searchApiMessageLogsUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,20 +82,20 @@ public class ApiLogsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
-    public ApiMessageLogsResponse getApiMessageLogs(
+    public ApiAggregatedMessageLogsResponse getApiMessageLogs(
         @BeanParam @Valid PaginationParam paginationParam,
         @PathParam("requestId") String requestId
     ) {
-        var request = new SearchApiMessageLogsUseCase.Input(
+        var request = new SearchApiAggregatedMessageLogsUseCase.Input(
             apiId,
             requestId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = searchApiMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), request);
+        var response = searchApiAggregatedMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), request);
 
-        return new ApiMessageLogsResponse()
-            .data(ApiMessageLogsMapper.INSTANCE.mapToList(response.data()))
+        return new ApiAggregatedMessageLogsResponse()
+            .data(ApiAggregatedMessageLogsMapper.INSTANCE.mapToList(response.data()))
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
             .links(computePaginationLinks(response.total(), paginationParam));
     }
@@ -110,5 +112,27 @@ public class ApiLogsResource extends AbstractResource {
             .connectionLogDetail()
             .map(ApiLogsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
+    }
+
+    @Path("/messages")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    public ApiMessageLogsResponse getApiMessageLogs(
+        @BeanParam @Valid PaginationParam paginationParam,
+        @BeanParam @Valid SearchMessageLogsParam searchMessageMetricsParam
+    ) {
+        var input = new SearchApiMessageLogsUseCase.Input(
+            apiId,
+            ApiMessageLogsMapper.INSTANCE.map(searchMessageMetricsParam),
+            new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
+        );
+
+        var output = searchApiMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        return new ApiMessageLogsResponse()
+            .data(ApiMessageLogsMapper.INSTANCE.map(output.data()))
+            .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
+            .links(computePaginationLinks(output.total(), paginationParam));
     }
 }
