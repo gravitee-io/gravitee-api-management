@@ -20,6 +20,8 @@ import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.I
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -58,66 +60,70 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
     private final PermissionService permissionService;
 
     @Override
-    public List<Filter> getUpdatedFilters(@NotNull List<Filter> filters) {
+    public List<Filter> applyPermissionBasedFilters(@NotNull List<Filter> filters) {
         if (filters.isEmpty()) {
-            var apiIds = this.allowedApiIds();
-
-            var filter = new Filter(API, IN, apiIds);
-            filters.add(filter);
-
-            return filters;
+            var allowedApiIds = this.allowedApiIds();
+            var filter = new Filter(API, IN, allowedApiIds);
+            return List.of(filter);
         }
 
-        List<Filter> updatedFilters = filters
+        return getUpdatedFilters(filters);
+    }
+
+    private @NotNull List<Filter> getUpdatedFilters(@NotNull List<Filter> filters) {
+        return filters
             .stream()
             .map(filter -> {
                 if (filter.name() == API) {
-                    switch (filter.operator()) {
-                        case IN:
-                            if (filter.value() instanceof Iterable<?> values) {
-                                var wantedApiIds = new HashSet<String>();
-                                values.forEach(value -> wantedApiIds.add(value.toString()));
-
-                                var apiIds = this.allowedApiIds(wantedApiIds);
-
-                                return new Filter(filter.name(), filter.operator(), apiIds);
-                            } else {
-                                throw new IllegalArgumentException("Filter value must be an Iterable");
-                            }
-                        case EQ:
-                            String apiId = filter.value().toString();
-
-                            var apiIds = this.allowedApiIds(new HashSet<>(List.of(apiId)));
-
-                            if (apiIds.size() == 1 && apiIds.contains(apiId)) {
-                                return filter;
-                            }
-
-                            return new Filter(filter.name(), IN, List.of());
-                        default:
-                            return filter;
-                    }
+                    return switch (filter.operator()) {
+                        case IN -> getUpdatedInFilter(filter);
+                        case EQ -> getUpdatedEqFilter(filter);
+                        default -> filter;
+                    };
                 }
 
                 return filter;
             })
             .toList();
+    }
 
-        return updatedFilters;
+    private @NotNull Filter getUpdatedInFilter(@NotNull Filter filter) {
+        if (!(filter.value() instanceof Iterable<?>)) {
+            throw new IllegalArgumentException("Filter value must be an Iterable");
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<String> wantedApiIds = objectMapper.convertValue(filter.value(), new TypeReference<>() {});
+
+        var apiIds = this.allowedApiIdsFilteredBy(new HashSet<>(wantedApiIds));
+
+        return new Filter(filter.name(), IN, apiIds);
+    }
+
+    private @NotNull Filter getUpdatedEqFilter(Filter filter) {
+        String apiId = filter.value().toString();
+
+        var apiIds = this.allowedApiIdsFilteredBy(apiId);
+
+        if (apiIds.contains(apiId)) {
+            return filter;
+        }
+
+        return new Filter(filter.name(), IN, List.of());
     }
 
     // Find all API IDs a user can access.
     @NotNull
     private List<String> allowedApiIds() {
-        return allowedApiIds(null);
+        return allowedApiIdsFilteredBy((Set<String>) null);
     }
 
     // Find all API IDs a user can access.
-    // If the wantedApiIds is null, the method will return all APIs the user can access.
-    // If the wantedApiIds parameter is not empty, those IDs will set a limit to the IDs that can be returned. empty values are ignored.
-    // If the wantedApiIds parameter is empty, an empty list will be returned.
+    // If wantedApiIds is null, the method will return all APIs the user can access. This is equivalent to calling allowedApiIds().
+    // If wantedApiIds is empty, an empty list will be returned.
+    // If wantedApiIds is not empty, those IDs will limit the IDs that can be returned.
     @NotNull
-    private List<String> allowedApiIds(Set<String> wantedApiIds) {
+    private List<String> allowedApiIdsFilteredBy(Set<String> wantedApiIds) {
         if (CollectionUtils.isInitializedAndEmpty(wantedApiIds)) {
             return List.of();
         }
@@ -144,6 +150,13 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
             .stream()
             .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
             .toList();
+    }
+
+    // Find all API IDs a user can access and returns a list with a single item if apiId is allowed.
+    @NotNull
+    private List<String> allowedApiIdsFilteredBy(String apiId) {
+        var wantedSet = new HashSet<>(List.of(apiId));
+        return allowedApiIdsFilteredBy(wantedSet);
     }
 
     protected boolean isAdmin() {

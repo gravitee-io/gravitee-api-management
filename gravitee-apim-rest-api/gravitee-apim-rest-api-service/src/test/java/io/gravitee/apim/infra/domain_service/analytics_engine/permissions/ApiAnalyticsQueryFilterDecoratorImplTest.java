@@ -23,6 +23,7 @@ import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.L
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,7 +80,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
 
         @BeforeEach
         void setUp() {
-            HashSet<String> set = new HashSet<>(allApiIds);
+            var set = new HashSet<>(allApiIds);
             when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn((Set<String>) set.clone(), (Set<String>) set.clone());
         }
 
@@ -90,7 +91,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(organizationAdmin);
 
             var emptyFilters = new ArrayList<Filter>();
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(emptyFilters);
 
             assertThat(updatedFilters)
                 .singleElement()
@@ -112,7 +113,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             var EqualityFilter = new Filter(API, EQ, apiId7);
             List<Filter> filters = List.of(EqualityFilter);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
 
             assertThat(updatedFilters).isEqualTo(filters);
         }
@@ -124,12 +125,12 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(organizationAdmin);
 
             var EqualityFilter = new Filter(API, EQ, "invalid-api-id");
-            List<Filter> filters = List.of(EqualityFilter);
+            var filters = List.of(EqualityFilter);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
 
             var emptyFilter = new Filter(API, IN, List.of());
-            assertThat(updatedFilters).isEqualTo(List.of(emptyFilter));
+            assertThat(updatedFilters).containsExactly(emptyFilter);
         }
 
         @ParameterizedTest
@@ -139,7 +140,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(organizationAdmin);
 
             var filters = List.of(new Filter(API, IN, List.of(apiId1, apiId3, apiId7, "invalid-api-id")));
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
 
             var allowedApiIds = List.of(apiId1, apiId3, apiId7);
             assertThat(updatedFilters)
@@ -160,16 +161,18 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(organizationAdmin);
 
             var equalityFilter1 = new Filter(API, EQ, apiId5);
-            var equalityFilter2 = new Filter(API, EQ, "invalid-api-id");
             var listFilter = new Filter(API, IN, List.of(apiId7, "invalid-api-id"));
+            var equalityFilter2 = new Filter(API, EQ, "invalid-api-id");
 
-            List<Filter> filters = List.of(equalityFilter1, listFilter, equalityFilter2);
+            var filters = List.of(equalityFilter1, listFilter, equalityFilter2);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
 
-            assertThat(updatedFilters).size().isEqualTo(3);
-            assertThat(updatedFilters.get(0)).isEqualTo(equalityFilter1);
-            assertThat(updatedFilters.get(1)).isEqualTo(new Filter(API, IN, List.of(apiId7)));
+            assertThat(updatedFilters).containsExactly(
+                equalityFilter1,
+                new Filter(API, IN, List.of(apiId7)),
+                new Filter(API, IN, List.of())
+            );
         }
 
         @Test
@@ -179,9 +182,10 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
 
             var filter1 = new Filter(API, LTE, "some-value");
             var filter2 = new Filter(API, GTE, "other-value");
-            List<Filter> filters = List.of(filter1, filter2);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var filters = List.of(filter1, filter2);
+
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
 
             assertThat(updatedFilters).isEqualTo(filters);
         }
@@ -238,7 +242,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(environmentUser);
 
             var emptyFilters = new ArrayList<Filter>();
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(emptyFilters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(emptyFilters);
 
             assertThat(updatedFilters)
                 .singleElement()
@@ -258,9 +262,8 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(environmentUser);
 
             var filter = new Filter(API, EQ, args.wantedApiId);
-            List<Filter> filters = List.of(filter);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(List.of(filter));
 
             assertThat(updatedFilters)
                 .singleElement()
@@ -278,7 +281,8 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             setAuthorities(environmentUser);
 
             var filter = new Filter(API, IN, args.wantedApiIds);
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(List.of(filter));
+
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(List.of(filter));
 
             assertThat(updatedFilters)
                 .singleElement()
@@ -300,14 +304,16 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
             var equalityFilter1 = new Filter(API, EQ, apiId4);
             var equalityFilter2 = new Filter(API, EQ, "invalid-api-id");
             var listFilter = new Filter(API, IN, List.of(apiId3, apiId7));
-            List<Filter> filters = List.of(equalityFilter1, equalityFilter2, listFilter);
 
-            var updatedFilters = apiAnalyticsQueryFilterDecorator.getUpdatedFilters(filters);
+            var filters = List.of(equalityFilter1, equalityFilter2, listFilter);
 
-            assertThat(updatedFilters).size().isEqualTo(3);
-            assertThat(updatedFilters.get(0)).isEqualTo(equalityFilter1);
-            assertThat(updatedFilters.get(1)).isEqualTo(new Filter(API, IN, List.of()));
-            assertThat(updatedFilters.get(2)).isEqualTo(new Filter(API, IN, List.of(apiId3)));
+            var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
+
+            assertThat(updatedFilters).containsExactly(
+                equalityFilter1,
+                new Filter(API, IN, List.of()),
+                new Filter(API, IN, List.of(apiId3))
+            );
         }
 
         static Stream<EqTestArguments> eqTestParams() {
@@ -392,5 +398,33 @@ class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
 
             return roles.stream();
         }
+    }
+
+    @Test
+    void should_throw_exception_when_IN_filter_is_not_an_iterable() {
+        GrantedAuthority grantedAuthority = () -> environmentAdminRole;
+        setAuthorities(grantedAuthority);
+
+        var filters = List.of(new Filter(API, IN, 1));
+
+        assertThatThrownBy(() -> apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Filter value must be an Iterable");
+    }
+
+    @Test
+    void should_throw_exception_when_IN_filter_contains_non_string_values() {
+        var set = new HashSet<>(allApiIds);
+        when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn((Set<String>) set.clone(), (Set<String>) set.clone());
+
+        GrantedAuthority grantedAuthority = () -> environmentAdminRole;
+        setAuthorities(grantedAuthority);
+
+        var filters = List.of(new Filter(API, IN, List.of(apiId2, true, 6)));
+
+        var updatedFilters = apiAnalyticsQueryFilterDecorator.applyPermissionBasedFilters(filters);
+
+        var expectedFilter = new Filter(API, IN, List.of(apiId2));
+        assertThat(updatedFilters).containsExactly(expectedFilter);
     }
 }
