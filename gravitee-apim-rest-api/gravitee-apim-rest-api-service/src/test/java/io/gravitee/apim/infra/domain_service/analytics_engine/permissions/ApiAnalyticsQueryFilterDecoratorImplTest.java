@@ -35,7 +35,6 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -201,6 +200,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
             String description
         ) {}
 
+        @Builder
         record InTestArguments(String role, List<String> wantedApiIds, List<String> expectedApiIds, String description) {}
 
         final String user = "testUser";
@@ -346,28 +346,40 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         static Stream<InTestArguments> inTestParams() {
             return nonAdminRoles().mapMulti((role, consumer) -> {
-                consumer.accept(new InTestArguments(role, List.of(), List.of(), "User requesting an empty list should get an empty list"));
                 consumer.accept(
-                    new InTestArguments(role, List.of(apiId3, apiId5), List.of(apiId3, apiId5), "User has access to the IDs requested")
+                    InTestArguments.builder()
+                        .description("User requesting an empty list should get an empty list")
+                        .role(role)
+                        .wantedApiIds(List.of())
+                        .expectedApiIds(List.of())
+                        .build()
                 );
+
                 consumer.accept(
-                    new InTestArguments(
-                        role,
-                        List.of(apiId7, apiId8),
-                        Collections.emptyList(),
-                        "User doesn't have access to the IDs requested"
-                    )
+                    InTestArguments.builder()
+                        .description("User has access to the API IDs requested")
+                        .role(role)
+                        .wantedApiIds(List.of(apiId3, apiId5))
+                        .expectedApiIds(List.of(apiId3, apiId5))
+                        .build()
                 );
+
                 consumer.accept(
-                    new InTestArguments(role, List.of(apiId3, apiId7), List.of(apiId3), "User has access to some if the IDs requested")
+                    InTestArguments.builder()
+                        .description("User doesn't have access to the API IDs requested")
+                        .role(role)
+                        .wantedApiIds(List.of(apiId7, apiId8))
+                        .expectedApiIds(List.of())
+                        .build()
                 );
+
                 consumer.accept(
-                    new InTestArguments(
-                        role,
-                        List.of(apiId3, apiId5, "invalid-api-id"),
-                        List.of(apiId3, apiId5),
-                        "User request some invalid IDs"
-                    )
+                    InTestArguments.builder()
+                        .description("User has access to some if the API IDs requested")
+                        .role(role)
+                        .wantedApiIds(List.of(apiId3, apiId5, "invalid-api-id"))
+                        .expectedApiIds(List.of(apiId3, apiId5))
+                        .build()
                 );
             });
         }
