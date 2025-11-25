@@ -15,22 +15,23 @@
  */
 package io.gravitee.repository.log.v4.api;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
-import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
-import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
-import java.util.Optional;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.message.MessageMetrics;
+import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
+import java.util.List;
 
-public interface LogRepository {
-    Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query)
-        throws AnalyticsException;
+/**
+ * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface MetricsRepository {
+    LogResponse<MessageMetrics> searchMessageMetrics(QueryContext queryContext, MessageMetricsQuery metricsQuery) throws AnalyticsException;
 
-    LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query)
-        throws AnalyticsException;
-
-    LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query)
+    LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions)
         throws AnalyticsException;
 }

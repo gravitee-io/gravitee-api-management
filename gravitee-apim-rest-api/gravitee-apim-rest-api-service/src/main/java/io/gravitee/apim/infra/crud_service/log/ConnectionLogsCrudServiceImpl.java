@@ -21,10 +21,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
+import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -48,9 +49,11 @@ import org.springframework.stereotype.Component;
 class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
     private final LogRepository logRepository;
+    private final MetricsRepository metricsRepository;
 
-    public ConnectionLogsCrudServiceImpl(@Lazy LogRepository logRepository) {
+    public ConnectionLogsCrudServiceImpl(@Lazy LogRepository logRepository, @Lazy MetricsRepository metricsRepository) {
         this.logRepository = logRepository;
+        this.metricsRepository = metricsRepository;
     }
 
     @Override
@@ -148,7 +151,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         }
     }
 
-    private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
+    private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<Metrics> logs) {
         var total = logs != null ? logs.total() : 0L;
         var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs != null ? logs.data() : new ArrayList<>());
 
@@ -161,8 +164,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         return ConnectionLogAdapter.INSTANCE.toEntity(connectionLogDetail);
     }
 
-    private static ConnectionLogQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(SearchLogsFilters searchLogsFilters) {
-        return ConnectionLogQuery.Filter.builder()
+    private static MetricsQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(SearchLogsFilters searchLogsFilters) {
+        return MetricsQuery.Filter.builder()
             .from(searchLogsFilters.from())
             .to(searchLogsFilters.to())
             .applicationIds(searchLogsFilters.applicationIds())
@@ -192,19 +195,15 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .bodyText(searchLogsFilters.bodyText());
     }
 
-    private @NotNull LogResponse<ConnectionLog> getConnectionLogsResponse(
+    private @NotNull LogResponse<Metrics> getConnectionLogsResponse(
         ExecutionContext executionContext,
-        ConnectionLogQuery.Filter connectionLogQueryFilter,
+        MetricsQuery.Filter connectionLogQueryFilter,
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
     ) throws AnalyticsException {
-        return logRepository.searchConnectionLogs(
+        return metricsRepository.searchMetrics(
             new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-            ConnectionLogQuery.builder()
-                .filter(connectionLogQueryFilter)
-                .page(pageable.getPageNumber())
-                .size(pageable.getPageSize())
-                .build(),
+            MetricsQuery.builder().filter(connectionLogQueryFilter).page(pageable.getPageNumber()).size(pageable.getPageSize()).build(),
             definitionVersions
         );
     }

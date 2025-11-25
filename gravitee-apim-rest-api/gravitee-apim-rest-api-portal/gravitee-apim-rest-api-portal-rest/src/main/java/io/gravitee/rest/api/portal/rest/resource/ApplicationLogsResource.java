@@ -19,8 +19,8 @@ import static java.lang.String.format;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.log.model.ConnectionLog;
+import io.gravitee.apim.core.log.use_case.SearchApiAggregatedMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogDetailUseCase;
-import io.gravitee.apim.core.log.use_case.SearchApiMessageLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchApplicationConnectionLogsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.MediaType;
@@ -51,15 +51,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -80,7 +73,7 @@ public class ApplicationLogsResource extends AbstractResource {
     private SearchApiConnectionLogDetailUseCase searchApiConnectionLogDetailUseCase;
 
     @Inject
-    private SearchApiMessageLogsUseCase searchMessageLogsUseCase;
+    private SearchApiAggregatedMessageLogsUseCase searchMessageLogsUseCase;
 
     private final LogMapper logMapper = LogMapper.INSTANCE;
 
@@ -98,7 +91,7 @@ public class ApplicationLogsResource extends AbstractResource {
 
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
 
-        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).collect(Collectors.toList());
+        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).toList();
 
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
@@ -229,7 +222,7 @@ public class ApplicationLogsResource extends AbstractResource {
         );
         var result = searchMessageLogsUseCase.execute(
             GraviteeContext.getExecutionContext(),
-            new SearchApiMessageLogsUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId(), pageable)
+            new SearchApiAggregatedMessageLogsUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId(), pageable)
         );
 
         var metadata = getMetadataForApplicationConnectionLog(List.of(connectionLog), result.total());

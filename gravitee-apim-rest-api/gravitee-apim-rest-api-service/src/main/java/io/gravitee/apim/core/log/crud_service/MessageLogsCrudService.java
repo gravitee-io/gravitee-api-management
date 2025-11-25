@@ -13,39 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.use_case;
+package io.gravitee.apim.core.log.crud_service;
 
-import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.log.crud_service.MessageLogsCrudService;
 import io.gravitee.apim.core.log.model.MessageMetrics;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-
-@UseCase
-@RequiredArgsConstructor
-public class SearchApiMessageLogsUseCase {
-
-    private final MessageLogsCrudService messageMetricsCrudService;
-
-    public record Input(String apiId, SearchMessageLogsFilters searchMessageMetricsFilters, Pageable pageable) {}
-
-    public record Output(long total, List<MessageMetrics> data) {}
-
-    public Output execute(ExecutionContext executionContext, Input input) {
-        var response = messageMetricsCrudService.searchApiMessageLogs(
-            executionContext,
-            input.apiId(),
-            input.searchMessageMetricsFilters(),
-            input.pageable()
-        );
-        return new Output(response.total(), response.logs());
-    }
+public interface MessageLogsCrudService {
+    SearchLogsResponse<MessageMetrics> searchApiMessageLogs(
+        ExecutionContext executionContext,
+        String apiId,
+        SearchMessageLogsFilters filters,
+        Pageable pageable
+    );
 }

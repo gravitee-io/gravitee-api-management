@@ -19,21 +19,19 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
+import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.Metrics;
+import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -48,16 +46,18 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class ConnectionLogsCrudServiceImplTest {
+class ConnectionLogsCrudServiceImplTest {
 
     LogRepository logRepository;
 
     ConnectionLogsCrudServiceImpl logCrudService;
+    MetricsRepository metricsRepository;
 
     @BeforeEach
     void setUp() {
         logRepository = mock(LogRepository.class);
-        logCrudService = new ConnectionLogsCrudServiceImpl(logRepository);
+        metricsRepository = mock(MetricsRepository.class);
+        logCrudService = new ConnectionLogsCrudServiceImpl(logRepository, metricsRepository);
     }
 
     @Nested
@@ -245,7 +245,7 @@ public class ConnectionLogsCrudServiceImplTest {
         @Test
         void should_search_connection_logs_with_empty_query() throws AnalyticsException {
             when(
-                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+                metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
             ).thenReturn(new LogResponse<>(1, List.of()));
 
             logCrudService.searchApplicationConnectionLogs(
@@ -256,10 +256,10 @@ public class ConnectionLogsCrudServiceImplTest {
             );
 
             var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
-            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository).searchConnectionLogs(
+            var captorMetricsQuery = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(
                 captorQueryContext.capture(),
-                captorConnectionLogQuery.capture(),
+                captorMetricsQuery.capture(),
                 eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
             );
 
@@ -267,17 +267,15 @@ public class ConnectionLogsCrudServiceImplTest {
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
-                ConnectionLogQuery.builder()
-                    .filter(ConnectionLogQuery.Filter.builder().applicationIds(Set.of("application-id")).build())
-                    .build()
+            assertThat(captorMetricsQuery.getValue()).isEqualTo(
+                MetricsQuery.builder().filter(MetricsQuery.Filter.builder().applicationIds(Set.of("application-id")).build()).build()
             );
         }
 
         @Test
         void should_search_connection_logs_with_query() throws AnalyticsException {
             when(
-                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+                metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
             ).thenReturn(new LogResponse<>(1, List.of()));
 
             logCrudService.searchApplicationConnectionLogs(
@@ -297,10 +295,10 @@ public class ConnectionLogsCrudServiceImplTest {
             );
 
             var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
-            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository).searchConnectionLogs(
+            var captorMetricsQuery = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(
                 captorQueryContext.capture(),
-                captorConnectionLogQuery.capture(),
+                captorMetricsQuery.capture(),
                 eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
             );
 
@@ -308,10 +306,10 @@ public class ConnectionLogsCrudServiceImplTest {
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
-                ConnectionLogQuery.builder()
+            assertThat(captorMetricsQuery.getValue()).isEqualTo(
+                MetricsQuery.builder()
                     .filter(
-                        ConnectionLogQuery.Filter.builder()
+                        MetricsQuery.Filter.builder()
                             .to(1L)
                             .from(0L)
                             .apiIds(Set.of("api-1"))
@@ -354,7 +352,7 @@ public class ConnectionLogsCrudServiceImplTest {
                 captorConnectionLogDetailQuery.capture()
             );
 
-            verify(logRepository, never()).searchConnectionLogs(any(), any(), any());
+            verify(metricsRepository, never()).searchMetrics(any(), any(), any());
 
             final QueryContext captorConnectionLogDetailQueryContextValue = captorConnectionLogDetailQueryContext.getValue();
             assertThat(captorConnectionLogDetailQueryContextValue.getOrgId()).isEqualTo("DEFAULT");
@@ -392,14 +390,14 @@ public class ConnectionLogsCrudServiceImplTest {
             );
 
             when(
-                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+                metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
             ).thenReturn(
                 new LogResponse<>(
                     3,
                     List.of(
-                        ConnectionLog.builder().requestId("r-1").build(),
-                        ConnectionLog.builder().requestId("r-2").build(),
-                        ConnectionLog.builder().requestId("r-3").build()
+                        Metrics.builder().requestId("r-1").build(),
+                        Metrics.builder().requestId("r-2").build(),
+                        Metrics.builder().requestId("r-3").build()
                     )
                 )
             );
@@ -428,11 +426,11 @@ public class ConnectionLogsCrudServiceImplTest {
                 captorConnectionLogDetailQuery.capture()
             );
 
-            var captorConnectionLogQueryContext = ArgumentCaptor.forClass(QueryContext.class);
-            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository).searchConnectionLogs(
-                captorConnectionLogQueryContext.capture(),
-                captorConnectionLogQuery.capture(),
+            var captorMetricsQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+            var captorMetricsQuery = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(
+                captorMetricsQueryContext.capture(),
+                captorMetricsQuery.capture(),
                 eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
             );
 
@@ -456,14 +454,14 @@ public class ConnectionLogsCrudServiceImplTest {
                     .build()
             );
 
-            final QueryContext queryContext = captorConnectionLogQueryContext.getValue();
+            final QueryContext queryContext = captorMetricsQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
-                ConnectionLogQuery.builder()
+            assertThat(captorMetricsQuery.getValue()).isEqualTo(
+                MetricsQuery.builder()
                     .filter(
-                        ConnectionLogQuery.Filter.builder()
+                        MetricsQuery.Filter.builder()
                             .to(1L)
                             .from(0L)
                             .apiIds(Set.of("api-1"))
@@ -493,14 +491,14 @@ public class ConnectionLogsCrudServiceImplTest {
             );
 
             when(
-                logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
+                metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
             ).thenReturn(
                 new LogResponse<>(
                     3,
                     List.of(
-                        ConnectionLog.builder().requestId("r-1").build(),
-                        ConnectionLog.builder().requestId("r-2").build(),
-                        ConnectionLog.builder().requestId("r-3").build()
+                        Metrics.builder().requestId("r-1").build(),
+                        Metrics.builder().requestId("r-2").build(),
+                        Metrics.builder().requestId("r-3").build()
                     )
                 )
             );
@@ -529,11 +527,11 @@ public class ConnectionLogsCrudServiceImplTest {
                 captorConnectionLogDetailQuery.capture()
             );
 
-            var captorConnectionLogQueryContext = ArgumentCaptor.forClass(QueryContext.class);
-            var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository).searchConnectionLogs(
-                captorConnectionLogQueryContext.capture(),
-                captorConnectionLogQuery.capture(),
+            var captorMetricsQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+            var captorMetricsQuery = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(
+                captorMetricsQueryContext.capture(),
+                captorMetricsQuery.capture(),
                 eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
             );
 
@@ -558,14 +556,14 @@ public class ConnectionLogsCrudServiceImplTest {
                     .build()
             );
 
-            final QueryContext queryContext = captorConnectionLogQueryContext.getValue();
+            final QueryContext queryContext = captorMetricsQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
-                ConnectionLogQuery.builder()
+            assertThat(captorMetricsQuery.getValue()).isEqualTo(
+                MetricsQuery.builder()
                     .filter(
-                        ConnectionLogQuery.Filter.builder()
+                        MetricsQuery.Filter.builder()
                             .to(1L)
                             .from(0L)
                             .apiIds(Set.of("api-1"))

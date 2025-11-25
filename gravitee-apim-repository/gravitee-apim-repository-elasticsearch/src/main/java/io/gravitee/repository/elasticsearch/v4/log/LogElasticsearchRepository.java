@@ -25,22 +25,15 @@ import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguratio
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogDetailQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogDetailResponseAdapter;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogResponseAdapter;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsResponseAdapter;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageQueryAdapter;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
-import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.reactivex.rxjava3.core.Single;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,23 +46,11 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public LogResponse<ConnectionLog> searchConnectionLogs(
-        QueryContext queryContext,
-        ConnectionLogQuery query,
-        List<DefinitionVersion> definitionVersions
-    ) {
-        var indexes = getQueryIndexesFromDefinitionVersions(Type.REQUEST, Type.V4_METRICS, queryContext, definitionVersions);
-
-        return this.client.search(indexes, null, SearchConnectionLogQueryAdapter.adapt(query))
-            .map(SearchConnectionLogResponseAdapter::adapt)
-            .blockingGet();
-    }
-
-    @Override
     public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
         var indexes = getQueryIndexesFromDefinitionVersions(
             Type.LOG,
             Type.V4_LOG,
+            configuration,
             queryContext,
             List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
@@ -84,6 +65,7 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         var indexes = getQueryIndexesFromDefinitionVersions(
             Type.LOG,
             Type.V4_LOG,
+            configuration,
             queryContext,
             List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
@@ -101,7 +83,7 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         var entrypointMessages = this.client.search(
             index,
             null,
-            SearchMessageQueryAdapter.adapt(
+            SearchMessageLogQueryAdapter.adapt(
                 query.toBuilder().filter(query.getFilter().toBuilder().connectorType("entrypoint").build()).build()
             )
         ).map(response -> {
@@ -117,7 +99,7 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         var endpointMessages = this.client.search(
             index,
             null,
-            SearchMessageQueryAdapter.adapt(
+            SearchMessageLogQueryAdapter.adapt(
                 query.toBuilder().filter(query.getFilter().toBuilder().connectorType("endpoint").build()).build()
             )
         ).map(response -> {
@@ -147,52 +129,5 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
                 SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse)
             );
         }).blockingGet();
-    }
-
-    @Override
-    public LogResponse<MessageMetrics> searchMessageMetrics(QueryContext queryContext, MessageLogQuery query) {
-        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
-
-        return this.client.search(index, null, SearchMessageQueryAdapter.adapt(query))
-            .map(response -> {
-                var result = response.getSearchHits();
-                if (result == null) {
-                    SearchHits searchHits = new SearchHits();
-                    searchHits.setTotal(new TotalHits(0));
-                    return searchHits;
-                }
-                return result;
-            })
-            .map(hits -> new LogResponse<>((int) hits.getTotal().getValue(), SearchMessageMetricsResponseAdapter.adapt(hits)))
-            .blockingGet();
-    }
-
-    private String getQueryIndexesFromDefinitionVersions(
-        Type v2Index,
-        Type v4Index,
-        QueryContext queryContext,
-        List<DefinitionVersion> definitionVersions
-    ) {
-        var isDefinitionVersionsNullOrEmpty = definitionVersions == null || definitionVersions.isEmpty();
-
-        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v2Index, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v4Index, clusters);
-
-        var indexes = new ArrayList<String>();
-
-        if (isDefinitionVersionsNullOrEmpty || definitionVersions.contains(DefinitionVersion.V4)) {
-            indexes.add(indexV4Metrics);
-        }
-        if (
-            isDefinitionVersionsNullOrEmpty ||
-            definitionVersions.contains(DefinitionVersion.V2) ||
-            definitionVersions.contains(DefinitionVersion.V1)
-        ) {
-            indexes.add(indexV2Request);
-        }
-
-        return String.join(",", indexes);
     }
 }

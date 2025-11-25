@@ -79,8 +79,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public MessageMetricsCrudServiceInMemory messageMetricsCrudService() {
-        return new MessageMetricsCrudServiceInMemory();
+    public MessageLogsCrudServiceInMemory messageLogsCrudService() {
+        return new MessageLogsCrudServiceInMemory();
     }
 
     @Bean
@@ -89,8 +89,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public MessageLogCrudServiceInMemory messageLogRepository() {
-        return new MessageLogCrudServiceInMemory();
+    public AggregatedMessageLogCrudServiceInMemory aggregatedMessageLogRepository() {
+        return new AggregatedMessageLogCrudServiceInMemory();
     }
 
     @Bean

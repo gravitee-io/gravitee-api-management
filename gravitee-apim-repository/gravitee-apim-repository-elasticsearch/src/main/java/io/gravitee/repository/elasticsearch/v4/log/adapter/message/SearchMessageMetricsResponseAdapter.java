@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.*;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.message.MessageMetricsFields.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.SearchHit;
@@ -40,25 +41,25 @@ public class SearchMessageMetricsResponseAdapter {
 
     private static MessageMetrics map(JsonNode source) {
         return MessageMetrics.builder()
-            .timestamp(asTextOrNull(source.get("@timestamp")))
-            .apiId(asTextOrNull(source.get("api-id")))
-            .apiName(asTextOrNull(source.get("api-name")))
-            .requestId(asTextOrNull(source.get("request-id")))
-            .clientIdentifier(asTextOrNull(source.get("client-identifier")))
-            .correlationId(asTextOrNull(source.get("correlation-id")))
-            .operation(asTextOrNull(source.get("operation")))
-            .connectorType(asTextOrNull(source.get("connector-type")))
-            .connectorId(asTextOrNull(source.get("connector-id")))
-            .gateway(asTextOrNull(source.get("gateway")))
-            .gatewayLatencyMs(asLongOr(source.get("gateway-latency-ms"), 0L))
-            .contentLength(asLongOr(source.get("content-length"), 0L))
-            .error(asBooleanOrFalse(source.get("error")))
-            .count(asLongOr(source.get("count"), 0L))
-            .countIncrement(asLongOr(source.get("count-increment"), 0L))
-            .errorCount(asLongOr(source.get("error-count"), 0L))
-            .errorCountIncrement(asLongOr(source.get("error-count-increment"), 0L))
-            .custom(asMapOrNull(source.get("custom")))
-            .additionalMetrics(asMapOrNull(source.get("additional-metrics")))
+            .timestamp(asTextOrNull(source.get(MessageMetricsFields.TIMESTAMP)))
+            .apiId(asTextOrNull(source.get(API_ID)))
+            .apiName(asTextOrNull(source.get(API_NAME)))
+            .requestId(asTextOrNull(source.get(REQUEST_ID)))
+            .clientIdentifier(asTextOrNull(source.get(CLIENT_IDENTIFIER)))
+            .correlationId(asTextOrNull(source.get(CORRELATION_ID)))
+            .operation(asTextOrNull(source.get(OPERATION)))
+            .connectorType(asTextOrNull(source.get(CONNECTOR_TYPE)))
+            .connectorId(asTextOrNull(source.get(CONNECTOR_ID)))
+            .gateway(asTextOrNull(source.get(GATEWAY)))
+            .gatewayLatencyMs(asLongOr(source.get(GATEWAY_LATENCY_MS), 0L))
+            .contentLength(asLongOr(source.get(CONTENT_LENGTH), 0L))
+            .error(asBooleanOrFalse(source.get(ERROR)))
+            .count(asLongOr(source.get(COUNT), 0L))
+            .countIncrement(asLongOr(source.get(COUNT_INCREMENT), 0L))
+            .errorCount(asLongOr(source.get(ERROR_COUNT), 0L))
+            .errorCountIncrement(asLongOr(source.get(ERROR_COUNT_INCREMENT), 0L))
+            .custom(asMapOrNull(source.get(CUSTOM)))
+            .additionalMetrics(asMapOrNull(source.get(ADDITIONAL_METRICS)))
             .build();
     }
 }
