@@ -1,0 +1,177 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="quick-filters">
+  <div class="quick-filters__row">
+    @if (quickFiltersForm) {
+      <form class="quick-filters__selectors" [formGroup]="quickFiltersForm">
+        <mat-form-field class="quick-filters__search">
+          <mat-label>Search Logs</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search request ID, URL, or application" formControlName="searchTerm" />
+          @if (quickFiltersForm.controls.searchTerm.value) {
+            <button matSuffix mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="quick-filters__period">
+          <mat-label>Period</mat-label>
+          <mat-select formControlName="period" [compareWith]="comparePeriods">
+            @for (period of periods; track period.value) {
+              <mat-option [value]="period">{{ period.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="quick-filters__status" appearance="outline">
+          <mat-label>HTTP Status</mat-label>
+          <mat-select formControlName="statuses" multiple aria-label="Filter by HTTP Status" panelClass="quick-filters__status-panel">
+            @for (httpStatus of httpStatusChoices; track httpStatus) {
+              <mat-option [value]="httpStatus.value">{{ httpStatus.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="quick-filters__applications">
+          <webhook-logs-applications-filter
+            formControlName="applications"
+            (applicationCache)="onApplicationCache($event)"
+          ></webhook-logs-applications-filter>
+        </div>
+
+        <div class="quick-filters__buttons">
+          <div class="action">
+            <webhook-logs-more-filters
+              [showMoreFilters]="showMoreFilters"
+              [formValues]="moreFiltersValues"
+              [callbackUrls]="availableCallbackUrls"
+              (closeMoreFiltersEvent)="showMoreFilters = false"
+              (applyMoreFiltersEvent)="applyMoreFilters($event)"
+            ></webhook-logs-more-filters>
+            <button
+              mat-stroked-button
+              type="button"
+              class="action__button"
+              [disabled]="loading()"
+              data-testid="more-button"
+              (click)="openMoreFilters()"
+            >
+              <mat-icon svgIcon="gio:filter"></mat-icon>
+              More
+            </button>
+          </div>
+          <div class="action">
+            <button
+              mat-stroked-button
+              type="button"
+              class="action__button"
+              [attr.aria-label]="'Refresh'"
+              (click)="refresh.emit()"
+              [disabled]="loading()"
+              data-testid="refresh-button"
+            >
+              <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+
+  <div class="quick-filters__applied">
+    @if (isFiltering) {
+      <mat-chip-listbox class="quick-filters__chip_list">
+        <span class="quick-filters__applied-label">Filters applied:</span>
+        @if (currentFilters.searchTerm) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="clearSearch()">
+            <span class="quick-filters__chip__key">Search:</span>
+            <span class="quick-filters__chip__value">{{ currentFilters.searchTerm }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+
+        @if (currentFilters.period) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removePeriod()">
+            <span class="quick-filters__chip__key">Period:</span>
+            <span class="quick-filters__chip__value">{{ currentFilters.period.label }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+
+        @if (currentFilters.from) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeDateRange()">
+            <span class="quick-filters__chip__key">From:</span>
+            <span class="quick-filters__chip__value">{{ currentFilters.from | date: 'yyyy-MM-dd HH:mm:ss' }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+
+        @if (currentFilters.to) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeDateRange()">
+            <span class="quick-filters__chip__key">To:</span>
+            <span class="quick-filters__chip__value">{{ currentFilters.to | date: 'yyyy-MM-dd HH:mm:ss' }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+
+        @for (status of currentFilters.statuses; track status) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeStatus(status)">
+            <span class="quick-filters__chip__key">Status:</span>
+            <span class="quick-filters__chip__value">{{ getStatusLabel(status) }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+
+        @for (application of currentFilters.applications; track application.value) {
+          <mat-chip-option
+            class="quick-filters__chip"
+            [removable]="true"
+            [disabled]="loading()"
+            (removed)="removeApplication(application.value)"
+          >
+            <span class="quick-filters__chip__key">Application:</span>
+            <span class="quick-filters__chip__value">{{ application.label }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+        @for (callbackUrl of currentFilters.callbackUrls; track callbackUrl) {
+          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removeCallbackUrl(callbackUrl)">
+            <span class="quick-filters__chip__key">Callback:</span>
+            <span class="quick-filters__chip__value">{{ callbackUrl }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+        <button
+          mat-button
+          type="button"
+          class="quick-filters__reset"
+          data-testid="reset-filters-button"
+          (click)="resetAllFilters()"
+          [disabled]="loading()"
+        >
+          <mat-icon svgIcon="gio:x-circle"></mat-icon>
+          <span class="quick-filters__reset__label">Reset filters</span>
+        </button>
+      </mat-chip-listbox>
+    } @else {
+      <span>No filter applied</span>
+    }
+  </div>
+</div>
