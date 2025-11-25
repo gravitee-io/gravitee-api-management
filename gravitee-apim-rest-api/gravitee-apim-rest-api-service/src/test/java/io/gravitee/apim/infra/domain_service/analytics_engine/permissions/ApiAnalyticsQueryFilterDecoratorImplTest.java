@@ -56,7 +56,7 @@ import org.springframework.security.core.GrantedAuthority;
  * @author GraviteeSource Team
  */
 @DisplayName("analytics filters")
-public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
+class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermissionsTest {
 
     static final String apiId1 = "api-id-1";
     static final String apiId2 = "api-id-2";
@@ -78,14 +78,14 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
     class AdministratorUsers {
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             HashSet<String> set = new HashSet<>(allApiIds);
             when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn((Set<String>) set.clone(), (Set<String>) set.clone());
         }
 
         @ParameterizedTest
         @ValueSource(strings = { organizationAdminRole, environmentAdminRole })
-        public void should_update_empty_filter_to_include_all_environment_ids(String role) {
+        void should_update_empty_filter_to_include_all_environment_ids(String role) {
             GrantedAuthority organizationAdmin = () -> role;
             setAuthorities(organizationAdmin);
 
@@ -105,7 +105,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @ValueSource(strings = { organizationAdminRole, environmentAdminRole })
-        public void should_allow_access_to_single_api(String role) {
+        void should_allow_access_to_single_api(String role) {
             GrantedAuthority organizationAdmin = () -> role;
             setAuthorities(organizationAdmin);
 
@@ -119,7 +119,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @ValueSource(strings = { organizationAdminRole, environmentAdminRole })
-        public void should_not_allow_access_to_unknown_api_id(String role) {
+        void should_not_allow_access_to_unknown_api_id(String role) {
             GrantedAuthority organizationAdmin = () -> role;
             setAuthorities(organizationAdmin);
 
@@ -134,7 +134,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @ValueSource(strings = { organizationAdminRole, environmentAdminRole })
-        public void should_update_filter_list_to_include_only_valid_api_ids(String role) {
+        void should_update_filter_list_to_include_only_valid_api_ids(String role) {
             GrantedAuthority organizationAdmin = () -> role;
             setAuthorities(organizationAdmin);
 
@@ -155,7 +155,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @ValueSource(strings = { organizationAdminRole, environmentAdminRole })
-        public void should_update_multiple_filters(String role) {
+        void should_update_multiple_filters(String role) {
             GrantedAuthority organizationAdmin = () -> role;
             setAuthorities(organizationAdmin);
 
@@ -173,7 +173,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
         }
 
         @Test
-        public void should_not_change_unsupported_filters() {
+        void should_not_change_unsupported_filters() {
             GrantedAuthority organizationAdmin = () -> environmentAdminRole;
             setAuthorities(organizationAdmin);
 
@@ -209,7 +209,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
         final List<String> apisUserCanRead = Arrays.asList(apiId3, apiId4, apiId5);
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             setAuthenticatedUsername(user);
 
             when(permissionService.hasPermission(any(), eq(API_ANALYTICS), argThat(apisUserCanRead::contains), eq(READ))).thenReturn(true);
@@ -233,7 +233,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("nonAdminRoles")
-        public void should_update_empty_filter_to_include_allowed_ids(String role) {
+        void should_update_empty_filter_to_include_allowed_ids(String role) {
             GrantedAuthority environmentUser = () -> role;
             setAuthorities(environmentUser);
 
@@ -253,7 +253,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("eqTestParams")
-        public void should_allow_access_to_single_api(EqTestArguments args) {
+        void should_allow_access_to_single_api(EqTestArguments args) {
             GrantedAuthority environmentUser = () -> args.role;
             setAuthorities(environmentUser);
 
@@ -273,7 +273,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("inTestParams")
-        public void should_update_filter_list_to_include_only_valid_api_ids(InTestArguments args) {
+        void should_update_filter_list_to_include_only_valid_api_ids(InTestArguments args) {
             GrantedAuthority environmentUser = () -> args.role;
             setAuthorities(environmentUser);
 
@@ -293,7 +293,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("nonAdminRoles")
-        public void should_update_multiple_filters(String role) {
+        void should_update_multiple_filters(String role) {
             GrantedAuthority environmentUser = () -> role;
             setAuthorities(environmentUser);
 
