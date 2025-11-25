@@ -191,7 +191,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
     @DisplayName("non-administrators see a subset of the metrics")
     class NonAdministratorUsers {
 
-        record eqTestArguments(
+        record EqTestArguments(
             String role,
             String wantedApiId,
             FilterSpec.Operator expectedOperator,
@@ -199,7 +199,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
             String description
         ) {}
 
-        record inTestArguments(String role, List<String> wantedApiIds, List<String> expectedApiIds, String description) {}
+        record InTestArguments(String role, List<String> wantedApiIds, List<String> expectedApiIds, String description) {}
 
         final String user = "testUser";
 
@@ -251,7 +251,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("eqTestParams")
-        public void should_allow_access_to_single_api(eqTestArguments args) {
+        public void should_allow_access_to_single_api(EqTestArguments args) {
             GrantedAuthority environmentUser = () -> args.role;
             setAuthorities(environmentUser);
 
@@ -271,7 +271,7 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
 
         @ParameterizedTest
         @MethodSource("inTestParams")
-        public void should_update_filter_list_to_include_only_valid_api_ids(inTestArguments args) {
+        public void should_update_filter_list_to_include_only_valid_api_ids(InTestArguments args) {
             GrantedAuthority environmentUser = () -> args.role;
             setAuthorities(environmentUser);
 
@@ -308,22 +308,22 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
             assertThat(updatedFilters.get(2)).isEqualTo(new Filter(API, IN, List.of(apiId3)));
         }
 
-        static Stream<eqTestArguments> eqTestParams() {
+        static Stream<EqTestArguments> eqTestParams() {
             return nonAdminRoles().mapMulti((role, consumer) -> {
-                consumer.accept(new eqTestArguments(role, apiId3, EQ, apiId3, "User has access to the ID requested"));
-                consumer.accept(new eqTestArguments(role, apiId7, IN, List.of(), "User doesn't have access to the ID requested"));
-                consumer.accept(new eqTestArguments(role, "invalid-api-id", IN, List.of(), "User requests invalid API ID"));
+                consumer.accept(new EqTestArguments(role, apiId3, EQ, apiId3, "User has access to the ID requested"));
+                consumer.accept(new EqTestArguments(role, apiId7, IN, List.of(), "User doesn't have access to the ID requested"));
+                consumer.accept(new EqTestArguments(role, "invalid-api-id", IN, List.of(), "User requests invalid API ID"));
             });
         }
 
-        static Stream<inTestArguments> inTestParams() {
+        static Stream<InTestArguments> inTestParams() {
             return nonAdminRoles().mapMulti((role, consumer) -> {
-                consumer.accept(new inTestArguments(role, List.of(), List.of(), "User requesting an empty list should get an empty list"));
+                consumer.accept(new InTestArguments(role, List.of(), List.of(), "User requesting an empty list should get an empty list"));
                 consumer.accept(
-                    new inTestArguments(role, List.of(apiId3, apiId5), List.of(apiId3, apiId5), "User has access to the IDs requested")
+                    new InTestArguments(role, List.of(apiId3, apiId5), List.of(apiId3, apiId5), "User has access to the IDs requested")
                 );
                 consumer.accept(
-                    new inTestArguments(
+                    new InTestArguments(
                         role,
                         List.of(apiId7, apiId8),
                         Collections.emptyList(),
@@ -331,10 +331,10 @@ public class ApiAnalyticsQueryFilterDecoratorImplTest extends AbstractPermission
                     )
                 );
                 consumer.accept(
-                    new inTestArguments(role, List.of(apiId3, apiId7), List.of(apiId3), "User has access to some if the IDs requested")
+                    new InTestArguments(role, List.of(apiId3, apiId7), List.of(apiId3), "User has access to some if the IDs requested")
                 );
                 consumer.accept(
-                    new inTestArguments(
+                    new InTestArguments(
                         role,
                         List.of(apiId3, apiId5, "invalid-api-id"),
                         List.of(apiId3, apiId5),
