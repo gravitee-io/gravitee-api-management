@@ -14,6 +14,12 @@
                 "@timestamp": {
                     "type": "date"
                 },
+                "org-id": {
+                    "type": "keyword"
+                },
+                "env-id": {
+                    "type": "keyword"
+                },
                 "api": {
                     "type": "keyword"
                 },
@@ -207,6 +213,64 @@
                         "match_mapping_type": "string",
                         "mapping": {
                             "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
                         }
                     }
                 }

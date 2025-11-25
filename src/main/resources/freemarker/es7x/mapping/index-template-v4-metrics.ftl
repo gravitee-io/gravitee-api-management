@@ -14,6 +14,12 @@
             "gateway": {
                 "type": "keyword"
             },
+            "org-id": {
+                "type": "keyword"
+            },
+            "env-id": {
+                "type": "keyword"
+            },
             "@timestamp": {
                 "type": "date"
             },

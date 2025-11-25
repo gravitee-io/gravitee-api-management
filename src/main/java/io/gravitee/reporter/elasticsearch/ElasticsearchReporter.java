@@ -34,7 +34,6 @@ import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.factory.BeanFactory;
 import io.gravitee.reporter.elasticsearch.factory.BeanFactoryBuilder;
-import io.gravitee.reporter.elasticsearch.indexer.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 import java.util.HashSet;
 import java.util.Set;

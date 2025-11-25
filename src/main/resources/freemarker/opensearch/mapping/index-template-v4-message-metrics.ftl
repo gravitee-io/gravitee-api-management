@@ -17,6 +17,12 @@
             "@timestamp": {
                 "type": "date"
             },
+            "org-id": {
+                "type": "keyword"
+            },
+            "env-id": {
+                "type": "keyword"
+            },
             "api-id": {
                 "type": "keyword"
             },
