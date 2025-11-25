@@ -194,7 +194,7 @@ services:
       - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
   kafka:
-    image: docker.io/bitnamilegacy/kafka:3.9
+    image: docker.io/soldevelo/kafka:3.9
     container_name: gio_apim_kafka
     volumes:
       - data-kafka:/bitnami/kafka
