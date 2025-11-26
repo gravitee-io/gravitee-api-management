@@ -111,4 +111,30 @@ class PortalPageContentCrudServiceImplTest {
             assertThat(captor.getValue().getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
         }
     }
+
+    @Nested
+    class UpdatePageContent {
+
+        @Test
+        void should_update_a_page_content() throws TechnicalException {
+            // Given
+            when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            final var pageContentId = PortalPageContentId.random();
+            final var portalPageContent = new GraviteeMarkdownPageContent(
+                pageContentId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                "# Updated Content\n\nThis is the updated content."
+            );
+            final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
+
+            // When
+            service.update(portalPageContent);
+
+            // Then
+            verify(repository).update(captor.capture());
+            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(repoContent);
+        }
+    }
 }
