@@ -28,7 +28,7 @@ import {
   effect,
   ComponentRef,
   Signal,
-  computed,
+  computed, output,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -84,6 +84,8 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     return of({ data, hasNextPage: false });
   });
 
+  selected = output<SelectOption[]>();
+
   // INTERNAL STATE & SIGNALS
   protected isOpen = signal(false);
   protected selectedCount = signal(0);
@@ -134,6 +136,7 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
   writeValue(value: string[]): void {
     this._value = value || [];
     this.selectedCount.set(this._value.length);
+
   }
 
   registerOnChange(fn: (value: string[]) => void): void {

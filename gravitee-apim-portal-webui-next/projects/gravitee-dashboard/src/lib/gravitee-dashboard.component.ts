@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 import { Component, effect, inject, input, model } from '@angular/core';
-import { forkJoin, of, switchMap } from 'rxjs';
+import {forkJoin, map, of, switchMap} from 'rxjs';
 
 import { DropdownSearchComponent } from './components/filter/dropdown-search/dropdown-search.component';
-import { FilterBarComponent } from './components/filter/filter-bar/filter-bar.component';
 import { GridComponent } from './components/grid/grid.component';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
+import {
+  Filter,
+  GenericFilterBarComponent,
+  SelectedFilter
+} from "./components/filter/generic-filter-bar/generic-filter-bar.component";
+import {ActivatedRoute, Router} from "@angular/router";
+import {toSignal} from "@angular/core/rxjs-interop";
 
 @Component({
   selector: 'gd-dashboard',
-  imports: [GridComponent, DropdownSearchComponent, FilterBarComponent],
+  imports: [GridComponent, DropdownSearchComponent, GenericFilterBarComponent],
   template: ` <!--    <gd-filter-bar-->
     <!--      [activeFilters]="activeFilters()"-->
     <!--      [plans]="apiPlans$ | async"-->
     <!--      (filtersChange)="onFiltersChange($event)"-->
     <!--      (refresh)="onRefreshFilters()" />-->
+    <gd-generic-filter-bar [filters]="filters()" [currentSelectedFilters]="currentSelectedFilters()" (selectedFilters)="onSelectedFilters($event)" />
     <gd-grid [items]="widgets()" />`,
   styles: ``,
 })
@@ -37,6 +44,25 @@ export class GraviteeDashboardComponent {
   dashboardService = inject(GraviteeDashboardService);
   baseURL = input.required<string>();
   widgets = model.required<Widget[]>();
+  filters = input.required<Filter[]>();
+
+
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+
+  currentSelectedFilters = toSignal(this.activatedRoute.queryParams.pipe(
+    map(params => {
+      const selectedFilters: SelectedFilter[] = [];
+      for (const key in params) {
+        const values = Array.isArray(params[key]) ? params[key] : [params[key]];
+        values.forEach(value => {
+          selectedFilters.push({ parentKey: key, value: value });
+        });
+      }
+      return selectedFilters;
+    }
+  )), { initialValue: [] as SelectedFilter[] });
+
 
   // public activeFilters: Signal<FilterBarComponent> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
   // private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
@@ -133,6 +159,23 @@ export class GraviteeDashboardComponent {
   //
   //   return params;
   // }
+  onSelectedFilters($event: SelectedFilter[]) {
+    // Create query params for the router from the list
+      // For each selected filter, group by parentKey and create an array of values
+    const queryParams: Record<string, any> = {};
+    $event.forEach(filter => {
+      if (!queryParams[filter.parentKey]) {
+        queryParams[filter.parentKey] = [];
+      }
+      queryParams[filter.parentKey].push(filter.value);
+    });
+    console.log(queryParams)
+
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+    })
+  }
 }
 //
 // interface QueryParamsBase {
