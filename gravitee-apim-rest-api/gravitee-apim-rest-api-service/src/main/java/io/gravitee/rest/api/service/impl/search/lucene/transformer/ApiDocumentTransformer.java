@@ -86,7 +86,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
     public static final String FIELD_PATHS = "paths";
+    public static final String FIELD_PATHS_LOWERCASE = "paths_lowercase";
     public static final String FIELD_HOSTS = "hosts";
+    public static final String FIELD_HOSTS_LOWERCASE = "hosts_lowercase";
     public static final String FIELD_PATHS_SORTED = "paths_sorted";
     public static final String FIELD_PATHS_SPLIT = "paths_split";
     public static final String FIELD_HOSTS_SPLIT = "hosts_split";
@@ -272,9 +274,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
     private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, NO));
+        doc.add(new StringField(FIELD_PATHS_LOWERCASE, path.toLowerCase(), NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, NO));
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, NO));
+            doc.add(new StringField(FIELD_HOSTS_LOWERCASE, host.toLowerCase(), NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, NO));
         }
         if (pathIndex[0]++ == 0) {
