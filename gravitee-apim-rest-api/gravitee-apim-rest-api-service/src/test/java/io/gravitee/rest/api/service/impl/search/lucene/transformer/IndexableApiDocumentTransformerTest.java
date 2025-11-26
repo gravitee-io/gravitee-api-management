@@ -308,6 +308,36 @@ public class IndexableApiDocumentTransformerTest {
     }
 
     @Test
+    void should_index_v4_api_paths_and_hosts_lowercase() {
+        var api = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(API_ID)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .listeners(
+                        List.of(
+                            io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
+                                .paths(
+                                    List.of(
+                                        io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                            .path("/TestPath")
+                                            .host("api.TestHost.com")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+            .build();
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+        var result = cut.transform(indexable);
+        assertThat(result.getFields("paths_lowercase")[0].stringValue()).isEqualTo("/testpath");
+        assertThat(result.getFields("hosts_lowercase")[0].stringValue()).isEqualTo("api.testhost.com");
+    }
+
+    @Test
     void should_sort_names_by_bytesref() throws Exception {
         List<String> names = List.of("Nano", "zorro", "äther", "Vem", "épée", "épona", "Öko", "bns");
         List<String> expectedSorted = List.of("äther", "bns", "épée", "épona", "Nano", "Öko", "Vem", "zorro");
