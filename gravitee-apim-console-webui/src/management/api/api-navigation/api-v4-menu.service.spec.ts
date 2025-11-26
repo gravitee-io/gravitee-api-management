@@ -53,14 +53,15 @@ describe('ApiV4MenuService', () => {
       ],
       imports: [GioTestingModule],
     });
-    service = TestBed.inject(ApiV4MenuService);
   });
 
   it('should be created', () => {
+    service = TestBed.inject(ApiV4MenuService);
     expect(service).toBeTruthy();
   });
 
   it('should include Webhooks menu when webhook entrypoint is present', () => {
+    service = TestBed.inject(ApiV4MenuService);
     const api = fakeApiV4();
 
     const menu = service.getMenu(api);
@@ -69,6 +70,7 @@ describe('ApiV4MenuService', () => {
   });
 
   it('should not include Webhooks menu when webhook entrypoint is absent', () => {
+    service = TestBed.inject(ApiV4MenuService);
     const api = fakeApiV4((base) => ({
       ...base,
       listeners: [
@@ -85,6 +87,7 @@ describe('ApiV4MenuService', () => {
   });
 
   it('should include Webhooks menu when user has api-log-r permission', () => {
+    service = TestBed.inject(ApiV4MenuService);
     const api = fakeApiV4();
 
     const menu = service.getMenu(api);
@@ -93,31 +96,7 @@ describe('ApiV4MenuService', () => {
   });
 
   it('should include Webhooks menu when user has api-log-u permission', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      providers: [
-        ApiV4MenuService,
-        { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
-        {
-          provide: GioTestingPermissionProvider,
-          useValue: ['api-log-u'],
-        },
-        {
-          provide: EnvironmentSettingsService,
-          useValue: {
-            getSnapshot: () => ({ apiScore: { enabled: false } }),
-          },
-        },
-        {
-          provide: ApiDocumentationV2Service,
-          useValue: {
-            getApiPortalUrl: () => 'portal-url',
-            getApiNotInPortalTooltip: () => 'tooltip',
-          },
-        },
-      ],
-      imports: [GioTestingModule],
-    });
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-log-u'] });
     service = TestBed.inject(ApiV4MenuService);
 
     const api = fakeApiV4();
@@ -127,31 +106,7 @@ describe('ApiV4MenuService', () => {
   });
 
   it('should not include Webhooks menu when user lacks api-log-r and api-log-u permissions', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      providers: [
-        ApiV4MenuService,
-        { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
-        {
-          provide: GioTestingPermissionProvider,
-          useValue: ['api-definition-r'],
-        },
-        {
-          provide: EnvironmentSettingsService,
-          useValue: {
-            getSnapshot: () => ({ apiScore: { enabled: false } }),
-          },
-        },
-        {
-          provide: ApiDocumentationV2Service,
-          useValue: {
-            getApiPortalUrl: () => 'portal-url',
-            getApiNotInPortalTooltip: () => 'tooltip',
-          },
-        },
-      ],
-      imports: [GioTestingModule],
-    });
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
     service = TestBed.inject(ApiV4MenuService);
 
     const api = fakeApiV4();
