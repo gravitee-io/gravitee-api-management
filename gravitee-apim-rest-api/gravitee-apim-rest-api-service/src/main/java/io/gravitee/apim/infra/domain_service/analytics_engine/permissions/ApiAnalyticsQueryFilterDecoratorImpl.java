@@ -56,8 +56,8 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
     private final PermissionService permissionService;
 
     @Override
-    public Map<String, AnalyticsQueryFilterDecorator.API> getAllowedApis() {
-        Map<String, API> allowedApis = new HashMap<>();
+    public Map<String, API> getAllowedApis() {
+        var allowedApis = new HashMap<String, API>();
 
         var executionContext = GraviteeContext.getExecutionContext();
         if (isEnvironmentAdmin()) {
