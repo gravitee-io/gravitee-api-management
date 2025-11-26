@@ -21,4 +21,6 @@ public interface PortalPageContentCrudService {
     PortalPageContent create(PortalPageContent content);
 
     PortalPageContent createDefault(String organizationId, String environmentId);
+
+    PortalPageContent update(PortalPageContent content);
 }
