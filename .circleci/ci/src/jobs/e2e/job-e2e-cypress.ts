@@ -34,7 +34,7 @@ export class E2ECypressJob {
     dynamicConfig.addReusableCommand(dockerLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
-    const dockerImageTag = computeImagesTag(environment.branch);
+    const dockerImageTag = computeImagesTag(environment.branch, environment.sha1);
 
     const steps: Command[] = [
       new commands.Checkout(),

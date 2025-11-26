@@ -245,8 +245,15 @@ function dockerTagsArgument(
       // Include qualifier name after full version
       tags.push(stub + graviteeioVersion.version.full + '-' + graviteeioVersion.qualifier.name + suffix);
     }
+  } else if (isSupportBranchOrMaster(environment.branch)) {
+    // master-latest
+    tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${computeImagesTag(environment.branch)}${suffix}`);
+    // master-sha1
+    tags.push(
+      `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${computeImagesTag(environment.branch, environment.sha1)}${suffix}`,
+    );
   } else {
-    const tag = computeImagesTag(environment.branch);
+    const tag = computeImagesTag(environment.branch, environment.sha1);
     tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}${suffix}`);
   }
   return tags;
