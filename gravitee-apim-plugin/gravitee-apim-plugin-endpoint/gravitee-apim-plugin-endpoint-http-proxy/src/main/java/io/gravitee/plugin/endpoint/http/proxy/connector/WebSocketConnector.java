@@ -21,6 +21,9 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.PROXY_AUTHORIZATION;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.PROXY_CONNECTION;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TE;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.CONNECTION;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.UPGRADE;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.TRANSFER_ENCODING;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -41,6 +44,7 @@ import io.vertx.rxjava3.core.http.ServerWebSocket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +53,21 @@ import java.util.stream.Collectors;
  */
 public class WebSocketConnector extends HttpConnector {
 
-    static final Set<CharSequence> HOP_HEADERS = Set.of(KEEP_ALIVE, PROXY_AUTHORIZATION, PROXY_AUTHENTICATE, PROXY_CONNECTION, TE, TRAILER);
+    /**
+     * WebSocket-specific hop-by-hop headers.
+     */
+    static final Set<CharSequence> HOP_HEADERS = Set.of(
+        CONNECTION,
+        UPGRADE,
+        TRANSFER_ENCODING,
+        KEEP_ALIVE,
+        PROXY_AUTHORIZATION,
+        PROXY_AUTHENTICATE,
+        PROXY_CONNECTION,
+        TE,
+        TRAILER
+    );
+
     private static final String HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE = "HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE";
     private static final String HTTP_PROXY_WEBSOCKET_FAILURE = "HTTP_PROXY_WEBSOCKET_FAILURE";
 
@@ -86,9 +104,25 @@ public class WebSocketConnector extends HttpConnector {
                     String selectedSubProtocol = endpointWebSocket.subProtocol();
                     endpointWebSocket.pause();
 
-                    VertxWebSocket vertxWebSocket = (VertxWebSocket) request.webSocket();
-                    return vertxWebSocket
-                        .upgrade(selectedSubProtocol)
+                    endpointWebSocket
+                        .headers()
+                        .forEach(
+                            new BiConsumer<String, String>() {
+                                @Override
+                                public void accept(String s, String s2) {
+                                    ctx.response().headers().add(s, s2);
+                                }
+                            }
+                        );
+
+                    // Remove HOP-by-HOP headers
+                    for (CharSequence header : hopHeaders()) {
+                        ctx.response().headers().remove(header.toString());
+                    }
+
+                    return request
+                        .webSocket()
+                        .upgrade()
                         .doOnSuccess(requestWebSocket -> {
                             ServerWebSocket serverWebSocket = ((VertxWebSocket) requestWebSocket).getDelegate();
                             // Entrypoint to Endpoint
