@@ -48,7 +48,6 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LT;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.FIELD;
@@ -217,20 +216,23 @@ public final class EventMetricsQueryAdapter {
 
     private static ObjectNode applyFixedIntervalAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         TimeRange timeRange = query.timeRange();
-        Duration duration = timeRange
+        Duration interval = timeRange
             .interval()
             .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
         long from = timeRange.from().toEpochMilli();
         long to = timeRange.to().toEpochMilli();
+        long intervalMillis = interval.toMillis();
+        long alignedFrom = (from / intervalMillis) * intervalMillis; // floor
+        long alignedTo = ((to + intervalMillis - 1) / intervalMillis) * intervalMillis; // ceil
 
         ObjectNode intervalNode = aggregationsNode.putObject(PER_INTERVAL);
         ObjectNode histogramNode = intervalNode.putObject(DATE_HISTOGRAM);
         histogramNode.put(FIELD, TIMESTAMP);
-        histogramNode.put(FIXED_INTERVAL, duration.toMillis() + MILLISECONDS);
+        histogramNode.put(FIXED_INTERVAL, intervalMillis + MILLISECONDS);
         histogramNode.put(MIN_DOC_COUNT, 0);
         ObjectNode timeBoundsNode = histogramNode.putObject(EXTENDED_BOUNDS);
-        timeBoundsNode.put(MIN, from);
-        timeBoundsNode.put(MAX, to);
+        timeBoundsNode.put(MIN, alignedFrom);
+        timeBoundsNode.put(MAX, alignedTo);
 
         return intervalNode.putObject(AGGS);
     }
@@ -302,7 +304,7 @@ public final class EventMetricsQueryAdapter {
         ObjectNode node = MAPPER.createObjectNode();
         ObjectNode rangeNode = node.putObject(RANGE).putObject(TIMESTAMP);
         rangeNode.put(GTE, from);
-        rangeNode.put(LTE, to);
+        rangeNode.put(LT, to);
         filters.add(node);
     }
 

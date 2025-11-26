@@ -17,7 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +47,7 @@ public class TimeRangeAdapter {
         ObjectNode rangeNode = MAPPER.createObjectNode();
         ObjectNode tsRange = MAPPER.createObjectNode();
         tsRange.put(GTE, range.from().toEpochMilli());
-        tsRange.put(LTE, range.to().toEpochMilli());
+        tsRange.put(LT, range.to().toEpochMilli());
         rangeNode.set(TIMESTAMP, tsRange);
 
         return MAPPER.createObjectNode().set(RANGE, rangeNode);
