@@ -256,7 +256,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - keeper/env-export:
@@ -334,7 +334,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - aquasec/register_artifact:
@@ -346,7 +346,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-debian
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - aquasec/register_artifact:

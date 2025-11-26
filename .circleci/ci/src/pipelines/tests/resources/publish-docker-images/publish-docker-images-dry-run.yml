@@ -257,7 +257,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - cmd-docker-logout
@@ -310,14 +310,14 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - run:
           name: Build docker image for << parameters.apim-project >>-debian
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest-debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-784ff35-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - cmd-docker-logout

@@ -15,6 +15,8 @@
  */
 import { sanitizeBranch } from './branch';
 
-export function computeImagesTag(branch: string): string {
-  return `${sanitizeBranch(branch)}-latest`;
+export function computeImagesTag(branch: string, sha1?: string): string {
+  const suffix = sha1 ? `${sha1.substring(0, 7)}` : 'latest';
+
+  return `${sanitizeBranch(branch)}-${suffix}`;
 }

@@ -258,16 +258,16 @@ jobs:
               export V4_EMULATION_ENGINE_DEFAULT=no
             fi
             if [ -z "<< parameters.apim_client_tag >>" ]; then
-              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=master-latest yarn test:api:<< parameters.database >>
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=master-784ff35 yarn test:api:<< parameters.database >>
             else 
               if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
                 echo "Using custom registry for client"
                 CLIENT_REGISTRY=$(echo "<< parameters.apim_client_tag >>" | cut -f1 -d@)
                 CLIENT_TAG=$(echo "<< parameters.apim_client_tag >>" | cut -f2 -d@)
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35 APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
               else
                 echo "Using ACR registry for client"
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
               fi
             fi
       - cmd-docker-logout

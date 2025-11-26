@@ -626,7 +626,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - keeper/env-export:
@@ -742,7 +742,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - aquasec/register_artifact:
@@ -754,7 +754,7 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-debian
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-debian -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - aquasec/register_artifact:
@@ -850,16 +850,16 @@ jobs:
               export V4_EMULATION_ENGINE_DEFAULT=no
             fi
             if [ -z "<< parameters.apim_client_tag >>" ]; then
-              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=4.1.x-latest yarn test:api:<< parameters.database >>
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=4.1.x-784ff35 yarn test:api:<< parameters.database >>
             else 
               if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
                 echo "Using custom registry for client"
                 CLIENT_REGISTRY=$(echo "<< parameters.apim_client_tag >>" | cut -f1 -d@)
                 CLIENT_TAG=$(echo "<< parameters.apim_client_tag >>" | cut -f2 -d@)
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-784ff35 APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
               else
                 echo "Using ACR registry for client"
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
               fi
             fi
       - cmd-docker-logout
@@ -888,7 +888,7 @@ jobs:
           name: Running UI tests
           command: |-
             cd gravitee-apim-e2e
-            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest yarn test:ui
+            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-784ff35 yarn test:ui
       - cmd-docker-logout
       - cmd-notify-on-failure
       - store_artifacts:
