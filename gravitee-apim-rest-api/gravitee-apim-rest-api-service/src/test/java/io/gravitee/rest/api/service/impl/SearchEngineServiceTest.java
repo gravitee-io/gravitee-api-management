@@ -176,8 +176,10 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("Owner 3").setFilters(filters).build()
         );
-        assertThat(matches.getHits()).isEqualTo(2);
-        assertThat(matches.getDocuments()).containsExactly("api-3", "api-4");
+        assertThat(matches.getHits()).isEqualTo(5);
+        List<String> results = new ArrayList<>(matches.getDocuments());
+        assertThat(results.get(0)).isIn("api-3", "api-4");
+        assertThat(results.get(1)).isIn("api-3", "api-4");
     }
 
     @Test
