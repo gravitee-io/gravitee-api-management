@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,9 @@ public class ComputeTimeSeriesUseCase {
     private final AnalyticsQueryContextProvider queryContextProvider;
 
     private final AnalyticsQueryValidator validator;
+
+    @Inject
+    private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
     public ComputeTimeSeriesUseCase(AnalyticsQueryContextProvider queryContextProvider, AnalyticsQueryValidator validator) {
         this.queryContextProvider = queryContextProvider;
@@ -61,7 +66,22 @@ public class ComputeTimeSeriesUseCase {
         Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
         var responses = new ArrayList<TimeSeriesResponse>();
-        queryContext.forEach((queryService, request) -> responses.add(queryService.searchTimeSeries(executionContext, request)));
+        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
+
+        queryContext.forEach((queryService, request) -> {
+            var filteredRequest = applyPermissionFilters(request, allowedApis);
+            responses.add(queryService.searchTimeSeries(executionContext, filteredRequest));
+        });
         return responses;
+    }
+
+    // Updates the request filter to limit metric access based on the user permissions
+    private TimeSeriesRequest applyPermissionFilters(
+        TimeSeriesRequest request,
+        Map<String, AnalyticsQueryFilterDecorator.API> allowedApis
+    ) {
+        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
+
+        return new TimeSeriesRequest(request.timeRange(), request.interval(), updatedFilters);
     }
 }
