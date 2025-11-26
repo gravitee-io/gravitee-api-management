@@ -18,14 +18,16 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentRef } from '@angular/core';
+import { ComponentRef, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { of } from 'rxjs';
 
 import { NavBarComponent } from './nav-bar.component';
 import { PortalPage } from '../../entities/portal/portal-page';
+import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation';
 import { fakeUser } from '../../entities/user/user.fixtures';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
@@ -34,21 +36,27 @@ describe('NavBarComponent', () => {
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
   let httpTestingController: HttpTestingController;
-  const customLinks = [
+  const customLinks: PortalNavigationItem[] = [
     {
       id: 'link-id-1',
-      type: 'external',
-      name: 'link-name-1',
-      target: 'link-target-1',
+      organizationId: 'DEFAULT',
+      environmentId: 'DEFAULT',
+      title: 'link-name-1',
+      type: 'LINK',
+      area: 'TOP_NAVBAR',
       order: 1,
-    },
+      url: 'link-target-1',
+    } as PortalNavigationLink,
     {
       id: 'link-id-2',
-      type: 'external',
-      name: 'link-name-2',
-      target: 'link-target-2',
+      organizationId: 'DEFAULT',
+      environmentId: 'DEFAULT',
+      title: 'link-name-2',
+      type: 'LINK',
+      area: 'TOP_NAVBAR',
       order: 2,
-    },
+      url: 'link-target-2',
+    } as PortalNavigationLink,
   ];
 
   const init = async (isMobile: boolean = false) => {
@@ -56,9 +64,19 @@ describe('NavBarComponent', () => {
       observe: () => of({ matches: isMobile, breakpoints: { [Breakpoints.XSmall]: isMobile } }),
     };
 
+    const portalNavigationItemsServiceMock: Partial<PortalNavigationItemsService> = {
+      loadTopNavBarItems: () => of([]),
+      topNavbar: {
+        set: () => {},
+      } as unknown as WritableSignal<PortalNavigationItem[]>,
+    };
+
     await TestBed.configureTestingModule({
       imports: [NavBarComponent, AppTestingModule],
-      providers: [{ provide: BreakpointObserver, useValue: mockBreakpointObserver }],
+      providers: [
+        { provide: BreakpointObserver, useValue: mockBreakpointObserver },
+        { provide: PortalNavigationItemsService, useValue: portalNavigationItemsServiceMock },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);

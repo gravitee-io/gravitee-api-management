@@ -21,7 +21,7 @@
   @for (link of customLinks(); track link.id) {
     @switch (link.type) {
       @case ('LINK') {
-        <a [href]="[link.url]" mat-stroked-button color="primary" class="menu-items__custom_link">
+        <a [href]="link.url" target="_blank" mat-stroked-button color="primary" class="menu-items__custom_link">
           {{ link.title }}
         </a>
       }
