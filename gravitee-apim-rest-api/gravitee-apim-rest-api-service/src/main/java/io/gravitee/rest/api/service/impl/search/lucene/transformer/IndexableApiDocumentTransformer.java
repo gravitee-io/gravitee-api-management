@@ -23,6 +23,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
@@ -39,6 +40,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_MAIL;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
@@ -235,6 +237,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
     private void appendPath(final Document doc, final int[] pathIndex, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
+        doc.add(new StringField(FIELD_PATHS_LOWERCASE, path.toLowerCase(), Field.Store.NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
         if (pathIndex[0]++ == 0) {
             doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, toSortedValue(path)));
@@ -244,6 +247,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     private void appendHost(Document doc, String host) {
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
+            doc.add(new StringField(FIELD_HOSTS_LOWERCASE, host.toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
         }
     }
