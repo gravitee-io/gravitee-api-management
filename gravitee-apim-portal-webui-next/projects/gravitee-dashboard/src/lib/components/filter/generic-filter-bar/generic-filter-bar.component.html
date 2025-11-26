@@ -1,19 +1,9 @@
-<form [formGroup]="form">
+<form [formGroup]="form" class="form">
 @for (filter of filters(); track filter.key) {
   @if (filter.data) {
     <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [options]="filter.data" />
-<!--    <mat-form-field>-->
-<!--      <mat-label>{{ filter.label }}</mat-label>-->
-<!--      <mat-select [value]="myValueAsASignal()" se>-->
-<!--        <mat-option *ngFor="let option of filter.data" [value]="option.value">-->
-<!--          {{ option.label }}-->
-<!--        </mat-option>-->
-<!--      </mat-select>-->
-<!--  </mat-form-field>-->
   } @else if (filter.data$) {
-    <div>some data is here!</div>
     @let options = filter.data$ | async;
-    {{ options | json }}
     <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [options]="options ?? []" />
   } @else if (filter.dataLoader) {
     <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [resultsLoader]="filter.dataLoader" />
