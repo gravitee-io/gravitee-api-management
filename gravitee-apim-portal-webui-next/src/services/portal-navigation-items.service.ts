@@ -32,7 +32,7 @@ export class PortalNavigationItemsService {
     private configService: ConfigService,
   ) {}
 
-  loadNavigationItems(area: PortalArea, loadChildren?: boolean, parentId?: string): Observable<PortalNavigationItem[]> {
+  loadNavigationItems(area: PortalArea, loadChildren: boolean = true, parentId?: string): Observable<PortalNavigationItem[]> {
     let params = new HttpParams();
     params = params.set('area', area);
     if (loadChildren !== undefined) {

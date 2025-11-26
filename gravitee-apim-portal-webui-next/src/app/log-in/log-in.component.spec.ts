@@ -123,7 +123,7 @@ describe('LogInComponent', () => {
     await submitButton.click();
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush({});
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-menu-links`).flush({});
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=true`).flush({});
   });
 
   it('should not display log-in form', async () => {
