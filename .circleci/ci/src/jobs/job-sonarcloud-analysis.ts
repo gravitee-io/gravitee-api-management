@@ -48,7 +48,7 @@ export class SonarCloudAnalysisJob {
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const steps: Command[] = [
-      new commands.Checkout(),
+      new commands.Checkout({ method: 'full' }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.cache.Restore({
         keys: [`${config.cache.prefix}-sonarcloud-analysis-<< parameters.cache_type >>`],

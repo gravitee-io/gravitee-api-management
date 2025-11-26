@@ -188,7 +188,8 @@ jobs:
       - image: sonarsource/sonar-scanner-cli:11.2
     resource_class: large
     steps:
-      - checkout
+      - checkout:
+          method: full
       - attach_workspace:
           at: .
       - restore_cache:
