@@ -333,7 +333,7 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   private pushPage(page: number, perPage: number): void {
-    const safePerPage = perPage > 0 ? perPage : this.filteredLogs.length || 1;
+    const safePerPage = Math.max(1, perPage > 0 ? perPage : this.filteredLogs.length);
     const start = (page - 1) * safePerPage;
     const end = start + safePerPage;
     const pageData = this.filteredLogs.slice(start, end);

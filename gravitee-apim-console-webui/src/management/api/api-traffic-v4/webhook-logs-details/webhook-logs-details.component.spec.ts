@@ -49,6 +49,10 @@ describe('WebhookLogsDetailsComponent', () => {
 
     fixture = TestBed.createComponent(WebhookLogsDetailsComponent);
     const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    // Reset to empty state after ngOnInit has run
     component.selectedLog = null;
     component.overviewRequest = [];
     component.overviewResponse = [];
@@ -57,7 +61,6 @@ describe('WebhookLogsDetailsComponent', () => {
     component.responseHeaders = [];
     component.requestBody = '';
     component.responseBody = '';
-
     fixture.detectChanges();
 
     const router = TestBed.inject(Router);
