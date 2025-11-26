@@ -44,7 +44,7 @@ public class HTTPTimeSeriesQueryAdapter {
     }
 
     private JsonObject json(TimeSeriesQuery query) {
-        return new JsonObject().put("size", 0).put("query", boolAdapter.adapt(query)).put("aggs", adaptTimeSeries(query));
+        return new JsonObject().put("size", 0).put("query", boolAdapter.adaptForHTTP(query)).put("aggs", adaptTimeSeries(query));
     }
 
     public JsonObject adaptTimeSeries(TimeSeriesQuery query) {

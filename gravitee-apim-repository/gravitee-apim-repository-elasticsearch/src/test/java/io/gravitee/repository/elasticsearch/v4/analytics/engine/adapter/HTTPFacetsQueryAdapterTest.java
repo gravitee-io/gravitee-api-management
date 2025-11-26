@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
+import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -93,8 +96,6 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var queryString = adapter.adapt(query);
         var jsonQuery = JSON.readTree(queryString);
-
-        System.out.println(queryString);
 
         var filter = jsonQuery.at("/query/bool/filter");
 
@@ -212,5 +213,106 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/ranges");
         assertThat(esRanges).isNotEmpty();
+    }
+
+    @Test
+    void should_build_request_ids_query_with_composite_aggregation() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var queryString = adapter.adaptRequestIDsQuery(query, null);
+        var jsonQuery = JSON.readTree(queryString);
+
+        assertThat(jsonQuery.at("/size").asInt()).isEqualTo(0);
+
+        var filterArray = jsonQuery.at("/query/bool/filter");
+        assertThat(filterArray).isNotNull();
+        assertThat(filterArray.isArray()).isTrue();
+
+        var messageFilter = filterArray.findValue("bool");
+        assertThat(messageFilter).isNotNull();
+
+        var mustNot = messageFilter.at("/must_not");
+        assertThat(mustNot).isNotNull();
+        assertThat(mustNot.isArray()).isTrue();
+
+        var entrypointFilter = mustNot.at("/0/term/entrypoint-id");
+        assertThat(entrypointFilter).isNotNull();
+        assertThat(entrypointFilter.asText()).isEqualTo("http-proxy");
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var requestIdAgg = aggs.at("/" + REQUEST_ID_AGG_NAME);
+        assertThat(requestIdAgg).isNotNull();
+
+        var composite = requestIdAgg.at("/composite");
+        assertThat(composite).isNotNull();
+
+        var size = composite.at("/size").asInt();
+        assertThat(size).isEqualTo(10000);
+
+        var sources = composite.at("/sources");
+        assertThat(sources).isNotNull();
+        assertThat(sources.isArray()).isTrue();
+
+        var requestIdSource = sources.at("/0/request-id/terms/field");
+        assertThat(requestIdSource).isNotNull();
+        assertThat(requestIdSource.asText()).isEqualTo("request-id");
+
+        assertThat(composite.has("after")).isFalse();
+    }
+
+    @Test
+    void should_build_request_ids_query_with_after_key_for_pagination() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
+
+        var afterKey = new JsonObject().put("request-id", "some-request-id-value");
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var queryString = adapter.adaptRequestIDsQuery(query, afterKey);
+        var jsonQuery = JSON.readTree(queryString);
+
+        var composite = jsonQuery.at("/aggs/" + REQUEST_ID_AGG_NAME + "/composite");
+        assertThat(composite).isNotNull();
+
+        var after = composite.at("/after");
+        assertThat(after).isNotNull();
+        assertThat(after.has("request-id")).isTrue();
+        assertThat(after.at("/request-id").asText()).isEqualTo("some-request-id-value");
+    }
+
+    @Test
+    void should_build_request_ids_query_with_null_after_key() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var queryString = adapter.adaptRequestIDsQuery(query, null);
+        var jsonQuery = JSON.readTree(queryString);
+
+        var composite = jsonQuery.at("/aggs/" + REQUEST_ID_AGG_NAME + "/composite");
+        assertThat(composite).isNotNull();
+        assertThat(composite.has("after")).isFalse();
+    }
+
+    @Test
+    void should_build_request_ids_query_with_empty_after_key() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildMetrics();
+
+        var afterKey = new JsonObject();
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var queryString = adapter.adaptRequestIDsQuery(query, afterKey);
+        var jsonQuery = JSON.readTree(queryString);
+
+        var composite = jsonQuery.at("/aggs/" + REQUEST_ID_AGG_NAME + "/composite");
+        assertThat(composite).isNotNull();
+        assertThat(composite.has("after")).isFalse();
     }
 }

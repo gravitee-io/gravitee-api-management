@@ -18,7 +18,12 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,5 +77,152 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0").asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
+    }
+
+    @Test
+    void should_build_query_with_avg_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.AVG)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var avgAgg = aggs.at("/HTTP_GATEWAY_LATENCY#AVG/avg/field");
+        assertThat(avgAgg).isNotNull();
+        assertThat(avgAgg.asText()).isEqualTo("gateway-latency-ms");
+    }
+
+    @Test
+    void should_build_query_with_count_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var countAgg = aggs.at("/HTTP_REQUESTS#COUNT/value_count/field");
+        assertThat(countAgg).isNotNull();
+        assertThat(countAgg.asText()).isEqualTo("@timestamp");
+    }
+
+    @Test
+    void should_build_query_with_max_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.MAX)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var maxAgg = aggs.at("/HTTP_GATEWAY_LATENCY#MAX/max/field");
+        assertThat(maxAgg).isNotNull();
+        assertThat(maxAgg.asText()).isEqualTo("gateway-latency-ms");
+    }
+
+    @Test
+    void should_build_query_with_min_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.MIN)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var minAgg = aggs.at("/HTTP_GATEWAY_LATENCY#MIN/min/field");
+        assertThat(minAgg).isNotNull();
+        assertThat(minAgg.asText()).isEqualTo("gateway-latency-ms");
+    }
+
+    @Test
+    void should_build_query_with_p50_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.P50)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var p50Agg = aggs.at("/HTTP_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
+        assertThat(p50Agg).isEqualTo(50.0);
+    }
+
+    @Test
+    void should_build_query_with_rps_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        // RPS uses a date_histogram with bucket_script
+        var rpsDateHistogram = aggs.at("/_HTTP_REQUESTS#RPS/date_histogram");
+        assertThat(rpsDateHistogram).isNotNull();
+
+        var rpsBucketScript = aggs.at("/_HTTP_REQUESTS#RPS/aggs/HTTP_REQUESTS#RPS/bucket_script");
+        assertThat(rpsBucketScript).isNotNull();
+        assertThat(rpsBucketScript.has("script")).isTrue();
+    }
+
+    @Test
+    void should_build_query_with_error_rate_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        // Error rate uses a date_histogram with bucket_script
+        var errorRateDateHistogram = aggs.at("/_HTTP_ERRORS#PERCENTAGE/date_histogram");
+        assertThat(errorRateDateHistogram).isNotNull();
+
+        var errorRateBucketScript = aggs.at("/_HTTP_ERRORS#PERCENTAGE/aggs/HTTP_ERRORS#PERCENTAGE/bucket_script");
+        assertThat(errorRateBucketScript).isNotNull();
+        assertThat(errorRateBucketScript.has("script")).isTrue();
     }
 }

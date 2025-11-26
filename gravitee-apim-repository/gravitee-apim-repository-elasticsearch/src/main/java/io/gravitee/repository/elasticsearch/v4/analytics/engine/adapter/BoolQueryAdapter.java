@@ -30,11 +30,23 @@ public class BoolQueryAdapter {
         this.filterAdapter = filterAdapter;
     }
 
-    JsonObject adapt(Query query) {
-        return JsonObject.of("bool", filter(query));
+    JsonObject adaptForMessage(Query query) {
+        return JsonObject.of("bool", messageConnexionFilter(query));
     }
 
-    JsonObject filter(Query query) {
-        return JsonObject.of("filter", filterAdapter.adapt(query));
+    JsonObject adaptForHTTP(Query query) {
+        return JsonObject.of("bool", httpFilter(query));
+    }
+
+    JsonObject messageFilter(Query query) {
+        return JsonObject.of("filter", filterAdapter.adaptForMessage(query));
+    }
+
+    JsonObject httpFilter(Query query) {
+        return JsonObject.of("filter", filterAdapter.adaptForHTTP(query));
+    }
+
+    JsonObject messageConnexionFilter(Query query) {
+        return JsonObject.of("filter", filterAdapter.adaptForMessageConnexion(query));
     }
 }

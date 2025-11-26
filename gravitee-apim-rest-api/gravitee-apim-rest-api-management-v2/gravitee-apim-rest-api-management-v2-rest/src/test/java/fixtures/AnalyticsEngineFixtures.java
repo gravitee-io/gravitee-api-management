@@ -42,12 +42,9 @@ public class AnalyticsEngineFixtures {
 
     public static final Supplier<MeasuresRequest> v = () -> new MeasuresRequest().timeRange(timeRange());
 
-    public static MeasuresRequest aRequestCountMeasureRequest(Filter... filter) {
+    public static MeasuresRequest aCountMeasureRequest(Filter... filter) {
         var filters = Arrays.asList(filter);
-        var metricName = MetricName.HTTP_REQUESTS;
-        var measures = List.of(MeasureName.COUNT);
-        var metric = new MetricRequest().name(metricName).measures(measures);
-        return new MeasuresRequest().timeRange(timeRange()).filters(filters).metrics(List.of(metric));
+        return new MeasuresRequest().timeRange(timeRange()).filters(filters).metrics(List.of(messageCount(), httpRequestCount()));
     }
 
     public static FacetsRequest aRequestCountFacetRequest(Filter... filters) {
@@ -70,6 +67,18 @@ public class AnalyticsEngineFixtures {
             .filters(Arrays.asList(filters))
             .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
             .metrics(List.of(metric));
+    }
+
+    public static MetricRequest httpRequestCount() {
+        var metricName = MetricName.HTTP_REQUESTS;
+        var measures = List.of(MeasureName.COUNT);
+        return new MetricRequest().name(metricName).measures(measures);
+    }
+
+    public static MetricRequest messageCount() {
+        var metricName = MetricName.MESSAGES;
+        var measures = List.of(MeasureName.COUNT);
+        return new MetricRequest().name(metricName).measures(measures);
     }
 
     public static TimeRange timeRange() {

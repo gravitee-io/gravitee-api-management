@@ -97,11 +97,27 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+
+            when(
+                analyticsRepository.searchMessageMeasures(
+                    eq(queryContext),
+                    argThat(query -> query.metrics().getFirst().metric() == Metric.MESSAGES)
+                )
+            ).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.MESSAGES,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
+                        )
+                    )
+                )
+            );
         }
 
         @Test
         void should_fail_with_invalid_time_range() {
-            var invalidRequest = aRequestCountMeasureRequest();
+            var invalidRequest = aCountMeasureRequest();
             var from = invalidRequest.getTimeRange().getFrom();
             var to = invalidRequest.getTimeRange().getTo();
             invalidRequest.getTimeRange().from(to).to(from);
@@ -112,7 +128,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_invalid_measure_for_metric() {
-            var invalidRequest = aRequestCountMeasureRequest();
+            var invalidRequest = aCountMeasureRequest();
             var metric = invalidRequest.getMetrics().getFirst();
             metric.setMeasures(List.of(MeasureName.AVG));
             var response = rootTarget().path("measures").request().post(Entity.json(invalidRequest));
@@ -121,21 +137,22 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         }
 
         @Test
-        void should_return_request_count() {
-            var response = rootTarget().path("measures").request().post(Entity.json(aRequestCountMeasureRequest()));
+        void should_return_counts() {
+            var response = rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 
             assertThat(response)
                 .hasStatus(200)
                 .asEntity(MeasuresResponse.class)
-                .isEqualTo(
-                    new MeasuresResponse().metrics(
-                        List.of(
-                            new MeasuresResponseMetricsInner()
-                                .name(MetricName.HTTP_REQUESTS)
-                                .measures(List.of(new Measure().name(MeasureName.COUNT).value(42)))
-                        )
-                    )
-                );
+                .satisfies(measuresResponse -> {
+                    assertThat(measuresResponse.getMetrics()).containsExactlyInAnyOrder(
+                        new MeasuresResponseMetricsInner()
+                            .name(MetricName.HTTP_REQUESTS)
+                            .measures(List.of(new Measure().name(MeasureName.COUNT).value(42))),
+                        new MeasuresResponseMetricsInner()
+                            .name(MetricName.MESSAGES)
+                            .measures(List.of(new Measure().name(MeasureName.COUNT).value(42)))
+                    );
+                });
         }
     }
 

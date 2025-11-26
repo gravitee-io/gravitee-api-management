@@ -39,6 +39,7 @@ public record FilterSpec(Name name, String label, Type type, List<String> enumVa
         HTTP_USER_AGENT_OS_NAME,
         HTTP_USER_AGENT_DEVICE,
         MESSAGE_CONNECTOR_TYPE,
+        MESSAGE_CONNECTOR_ID,
         MESSAGE_OPERATION_TYPE,
         KAFKA_TOPIC,
         API_STATE,

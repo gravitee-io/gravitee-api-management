@@ -651,6 +651,7 @@ spec:
               - GEO_IP_CONTINENT
               - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
           filters:
               - API
@@ -672,6 +673,7 @@ spec:
               - GEO_IP_CONTINENT
               - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
 
         - name: MESSAGES
@@ -1568,6 +1570,10 @@ spec:
 
         - name: MESSAGE_CONNECTOR_TYPE
           label: Connector Type
+          type: KEYWORD
+
+        - name: MESSAGE_CONNECTOR_ID
+          label: Connector ID
           type: KEYWORD
 
         - name: MESSAGE_OPERATION_TYPE

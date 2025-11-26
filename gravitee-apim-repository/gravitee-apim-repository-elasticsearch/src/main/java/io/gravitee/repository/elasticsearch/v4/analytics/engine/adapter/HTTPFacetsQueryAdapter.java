@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
+
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
+import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -45,7 +48,7 @@ public class HTTPFacetsQueryAdapter {
     private JsonObject json(FacetsQuery query) {
         return new JsonObject()
             .put("size", 0)
-            .put("query", boolAdapter.adapt(query))
+            .put("query", boolAdapter.adaptForHTTP(query))
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
     }
 
@@ -78,6 +81,33 @@ public class HTTPFacetsQueryAdapter {
         }
 
         return aggs;
+    }
+
+    public String adaptRequestIDsQuery(Query query, JsonObject afterKey) {
+        var queryObj = new JsonObject().put("size", 0).put("query", boolAdapter.adaptForMessage(query));
+
+        var aggs = new JsonObject();
+        aggs.put(REQUEST_ID_AGG_NAME, buildCompositeRequestIDAggregation(afterKey));
+        queryObj.put("aggs", aggs);
+
+        return queryObj.toString();
+    }
+
+    JsonObject buildCompositeRequestIDAggregation(JsonObject afterKey) {
+        var requestIDsPerPage = 10000;
+
+        var composite = json().put(
+            "composite",
+            json()
+                .put("size", requestIDsPerPage)
+                .put("sources", JsonArray.of(json().put("request-id", json().put("terms", json().put("field", "request-id")))))
+        );
+
+        if (afterKey != null && !afterKey.isEmpty()) {
+            composite.getJsonObject("composite").put("after", afterKey);
+        }
+
+        return composite;
     }
 
     private JsonObject adaptFacet(MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
