@@ -41,8 +41,10 @@ class TimeRangeAdapterTest {
         ObjectNode range = (ObjectNode) node.get("range");
         assertTrue(range.has("@timestamp"));
         ObjectNode ts = (ObjectNode) range.get("@timestamp");
-        assertEquals(from.toEpochMilli(), ts.get("gte").asLong());
-        assertEquals(to.toEpochMilli(), ts.get("lte").asLong());
+        assertEquals(from.toEpochMilli(), ts.get("from").asLong());
+        assertEquals(to.toEpochMilli(), ts.get("to").asLong());
+        assertTrue(ts.get("include_lower").asBoolean());
+        assertTrue(ts.get("include_upper").asBoolean());
     }
 
     @Test

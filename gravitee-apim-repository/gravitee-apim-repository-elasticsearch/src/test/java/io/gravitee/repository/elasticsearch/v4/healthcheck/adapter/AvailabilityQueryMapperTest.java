@@ -69,8 +69,10 @@ class AvailabilityQueryMapperTest {
                         {
                           "range": {
                             "@timestamp": {
-                              "gte": 1697969730000,
-                              "lte": 1697883330000
+                              "from": 1697969730000,
+                              "to": 1697883330000,
+                              "include_lower": true,
+                              "include_upper": true
                             }
                           }
                         }

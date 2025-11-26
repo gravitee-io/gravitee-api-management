@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -66,19 +67,11 @@ public class ComputeMeasuresUseCase {
         Map<AnalyticsEngineQueryService, MeasuresRequest> queryContext
     ) {
         var responses = new ArrayList<MeasuresResponse>();
-        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
-
         queryContext.forEach((queryService, request) -> {
-            var filteredRequest = applyPermissionFilters(request, allowedApis);
+            List<Filter> updatedFilters = analyticsQueryFilterDecorator.getUpdatedFilters(request.filters());
+            MeasuresRequest filteredRequest = new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
             responses.add(queryService.searchMeasures(executionContext, filteredRequest));
         });
         return responses;
-    }
-
-    // Updates the request filter to limit metric access based on the user permissions
-    private MeasuresRequest applyPermissionFilters(MeasuresRequest request, Map<String, AnalyticsQueryFilterDecorator.API> allowedApis) {
-        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
-        return new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
     }
 }

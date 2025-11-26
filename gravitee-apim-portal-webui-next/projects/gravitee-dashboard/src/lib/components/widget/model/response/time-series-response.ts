@@ -24,5 +24,5 @@ export interface TimeSeries extends Metric {
 }
 
 export interface TimeSeriesBucket extends Bucket {
-  timestamp?: Date;
+  timestamp?: number | Date;
 }

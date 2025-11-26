@@ -64,6 +64,8 @@
     "angular-oauth2-oidc": "20.0.2",
     "asciidoctor": "3.0.4",
     "chart.js": "4.3.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^4.1.0",
     "dompurify": "3.2.7",
     "highlight.js": "11.11.1",
     "jdenticon": "3.3.0",

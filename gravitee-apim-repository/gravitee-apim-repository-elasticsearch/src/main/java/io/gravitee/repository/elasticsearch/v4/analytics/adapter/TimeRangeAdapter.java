@@ -35,8 +35,10 @@ public class TimeRangeAdapter {
     public static ObjectNode toRangeNode(TimeRange timeRange) {
         ObjectNode rangeNode = MAPPER.createObjectNode();
         ObjectNode tsRange = MAPPER.createObjectNode();
-        tsRange.put("gte", timeRange.from().toEpochMilli());
-        tsRange.put("lte", timeRange.to().toEpochMilli());
+        tsRange.put("from", timeRange.from().toEpochMilli());
+        tsRange.put("to", timeRange.to().toEpochMilli());
+        tsRange.put("include_lower", true);
+        tsRange.put("include_upper", true);
         rangeNode.set(TIMESTAMP, tsRange);
         return MAPPER.createObjectNode().set(RANGE, rangeNode);
     }

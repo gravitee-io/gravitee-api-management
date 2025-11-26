@@ -54,7 +54,7 @@
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.11.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.2.0</gravitee-cloud-initializer.version>
-        <gravitee-common.version>4.8.0-alpha.1</gravitee-common.version>
+        <gravitee-common.version>4.7.3</gravitee-common.version>
         <gravitee-common-mcp.version>1.0.0-alpha.7</gravitee-common-mcp.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.9.1</gravitee-exchange.version>
@@ -250,7 +250,7 @@
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>7.1.1</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-elasticsearch.version>7.0.0</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>3.6.0</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>2.7.0</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>1.7.0</gravitee-reporter-cloud.version>
@@ -310,7 +310,6 @@
         <gravitee-policy-kafka-transform-key.version>1.0.0</gravitee-policy-kafka-transform-key.version>
         <gravitee-policy-kafka-message-filtering.version>1.0.0</gravitee-policy-kafka-message-filtering.version>
         <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
-        <gravitee-policy-token-ratelimit.version>1.0.0-alpha.1</gravitee-policy-token-ratelimit.version>
     </properties>
 
     <scm>
