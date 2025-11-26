@@ -50,7 +50,7 @@ public class MeasuresResponseAdapter extends AbstractResponseAdapter {
         return new MeasuresResult(metricResults);
     }
 
-    private MeasuresResult empty(MeasuresQuery query) {
+    public MeasuresResult empty(MeasuresQuery query) {
         return new MeasuresResult(emptyMetrics(query));
     }
 

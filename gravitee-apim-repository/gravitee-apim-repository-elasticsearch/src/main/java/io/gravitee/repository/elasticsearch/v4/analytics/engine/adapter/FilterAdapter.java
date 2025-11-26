@@ -29,18 +29,91 @@ import java.util.Objects;
  */
 public class FilterAdapter {
 
+    static final String ENTRYPOINT_FIELD = "entrypoint-id";
+    static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
+
+    static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.APPLICATION,
+        Filter.Name.PLAN,
+        Filter.Name.GATEWAY,
+        Filter.Name.HOST,
+        Filter.Name.TENANT,
+        Filter.Name.ZONE,
+        Filter.Name.HTTP_METHOD,
+        Filter.Name.HTTP_STATUS_CODE_GROUP,
+        Filter.Name.HTTP_STATUS,
+        Filter.Name.HTTP_PATH,
+        Filter.Name.HTTP_PATH_MAPPING,
+        Filter.Name.GEO_IP_CITY,
+        Filter.Name.GEO_IP_REGION,
+        Filter.Name.GEO_IP_COUNTRY,
+        Filter.Name.GEO_IP_CONTINENT
+    );
+
+    static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
+        Filter.Name.MESSAGE_CONNECTOR_TYPE,
+        Filter.Name.MESSAGE_CONNECTOR_ID,
+        Filter.Name.MESSAGE_OPERATION_TYPE,
+        Filter.Name.MESSAGE_COUNT,
+        Filter.Name.MESSAGE_SIZE,
+        Filter.Name.MESSAGE_ERROR_COUNT
+    );
+
     private final FieldResolver fieldResolver;
 
     public FilterAdapter(FieldResolver fieldResolver) {
         this.fieldResolver = fieldResolver;
     }
 
-    public JsonArray adapt(Query query) {
-        var filters = JsonArray.of(TimeRangeAdapter.adapt(query));
+    public JsonArray adaptForMessage(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
         for (var filter : query.filters()) {
-            filters.add(filter(filter));
+            if (shouldAdaptForMessage(filter)) {
+                jsonFilters.add(filter(filter));
+            }
         }
-        return filters;
+        return jsonFilters;
+    }
+
+    public JsonArray adaptForHTTP(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForHTTP(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters.add(httpFilter());
+    }
+
+    public JsonArray adaptForMessageConnexion(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForMessageConnexion(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters.add(messageFilter());
+    }
+
+    public boolean shouldAdaptForHTTP(Filter filter) {
+        return HTTP_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForMessage(Filter filter) {
+        return MESSAGE_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForMessageConnexion(Filter filter) {
+        return HTTP_FILTER_NAMES.contains(filter.name());
+    }
+
+    public JsonObject httpFilter() {
+        return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, HTTP_PROXY_ENTRYPOINT_ID));
+    }
+
+    public JsonObject messageFilter() {
+        return JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(httpFilter())));
     }
 
     private JsonObject filter(Filter filter) {
@@ -49,7 +122,7 @@ public class FilterAdapter {
 
     private String filterName(Filter filter) {
         return switch (filter.operator()) {
-            case Filter.Operator.EQ -> "term";
+            case EQ -> "term";
             case Filter.Operator.IN -> "terms";
             case Filter.Operator.GTE, Filter.Operator.LTE -> "value.numberlabel";
         };
@@ -57,7 +130,7 @@ public class FilterAdapter {
 
     private JsonObject filterValue(Filter filter) {
         return switch (filter.operator()) {
-            case Filter.Operator.EQ, LTE, GTE -> JsonObject.of(fieldResolver.fromFilter(filter), filter.value());
+            case EQ, LTE, GTE -> JsonObject.of(fieldResolver.fromFilter(filter), filter.value());
             case Filter.Operator.IN -> JsonObject.of(fieldResolver.fromFilter(filter), listValue(filter.value()));
         };
     }

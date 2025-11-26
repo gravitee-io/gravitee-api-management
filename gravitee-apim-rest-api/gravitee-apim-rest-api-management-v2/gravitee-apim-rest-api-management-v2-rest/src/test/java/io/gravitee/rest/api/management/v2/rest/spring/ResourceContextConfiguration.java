@@ -160,6 +160,7 @@ import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceL
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
+import io.gravitee.apim.infra.query_service.analytics_engine.MessageDataPlaneQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -981,6 +982,11 @@ public class ResourceContextConfiguration {
     @Bean
     public HTTPDataPlaneAnalyticsQueryService httpProxyDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
         return new HTTPDataPlaneAnalyticsQueryService(analyticsRepository);
+    }
+
+    @Bean
+    public MessageDataPlaneQueryService messageDataPlaneQueryService(AnalyticsRepository analyticsRepository) {
+        return new MessageDataPlaneQueryService(analyticsRepository);
     }
 
     @Bean

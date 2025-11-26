@@ -47,6 +47,7 @@ public class AggregationAdapter {
     static final String ES_KEY_AS_STRING_PROP = "key_as_string";
     static final String ES_KEY_PROP = "key";
     static final String ES_COUNT_PROP = "count";
+    static final String ES_DOC_COUNT_PROP = "doc_count";
     static final String ES_VALUE_PROP = "value";
     static final String ES_VALUES_PROP = "values";
 

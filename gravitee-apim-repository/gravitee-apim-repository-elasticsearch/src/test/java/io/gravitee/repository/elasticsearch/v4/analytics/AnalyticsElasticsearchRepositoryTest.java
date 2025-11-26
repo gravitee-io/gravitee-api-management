@@ -1381,7 +1381,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var filter = new Filter(
                     Filter.Name.API,
                     Filter.Operator.IN,
-                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                    List.of("4932fe31-6f36-424e-a29e-f2bfa22ad179", "ec125126-43fc-42ee-b4ff-3bb56b99c8b9")
                 );
 
                 return new MeasuresQuery(timeRange, List.of(filter), metrics);
@@ -1422,7 +1422,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var filter = new Filter(
                     Filter.Name.API,
                     Filter.Operator.IN,
-                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                    List.of("4932fe31-6f36-424e-a29e-f2bfa22ad179", "ec125126-43fc-42ee-b4ff-3bb56b99c8b9")
                 );
 
                 return new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.API, Facet.HTTP_STATUS), ranges);
@@ -1465,7 +1465,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var filter = new Filter(
                     Filter.Name.API,
                     Filter.Operator.IN,
-                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                    List.of("f1608475-dd77-4603-a084-75dd775603e9", "4a6895d5-a1bc-4041-a895-d5a1bce041ae")
                 );
                 var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP);
                 return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics, facets);
@@ -1485,6 +1485,42 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var facetBuckets = timeSeriesBuckets.getFirst().buckets();
                 assertThat(facetBuckets).isNotEmpty();
+            }
+        }
+
+        @Nested
+        class MessageMeasures {
+
+            static MeasuresQuery buildQuery() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.MESSAGE_GATEWAY_LATENCY, Set.of(Measure.AVG)),
+                    new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))
+                );
+
+                var filter = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4a6895d5-a1bc-4041-a895-d5a1bce041ae", "f1608475-dd77-4603-a084-75dd775603e9")
+                );
+
+                return new MeasuresQuery(timeRange, List.of(filter), metrics);
+            }
+
+            @Test
+            void should_return_message_measures() {
+                var query = buildQuery();
+                var result = cut.searchMessageMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+
+                var measures = result.measures();
+                assertThat(measures).hasSize(query.metrics().size());
+
+                for (var measure : measures) {
+                    assertThat(measure.measures().values()).hasSize(1);
+                    assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotNegative());
+                }
             }
         }
     }

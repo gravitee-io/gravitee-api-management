@@ -53,6 +53,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFace
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPMeasuresQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPTimeSeriesQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MeasuresResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageMeasuresQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.TimeSeriesResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
@@ -83,10 +85,13 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
+import io.vertx.core.json.JsonObject;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +112,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final MeasuresResponseAdapter measuresResponseAdapter = new MeasuresResponseAdapter();
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
     private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
+    private final MessageMeasuresQueryAdapter messageMeasuresQueryAdapter = new MessageMeasuresQueryAdapter();
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -330,6 +336,75 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             .search(index, null, esQuery)
             .map(response -> timeSeriesResponseAdapter.adapt(response, query))
             .blockingGet();
+    }
+
+    @Override
+    public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
+        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
+
+        if (httpConnectionRequestIDs.isEmpty()) {
+            return measuresResponseAdapter.empty(query);
+        }
+
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageQuery = messageMeasuresQueryAdapter.adapt(query, httpConnectionRequestIDs);
+
+        log.debug("Message - Measures query: {}", messageQuery);
+
+        return client
+            .search(messageIndex, null, messageQuery)
+            .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    private Set<String> searchMessageConnectionRequestIDs(MeasuresQuery query, String httpIndex) {
+        return searchMessageConnectionRequestIDs(query, httpIndex, null, new HashSet<>(), 0);
+    }
+
+    private Set<String> searchMessageConnectionRequestIDs(
+        MeasuresQuery query,
+        String httpIndex,
+        JsonObject afterKey,
+        Set<String> accumulatedRequestIDs,
+        int iteration
+    ) {
+        var maxIterations = 1000;
+
+        if (iteration >= maxIterations) {
+            log.warn(
+                "The limit of {} requests has been reached for message connection request IDs. This will lead to partial result.",
+                maxIterations
+            );
+            return accumulatedRequestIDs;
+        }
+
+        var httpQuery = httpFacetsQueryAdapter.adaptRequestIDsQuery(query, afterKey);
+
+        log.debug("Message - HTTP connexions requests query {}", httpQuery);
+
+        var requestIDsResponse = client.search(httpIndex, null, httpQuery).blockingGet();
+
+        var messageFacetJoin = MessageFacetExtractor.extractFromComposite(requestIDsResponse, List.of());
+
+        if (messageFacetJoin.isEmpty()) {
+            log.debug("No request IDs found in iteration {}", iteration);
+            log.debug("Collected {} total message request IDs in {} iterations", accumulatedRequestIDs.size(), iteration);
+            return accumulatedRequestIDs;
+        }
+
+        var requestIDs = messageFacetJoin.getRequestIDs();
+        accumulatedRequestIDs.addAll(requestIDs);
+
+        var nextAfterKey = messageFacetJoin.getAfterKey();
+
+        if (nextAfterKey == null || nextAfterKey.isEmpty()) {
+            log.debug("Collected {} total message request IDs in {} iterations", accumulatedRequestIDs.size(), iteration + 1);
+            return accumulatedRequestIDs;
+        }
+
+        return searchMessageConnectionRequestIDs(query, httpIndex, nextAfterKey, accumulatedRequestIDs, iteration + 1);
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

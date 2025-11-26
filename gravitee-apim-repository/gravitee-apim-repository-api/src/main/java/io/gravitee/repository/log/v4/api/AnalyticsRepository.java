@@ -94,4 +94,6 @@ public interface AnalyticsRepository {
     FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query);
 
     TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
+    MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query);
 }

@@ -155,4 +155,9 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
         return null;
     }
+
+    @Override
+    public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
+        return null;
+    }
 }

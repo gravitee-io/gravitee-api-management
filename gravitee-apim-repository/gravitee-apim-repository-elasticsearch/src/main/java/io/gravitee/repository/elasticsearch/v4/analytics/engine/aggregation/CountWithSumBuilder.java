@@ -13,37 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.engine.api.query;
+package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
+
+import io.vertx.core.json.JsonObject;
+import java.util.Map;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Facet {
-    API,
-    APPLICATION,
-    PLAN,
-    GATEWAY,
-    TENANT,
-    ZONE,
-    HTTP_METHOD,
-    HTTP_STATUS_CODE_GROUP,
-    HTTP_STATUS,
-    HTTP_PATH,
-    HTTP_PATH_MAPPING,
-    HOST,
-    GEO_IP_COUNTRY,
-    GEO_IP_REGION,
-    GEO_IP_CITY,
-    GEO_IP_CONTINENT,
-    CONSUMER_IP,
-    HTTP_USER_AGENT_OS_NAME,
-    HTTP_USER_AGENT_DEVICE,
-    MESSAGE_CONNECTOR_ID,
-    MESSAGE_CONNECTOR_TYPE,
-    MESSAGE_OPERATION_TYPE,
-    KAFKA_TOPIC,
-    API_STATE,
-    API_LIFECYCLE_STATE,
-    API_VISIBILITY,
+public class CountWithSumBuilder {
+
+    public Map<String, JsonObject> build(String aggName, String field) {
+        return Map.of(aggName, json().put("sum", json().put("field", field).put("missing", 0)));
+    }
+
+    private JsonObject json() {
+        return new JsonObject();
+    }
 }
