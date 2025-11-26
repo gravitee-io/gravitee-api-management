@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isNumber } from 'angular';
+
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -79,10 +81,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly requestId = this.activatedRoute.snapshot.params.requestId;
-
-  isNumber(value: unknown): value is number {
-    return typeof value === 'number' && Number.isFinite(value);
-  }
+  readonly isNumber = isNumber;
 
   overviewRequest: OverviewItem[] = [];
   overviewResponse: OverviewItem[] = [];
@@ -196,12 +195,11 @@ export class WebhookLogsDetailsComponent implements OnInit {
 
       return parsed.map((item, index) => ({
         attempt: item.attempt ?? index + 1,
-        timestamp:
-          typeof item.timestamp === 'number' && Number.isFinite(item.timestamp)
-            ? new Date(item.timestamp).toISOString()
-            : typeof item.timestamp === 'string'
-              ? item.timestamp
-              : log.timestamp,
+        timestamp: isNumber(item.timestamp)
+          ? new Date(item.timestamp).toISOString()
+          : typeof item.timestamp === 'string'
+            ? item.timestamp
+            : log.timestamp,
         duration: item.duration ?? log.gatewayResponseTime,
         status: item.status ?? log.status,
         reason: item.reason ?? log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
