@@ -18,12 +18,16 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
@@ -83,6 +87,24 @@ public class ApiDocumentTransformerTest {
 
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
+    @Test
+    public void transform_v4_api_should_index_paths_and_hosts_lowercase() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setVisibility(Visibility.PUBLIC);
+
+        io.gravitee.definition.model.v4.listener.http.Path path = new io.gravitee.definition.model.v4.listener.http.Path();
+        path.setPath("/TestPath");
+        path.setHost("api.TestHost.com");
+
+        api.setListeners(List.of(HttpListener.builder().paths(List.of(path)).build()));
+        Document doc = cut.transform(api);
+        assertThat(doc.getFields("paths_lowercase")[0].stringValue()).isEqualTo("/testpath");
+        assertThat(doc.getFields("hosts_lowercase")[0].stringValue()).isEqualTo("api.testhost.com");
     }
 
     @NotNull
