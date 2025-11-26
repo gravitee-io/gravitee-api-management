@@ -6307,7 +6307,6 @@ components:
                 type:
                     type: string
                     description: The type of the navigation item
-                    enum: [PAGE, FOLDER, LINK]
                 area:
                     $ref: "#/components/schemas/PortalArea"
                 parentId:
