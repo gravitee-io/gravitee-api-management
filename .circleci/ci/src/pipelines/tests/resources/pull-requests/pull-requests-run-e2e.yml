@@ -289,6 +289,9 @@ jobs:
     resource_class: large
     steps:
       - checkout
+      - run:
+          name: Copy .ssh files to root home folder
+          command: "[ -d /tmp/.ssh ] && cp -r /tmp/.ssh /root/"
       - attach_workspace:
           at: .
       - restore_cache:

@@ -49,6 +49,10 @@ export class SonarCloudAnalysisJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
+      new commands.Run({
+        name: 'Copy .ssh files to root home folder',
+        command: `[ -d /tmp/.ssh ] && cp -r /tmp/.ssh /root/`,
+      }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.cache.Restore({
         keys: [`${config.cache.prefix}-sonarcloud-analysis-<< parameters.cache_type >>`],
