@@ -20,8 +20,6 @@ import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.I
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -30,10 +28,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -77,51 +72,12 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
 
     @Override
     public List<Filter> applyPermissionBasedFilters(@NotNull List<Filter> filters, Set<String> allowedApiIds) {
-        if (filters.isEmpty()) {
-            var filter = new Filter(API, IN, allowedApiIds.stream().toList());
-            return List.of(filter);
-        }
+        var updatedFilters = new ArrayList<>(filters);
 
-        return getUpdatedFilters(filters, allowedApiIds);
-    }
+        var allowedApisFilter = new Filter(API, IN, allowedApiIds.stream().toList());
+        updatedFilters.add(allowedApisFilter);
 
-    private @NotNull List<Filter> getUpdatedFilters(@NotNull List<Filter> filters, Set<String> allowedApiIds) {
-        return filters
-            .stream()
-            .map(filter -> {
-                if (filter.name() == API) {
-                    return switch (filter.operator()) {
-                        case IN -> getUpdatedInFilter(filter, allowedApiIds);
-                        case EQ -> getUpdatedEqFilter(filter, allowedApiIds);
-                        default -> filter;
-                    };
-                }
-
-                return filter;
-            })
-            .toList();
-    }
-
-    private @NotNull Filter getUpdatedInFilter(@NotNull Filter filter, Set<String> allowedApiIds) {
-        if (!(filter.value() instanceof Iterable<?>)) {
-            throw new IllegalArgumentException("Filter value must be an Iterable");
-        }
-
-        var objectMapper = new ObjectMapper();
-        Set<String> wantedApiIds = objectMapper.convertValue(filter.value(), new TypeReference<>() {});
-
-        wantedApiIds.retainAll(allowedApiIds);
-        return new Filter(filter.name(), IN, wantedApiIds.stream().toList());
-    }
-
-    private @NotNull Filter getUpdatedEqFilter(Filter filter, Set<String> allowedApiIds) {
-        var apiId = filter.value().toString();
-
-        if (allowedApiIds.contains(apiId)) {
-            return filter;
-        }
-
-        return new Filter(filter.name(), IN, List.of());
+        return updatedFilters;
     }
 
     protected boolean isEnvironmentAdmin() {
