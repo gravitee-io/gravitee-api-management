@@ -29,6 +29,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -69,6 +70,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.PAGE) // must match existing type
             .title("  New Title  ")
+            .order(1)
             .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
@@ -135,6 +137,41 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         // When / Then
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(input));
+
+        // And ensure storage unchanged
+        var after = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
+        assertThat(after.getTitle()).isEqualTo(originalTitle);
+    }
+
+    @Test
+    void should_throw_parentId_not_found_when_parent_does_not_exist() {
+        // Given existing item
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+        assertThat(existing).isNotNull();
+        var originalTitle = existing.getTitle();
+
+        // Given a non-existing parent ID
+        var nonExistingParentId = PortalNavigationItemId.random();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.PAGE)
+            .title("New Title")
+            .parentId(nonExistingParentId)
+            .build();
+
+        // Make validator throw ParentNotFoundException
+        doThrow(new ParentNotFoundException(nonExistingParentId.toString()))
+            .when(validatorService)
+            .validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        // When / Then
+        assertThrows(ParentNotFoundException.class, () -> useCase.execute(input));
 
         // And ensure storage unchanged
         var after = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
