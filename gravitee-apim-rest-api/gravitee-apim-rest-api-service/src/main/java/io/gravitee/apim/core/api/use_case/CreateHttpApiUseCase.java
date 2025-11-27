@@ -100,14 +100,14 @@ public class CreateHttpApiUseCase {
         return List.of(
             new Flow().withSelectors(
                 List.of(
-                    HttpSelector.builder().pathOperator(Operator.EQUALS).path("chat/completions").methods(Set.of(HttpMethod.POST)).build()
+                    HttpSelector.builder().pathOperator(Operator.EQUALS).path("/chat/completions").methods(Set.of(HttpMethod.POST)).build()
                 )
             ),
             new Flow().withSelectors(
-                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("models").methods(Set.of(HttpMethod.GET)).build())
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
             ),
             new Flow().withSelectors(
-                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("embeddings").methods(Set.of(HttpMethod.POST)).build())
+                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/embeddings").methods(Set.of(HttpMethod.POST)).build())
             )
         );
     }
