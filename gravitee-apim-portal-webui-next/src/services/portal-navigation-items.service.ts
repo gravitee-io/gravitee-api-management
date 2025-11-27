@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -29,18 +29,15 @@ export class PortalNavigationItemsService {
 
   constructor(
     private readonly http: HttpClient,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   loadNavigationItems(area: PortalArea, loadChildren: boolean = true, parentId?: string): Observable<PortalNavigationItem[]> {
-    let params = new HttpParams();
-    params = params.set('area', area);
-    if (loadChildren !== undefined) {
-      params = params.set('loadChildren', String(loadChildren));
-    }
-    if (parentId) {
-      params = params.set('parentId', parentId);
-    }
+    const params = {
+      ...(parentId ? { parentId } : {}),
+      area,
+      loadChildren,
+    };
 
     return this.http
       .get<PortalNavigationItem[]>(`${this.configService.baseURL}/portal-navigation-items`, { params })
@@ -48,6 +45,6 @@ export class PortalNavigationItemsService {
   }
 
   loadTopNavBarItems(): Observable<PortalNavigationItem[]> {
-    return this.loadNavigationItems('TOP_NAVBAR', true).pipe(tap(value => this.topNavbar.set(value)));
+    return this.loadNavigationItems('TOP_NAVBAR', false).pipe(tap(value => this.topNavbar.set(value)));
   }
 }

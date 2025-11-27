@@ -31,7 +31,7 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
-  customLinks: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
+  topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });

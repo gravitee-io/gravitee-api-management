@@ -19,9 +19,9 @@
   <app-company-title [logo]="logo()" />
   @if (!forceLogin() || isLoggedIn()) {
     @if (isMobile()) {
-      <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+      <app-mobile-nav-bar [currentUser]="currentUser()" [topBarNavigationItems]="topBarNavigationItems()" />
     } @else {
-      <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+      <app-desktop-nav-bar [currentUser]="currentUser()" [topBarNavigationItems]="topBarNavigationItems()" />
     }
   }
 </div>

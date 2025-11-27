@@ -37,21 +37,16 @@
     }
     <a class="mobile-menu__link" i18n="@@catalog" [routerLink]="['catalog']" routerLinkActive="active" (click)="closeMenu()">Catalog</a>
     <a class="mobile-menu__link" i18n="@@guides" [routerLink]="['guides']" routerLinkActive="active" (click)="closeMenu()">Guides</a>
-    @for (link of customLinks(); track link.id) {
-      @switch (link.type) {
-        @case ('PAGE') {
-          <a class="mobile-menu__link" [routerLink]="['/page', link.portalPageContentId]" routerLinkActive="active" (click)="closeMenu()">
-            {{ link.title }}
-          </a>
-        }
-        @case ('FOLDER') {
-          <a class="mobile-menu__link" [routerLink]="['/folder', link.id]" routerLinkActive="active" (click)="closeMenu()">
-            {{ link.title }}
-          </a>
-        }
+    @for (navigationItem of topBarNavigationItems(); track navigationItem.id) {
+      @switch (navigationItem.type) {
         @case ('LINK') {
-          <a class="mobile-menu__link" [href]="link.url" [attr.target]="'_blank'" (click)="closeMenu()">
-            {{ link.title }}
+          <a class="mobile-menu__link" [href]="navigationItem.url" [attr.target]="'_blank'" (click)="closeMenu()">
+            {{ navigationItem.title }}
+          </a>
+        }
+        @default {
+          <a class="mobile-menu__link" [routerLink]="['/documentation', navigationItem.id]" routerLinkActive="active" (click)="closeMenu()">
+            {{ navigationItem.title }}
           </a>
         }
       }

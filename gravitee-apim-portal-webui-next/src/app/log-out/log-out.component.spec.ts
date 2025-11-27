@@ -49,7 +49,7 @@ describe('LogOutComponent', () => {
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({});
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=true`).flush({});
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
     expect(router.navigate).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalledWith(['']);
     expect(currentUserService.user()).toEqual({});

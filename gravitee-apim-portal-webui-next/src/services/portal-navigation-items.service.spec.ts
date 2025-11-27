@@ -74,7 +74,7 @@ describe('PortalNavigationItemsService', () => {
         r.method === 'GET' &&
         r.url === `${baseURL}/portal-navigation-items` &&
         r.params.get('area') === 'TOP_NAVBAR' &&
-        r.params.get('loadChildren') === 'true',
+        r.params.get('loadChildren') === 'false',
     );
 
     req.flush(mockItems);
@@ -105,7 +105,7 @@ describe('PortalNavigationItemsService', () => {
         r.method === 'GET' &&
         r.url === `${baseURL}/portal-navigation-items` &&
         r.params.get('area') === 'TOP_NAVBAR' &&
-        r.params.get('loadChildren') === 'true',
+        r.params.get('loadChildren') === 'false',
     );
 
     req.flush('Server error', { status: 500, statusText: 'Server Error' });

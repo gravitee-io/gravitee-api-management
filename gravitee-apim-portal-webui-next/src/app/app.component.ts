@@ -35,7 +35,7 @@ export class AppComponent {
   currentUser = inject(CurrentUserService).user;
   logo = inject(ThemeService).logo;
   favicon = inject(ThemeService).favicon;
-  customLinks = inject(PortalNavigationItemsService).topNavbar;
+  topBarNavigationItems = inject(PortalNavigationItemsService).topNavbar;
   private siteTitle: string;
 
   constructor(

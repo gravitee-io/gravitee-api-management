@@ -31,7 +31,7 @@ import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component
   styleUrls: ['./nav-bar.component.scss'],
 })
 export class NavBarComponent {
-  customLinks: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
+  topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   currentUser: InputSignal<User> = input({});
   forceLogin: InputSignal<boolean> = input(false);
   logo: InputSignal<string> = input('');
