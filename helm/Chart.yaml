@@ -47,4 +47,10 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10855
+    - kind: added
+      description: 'Kafka console: allow to define volumes & volume mounts'
+    - kind: added
+      description: 'Kafka console: allow to define a custom mAPI base URL instead of relying on "organization" and "environment" fields'
+    - kind: changed
+      description: 'BREAKING CHANGE: Kafka console: allow to use secrets for "jwt.secret" and "apim.security.token". Use "jwt.secret.value" instead of "jwt.secret" and "apim.security.token.value" instead of "apim.security.token"'
 

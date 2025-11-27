@@ -7,6 +7,10 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Allow to configure Expression Language whitelist.
 - Improve redis rate limit configuration to allow username for acl configuration [issues/10966](https://github.com/gravitee-io/issues/issues/10966).
 - allow configuration of httpClient proxy excludes [issues/10855](https://github.com/gravitee-io/issues/issues/10855).
+- Kafka Console:
+    - allow to define volumes & volume mounts
+    - allow to define a custom mAPI base URL instead of relying on `organization` and `environment` fields
+    - allow to use secrets from jwt.secret and apim.security.token
 
 ### 4.9.0
 
