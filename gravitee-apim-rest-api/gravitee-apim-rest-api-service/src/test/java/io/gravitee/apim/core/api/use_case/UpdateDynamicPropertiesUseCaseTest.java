@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -53,6 +52,7 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -133,18 +133,34 @@ class UpdateDynamicPropertiesUseCaseTest {
 
     @Test
     void should_not_update_api_if_same_properties() {
-        var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("key").value("value").dynamic(true).build())));
+        List<Property> initialPropertiesList = List.of(Property.builder().key("key").value("value").dynamic(true).build());
+        var api = givenApi(buildApiWithProperties(initialPropertiesList));
+
+        cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, initialPropertiesList));
+
+        assertThat(auditCrudServiceInMemory.storage()).isEmpty();
+    }
+
+    @Test
+    void should_determine_sync_state_before_updating_api_properties() {
+        List<Property> initialPropertiesList = List.of(Property.builder().key("key").value("value").dynamic(true).build());
+        var api = givenApi(buildApiWithProperties(initialPropertiesList));
+
+        var receivedProperties = new ArrayList<>();
+        when(apiStateDomainService.isSynchronized(any(), any())).thenAnswer(invocationOnMock -> {
+            receivedProperties.addAll(((Api) invocationOnMock.getArgument(0)).getApiDefinitionHttpV4().getProperties().stream().toList());
+            return true;
+        });
 
         cut.execute(
             new UpdateDynamicPropertiesUseCase.Input(
                 api.getId(),
                 HTTP_DYNAMIC_PROPERTIES,
-                List.of(Property.builder().key("key").value("value").dynamic(true).build())
+                List.of(Property.builder().key("key").value("value2").dynamic(true).build())
             )
         );
 
-        assertThat(auditCrudServiceInMemory.storage()).isEmpty();
-        verifyNoInteractions(apiStateDomainService);
+        assertThat(receivedProperties).isEqualTo(initialPropertiesList);
     }
 
     @Nested
