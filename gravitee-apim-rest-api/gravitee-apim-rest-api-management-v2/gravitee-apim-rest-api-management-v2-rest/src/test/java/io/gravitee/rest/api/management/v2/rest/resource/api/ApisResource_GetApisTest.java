@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.isNull;
@@ -458,5 +459,47 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         ApiV2 api2 = apis.get(1).getApiV2();
         Assertions.assertEquals("api-2", api2.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
+    }
+
+    @Test
+    public void should_include_metadata_when_requested() {
+        ApiEntity api = new ApiEntity();
+        api.setId("test-api");
+        api.setName("Test API");
+        api.setState(Lifecycle.State.STARTED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                argThat(expands -> expands != null && expands.contains("metadata")),
+                eq(new SortableImpl("name", true)),
+                eq(new PageableImpl(1, 10))
+            )
+        ).thenReturn(new Page<>(List.of(api), 1, 1, 1));
+
+        Response response = rootTarget().queryParam("expands", "metadata").request().get();
+
+        Assertions.assertEquals(HttpStatusCode.OK_200, response.getStatus(), "Response should be 200 OK");
+        ApisResponse result = response.readEntity(ApisResponse.class);
+        Assertions.assertNotNull(result, "Response body should not be null");
+        Assertions.assertNotNull(result.getData(), "Response data should not be null");
+        Assertions.assertEquals(1, result.getData().size(), "Should return exactly 1 API");
+
+        ApiV4 returnedApi = result.getData().get(0).getApiV4();
+        Assertions.assertNotNull(returnedApi, "Returned API should not be null");
+        Assertions.assertEquals("test-api", returnedApi.getId(), "API ID should match");
+        Assertions.assertEquals("Test API", returnedApi.getName(), "API Name should match");
+
+        List<io.gravitee.rest.api.management.v2.rest.model.Metadata> metadata = returnedApi.getMetadata();
+
+        if (metadata != null && !metadata.isEmpty()) {
+            metadata.forEach(m -> {
+                Assertions.assertNotNull(m.getKey(), "Metadata key should not be null");
+                Assertions.assertFalse(m.getKey().trim().isEmpty(), "Metadata key should not be empty");
+            });
+        }
     }
 }

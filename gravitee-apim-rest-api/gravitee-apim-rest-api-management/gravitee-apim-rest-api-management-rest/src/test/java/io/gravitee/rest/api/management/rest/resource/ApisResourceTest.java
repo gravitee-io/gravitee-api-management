@@ -29,6 +29,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -43,6 +44,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -302,5 +304,54 @@ public class ApisResourceTest extends AbstractResourceTest {
         when(apiEntity.getUpdatedAt()).thenReturn(new Date());
         when(apiEntity.getProxy()).thenReturn(new Proxy());
         return apiEntity;
+    }
+
+    @Test
+    public void shouldIncludeMetadataWhenRequested() {
+        List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"));
+        Page<ApiEntity> apisPage = new Page<>(resultApis, 1, 2, 2);
+
+        ApiMetadataEntity metadata1 = new ApiMetadataEntity();
+        metadata1.setKey("version");
+        metadata1.setValue("1.0.0");
+        metadata1.setApiId("api1");
+
+        ApiMetadataEntity metadata2 = new ApiMetadataEntity();
+        metadata2.setKey("owner");
+        metadata2.setValue("team-a");
+        metadata2.setApiId("api1");
+
+        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull())).thenReturn(apisPage);
+        when(apiMetadataService.findAllByApi(eq(GraviteeContext.getExecutionContext()), eq("api1"))).thenReturn(
+            List.of(metadata1, metadata2)
+        );
+        when(apiMetadataService.findAllByApi(eq(GraviteeContext.getExecutionContext()), eq("api2"))).thenReturn(List.of());
+        final Response response = envTarget().queryParam("expands", "metadata").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        List<ApiListItem> resultList = response.readEntity(new GenericType<>() {});
+
+        assertEquals(2, resultList.size());
+
+        ApiListItem api1Result = resultList
+            .stream()
+            .filter(api -> "api1".equals(api.getId()))
+            .findFirst()
+            .orElse(null);
+        assertEquals("api1", api1Result.getId());
+        Map<String, Object> api1Metadata = api1Result.getMetadata();
+        assertEquals(2, api1Metadata.size());
+        assertEquals("1.0.0", api1Metadata.get("version"));
+        assertEquals("team-a", api1Metadata.get("owner"));
+
+        ApiListItem api2Result = resultList
+            .stream()
+            .filter(api -> "api2".equals(api.getId()))
+            .findFirst()
+            .orElse(null);
+        assertEquals("api2", api2Result.getId());
+
+        verify(apiMetadataService, times(1)).findAllByApi(eq(GraviteeContext.getExecutionContext()), eq("api1"));
+        verify(apiMetadataService, times(1)).findAllByApi(eq(GraviteeContext.getExecutionContext()), eq("api2"));
     }
 }

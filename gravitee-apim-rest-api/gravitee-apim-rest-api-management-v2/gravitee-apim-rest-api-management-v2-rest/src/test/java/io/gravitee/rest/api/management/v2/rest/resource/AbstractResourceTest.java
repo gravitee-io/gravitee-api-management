@@ -142,6 +142,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiMetadataService apiMetadataService;
 
     @Autowired
+    protected io.gravitee.apim.core.api.query_service.ApiMetadataQueryService apiMetadataQueryService;
+
+    @Autowired
     protected PageService pageService;
 
     @Autowired
