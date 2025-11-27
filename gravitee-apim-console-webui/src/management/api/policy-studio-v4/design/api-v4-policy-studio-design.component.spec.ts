@@ -450,7 +450,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
       req.flush(planA);
-
+      expectGetApi(api);
       expectNewNgOnInit();
     });
 
@@ -681,6 +681,106 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
     });
+<<<<<<< HEAD
+=======
+
+    describe('Plan/Flow indexes handling', () => {
+      let location: Location;
+      let goSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        location = TestBed.inject(Location);
+        goSpy = jest.spyOn(location, 'go').mockImplementation(() => {});
+        // Mock base path for URL construction
+        jest.spyOn(location, 'path').mockReturnValue('/apis/api-id/v4/policy-studio/0/0');
+      });
+
+      it('should update URL when user selects a flow', async () => {
+        const flowsMenu = await policyStudioHarness.getFlowsMenu();
+        await policyStudioHarness.selectFlowInMenu(flowsMenu[1].flows[0].name);
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/1/0');
+      });
+
+      it('should select the newly added flow', async () => {
+        const flowToAdd: FlowV4 = {
+          name: 'A new flow',
+          selectors: [
+            {
+              type: 'CHANNEL',
+              channel: 'channel1',
+              pathOperator: 'EQUALS',
+              condition: 'condition',
+            },
+          ],
+        };
+
+        await policyStudioHarness.addFlow(planA.name, flowToAdd);
+        await policyStudioHarness.save();
+        const selectedFlow = await policyStudioHarness.getSelectedFlowInfos();
+        expect(selectedFlow).toEqual({
+          Name: ['A new flow'],
+          Entrypoints: ['Webhook'],
+          Operations: ['PUB', 'SUB'],
+          Channel: ['channel1'],
+          'Channel Operator': ['EQUALS'],
+        });
+        // Fetch fresh Plan before save
+        expectGetPlan(api.id, planA);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${planA.id}`,
+          method: 'PUT',
+        });
+        req.flush(planA);
+        expectGetApi(api);
+        expectNewNgOnInit();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/1');
+      });
+
+      it('should reset both indexes to 0/0 for out-of-range planIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 5, flowIndex: 0 });
+        fixture.detectChanges();
+
+        expectGetApi(api);
+        expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+        expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+        expectListApiPlans(API_ID, [planA]);
+        expectGetPolicies();
+        expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+
+        tick();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
+      }));
+
+      it('should find first available flow for out-of-range flowIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 1, flowIndex: 99 });
+        fixture.detectChanges();
+
+        expectGetApi(api);
+        expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+        expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+        expectListApiPlans(API_ID, [planA]);
+        expectGetPolicies();
+        expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+
+        tick();
+        // With the new logic, it should find the first available flow (plan 0, flow 0 from the setup)
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
+      }));
+
+      it('should return first plan with flows when available', () => {
+        component.plans = [
+          { id: '1', name: 'Plan 1', flows: [] },
+          { id: '2', name: 'Plan 2', flows: [{ name: 'Flow 1' } as any] },
+          { id: '3', name: 'Plan 3', flows: [{ name: 'Flow 2' } as any] },
+        ];
+        component.commonFlows = [];
+
+        const result = component['findFirstAvailableFlow']();
+
+        expect(result).toEqual({ planIndex: 1, flowIndex: 0 });
+      });
+    });
+>>>>>>> 18fbcb6d9b (fix: make deploy banner reactive to API state changes)
   });
 
   function expectGetApi(api: Api) {
