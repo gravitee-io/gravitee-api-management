@@ -40,12 +40,16 @@ public class ComputeFacetsUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    @Inject
-    private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
+    private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
-    public ComputeFacetsUseCase(AnalyticsQueryContextProvider queryContextResolver, AnalyticsQueryValidator validator) {
+    public ComputeFacetsUseCase(
+        AnalyticsQueryContextProvider queryContextResolver,
+        AnalyticsQueryValidator validator,
+        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+    ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
+        this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
     }
 
     public record Input(AuditInfo auditInfo, FacetsRequest request) {}

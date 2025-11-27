@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.infra.domain_service.analytics_engine.permissions.ApiAnalyticsQueryFilterDecoratorImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -35,5 +39,13 @@ public class RestManagementConfiguration {
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
+    }
+
+    @Bean
+    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator(
+        ApiAuthorizationService apiAuthorizationService,
+        PermissionService permissionService
+    ) {
+        return new ApiAnalyticsQueryFilterDecoratorImpl(apiAuthorizationService, permissionService);
     }
 }
