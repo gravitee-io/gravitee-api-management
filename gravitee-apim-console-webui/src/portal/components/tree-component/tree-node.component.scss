@@ -3,7 +3,7 @@
 @use 'sass:map';
 
 $typography: map.get(gio.$mat-theme, typography);
-$indent-base: 12px;
+$indent-base: 4px;
 $folder-indent-step: 26px;
 $indent-step: 26px;
 
@@ -14,14 +14,12 @@ $indent-step: 26px;
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    padding: 6px 4px 6px calc(#{$indent-base} + (var(--level) * #{$indent-step}));
+    padding: 6px 4px 6px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
     height: 36px;
 
-    &.child {
-      padding: 6px 4px 6px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
-    }
-
     &.folder {
+      padding: 6px 4px 6px calc(#{$indent-base} + (var(--level) * #{$indent-step}));
+
       &.child {
         padding: 6px 4px 6px calc(#{$indent-base} + (var(--level) * #{$folder-indent-step}));
       }
