@@ -106,13 +106,26 @@ spec:
           imagePullPolicy: {{ .Values.kafkaConsole.image.pullPolicy }}
           securityContext: {{ toYaml .Values.kafkaConsole.deployment.securityContext | nindent 12 }}
           env:
+    {{- if and .Values.kafkaConsole.jwt.secret .Values.kafkaConsole.jwt.secret.value }}
             - name: AUTH_JWT_SECRET
-              value: {{ .Values.kafkaConsole.jwt.secret }}
+              value: {{ .Values.kafkaConsole.jwt.secret.value }}
+    {{- else if and .Values.kafkaConsole.jwt.secret .Values.kafkaConsole.jwt.secret.valueFrom }}
+            - name: AUTH_JWT_SECRET
+              valueFrom: {{- toYaml .Values.kafkaConsole.jwt.secret.valueFrom | nindent 16}}
+    {{- end}}
+    {{- if .Values.kafkaConsole.apim.apiUrl }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIURL
+              value: {{ .Values.kafkaConsole.apim.apiUrl }}
+    {{- else }}
             - name: KAFKA_GRAVITEE_MANAGEMENTAPIURL
               value: http://{{ template "gravitee.api.fullname" . }}:{{ .Values.api.service.externalPort }}/management/v2/organizations/{{ .Values.kafkaConsole.apim.organization }}/environments/{{ .Values.kafkaConsole.apim.environment }}
-    {{- if .Values.kafkaConsole.apim.security.token }}
+    {{- end}}
+    {{- if and .Values.kafkaConsole.apim.security.token .Values.kafkaConsole.apim.security.token.value }}
             - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINTOKEN
-              value: {{ .Values.kafkaConsole.apim.security.token }}
+              value: {{ .Values.kafkaConsole.apim.security.token.value }}
+    {{- else if and .Values.kafkaConsole.apim.security.token .Values.kafkaConsole.apim.security.token.valueFrom }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINTOKEN
+              valueFrom: {{- toYaml .Values.kafkaConsole.apim.security.token.valueFrom | nindent 16}}
     {{- else }}
             - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME
               value: {{ .Values.kafkaConsole.apim.security.username }}
@@ -156,6 +169,12 @@ spec:
           startupProbe: {{ toYaml .Values.kafkaConsole.deployment.customStartupProbe | nindent 12 }}
           {{- end }}
           resources: {{ toYaml .Values.kafkaConsole.resources | nindent 12 }}
+          {{- if .Values.kafkaConsole.extraVolumeMounts }}
+          volumeMounts:
+            {{- with .Values.kafkaConsole.extraVolumeMounts }}
+            {{- tpl . $ | nindent 12 }}
+            {{- end}}
+          {{- end}}
         {{- if .Values.kafkaConsole.extraContainers }}
         {{- with .Values.kafkaConsole.extraContainers }}
         {{- tpl . $ | nindent 8 }}
@@ -165,7 +184,10 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.kafkaConsole.image.pullSecrets }}
       {{- end }}
-      {{- with .Values.kafkaConsole.extraVolumes }}
-        {{- tpl . $ | nindent 8 }}
+      {{- if .Values.kafkaConsole.extraVolumes }}
+      volumes:
+        {{- with .Values.kafkaConsole.extraVolumes }}
+          {{- tpl . $ | nindent 8 }}
+        {{- end }}
       {{- end }}
 {{- end -}}
