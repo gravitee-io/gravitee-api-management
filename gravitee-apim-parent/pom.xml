@@ -217,6 +217,11 @@
                     <artifactId>lombok-maven-plugin</artifactId>
                     <version>${lombok-maven-plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>io.gravitee.plugin</groupId>
+                    <artifactId>gravitee-plugin-common-configurations-maven-plugin</artifactId>
+                    <version>${gravitee-plugin-common-configurations-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
