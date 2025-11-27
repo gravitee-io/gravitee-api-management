@@ -450,7 +450,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
       req.flush(planA);
-
+      expectGetApi(api);
       expectNewNgOnInit();
     });
 
