@@ -65,7 +65,7 @@ class ListAllowedApisTest extends AbstractTest {
     static final String apiId3 = "api-id-3";
     static final String apiId4 = "api-id-4";
 
-    static List<String> environmentIds = List.of(apiId1, apiId2, apiId3, apiId4);
+    static List<String> environmentApiIds = List.of(apiId1, apiId2, apiId3, apiId4);
 
     @BeforeEach
     public void setUp() {
@@ -76,7 +76,7 @@ class ListAllowedApisTest extends AbstractTest {
     void should_allow_administrators_access_to_all_environment_APIs() {
         var environmentAdminRole = "ENVIRONMENT:ADMIN";
 
-        when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn(Set.copyOf(environmentIds));
+        when(apiAuthorizationService.findIdsByEnvironment("DEFAULT")).thenReturn(Set.copyOf(environmentApiIds));
 
         GrantedAuthority organizationAdmin = () -> environmentAdminRole;
         setAuthorities(organizationAdmin);
@@ -84,7 +84,7 @@ class ListAllowedApisTest extends AbstractTest {
         var allowedApis = apiAnalyticsQueryFilterDecorator.getAllowedApis();
 
         var apiIds = allowedApis.keySet();
-        assertThat(apiIds).containsExactlyInAnyOrderElementsOf(environmentIds);
+        assertThat(apiIds).containsExactlyInAnyOrderElementsOf(environmentApiIds);
     }
 
     @ParameterizedTest
