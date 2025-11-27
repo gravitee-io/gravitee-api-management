@@ -24,7 +24,6 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +39,16 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    @Inject
-    private AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
+    private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
-    public ComputeTimeSeriesUseCase(AnalyticsQueryContextProvider queryContextProvider, AnalyticsQueryValidator validator) {
+    public ComputeTimeSeriesUseCase(
+        AnalyticsQueryContextProvider queryContextProvider,
+        AnalyticsQueryValidator validator,
+        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+    ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
+        this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
     }
 
     public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}

@@ -963,9 +963,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ComputeMeasuresUseCase computeMeasuresUseCase(
         AnalyticsQueryContextProvider analyticsQueryContextProvider,
-        AnalyticsQueryValidator analyticsQueryValidator
+        AnalyticsQueryValidator analyticsQueryValidator,
+        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
     ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator);
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, analyticsQueryFilterDecorator);
     }
 
     @Bean
