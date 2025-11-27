@@ -36,7 +36,7 @@ describe('NavBarComponent', () => {
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
   let httpTestingController: HttpTestingController;
-  const customLinks: PortalNavigationItem[] = [
+  const topBarNavigationItems: PortalNavigationItem[] = [
     {
       id: 'link-id-1',
       organizationId: 'DEFAULT',
@@ -104,7 +104,7 @@ describe('NavBarComponent', () => {
     });
 
     it('should not show links if user is not connected and login is forced', async () => {
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
       expect(link1Anchor).not.toBeTruthy();
@@ -113,7 +113,7 @@ describe('NavBarComponent', () => {
     });
 
     it('should show links if user is connected and login is forced', async () => {
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       componentRef.setInput('currentUser', fakeUser());
       const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
@@ -123,7 +123,7 @@ describe('NavBarComponent', () => {
     });
 
     it('should show custom links if login is not forced', async () => {
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
       expect(link1Anchor).toBeTruthy();
       const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
@@ -167,7 +167,7 @@ describe('NavBarComponent', () => {
 
     it('should not show menu if user is not connected and login is forced', async () => {
       expectHomePage([]);
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       fixture.detectChanges();
 
@@ -178,7 +178,7 @@ describe('NavBarComponent', () => {
     it('should show links if user is connected and login is forced', async () => {
       expectHomePage([]);
       componentRef.setInput('currentUser', fakeUser());
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       fixture.detectChanges();
 
@@ -193,7 +193,7 @@ describe('NavBarComponent', () => {
 
     it('should show custom links if login is not forced', async () => {
       expectHomePage([]);
-      componentRef.setInput('customLinks', customLinks);
+      componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       fixture.detectChanges();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
