@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +41,17 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
 
     private final ApiStateService apiStateService;
     private final ApiService apiService;
+    private final ApiSearchService apiSearchService;
 
     @Override
     public boolean isSynchronized(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         return switch (api.getDefinitionVersion()) {
-            case V4 -> apiStateService.isSynchronized(executionContext, apiAdapter.toApiEntity(api));
+            case V4 -> {
+                var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId());
+                yield apiStateService.isSynchronized(executionContext, genericApiEntity);
+            }
             case V1, V2 -> apiService.isSynchronized(executionContext, api.getId());
             case FEDERATED_AGENT, FEDERATED -> true;
         };
