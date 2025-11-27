@@ -5826,18 +5826,33 @@ components:
                 propagateErrorKeyToLogs:
                     type: boolean
         Sampling:
+            description: API analytics sampling (message API only). This is meant to log only a portion to avoid overflowing the log sink.
             type: object
             properties:
                 type:
                     type: string
-                    description: The type of the sampling
+                    description: |
+                        The type of the sampling:
+
+                        `PROBABILITY`: based on a specified probability,
+                        `TEMPORAL`: report one message at least every duration,
+                        `COUNT`: for every number of specified messages,
+                        `WINDOWED_COUNT`: x number of messages on a time window,
+                        
                     enum:
                         - PROBABILITY
                         - TEMPORAL
                         - COUNT
+                        - WINDOWED_COUNT
                 value:
                     type: string
-                    description: The value of the sampling
+                    description: |
+                        The value of the sampling:
+
+                        `PROBABILITY`: between `0.01` and `0.5`,
+                        `TEMPORAL`: ISO-8601 duration format, 1 second minimum (PT1S)
+                        `COUNT`: greater than `1`,
+                        `WINDOWED_COUNT`: x/<ISO-8601 duration> cannot exceed 1 message per second
             required:
                 - type
         MembershipMemberType:

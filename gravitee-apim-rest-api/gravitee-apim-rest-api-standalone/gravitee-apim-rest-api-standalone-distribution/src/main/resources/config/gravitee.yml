@@ -314,6 +314,9 @@ analytics:
 #    temporal:
 #      default: PT1S
 #      limit: PT1S
+#    windowed_count:
+#      default: 1/PT10S
+#      limit: 1/PT1S
 
 # Authentication and identity sources
 # Users can have following roles (authorities):

@@ -49,6 +49,11 @@ public class MessageSampling {
     @Builder.Default
     private MessageSampling.Temporal temporal = Temporal.builder().build();
 
+    @Valid
+    @NotNull
+    @Builder.Default
+    private MessageSampling.WindowedCount windowedCount = WindowedCount.builder().build();
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -99,5 +104,21 @@ public class MessageSampling {
         @Builder.Default
         @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT)
         private String limit = "PT1S";
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WindowedCount {
+
+        @Builder.Default
+        @JsonProperty("default")
+        @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT)
+        private String defaultValue = "1/PT10S";
+
+        @Builder.Default
+        @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT)
+        private String limit = "1/PT1S";
     }
 }

@@ -150,6 +150,18 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                     .findFirst()
                     .orElse(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.defaultValue())
             );
+            case WINDOWED_COUNT -> new SamplingType.ValidationLimit.WindowedCountLimit(
+                parameterService
+                    .findAll(
+                        executionContext,
+                        Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT,
+                        Function.identity(),
+                        ParameterReferenceType.ORGANIZATION
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElse(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.defaultValue())
+            );
         };
     }
 
