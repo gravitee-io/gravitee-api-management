@@ -2187,22 +2187,44 @@ kafkaConsole:
     #  lifecycle:
     #    postStart: '[ "/bin/sh", "-c", "echo Post starting Gravitee Portal" ]'
     #    preStop: '[ "/bin/sh", "-c", "echo Pre stopping Gravitee Portal" ]'
-    ## Additional gravitee ui volume mounts
-    # Defines additional volume mounts.
-    # extraVolumeMounts: |
-    # - name: extra-volume
-    #   mountPath: /mnt/volume
-    #   readOnly: true
+
+  # Defines additional volume mounts.
+  #extraVolumeMounts: |
+  #  - name: extra-volume
+  #    mountPath: /mnt/volume
+  #    readOnly: true
+  #
+
+  # Defines additional volumes.
+  #extraVolumes: |
+  #  - name: config
+  #    configMap:
+  #      name: gravitee-config-configmap-name
+  #  - name: cert
+  #    secret:
+  #      secretName: gravitee-cert-secret-name
 
   jwt:
-    secret: # put here a 32bits string. It's used to signed JWT token for communication between management API and kafka console
+    secret:
+      value: # put here a 32bits string. It's used to signed JWT token for communication between management API and kafka console
+  #    valueFrom:
+  #      secretKeyRef:
+  #        name:
+  #        key:
+
   apim:
+  #  apiUrl: # put here the URL to your management API. This should contain the organization and the environment information. If provided, `organization` & `environment` fields will be ignored. Example: https://my.company.com:8083/organizations/6eb27b47-2560-481f-b27b-472560581fff/environments/808a51a9-48f5-4517-8a51-a948f5e517b3
+    organization: DEFAULT
+    environment: DEFAULT
     security:
       username: admin # put here an org admin username. Ignored if token is provided
       password: admin # put here an org admin password. Ignored if token is provided
-  #    token:         # put here an org admin Personal Access Token. It replaces username and password
-    organization: DEFAULT
-    environment: DEFAULT
+  #    token:
+  #      value: # put here an org admin Personal Access Token. It replaces username and password
+  #      valueFrom:
+  #        secretKeyRef:
+  #          name:
+  #          key:
 
 
 #secrets:
