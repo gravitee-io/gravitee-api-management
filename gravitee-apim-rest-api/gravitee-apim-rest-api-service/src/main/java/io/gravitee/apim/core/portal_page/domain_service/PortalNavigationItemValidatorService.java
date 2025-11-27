@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
@@ -27,13 +28,13 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.net.URL;
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +47,7 @@ public class PortalNavigationItemValidatorService {
 
     public void validate(CreatePortalNavigationItem item, String environmentId) {
         validateItem(item, environmentId);
-        validateParent(item, environmentId);
+        validateParent(item.getParentId(), item.getArea(), environmentId);
     }
 
     private void validateItem(CreatePortalNavigationItem item, String environmentId) {
@@ -85,12 +86,10 @@ public class PortalNavigationItemValidatorService {
         }
     }
 
-    private void validateParent(CreatePortalNavigationItem item, String environmentId) {
-        final var parentId = item.getParentId();
+    private void validateParent(PortalNavigationItemId parentId, PortalArea itemArea, String environmentId) {
         if (parentId == null) {
             return;
         }
-
         final var parentItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentId);
         if (parentItem == null) {
             throw new ParentNotFoundException(parentId.toString());
@@ -98,7 +97,7 @@ public class PortalNavigationItemValidatorService {
         if (!(parentItem instanceof PortalNavigationFolder)) {
             throw new ParentTypeMismatchException(parentId.toString());
         }
-        if (!parentItem.getArea().equals(item.getArea())) {
+        if (!parentItem.getArea().equals(itemArea)) {
             throw new ParentAreaMismatchException(parentId.toString());
         }
     }
@@ -114,9 +113,11 @@ public class PortalNavigationItemValidatorService {
 
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         enforceTypeConsistency(existingItem, toUpdate.getType());
+        var payloadParentId = toUpdate.getParentId();
 
+        validateParent(payloadParentId, existingItem.getArea(), existingItem.getEnvironmentId());
         if (toUpdate.getTitle().isBlank()) {
-            throw new InvalidDataException("Title is required for navigation items.");
+            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("title");
         }
 
         if (toUpdate.getType() == PortalNavigationItemType.LINK) {
@@ -134,9 +135,7 @@ public class PortalNavigationItemValidatorService {
         };
 
         if (existingType != requestedType) {
-            throw new InvalidDataException(
-                "Navigation item type cannot be changed or is mismatched (expected %s, got %s).".formatted(existingType, requestedType)
-            );
+            throw InvalidPortalNavigationItemDataException.typeMismatch(requestedType.toString(), existingType.toString());
         }
     }
 }

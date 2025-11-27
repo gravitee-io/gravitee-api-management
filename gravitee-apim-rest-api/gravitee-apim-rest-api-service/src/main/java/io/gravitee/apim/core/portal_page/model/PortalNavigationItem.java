@@ -106,5 +106,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
 
     public void update(UpdatePortalNavigationItem navItem) {
         this.setTitle(navItem.getTitle().trim());
+        this.setOrder(navItem.getOrder());
+        this.setParentId(navItem.getParentId());
     }
 }

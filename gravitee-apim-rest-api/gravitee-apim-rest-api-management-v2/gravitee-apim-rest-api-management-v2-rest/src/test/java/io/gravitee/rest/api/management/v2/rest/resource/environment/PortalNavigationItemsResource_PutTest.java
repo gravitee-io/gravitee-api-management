@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -127,7 +128,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(response).hasStatus(OK_200);
         PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
         assertThat(body).isNotNull();
-        assertThat(body.getId()).isEqualTo(java.util.UUID.fromString(navId));
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
 
         // And storage reflects the change
@@ -152,7 +153,6 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(response).hasStatus(OK_200);
         PortalNavigationLink body = response.readEntity(PortalNavigationLink.class);
         assertThat(body).isNotNull();
-        //assertThat(body.getId()).isEqualTo(java.util.UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getUrl()).isEqualTo("https://gravitee.io");
 
@@ -177,7 +177,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
         assertThat(body).isNotNull();
-        assertThat(body.getId()).isEqualTo(java.util.UUID.fromString(navId));
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
 
         // And storage reflects the change
@@ -217,5 +217,85 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         Response response = target.path(unknownId).request().put(json(payload));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
+    }
+
+    @Test
+    void should_update_portal_navigation_item_order_page() {
+        // Given an existing PAGE item id from fixtures
+        String navId = PAGE11_ID;
+
+        // When: PUT with a new title
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
+            .title("  Updated Title  ")
+            .order(3)
+            .type(PortalNavigationItemType.PAGE);
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK and response payload with trimmed title and updated order
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
+        assertThat(body).isNotNull();
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
+        assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getOrder()).isEqualTo(3);
+
+        // And storage reflects the change
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getOrder()).isEqualTo(3);
+    }
+
+    @Test
+    void should_update_portal_navigation_item_parentId_link() {
+        // Given an existing LINK item id from fixtures
+        String navId = LINK1_ID;
+
+        // When: PUT with a new title
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationLink()
+            .url("https://gravitee.io")
+            .title("  Updated Title  ")
+            .type(PortalNavigationItemType.LINK)
+            .order(0)
+            .parentId(UUID.fromString(APIS_ID));
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK and response payload with trimmed title and updated parentId
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationLink body = response.readEntity(PortalNavigationLink.class);
+        assertThat(body).isNotNull();
+        assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getUrl()).isEqualTo("https://gravitee.io");
+        assertThat(body.getParentId()).isEqualTo(UUID.fromString(APIS_ID));
+
+        // And storage reflects the change
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+    }
+
+    @Test
+    void should_update_portal_navigation_item_parentId_folder_to_Root_Level_when_parentId_null() {
+        // Given an existing FOLDER item id from fixtures
+        String navId = APIS_ID;
+
+        // When: PUT with a new title
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationFolder()
+            .title("  Updated Title  ")
+            .type(PortalNavigationItemType.FOLDER)
+            .order(2);
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK and response payload with trimmed title and parentId null ==> moving to root level
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
+        assertThat(body).isNotNull();
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
+        assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getParentId()).isNull();
+
+        // And storage reflects the change
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getParentId()).isNull();
     }
 }
