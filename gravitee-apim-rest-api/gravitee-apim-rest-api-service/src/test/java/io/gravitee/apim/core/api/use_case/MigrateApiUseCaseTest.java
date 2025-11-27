@@ -94,6 +94,7 @@ import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Collection;
 import java.util.Date;
@@ -127,6 +128,7 @@ class MigrateApiUseCaseTest {
         .build();
 
     private final ApiStateService apiStateService = mock(ApiStateService.class);
+    private final ApiSearchService apiSearchService = mock(ApiSearchService.class);
     private final ApiService apiService = mock(ApiService.class);
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -162,7 +164,11 @@ class MigrateApiUseCaseTest {
         apiCategoryQueryService,
         indexer
     );
-    private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(apiStateService, apiService);
+    private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(
+        apiStateService,
+        apiService,
+        apiSearchService
+    );
 
     private final MigrateApiUseCase useCase = new MigrateApiUseCase(
         apiCrudService,
