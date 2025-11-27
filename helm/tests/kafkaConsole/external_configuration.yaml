@@ -1,0 +1,38 @@
+suite: Test APIM Kafka console deployment with a volumeMount named secret defined
+templates:
+  - "kafkaConsole/kafkaConsole-deployment.yaml"
+tests:
+  - it: Should generate a volume named secret in kafkaConsole-deployment.yaml
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        enabled: true
+        extraVolumes: |
+          - name: foo
+            secret:
+              secretName: mysecret
+              defaultMode: 420
+              items:
+                - key: username
+                  path: my-group/my-username
+        extraVolumeMounts: |
+          - mountPath: /etc/foo
+            name: foo
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: foo
+            mountPath: /etc/foo
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: foo
+            secret:
+              secretName: mysecret
+              defaultMode: 420
+              items:
+                - key: username
+                  path: my-group/my-username
