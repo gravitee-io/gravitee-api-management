@@ -73,6 +73,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-common-configurations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
@@ -126,6 +132,34 @@
                                 <source>generated-sources</source>
                             </sources>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-common-configurations-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Filter source artifacts -->
+                    <includeArtifacts>
+                        <include>io.gravitee.plugin:gravitee-plugin-common-configurations</include>
+                    </includeArtifacts>
+
+                    <!-- Files to extract pattern (optionnel, défaut: schemas/**/*.json) -->
+                    <includeSchemas>
+                        <include>schemas/**/schema-form-*.json</include>
+                    </includeSchemas>
+
+                    <!-- Custom paths (optional) -->
+                    <localSchemaFile>${project.basedir}/src/main/resources/schemas/sharedConfiguration/schema-form.json
+                    </localSchemaFile>
+                    <outputFile>${project.build.outputDirectory}/schemas/sharedConfiguration/schema-form.json</outputFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>common-schema-form-bundle</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

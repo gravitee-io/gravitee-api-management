@@ -20,13 +20,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.plugin.configurations.http.HttpClientOptions;
 import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -127,54 +127,54 @@ class HttpProxyEndpointConnectorFactoryTest {
 
     static final String CONFIG = "{\n" + "  \"target\": \"https://localhost:8082/echo?foo=bar\"\n" + "}";
 
-    static final String SHARED_CONFIG =
-        "{\n" +
-        "       \"http\": {\n" +
-        "           \"keepAlive\": true,\n" +
-        "           \"followRedirects\": false,\n" +
-        "           \"readTimeout\": 10000,\n" +
-        "           \"idleTimeout\": 60000,\n" +
-        "           \"keepAliveTimeout\": 30000,\n" +
-        "           \"connectTimeout\": 5000,\n" +
-        "           \"propagateClientAcceptEncoding\": true,\n" +
-        "           \"useCompression\": false,\n" +
-        "           \"maxConcurrentConnections\": 100,\n" +
-        "           \"version\": \"HTTP_1_1\",\n" +
-        "           \"pipelining\": false,\n" +
-        "           \"clearTextUpgrade\": true\n" +
-        "       },\n" +
-        "       \"proxy\": {\n" +
-        "           \"enabled\": false,\n" +
-        "           \"useSystemProxy\": false,\n" +
-        "           \"host\": \"localhost\",\n" +
-        "           \"port\": 8080,\n" +
-        "           \"username\": \"user\",\n" +
-        "           \"password\": \"pwd\",\n" +
-        "           \"type\": \"HTTP\"\n" +
-        "       },\n" +
-        "       \"headers\": [\n" +
-        "           {\n" +
-        "               \"name\": \"X-Header1\",\n" +
-        "               \"value\": \"Value1\"\n" +
-        "           },\n" +
-        "           {\n" +
-        "               \"name\": \"X-Header2\",\n" +
-        "               \"value\": \"Value2\"\n" +
-        "           }\n" +
-        "       ],\n" +
-        "       \"ssl\": {\n" +
-        "           \"keyStore\": {\n" +
-        "               \"type\": \"PKCS12\",\n" +
-        "               \"content\": \"MIIG/Tsbfs1Cgn....\",\n" +
-        "               \"password\": \"truststore-secret\"\n" +
-        "           },\n" +
-        "           \"hostnameVerifier\": false,\n" +
-        "           \"trustStore\": {\n" +
-        "               \"type\": \"PKCS12\",\n" +
-        "               \"content\": \"MIIG/gIBAzCCBrcGCS....\",\n" +
-        "               \"password\": \"truststore-secret\"\n" +
-        "           },\n" +
-        "           \"trustAll\": false\n" +
-        "       }\n" +
-        "}";
+    static final String SHARED_CONFIG = """
+        {
+               "http": {
+                   "keepAlive": true,
+                   "followRedirects": false,
+                   "readTimeout": 10000,
+                   "idleTimeout": 60000,
+                   "keepAliveTimeout": 30000,
+                   "connectTimeout": 5000,
+                   "propagateClientAcceptEncoding": true,
+                   "useCompression": false,
+                   "maxConcurrentConnections": 20,
+                   "version": "HTTP_1_1",
+                   "pipelining": false,
+                   "clearTextUpgrade": true
+               },
+               "proxy": {
+                   "enabled": false,
+                   "useSystemProxy": false,
+                   "host": "localhost",
+                   "port": 8080,
+                   "username": "user",
+                   "password": "pwd",
+                   "type": "HTTP"
+               },
+               "headers": [
+                   {
+                       "name": "X-Header1",
+                       "value": "Value1"
+                   },
+                   {
+                       "name": "X-Header2",
+                       "value": "Value2"
+                   }
+               ],
+               "ssl": {
+                   "keyStore": {
+                       "type": "PKCS12",
+                       "content": "MIIG/Tsbfs1Cgn....",
+                       "password": "truststore-secret"
+                   },
+                   "hostnameVerifier": false,
+                   "trustStore": {
+                       "type": "PKCS12",
+                       "content": "MIIG/gIBAzCCBrcGCS....",
+                       "password": "truststore-secret"
+                   },
+                   "trustAll": false
+               }
+        }""";
 }
