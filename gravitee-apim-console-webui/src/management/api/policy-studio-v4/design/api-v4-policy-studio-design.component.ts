@@ -220,6 +220,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
           return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
         }),
+        switchMap(() => this.apiV2Service.refreshLastApiFetch()),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
