@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +39,14 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
     public static final ApiAdapter apiAdapter = ApiAdapter.INSTANCE;
 
     private final ApiStateService apiStateService;
+    private final ApiSearchService apiSearchService;
 
     @Override
     public boolean isSynchronized(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId());
 
-        return apiStateService.isSynchronized(executionContext, apiAdapter.toApiEntity(api));
+        return apiStateService.isSynchronized(executionContext, genericApiEntity);
     }
 
     @Override
