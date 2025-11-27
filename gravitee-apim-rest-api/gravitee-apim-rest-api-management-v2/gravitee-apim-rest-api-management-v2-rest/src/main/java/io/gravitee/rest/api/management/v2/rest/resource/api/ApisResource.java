@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
+import io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
@@ -97,6 +98,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ApisResource extends AbstractResource {
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
+    private static final String EXPAND_METADATA = "metadata";
 
     @Context
     private ResourceContext resourceContext;
@@ -139,6 +141,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
 
+    @Inject
+    private GetApiMetadataUseCase getApiMetadataUseCase;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -176,8 +181,9 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ApisResponse getApis(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("expands") Set<String> expands) {
+        var executionContext = GraviteeContext.getExecutionContext();
         Page<GenericApiEntity> apis = apiServiceV4.findAll(
-            GraviteeContext.getExecutionContext(),
+            executionContext,
             getAuthenticatedUser(),
             isAdmin(),
             expands,
@@ -187,15 +193,19 @@ public class ApisResource extends AbstractResource {
 
         long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
+        var mappedApis = ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api -> {
+            if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                return null;
+            }
+            return apiStateService.isSynchronized(executionContext, api);
+        });
+
+        if (expands != null && !expands.isEmpty()) {
+            enrichApisWithAdditionalData(executionContext, mappedApis, expands);
+        }
+
         return new ApisResponse()
-            .data(
-                ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api -> {
-                    if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                        return null;
-                    }
-                    return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
-                })
-            )
+            .data(mappedApis)
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
     }
@@ -424,6 +434,55 @@ public class ApisResource extends AbstractResource {
             return Response.accepted(VerifyApiHostsResponse.builder().ok(true).build()).build();
         } catch (Exception e) {
             return Response.accepted(VerifyApiHostsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+        }
+    }
+
+    private void enrichApisWithAdditionalData(
+        io.gravitee.rest.api.service.common.ExecutionContext executionContext,
+        java.util.List<io.gravitee.rest.api.management.v2.rest.model.Api> apis,
+        Set<String> expands
+    ) {
+        if (apis == null || apis.isEmpty()) {
+            return;
+        }
+        boolean includeMetadata = expands.contains(EXPAND_METADATA);
+
+        for (io.gravitee.rest.api.management.v2.rest.model.Api api : apis) {
+            try {
+                String apiId = extractApiId(api);
+                if (apiId == null) {
+                    continue;
+                }
+                if (includeMetadata) {
+                    var output = getApiMetadataUseCase.execute(
+                        new GetApiMetadataUseCase.Input(apiId, executionContext.getEnvironmentId(), null, null)
+                    );
+                    if (output.metadata() != null && !output.metadata().isEmpty()) {
+                        var metadataList = io.gravitee.rest.api.management.v2.rest.mapper.MetadataMapper.INSTANCE.mapFromCore(
+                            output.metadata()
+                        );
+                        setApiMetadata(api, metadataList);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to enrich API {} with additional data: {}", extractApiId(api), e.getMessage());
+            }
+        }
+    }
+
+    private String extractApiId(io.gravitee.rest.api.management.v2.rest.model.Api api) {
+        if (api.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.GenericApi genericApi) {
+            return genericApi.getId();
+        }
+        return null;
+    }
+
+    private void setApiMetadata(
+        io.gravitee.rest.api.management.v2.rest.model.Api api,
+        java.util.List<io.gravitee.rest.api.management.v2.rest.model.Metadata> metadata
+    ) {
+        if (api.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.GenericApi genericApi) {
+            genericApi.setMetadata(metadata);
         }
     }
 }
