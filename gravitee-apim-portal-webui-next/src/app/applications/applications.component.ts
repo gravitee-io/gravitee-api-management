@@ -15,7 +15,10 @@
  */
 import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { BehaviorSubject, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -24,6 +27,7 @@ import { ApplicationCardComponent } from '../../components/application-card/appl
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { Application } from '../../entities/application/application';
 import { ApplicationService } from '../../services/application.service';
+import { CurrentUserService } from '../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 export interface ApplicationPaginatorVM {
@@ -34,13 +38,28 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent, NgClass],
+  imports: [
+    AsyncPipe,
+    InfiniteScrollModule,
+    LoaderComponent,
+    MatCard,
+    MatCardContent,
+    ApplicationCardComponent,
+    NgClass,
+    MatButton,
+    MatIcon,
+    RouterLink,
+  ],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
 export class ApplicationsComponent {
+  currentUser = inject(CurrentUserService).user;
+
   applicationPaginator$: Observable<ApplicationPaginatorVM>;
   loadingPage$ = new BehaviorSubject(true);
+
+  canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
 
   appListContainerClasses = computed(() => ({
     'app-list__container--mobile': this.isMobile(),
