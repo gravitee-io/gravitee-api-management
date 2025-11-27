@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -50,7 +52,7 @@ public enum Key {
     PORTAL_RATING_ENABLED("portal.rating.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_RATING_COMMENT_MANDATORY(
         "portal.rating.comment.mandatory",
-        "false",
+        Boolean.FALSE.toString(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -59,12 +61,16 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_ANALYTICS_ENABLED(
+        "portal.analytics.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIS_DOCUMENTATIONONLYMODE_ENABLED(
         "portal.apis.documentationOnlyMode.enabled",
-        "false",
+        Boolean.FALSE.toString(),
         Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
     ),
     PORTAL_APIS_CATEGORY_ENABLED(
@@ -83,7 +89,11 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_UPLOAD_MEDIA_ENABLED(
+        "portal.uploadMedia.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     PORTAL_UPLOAD_MEDIA_MAXSIZE(
         "portal.uploadMedia.maxSizeInOctet",
         "1000000",
@@ -116,7 +126,7 @@ public enum Key {
         "portal.next.banner.secondaryButton.visibility",
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
-    PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#2051B1", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_TERTIARY("portal.next.theme.color.tertiary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),
@@ -140,7 +150,7 @@ public enum Key {
 
     PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED(
         "portal.authentication.forceLogin.enabled",
-        "false",
+        Boolean.FALSE.toString(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PORTAL_AUTHENTICATION_LOCALLOGIN_ENABLED(
@@ -166,10 +176,10 @@ public enum Key {
     PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED(
         "plan.security.apikey.allowCustom.enabled",
-        "false",
+        Boolean.FALSE.toString(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    PLAN_SECURITY_APIKEY_SHARED_ALLOWED("plan.security.apikey.allowShared.enabled", "false", Set.of(ENVIRONMENT, SYSTEM)),
+    PLAN_SECURITY_APIKEY_SHARED_ALLOWED("plan.security.apikey.allowShared.enabled", Boolean.FALSE.toString(), Set.of(ENVIRONMENT, SYSTEM)),
     PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_SUBSCRIPTION_ENABLED(
         "plan.security.subscription.enabled",
@@ -190,8 +200,12 @@ public enum Key {
     ),
     OPEN_API_DOC_TYPE_DEFAULT("open.api.doc.type.default", "Swagger", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    API_SCORE_ENABLED("api.score.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
-    API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_SCORE_ENABLED("api.score.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
+    API_QUALITY_METRICS_ENABLED(
+        "api.quality.metrics.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT(
         "api.quality.metrics.functional.documentation.weight",
         "0",
@@ -236,9 +250,13 @@ public enum Key {
     ALERT_ENABLED("alert.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
     LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    LOGGING_USER_DISPLAYED("logging.user.displayed", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_AUDIT_ENABLED("logging.audit.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_AUDIT_TRAIL_ENABLED(
+        "logging.audit.trail.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
+    ),
+    LOGGING_USER_DISPLAYED("logging.user.displayed", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT("logging.messageSampling.count.default", "100", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
     LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT("logging.messageSampling.count.limit", "10", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
     LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT(
@@ -257,6 +275,16 @@ public enum Key {
         Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
     ),
     LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT("logging.messageSampling.temporal.limit", "PT1S", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
+    LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT(
+        "logging.messageSampling.windowed_count.default",
+        "1/PT10S",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
+    LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT(
+        "logging.messageSampling.windowed_count.limit",
+        "1/PT1S",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
 
     ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
@@ -283,15 +311,19 @@ public enum Key {
     ),
     APPLICATION_REGISTRATION_ENABLED(
         "application.registration.enabled",
-        "false",
+        Boolean.FALSE.toString(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
 
-    API_REVIEW_ENABLED("api.review.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    API_REVIEW_ENABLED("api.review.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    MAINTENANCE_MODE_ENABLED("maintenance.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     NEWSLETTER_ENABLED("newsletter.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    PORTAL_RECAPTCHA_ENABLED("portal.reCaptcha.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_RECAPTCHA_ENABLED(
+        "portal.reCaptcha.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     PORTAL_RECAPTCHA_SITE_KEY("portal.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     PORTAL_HTTP_CORS_ALLOW_ORIGIN(
@@ -320,7 +352,7 @@ public enum Key {
     ),
     PORTAL_HTTP_CORS_MAX_AGE("http.api.portal.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    EMAIL_ENABLED("email.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_ENABLED("email.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_HOST("email.host", "smtp.my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_PORT("email.port", "587", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_USERNAME("email.username", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
@@ -350,7 +382,7 @@ public enum Key {
     ),
     CONSOLE_SCHEDULER_TASKS("console.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_SCHEDULER_NOTIFICATIONS("console.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    CONSOLE_RECAPTCHA_ENABLED("console.reCaptcha.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_RECAPTCHA_ENABLED("console.reCaptcha.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_RECAPTCHA_SITE_KEY("console.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_HTTP_CORS_ALLOW_ORIGIN(
         "http.api.management.cors.allow-origin",
@@ -389,9 +421,9 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    CONSOLE_SYSTEM_ROLE_EDITION_ENABLED("console.systemRoleEdition.enabled", "false", Set.of(SYSTEM)),
+    CONSOLE_SYSTEM_ROLE_EDITION_ENABLED("console.systemRoleEdition.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
 
-    CONSOLE_ANALYTICS_PENDO_ENABLED("console.analytics.pendo.enabled", "false", Set.of(SYSTEM)),
+    CONSOLE_ANALYTICS_PENDO_ENABLED("console.analytics.pendo.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
     CONSOLE_ANALYTICS_PENDO_API_KEY("console.analytics.pendo.apiKey", "", Set.of(SYSTEM)),
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_ID("console.analytics.pendo.account.id", (String) null, Set.of(SYSTEM)),
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_HRID("console.analytics.pendo.account.hrid", (String) null, Set.of(SYSTEM)),
@@ -419,25 +451,30 @@ public enum Key {
 
     V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM)),
 
-    ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
-    FEDERATION_ENABLED("integration.enabled", "false", Set.of(SYSTEM)),
-    NEWTAI_ELGEN_ENABLED("newtai.elgen.enabled", "false", Set.of(SYSTEM)),
+    ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
+    FEDERATION_ENABLED("integration.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
+    NEWTAI_ELGEN_ENABLED("newtai.elgen.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
 
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
-    TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),
-    CLOUD_HOSTED_ENABLED("cloud-hosted.enabled", "false", Set.of(SYSTEM)),
+    TRIAL_INSTANCE("trialInstance.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
+    CLOUD_HOSTED_ENABLED("cloud-hosted.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
 
-    EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
+    EXTERNAL_AUTH_ENABLED("auth.external.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
     EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
-    USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", "false", Set.of(ORGANIZATION, ENVIRONMENT)),
+    USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", Boolean.FALSE.toString(), Set.of(ORGANIZATION, ENVIRONMENT)),
 
-    KAFKA_CONSOLE_ENABLED("kafka.console.enabled", "false", Set.of(KeyScope.SYSTEM));
+    KAFKA_CONSOLE_ENABLED("kafka.console.enabled", Boolean.FALSE.toString(), Set.of(KeyScope.SYSTEM));
 
     final String key;
     String defaultValue;
     Class<?> type;
+
+    @Getter
     boolean isOverridable = true;
+
     final Set<KeyScope> scopes;
+
+    @Getter
     boolean isHiddenForTrial = false;
 
     Key(String key, Set<KeyScope> scopes) {
@@ -503,14 +540,6 @@ public enum Key {
 
     public Class<?> type() {
         return type;
-    }
-
-    public boolean isOverridable() {
-        return isOverridable;
-    }
-
-    public boolean isHiddenForTrial() {
-        return isHiddenForTrial;
     }
 
     public Set<KeyScope> scopes() {

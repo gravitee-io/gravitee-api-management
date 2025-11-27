@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.settings.logging;
 
+import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.time.Duration;
@@ -26,8 +27,9 @@ public class MessageSamplingSettingsValidator implements ConstraintValidator<Val
         final boolean validCountSettings = validateCountSettings(messageSampling, constraintValidatorContext);
         final boolean validProbabilisticSettings = validateProbabilisticSettings(messageSampling, constraintValidatorContext);
         final boolean validTemporalSettings = validateTemporalSettings(messageSampling, constraintValidatorContext);
+        final boolean validWindowedCountSettings = validateWindowedCountSettings(messageSampling, constraintValidatorContext);
 
-        return validCountSettings && validProbabilisticSettings && validTemporalSettings;
+        return validCountSettings && validProbabilisticSettings && validTemporalSettings && validWindowedCountSettings;
     }
 
     private static boolean validateCountSettings(MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
@@ -85,6 +87,56 @@ public class MessageSamplingSettingsValidator implements ConstraintValidator<Val
         if (defaultDuration != null && limitDuration != null && defaultDuration.getSeconds() < limitDuration.getSeconds()) {
             constraintValidatorContext
                 .buildConstraintViolationWithTemplate("Invalid temporal default value, 'default' should be greater than 'limit'")
+                .addConstraintViolation();
+            hasValidationConstraint = true;
+        }
+
+        return !hasValidationConstraint;
+    }
+
+    private boolean validateWindowedCountSettings(MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
+        MessageSampling.WindowedCount windowedCount = messageSampling.getWindowedCount();
+        boolean hasValidationConstraint = false;
+        Sampling.WindowedCount defaultValue = null;
+        Sampling.WindowedCount limit = null;
+        try {
+            defaultValue = Sampling.parseWindowedCount(windowedCount.getDefaultValue());
+        } catch (Exception e) {
+            constraintValidatorContext
+                .buildConstraintViolationWithTemplate("Invalid windowed count 'default' value: cannot parse")
+                .addConstraintViolation();
+            hasValidationConstraint = true;
+        }
+
+        if (defaultValue != null && defaultValue.count() < 0) {
+            constraintValidatorContext
+                .buildConstraintViolationWithTemplate("Invalid windowed count 'default' value: count must be positive")
+                .addConstraintViolation();
+            hasValidationConstraint = true;
+        }
+
+        try {
+            limit = Sampling.parseWindowedCount(windowedCount.getLimit());
+        } catch (Exception e) {
+            constraintValidatorContext
+                .buildConstraintViolationWithTemplate("Invalid windowed count 'limit' value: cannot parse")
+                .addConstraintViolation();
+            hasValidationConstraint = true;
+        }
+
+        if (limit != null && limit.count() < 0) {
+            constraintValidatorContext
+                .buildConstraintViolationWithTemplate("Invalid windowed count 'limit' value: count must be positive")
+                .addConstraintViolation();
+            // if this one fails, the next will always fail useless to continue
+            return false;
+        }
+
+        if (defaultValue != null && limit != null && defaultValue.ratePerSeconds() > limit.ratePerSeconds()) {
+            constraintValidatorContext
+                .buildConstraintViolationWithTemplate(
+                    "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
+                )
                 .addConstraintViolation();
             hasValidationConstraint = true;
         }

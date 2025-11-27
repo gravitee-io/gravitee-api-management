@@ -23,13 +23,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.model.parameters.Key;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
+import jakarta.validation.*;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -70,6 +65,9 @@ class GraviteePropertiesValidatorTest {
         when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class)).thenReturn("PT10S");
         when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class)).thenReturn("PT5S");
 
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)).thenReturn("1/PT10S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class)).thenReturn("1/PT1S");
+
         assertWithMockedValidation(() -> assertDoesNotThrow(() -> cut.validateProperties()));
     }
 
@@ -83,6 +81,10 @@ class GraviteePropertiesValidatorTest {
 
         when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class)).thenReturn("PT10S");
         when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class)).thenReturn("PT50S");
+
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)).thenReturn("2/PT1S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class)).thenReturn("1/PT1S");
+
         assertWithMockedValidation(() -> {
             final ConstraintViolation constraintViolationTemporal = prepareConstraintViolation(
                 "Invalid temporal default value, 'default' should be greater than 'limit'"
@@ -93,15 +95,24 @@ class GraviteePropertiesValidatorTest {
             final ConstraintViolation constraintViolationProbabilistic = prepareConstraintViolation(
                 "Invalid probabilistic default value, 'default' should be lower than 'limit'"
             );
+            final ConstraintViolation constraintViolationWindowedCount = prepareConstraintViolation(
+                "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
+            );
             when(validator.validate(any())).thenReturn(
-                Set.of(constraintViolationTemporal, constraintViolationCount, constraintViolationProbabilistic)
+                Set.of(
+                    constraintViolationTemporal,
+                    constraintViolationCount,
+                    constraintViolationProbabilistic,
+                    constraintViolationWindowedCount
+                )
             );
             assertThatThrownBy(() -> cut.validateProperties())
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContainingAll(
                     "Invalid temporal default value, 'default' should be greater than 'limit'",
                     "Invalid count default value, 'default' should be greater than 'limit'",
-                    "Invalid probabilistic default value, 'default' should be lower than 'limit'"
+                    "Invalid probabilistic default value, 'default' should be lower than 'limit'",
+                    "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
                 );
         });
     }

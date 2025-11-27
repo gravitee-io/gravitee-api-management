@@ -15,13 +15,16 @@
  */
 package io.gravitee.definition.model.v4.analytics.sampling;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.time.Duration;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -77,6 +80,39 @@ class SamplingTypeTest {
         @ValueSource(strings = { "bad", "9" })
         void should_not_validate_value(final String value) {
             assertThat(SamplingType.PROBABILITY.validate(value, new SamplingType.ValidationLimit.ProbabilityLimit(1))).isFalse();
+        }
+    }
+
+    @Nested
+    class WindowedCountType {
+
+        String limit = "1/PT1S";
+
+        @ParameterizedTest
+        @ValueSource(strings = { "1/PT1S", "1/PT2S" })
+        void should_validate_value(final String value) {
+            assertThat(SamplingType.WINDOWED_COUNT.validate(value, new SamplingType.ValidationLimit.WindowedCountLimit(limit))).isTrue();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "2/PT1S", "100/PT1M" })
+        void should_not_validate_value(final String value) {
+            assertThat(SamplingType.WINDOWED_COUNT.validate(value, new SamplingType.ValidationLimit.WindowedCountLimit(limit))).isFalse();
+        }
+    }
+
+    @Nested
+    class WindowedCountRecord {
+
+        @ParameterizedTest
+        @CsvSource({ "120/PT1M, 120, 60, 2.0", "1/PT1S, 1, 1, 1.0", "1/PT2S, 1, 2, 0.5", "1/PT10S, 1, 10, 0.1" })
+        void should_parse_encode_and_get_rate(String value, int count, int durationSec, double ratio) {
+            assertThatCode(() -> Sampling.parseWindowedCount(value)).doesNotThrowAnyException();
+            Sampling.WindowedCount windowedCount = Sampling.parseWindowedCount(value);
+            assertThat(windowedCount.count()).isEqualTo(count);
+            assertThat(windowedCount.window()).isEqualTo(Duration.ofSeconds(durationSec));
+            assertThat(windowedCount.ratePerSeconds()).isEqualTo(ratio);
+            assertThat(windowedCount.encode()).isEqualTo(value);
         }
     }
 }

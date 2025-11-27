@@ -15,15 +15,15 @@
  */
 package io.gravitee.definition.model.v4.analytics.sampling;
 
+import com.google.common.base.Splitter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.time.Duration;
+import java.util.List;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -43,4 +43,22 @@ public class Sampling implements Serializable {
     @NotEmpty
     @NotNull
     private String value;
+
+    public record WindowedCount(int count, Duration window) {
+        public String encode() {
+            return count + "/" + window;
+        }
+
+        public double ratePerSeconds() {
+            return (double) count / window.toSeconds();
+        }
+    }
+
+    public static WindowedCount parseWindowedCount(@Nonnull String value) {
+        List<String> parts = List.of(value.split("/"));
+        if (parts.size() != 2) {
+            throw new IllegalArgumentException("Invalid windowed count value: " + value + ", must be of the form <count>/<duration>");
+        }
+        return new WindowedCount(Integer.parseInt(parts.getFirst()), Duration.parse(parts.getLast()));
+    }
 }

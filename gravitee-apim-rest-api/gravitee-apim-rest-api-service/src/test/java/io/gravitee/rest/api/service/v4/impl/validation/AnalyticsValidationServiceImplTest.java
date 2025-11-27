@@ -16,14 +16,11 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -34,6 +31,7 @@ import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.exception.AnalyticsMessageSamplingValueInvalidException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
@@ -42,55 +40,57 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class AnalyticsValidationServiceImplTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
+class AnalyticsValidationServiceImplTest {
 
-    @Mock
     private ParameterService parameterService;
 
     private AnalyticsValidationService analyticsValidationService;
 
     MockedStatic<Instant> mockedStaticInstant;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() {
         Instant instant = Instant.now(Clock.fixed(Instant.ofEpochMilli(0), ZoneOffset.UTC));
         mockedStaticInstant = mockStatic(Instant.class);
         mockedStaticInstant.when(Instant::now).thenReturn(instant);
 
-        when(
-            parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
-                any(Function.class),
-                eq(ParameterReferenceType.ORGANIZATION)
+        parameterService = mock(ParameterService.class);
+        lenient()
+            .when(
+                parameterService.findAll(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(Key.LOGGING_DEFAULT_MAX_DURATION),
+                    any(Function.class),
+                    eq(ParameterReferenceType.ORGANIZATION)
+                )
             )
-        ).thenReturn(singletonList(1L));
+            .thenReturn(singletonList(1L));
 
         analyticsValidationService = new AnalyticsValidationServiceImpl(parameterService);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() {
         mockedStaticInstant.close();
     }
 
     @Test
-    public void should_add_default_analytics_if_no_analytics() {
+    void should_add_default_analytics_if_no_analytics() {
         // No analytics
-        assertNotNull(analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.PROXY, null));
+        assertThat(analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.PROXY, null)).isNotNull();
 
         // Default logging
         Analytics analytics = new Analytics();
@@ -101,11 +101,11 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertSame(defaultLogging, sanitizedAnalytics.getLogging());
+        assertThat(sanitizedAnalytics.getLogging()).isSameAs(defaultLogging);
     }
 
     @Test
-    public void should_not_add_default_condition_if_none_logging() {
+    void should_not_add_default_condition_if_none_logging() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(false).endpoint(false).build());
@@ -117,11 +117,11 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertSame(logging, sanitizedAnalytics.getLogging());
+        assertThat(logging).isSameAs(sanitizedAnalytics.getLogging());
     }
 
     @Test
-    public void should_not_add_default_condition_if_wrong_condition_and_no_settings() {
+    void should_not_add_default_condition_if_wrong_condition_and_no_settings() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -142,15 +142,22 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertSame(logging, sanitizedAnalytics.getLogging());
+        assertThat(sanitizedAnalytics.getLogging()).isSameAs(logging);
     }
 
-    @Test
-    public void should_add_default_condition_if_wrong_condition_and_with_settings() {
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(
+        {
+            "if_wrong_condition_and_with_settings,true,{#request.timestamp <= 1l && (true)}",
+            "timestamp_case_timestamp_less,{#request.timestamp < 2550166583090l},{#request.timestamp <= 1l}",
+            "double_parenthesis,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+        }
+    )
+    void should_add_default_condition_if_wrong_condition_and_with_settings(String name, String condition, String expectedCondition) {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("true");
+        logging.setCondition(condition);
         analytics.setLogging(logging);
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
@@ -158,16 +165,28 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l && (true)}", sanitizedAnalytics.getLogging().getCondition());
+        assertThat(sanitizedAnalytics.getLogging().getMode()).isEqualTo(LoggingMode.builder().entrypoint(true).endpoint(true).build());
+        assertThat(sanitizedAnalytics.getLogging().getCondition()).isEqualTo(expectedCondition);
     }
 
-    @Test
-    public void should_override_timestamp_case_timestamp_less_or_equal() {
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(
+        {
+            "timestamp_less_or_equal,{#request.timestamp <= 2550166583090l},{#request.timestamp <= 1l}",
+            "before_and_timestamp_after,{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2},{#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)}",
+            "double_parenthesis,{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+            "before_multiple_parenthesis,{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+            "before_and_timestamp_and_after,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+            "greater_or_equals,{#request.timestamp >= 5l},{#request.timestamp <= 1l && (#request.timestamp >= 5l)}",
+            "greater,{#request.timestamp > 5l},{#request.timestamp <= 1l && (#request.timestamp > 5l)}",
+            "greater_or_equals_in_the_past,{#request.timestamp >= 0l},{#request.timestamp <= 1l && (#request.timestamp >= 0l)}",
+        }
+    )
+    void should_override_timestamp(String name, String condition, String expectedCondition) {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp <= 2550166583090l}");
+        logging.setCondition(condition);
         analytics.setLogging(logging);
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
@@ -175,157 +194,12 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l}", sanitizedAnalytics.getLogging().getCondition());
+        assertThat(LoggingMode.builder().entrypoint(true).endpoint(true).build()).isEqualTo(sanitizedAnalytics.getLogging().getMode());
+        assertThat(sanitizedAnalytics.getLogging().getCondition()).isEqualTo(expectedCondition);
     }
 
     @Test
-    public void should_override_timestamp_case_timestamp_less() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp < 2550166583090l}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l}", sanitizedAnalytics.getLogging().getCondition());
-    }
-
-    @Test
-    public void should_override_timestamp_case_timestamp_and_after() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_override_timestamp_case_before_and_timestamp() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_handle_after_double_parenthesis() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition(
-            "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
-        );
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_handle_before_double_parenthesis() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition(
-            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
-        );
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_handle_before_multiple_parenthesis() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition(
-            "{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}"
-        );
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_override_timestamp_case_before_and_timestamp_and_after() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition(
-            "{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'}"
-        );
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(
-            "{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            sanitizedAnalytics.getLogging().getCondition()
-        );
-    }
-
-    @Test
-    public void should_not_override_timestamp_if_before_threshold() {
+    void should_not_override_timestamp_if_before_threshold() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -346,63 +220,12 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 2l}", sanitizedAnalytics.getLogging().getCondition());
+        assertThat(LoggingMode.builder().entrypoint(true).endpoint(true).build()).isEqualTo(sanitizedAnalytics.getLogging().getMode());
+        assertThat(sanitizedAnalytics.getLogging().getCondition()).isEqualTo("{#request.timestamp <= 2l}");
     }
 
     @Test
-    public void should_override_timestamp_case_greater_or_equals() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp >= 5l}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l && (#request.timestamp >= 5l)}", sanitizedAnalytics.getLogging().getCondition());
-    }
-
-    @Test
-    public void should_override_timestamp_case_greater() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp > 5l}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l && (#request.timestamp > 5l)}", sanitizedAnalytics.getLogging().getCondition());
-    }
-
-    @Test
-    public void should_override_timestamp_case_greater_or_equals_in_the_past() {
-        Analytics analytics = new Analytics();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
-        logging.setCondition("{#request.timestamp >= 0l}");
-        analytics.setLogging(logging);
-
-        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            ApiType.PROXY,
-            analytics
-        );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals("{#request.timestamp <= 1l && (#request.timestamp >= 0l)}", sanitizedAnalytics.getLogging().getCondition());
-    }
-
-    @Test
-    public void should_override_timestamp_case_greater_or_equals_in_the_past_with_or_condition() {
+    void should_override_timestamp_case_greater_or_equals_in_the_past_with_or_condition() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -432,22 +255,22 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.PROXY,
             analytics
         );
-        assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
-        assertEquals(expectedCondition, sanitizedAnalytics.getLogging().getCondition());
+        assertThat(LoggingMode.builder().entrypoint(true).endpoint(true).build()).isEqualTo(sanitizedAnalytics.getLogging().getMode());
+        assertThat(expectedCondition).isEqualTo(sanitizedAnalytics.getLogging().getCondition());
     }
 
     @Test
-    public void should_set_default_analytics_without_sampling_when_sync_api() {
+    void should_set_default_analytics_without_sampling_when_sync_api() {
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             ApiType.PROXY,
             null
         );
-        assertEquals(new Analytics(), sanitizedAnalytics);
+        assertThat(sanitizedAnalytics).isEqualTo(new Analytics());
     }
 
     @Test
-    public void should_set_default_analytics_with_sampling_when_async_api() {
+    void should_set_default_analytics_with_sampling_when_async_api() {
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             ApiType.MESSAGE,
@@ -458,11 +281,11 @@ public class AnalyticsValidationServiceImplTest {
         messageSampling.setType(SamplingType.COUNT);
         messageSampling.setValue(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue());
         expected.setMessageSampling(messageSampling);
-        assertEquals(expected, sanitizedAnalytics);
+        assertThat(sanitizedAnalytics).isEqualTo(expected);
     }
 
     @Test
-    public void should_set_default_analytics_with_sampling_when_async_api_from_custom_settings() {
+    void should_set_default_analytics_with_sampling_when_async_api_from_custom_settings() {
         when(parameterService.findAll(any(), eq(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT), any(), any())).thenReturn(List.of("77"));
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -474,11 +297,11 @@ public class AnalyticsValidationServiceImplTest {
         messageSampling.setType(SamplingType.COUNT);
         messageSampling.setValue("77");
         expected.setMessageSampling(messageSampling);
-        assertEquals(expected, sanitizedAnalytics);
+        assertThat(sanitizedAnalytics).isEqualTo(expected);
     }
 
     @Test
-    public void should_set_default_sampling_when_async_api_and_analytics_enabled() {
+    void should_set_default_sampling_when_async_api_and_analytics_enabled() {
         Analytics analytics = new Analytics();
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -490,11 +313,11 @@ public class AnalyticsValidationServiceImplTest {
         messageSampling.setType(SamplingType.COUNT);
         messageSampling.setValue(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue());
         expected.setMessageSampling(messageSampling);
-        assertEquals(expected, sanitizedAnalytics);
+        assertThat(expected).isEqualTo(sanitizedAnalytics);
     }
 
     @Test
-    public void should_validate_analytics_with_sampling_when_async_api() {
+    void should_validate_analytics_with_sampling_when_async_api() {
         Analytics analytics = new Analytics();
         Sampling messageSampling = new Sampling();
         messageSampling.setType(SamplingType.COUNT);
@@ -505,18 +328,20 @@ public class AnalyticsValidationServiceImplTest {
             ApiType.MESSAGE,
             analytics
         );
-        assertEquals(analytics, sanitizedAnalytics);
+        assertThat(sanitizedAnalytics).isEqualTo(analytics);
     }
 
-    @Test
-    public void should_throw_exception_when_validating_analytics_with_wrong_sampling_when_async_api() {
+    @ParameterizedTest
+    @CsvSource({ "COUNT,         0", "TEMPORAL,      PT0S", "PROBABILITY,   0.8", "WINDOWED_COUNT, 2/1PTS" })
+    void should_throw_exception_when_validating_analytics_with_wrong_sampling_when_async_api(String type, String value) {
         Analytics analytics = new Analytics();
         Sampling messageSampling = new Sampling();
-        messageSampling.setType(SamplingType.COUNT);
-        messageSampling.setValue("0");
+        messageSampling.setType(SamplingType.valueOf(type));
+        messageSampling.setValue(value);
         analytics.setMessageSampling(messageSampling);
-        assertThrows(AnalyticsMessageSamplingValueInvalidException.class, () ->
-            analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.MESSAGE, analytics)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        assertThatCode(() -> analyticsValidationService.validateAndSanitize(executionContext, ApiType.MESSAGE, analytics)).isInstanceOf(
+            AnalyticsMessageSamplingValueInvalidException.class
         );
     }
 }

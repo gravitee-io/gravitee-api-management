@@ -83,11 +83,21 @@ public class GraviteePropertiesValidator {
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class) != null) {
             temporalSettingsBuilder.limit(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class));
         }
+        final MessageSampling.WindowedCount.WindowedCountBuilder windowedSettingsBuilder = MessageSampling.WindowedCount.builder();
+        if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class) != null) {
+            windowedSettingsBuilder.defaultValue(
+                configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)
+            );
+        }
+        if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class) != null) {
+            windowedSettingsBuilder.limit(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class));
+        }
 
         final MessageSampling messageSampling = builder
             .count(countBuilder.build())
             .probabilistic(probabilisticSettingsBuilder.build())
             .temporal(temporalSettingsBuilder.build())
+            .windowedCount(windowedSettingsBuilder.build())
             .build();
 
         return validator.validate(messageSampling);
