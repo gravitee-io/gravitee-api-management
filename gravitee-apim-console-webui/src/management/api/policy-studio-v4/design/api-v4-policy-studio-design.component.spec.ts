@@ -475,7 +475,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
       req.flush(planA);
-
+      expectGetApi(api);
       expectNewNgOnInit();
     });
 
@@ -754,6 +754,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           method: 'PUT',
         });
         req.flush(planA);
+        expectGetApi(api);
         expectNewNgOnInit();
         expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/1');
       });
