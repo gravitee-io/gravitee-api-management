@@ -129,6 +129,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         request.metrics().setApi(reactable.getId());
         request.metrics().setApiName(reactable.getName());
         request.metrics().setPath(request.pathInfo());
+        request.metrics().setEnvironmentId(reactable.getEnvironmentId());
+        request.metrics().setOrganizationId(reactable.getOrganizationId());
 
         // keep track of executing request to avoid 500 errors
         // when stop is called while running a policy chain

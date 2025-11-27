@@ -16,9 +16,8 @@
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.connector.Connector;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -30,7 +29,6 @@ import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +59,7 @@ public class ReporterProcessor implements Processor {
             if (metrics != null && metrics.isEnabled()) {
                 metrics.setRequestEnded(true);
                 setEntrypointId(ctx, metrics);
+                setQuota(ctx, metrics);
 
                 executeReportActions(metrics);
 
@@ -107,6 +106,11 @@ public class ReporterProcessor implements Processor {
         if (connector != null) {
             metrics.setEntrypointId(connector.id());
         }
+    }
+
+    private static void setQuota(HttpExecutionContextInternal ctx, Metrics metrics) {
+        metrics.setQuotaCounter(ctx.getAttribute(ContextAttributes.ATTR_QUOTA_COUNT));
+        metrics.setQuotaLimit(ctx.getAttribute(ContextAttributes.ATTR_QUOTA_LIMIT));
     }
 
     private void executeReportActions(Metrics metrics) {
