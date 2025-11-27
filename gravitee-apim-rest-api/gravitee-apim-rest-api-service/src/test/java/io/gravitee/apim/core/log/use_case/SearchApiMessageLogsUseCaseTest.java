@@ -18,7 +18,7 @@ package io.gravitee.apim.core.log.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.MessageLogsCrudServiceInMemory;
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -42,7 +42,7 @@ class SearchApiMessageLogsUseCaseTest {
     @BeforeEach
     void setup() {
         messageLogsCrudService = new MessageLogsCrudServiceInMemory();
-        messageLogsCrudService.initWith(List.of(MessageMetrics.builder().apiId("api-id").build()));
+        messageLogsCrudService.initWith(List.of(MessageLog.builder().apiId("api-id").build()));
         underTest = new SearchApiMessageLogsUseCase(messageLogsCrudService);
     }
 

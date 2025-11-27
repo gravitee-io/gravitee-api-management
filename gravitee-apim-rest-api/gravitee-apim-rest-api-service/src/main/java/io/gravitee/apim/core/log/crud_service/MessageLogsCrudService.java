@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.log.crud_service;
 
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -26,7 +26,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface MessageLogsCrudService {
-    SearchLogsResponse<MessageMetrics> searchApiMessageLogs(
+    SearchLogsResponse<MessageLog> searchApiMessageLogs(
         ExecutionContext executionContext,
         String apiId,
         SearchMessageLogsFilters filters,

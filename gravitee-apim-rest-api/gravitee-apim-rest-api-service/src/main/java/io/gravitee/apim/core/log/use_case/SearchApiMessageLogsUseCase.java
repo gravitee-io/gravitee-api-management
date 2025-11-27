@@ -17,7 +17,7 @@ package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.log.crud_service.MessageLogsCrudService;
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,7 +37,7 @@ public class SearchApiMessageLogsUseCase {
 
     public record Input(String apiId, SearchMessageLogsFilters searchMessageMetricsFilters, Pageable pageable) {}
 
-    public record Output(long total, List<MessageMetrics> data) {}
+    public record Output(long total, List<MessageLog> data) {}
 
     public Output execute(ExecutionContext executionContext, Input input) {
         var response = messageMetricsCrudService.searchApiMessageLogs(
