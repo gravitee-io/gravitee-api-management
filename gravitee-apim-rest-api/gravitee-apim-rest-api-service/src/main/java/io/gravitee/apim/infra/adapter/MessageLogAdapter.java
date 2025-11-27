@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import java.util.List;
@@ -48,5 +49,5 @@ public interface MessageLogAdapter {
         return MessageOperation.fromLabel(messageLog.getOperation());
     }
 
-    List<io.gravitee.apim.core.log.model.MessageMetrics> mapToMessageMetrics(List<MessageMetrics> data);
+    List<MessageLog> mapToMessageMetrics(List<MessageMetrics> data);
 }

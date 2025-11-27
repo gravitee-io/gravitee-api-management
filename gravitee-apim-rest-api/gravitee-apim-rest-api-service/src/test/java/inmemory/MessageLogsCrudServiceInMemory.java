@@ -16,7 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.MessageLogsCrudService;
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -32,12 +32,12 @@ import java.util.function.Predicate;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, InMemoryAlternative<MessageMetrics> {
+public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, InMemoryAlternative<MessageLog> {
 
-    List<MessageMetrics> storage = new ArrayList<>();
+    List<MessageLog> storage = new ArrayList<>();
 
     @Override
-    public SearchLogsResponse<MessageMetrics> searchApiMessageLogs(
+    public SearchLogsResponse<MessageLog> searchApiMessageLogs(
         ExecutionContext executionContext,
         String apiId,
         SearchMessageLogsFilters filters,
@@ -48,7 +48,7 @@ public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, I
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage().stream().filter(predicate).sorted(Comparator.comparing(MessageMetrics::getTimestamp).reversed()).toList();
+        var matches = storage().stream().filter(predicate).sorted(Comparator.comparing(MessageLog::getTimestamp).reversed()).toList();
 
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
@@ -56,7 +56,7 @@ public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, I
     }
 
     @Override
-    public void initWith(List<MessageMetrics> items) {
+    public void initWith(List<MessageLog> items) {
         storage.addAll(items);
     }
 
@@ -66,12 +66,12 @@ public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, I
     }
 
     @Override
-    public List<MessageMetrics> storage() {
+    public List<MessageLog> storage() {
         return List.copyOf(storage);
     }
 
-    private static Predicate<MessageMetrics> messageMetricsPredicate(String apiId, SearchMessageLogsFilters filters) {
-        Predicate<MessageMetrics> predicate = ignored -> true;
+    private static Predicate<MessageLog> messageMetricsPredicate(String apiId, SearchMessageLogsFilters filters) {
+        Predicate<MessageLog> predicate = ignored -> true;
 
         if (apiId != null) {
             predicate = predicate.and(messageMetrics -> Objects.equals(apiId, messageMetrics.getApiId()));

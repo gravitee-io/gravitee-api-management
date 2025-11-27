@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorType;
 import io.gravitee.rest.api.management.v2.rest.model.MessageOperation;
@@ -31,12 +31,12 @@ import org.mapstruct.factory.Mappers;
 public interface ApiMessageLogsMapper {
     ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
-    List<ApiMessageLog> map(List<MessageMetrics> messageMetricsList);
+    List<ApiMessageLog> map(List<MessageLog> messageMetricsList);
 
     @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
     @Mapping(target = "operation", expression = "java(mapOperation(messageMetrics.getOperation()))")
     @Mapping(target = "connectorType", expression = "java(mapConnectorType(messageMetrics.getConnectorType()))")
-    ApiMessageLog map(MessageMetrics messageMetrics);
+    ApiMessageLog map(MessageLog messageMetrics);
 
     SearchMessageLogsFilters map(SearchMessageLogsParam searchMessageMetricsParam);
 

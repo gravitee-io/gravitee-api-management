@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class MessageMetrics {
+public class MessageLog {
 
     private String timestamp;
     private String apiId;

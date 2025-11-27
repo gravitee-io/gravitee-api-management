@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.crud_service.log;
 
 import io.gravitee.apim.core.log.crud_service.MessageLogsCrudService;
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.apim.infra.adapter.MessageLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
@@ -46,7 +46,7 @@ public class MessageLogsCrudServiceImpl implements MessageLogsCrudService {
     }
 
     @Override
-    public SearchLogsResponse<MessageMetrics> searchApiMessageLogs(
+    public SearchLogsResponse<MessageLog> searchApiMessageLogs(
         ExecutionContext executionContext,
         String apiId,
         SearchMessageLogsFilters filters,
@@ -77,7 +77,7 @@ public class MessageLogsCrudServiceImpl implements MessageLogsCrudService {
         }
     }
 
-    private SearchLogsResponse<MessageMetrics> mapToMessageResponse(
+    private SearchLogsResponse<MessageLog> mapToMessageResponse(
         LogResponse<io.gravitee.repository.log.v4.model.message.MessageMetrics> logs
     ) {
         var total = logs.total();

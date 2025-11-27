@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import inmemory.InMemoryAlternative;
 import inmemory.MessageLogsCrudServiceInMemory;
-import io.gravitee.apim.core.log.model.MessageMetrics;
+import io.gravitee.apim.core.log.model.MessageLog;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchMessageLogsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -91,9 +91,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
 
     @Test
     void should_return_message_metrics() {
-        messageMetricsCrudServiceInMemory.initWith(
-            List.of(MessageMetrics.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build())
-        );
+        messageMetricsCrudServiceInMemory.initWith(List.of(MessageLog.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build()));
 
         final Response response = messageMetricsTarget.request().get();
 
@@ -123,7 +121,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         var pageSize = 5;
         messageMetricsCrudServiceInMemory.initWith(
             LongStream.range(0, total)
-                .mapToObj(i -> MessageMetrics.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
+                .mapToObj(i -> MessageLog.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
                 .toList()
         );
 
@@ -147,7 +145,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         var pageSize = 5;
         messageMetricsCrudServiceInMemory.initWith(
             LongStream.range(0, total)
-                .mapToObj(i -> MessageMetrics.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
+                .mapToObj(i -> MessageLog.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
                 .toList()
         );
 
@@ -175,8 +173,8 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
     void should_filter_on_api_id() {
         messageMetricsCrudServiceInMemory.initWith(
             List.of(
-                MessageMetrics.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build(),
-                MessageMetrics.builder().apiId("other-api").timestamp("2025-11-11T06:57:44.893Z").build()
+                MessageLog.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build(),
+                MessageLog.builder().apiId("other-api").timestamp("2025-11-11T06:57:44.893Z").build()
             )
         );
 
@@ -203,7 +201,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         String expectedRequestId = "123456789";
         messageMetricsCrudServiceInMemory.initWith(
             List.of(
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:57:44.893Z")
                     .connectorType(expectedConnectorType)
@@ -212,7 +210,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId(expectedRequestId)
                     .correlationId(expectedCorrelationId)
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:57:44.893Z")
                     .connectorType("endpoint")
@@ -221,7 +219,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId(expectedRequestId)
                     .correlationId("don't want this one (endpoint)")
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:57:44.893Z")
                     .connectorType(expectedConnectorType)
@@ -230,7 +228,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId(expectedRequestId)
                     .correlationId("don't want this one (http-get)")
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:57:44.893Z")
                     .connectorType(expectedConnectorType)
@@ -239,7 +237,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId(expectedRequestId)
                     .correlationId("don't want this one (publish)")
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:57:44.893Z")
                     .connectorType(expectedConnectorType)
@@ -276,7 +274,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         String expectedCorrelationId = "this is the one we want to find";
         messageMetricsCrudServiceInMemory.initWith(
             List.of(
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T05:59:44.893Z")
                     .connectorType("entrypoint")
@@ -285,7 +283,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId("123456789")
                     .correlationId("don't want this one (too soon)")
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T06:30:45.893Z")
                     .connectorType("entrypoint")
@@ -294,7 +292,7 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
                     .requestId("123456789")
                     .correlationId(expectedCorrelationId)
                     .build(),
-                MessageMetrics.builder()
+                MessageLog.builder()
                     .apiId(API)
                     .timestamp("2025-11-11T07:00:44.893Z")
                     .connectorType("entrypoint")
