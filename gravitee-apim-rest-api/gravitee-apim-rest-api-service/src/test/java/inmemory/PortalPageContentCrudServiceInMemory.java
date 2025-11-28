@@ -54,4 +54,18 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
         final var portalPageContent = new GraviteeMarkdownPageContent(pageContentId, organizationId, environmentId, "default page content");
         return this.create(portalPageContent);
     }
+
+    @Override
+    public PortalPageContent update(PortalPageContent content) {
+        final var existingContent = storage
+            .stream()
+            .filter(c -> c.getId().id().equals(content.getId().id()))
+            .findFirst();
+        if (existingContent.isPresent()) {
+            storage.remove(existingContent.get());
+            storage.add(content);
+            return content;
+        }
+        return null;
+    }
 }

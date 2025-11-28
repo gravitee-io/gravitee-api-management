@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.apim.core.portal_page.exception;
 
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public interface PortalPageContentCrudService {
-    PortalPageContent create(PortalPageContent content);
+public class EmptyPortalPageContentException extends ValidationDomainException {
 
-    PortalPageContent createDefault(String organizationId, String environmentId);
-
-    PortalPageContent update(PortalPageContent content);
+    public EmptyPortalPageContentException() {
+        super("Content must not be null or empty");
+    }
 }

@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface PortalPageContentCrudService {
-    PortalPageContent create(PortalPageContent content);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public final class UpdatePortalPageContent {
 
-    PortalPageContent createDefault(String organizationId, String environmentId);
-
-    PortalPageContent update(PortalPageContent content);
+    private String content;
 }

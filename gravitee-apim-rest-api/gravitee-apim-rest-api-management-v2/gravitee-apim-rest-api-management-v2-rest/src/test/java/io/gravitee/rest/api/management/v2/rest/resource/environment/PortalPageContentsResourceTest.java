@@ -23,8 +23,11 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -32,13 +35,17 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
@@ -71,11 +78,16 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        portalPageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
+        portalPageContentCrudService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }
 
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalPageContentQueryService.reset();
+        portalPageContentCrudService.reset();
     }
 
     @Test
@@ -156,5 +168,115 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
         // Then
         assertThat(response).hasStatus(BAD_REQUEST_400);
+    }
+
+    @Nested
+    class UpdatePortalPageContent {
+
+        @BeforeEach
+        void setUp() {
+            var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                PortalPageContentId.of(CONTENT_ID),
+                ORGANIZATION,
+                ENVIRONMENT,
+                PortalPageContentFixtures.CONTENT
+            );
+
+            portalPageContentCrudService.initWith(List.of(content));
+            portalPageContentQueryService.initWith(List.of(content));
+        }
+
+        @Test
+        void should_update_portal_page_content() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
+            updateRequest.setContent("Updated content");
+
+            // When
+            Response response = target.path(CONTENT_ID).request().put(Entity.json(updateRequest));
+
+            // Then
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                .satisfies(result -> {
+                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                    assertThat(result.getContent()).isEqualTo("Updated content");
+                });
+        }
+
+        @Test
+        void should_return_400_when_content_is_empty() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
+            updateRequest.setContent(" ");
+
+            // When
+            Response response = target.path(CONTENT_ID).request().put(Entity.json(updateRequest));
+
+            // Then
+            assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_content_is_null() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+
+            var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
+
+            // When
+            Response response = target.path(CONTENT_ID).request().put(Entity.json(updateRequest));
+
+            // Then
+            assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_when_insufficient_permissions() {
+            // Given
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+
+            var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
+            updateRequest.setContent("Updated content");
+
+            // When
+            Response response = target.path(CONTENT_ID).request().put(Entity.json(updateRequest));
+
+            // Then
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
     }
 }

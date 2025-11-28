@@ -64,6 +64,18 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
         return this.create(portalPageContent);
     }
 
+    @Override
+    public PortalPageContent update(PortalPageContent content) {
+        try {
+            final var repoContent = portalPageContentAdapter.toRepository(content);
+            final var updatedContent = portalPageContentRepository.update(repoContent);
+            return portalPageContentAdapter.toEntity(updatedContent);
+        } catch (TechnicalException e) {
+            final var errorMessage = String.format("An error occurred while updating portal page content with id %s", content.getId());
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
     private String getDefaultPortalPageContent() {
         if (defaultPortalPageContent == null) {
             try {
