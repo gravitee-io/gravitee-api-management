@@ -7,8 +7,8 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}portal_navigation_items
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: true } }
-              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: title, type: nvarchar(255), constraints: { nullable: false } }
               - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: area, type: nvarchar(64), constraints: { nullable: false } }
