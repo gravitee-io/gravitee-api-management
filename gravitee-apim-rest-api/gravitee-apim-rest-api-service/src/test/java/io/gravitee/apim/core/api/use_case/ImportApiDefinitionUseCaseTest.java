@@ -150,7 +150,10 @@ class ImportApiDefinitionUseCaseTest {
             )
         );
         importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build())
+            List.of(
+                BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build(),
+                BaseUserEntity.builder().id("NEW-USER-ID").firstname("Jane1").lastname("Doe1").email(USER_EMAIL).build()
+            )
         );
     }
 
@@ -259,10 +262,10 @@ class ImportApiDefinitionUseCaseTest {
             importDefinition.getApiExport().setId(customId);
 
             io.gravitee.apim.core.membership.model.PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder()
-                .id("NEW-USER-ID")
+                .id(USER_ID)
                 .type(PrimaryOwnerEntity.Type.USER)
                 .email(USER_EMAIL)
-                .displayName("Jane1 Doe1")
+                .displayName("Jane Doe")
                 .build();
             importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -280,7 +283,7 @@ class ImportApiDefinitionUseCaseTest {
                     .containsExactly(
                         new IndexableApi(
                             expected,
-                            new PrimaryOwnerEntity("NEW-USER-ID", USER_EMAIL, "Jane1 Doe1", PrimaryOwnerEntity.Type.USER),
+                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
                             Collections.emptySet()
                         )
