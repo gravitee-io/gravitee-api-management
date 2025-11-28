@@ -83,6 +83,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(gettingStartedPage.getTitle()).isEqualTo("Getting started");
         assertThat(((PortalNavigationPage) gettingStartedPage).getPortalPageContentId()).isNotNull();
         assertThat(gettingStartedPage.getOrder()).isEqualTo(0);
+        assertThat(gettingStartedPage.getOrganizationId()).isEqualTo(guidesFolder.getOrganizationId());
+        assertThat(gettingStartedPage.getEnvironmentId()).isEqualTo(guidesFolder.getEnvironmentId());
 
         final var coreConceptsFolder = items
             .stream()
@@ -106,6 +108,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(authPage.getTitle()).isEqualTo("Authentication");
         assertThat(((PortalNavigationPage) authPage).getPortalPageContentId()).isNotNull();
         assertThat(authPage.getOrder()).isEqualTo(0);
+        assertThat(authPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
+        assertThat(authPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
 
         final var firstCallPage = items
             .stream()
@@ -118,6 +122,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(firstCallPage.getTitle()).isEqualTo("Making your first API call");
         assertThat(((PortalNavigationPage) firstCallPage).getPortalPageContentId()).isNotNull();
         assertThat(firstCallPage.getOrder()).isEqualTo(1);
+        assertThat(firstCallPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
+        assertThat(firstCallPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
 
         final var docsLink = items
             .stream()

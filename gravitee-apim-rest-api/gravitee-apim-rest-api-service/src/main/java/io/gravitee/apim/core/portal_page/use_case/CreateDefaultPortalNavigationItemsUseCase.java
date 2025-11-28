@@ -62,15 +62,15 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     public void execute(String organizationId, String environmentId) {
         final var folderGuides = createPortalFolder("Guides", organizationId, environmentId, null);
 
-        final var contentGettingStarted = createPortalPageContent(GETTING_STARTED_PATH);
+        final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
         createPortalPage("Getting started", organizationId, environmentId, contentGettingStarted.getId(), folderGuides.getId());
 
         final var folderCoreConcepts = createPortalFolder("Core concepts", organizationId, environmentId, folderGuides.getId());
 
-        final var contentAuthentication = createPortalPageContent(AUTHENTICATION_PATH);
+        final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
         createPortalPage("Authentication", organizationId, environmentId, contentAuthentication.getId(), folderCoreConcepts.getId());
 
-        final var contentFirstApiCall = createPortalPageContent(FIRST_API_CALL_PATH);
+        final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
         createPortalPage(
             "Making your first API call",
             organizationId,
@@ -123,8 +123,13 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         return CreatePortalNavigationItem.builder().title(title).area(PortalArea.TOP_NAVBAR).parentId(parentId).build();
     }
 
-    private PortalPageContent createPortalPageContent(String contentPath) {
-        final var content = new GraviteeMarkdownPageContent(PortalPageContentId.random(), loadContent(contentPath));
+    private PortalPageContent createPortalPageContent(String organizationId, String environmentId, String contentPath) {
+        final var content = new GraviteeMarkdownPageContent(
+            PortalPageContentId.random(),
+            organizationId,
+            environmentId,
+            loadContent(contentPath)
+        );
         return pageContentCrudService.create(content);
     }
 
