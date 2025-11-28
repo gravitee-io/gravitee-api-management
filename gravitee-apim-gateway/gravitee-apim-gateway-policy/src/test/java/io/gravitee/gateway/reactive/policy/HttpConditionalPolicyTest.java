@@ -16,7 +16,8 @@
 package io.gravitee.gateway.reactive.policy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -139,12 +140,13 @@ class HttpConditionalPolicyTest {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+        when(policy.id()).thenReturn(POLICY_ID);
 
         cut.onRequest(ctx).test().assertComplete();
 
         verify(policy).onRequest(ctx);
         verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
+        verify(policy).id();
     }
 
     @Test
@@ -152,12 +154,13 @@ class HttpConditionalPolicyTest {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
+        when(policy.id()).thenReturn(POLICY_ID);
 
         cut.onRequest(ctx).test().assertComplete();
 
         verify(policy, never()).onRequest(ctx);
         verify(spyCompletable, never()).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
+        verify(policy).id();
     }
 
     @Test
@@ -165,12 +168,13 @@ class HttpConditionalPolicyTest {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+        when(policy.id()).thenReturn(POLICY_ID);
 
         cut.onResponse(ctx).test().assertComplete();
 
         verify(policy).onResponse(ctx);
         verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
+        verify(policy).id();
     }
 
     @Test
@@ -178,12 +182,13 @@ class HttpConditionalPolicyTest {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
+        when(policy.id()).thenReturn(POLICY_ID);
 
         cut.onResponse(ctx).test().assertComplete();
 
         verify(policy, never()).onResponse(ctx);
         verify(spyCompletable, never()).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
+        verify(policy).id();
     }
 
     @Test
@@ -199,5 +204,60 @@ class HttpConditionalPolicyTest {
         final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
 
         assertEquals(CONDITION, cut.getCondition());
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+        when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
+
+        cut.onResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnMessageRequest() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldStoreTriggerConditionInContextOnMessageResponse() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, CONDITION, conditionFilter);
+        when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onMessageResponse(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+    }
+
+    @Test
+    void shouldNotStoreTriggerConditionWhenNoCondition() {
+        final HttpConditionalPolicy cut = new HttpConditionalPolicy(policy, null, conditionFilter);
+        lenient().when(policy.id()).thenReturn(POLICY_ID);
+
+        cut.onRequest(ctx).test().assertComplete();
+
+        verify((HttpExecutionContextInternal) ctx, never()).setInternalAttribute(
+            eq("gravitee.policy.trigger.condition." + POLICY_ID),
+            any()
+        );
     }
 }

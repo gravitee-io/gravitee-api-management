@@ -248,6 +248,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
     }
 
