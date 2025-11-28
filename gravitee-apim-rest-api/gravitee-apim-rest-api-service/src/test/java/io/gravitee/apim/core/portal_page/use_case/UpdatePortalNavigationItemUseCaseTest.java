@@ -95,6 +95,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem()).isNotNull();
         assertThat(output.updatedItem().getId()).isEqualTo(originalId);
         assertThat(output.updatedItem().getTitle()).isEqualTo("New Title");
+        assertThat(output.updatedItem().getPublished()).isTrue();
     }
 
     @Test
