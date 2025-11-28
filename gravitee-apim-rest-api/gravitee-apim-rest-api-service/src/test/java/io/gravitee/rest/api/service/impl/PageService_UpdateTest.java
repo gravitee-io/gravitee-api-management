@@ -100,6 +100,9 @@ public class PageService_UpdateTest {
     @Mock
     private HtmlSanitizer htmlSanitizer;
 
+    @Mock
+    private io.gravitee.rest.api.service.v4.ApiSearchService apiSearchService;
+
     @Before
     public void setUp() {
         when(page1.getVisibility()).thenReturn("PUBLIC");
@@ -652,5 +655,139 @@ public class PageService_UpdateTest {
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
+    }
+
+    @Test
+    public void shouldUpdateAllSwaggerPagesWithNewViewer() throws TechnicalException {
+        String newViewer = "Redoc";
+        io.gravitee.rest.api.model.v4.api.GenericApiEntity api1 = mock(io.gravitee.rest.api.model.v4.api.GenericApiEntity.class);
+        when(api1.getId()).thenReturn("api-1");
+        when(apiSearchService.findAllGenericByEnvironment(any(ExecutionContext.class))).thenReturn(Collections.singleton(api1));
+
+        Page envPage = new Page();
+        envPage.setId("env-page-1");
+        envPage.setType(PageType.SWAGGER.name());
+        envPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        envPage.setReferenceId("DEFAULT");
+        envPage.setConfiguration(new HashMap<>());
+        envPage.setUpdatedAt(new java.util.Date());
+
+        Page apiPage = new Page();
+        apiPage.setId("api-page-1");
+        apiPage.setType(PageType.SWAGGER.name());
+        apiPage.setReferenceType(PageReferenceType.API);
+        apiPage.setReferenceId("api-1");
+        apiPage.setConfiguration(new HashMap<>());
+        apiPage.setUpdatedAt(new java.util.Date());
+
+        when(
+            pageRepository.search(
+                argThat(
+                    criteria ->
+                        criteria != null &&
+                        PageReferenceType.ENVIRONMENT.name().equals(criteria.getReferenceType()) &&
+                        PageType.SWAGGER.name().equals(criteria.getType())
+                )
+            )
+        ).thenReturn(Collections.singletonList(envPage));
+
+        when(
+            pageRepository.search(
+                argThat(
+                    criteria ->
+                        criteria != null &&
+                        PageReferenceType.API.name().equals(criteria.getReferenceType()) &&
+                        PageType.SWAGGER.name().equals(criteria.getType())
+                )
+            )
+        ).thenReturn(Collections.singletonList(apiPage));
+
+        when(pageRepository.update(any(Page.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, times(2)).update(any(Page.class));
+    }
+
+    @Test
+    public void shouldSkipPagesWithCorrectViewer() throws TechnicalException {
+        String newViewer = "Redoc";
+        io.gravitee.rest.api.model.v4.api.GenericApiEntity api1 = mock(io.gravitee.rest.api.model.v4.api.GenericApiEntity.class);
+        when(api1.getId()).thenReturn("api-1");
+        when(apiSearchService.findAllGenericByEnvironment(any(ExecutionContext.class))).thenReturn(Collections.singleton(api1));
+
+        Page page = new Page();
+        page.setId("page-1");
+        page.setType(PageType.SWAGGER.name());
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId("api-1");
+        Map<String, String> config = new HashMap<>();
+        config.put(PageConfigurationKeys.SWAGGER_VIEWER, "Redoc");
+        page.setConfiguration(config);
+        page.setUpdatedAt(new java.util.Date());
+
+        when(
+            pageRepository.search(
+                argThat(criteria -> criteria != null && PageReferenceType.ENVIRONMENT.name().equals(criteria.getReferenceType()))
+            )
+        ).thenReturn(Collections.emptyList());
+
+        when(
+            pageRepository.search(argThat(criteria -> criteria != null && PageReferenceType.API.name().equals(criteria.getReferenceType())))
+        ).thenReturn(Collections.singletonList(page));
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+        verify(pageRepository, never()).update(any(Page.class));
+    }
+
+    @Test
+    public void shouldHandleEmptyPageList() throws TechnicalException {
+        String newViewer = "Redoc";
+        when(apiSearchService.findAllGenericByEnvironment(any(ExecutionContext.class))).thenReturn(Collections.emptySet());
+        when(pageRepository.search(any())).thenReturn(Collections.emptyList());
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+        verify(pageRepository, never()).update(any(Page.class));
+    }
+
+    @Test
+    public void shouldContinueOnIndividualPageErrors() throws TechnicalException {
+        String newViewer = "Redoc";
+        io.gravitee.rest.api.model.v4.api.GenericApiEntity api1 = mock(io.gravitee.rest.api.model.v4.api.GenericApiEntity.class);
+        when(api1.getId()).thenReturn("api-1");
+        io.gravitee.rest.api.model.v4.api.GenericApiEntity api2 = mock(io.gravitee.rest.api.model.v4.api.GenericApiEntity.class);
+        when(api2.getId()).thenReturn("api-2");
+        when(apiSearchService.findAllGenericByEnvironment(any(ExecutionContext.class))).thenReturn(Sets.newSet(api1, api2));
+
+        Page goodPage = new Page();
+        goodPage.setId("good-page");
+        goodPage.setType(PageType.SWAGGER.name());
+        goodPage.setReferenceType(PageReferenceType.API);
+        goodPage.setReferenceId("api-1");
+        goodPage.setConfiguration(new HashMap<>());
+        goodPage.setUpdatedAt(new java.util.Date());
+
+        Page badPage = new Page();
+        badPage.setId("bad-page");
+        badPage.setType(PageType.SWAGGER.name());
+        badPage.setReferenceType(PageReferenceType.API);
+        badPage.setReferenceId("api-2");
+        badPage.setConfiguration(new HashMap<>());
+        badPage.setUpdatedAt(new java.util.Date());
+
+        when(
+            pageRepository.search(
+                argThat(criteria -> criteria != null && PageReferenceType.ENVIRONMENT.name().equals(criteria.getReferenceType()))
+            )
+        ).thenReturn(Collections.emptyList());
+
+        when(
+            pageRepository.search(argThat(criteria -> criteria != null && PageReferenceType.API.name().equals(criteria.getReferenceType())))
+        ).thenReturn(asList(goodPage, badPage));
+
+        when(pageRepository.update(goodPage)).thenReturn(goodPage);
+        when(pageRepository.update(badPage)).thenThrow(new TechnicalException("Update failed"));
+
+        pageService.updateAllSwaggerPagesViewer(GraviteeContext.getExecutionContext(), newViewer);
+
+        verify(pageRepository, times(2)).update(any(Page.class));
     }
 }

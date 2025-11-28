@@ -121,4 +121,12 @@ public interface PageService {
     boolean folderHasPublishedChildren(String folderId);
 
     boolean isMediaUsedInPages(ExecutionContext executionContext, String mediaHash);
+
+    /**
+     * Update all existing SWAGGER pages to use the new default viewer
+     *
+     * @param executionContext
+     * @param newDefaultViewer the new default viewer (e.g., "Redoc" or "Swagger")
+     */
+    void updateAllSwaggerPagesViewer(ExecutionContext executionContext, String newDefaultViewer);
 }
