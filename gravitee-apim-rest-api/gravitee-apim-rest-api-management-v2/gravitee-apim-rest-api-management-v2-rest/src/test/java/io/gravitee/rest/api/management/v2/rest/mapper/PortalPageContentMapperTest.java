@@ -42,7 +42,12 @@ class PortalPageContentMapperTest {
     void should_map_gravitee_markdown_page_content() {
         // Given
         var contentId = PortalPageContentId.of("12345678-1234-1234-1234-123456789abc");
-        var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "# Welcome\n\nThis is a test page.");
+        var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            contentId,
+            "ORG",
+            "ENV",
+            "# Welcome\n\nThis is a test page."
+        );
 
         // When
         var result = mapper.map(markdownContent);
@@ -70,7 +75,7 @@ class PortalPageContentMapperTest {
     void should_map_portal_page_content_polymorphically() {
         // Given
         var contentId = PortalPageContentId.random();
-        var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "Test content");
+        var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "ORG", "ENV", "Test content");
 
         // When
         var result = mapper.map((io.gravitee.apim.core.portal_page.model.PortalPageContent) markdownContent);

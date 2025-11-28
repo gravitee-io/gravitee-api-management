@@ -81,7 +81,12 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_portal_page_content() {
         // Given
-        var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent();
+        var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            ORGANIZATION,
+            ENVIRONMENT,
+            PortalPageContentFixtures.CONTENT
+        );
 
         when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(CONTENT_ID)))).thenReturn(
             new GetPortalPageContentUseCase.Output(content)
