@@ -22,19 +22,26 @@ import java.util.List;
 
 public class PortalPageContentFixtures {
 
+    public static final String ORGANIZATION_ID = "org-1234";
+    public static final String ENVIRONMENT_ID = "env-1234";
     public static final String CONTENT_ID = "00000000-0000-0000-0000-000000000001";
     public static final String CONTENT = "# Welcome\n\nThis is a sample page content.";
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent() {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), CONTENT);
+        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT);
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(String content) {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), content);
+        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, content);
     }
 
-    public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(PortalPageContentId id, String content) {
-        return new GraviteeMarkdownPageContent(id, content);
+    public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(
+        PortalPageContentId id,
+        String organizationId,
+        String environmentId,
+        String content
+    ) {
+        return new GraviteeMarkdownPageContent(id, organizationId, environmentId, content);
     }
 
     public static List<PortalPageContent> samplePortalPageContents() {
