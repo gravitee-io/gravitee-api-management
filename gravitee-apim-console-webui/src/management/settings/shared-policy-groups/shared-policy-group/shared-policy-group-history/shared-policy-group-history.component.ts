@@ -199,7 +199,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
           sharedPolicyGroup,
           isReadOnly:
             sharedPolicyGroup.originContext?.origin === 'KUBERNETES' ||
-            !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']),
+            !this.permissionService.hasAnyMatching(['environment-shared_policy_group_configuration-u']),
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         role: 'dialog',

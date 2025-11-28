@@ -55,10 +55,10 @@ describe('SharedPolicyGroupHistoryComponent', () => {
         {
           provide: GioTestingPermissionProvider,
           useValue: [
-            'environment-shared_policy_group-c',
-            'environment-shared_policy_group-r',
-            'environment-shared_policy_group-u',
-            'environment-shared_policy_group-d',
+            'environment-shared_policy_group_configuration-c',
+            'environment-shared_policy_group_configuration-r',
+            'environment-shared_policy_group_configuration-u',
+            'environment-shared_policy_group_configuration-d',
           ],
         },
       ],
