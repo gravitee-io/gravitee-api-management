@@ -61,4 +61,6 @@ public class PortalNavigationItem {
     private Integer order;
 
     private String configuration;
+
+    private boolean published;
 }

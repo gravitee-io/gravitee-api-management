@@ -71,7 +71,7 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0);
+            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, true);
 
             service.create(item);
 
@@ -102,7 +102,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 "title",
                 PortalArea.TOP_NAVBAR,
                 0,
-                contentId
+                contentId,
+                true
             );
 
             service.create(item);
@@ -127,7 +128,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, url);
+            final var item = new PortalNavigationLink(
+                itemId,
+                "organizationId",
+                "environmentId",
+                "title",
+                PortalArea.TOP_NAVBAR,
+                0,
+                url,
+                true
+            );
 
             service.create(item);
 
@@ -159,7 +169,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 "title",
                 PortalArea.TOP_NAVBAR,
                 0,
-                contentId
+                contentId,
+                true
             );
             when(repository.create(any())).thenThrow(new TechnicalException("Database error"));
 
@@ -184,7 +195,7 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0);
+            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, true);
 
             service.update(item);
 
@@ -215,7 +226,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 "title",
                 PortalArea.TOP_NAVBAR,
                 0,
-                contentId
+                contentId,
+                true
             );
 
             service.update(item);
@@ -240,7 +252,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, url);
+            final var item = new PortalNavigationLink(
+                itemId,
+                "organizationId",
+                "environmentId",
+                "title",
+                PortalArea.TOP_NAVBAR,
+                0,
+                url,
+                true
+            );
 
             service.update(item);
 
@@ -272,7 +293,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 "title",
                 PortalArea.TOP_NAVBAR,
                 0,
-                contentId
+                contentId,
+                true
             );
             when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
 

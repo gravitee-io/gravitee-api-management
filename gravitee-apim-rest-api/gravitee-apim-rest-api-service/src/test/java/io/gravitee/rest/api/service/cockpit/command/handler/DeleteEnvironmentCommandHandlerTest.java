@@ -395,7 +395,8 @@ public class DeleteEnvironmentCommandHandlerTest {
                     PortalNavigationItem.Area.HOMEPAGE,
                     null,
                     13,
-                    "{\"pageId\":\"" + PAGE_CONTENT_ID + "\"}"
+                    "{\"pageId\":\"" + PAGE_CONTENT_ID + "\"}",
+                    true
                 )
             )
         );
@@ -579,7 +580,8 @@ public class DeleteEnvironmentCommandHandlerTest {
                     PortalNavigationItem.Area.HOMEPAGE,
                     null,
                     13,
-                    "{}"
+                    "{}",
+                    true
                 )
             )
         );

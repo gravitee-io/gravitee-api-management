@@ -51,13 +51,18 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
     @Nullable
     private PortalNavigationItemId parentId;
 
+    @Setter
+    @Nonnull
+    private Boolean published;
+
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
-        @Nonnull Integer order
+        @Nonnull Integer order,
+        @Nonnull Boolean published
     ) {
         this.id = id;
         this.organizationId = organizationId;
@@ -65,6 +70,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         this.title = title;
         this.area = area;
         this.order = order;
+        this.published = published;
     }
 
     @Override
@@ -95,9 +101,9 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         final var order = item.getOrder();
 
         final var newItem = switch (item.getType()) {
-            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order);
-            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId);
-            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url);
+            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, false);
+            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, false);
+            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, false);
         };
         newItem.setParentId(parentId);
 

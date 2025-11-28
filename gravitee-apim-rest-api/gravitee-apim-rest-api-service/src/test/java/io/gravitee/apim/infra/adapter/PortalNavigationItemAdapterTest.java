@@ -214,7 +214,8 @@ class PortalNavigationItemAdapterTest {
                 "env-id",
                 "My Folder",
                 PortalArea.TOP_NAVBAR,
-                1
+                1,
+                true
             );
             entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
 
@@ -243,7 +244,8 @@ class PortalNavigationItemAdapterTest {
                 "My Page",
                 PortalArea.HOMEPAGE,
                 2,
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013")
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"),
+                true
             );
 
             // When
@@ -270,7 +272,8 @@ class PortalNavigationItemAdapterTest {
                 "My Link",
                 PortalArea.TOP_NAVBAR,
                 3,
-                "https://example.com"
+                "https://example.com",
+                true
             );
 
             // When
@@ -296,7 +299,8 @@ class PortalNavigationItemAdapterTest {
                 "env-id",
                 "My Folder",
                 PortalArea.TOP_NAVBAR,
-                0
+                0,
+                true
             );
 
             // When
