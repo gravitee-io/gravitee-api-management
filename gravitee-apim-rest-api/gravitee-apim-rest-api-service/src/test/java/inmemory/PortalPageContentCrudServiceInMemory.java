@@ -49,9 +49,9 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
     }
 
     @Override
-    public PortalPageContent createDefault() {
+    public PortalPageContent createDefault(String organizationId, String environmentId) {
         final var pageContentId = PortalPageContentId.random();
-        final var portalPageContent = new GraviteeMarkdownPageContent(pageContentId, "default page content");
+        final var portalPageContent = new GraviteeMarkdownPageContent(pageContentId, organizationId, environmentId, "default page content");
         return this.create(portalPageContent);
     }
 }

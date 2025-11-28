@@ -34,7 +34,12 @@ public interface PortalPageContentAdapter {
     default GraviteeMarkdownPageContent graviteeMarkdownPageContentFromRepository(
         io.gravitee.repository.management.model.PortalPageContent portalPageContent
     ) {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(portalPageContent.getId()), portalPageContent.getContent());
+        return new GraviteeMarkdownPageContent(
+            PortalPageContentId.of(portalPageContent.getId()),
+            portalPageContent.getOrganizationId(),
+            portalPageContent.getEnvironmentId(),
+            portalPageContent.getContent()
+        );
     }
 
     default io.gravitee.repository.management.model.PortalPageContent toRepository(PortalPageContent portalPageContent) {
@@ -48,6 +53,8 @@ public interface PortalPageContentAdapter {
     ) {
         return io.gravitee.repository.management.model.PortalPageContent.builder()
             .id(portalPageContent.getId().toString())
+            .organizationId(portalPageContent.getOrganizationId())
+            .environmentId(portalPageContent.getEnvironmentId())
             .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
             .content(portalPageContent.getContent())
             .build();

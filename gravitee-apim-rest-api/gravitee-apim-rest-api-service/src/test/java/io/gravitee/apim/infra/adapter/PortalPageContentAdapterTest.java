@@ -82,6 +82,8 @@ class PortalPageContentAdapterTest {
             // Given
             final var entityContent = new GraviteeMarkdownPageContent(
                 PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"),
+                "DEFAULT_ORG",
+                "DEFAULT_ENV",
                 "# Welcome\n\nThis is a sample page content."
             );
 
@@ -91,6 +93,8 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
             assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
+            assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
+            assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
             assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent());
         }
     }
