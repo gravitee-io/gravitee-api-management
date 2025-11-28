@@ -133,7 +133,9 @@ public class HttpConnector implements ProxyConnector {
                             request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                         );
                     } else {
-                        return httpClientRequest.rxSend();
+                        // Consume the empty body from the downstream and send the request to the upstream.
+                        // This ensures that any resources associated with the downstream request body are properly released and metrics are kept up to date.
+                        return request.chunks().ignoreElements().andThen(httpClientRequest.rxSend());
                     }
                 })
                 .doOnSuccess(endpointResponse -> {
