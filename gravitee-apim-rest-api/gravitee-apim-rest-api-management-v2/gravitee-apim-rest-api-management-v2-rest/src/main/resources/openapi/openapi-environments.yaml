@@ -845,6 +845,31 @@ paths:
           $ref: "#/components/responses/PortalPageContentResponse"
         default:
           $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Portal Pages
+      summary: Update portal page content
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContent
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalPageContent"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
   /portal-navigation-items:
     get:
       tags:
@@ -1983,6 +2008,16 @@ components:
           type: string
           description: The content of the page
       required: [ id, type, content ]
+
+    UpdatePortalPageContent:
+      type: object
+      description: Update portal page content
+      properties:
+        content:
+          type: string
+          description: The updated content for the page
+      required: [ content ]
+
 
   parameters:
     pageParam:
