@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiLogsResponse, ApiAggregatedMessageLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { ApiAggregatedMessageLogsResponse, ApiLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { created, noContent } from '@lib/jest-utils';
