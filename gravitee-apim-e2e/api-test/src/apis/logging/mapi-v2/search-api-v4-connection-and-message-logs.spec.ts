@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiLogsResponse, ApiMessageLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { ApiLogsResponse, ApiAggregatedMessageLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { created, noContent } from '@lib/jest-utils';
@@ -157,7 +157,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
      * we can expect 4 message logs.
      */
     test('should search message logs', async () => {
-      let apiMessageLogsResponse = await fetchRestApiSuccess<ApiMessageLogsResponse>({
+      let apiMessageLogsResponse = await fetchRestApiSuccess<ApiAggregatedMessageLogsResponse>({
         restApiHttpCall: () =>
           v2ApiLogsResourceAsApiPublisher.getApiMessageLogsRaw({
             envId,
