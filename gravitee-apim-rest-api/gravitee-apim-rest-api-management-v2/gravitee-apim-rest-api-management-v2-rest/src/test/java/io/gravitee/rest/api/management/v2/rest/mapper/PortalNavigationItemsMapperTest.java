@@ -101,7 +101,8 @@ class PortalNavigationItemsMapperTest {
                 "My Link",
                 PortalArea.TOP_NAVBAR,
                 3,
-                "https://example.com"
+                "https://example.com",
+                true
             );
 
             var result = mapper.map(link);

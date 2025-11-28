@@ -130,6 +130,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body).isNotNull();
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getPublished()).isTrue();
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -155,6 +156,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body).isNotNull();
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getUrl()).isEqualTo("https://gravitee.io");
+        assertThat(body.getPublished()).isTrue();
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -179,6 +181,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body).isNotNull();
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getPublished()).isTrue();
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
