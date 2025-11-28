@@ -23,15 +23,23 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-import { PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
-export type SectionEditorDialogMode = 'create';
+export type SectionEditorDialogMode = 'create' | 'edit';
 
-export interface SectionEditorDialogData {
-  mode: SectionEditorDialogMode;
+interface SectionEditorDialogCreateData {
+  mode: 'create';
   type: PortalNavigationItemType;
 }
+
+interface SectionEditorDialogEditData {
+  mode: 'edit';
+  type: PortalNavigationItemType;
+  existingItem: PortalNavigationItem;
+}
+
+export type SectionEditorDialogData = SectionEditorDialogCreateData | SectionEditorDialogEditData;
 
 export interface SectionEditorDialogResult {
   title: string;
@@ -72,20 +80,38 @@ export class SectionEditorDialogComponent implements OnInit {
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  public buttonTitle: string;
 
   constructor() {
     this.type = this.data.type;
     this.mode = this.data.mode;
-    this.title = `Add ${this.type.toLowerCase()}`;
+    if (this.data.mode === 'create') {
+      this.title = `Add ${this.type.toLowerCase()}`;
+      this.buttonTitle = 'Add';
+    } else {
+      this.title = `Edit "${this.data.existingItem.title}" ${this.type.toLowerCase()}`;
+      this.buttonTitle = 'Save';
+    }
   }
 
   ngOnInit(): void {
     this.addTypeSpecificControls();
+    this.prefillExistingItem();
   }
 
   private addTypeSpecificControls(): void {
     if (this.type === 'LINK') {
       this.form.addControl('url', new FormControl<string>('', { validators: [Validators.required, urlValidator()], nonNullable: true }));
+    }
+  }
+
+  private prefillExistingItem(): void {
+    if (this.data.mode === 'edit') {
+      this.form.patchValue({
+        ...(this.data.existingItem.type === 'LINK' ? { url: this.data.existingItem.url } : {}),
+
+        title: this.data.existingItem.title,
+      });
     }
   }
 

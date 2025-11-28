@@ -147,7 +147,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should create the page when the dialog is submitted', async () => {
         const title = 'New Page Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }),
@@ -163,7 +163,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should navigate to the created page after creation', async () => {
         const title = 'New Page Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         const createdItem = fakePortalNavigationPage({
           id: 'newly-created-id',
@@ -194,7 +194,7 @@ describe('PortalNavigationItemsComponent', () => {
         const url = 'https://gravitee.io';
         await dialogHarness.setTitleInputValue(title);
         await dialogHarness.setUrlInputValue(url);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           fakeNewLinkPortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'LINK', url }),
@@ -222,7 +222,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should create the folder when the dialog is submitted', async () => {
         const title = 'New Folder Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           {
@@ -238,6 +238,81 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+    });
+  });
+
+  describe('editing a section from tree node "More actions" menu', () => {
+    it('opens edit dialog for page and prefills title', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationLink({ id: 'nav-item-2', title: 'Nav Item 2', url: 'https://old.com' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const pageData = fakeResponse.items[0] as PortalNavigationItem;
+      const pageNode = { id: pageData.id, label: pageData.title, type: pageData.type, data: pageData } as any;
+      component.onEditSection(pageNode);
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getDialogTitle()).toBe('Edit "Nav Item 1" page');
+
+      const titleInput = await dialog.getTitleInput();
+      expect(await titleInput.getValue()).toBe('Nav Item 1');
+    });
+
+    it('calls backend update when dialog is submitted (link)', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationLink({ id: 'nav-item-2', title: 'Nav Item 2', url: 'https://old.com', area: 'TOP_NAVBAR' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const linkData = fakeResponse.items[1] as PortalNavigationItem;
+      const linkNode = { id: linkData.id, label: linkData.title, type: linkData.type, data: linkData } as any;
+
+      component.onEditSection(linkNode);
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const titleInput = await dialog.getTitleInput();
+      await titleInput.setValue('Updated Link');
+      await dialog.setUrlInputValue('https://new.com');
+
+      await dialog.clickSubmitButton();
+      fixture.detectChanges();
+
+      await expectPutPortalNavigationItem(
+        linkData.id,
+        {
+          title: 'Updated Link',
+          type: linkData.type,
+          parentId: linkData.parentId,
+          order: linkData.order,
+          url: 'https://new.com',
+        },
+        fakePortalNavigationLink({ id: linkData.id, title: 'Updated Link', url: 'https://new.com', area: linkData.area, type: 'LINK' }),
+      );
+
+      // After update, component refreshes the list — satisfy the subsequent GET
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: fakeResponse.items }));
     });
   });
 
@@ -464,5 +539,11 @@ describe('PortalNavigationItemsComponent', () => {
     const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items` });
     expect(req.request.body).toEqual(requestBody);
     req.flush(result);
+  }
+
+  function expectPutPortalNavigationItem(id: string, expectedBody: any, response: PortalNavigationItem) {
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}` });
+    expect(req.request.body).toEqual(expectedBody);
+    req.flush(response);
   }
 });

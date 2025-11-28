@@ -59,3 +59,20 @@ export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem
 }
 
 export type NewPortalNavigationItem = NewPagePortalNavigationItem | NewFolderPortalNavigationItem | NewLinkPortalNavigationItem;
+
+interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
+  title: string;
+  type: T;
+  parentId?: string;
+  order?: number;
+}
+
+export interface UpdatePagePortalNavigationItem extends BaseUpdatePortalNavigationItem<'PAGE'> {}
+
+export interface UpdateFolderPortalNavigationItem extends BaseUpdatePortalNavigationItem<'FOLDER'> {}
+
+export interface UpdateLinkPortalNavigationItem extends BaseUpdatePortalNavigationItem<'LINK'> {
+  url: string;
+}
+
+export type UpdatePortalNavigationItem = UpdatePagePortalNavigationItem | UpdateFolderPortalNavigationItem | UpdateLinkPortalNavigationItem;

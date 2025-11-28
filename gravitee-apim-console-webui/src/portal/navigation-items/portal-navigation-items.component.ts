@@ -44,6 +44,7 @@ import {
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationPage,
+  UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -142,6 +143,10 @@ export class PortalNavigationItemsComponent {
     this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
   }
 
+  onEditSection(node: SectionNode) {
+    this.manageSection(node.type, 'edit', 'TOP_NAVBAR', node.data);
+  }
+
   onResizeStart(event: MouseEvent): void {
     event.preventDefault();
 
@@ -216,25 +221,41 @@ export class PortalNavigationItemsComponent {
       : null;
   }
 
-  private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
+  private manageSection(
+    type: PortalNavigationItemType,
+    mode: SectionEditorDialogMode,
+    area: PortalArea,
+    existingItem?: PortalNavigationItem,
+  ): void {
+    const data: SectionEditorDialogData = { mode, type, existingItem };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
-        data: {
-          type,
-          mode,
-        },
+        data,
       })
       .afterClosed()
       .pipe(
         filter((result) => !!result),
         switchMap((result) => {
-          return this.create({
-            title: result.title,
-            type,
-            area,
-            url: result.url,
-          });
+          if (mode === 'create') {
+            return this.create({
+              title: result.title,
+              type,
+              area,
+              url: result.url,
+            });
+          } else {
+            if (!existingItem) {
+              return EMPTY;
+            }
+            return this.update(existingItem.id, {
+              title: existingItem.title,
+              type: existingItem.type,
+              parentId: existingItem.parentId,
+              order: existingItem.order,
+              ...result,
+            });
+          }
         }),
         tap(({ id }) => {
           this.refreshMenuList.next(1);
@@ -252,6 +273,10 @@ export class PortalNavigationItemsComponent {
         return EMPTY;
       }),
     );
+  }
+
+  private update(portalNavigationItemId: string, updatePortalNavigationItem: UpdatePortalNavigationItem): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.updateNavigationItem(portalNavigationItemId, updatePortalNavigationItem);
   }
 
   private navigateToItemByNavId(navId: string): void {
