@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -44,6 +45,7 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -185,6 +187,22 @@ public interface ImportExportApiMapper {
         final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiV4.getApi());
         apiExport.setPicture(exportApiV4.getApiPicture());
         apiExport.setBackground(exportApiV4.getApiBackground());
+        Optional.ofNullable(exportApiV4)
+            .map(ExportApiV4::getApi)
+            .map(ApiV4::getPrimaryOwner)
+            .ifPresent(po -> {
+                var type = Optional.ofNullable(po.getType())
+                    .map(t -> PrimaryOwnerEntity.Type.valueOf(t.getValue()))
+                    .orElse(PrimaryOwnerEntity.Type.USER);
+
+                PrimaryOwnerEntity primaryOwnerEntity = PrimaryOwnerEntity.builder()
+                    .id(po.getId())
+                    .email(po.getEmail())
+                    .displayName(po.getDisplayName())
+                    .type(type)
+                    .build();
+                apiExport.setPrimaryOwner(primaryOwnerEntity);
+            });
         return apiExport;
     }
 

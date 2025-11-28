@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.metadata.model.MetadataId;
@@ -46,6 +48,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,7 +98,15 @@ public class ImportDefinitionCreateDomainService {
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
         var environmentId = auditInfo.environmentId();
         var organizationId = auditInfo.organizationId();
-        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, auditInfo.actor().userId());
+        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
+            organizationId,
+            environmentId,
+            Optional.ofNullable(importDefinition)
+                .map(ImportDefinition::getApiExport)
+                .map(ApiExport::getPrimaryOwner)
+                .map(PrimaryOwnerEntity::id)
+                .orElse(auditInfo.actor().userId())
+        );
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
 
         var createdApi = createApiDomainService.create(
