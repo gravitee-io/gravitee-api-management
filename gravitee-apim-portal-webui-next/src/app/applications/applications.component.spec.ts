@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { RouterModule } from '@angular/router';
 
@@ -24,12 +25,15 @@ import { ApplicationsComponent } from './applications.component';
 import { ApplicationCardHarness } from './applications.harness';
 import { ApplicationsResponse } from '../../entities/application/application';
 import { fakeApplication, fakeApplicationsResponse } from '../../entities/application/application.fixture';
+import { fakeUser } from '../../entities/user/user.fixtures';
+import { CurrentUserService } from '../../services/current-user.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<ApplicationsComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let currentUserService: CurrentUserService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -38,6 +42,7 @@ describe('ApplicationsComponent', () => {
 
     fixture = TestBed.createComponent(ApplicationsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    currentUserService = TestBed.inject(CurrentUserService);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
     fixture.detectChanges();
@@ -166,6 +171,44 @@ describe('ApplicationsComponent', () => {
       expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 18);
       const noAppCard = await harnessLoader.getHarness(MatCardHarness.with({ text: /Sorry, there are no applications yet\./ }));
       expect(noAppCard).toBeTruthy();
+    });
+  });
+
+  describe('create application button', () => {
+    beforeEach(() => {
+      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 18);
+    });
+
+    it('should show create button when user has APPLICATION-C permission', async () => {
+      currentUserService.user.set(
+        fakeUser({
+          permissions: {
+            APPLICATION: ['C'],
+          },
+        }),
+      );
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const createButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /Create/ }));
+      expect(createButton).toBeTruthy();
+    });
+
+    it('should hide create button when user does not have APPLICATION-C permission', async () => {
+      currentUserService.user.set(
+        fakeUser({
+          permissions: {
+            APPLICATION: [],
+          },
+        }),
+      );
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const createButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /Create/ }));
+      expect(createButton).toBeNull();
     });
   });
 

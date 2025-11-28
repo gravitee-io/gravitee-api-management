@@ -34,6 +34,7 @@ import { ApplicationTabLogsComponent } from './applications/application/applicat
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
+import { CreateApplicationComponent } from './applications/create-application/create-application.component';
 import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
@@ -184,6 +185,11 @@ export const routes: Routes = [
     canActivateChild: [redirectGuard, authGuard],
     children: [
       { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
+      {
+        path: 'create',
+        component: CreateApplicationComponent,
+        data: { breadcrumb: 'Create Application' },
+      },
       {
         path: ':applicationId',
         component: ApplicationComponent,
