@@ -15,8 +15,18 @@
  */
 import { sanitizeBranch } from './branch';
 
-export function computeImagesTag(branch: string, sha1?: string): string {
-  const suffix = sha1 ? `${sha1.substring(0, 7)}` : 'latest';
+/**
+ * Computes a Docker tag suffix based on the provided SHA1 hash.
+ * If a SHA1 hash is provided, the suffix will be the first 7 characters of the hash.
+ * If no SHA1 hash is provided, the suffix will default to 'latest'.
+ *
+ * @param {string} [sha1] The optional SHA1 hash used to generate the tag suffix.
+ * @return {string} The computed Docker tag suffix.
+ */
+export function computeDockerTagSuffix(sha1?: string): string {
+  return sha1 ? `${sha1.substring(0, 7)}` : 'latest';
+}
 
-  return `${sanitizeBranch(branch)}-${suffix}`;
+export function computeImagesTag(branch: string, sha1?: string): string {
+  return `${sanitizeBranch(branch)}-${computeDockerTagSuffix(sha1)}`;
 }
