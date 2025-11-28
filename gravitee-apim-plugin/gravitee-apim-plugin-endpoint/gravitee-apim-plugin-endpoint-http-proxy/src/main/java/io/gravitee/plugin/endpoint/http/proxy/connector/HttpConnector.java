@@ -24,18 +24,20 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.PROXY_CONNECTION;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TE;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.UPGRADE;
-import static io.gravitee.gateway.http.utils.RequestUtils.hasStreamingContentType;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT_OVERRIDE;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
+import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
@@ -51,6 +53,7 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.impl.BufferImpl;
 import io.vertx.core.http.HttpHeaders;
@@ -135,17 +138,7 @@ public class HttpConnector implements ProxyConnector {
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
-                    if (requestWithBody(request)) {
-                        return httpClientRequest.rxSend(
-                            request
-                                .chunks()
-                                .map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
-                        );
-                    } else {
-                        // Consume the empty body from the downstream and send the request to the upstream.
-                        // This ensures that any resources associated with the downstream request body are properly released and metrics are kept up to date.
-                        return request.chunks().ignoreElements().andThen(httpClientRequest.rxSend());
-                    }
+                    return sendEndpointRequestChunks(httpClientRequest, request);
                 })
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
@@ -170,6 +163,19 @@ public class HttpConnector implements ProxyConnector {
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);
+        }
+    }
+
+    private Single<HttpClientResponse> sendEndpointRequestChunks(HttpClientRequest httpClientRequest, HttpRequest request) {
+        if (hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2) {
+            // For HTTP1.1, the presence of a message body in a request is signaled by a Content-Length or Transfer-Encoding header (https://www.rfc-editor.org/rfc/rfc9112#section-6-4).
+            // For HTTP2, Data frames are used (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
+            return httpClientRequest.rxSend(
+                request.chunks().map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
+            );
+        } else {
+            // Always consume the request body, even when empty, to ensure resources are released and metrics are updated correctly.
+            return request.chunks().ignoreElements().andThen(httpClientRequest.rxSend());
         }
     }
 
@@ -320,11 +326,10 @@ public class HttpConnector implements ProxyConnector {
         }
     }
 
-    private static boolean requestWithBody(HttpRequest request) {
+    private static boolean hasBodyHeaders(HttpRequest request) {
         return (
-            request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) ||
-            request.headers().contains(HttpHeaderNames.CONTENT_LENGTH) ||
-            hasStreamingContentType(request.headers())
+            request.headers().get(HttpHeaderNames.TRANSFER_ENCODING) != null ||
+            request.headers().get(HttpHeaderNames.CONTENT_LENGTH) != null
         );
     }
 }
