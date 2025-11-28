@@ -22,7 +22,9 @@
 
   <div class="row-cards">
     <mat-card class="card flex">
-      <div class="card__header">Summary</div>
+      <mat-card-header>
+        <mat-card-title>Summary</mat-card-title>
+      </mat-card-header>
       <mat-card-content class="card__content">
         <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="card__list">
           <div class="card__list__row">
@@ -37,7 +39,9 @@
       </mat-card-content>
     </mat-card>
     <mat-card class="card">
-      <div class="card__header">API Lifecycle State</div>
+      <mat-card-header>
+        <mat-card-title>API Lifecycle State</mat-card-title>
+      </mat-card-header>
       <mat-card-content class="card__content">
         <ng-container *ngIf="apiLifecycleState; else loader">
           <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
@@ -45,7 +49,9 @@
       </mat-card-content>
     </mat-card>
     <mat-card class="card">
-      <div class="card__header">API State</div>
+      <mat-card-header>
+        <mat-card-title>API State</mat-card-title>
+      </mat-card-header>
       <mat-card-content class="card__content">
         <ng-container *ngIf="apiState; else loader">
           <gio-api-state [data]="apiState"></gio-api-state>
