@@ -15,14 +15,13 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.security.plan;
 
-import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.Nonnull;
 
 /**
@@ -68,5 +67,13 @@ public class HttpSecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, H
             return "{" + selectionRule + "}";
         }
         return selectionRule;
+    }
+
+    public Single<Boolean> wwwAuthenticate(final HttpPlainExecutionContext ctx) {
+        return policy.wwwAuthenticate(ctx);
+    }
+
+    public Single<Boolean> onWellKnown(HttpPlainExecutionContext ctx) {
+        return policy.onWellKnown(ctx);
     }
 }
