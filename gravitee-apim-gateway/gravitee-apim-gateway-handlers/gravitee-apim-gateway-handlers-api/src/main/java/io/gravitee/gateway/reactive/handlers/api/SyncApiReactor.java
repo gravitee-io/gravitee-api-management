@@ -233,6 +233,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         metrics.setApiId(api.getId());
         metrics.setApiName(api.getName());
         metrics.setPathInfo(request.pathInfo());
+        metrics.setOrganizationId(api.getOrganizationId());
+        metrics.setEnvironmentId(api.getEnvironmentId());
     }
 
     private void setApiResponseTimeMetric(HttpExecutionContext ctx) {

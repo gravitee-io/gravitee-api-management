@@ -46,6 +46,16 @@ public class MetricsAdapter extends Metrics {
     }
 
     @Override
+    public String getOrganizationId() {
+        return metrics.getOrganizationId();
+    }
+
+    @Override
+    public String getEnvironmentId() {
+        return metrics.getEnvironmentId();
+    }
+
+    @Override
     public long getProxyResponseTimeMs() {
         return metrics.getGatewayResponseTimeMs();
     }

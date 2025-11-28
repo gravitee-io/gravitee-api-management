@@ -24,15 +24,12 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.gravitee.reporter.api.v4.metric.NoopMetrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 /**
