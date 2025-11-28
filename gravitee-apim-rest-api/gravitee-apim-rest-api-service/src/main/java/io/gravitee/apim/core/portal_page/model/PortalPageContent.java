@@ -24,8 +24,16 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
     @Nonnull
     private final PortalPageContentId id;
 
-    protected PortalPageContent(@Nonnull PortalPageContentId id) {
+    @Nonnull
+    private final String organizationId;
+
+    @Nonnull
+    private final String environmentId;
+
+    protected PortalPageContent(@Nonnull PortalPageContentId id, @Nonnull String organizationId, @Nonnull String environmentId) {
         this.id = id;
+        this.organizationId = organizationId;
+        this.environmentId = environmentId;
     }
 
     @Override

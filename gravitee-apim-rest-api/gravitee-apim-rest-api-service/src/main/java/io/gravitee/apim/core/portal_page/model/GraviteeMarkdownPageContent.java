@@ -26,13 +26,22 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent {
     @Nonnull
     private String content;
 
-    public GraviteeMarkdownPageContent(@Nonnull PortalPageContentId id, @Nonnull String content) {
-        super(id);
+    public GraviteeMarkdownPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String content
+    ) {
+        super(id, organizationId, environmentId);
         this.content = content;
     }
 
-    public static GraviteeMarkdownPageContent create(@Nonnull String content) {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.random(), content);
+    public static GraviteeMarkdownPageContent create(
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String content
+    ) {
+        return new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, content);
     }
 
     @Override
