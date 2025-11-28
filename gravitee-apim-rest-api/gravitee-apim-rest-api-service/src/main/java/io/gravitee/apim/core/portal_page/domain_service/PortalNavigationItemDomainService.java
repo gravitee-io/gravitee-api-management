@@ -51,7 +51,7 @@ public class PortalNavigationItemDomainService {
             createPortalNavigationItem.getType() == PortalNavigationItemType.PAGE &&
             createPortalNavigationItem.getPortalPageContentId() == null
         ) {
-            final var defaultPageContent = pageContentCrudService.createDefault();
+            final var defaultPageContent = pageContentCrudService.createDefault(organizationId, environmentId);
             createPortalNavigationItem.setPortalPageContentId(defaultPageContent.getId());
         }
 

@@ -142,6 +142,8 @@ class CreatePortalNavigationItemUseCaseTest {
             .hasSize(numberOfContents + 1)
             .anySatisfy(content -> {
                 assertThat(content.getId()).isEqualTo(contentId);
+                assertThat(content.getOrganizationId()).isEqualTo(ORG_ID);
+                assertThat(content.getEnvironmentId()).isEqualTo(ENV_ID);
                 assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
                 assertThat(((GraviteeMarkdownPageContent) content).getContent()).isEqualTo("default page content");
             });
