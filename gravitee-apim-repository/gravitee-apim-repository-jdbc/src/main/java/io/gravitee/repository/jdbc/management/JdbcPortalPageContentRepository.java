@@ -42,6 +42,8 @@ public class JdbcPortalPageContentRepository
             .addColumn("type", Types.NVARCHAR, PortalPageContent.Type.class)
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("content", Types.NVARCHAR, String.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .build();
     }
 

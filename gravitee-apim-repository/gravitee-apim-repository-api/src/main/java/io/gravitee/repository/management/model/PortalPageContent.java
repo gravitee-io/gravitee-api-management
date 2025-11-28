@@ -39,6 +39,10 @@ public class PortalPageContent {
     @EqualsAndHashCode.Include
     private String id;
 
+    private String organizationId;
+
+    private String environmentId;
+
     private Type type;
 
     private String configuration;

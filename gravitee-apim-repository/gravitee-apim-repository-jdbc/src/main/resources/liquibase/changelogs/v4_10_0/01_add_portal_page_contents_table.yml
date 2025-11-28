@@ -7,6 +7,8 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}portal_page_contents
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: configuration, type: nclob, constraints: { nullable: true } }
               - column: {name: content, type: nclob, constraints: { nullable: true } }
