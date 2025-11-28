@@ -50,15 +50,32 @@
 
   <span class="tree__label">{{ node().label }}</span>
 
-  <button type="button" mat-icon-button class="tree__button more-actions" aria-label="More actions" (click)="$event.stopPropagation()">
+  <button
+    type="button"
+    mat-icon-button
+    class="tree__button more-actions"
+    aria-label="More actions"
+    [matMenuTriggerFor]="moreMenu"
+    (click)="$event.stopPropagation()"
+    *gioPermission="{ anyOf: ['environment-documentation-u', 'environment-documentation-d'] }"
+  >
     <mat-icon svgIcon="gio:more-vertical" />
   </button>
+  <mat-menu #moreMenu="matMenu">
+    <button mat-menu-item (click)="edit.emit(node())"><mat-icon>edit</mat-icon> Edit</button>
+  </mat-menu>
 </div>
 
 @if (node().children?.length && isExpanded()) {
   <div class="tree__children">
     @for (child of node().children; track child) {
-      <app-tree-node [node]="child" [level]="level() + 1" [selectedId]="selectedId()" (nodeSelected)="nodeSelected.emit($event)" />
+      <app-tree-node
+        [node]="child"
+        [level]="level() + 1"
+        [selectedId]="selectedId()"
+        (nodeSelected)="nodeSelected.emit($event)"
+        (edit)="edit.emit($event)"
+      />
     }
   </div>
 }

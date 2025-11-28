@@ -19,6 +19,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { TreeComponent } from './tree.component';
 
+import { GioTestingModule } from '../../../shared/testing';
 import {
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
@@ -32,7 +33,7 @@ describe('TreeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TreeComponent, MatIconTestingModule],
+      imports: [TreeComponent, MatIconTestingModule, GioTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TreeComponent);

@@ -18,7 +18,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { NewPortalNavigationItem, PortalArea, PortalNavigationItem, PortalNavigationItemsResponse } from '../entities/management-api-v2';
+import {
+  NewPortalNavigationItem,
+  PortalArea,
+  PortalNavigationItem,
+  PortalNavigationItemsResponse,
+  UpdatePortalNavigationItem,
+} from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -35,5 +41,15 @@ export class PortalNavigationItemService {
 
   public createNavigationItem(newPortalNavigationItem: NewPortalNavigationItem): Observable<PortalNavigationItem> {
     return this.http.post<PortalNavigationItem>(`${this.constants.env.v2BaseURL}/portal-navigation-items`, newPortalNavigationItem);
+  }
+
+  public updateNavigationItem(
+    portalNavigationItemId: string,
+    updatePortalNavigationItem: UpdatePortalNavigationItem,
+  ): Observable<PortalNavigationItem> {
+    return this.http.put<PortalNavigationItem>(
+      `${this.constants.env.v2BaseURL}/portal-navigation-items/${portalNavigationItemId}`,
+      updatePortalNavigationItem,
+    );
   }
 }

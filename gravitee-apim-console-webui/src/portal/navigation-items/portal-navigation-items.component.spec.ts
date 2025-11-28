@@ -147,7 +147,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should create the page when the dialog is submitted', async () => {
         const title = 'New Page Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }),
@@ -163,7 +163,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should navigate to the created page after creation', async () => {
         const title = 'New Page Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         const createdItem = fakePortalNavigationPage({
           id: 'newly-created-id',
@@ -194,7 +194,7 @@ describe('PortalNavigationItemsComponent', () => {
         const url = 'https://gravitee.io';
         await dialogHarness.setTitleInputValue(title);
         await dialogHarness.setUrlInputValue(url);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           fakeNewLinkPortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'LINK', url }),
@@ -222,7 +222,7 @@ describe('PortalNavigationItemsComponent', () => {
       it('should create the folder when the dialog is submitted', async () => {
         const title = 'New Folder Title';
         await dialogHarness.setTitleInputValue(title);
-        await dialogHarness.clickAddButton();
+        await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
           {
