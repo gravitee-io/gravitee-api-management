@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.WorkflowState;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -122,4 +123,7 @@ public class ApiListItem {
     @JsonProperty(value = "gravitee")
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
+
+    @Schema(description = "API metadata as key-value pairs")
+    private Map<String, Object> metadata;
 }

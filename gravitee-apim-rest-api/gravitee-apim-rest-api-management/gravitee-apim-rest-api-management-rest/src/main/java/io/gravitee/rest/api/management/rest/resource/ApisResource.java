@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApiListItemPagedResult;
 import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -55,6 +56,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiCRDService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.CategoryService;
@@ -98,6 +100,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
@@ -106,7 +110,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author GraviteeSource Team
  */
 @Tag(name = "APIs")
+@Slf4j
 public class ApisResource extends AbstractResource {
+
+    private static final String EXPAND_METADATA = "metadata";
 
     @Inject
     protected ApiDuplicatorService apiDuplicatorService;
@@ -142,6 +149,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private VerifyApiPathsUseCase verifyApiPathsUsecase;
 
+    @Inject
+    private ApiMetadataService apiMetadataService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List APIs", description = "List all the APIs accessible to the current user.")
@@ -154,8 +164,12 @@ public class ApisResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
-        return getApis(apisParam, ids, null).getData();
+    public Collection<ApiListItem> getApis(
+        @BeanParam final ApisParam apisParam,
+        @QueryParam("ids") final List<String> ids,
+        @QueryParam("expands") final Set<String> expands
+    ) {
+        return getApis(apisParam, ids, null, expands).getData();
     }
 
     @GET
@@ -175,7 +189,8 @@ public class ApisResource extends AbstractResource {
     public ApiListItemPagedResult getApis(
         @BeanParam final ApisParam apisParam,
         @QueryParam("ids") final List<String> ids,
-        @Valid @BeanParam Pageable pageable
+        @Valid @BeanParam Pageable pageable,
+        @QueryParam("expands") final Set<String> expands
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiQuery apiQuery = new ApiQuery();
@@ -231,33 +246,29 @@ public class ApisResource extends AbstractResource {
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
-
+        List<ApiListItem> apiListItems;
         if (apisParam.isTop()) {
             final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).collect(toList());
-            return new ApiListItemPagedResult(
-                topApiService
-                    .findAll(executionContext)
-                    .stream()
-                    .filter(topApi -> visibleApis.contains(topApi.getApi()))
-                    .map(topApiEntity -> apiService.findById(executionContext, topApiEntity.getApi()))
-                    .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
-                    .collect(toList()),
-                apis.getPageNumber(),
-                (int) apis.getPageElements(),
-                (int) apis.getTotalElements()
-            );
-        }
-
-        return new ApiListItemPagedResult(
-            apis
+            apiListItems = topApiService
+                .findAll(executionContext)
+                .stream()
+                .filter(topApi -> visibleApis.contains(topApi.getApi()))
+                .map(topApiEntity -> apiService.findById(executionContext, topApiEntity.getApi()))
+                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                .collect(toList());
+        } else {
+            apiListItems = apis
                 .getContent()
                 .stream()
                 .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
-                .collect(toList()),
-            apis.getPageNumber(),
-            (int) apis.getPageElements(),
-            (int) apis.getTotalElements()
-        );
+                .collect(toList());
+        }
+
+        if (expands != null && expands.contains(EXPAND_METADATA)) {
+            enrichApisWithMetadata(executionContext, apiListItems);
+        }
+
+        return new ApiListItemPagedResult(apiListItems, apis.getPageNumber(), (int) apis.getPageElements(), (int) apis.getTotalElements());
     }
 
     /**
@@ -700,5 +711,26 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Response getApiFlowSchemaForm() {
         return Response.ok(flowService.getApiFlowSchemaForm()).build();
+    }
+
+    private void enrichApisWithMetadata(ExecutionContext executionContext, List<ApiListItem> apiListItems) {
+        if (apiListItems == null || apiListItems.isEmpty()) {
+            return;
+        }
+
+        for (ApiListItem apiListItem : apiListItems) {
+            try {
+                List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(executionContext, apiListItem.getId());
+                if (metadataList != null && !metadataList.isEmpty()) {
+                    Map<String, Object> metadataMap = new HashMap<>();
+                    for (ApiMetadataEntity metadata : metadataList) {
+                        metadataMap.put(metadata.getKey(), metadata.getValue());
+                    }
+                    apiListItem.setMetadata(metadataMap);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to enrich API {} with additional data: {}", apiListItem.getName(), e.getMessage());
+            }
+        }
     }
 }
