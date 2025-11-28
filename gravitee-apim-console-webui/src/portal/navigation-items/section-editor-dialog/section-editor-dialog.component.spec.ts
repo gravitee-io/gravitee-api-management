@@ -29,7 +29,7 @@ import {
 } from './section-editor-dialog.component';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { PortalNavigationItemType, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -38,18 +38,20 @@ import { PortalNavigationItemType } from '../../../entities/management-api-v2';
 class TestHostComponent {
   mode = input<SectionEditorDialogMode>('create');
   type = input<PortalNavigationItemType>('PAGE');
+  existingItem = input<any>();
 
   dialogValue: SectionEditorDialogResult;
   private matDialog = inject(MatDialog);
 
   public clicked(): void {
+    const data: SectionEditorDialogData =
+      this.mode() === 'create'
+        ? { mode: 'create', type: this.type() }
+        : { mode: 'edit', type: this.type(), existingItem: this.existingItem() };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: '500px',
-        data: {
-          mode: this.mode(),
-          type: this.type(),
-        },
+        data,
       })
       .afterClosed()
       .subscribe({
@@ -91,7 +93,7 @@ describe('SectionEditorDialogComponent', () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
         expect(await titleInput.getValue()).toBe('');
-        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should save the title', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -99,7 +101,7 @@ describe('SectionEditorDialogComponent', () => {
 
         await titleInput.setValue('My new page');
 
-        await dialog.clickAddButton();
+        await dialog.clickSubmitButton();
         fixture.detectChanges();
 
         expect(component.dialogValue).toEqual({
@@ -129,7 +131,7 @@ describe('SectionEditorDialogComponent', () => {
         expect(await titleInput.getValue()).toBe('');
 
         await dialog.setUrlInputValue('https://gravitee.io');
-        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should not allow empty url', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -137,7 +139,7 @@ describe('SectionEditorDialogComponent', () => {
         expect(await titleInput.getValue()).toBe('');
 
         await titleInput.setValue('Gravitee Homepage');
-        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should not allow invalid url', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -145,7 +147,7 @@ describe('SectionEditorDialogComponent', () => {
 
         await titleInput.setValue('Gravitee Homepage');
         await dialog.setUrlInputValue('invalid-url');
-        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should save the title and url', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -154,7 +156,7 @@ describe('SectionEditorDialogComponent', () => {
         await titleInput.setValue('Gravitee Homepage');
         await dialog.setUrlInputValue('https://gravitee.io');
 
-        await dialog.clickAddButton();
+        await dialog.clickSubmitButton();
         fixture.detectChanges();
 
         expect(component.dialogValue).toEqual({
@@ -174,7 +176,7 @@ describe('SectionEditorDialogComponent', () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
         expect(await titleInput.getValue()).toBe('');
-        expect(await dialog.isAddButtonDisabled()).toEqual(true);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should save the title', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -182,7 +184,7 @@ describe('SectionEditorDialogComponent', () => {
 
         await titleInput.setValue('My new folder');
 
-        await dialog.clickAddButton();
+        await dialog.clickSubmitButton();
         fixture.detectChanges();
 
         expect(component.dialogValue).toEqual({
@@ -197,6 +199,79 @@ describe('SectionEditorDialogComponent', () => {
         fixture.detectChanges();
 
         expect(component.dialogValue).toBeUndefined();
+      });
+    });
+  });
+
+  describe('when in edit mode', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('mode', 'edit');
+    });
+    describe('when editing a page', () => {
+      beforeEach(() => {
+        const existingPage = fakePortalNavigationPage({ id: 'p1', title: 'Existing Page', portalPageContentId: 'content1' });
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.componentRef.setInput('existingItem', existingPage);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+      it('should display the correct title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getDialogTitle()).toBe('Edit "Existing Page" page');
+      });
+      it('should prefill the title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.getValue()).toBe('Existing Page');
+      });
+      it('should save the updated title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+
+        await titleInput.setValue('Updated Page');
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Updated Page',
+        });
+      });
+    });
+    describe('when editing a link', () => {
+      beforeEach(() => {
+        const existingLink = fakePortalNavigationLink({ id: 'l1', title: 'Existing Link', url: 'https://old.com' });
+        fixture.componentRef.setInput('type', 'LINK');
+        fixture.componentRef.setInput('existingItem', existingLink);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+      it('should display the correct title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getDialogTitle()).toBe('Edit "Existing Link" link');
+      });
+      it('should prefill the title and url', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.getValue()).toBe('Existing Link');
+        expect(await dialog.getUrlInputValue()).toBe('https://old.com');
+      });
+      it('should save the updated title and url', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+
+        await titleInput.setValue('Updated Link');
+        await dialog.setUrlInputValue('https://new.com');
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Updated Link',
+          url: 'https://new.com',
+        });
       });
     });
   });

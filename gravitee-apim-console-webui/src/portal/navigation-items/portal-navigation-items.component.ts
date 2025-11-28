@@ -44,6 +44,10 @@ import {
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationPage,
+  UpdateFolderPortalNavigationItem,
+  UpdateLinkPortalNavigationItem,
+  UpdatePagePortalNavigationItem,
+  UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -142,6 +146,10 @@ export class PortalNavigationItemsComponent {
     this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
   }
 
+  onEditSection(node: SectionNode) {
+    this.manageSection(node.type, 'edit', 'TOP_NAVBAR', node.data);
+  }
+
   onResizeStart(event: MouseEvent): void {
     event.preventDefault();
 
@@ -216,25 +224,59 @@ export class PortalNavigationItemsComponent {
       : null;
   }
 
-  private manageSection(type: PortalNavigationItemType, mode: SectionEditorDialogMode, area: PortalArea): void {
+  private manageSection(
+    type: PortalNavigationItemType,
+    mode: SectionEditorDialogMode,
+    area: PortalArea,
+    existingItem?: PortalNavigationItem,
+  ): void {
+    const data: SectionEditorDialogData =
+      mode === 'create' ? { mode: 'create', type } : { mode: 'edit', type, existingItem: existingItem! };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
-        data: {
-          type,
-          mode,
-        },
+        data,
       })
       .afterClosed()
       .pipe(
         filter((result) => !!result),
         switchMap((result) => {
-          return this.create({
-            title: result.title,
-            type,
-            area,
-            url: result.url,
-          });
+          if (mode === 'create') {
+            return this.create({
+              title: result.title,
+              type,
+              area,
+              url: result.url,
+            });
+          } else {
+            if (!existingItem) {
+              return EMPTY;
+            }
+            const base = {
+              id: existingItem.id,
+              title: result.title,
+              type: existingItem.type,
+              area: existingItem.area,
+              parentId: existingItem.parentId,
+              order: existingItem.order,
+            };
+            let updateData: UpdatePortalNavigationItem;
+            switch (existingItem.type) {
+              case 'LINK':
+                updateData = { ...base, url: result.url } as UpdateLinkPortalNavigationItem;
+                break;
+              case 'PAGE':
+                updateData = {
+                  ...base,
+                  portalPageContentId: (existingItem as PortalNavigationPage).portalPageContentId,
+                } as UpdatePagePortalNavigationItem;
+                break;
+              default:
+                updateData = base as UpdateFolderPortalNavigationItem;
+                break;
+            }
+            return this.update(existingItem.id, updateData);
+          }
         }),
         tap(({ id }) => {
           this.refreshMenuList.next(1);
@@ -252,6 +294,10 @@ export class PortalNavigationItemsComponent {
         return EMPTY;
       }),
     );
+  }
+
+  private update(portalNavigationItemId: string, updatePortalNavigationItem: UpdatePortalNavigationItem): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.updateNavigationItem(portalNavigationItemId, updatePortalNavigationItem);
   }
 
   private navigateToItemByNavId(navId: string): void {
