@@ -44,6 +44,9 @@ import org.springframework.core.io.ClassPathResource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalPageContentCrudServiceImplTest {
 
+    private static final String ORGANIZATION_ID = "DEFAULT_ORG";
+    private static final String ENVIRONMENT_ID = "DEFAULT_ENV";
+
     @Mock
     PortalPageContentRepository repository;
 
@@ -71,7 +74,12 @@ class PortalPageContentCrudServiceImplTest {
         void should_create_a_page_content() throws TechnicalException {
             // Given
             final var pageContentId = PortalPageContentId.random();
-            final var portalPageContent = new GraviteeMarkdownPageContent(pageContentId, "# Welcome\n\nThis is a sample page content.");
+            final var portalPageContent = new GraviteeMarkdownPageContent(
+                pageContentId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                "# Welcome\n\nThis is a sample page content."
+            );
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 
             // When
@@ -93,12 +101,14 @@ class PortalPageContentCrudServiceImplTest {
             }
 
             // When
-            service.createDefault();
+            service.createDefault(ORGANIZATION_ID, ENVIRONMENT_ID);
 
             // Then
             verify(repository).create(captor.capture());
             assertThat(captor.getValue().getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
             assertThat(captor.getValue().getContent()).isEqualTo(defaultContent);
+            assertThat(captor.getValue().getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+            assertThat(captor.getValue().getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
         }
     }
 }

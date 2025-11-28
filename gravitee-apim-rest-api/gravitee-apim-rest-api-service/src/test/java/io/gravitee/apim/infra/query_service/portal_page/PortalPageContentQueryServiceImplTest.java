@@ -57,6 +57,8 @@ class PortalPageContentQueryServiceImplTest {
             var contentId = "00000000-0000-0000-0000-000000000001";
             var repoContent = io.gravitee.repository.management.model.PortalPageContent.builder()
                 .id(contentId)
+                .organizationId("DEFAULT_ORG")
+                .environmentId("DEFAULT_ENV")
                 .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
                 .content("# Welcome\n\nThis is a sample page content.")
                 .build();
@@ -70,6 +72,8 @@ class PortalPageContentQueryServiceImplTest {
             assertThat(result).isPresent();
             assertThat(result.get()).isInstanceOf(GraviteeMarkdownPageContent.class);
             assertThat(result.get().getId()).isEqualTo(PortalPageContentId.of(contentId));
+            assertThat(result.get().getOrganizationId()).isEqualTo("DEFAULT_ORG");
+            assertThat(result.get().getEnvironmentId()).isEqualTo("DEFAULT_ENV");
             assertThat(((GraviteeMarkdownPageContent) result.get()).getContent()).isEqualTo("# Welcome\n\nThis is a sample page content.");
         }
 
