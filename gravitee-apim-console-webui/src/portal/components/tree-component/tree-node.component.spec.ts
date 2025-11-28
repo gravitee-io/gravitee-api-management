@@ -22,6 +22,9 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TreeNodeComponent } from './tree-node.component';
 import { SectionNode } from './tree.component';
 
+import { GioTestingModule } from '../../../shared/testing';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+
 describe('TreeNodeComponent', () => {
   let fixture: ComponentFixture<TreeNodeComponent>;
   let component: TreeNodeComponent;
@@ -34,7 +37,15 @@ describe('TreeNodeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TreeNodeComponent, MatIconTestingModule, NoopAnimationsModule],
+      imports: [TreeNodeComponent, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
+      providers: [
+        {
+          provide: GioPermissionService,
+          useValue: {
+            hasAnyMatching: jest.fn().mockReturnValue(true),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TreeNodeComponent);
@@ -101,13 +112,13 @@ describe('TreeNodeComponent', () => {
     expect(toggleBtn).toBeTruthy();
 
     // click to collapse
-    toggleBtn.triggerEventHandler('click');
+    toggleBtn.triggerEventHandler('click', { stopPropagation: jest.fn() });
     fixture.detectChanges();
     expect(row.attributes['aria-expanded']).toBe('false');
     expect(fixture.debugElement.query(By.css('.tree__children'))).toBeNull();
 
     // click again to expand
-    toggleBtn.triggerEventHandler('click');
+    toggleBtn.triggerEventHandler('click', { stopPropagation: jest.fn() });
     fixture.detectChanges();
     expect(row.attributes['aria-expanded']).toBe('true');
     expect(fixture.debugElement.query(By.css('.tree__children'))).toBeTruthy();
@@ -136,5 +147,11 @@ describe('TreeNodeComponent', () => {
     fixture.detectChanges();
 
     expect(selectedSpy).toHaveBeenCalledWith(child);
+  });
+
+  it('should have a more actions button', () => {
+    const moreBtn = fixture.debugElement.query(By.css('.tree__button.more-actions'));
+    expect(moreBtn).toBeTruthy();
+    expect(moreBtn.nativeElement.getAttribute('aria-label')).toBe('More actions');
   });
 });

@@ -49,6 +49,7 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
+  edit = output<SectionNode>();
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);
