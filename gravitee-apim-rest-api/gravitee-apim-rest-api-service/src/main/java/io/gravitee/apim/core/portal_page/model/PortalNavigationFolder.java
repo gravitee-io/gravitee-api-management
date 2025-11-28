@@ -25,8 +25,9 @@ public final class PortalNavigationFolder extends PortalNavigationItem {
         @Nonnull String environmentId,
         @Nonnull String title,
         @Nonnull PortalArea area,
-        @Nonnull Integer order
+        @Nonnull Integer order,
+        @Nonnull Boolean published
     ) {
-        super(id, organizationId, environmentId, title, area, order);
+        super(id, organizationId, environmentId, title, area, order, published);
     }
 }
