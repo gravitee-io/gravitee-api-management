@@ -157,7 +157,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
      * we can expect 4 message logs.
      */
     test('should search message logs', async () => {
-      let apiMessageLogsResponse = await fetchRestApiSuccess<ApiAggregatedMessageLogsResponse>({
+      let apiAggregatedMessageLogsResponse = await fetchRestApiSuccess<ApiAggregatedMessageLogsResponse>({
         restApiHttpCall: () =>
           v2ApiLogsResourceAsApiPublisher.getApiMessageLogsRaw({
             envId,
