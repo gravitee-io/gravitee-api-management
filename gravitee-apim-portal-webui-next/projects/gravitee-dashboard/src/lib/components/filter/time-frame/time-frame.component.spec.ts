@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { TimeFrameComponent } from './time-frame.component';
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
-export * from './lib/components/filter/dropdown-search/dropdown-search.component';
-export * from './lib/components/filter/generic-filter-bar/generic-filter-bar.component';
+describe('TimeFrameComponent', () => {
+  let component: TimeFrameComponent;
+  let fixture: ComponentFixture<TimeFrameComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TimeFrameComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TimeFrameComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

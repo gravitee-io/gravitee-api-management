@@ -14,36 +14,102 @@
  * limitations under the License.
  */
 import { Component, effect, inject, input, model } from '@angular/core';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { forkJoin, map, of, switchMap } from 'rxjs';
 
+import { DropdownSearchComponent } from './components/filter/dropdown-search/dropdown-search.component';
+import { Filter, GenericFilterBarComponent, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
 import { GridComponent } from './components/grid/grid.component';
+import { FilterName } from './components/widget/model/request/enum/filter-name';
+import { RequestFilter } from './components/widget/model/request/request';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 @Component({
   selector: 'gd-dashboard',
-  imports: [GridComponent],
-  template: `<gd-grid [items]="widgets()" />`,
+  imports: [GridComponent, DropdownSearchComponent, GenericFilterBarComponent],
+  template: `<gd-generic-filter-bar
+      [filters]="filters()"
+      [currentSelectedFilters]="currentSelectedFilters()"
+      (selectedFilters)="onSelectedFilters($event)" />
+    <gd-grid [items]="widgets()" />`,
   styles: ``,
 })
 export class GraviteeDashboardComponent {
   dashboardService = inject(GraviteeDashboardService);
   baseURL = input.required<string>();
   widgets = model.required<Widget[]>();
+  filters = input.required<Filter[]>();
+
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+
+  currentSelectedFilters = toSignal(
+    this.activatedRoute.queryParams.pipe(
+      map(params => {
+        return this.getSelectedFiltersFromQueryParams(params);
+      }),
+    ),
+    { initialValue: [] as SelectedFilter[] },
+  );
 
   constructor() {
     effect(() => {
+      this.widgets.update(widgets => {
+        return this.getUpdatedWidgetsWithFilters(widgets, this.currentSelectedFilters());
+      });
+    });
+
+    effect(() => {
       const widgetsToLoad = this.widgets().filter(w => !w.response && w.request);
       if (widgetsToLoad.length > 0) {
-        const loadObservables = widgetsToLoad.map(w => this.loadWidgetData(w));
-        forkJoin(loadObservables).subscribe(loadedWidgets => {
-          this.widgets.update(currentWidgets => {
-            const loadedWidgetsMap = new Map(loadedWidgets.map(w => [w.id, w]));
-            return currentWidgets.map(w => loadedWidgetsMap.get(w.id) ?? w);
+        this.updateWidgetsWithData(widgetsToLoad);
+      }
+    });
+  }
+
+  onSelectedFilters($event: SelectedFilter[]) {
+    const queryParams: Record<string, string> = {};
+    const groupedFilters = this.groupFilters($event);
+
+    groupedFilters.forEach((values, key) => {
+      queryParams[key] = values.join(',');
+    });
+
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+    });
+  }
+
+  private updateWidgetsWithData(widgetsToLoad: Widget[]) {
+    const loadObservables = widgetsToLoad.map(w => this.loadWidgetData(w));
+    forkJoin(loadObservables).subscribe(loadedWidgets => {
+      this.widgets.update(currentWidgets => {
+        const loadedWidgetsMap = new Map(loadedWidgets.map(w => [w.id, w]));
+        return currentWidgets.map(w => loadedWidgetsMap.get(w.id) ?? w);
+      });
+    });
+  }
+
+  private getSelectedFiltersFromQueryParams(params: Params) {
+    const selectedFilters: SelectedFilter[] = [];
+
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        const paramValue: string = params[key];
+        const values: string[] = paramValue.split(',');
+
+        values.forEach(value => {
+          selectedFilters.push({
+            parentKey: key,
+            value: value.trim(),
           });
         });
       }
-    });
+    }
+    return selectedFilters;
   }
 
   private loadWidgetData(widget: Widget) {
@@ -51,5 +117,42 @@ export class GraviteeDashboardComponent {
 
     const metrics$ = this.dashboardService.getMetrics(this.baseURL(), widget.request.type, widget.request);
     return metrics$.pipe(switchMap(response => of({ ...widget, response: response } satisfies Widget)));
+  }
+
+  private groupFilters(selectedFilters: SelectedFilter[]) {
+    const groupedFilters = new Map<FilterName, string[]>();
+    selectedFilters.forEach(selectedFilter => {
+      const key = selectedFilter.parentKey as FilterName;
+      const value = selectedFilter.value;
+
+      groupedFilters.has(key) ? groupedFilters.get(key)!.push(value) : groupedFilters.set(key, [value]);
+    });
+    return groupedFilters;
+  }
+
+  private getUpdatedWidgetsWithFilters(widgets: Widget[], selectedFilters: SelectedFilter[]) {
+    const groupedFilters = this.groupFilters(selectedFilters);
+    const newFilters: RequestFilter[] = [];
+    groupedFilters.forEach((values, key) => {
+      newFilters.push({
+        name: key,
+        operator: 'IN',
+        value: values,
+      });
+    });
+    return widgets.map(widget => {
+      return widget.request ? this.setWidgetFilters(widget, newFilters) : widget;
+    });
+  }
+
+  private setWidgetFilters(widget: Widget, newFilters: RequestFilter[]) {
+    return {
+      ...widget,
+      request: {
+        ...widget.request!,
+        filters: newFilters,
+      },
+      response: undefined,
+    };
   }
 }

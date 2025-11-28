@@ -15,4 +15,27 @@
     limitations under the License.
 
 -->
-<gd-dashboard [(widgets)]="widgets" [baseURL]="baseURL" [filters]="filters"></gd-dashboard>
+<div
+  #trigger
+  class="gio-select-search__trigger"
+  [class.disabled]="isDisabled"
+  [class.opened]="isOpen()"
+  (click)="toggleOverlay($event)"
+  tabindex="-1"
+  role="listbox"
+  [attr.aria-multiselectable]="multiple"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-haspopup]="true"
+  [attr.aria-label]="label()">
+  <span class="gio-select-search__trigger__label">
+    {{ label() }}
+
+    @if (selectedCount() > 0) {
+      <span class="gio-select-search__trigger__count">
+        {{ selectedCount() }}
+      </span>
+    }
+  </span>
+
+  <mat-icon class="search" [class.opened-icon]="isOpen()"> expand_more </mat-icon>
+</div>

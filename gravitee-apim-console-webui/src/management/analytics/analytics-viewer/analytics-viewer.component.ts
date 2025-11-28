@@ -13,19 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardComponent, Widget, GraviteeDashboardService } from '@gravitee/gravitee-dashboard';
+import { GraviteeDashboardComponent, Widget, GraviteeDashboardService, Filter, SelectOption } from '@gravitee/gravitee-dashboard';
 
 import { inject, Component } from '@angular/core';
 
 import { Constants } from '../../../entities/Constants';
+import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ResultsLoaderInput, ResultsLoaderOutput } from '../../../shared/components/gio-select-search/gio-select-search.component';
+import { ClusterService } from '../../../services-ngx/cluster.service';
 
 @Component({
   selector: 'analytics-viewer',
-  imports: [GraviteeDashboardComponent],
+  imports: [GraviteeDashboardComponent, GraviteeDashboardComponent],
   templateUrl: './analytics-viewer.component.html',
   styleUrl: './analytics-viewer.component.scss',
 })
 export class AnalyticsViewerComponent {
   widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
   readonly baseURL = inject(Constants).env.v2BaseURL;
+  private apiV2Service = inject(ApiV2Service);
+
+  private clusterService = inject(ClusterService);
+  clusterResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
+    return this.clusterService.list(undefined, undefined, input.page, 2).pipe(
+      map((response) => ({
+        data: response.data.map((cluster) => ({ value: cluster.id, label: cluster.name } as SelectOption)),
+        hasNextPage: response.pagination.pageCount > input.page,
+      })),
+    );
+  };
+
+  filters: Filter[] = [
+    {
+      key: 'API',
+      label: 'Api list',
+      data$: this.apiV2Service
+        .search({})
+        .pipe(map((apis) => apis.data.map((app) => ({ value: app.id, label: app.id.substring(0, 10) } as SelectOption)))),
+    },
+    {
+      key: 'PLAN',
+      label: 'Plan',
+      data$: of([{ value: 'plan-1', label: 'Plan 1' }]),
+    },
+  ];
 }
