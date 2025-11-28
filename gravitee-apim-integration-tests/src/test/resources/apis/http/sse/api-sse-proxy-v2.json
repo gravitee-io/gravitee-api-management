@@ -1,0 +1,18 @@
+{
+  "id": "api-sse-proxy-v2",
+  "name": "api-sse-proxy-v2",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:${GATEWAY_HTTP_PORT}/sse-mock-endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  }
+}

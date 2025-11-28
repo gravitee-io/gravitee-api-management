@@ -24,16 +24,23 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.core.buffer.impl.BufferImpl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class VertxHttpServerResponse extends AbstractResponse {
+
+    private static final Set<String> CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES = Set.of("Connection reset by peer", "Broken pipe");
 
     protected final HttpServerResponse nativeResponse;
     private final VertxHttpServerRequest vertxHttpServerRequest;
@@ -94,8 +101,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
                 return Completable.error(new IllegalStateException("The response is already ended"));
             }
             prepareHeaders();
-            // this atomic reference maybe useless due to  https://github.com/vert-x3/vertx-rx/pull/285
-            // how to confirm ?
+
             final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
             if (lazyBufferFlow().hasChunks()) {
@@ -103,12 +109,30 @@ public class VertxHttpServerResponse extends AbstractResponse {
                     .rxSend(
                         chunks()
                             .doOnSubscribe(subscriptionRef::set)
-                            .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            .map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
                             .doOnNext(buffer ->
                                 ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
                             )
                     )
-                    .doOnDispose(() -> subscriptionRef.get().cancel());
+                    .onErrorResumeNext(throwable -> {
+                        if (
+                            throwable instanceof IOException &&
+                            throwable.getMessage() != null &&
+                            CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES.contains(throwable.getMessage())
+                        ) {
+                            // Client has closed the connection, no need to log an error.
+                            log.debug("Client has closed the connection: {}", throwable.getMessage());
+                        } else {
+                            log.error("An error occurred while sending response chunks", throwable);
+                        }
+                        return Completable.complete();
+                    })
+                    .doOnDispose(() -> {
+                        if (!nativeResponse.ended()) {
+                            // If the response is disposed before being ended, we need to cancel the subscription so cancellation is propagated to the endpoint connector.
+                            subscriptionRef.get().cancel();
+                        }
+                    });
             }
 
             return nativeResponse.rxEnd();

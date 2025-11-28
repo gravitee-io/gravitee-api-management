@@ -25,6 +25,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
@@ -62,7 +63,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     @Override
     public Completable rxStart() {
         // Set global error handler to catch everything that has not been properly caught.
-        RxJavaPlugins.setErrorHandler(throwable -> log.warn("An unexpected error occurred", throwable));
+        RxJavaPlugins.setErrorHandler(this::logGlobalErrors);
 
         // Reconfigure RxJava to use Vertx schedulers.
         RxJavaPlugins.setComputationSchedulerHandler(s -> RxHelper.scheduler(vertx));
@@ -70,6 +71,10 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         RxJavaPlugins.setNewThreadSchedulerHandler(s -> RxHelper.scheduler(vertx));
 
         final List<VertxHttpServer> servers = this.serverManager.servers(VertxHttpServer.class);
+
+        // Some exceptions can be raised at the Vertx context level (outside the request flow). This is the case when the client
+        // closes the connection before the response is fully written. This one can be ignored as it's properly handled at the request level.
+        Vertx.currentContext().exceptionHandler(this::logGlobalErrors);
 
         return Flowable.fromIterable(servers)
             .concatMapCompletable(gioServer -> {
@@ -87,6 +92,14 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                     .doOnError(throwable -> log.error("Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
             })
             .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
+    }
+
+    private void logGlobalErrors(Throwable throwable) {
+        if (throwable instanceof IllegalStateException && "Response has already been written".equals(throwable.getMessage())) {
+            log.debug("Client has prematurely closed the connection before the response is fully written. Ignoring.");
+        } else {
+            log.warn("An unexpected error occurred.", throwable);
+        }
     }
 
     /**
@@ -152,8 +165,18 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         request
             .connection()
             // Must be added to ensure closed connection or error disposes underlying subscription.
-            .exceptionHandler(event -> dispatchDisposable.dispose())
-            .closeHandler(event -> dispatchDisposable.dispose());
+            .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
+            .closeHandler(event -> gracefulDispose(dispatchDisposable));
+    }
+
+    private void gracefulDispose(Disposable dispatchDisposable) {
+        if (!dispatchDisposable.isDisposed()) {
+            try {
+                dispatchDisposable.dispose();
+            } catch (Exception e) {
+                log.warn("Cannot graceful dispose request", e);
+            }
+        }
     }
 
     @Override
