@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
 public class ResourceContextConfiguration {
 
     @Bean
-    public ApiAuthorizationService apiAuthorizationServiceV4() {
+    public ApiAuthorizationService apiAuthorizationService() {
         return mock(ApiAuthorizationService.class);
     }
 
@@ -37,9 +37,9 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ApiAnalyticsQueryFilterDecoratorImpl apiAnalyticsQueryFilterDecorator(
-        ApiAuthorizationService apiAuthorizationServiceV4,
+        ApiAuthorizationService applicationService,
         PermissionService permissionService
     ) {
-        return new ApiAnalyticsQueryFilterDecoratorImpl(apiAuthorizationServiceV4, permissionService);
+        return new ApiAnalyticsQueryFilterDecoratorImpl(applicationService, permissionService);
     }
 }

@@ -233,6 +233,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
     private void appendPath(final Document doc, final int[] pathIndex, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
+        doc.add(new StringField(FIELD_PATHS_LOWERCASE, path.toLowerCase(), Field.Store.NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
         if (pathIndex[0]++ == 0) {
             doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, toSortedValue(path)));
@@ -242,6 +243,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     private void appendHost(Document doc, String host) {
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
+            doc.add(new StringField(FIELD_HOSTS_LOWERCASE, host.toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
         }
     }
@@ -315,9 +317,11 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
     private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
+        doc.add(new StringField(FIELD_PATHS_LOWERCASE, path.toLowerCase(), Field.Store.NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
+            doc.add(new StringField(FIELD_HOSTS_LOWERCASE, host.toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
         }
         if (pathIndex[0]++ == 0) {
