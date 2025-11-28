@@ -149,6 +149,24 @@ class CreatePortalNavigationItemUseCaseTest {
             });
     }
 
+    @Test
+    void should_set_portal_navigation_item_to_not_published() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.FOLDER)
+            .title("title")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .build();
+
+        // When
+        final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // Then
+        assertThat(output.item().getPublished()).isFalse();
+    }
+
     @Nested
     class UpdateSiblingsOrder {
 
