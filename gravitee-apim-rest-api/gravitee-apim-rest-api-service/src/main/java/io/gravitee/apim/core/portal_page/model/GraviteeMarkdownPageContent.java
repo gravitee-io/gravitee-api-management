@@ -45,6 +45,11 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent {
     }
 
     @Override
+    public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent) {
+        this.content = updateGraviteeMarkdownPageContent.getContent();
+    }
+
+    @Override
     public String toString() {
         return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
     }

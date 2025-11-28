@@ -36,6 +36,8 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
         this.environmentId = environmentId;
     }
 
+    public abstract void update(UpdatePortalPageContent updatePortalPageContent);
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
