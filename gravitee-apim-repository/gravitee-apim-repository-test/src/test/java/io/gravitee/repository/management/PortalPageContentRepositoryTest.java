@@ -51,6 +51,8 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
     public void should_create_and_delete_page_content() throws Exception {
         PortalPageContent content = PortalPageContent.builder()
             .id("new-page-content")
+            .organizationId("DEFAULT_ORGANIZATION")
+            .environmentId("DEFAULT_ENVIRONMENT")
             .type(PortalPageContent.Type.GRAVITEE_MARKDOWN)
             .configuration("{ \"pageId\": \"contact\" }")
             .content("# Contact us")
@@ -73,6 +75,8 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
         PortalPageContent toUpdate = PortalPageContent.builder()
             .id(existing.getId())
             .type(existing.getType())
+            .organizationId(existing.getOrganizationId())
+            .environmentId(existing.getEnvironmentId())
             .configuration(existing.getConfiguration())
             .content("# Updated content")
             .build();
