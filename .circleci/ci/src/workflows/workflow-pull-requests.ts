@@ -16,7 +16,7 @@
 import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
+import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
@@ -28,6 +28,7 @@ import {
   ConsoleWebuiBuildJob,
   DangerJsJob,
   DeployOnAzureJob,
+  DeployOnNextGenIntegrationJob,
   E2ECypressJob,
   E2EGenerateSDKJob,
   E2ELintBuildJob,
@@ -529,6 +530,11 @@ export class PullRequestsWorkflow {
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
+    const deployOnNextGenIntegrationJob = DeployOnNextGenIntegrationJob.create(dynamicConfig, environment);
+    if (isMasterBranch(environment.branch)) {
+      dynamicConfig.addJob(deployOnNextGenIntegrationJob);
+    }
+
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(
       {
         ...environment,
@@ -584,6 +590,15 @@ export class PullRequestsWorkflow {
           'Build APIM Portal docker image',
         ],
       }),
+      ...(isMasterBranch(environment.branch)
+        ? [
+            new workflow.WorkflowJob(deployOnNextGenIntegrationJob, {
+              name: 'Deploy on NextGen Integration environment',
+              context: config.jobContext,
+              requires: ['Trigger SaaS Docker images creation', 'Publish Helm chart (internal repo)'],
+            }),
+          ]
+        : []),
     ];
   }
 }

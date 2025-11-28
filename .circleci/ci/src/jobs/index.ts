@@ -20,6 +20,7 @@ export * from './helm/index';
 export * from './job-build-docker-image';
 export * from './job-danger-js';
 export * from './job-deploy-on-azure';
+export * from './job-deploy-on-next-gen-integration';
 export * from './job-package-bundle';
 export * from './job-perf-lint-build';
 export * from './job-publish-pr-env-urls';
