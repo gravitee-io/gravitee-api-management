@@ -61,6 +61,10 @@ export default {
                       limit: 'PT10S',
                       default: 'PT10S',
                     },
+                    windowedCount: {
+                      limit: '1/PT1S',
+                      default: '1/PT10S',
+                    },
                   },
                 },
               }),

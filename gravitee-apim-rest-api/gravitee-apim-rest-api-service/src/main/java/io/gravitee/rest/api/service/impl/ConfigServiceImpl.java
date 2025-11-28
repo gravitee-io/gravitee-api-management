@@ -481,6 +481,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             portalConfigEntity.getLogging().getMessageSampling().getCount(),
             portalConfigEntity.getLogging().getMessageSampling().getProbabilistic(),
             portalConfigEntity.getLogging().getMessageSampling().getTemporal(),
+            portalConfigEntity.getLogging().getMessageSampling().getWindowedCount(),
         };
     }
 
@@ -508,6 +509,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getLogging().getMessageSampling().getCount(),
             consoleConfigEntity.getLogging().getMessageSampling().getProbabilistic(),
             consoleConfigEntity.getLogging().getMessageSampling().getTemporal(),
+            consoleConfigEntity.getLogging().getMessageSampling().getWindowedCount(),
             consoleConfigEntity.getMaintenance(),
             consoleConfigEntity.getManagement(),
             consoleConfigEntity.getNewsletter(),

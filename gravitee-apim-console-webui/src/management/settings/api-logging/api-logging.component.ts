@@ -24,6 +24,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { isIso8601DateValid } from '../../api/reporter-settings/reporter-settings-message/iso-8601-date.validator';
+import { isWindowedCountValidFormat } from '../../api/reporter-settings/reporter-settings-message/windowed-count-format.validator';
+import { WindowedCount, WindowedCountFormatError } from '../../api/reporter-settings/reporter-settings-message/windowed-count';
 
 @Component({
   selector: 'api-logging',
@@ -95,6 +97,16 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
               limit: [
                 this.toFormState('logging.messageSampling.temporal.limit'),
                 [Validators.required, isIso8601DateValid(), this.isDefaultGreaterOrEqualThanLimitIso8601()],
+              ],
+            }),
+            windowedCount: this.fb.group({
+              default: [
+                this.toFormState('logging.messageSampling.windowedCount.default'),
+                [Validators.required, isWindowedCountValidFormat(), this.isDefaultLowerThanMaxRate()],
+              ],
+              limit: [
+                this.toFormState('logging.messageSampling.windowedCount.limit'),
+                [Validators.required, isWindowedCountValidFormat(), this.isDefaultLowerThanMaxRate()],
               ],
             }),
           }),
@@ -207,10 +219,44 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
         }
       } catch (e) {
         this.applyErrorToDefaultAndLimit(control, defaultControl, limitControl, error);
+        this.snackBarService.error(e);
         return { [error.key]: error.message };
       }
       this.clearDefaultAndLimitCustomError(defaultControl, limitControl, error.key);
       return null;
+    };
+  }
+
+  isDefaultLowerThanMaxRate(): ValidatorFn | undefined {
+    return (control: AbstractControl): ValidationErrors | undefined => {
+      if (!control.parent) {
+        return undefined;
+      }
+      const defaultControl = control.parent.get('default');
+      const limitControl = control.parent.get('limit');
+
+      const error = {
+        key: 'defaultLowerThanLimit',
+        message: 'Default must be a lower rate than limit',
+      };
+
+      try {
+        const defaultWindowedCount = WindowedCount.parse(defaultControl.value);
+        const limitWindowedCount = WindowedCount.parse(limitControl.value);
+        if (defaultWindowedCount.rate() > limitWindowedCount.rate()) {
+          this.applyErrorToDefaultAndLimit(control, defaultControl, limitControl, error);
+          return { [error.key]: error.message };
+        }
+      } catch (e) {
+        if (e instanceof WindowedCountFormatError) {
+          // this check is useless if the format is incorrect
+          return undefined;
+        }
+        this.applyErrorToDefaultAndLimit(control, defaultControl, limitControl, error);
+        return { [error.key]: error.message };
+      }
+      this.clearDefaultAndLimitCustomError(defaultControl, limitControl, error.key);
+      return undefined;
     };
   }
 

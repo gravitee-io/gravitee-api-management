@@ -290,5 +290,9 @@ export interface PortalSettingsLogging {
       default: string;
       limit: string;
     };
+    windowedCount?: {
+      default: string;
+      limit: string;
+    };
   };
 }

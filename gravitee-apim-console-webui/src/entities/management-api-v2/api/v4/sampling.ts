@@ -24,4 +24,4 @@ export interface Sampling {
    */
   value?: string;
 }
-export type SamplingTypeEnum = 'PROBABILITY' | 'TEMPORAL' | 'COUNT' | 'QUERY';
+export type SamplingTypeEnum = 'PROBABILITY' | 'TEMPORAL' | 'COUNT' | 'WINDOWED_COUNT';
