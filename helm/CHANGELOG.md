@@ -3,6 +3,12 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.9.8
+- Kafka Console:
+  - allow to define volumes & volume mounts
+  - allow to define a custom mAPI base URL instead of relying on `organization` and `environment` fields
+  - allow to use secrets from jwt.secret and apim.security.token
+
 ### 4.9.6
 - allow configuration of httpClient proxy excludes [issues/10855](https://github.com/gravitee-io/issues/issues/10855).
 
