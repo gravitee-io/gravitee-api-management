@@ -95,6 +95,7 @@
           <mat-button-toggle class="sampling-type__toggle" value="PROBABILITY"> Probabilistic </mat-button-toggle>
           <mat-button-toggle class="sampling-type__toggle" value="COUNT"> Count </mat-button-toggle>
           <mat-button-toggle class="sampling-type__toggle" value="TEMPORAL"> Temporal </mat-button-toggle>
+          <mat-button-toggle class="sampling-type__toggle" value="WINDOWED_COUNT"> Windowed Count </mat-button-toggle>
         </mat-button-toggle-group>
 
         <ng-container *ngIf="form.get('samplingType').value === 'PROBABILITY'">
@@ -125,7 +126,7 @@
         </ng-container>
 
         <ng-container *ngIf="form.get('samplingType').value === 'TEMPORAL'">
-          <p>Samples messages based on time duration.</p>
+          <p>Samples at most a count of messages during the given period.</p>
           <p>
             The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second and be greater than
             {{ settings?.logging?.messageSampling?.temporal?.limit ?? 'PT1S' }}.
@@ -140,6 +141,29 @@
             </mat-error>
             <mat-error *ngIf="form.get('samplingValue').hasError('minTemporal')">
               The sampling value should be greater than {{ settings?.logging?.messageSampling?.temporal?.limit ?? 'PT1S' }}.
+            </mat-error>
+          </mat-form-field>
+        </ng-container>
+
+        <ng-container *ngIf="form.get('samplingType').value === 'WINDOWED_COUNT'">
+          <p>Samples a count of message during sliding duration window.</p>
+          <p>
+            Format is COUNT/DURATION: count is a positive integer, duration should conform to ISO-8601 duration format,
+            e.g. 2/PT15S 2 messages sampled in a 15 secs sliding window. Sampling rate should remain lower than
+            {{ settings?.logging?.messageSampling?.windowedCount?.limit ?? '1/PT1S' }}.
+          </p>
+          <mat-form-field data-testid="sampling_value" class="settings__form-control__form-field">
+            <mat-label>Message sampling</mat-label>
+            <input matInput formControlName="samplingValue" />
+            <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('invalidFormat')">
+              The sampling value follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format e.g.
+              {{ settings?.logging?.messageSampling?.temporal?.limit ?? '1/PT1S' }}.
+            </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('maxRate')">
+              The sampling rate cannot exceed
+              {{ settings?.logging?.messageSampling?.temporal?.limit ?? '1/PT1S' }} ,
+              lower the count or increase the duration.
             </mat-error>
           </mat-form-field>
         </ng-container>

@@ -238,7 +238,7 @@
         </ng-container>
 
         <ng-container formGroupName="temporal">
-          <h3>Temporal</h3>
+          <h3>Samples at most a count of messages during the given period</h3>
           <p>Samples messages based on time duration.</p>
           <p>The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second.</p>
 
@@ -295,6 +295,69 @@
 
           <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal')?.errors?.defaultLowerThanLimit">{{
             apiLoggingForm.get('messageSampling.temporal')?.errors?.defaultLowerThanLimit
+          }}</mat-error>
+        </ng-container>
+        <ng-container formGroupName="windowedCount">
+          <h3>Windowed count</h3>
+          <p>Samples a count of message during sliding duration window.</p>
+          <p>
+            Format is COUNT/DURATION: count is a positive integer, duration should conform to ISO-8601 duration format,
+            e.g. 2/PT15S 2 messages sampled in a 15 secs sliding window.
+          </p>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.windowedCount.default')"
+            class="api-logging__form__card__form-field"
+            data-testid="windowedCount_default"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.windowedCount.default')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Default</mat-label>
+            <input matInput formControlName="default" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.default').hasError('required')"
+              >Default value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.default').hasError('invalidFormat')"
+             >The sampling value follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.default')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.windowedCount.default')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-hint>The limit is the minimum allowed period to sample</mat-hint>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.windowedCount.limit')"
+            class="api-logging__form__card__form-field"
+            data-testid="windowedCount_limit"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.windowedCount.limit')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Limit</mat-label>
+            <input matInput formControlName="limit" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.limit').hasError('required')"
+              >Limit value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.limit').hasError('invalidFormat')">
+              The sampling value follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount.limit')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.windowedCount.limit')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-error *ngIf="apiLoggingForm.get('messageSampling.windowedCount')?.errors?.defaultLowerThanLimit">{{
+            apiLoggingForm.get('messageSampling.windowedCount')?.errors?.defaultLowerThanLimit
           }}</mat-error>
         </ng-container>
       </mat-card-content>

@@ -48,6 +48,8 @@ import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../entities/managem
 import { PortalConfigurationService } from '../../../../services-ngx/portal-configuration.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { isWindowedCountValidFormat } from './windowed-count-format.validator';
+import { WindowedCount } from './windowed.count';
 
 @Component({
   selector: 'reporter-settings-message',
@@ -323,6 +325,8 @@ export class ReporterSettingsMessageComponent implements OnInit {
         return [Validators.required, Validators.min(this.settings?.logging.messageSampling.count.limit ?? 10)];
       case 'TEMPORAL':
         return [Validators.required, isIso8601DateValid(), this.isGreaterOrEqualThanLimitIso8601()];
+      case 'WINDOWED_COUNT':
+        return [Validators.required, isWindowedCountValidFormat(), this.isGreaterThanMaxRate()];
       default:
         return [];
     }
@@ -340,6 +344,8 @@ export class ReporterSettingsMessageComponent implements OnInit {
         return this.settings?.logging.messageSampling.count.default ?? 100;
       case 'TEMPORAL':
         return this.settings?.logging.messageSampling.temporal.default ?? 'PT1S';
+      case 'WINDOWED_COUNT':
+        return this.settings?.logging.messageSampling.windowedCount.default ?? '1/PT10S';
       default:
         return null;
     }
@@ -365,4 +371,24 @@ export class ReporterSettingsMessageComponent implements OnInit {
       return null;
     };
   }
+
+  isGreaterThanMaxRate = (): ValidatorFn | null => {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      const limit = this.settings?.logging?.messageSampling?.windowedCount?.limit;
+
+      try {
+        let valueWindowedCount = WindowedCount.parse(value);
+        let limitWindowedCount = WindowedCount.parse(limit);
+        if (valueWindowedCount.rate() > limitWindowedCount.rate()) {
+          control.markAsTouched();
+          return { maxRate: `Windowed Count rate sampling should be less than ${limitWindowedCount}` };
+        }
+      } catch (error) {
+        control.markAsTouched();
+        return { maxRate: true };
+      }
+      return null;
+    };
+  };
 }
