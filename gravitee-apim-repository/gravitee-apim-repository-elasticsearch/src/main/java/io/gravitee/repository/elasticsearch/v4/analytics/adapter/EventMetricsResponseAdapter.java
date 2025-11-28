@@ -33,6 +33,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EventMetricsResponseAdapter {
 
@@ -75,7 +77,7 @@ public class EventMetricsResponseAdapter {
                     parseStartAndEndValueBuckets(value, result);
                     break;
                 case TREND:
-                    parseTrendQueryResponse(value, result);
+                    parseTrendQueryResponse(value, result, query);
                     break;
             }
         });
@@ -189,7 +191,7 @@ public class EventMetricsResponseAdapter {
         metricValueMap.forEach((field, delta) -> result.put(field, List.of(delta)));
     }
 
-    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result) {
+    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result, HistogramQuery query) {
         List<JsonNode> buckets = aggregation.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) {
@@ -247,6 +249,8 @@ public class EventMetricsResponseAdapter {
 
             result.put(field, trend);
         });
+
+        convertToRate(query, result);
     }
 
     private static void processPerIntervalBucket(
@@ -277,6 +281,25 @@ public class EventMetricsResponseAdapter {
 
                 maxValueByTimestampByField.computeIfAbsent(metricName, __ -> new HashMap<>()).merge(timestamp, currentMax, Long::sum);
             });
+    }
+
+    private static void convertToRate(HistogramQuery query, Map<String, List<Long>> result) {
+        Duration interval = query
+            .timeRange()
+            .interval()
+            .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
+        long seconds = interval.toSeconds();
+
+        if (seconds <= 0) {
+            return;
+        }
+
+        result.replaceAll((k, values) ->
+            values
+                .stream()
+                .map(v -> v == null ? null : v / seconds)
+                .collect(Collectors.toCollection(() -> new ArrayList<>(values.size())))
+        );
     }
 
     private static boolean isMetaField(final String name) {
