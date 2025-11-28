@@ -1094,6 +1094,63 @@ jobs:
             kubectl rollout restart deployment -n apim-apim-master-ce
             kubectl rollout restart deployment -n apim-apim-master-oem
       - cmd-notify-on-failure
+  job-deploy-on-next-gen-integration:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+      - run:
+          name: Install jq
+          command: wget https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O /tmp/jq && chmod +x /tmp/jq
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
+      - run:
+          name: Clone cloud-deployments-configuration repo
+          command: |
+            # For details see https://circleci.com/docs/2.0/gh-bb-integration/#establishing-the-authenticity-of-an-ssh-host
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+            git clone --branch qa git@github.com:gravitee-io/cloud-deployments-configuration.git cloud-deployments-configuration
+      - run:
+          name: Deploy next-gen 🚀
+          command: |
+            echo "# ---------------------------------------------------------------------- #"
+            echo "# - Deploying APIM master-784ff35 in Integration env                            #"
+            echo "# ---------------------------------------------------------------------- #"
+
+            cd ./cloud-deployments-configuration/europe/westeurope/giocloud-worker1-europe-qa
+
+            /tmp/jq ".appVersion = \"master-784ff35\"" controlplane-5fa78f.json > tmp.$$.json && \
+            mv tmp.$$.json controlplane-5fa78f.json
+            git add controlplane-5fa78f.json
+
+
+            /tmp/jq ".appVersion = \"master-784ff35\"" dataplane-5fa78f-894c1d.json > tmp.$$.json && \
+            mv tmp.$$.json dataplane-5fa78f-894c1d.json
+            git add dataplane-5fa78f-894c1d.json
+
+
+            /tmp/jq ".appVersion = \"master-784ff35\"" dataplane-5fa78f-558eb0.json > tmp.$$.json && \
+            mv tmp.$$.json dataplane-5fa78f-558eb0.json
+            git add dataplane-5fa78f-558eb0.json
+
+
+            git commit -m "feat(qa): deploying APIM master-784ff35"
+            git push
+      - cmd-notify-on-failure
   job-trigger-saas-docker-images:
     docker:
       - image: cimg/base:stable
@@ -1429,6 +1486,13 @@ workflows:
             - Build APIM Gateway docker image
             - Build APIM Console docker image
             - Build APIM Portal docker image
+      - job-deploy-on-next-gen-integration:
+          name: Deploy on NextGen Integration environment
+          context:
+            - cicd-orchestrator
+          requires:
+            - Trigger SaaS Docker images creation
+            - Publish Helm chart (internal repo)
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
