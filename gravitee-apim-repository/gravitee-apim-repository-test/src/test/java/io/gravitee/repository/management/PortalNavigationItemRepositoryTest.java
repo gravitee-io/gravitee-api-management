@@ -98,6 +98,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .type(PortalNavigationItem.Type.LINK)
             .area(PortalNavigationItem.Area.TOP_NAVBAR)
             .order(4)
+            .published(true)
             .configuration("{ \"url\": \"https://support.example.com\" }")
             .build();
 
@@ -138,6 +139,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .type(PortalNavigationItem.Type.LINK)
             .area(PortalNavigationItem.Area.TOP_NAVBAR)
             .order(1)
+            .published(true)
             .configuration("{ \"url\": \"https://original.com\" }")
             .build();
 
@@ -153,6 +155,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .type(PortalNavigationItem.Type.LINK)
             .area(PortalNavigationItem.Area.TOP_NAVBAR)
             .order(2)
+            .published(false)
             .configuration("{ \"url\": \"https://updated.com\" }")
             .build();
 
@@ -162,6 +165,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getOrder()).isEqualTo(2);
         assertThat(updated.getConfiguration()).isEqualTo("{ \"url\": \"https://updated.com\" }");
+        assertThat(updated.isPublished()).isFalse();
 
         portalNavigationItemRepository.delete("update-nav-item");
     }

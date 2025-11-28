@@ -32,4 +32,5 @@ public class PortalNavigationItemMongo {
     private String parentId;
     private Integer order;
     private String configuration;
+    private boolean published;
 }
