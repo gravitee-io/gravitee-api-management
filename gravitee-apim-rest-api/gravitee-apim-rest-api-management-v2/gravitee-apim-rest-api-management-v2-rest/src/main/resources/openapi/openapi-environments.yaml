@@ -1811,7 +1811,11 @@ components:
           type: integer
           description: The order of the navigation item (zero-based)
           example: 2
-      required: [ id, organizationId, environmentId, title, type, area, order ]
+        published:
+          type: boolean
+          description: Whether the navigation item is published or not
+          example: true
+      required: [ id, organizationId, environmentId, title, type, area, order, published ]
       discriminator:
         propertyName: type
         mapping:
