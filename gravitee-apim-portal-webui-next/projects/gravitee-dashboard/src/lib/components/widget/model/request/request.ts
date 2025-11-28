@@ -21,14 +21,14 @@ import { MetricName } from './enum/metric-name';
 export interface GlobalRequest<E extends RequestType> {
   type: E;
   timeRange: TimeRange;
-  filters?: Filter[];
+  filters?: RequestFilter[];
   metrics: MetricRequest[];
 }
 
 export interface MetricRequest {
   name: MetricName;
   measures: MeasureName[];
-  filters?: Filter[];
+  filters?: RequestFilter[];
 }
 
 export interface Order {
@@ -41,8 +41,8 @@ export interface TimeRange {
   to: string;
 }
 
-export interface Filter {
+export interface RequestFilter {
   name: FilterName;
   operator: 'EQ' | 'IN' | 'LTE' | 'GTE';
-  value: string;
+  value: string | string[];
 }

@@ -189,20 +189,20 @@ export class GraviteeDashboardService {
           y: 3,
           x: 0,
         },
-        request: {
-          type: 'facets',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
-          by: ['HTTP_STATUS_CODE_GROUP'],
-          metrics: [
-            {
-              name: 'HTTP_REQUESTS',
-              measures: ['COUNT'],
-            },
-          ],
-        },
+        // request: {
+        //   type: 'facets',
+        //   timeRange: {
+        //     from: '2025-10-07T06:50:30Z',
+        //     to: '2025-12-07T11:35:30Z',
+        //   },
+        //   by: ['HTTP_STATUS_CODE_GROUP'],
+        //   metrics: [
+        //     {
+        //       name: 'HTTP_REQUESTS',
+        //       measures: ['COUNT'],
+        //     },
+        //   ],
+        // },
       },
       {
         id: '8',

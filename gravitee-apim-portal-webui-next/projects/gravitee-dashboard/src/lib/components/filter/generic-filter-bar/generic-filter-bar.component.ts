@@ -1,12 +1,28 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { AsyncPipe } from '@angular/common';
 import { Component, effect, input, OnInit, output } from '@angular/core';
-import { distinctUntilChanged, Observable } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { DropdownSearchComponent, ResultsLoaderInput, ResultsLoaderOutput } from '../dropdown-search/dropdown-search.component';
-import { SelectOption } from '../dropdown-search/dropdown-search-overlay/dropdown-search-overlay.component';
-import { AsyncPipe, JsonPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { distinctUntilChanged, Observable } from 'rxjs';
+
+import { FilterName } from '../../widget/model/request/enum/filter-name';
+import { SelectOption } from '../dropdown-search/dropdown-search-overlay/dropdown-search-overlay.component';
+import { DropdownSearchComponent, ResultsLoaderInput, ResultsLoaderOutput } from '../dropdown-search/dropdown-search.component';
 
 export interface SelectedFilter {
   parentKey: string;
@@ -14,7 +30,7 @@ export interface SelectedFilter {
 }
 
 export interface Filter {
-  key: string;
+  key: FilterName;
   label: string;
   data?: SelectOption[];
   data$?: Observable<SelectOption[]>;
@@ -23,21 +39,17 @@ export interface Filter {
 
 @Component({
   selector: 'gd-generic-filter-bar',
-  imports: [DropdownSearchComponent, AsyncPipe, ReactiveFormsModule, MatFormFieldModule, MatSelectModule, JsonPipe],
+  imports: [DropdownSearchComponent, AsyncPipe, ReactiveFormsModule, MatFormFieldModule, MatSelectModule],
   templateUrl: './generic-filter-bar.component.html',
   styleUrl: './generic-filter-bar.component.scss',
 })
 export class GenericFilterBarComponent implements OnInit {
   filters = input.required<Filter[]>();
-  // selectedFilter = output<SelectedFilter>()
   currentSelectedFilters = input.required<SelectedFilter[]>();
 
   selectedFilters = output<SelectedFilter[]>();
 
   form = new FormGroup<Record<string, FormControl<string[]>>>({});
-
-  // For each filter, add a control to manage the selected option
-  // When form changes, emit the value to the parent component
 
   constructor() {
     effect(() => {
@@ -64,7 +76,6 @@ export class GenericFilterBarComponent implements OnInit {
 
   ngOnInit(): void {
     this.form.valueChanges.pipe(distinctUntilChanged()).subscribe(value => {
-      console.log('value changed', value);
       const selected: SelectedFilter[] = [];
       for (const key in value) {
         const selectedOptions = value[key];

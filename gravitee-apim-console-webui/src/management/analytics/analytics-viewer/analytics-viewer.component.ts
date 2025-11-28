@@ -18,15 +18,11 @@ import { GraviteeDashboardComponent, Widget, GraviteeDashboardService, Filter, S
 import { inject, Component } from '@angular/core';
 
 import { Constants } from '../../../entities/Constants';
-import {ApplicationService} from "../../../services-ngx/application.service";
-import {map} from "rxjs/operators";
-import {Observable, of} from "rxjs";
-import {ApiV2Service} from "../../../services-ngx/api-v2.service";
-import {
-  ResultsLoaderInput,
-  ResultsLoaderOutput
-} from "../../../shared/components/gio-select-search/gio-select-search.component";
-import {ClusterService} from "../../../services-ngx/cluster.service";
+import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ResultsLoaderInput, ResultsLoaderOutput } from '../../../shared/components/gio-select-search/gio-select-search.component';
+import { ClusterService } from '../../../services-ngx/cluster.service';
 
 @Component({
   selector: 'analytics-viewer',
@@ -42,36 +38,25 @@ export class AnalyticsViewerComponent {
   private clusterService = inject(ClusterService);
   clusterResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     return this.clusterService.list(undefined, undefined, input.page, 2).pipe(
-      map(response => ({
-          data: response.data.map(cluster => ({ value: cluster.id, label: cluster.name } as SelectOption)),
-          hasNextPage: response.pagination.pageCount > input.page
-        })
-      ))
+      map((response) => ({
+        data: response.data.map((cluster) => ({ value: cluster.id, label: cluster.name } as SelectOption)),
+        hasNextPage: response.pagination.pageCount > input.page,
+      })),
+    );
   };
 
   filters: Filter[] = [
-    { key: 'api', label: 'API',
-      data: [{
-      value: 'api-1', label: 'API 1',
-      },
-        { value: 'api-2', label: 'API 2',}
-      ]
+    {
+      key: 'API',
+      label: 'Api list',
+      data$: this.apiV2Service
+        .search({})
+        .pipe(map((apis) => apis.data.map((app) => ({ value: app.id, label: app.id.substring(0, 10) } as SelectOption)))),
     },
     {
-      key: 'api-list', label: 'Api list',
-      data$: this.apiV2Service.search({}).pipe(
-        map(apis => apis.data.map(app => ({ value: app.id, label: app.id.substring(0, 10) } as SelectOption)))
-      )
+      key: 'PLAN',
+      label: 'Plan',
+      data$: of([{ value: 'plan-1', label: 'Plan 1' }]),
     },
-    {
-      key: 'plan', label: 'Plan',
-      data$: of([{ value: 'plan-1', label: 'Plan 1'  },])
-    },
-    {
-      key: 'cluster', label: 'Cluster',
-      dataLoader: this.clusterResultsLoader
-    }
-  ]
-
-
+  ];
 }

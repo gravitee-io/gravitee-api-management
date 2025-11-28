@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { FacetName } from './enum/facet-name';
-import { Filter, GlobalRequest, Order } from './request';
+import { RequestFilter, GlobalRequest, Order } from './request';
 
 export interface FacetsRequest extends GlobalRequest<'facets'> {
   by: FacetName[];
   limit?: number;
   order?: Order;
-  filters?: Filter[];
+  filters?: RequestFilter[];
 }
