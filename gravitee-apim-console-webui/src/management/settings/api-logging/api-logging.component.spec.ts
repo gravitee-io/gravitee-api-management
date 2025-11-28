@@ -59,6 +59,10 @@ describe('ApiLogging', () => {
           limit: 'PT1S',
           default: 'PT1S',
         },
+        windowedCount: {
+          limit: '1/PT1S',
+          default: '1/PT10S',
+        },
       },
     },
   };
@@ -205,6 +209,8 @@ describe('ApiLogging', () => {
             'logging.messageSampling.probabilistic.limit',
             'logging.messageSampling.temporal.default',
             'logging.messageSampling.temporal.limit',
+            'logging.messageSampling.windowedCount.default',
+            'logging.messageSampling.windowedCount.limit',
           ],
         },
       });
@@ -217,6 +223,9 @@ describe('ApiLogging', () => {
 
       expect(await componentHarness.temporalDefaultIsDisabled()).toBe(true);
       expect(await componentHarness.temporalLimitIsDisabled()).toBe(true);
+
+      expect(await componentHarness.windowedCountDefaultIsDisabled()).toBe(true);
+      expect(await componentHarness.windowedCountLimitIsDisabled()).toBe(true);
     });
 
     it('should save message sampling settings', async () => {
@@ -230,6 +239,9 @@ describe('ApiLogging', () => {
 
       await componentHarness.setTemporalDefault('PT20S');
       await componentHarness.setTemporalLimit('PT15S');
+
+      await componentHarness.setWindowedCountDefault('1/PT1M');
+      await componentHarness.setWindowedCountLimit('2/PT1S');
 
       expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
       await componentHarness.saveSettings();
@@ -249,6 +261,10 @@ describe('ApiLogging', () => {
             temporal: {
               default: 'PT20S',
               limit: 'PT15S',
+            },
+            windowedCount: {
+              default: '1/PT1M',
+              limit: '2/PT1S',
             },
           },
         },
@@ -517,6 +533,107 @@ describe('ApiLogging', () => {
         await componentHarness.setTemporalDefault('PT1M');
         expect(await componentHarness.temporalDefaultHasErrors()).toBeFalsy();
         expect(await componentHarness.temporalLimitHasErrors()).toBeFalsy();
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
+      });
+    });
+
+    describe('Message Sampling - WindowedCount - Validation', () => {
+      it('should have non empty values', async () => {
+        expectConsoleSettingsGetRequest(settings);
+
+        await componentHarness.setWindowedCountDefault(null);
+        await componentHarness.setWindowedCountLimit(null);
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual(['Default value is required']);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual(['Limit value is required']);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        await componentHarness.setWindowedCountDefault('');
+        await componentHarness.setWindowedCountLimit('');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual(['Default value is required']);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual(['Limit value is required']);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        // Choose valid values
+        await componentHarness.setWindowedCountDefault('1/PT2S');
+        await componentHarness.setWindowedCountLimit('2/PT1S');
+        expect(await componentHarness.windowedCountDefaultHasErrors()).toBeFalsy();
+        expect(await componentHarness.windowedCountLimitHasErrors()).toBeFalsy();
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
+      });
+
+      it('should have be a valid window format duration', async () => {
+        expectConsoleSettingsGetRequest(settings);
+
+        await componentHarness.setWindowedCountDefault('1/PT0Seconds');
+        await componentHarness.setWindowedCountLimit('1/PT0Seconds');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        await componentHarness.setWindowedCountDefault('1:PT1S');
+        await componentHarness.setWindowedCountLimit('1:PT1S');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        await componentHarness.setWindowedCountDefault('-1/PT1S');
+        await componentHarness.setWindowedCountLimit('-1/PT1S');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual([
+          'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)',
+        ]);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        // Choose valid values
+        await componentHarness.setWindowedCountDefault('1/PT1S');
+        await componentHarness.setWindowedCountLimit('2/PT1S');
+        expect(await componentHarness.windowedCountDefaultHasErrors()).toBeFalsy();
+        expect(await componentHarness.windowedCountLimitHasErrors()).toBeFalsy();
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
+      });
+
+      it('should have default greater than limit', async () => {
+        expectConsoleSettingsGetRequest(settings);
+
+        await componentHarness.setWindowedCountDefault('10/PT1S');
+        await componentHarness.setWindowedCountLimit('2/PT1S');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual(['Default must be a lower rate than limit']);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual(['Default must be a lower rate than limit']);
+
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        // Try to change only limit value
+        await componentHarness.setWindowedCountLimit('5/PT1S');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual(['Default must be a lower rate than limit']);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual(['Default must be a lower rate than limit']);
+
+        // Try to change only default value
+        await componentHarness.setWindowedCountDefault('9/PT1S');
+        expect(await componentHarness.windowedCountDefaultTextErrors()).toEqual(['Default must be a lower rate than limit']);
+        expect(await componentHarness.windowedCountLimitTextErrors()).toEqual(['Default must be a lower rate than limit']);
+
+        // Choose valid values
+        await componentHarness.setWindowedCountDefault('1/PT1S');
+        expect(await componentHarness.windowedCountDefaultHasErrors()).toBeFalsy();
+        expect(await componentHarness.windowedCountLimitHasErrors()).toBeFalsy();
 
         expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
       });

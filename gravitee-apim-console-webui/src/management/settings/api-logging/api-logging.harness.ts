@@ -21,25 +21,35 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 export class ApiLoggingHarness extends ComponentHarness {
   static hostSelector = 'api-logging';
 
-  private getSaveButton = this.locatorFor(GioSaveBarHarness);
+  private readonly getSaveButton = this.locatorFor(GioSaveBarHarness);
 
-  private getMaxDurationFormField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Max Duration (in ms)' }));
+  private readonly getMaxDurationFormField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Max Duration (in ms)' }));
 
-  private getAuditEnabledSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'enabled' }));
-  private getAuditTrailEnabledSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'trail.enabled' }));
+  private readonly getAuditEnabledSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'enabled' }));
+  private readonly getAuditTrailEnabledSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'trail.enabled' }));
 
-  private getUserDisplayedSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'displayed' }));
+  private readonly getUserDisplayedSlideToggle = this.locatorFor(MatSlideToggleHarness.with({ name: 'displayed' }));
 
-  private getSamplingCountDefaultField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=count_default]' }));
-  private getSamplingCountLimitField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=count_limit]' }));
+  private readonly getSamplingCountDefaultField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=count_default]' }));
+  private readonly getSamplingCountLimitField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=count_limit]' }));
 
-  private getSamplingProbabilisticDefaultField = this.locatorFor(
+  private readonly getSamplingProbabilisticDefaultField = this.locatorFor(
     MatFormFieldHarness.with({ selector: '[data-testid=probabilistic_default]' }),
   );
-  private getSamplingProbabilisticLimitField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=probabilistic_limit]' }));
+  private readonly getSamplingProbabilisticLimitField = this.locatorFor(
+    MatFormFieldHarness.with({ selector: '[data-testid=probabilistic_limit]' }),
+  );
 
-  private getSamplingTemporalDefaultField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=temporal_default]' }));
-  private getSamplingTemporalLimitField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=temporal_limit]' }));
+  private readonly getSamplingTemporalDefaultField = this.locatorFor(
+    MatFormFieldHarness.with({ selector: '[data-testid=temporal_default]' }),
+  );
+  private readonly getSamplingTemporalLimitField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=temporal_limit]' }));
+  private readonly getSamplingWindowedCountDefaultField = this.locatorFor(
+    MatFormFieldHarness.with({ selector: '[data-testid=windowedCount_default]' }),
+  );
+  private readonly getSamplingWindowedCountLimitField = this.locatorFor(
+    MatFormFieldHarness.with({ selector: '[data-testid=windowedCount_limit]' }),
+  );
 
   public saveSettings = async (): Promise<void> => {
     return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
@@ -175,6 +185,37 @@ export class ApiLoggingHarness extends ComponentHarness {
 
   public temporalLimitTextErrors = async (): Promise<string[]> => {
     return this.getTextErrorsFor(this.getSamplingTemporalLimitField());
+  };
+  public setWindowedCountDefault = async (value: string): Promise<void> => {
+    return this.setValueFor(this.getSamplingWindowedCountDefaultField(), value);
+  };
+
+  public windowedCountDefaultHasErrors = async (): Promise<boolean> => {
+    return this.fieldHasErrors(this.getSamplingWindowedCountDefaultField());
+  };
+
+  public windowedCountDefaultIsDisabled = async (): Promise<boolean> => {
+    return this.isFormFieldDisabled(this.getSamplingWindowedCountDefaultField());
+  };
+
+  public windowedCountDefaultTextErrors = async (): Promise<string[]> => {
+    return this.getTextErrorsFor(this.getSamplingWindowedCountDefaultField());
+  };
+
+  public setWindowedCountLimit = async (value: string): Promise<void> => {
+    return this.setValueFor(this.getSamplingWindowedCountLimitField(), value);
+  };
+
+  public windowedCountLimitHasErrors = async (): Promise<boolean> => {
+    return this.fieldHasErrors(this.getSamplingWindowedCountLimitField());
+  };
+
+  public windowedCountLimitIsDisabled = async (): Promise<boolean> => {
+    return this.isFormFieldDisabled(this.getSamplingWindowedCountLimitField());
+  };
+
+  public windowedCountLimitTextErrors = async (): Promise<string[]> => {
+    return this.getTextErrorsFor(this.getSamplingWindowedCountLimitField());
   };
 
   private setValueFor = async (formFieldPromise: Promise<MatFormFieldHarness>, value: string): Promise<void> => {

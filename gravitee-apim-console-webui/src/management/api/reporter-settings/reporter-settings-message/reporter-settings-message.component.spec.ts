@@ -75,6 +75,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           limit: 'PT10S',
           default: 'PT10S',
         },
+        windowedCount: {
+          limit: '1/PT1S',
+          default: '1/PT10S',
+        },
       },
     },
   };
@@ -425,6 +429,44 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('PT11S');
+      expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
+    });
+
+    it('should validate sampling value with WINDOWED_COUNT type', async () => {
+      await initComponent();
+      await componentHarness.choseSamplingType('Windowed Count');
+      expect(await componentHarness.getSamplingType()).toStrictEqual('Windowed Count');
+
+      await componentHarness.addSamplingValue(null);
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('2/PT1S');
+      expect(await componentHarness.getSamplingValueErrors()).toEqual([
+        'The sampling rate cannot exceed 1/PT1S, lower the count or increase the duration.',
+      ]);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('-1/PT1S');
+      expect(await componentHarness.getSamplingValueErrors()).toEqual([
+        'The sampling value must follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format e.g. 1/PT1S.',
+      ]);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('1/PT');
+      expect(await componentHarness.getSamplingValueErrors()).toEqual([
+        'The sampling value must follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format e.g. 1/PT1S.',
+      ]);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('1:PT1S');
+      expect(await componentHarness.getSamplingValueErrors()).toEqual([
+        'The sampling value must follow this format: COUNT/DURATION, COUNT>0, DURATION is ISO-8601 duration format e.g. 1/PT1S.',
+      ]);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('1/PT11S');
       expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
       expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });

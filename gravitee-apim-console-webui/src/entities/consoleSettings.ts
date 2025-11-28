@@ -116,6 +116,10 @@ export interface ConsoleSettingsLogging {
       default: string;
       limit: string;
     };
+    windowedCount?: {
+      default: string;
+      limit: string;
+    };
   };
 }
 
