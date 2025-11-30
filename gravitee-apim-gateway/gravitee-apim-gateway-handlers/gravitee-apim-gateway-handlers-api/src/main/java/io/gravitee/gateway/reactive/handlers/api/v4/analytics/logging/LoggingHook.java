@@ -69,6 +69,11 @@ public class LoggingHook implements InvokerHook {
 
             if (log != null && loggingContext != null) {
                 if (loggingContext.endpointRequest()) {
+                    // Pre-set URI: required for GET, fallback for POST/PUT.
+                    String endpoint = ctx.metrics().getEndpoint();
+                    if (endpoint != null && !endpoint.isBlank()) {
+                        log.getEndpointRequest().setUri(endpoint);
+                    }
                     log.getEndpointRequest().setMethod(ctx.request().method());
                 }
                 if (loggingContext.endpointRequestHeaders()) {
