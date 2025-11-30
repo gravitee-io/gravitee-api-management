@@ -25,9 +25,11 @@ export class ApiProxyRequestLogHeadersComponent {
   formattedHeaders = computed(() => {
     const headersValue = this.headers();
     if (!headersValue) return [];
-    return Object.entries(headersValue).map(([key, values]) => ({
-      key,
-      value: (values ?? []).join(','),
-    }));
+    return Object.entries(headersValue)
+      .map(([key, values]) => ({
+        key,
+        value: (values ?? []).join(','),
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
   });
 }
