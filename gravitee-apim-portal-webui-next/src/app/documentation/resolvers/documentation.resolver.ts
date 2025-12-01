@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import {ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot} from '@angular/router';
-import {map, tap} from 'rxjs';
+import {ActivatedRoute, ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot} from '@angular/router';
+import {map, switchMap, tap, timer} from 'rxjs';
 
 import {PortalNavigationItemsService} from "../../../services/portal-navigation-items.service";
 
@@ -26,13 +26,15 @@ import {PortalNavigationItemsService} from "../../../services/portal-navigation-
 // only the page content is loaded incrementally
 // maybe cache the page content
 export const documentationResolver = ((route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+  const itemsService = inject(PortalNavigationItemsService);
   const navId = route.params['navId'];
-  return inject(PortalNavigationItemsService)
+  const currentItem = itemsService.topNavbarItems().find(item => item.id === navId);
+  return itemsService
     .getNavigationItems('TOP_NAVBAR', !!navId, navId)
     .pipe(
       map(res => {
         return {
-          navId: navId,
+          currentItem,
           children: res
         }
       })

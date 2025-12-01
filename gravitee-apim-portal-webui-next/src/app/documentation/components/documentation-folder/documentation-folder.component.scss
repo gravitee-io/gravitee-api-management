@@ -19,7 +19,7 @@
 
   &__container {
     display: flex;
-    flex: 1 1 100%;
+    flex-grow: 1;
     flex-direction: column;
 
     &__breadcrumbs {

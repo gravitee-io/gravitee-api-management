@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../scss/m3-adapter';
+import {Component} from '@angular/core';
 
-:host {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  height: 100vh;
-  box-sizing: border-box;
-  flex-flow: column;
-  margin: auto;
-}
-
-.main-container-wrapper {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  flex: 1 1 100%;
-  overflow-x: hidden;
+@Component({
+  selector: 'app-documentation-page',
+  standalone: true,
+  templateUrl: "./documentation-page.component.html",
+  styleUrl: "./documentation-page.component.scss",
+})
+export class DocumentationPageComponent {
 }

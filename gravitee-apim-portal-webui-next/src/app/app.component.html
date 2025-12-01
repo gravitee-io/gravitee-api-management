@@ -18,5 +18,8 @@
 <app-nav-bar [currentUser]="currentUser()" [logo]="logo()" [topBarNavigationItems]="topBarNavigationItems()" [forceLogin]="forceLogin()" />
 <div class="main-container-wrapper">
   <router-outlet />
+  @if (loading) {
+    <app-loader />
+  }
 </div>
 <app-footer [logo]="logo()" />

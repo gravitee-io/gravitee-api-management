@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import {Component, DestroyRef, inject, input, InputSignal, OnInit} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import {firstValueFrom, Observable, of, tap} from 'rxjs';
-import { BreadcrumbService } from 'xng-breadcrumb';
-
-import { LoaderComponent } from '../../../../components/loader/loader.component';
-import { PageComponent } from '../../../../components/page/page.component';
-import { Page } from '../../../../entities/page/page';
-import { PageService } from '../../../../services/page.service';
+import {Component} from '@angular/core';
 import {MobileClassDirective} from "../../../../directives/mobile-class.directive";
 
 @Component({

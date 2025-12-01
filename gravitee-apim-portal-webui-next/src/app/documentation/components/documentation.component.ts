@@ -13,32 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AsyncPipe, NgIf} from '@angular/common';
-import {Component, DestroyRef, inject, input, InputSignal, OnInit} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {Component, inject} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import {firstValueFrom, Observable, of, tap} from 'rxjs';
-import { BreadcrumbService } from 'xng-breadcrumb';
+import {firstValueFrom, map, Observable, of, tap} from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
-import { PageComponent } from '../../../components/page/page.component';
-import { Page } from '../../../entities/page/page';
-import { PageService } from '../../../services/page.service';
-import {PortalNavigationItemsService} from "../../../services/portal-navigation-items.service";
 import {PortalNavigationItem} from "../../../entities/portal-navigation/portal-navigation";
 import {DocumentationFolderComponent} from "./documentation-folder/documentation-folder.component";
+import {DocumentationPageComponent} from "./documentation-page/documentation-page.component";
 
 @Component({
-  selector: 'app-documentation-item',
-  imports: [LoaderComponent, DocumentationFolderComponent, NgIf],
+  selector: 'app-documentation',
+  imports: [DocumentationFolderComponent, DocumentationPageComponent],
   standalone: true,
   template: `
-      @if (selectedItem?.type === 'FOLDER') {
+      @if (selectedItem()?.type === 'FOLDER') {
         <app-documentation-folder />
-      } @else if (selectedItem?.type === 'PAGE') {
-<!--        <app-documentation-page />-->
-      } @else {
-        <app-loader/>
+      } @else if (selectedItem()?.type === 'PAGE') {
+        <app-documentation-page />
       }
   `,
   styles: `
@@ -48,6 +41,6 @@ import {DocumentationFolderComponent} from "./documentation-folder/documentation
     }
   `
 })
-export class DocumentationItemComponent {
-  selectedItem = inject(PortalNavigationItemsService).topNavbarItems().find(item => item.id === inject(ActivatedRoute).snapshot.data['data']['navId']);
+export class DocumentationComponent {
+  selectedItem = toSignal<PortalNavigationItem>(inject(ActivatedRoute).data.pipe(map(data => data['data']['currentItem'])));
 }

@@ -15,7 +15,7 @@
  */
 import { Component, effect, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { RouterOutlet } from '@angular/router';
+import {NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet} from '@angular/router';
 import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { FooterComponent } from '../components/footer/footer.component';
@@ -24,10 +24,11 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { ThemeService } from '../services/theme.service';
+import {LoaderComponent} from "../components/loader/loader.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavBarComponent, FooterComponent],
+  imports: [RouterOutlet, NavBarComponent, FooterComponent, LoaderComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -37,18 +38,33 @@ export class AppComponent {
   favicon = inject(ThemeService).favicon;
   topBarNavigationItems = inject(PortalNavigationItemsService).topNavbarItems;
   private siteTitle: string;
+  loading = false;
 
   constructor(
     private configService: ConfigService,
     // Don't delete BreadcrumbService from here - it's responsible for correct breadcrumb navigation
     private breadcrumbService: BreadcrumbService,
     private title: Title,
+    private router: Router
   ) {
     this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Developer Portal';
     this.title.setTitle(this.siteTitle);
     effect(() => {
       if (this.favicon()) {
         this.updateFavicon();
+      }
+    });
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart) {
+        this.loading = true;
+      }
+      if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this.loading = false;
       }
     });
   }
