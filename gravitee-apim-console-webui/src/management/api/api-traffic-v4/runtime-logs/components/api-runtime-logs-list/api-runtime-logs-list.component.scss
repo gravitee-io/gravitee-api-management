@@ -48,3 +48,19 @@
     padding: 0 8px;
   }
 }
+
+.visible-columns-menu {
+  display: flex;
+  flex-direction: column;
+
+  mat-checkbox {
+    margin-right: 32px;
+  }
+}
+
+.apply-visible-columns {
+  display: block;
+  margin: 0 auto;
+  width: 90%;
+  margin-top: 4px;
+}
