@@ -22,7 +22,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.HttpEndpointConnector;

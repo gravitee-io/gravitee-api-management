@@ -15,12 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_MESSAGE;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -158,6 +161,18 @@ class HttpProxyEndpointConnectorTest {
     @Test
     void should_return_http_proxy_id() {
         assertThat(cut.id()).isEqualTo("http-proxy");
+    }
+
+    @Test
+    void should_set_status_to_zero_when_connect_is_called() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+
+        cut.connect(ctx).test().assertComplete();
+
+        // Verify status is set to 0
+        verify(response).status(0);
     }
 
     @ParameterizedTest
