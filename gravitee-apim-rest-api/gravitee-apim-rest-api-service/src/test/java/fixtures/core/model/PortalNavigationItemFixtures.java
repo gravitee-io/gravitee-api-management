@@ -98,6 +98,7 @@ public class PortalNavigationItemFixtures {
 
         var page11 = aPage(PAGE11_ID, "page11", category1.getId());
         page11.setOrder(0);
+        page11.setPublished(false);
         var page12 = aPage(PAGE12_ID, "page12", category1.getId());
         page12.setOrder(1);
 

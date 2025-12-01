@@ -71,6 +71,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             .type(PortalNavigationItemType.PAGE) // must match existing type
             .title("  New Title  ")
             .order(1)
+            .published(true)
             .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
@@ -177,5 +178,44 @@ class UpdatePortalNavigationItemUseCaseTest {
         // And ensure storage unchanged
         var after = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
         assertThat(after.getTitle()).isEqualTo(originalTitle);
+    }
+
+    @Test
+    void should_publish_an_unpublished_page() {
+        // Given an existing PAGE item
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+        assertThat(existing).isNotNull();
+        var originalId = existing.getId();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.PAGE) // must match existing type
+            .title("  New Title  ")
+            .order(1)
+            .published(true)
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(originalId.toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        // When
+        var output = useCase.execute(input);
+
+        // Then: validator called with provided payload and existing entity
+        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
+
+        // And storage updated with trimmed title
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
+        assertThat(updated).isNotNull();
+        assertThat(updated.getTitle()).isEqualTo("New Title");
+
+        // And output contains the updated item
+        assertThat(output.updatedItem()).isNotNull();
+        assertThat(output.updatedItem().getId()).isEqualTo(originalId);
+        assertThat(output.updatedItem().getTitle()).isEqualTo("New Title");
+        assertThat(output.updatedItem().getPublished()).isTrue();
     }
 }
