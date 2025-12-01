@@ -96,7 +96,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
             .doOnTerminate(adaptedCtx::restore)
             .doOnDispose(() -> {
                 if (ctx.response().status() == 0) {
-                    ctx.response().status(500);
+                    ctx.response().status(499);
                     ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
                     ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
                 }

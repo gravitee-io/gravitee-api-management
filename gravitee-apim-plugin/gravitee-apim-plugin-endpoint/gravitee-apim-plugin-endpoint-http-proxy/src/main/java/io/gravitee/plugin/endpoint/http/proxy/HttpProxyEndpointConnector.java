@@ -54,6 +54,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
     static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
 
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
@@ -90,9 +92,25 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     @Override
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
+            // Http status set to 0 to detect client abort before backend response
+            ctx.response().status(0);
             HttpRequest request = ctx.request();
             return getConnector(request).connect(ctx);
-        }).onErrorResumeNext(throwable -> handleException(throwable, ctx));
+        })
+            .doOnDispose(() -> handleClientAbort(ctx))
+            .onErrorResumeNext(throwable -> handleException(throwable, ctx));
+    }
+
+    /**
+     * Handle client abort by setting appropriate error status and metrics.
+     * This is called when the client disconnects before the response is fully delivered.
+     */
+    private void handleClientAbort(final HttpExecutionContext ctx) {
+        if (ctx.response().status() == 0) {
+            ctx.response().status(499);
+            ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+            ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+        }
     }
 
     @Override
