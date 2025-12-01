@@ -32,6 +32,7 @@ import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -77,6 +78,9 @@ class HttpEndpointInvokerTest {
 
     @Mock
     private Request request;
+
+    @Mock
+    private Response response;
 
     private HttpEndpointInvoker cut;
 
@@ -210,7 +214,6 @@ class HttpEndpointInvokerTest {
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
-        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
 
         when(ctx.getAttribute(ATTR_REQUEST_METHOD)).thenReturn(attribute);
         when(ctx.request()).thenReturn(request);
