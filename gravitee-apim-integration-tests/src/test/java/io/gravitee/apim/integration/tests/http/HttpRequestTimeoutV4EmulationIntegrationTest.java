@@ -23,20 +23,37 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.apim.integration.tests.fake.LatencyPolicy;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -253,6 +270,86 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
                     equalTo(AddHeaderPolicy.REQUEST_HEADER)
                 )
             );
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi("/apis/v4/http/api.json")
+    class ClientAbort extends AbstractGatewayTest {
+
+        BehaviorSubject<Metrics> metricsSubject;
+
+        @BeforeEach
+        void setUpMetrics() {
+            metricsSubject = BehaviorSubject.create();
+
+            FakeReporter fakeReporter = getBean(FakeReporter.class);
+            fakeReporter.setReportableHandler(reportable -> {
+                if (reportable instanceof Metrics metrics) {
+                    metricsSubject.onNext(metrics.toBuilder().build());
+                }
+            });
+        }
+
+        @Override
+        protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
+            super.configureGateway(gatewayConfigurationBuilder);
+            gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "true");
+        }
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+
+            if (api.getDefinition() instanceof Api) {
+                ((Api) api.getDefinition()).setAnalytics(analytics);
+            }
+        }
+
+        @Test
+        @DisplayName("Should set status 499 when client disconnects before response")
+        void shouldSetStatus499WhenClientAborts(Vertx vertx) {
+            int port = gatewayPort();
+
+            // Backend delays response for 3 seconds
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(3000)));
+
+            // Send HTTP request via raw socket and close it before response arrives
+            vertx
+                .createNetClient(new NetClientOptions())
+                .rxConnect(port, "localhost")
+                .subscribe(socket -> {
+                    String httpRequest = "GET /test HTTP/1.1\r\n" + "Host: localhost:" + port + "\r\n" + "Connection: close\r\n\r\n";
+                    socket.write(httpRequest);
+
+                    // Close socket after 500ms (before backend responds)
+                    vertx
+                        .getDelegate()
+                        .setTimer(500, id -> {
+                            socket.close();
+                        });
+                });
+
+            metricsSubject
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(metrics -> {
+                    assertThat(metrics.getStatus()).isEqualTo(499);
+                    return true;
+                });
         }
     }
 }
