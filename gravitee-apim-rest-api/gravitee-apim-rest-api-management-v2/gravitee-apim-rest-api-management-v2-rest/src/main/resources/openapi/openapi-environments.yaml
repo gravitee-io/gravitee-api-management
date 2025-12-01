@@ -1953,13 +1953,17 @@ components:
           format: uuid
           description: The parent ID of the navigation item, if not provided item is moved to the root level
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        published:
+          type: boolean
+          description: Whether the navigation item is published or not
+          example: true
       discriminator:
         propertyName: type
         mapping:
           FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
           PAGE: "#/components/schemas/UpdatePortalNavigationPage"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
-      required: [ type, title, order ]
+      required: [ type, title, order, published ]
     UpdatePortalNavigationFolder:
       type: object
       title: "UpdatePortalNavigationFolder"
