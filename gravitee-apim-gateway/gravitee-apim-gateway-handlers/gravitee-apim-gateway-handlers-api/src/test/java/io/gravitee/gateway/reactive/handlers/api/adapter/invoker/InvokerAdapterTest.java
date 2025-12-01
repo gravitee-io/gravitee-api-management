@@ -96,6 +96,20 @@ class InvokerAdapterTest {
     }
 
     @Test
+    void shouldSetStatusToZeroWhenInvokeIsCalled() {
+        when(ctx.response()).thenReturn(response);
+
+        mockComplete();
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertComplete();
+
+        // Verify status is set to 0
+        verify(response).status(0);
+    }
+
+    @Test
     void shouldGetIdFromInvokerClassName() {
         final String id = cut.getId();
 
@@ -191,13 +205,14 @@ class InvokerAdapterTest {
     }
 
     @Test
-    void shouldRestoreContextWhenInvokerExecutionCancelled() {
+    void shouldRestoreContextAndSetStatus499WhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
+        when(response.status()).thenReturn(0);
         when(ctx.metrics()).thenReturn(metrics);
 
         final TestObserver<Void> obs = cut.invoke(ctx).test(true);
@@ -205,6 +220,7 @@ class InvokerAdapterTest {
         obs.assertNotComplete();
 
         verify(adaptedExecutionContext).restore();
+        verify(response).status(499);
         verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
         verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
     }
