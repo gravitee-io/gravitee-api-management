@@ -172,10 +172,10 @@ describe('API - V4 - MESSAGE - Search logs', () => {
           return body.pagination.totalCount === 4;
         },
       });
-      expect(apiMessageLogsResponse.data).toHaveLength(2);
+      expect(apiAggregatedMessageLogsResponse.data).toHaveLength(2);
 
-      expect(DateUtils.isReverseChronological(apiMessageLogsResponse.data.map((data) => data.timestamp))).toBeTruthy();
-      apiMessageLogsResponse.data.forEach((messageLog) => {
+      expect(DateUtils.isReverseChronological(apiAggregatedMessageLogsResponse.data.map((data) => data.timestamp))).toBeTruthy();
+      apiAggregatedMessageLogsResponse.data.forEach((messageLog) => {
         expect(messageLog.requestId).toEqual(requestId);
         expect(messageLog.operation).toEqual('SUBSCRIBE');
         expect(messageLog.entrypoint).toEqual(
@@ -206,14 +206,14 @@ describe('API - V4 - MESSAGE - Search logs', () => {
         );
       });
       // First element should be the most recent.
-      expect(apiMessageLogsResponse.pagination).toEqual(<Pagination>{
+      expect(apiAggregatedMessageLogsResponse.pagination).toEqual(<Pagination>{
         page: 1,
         perPage: 2,
         pageCount: 2,
         pageItemsCount: 2,
         totalCount: 4,
       });
-      expect(apiMessageLogsResponse.links.self).toContain(`/apis/${importedApi.id}/logs/${requestId}/messages`);
+      expect(apiAggregatedMessageLogsResponse.links.self).toContain(`/apis/${importedApi.id}/logs/${requestId}/messages`);
     });
 
     afterAll(async () => {
