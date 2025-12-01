@@ -20,9 +20,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
+import io.gravitee.rest.api.portal.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -128,5 +130,127 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
         );
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void should_return_only_published_navigation_items() {
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENV_ID,
+                io.gravitee.rest.api.model.permissions.RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        var publishedItem = PortalNavigationFixtures.page(
+            PortalNavigationFixtures.randomNavigationId(),
+            "Published Page",
+            PortalArea.TOP_NAVBAR,
+            PortalNavigationFixtures.randomPageId()
+        );
+        var unpublishedItem = PortalNavigationFixtures.link(
+            PortalNavigationFixtures.randomNavigationId(),
+            "Unpublished Link",
+            PortalArea.TOP_NAVBAR,
+            "https://example.com"
+        );
+        unpublishedItem.setPublished(false);
+
+        List<PortalNavigationItem> items = List.of(publishedItem, unpublishedItem);
+
+        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+
+        // When
+        Response response = target()
+            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+            .queryParam("loadChildren", true)
+            .request()
+            .get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(
+            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
+        );
+
+        // Only returns published items
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPortalNavigationPage().getTitle()).isEqualTo("Published Page");
+    }
+
+    @Test
+    void should_not_show_children_of_unpublished_parent() {
+        // Given
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+
+        // Root Level
+        var grandparentId = PortalNavigationFixtures.randomNavigationId();
+        var grandparent = PortalNavigationFixtures.folder(grandparentId, "Grandparent (Pub)", PortalArea.TOP_NAVBAR);
+        grandparent.setPublished(true);
+
+        // Level 1: Unpublished Parent (Child of Grandparent)
+        var parentId = PortalNavigationFixtures.randomNavigationId();
+        var parent = PortalNavigationFixtures.folder(parentId, "Parent (Unpub)", PortalArea.TOP_NAVBAR);
+        parent.setParentId(grandparentId);
+        parent.setPublished(false);
+
+        // Level 1: Published Sibling (Child of Grandparent)
+        var siblingId = PortalNavigationFixtures.randomNavigationId();
+        var sibling = PortalNavigationFixtures.link(siblingId, "Sibling (Pub)", PortalArea.TOP_NAVBAR, "https://example.com");
+        sibling.setParentId(grandparentId);
+        sibling.setPublished(true);
+
+        // Level 2: Children of the Unpublished Parent (should be hidden)
+        var child1 = PortalNavigationFixtures.page(
+            PortalNavigationFixtures.randomNavigationId(),
+            "Child 1",
+            PortalArea.TOP_NAVBAR,
+            PortalNavigationFixtures.randomPageId()
+        );
+        child1.setParentId(parentId);
+        child1.setPublished(true);
+
+        var child2 = PortalNavigationFixtures.page(
+            PortalNavigationFixtures.randomNavigationId(),
+            "Child 2",
+            PortalArea.TOP_NAVBAR,
+            PortalNavigationFixtures.randomPageId()
+        );
+        child2.setParentId(parentId);
+        child2.setPublished(true);
+
+        List<PortalNavigationItem> items = List.of(grandparent, parent, sibling, child1, child2);
+
+        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+
+        // When
+        Response response = target().queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+
+        var resultList = response.readEntity(
+            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
+        );
+
+        assertThat(resultList)
+            .extracting(this::getIdFromItem)
+            .containsExactlyInAnyOrder(grandparentId.toString(), siblingId.toString())
+            .doesNotContain(parentId.toString(), child1.getId().toString(), child2.getId().toString());
+    }
+
+    private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {
+        Object actual = item.getActualInstance();
+
+        if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationPage page) {
+            return page.getId();
+        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder folder) {
+            return folder.getId();
+        } else if (actual instanceof io.gravitee.rest.api.portal.rest.model.PortalNavigationLink link) {
+            return link.getId();
+        }
+
+        return null;
     }
 }
