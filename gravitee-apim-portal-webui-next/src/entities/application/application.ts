@@ -70,16 +70,20 @@ export interface ApplicationSettingsApp {
 }
 
 export interface ApplicationSettingsOAuth {
-  client_id: string;
-  client_secret: string;
-  redirect_uris: string[];
-  renew_client_secret_supported: boolean;
-  response_types: string[];
-  grant_types: string[];
+  client_id?: string;
+  client_secret?: string;
+  redirect_uris?: string[];
+  renew_client_secret_supported?: boolean;
+  response_types?: string[];
+  grant_types?: string[];
+  application_type?: string;
+  client_uri?: string;
+  logo_uri?: string;
+  additional_client_metadata?: Record<string, string>;
 }
 
 export interface ApplicationSettingsTls {
-  client_certificate: string;
+  client_certificate?: string;
 }
 
 export interface ApplicationLinks {
@@ -112,7 +116,7 @@ export interface ApplicationsMetadataSubscriptions {
 
 export interface ApplicationType {
   id?: string;
-  name?: string;
+  name: string;
   description?: string;
   requires_redirect_uris?: boolean;
   allowed_grant_types?: Array<ApplicationGrantType>;
@@ -124,4 +128,15 @@ export interface ApplicationGrantType {
   type?: string;
   name?: string;
   response_types?: string[];
+}
+
+export interface ApplicationInput {
+  name: string;
+  description?: string;
+  domain?: string;
+  picture?: string;
+  groups?: string[];
+  settings: ApplicationSettings;
+  background?: string;
+  api_key_mode?: string;
 }
