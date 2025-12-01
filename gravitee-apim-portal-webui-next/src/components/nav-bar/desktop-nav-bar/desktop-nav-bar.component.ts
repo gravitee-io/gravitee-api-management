@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, InputSignal } from '@angular/core';
+import {Component, computed, input, InputSignal} from '@angular/core';
 import { MatAnchor, MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';

@@ -61,6 +61,11 @@ import { homepageResolver } from '../resolvers/homepage.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
 import { HomepageComponent } from './homepage/homepage.component';
+import {DocumentationItemComponent} from "./documentation/components/documentation-item.component";
+import {documentationResolver} from "./documentation/resolvers/documentation.resolver";
+import {
+  DocumentationRedirectToFirstIdComponent
+} from "./documentation/components/documentation-redirect-to-first-id.component";
 
 const apiRoutes: Routes = [
   {
@@ -242,6 +247,23 @@ export const routes: Routes = [
         path: ':pageId',
         component: GuidesPageComponent,
         data: { breadcrumb: { alias: 'pageName' } },
+      },
+    ],
+  },
+  {
+    path: 'documentation',
+    canActivate: [redirectGuard, authGuard],
+    children: [
+      {
+        path: '',
+        // resolve: { data: documentationResolver },
+        component: DocumentationRedirectToFirstIdComponent,
+      },
+      {
+        path: ':navId',
+        data: { breadcrumb: { alias: 'pageName' } },
+        resolve: { data: documentationResolver },
+        component: DocumentationItemComponent,
       },
     ],
   },

@@ -65,8 +65,8 @@ describe('NavBarComponent', () => {
     };
 
     const portalNavigationItemsServiceMock: Partial<PortalNavigationItemsService> = {
-      loadTopNavBarItems: () => of([]),
-      topNavbar: {
+      loadTopNavBarItems: () => of(undefined),
+      topNavbarItems: {
         set: () => {},
       } as unknown as WritableSignal<PortalNavigationItem[]>,
     };

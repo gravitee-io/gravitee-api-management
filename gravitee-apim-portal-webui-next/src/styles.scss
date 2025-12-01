@@ -54,19 +54,20 @@ body {
   background-color: theme.$background-color;
   font-family: theme.$font-family;
 
-  .main-container-wrapper,
-  app-footer {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 24px;
-    margin-right: auto;
-    margin-left: auto;
-
-    @media (width >= 1280px) {
-      max-width: 1280px !important;
-    }
-  }
+  //.main-container-wrapper,
+  //app-footer {
+  //  display: flex;
+  //  width: 100%;
+  //  max-width: 100%;
+  //  box-sizing: border-box;
+  //  padding: 0 24px;
+  //  margin-right: auto;
+  //  margin-left: auto;
+  //
+  //  @media (width >= 1280px) {
+  //    max-width: 1280px !important;
+  //  }
+  //}
 
   p {
     color: theme.$paragraph-color;

@@ -1,0 +1,34 @@
+@use '../../../../scss/theme' as app-theme;
+
+:host {
+  display: flex;
+  flex: 1 1 100%;
+}
+
+.documentation-folder {
+  &__sidenav {
+    width: 300px;
+    border-right: 1px solid app-theme.$nav-bar-border-color;
+    background: app-theme.$background-color;
+
+    &__mobile {
+      position: absolute;
+      height: 100%;
+    }
+  }
+
+  &__container {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+
+    &__breadcrumbs {
+      height: 55px;
+      border-bottom: 1px solid app-theme.$nav-bar-border-color;
+    }
+
+    &__content {
+
+    }
+  }
+}

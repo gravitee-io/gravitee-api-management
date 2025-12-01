@@ -26,17 +26,19 @@ export const homepageResolver = ((
   portalService: PortalService = inject(PortalService),
   router: Router = inject(Router),
 ) =>
-  portalService.getPortalHomepages('CONTENT').pipe(
-    map(homepages => {
-      const homepage = (homepages ?? [])[0];
-      if (!homepage) {
-        router.navigate(['catalog']);
-        return null;
-      }
-      return homepage;
-    }),
-    catchError(_ => {
-      router.navigate(['catalog']);
-      return of(null);
-    }),
-  )) satisfies ResolveFn<PortalPage | null>;
+  // TODO revert this
+  of({}));
+  // portalService.getPortalHomepages('CONTENT').pipe(
+  //   map(homepages => {
+  //     const homepage = (homepages ?? [])[0];
+      // if (!homepage) {
+      //   router.navigate(['catalog']);
+      //   return null;
+      // }
+  //     return homepage;
+  //   }),
+  //   catchError(_ => {
+  //     router.navigate(['catalog']);
+  //     return of(null);
+  //   }),
+  // )) satisfies ResolveFn<PortalPage | null>;
