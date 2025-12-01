@@ -24,6 +24,7 @@ interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   type: T;
   order: number;
   area: PortalArea;
+  published: boolean;
   parentId?: string;
 }
 
