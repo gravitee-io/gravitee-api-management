@@ -35,6 +35,7 @@ export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPag
     order: 1,
     area: 'HOMEPAGE',
     portalPageContentId: 'page-content-1',
+    published: true,
   };
 
   if (isFunction(overrides)) {
@@ -56,6 +57,7 @@ export function fakePortalNavigationFolder(overrides?: Partial<PortalNavigationF
     type: 'FOLDER',
     order: 1,
     area: 'HOMEPAGE',
+    published: true,
   };
 
   if (isFunction(overrides)) {
@@ -78,6 +80,7 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     order: 1,
     area: 'HOMEPAGE',
     url: 'https://example.com',
+    published: true,
   };
 
   if (isFunction(overrides)) {
