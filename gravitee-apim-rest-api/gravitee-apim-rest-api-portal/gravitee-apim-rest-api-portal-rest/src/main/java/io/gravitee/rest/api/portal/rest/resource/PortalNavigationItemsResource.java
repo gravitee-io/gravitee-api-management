@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
@@ -30,7 +31,11 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PortalNavigationItemsResource extends AbstractResource {
 
@@ -54,6 +59,25 @@ public class PortalNavigationItemsResource extends AbstractResource {
             loadChildren
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
-        return Response.ok(portalNavigationItemMapper.map(output.items())).build();
+        return Response.ok(portalNavigationItemMapper.map(filterPublishedItems(output.items()))).build();
+    }
+
+    public List<PortalNavigationItem> filterPublishedItems(List<PortalNavigationItem> items) {
+        Map<PortalNavigationItemId, PortalNavigationItem> itemMap = items
+            .stream()
+            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+
+        return items
+            .stream()
+            .filter(item -> isVisible(item, itemMap))
+            .toList();
+    }
+
+    private boolean isVisible(PortalNavigationItem item, Map<PortalNavigationItemId, PortalNavigationItem> itemMap) {
+        if (!Boolean.TRUE.equals(item.getPublished())) return false;
+        if (item.getParentId() == null) return true;
+
+        PortalNavigationItem parent = itemMap.get(item.getParentId());
+        return parent != null && Boolean.TRUE.equals(parent.getPublished());
     }
 }
