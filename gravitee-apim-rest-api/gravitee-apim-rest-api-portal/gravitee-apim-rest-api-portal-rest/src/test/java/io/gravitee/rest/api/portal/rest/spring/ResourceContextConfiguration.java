@@ -26,7 +26,6 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
-import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
@@ -998,11 +997,6 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationItemCrudService portalNavigationItemCrudService() {
         return new PortalNavigationItemsCrudServiceInMemory();
-    }
-
-    @Bean
-    public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
-        return new PortalNavigationItemsQueryServiceInMemory();
     }
 
     @Bean
