@@ -107,7 +107,11 @@ public class SearchResponseStatusOverTimeAdapter {
         Instant from = query.from().minus(query.interval());
         Instant to = query.to().plus(query.interval());
 
-        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lte", to.toEpochMilli());
+        ObjectNode timestamp = json()
+            .put("from", from.toEpochMilli())
+            .put("to", to.toEpochMilli())
+            .put("include_lower", true)
+            .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
         var v2orv4 = json().put("minimum_should_match", 1).set("should", apiFilter);

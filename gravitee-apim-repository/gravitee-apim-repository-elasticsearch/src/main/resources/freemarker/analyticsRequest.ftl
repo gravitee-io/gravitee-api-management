@@ -12,8 +12,10 @@
             {
                "range":{
                   "@timestamp":{
-                     "gte":${from},
-                     "lte":${to}
+                     "from":${from},
+                     "to":${to},
+                     "include_lower":true,
+                     "include_upper":true
                   }
                }
             }
