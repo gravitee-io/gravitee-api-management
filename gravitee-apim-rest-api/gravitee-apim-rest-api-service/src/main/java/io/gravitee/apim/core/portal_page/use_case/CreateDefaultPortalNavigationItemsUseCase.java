@@ -26,12 +26,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
 @UseCase
 @RequiredArgsConstructor
@@ -43,6 +40,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     private static final String AUTHENTICATION_PATH = "portal-authentication-page-content.md";
     private static final String FIRST_API_CALL_PATH = "portal-first-api-call-page-content.md";
     private static final String DOCS_URL = "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal";
+    private static final String HOMEPAGE_CONTENT_PATH = "default-portal-homepage-content.md";
 
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService pageContentCrudService;
@@ -60,35 +58,60 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * </pre>
      */
     public void execute(String organizationId, String environmentId) {
-        final var folderGuides = createPortalFolder("Guides", organizationId, environmentId, null);
+        final var folderGuides = createPortalFolder("Guides", organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
 
         final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
-        createPortalPage("Getting started", organizationId, environmentId, contentGettingStarted.getId(), folderGuides.getId());
+        createPortalPage(
+            "Getting started",
+            organizationId,
+            environmentId,
+            PortalArea.TOP_NAVBAR,
+            contentGettingStarted.getId(),
+            folderGuides.getId()
+        );
 
-        final var folderCoreConcepts = createPortalFolder("Core concepts", organizationId, environmentId, folderGuides.getId());
+        final var folderCoreConcepts = createPortalFolder(
+            "Core concepts",
+            organizationId,
+            environmentId,
+            PortalArea.TOP_NAVBAR,
+            folderGuides.getId()
+        );
 
         final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
-        createPortalPage("Authentication", organizationId, environmentId, contentAuthentication.getId(), folderCoreConcepts.getId());
+        createPortalPage(
+            "Authentication",
+            organizationId,
+            environmentId,
+            PortalArea.TOP_NAVBAR,
+            contentAuthentication.getId(),
+            folderCoreConcepts.getId()
+        );
 
         final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
         createPortalPage(
             "Making your first API call",
             organizationId,
             environmentId,
+            PortalArea.TOP_NAVBAR,
             contentFirstApiCall.getId(),
             folderCoreConcepts.getId()
         );
 
-        createPortalLink("Docs", organizationId, environmentId, DOCS_URL, null);
+        createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
+
+        final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
+        createPortalPage("Home Page", organizationId, environmentId, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
     }
 
     private PortalNavigationItem createPortalFolder(
         String title,
         String organizationId,
         String environmentId,
+        PortalArea area,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId);
+        final var createItem = buildCommonItem(title, parentId, area);
         createItem.setType(PortalNavigationItemType.FOLDER);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
@@ -97,10 +120,11 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String title,
         String organizationId,
         String environmentId,
+        PortalArea area,
         PortalPageContentId portalPageContentId,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId);
+        final var createItem = buildCommonItem(title, parentId, area);
         createItem.setType(PortalNavigationItemType.PAGE);
         createItem.setPortalPageContentId(portalPageContentId);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
@@ -111,16 +135,17 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         String organizationId,
         String environmentId,
         String url,
+        PortalArea area,
         PortalNavigationItemId parentId
     ) {
-        final var createItem = buildCommonItem(title, parentId);
+        final var createItem = buildCommonItem(title, parentId, area);
         createItem.setType(PortalNavigationItemType.LINK);
         createItem.setUrl(url);
         return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
     }
 
-    private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId) {
-        return CreatePortalNavigationItem.builder().title(title).area(PortalArea.TOP_NAVBAR).parentId(parentId).build();
+    private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId, PortalArea area) {
+        return CreatePortalNavigationItem.builder().title(title).area(area).parentId(parentId).build();
     }
 
     private PortalPageContent createPortalPageContent(String organizationId, String environmentId, String contentPath) {

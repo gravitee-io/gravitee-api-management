@@ -139,4 +139,26 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         );
         assertThat(docsLink.getOrder()).isEqualTo(1);
     }
+
+    @Test
+    void should_create_home_page() {
+        // When
+        useCase.execute(ORG_ID, ENV_ID);
+
+        // Then
+        final var items = queryService.storage();
+
+        final var homePage = items
+            .stream()
+            .filter(item -> item.getTitle().equals("Home Page"))
+            .findFirst()
+            .orElse(null);
+
+        assertThat(homePage).isNotNull();
+        assertThat(homePage).isInstanceOf(PortalNavigationPage.class);
+        assertThat(homePage.getParentId()).isNull();
+        assertThat(((PortalNavigationPage) homePage).getPortalPageContentId()).isNotNull();
+        assertThat(homePage.getOrganizationId()).isEqualTo(ORG_ID);
+        assertThat(homePage.getEnvironmentId()).isEqualTo(ENV_ID);
+    }
 }

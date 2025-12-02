@@ -34,7 +34,6 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.PortalPageService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
@@ -60,21 +59,13 @@ public class EnvironmentCommandHandlerTest {
     private AccessPointCrudService accessPointService;
 
     @Mock
-    private PortalPageService portalPageService;
-
-    @Mock
     private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(
-            environmentService,
-            accessPointService,
-            portalPageService,
-            createDefaultPortalNavigationItemsUseCase
-        );
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
     }
 
     @Test
@@ -123,7 +114,6 @@ public class EnvironmentCommandHandlerTest {
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(portalPageService).createDefaultPortalHomePage(envId);
         verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
     }
 
