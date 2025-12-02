@@ -182,6 +182,10 @@ public abstract class AbstractResource<T, K> {
             if (!mediaType.startsWith("image/")) {
                 throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
             }
+
+            if (mediaType.startsWith("image/svg")) {
+                throw new UploadUnauthorized("SVG files are not supported");
+            }
         }
     }
 
