@@ -22,6 +22,8 @@ import lombok.Setter;
 @Getter
 public final class PortalNavigationLink extends PortalNavigationItem {
 
+    private static final PortalNavigationItemType TYPE = PortalNavigationItemType.LINK;
+
     @Setter
     @Nonnull
     private String url;
@@ -38,6 +40,11 @@ public final class PortalNavigationLink extends PortalNavigationItem {
     ) {
         super(id, organizationId, environmentId, title, area, order, published);
         this.url = url;
+    }
+
+    @Override
+    public PortalNavigationItemType getType() {
+        return TYPE;
     }
 
     @Override

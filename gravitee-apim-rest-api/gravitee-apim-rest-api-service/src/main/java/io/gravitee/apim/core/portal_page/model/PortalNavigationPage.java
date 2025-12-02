@@ -22,6 +22,8 @@ import lombok.Setter;
 @Getter
 public final class PortalNavigationPage extends PortalNavigationItem {
 
+    private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
+
     @Setter
     @Nonnull
     private PortalPageContentId portalPageContentId;
@@ -38,5 +40,10 @@ public final class PortalNavigationPage extends PortalNavigationItem {
     ) {
         super(id, organizationId, environmentId, title, area, order, published);
         this.portalPageContentId = portalPageContentId;
+    }
+
+    @Override
+    public PortalNavigationItemType getType() {
+        return TYPE;
     }
 }
