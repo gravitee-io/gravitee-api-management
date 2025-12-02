@@ -38,7 +38,7 @@ public interface PortalNavigationItemMapper {
         return items.stream().map(this::getBasePortalNavigationItem).toList();
     }
 
-    private io.gravitee.rest.api.portal.rest.model.PortalNavigationItem getBasePortalNavigationItem(PortalNavigationItem item) {
+    default io.gravitee.rest.api.portal.rest.model.PortalNavigationItem getBasePortalNavigationItem(PortalNavigationItem item) {
         var baseItem = switch (item) {
             case PortalNavigationFolder folder -> map(folder);
             case PortalNavigationLink link -> map(link);

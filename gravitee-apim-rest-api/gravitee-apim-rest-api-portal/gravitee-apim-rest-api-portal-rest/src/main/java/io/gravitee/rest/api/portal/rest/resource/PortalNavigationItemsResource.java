@@ -28,8 +28,11 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +41,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PortalNavigationItemsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
@@ -60,6 +66,11 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(filterPublishedItems(output.items()))).build();
+    }
+
+    @Path("{portalNavigationItemId}")
+    public PortalNavigationItemResource getPortalNavigationItemResource() {
+        return resourceContext.getResource(PortalNavigationItemResource.class);
     }
 
     public List<PortalNavigationItem> filterPublishedItems(List<PortalNavigationItem> items) {
