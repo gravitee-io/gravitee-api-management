@@ -34,7 +34,7 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
 
     private static final String HOOK_ID = "hook-tracing-policy";
 
-    public static final String ATTR_SPAN_POLICY = "gravitee.policy";
+    public static final String SPAN_POLICY_ATTR = "gravitee.policy";
     private static final String ATTR_SPAN_POLICY_TRIGGER_EXECUTED = "gravitee.policy.trigger.executed";
     private static final String ATTR_SPAN_POLICY_TRIGGER_CONDITION = "gravitee.policy.trigger.condition";
     public static final String ATTR_POLICY_TRIGGER_CONDITION_PREFIX = "gravitee.policy.trigger.condition.";
@@ -103,7 +103,7 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
     @Override
     protected Map<String, String> spanAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Map<String, String> spanAttributes = super.spanAttributes(id, ctx, executionPhase);
-        spanAttributes.put(ATTR_SPAN_POLICY, id);
+        spanAttributes.put(SPAN_POLICY_ATTR, id);
         return spanAttributes;
     }
 
