@@ -41,6 +41,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.FIELD;
@@ -286,7 +287,7 @@ class EventMetricsQueryAdapterTest {
         for (JsonNode f : filters) {
             if (f.has(RANGE) && f.get(RANGE).has(TIMESTAMP)) {
                 JsonNode ts = f.get(RANGE).get(TIMESTAMP);
-                boolean ok = (ts.hasNonNull(GTE)) && (ts.hasNonNull(LT));
+                boolean ok = (ts.hasNonNull(GTE)) && (ts.hasNonNull(LTE));
 
                 if (ok) return true;
             }

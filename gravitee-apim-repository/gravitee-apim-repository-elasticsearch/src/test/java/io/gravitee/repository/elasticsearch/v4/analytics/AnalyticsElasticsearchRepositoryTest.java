@@ -1103,8 +1103,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-        private static final TimeProvider TIME_PROVIDER = new TimeProvider();
-        private static final Instant NOW = TIME_PROVIDER.getNow();
+        private final TimeProvider timeProvider = new TimeProvider();
+        private final Instant now = timeProvider.getNow();
 
         @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
         private String searchType;
@@ -1117,13 +1117,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_latest_value_summed_per_key() {
-            // VALUE = sum(latest per key ≤ end) → 2 (gw=1 at now-1) + 4 (gw=2 at now+1, end includes) = 6
             Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
             Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(360), NOW.plusSeconds(360), null)
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(360), now.plusSeconds(360), null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
@@ -1137,14 +1136,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_latest_value_ignoring_keys_with_no_snapshot_at_end_time() {
-            // VALUE = sum(latest per key ≤ end) → gw=1: 2 (now-1), gw=2: 0 (latest at end is 0; now+1 is excluded) ⇒ 2
-            var from = NOW.minus(Duration.ofMinutes(6));
-            // excludes the NOW+1 sample
+            var from = now.minus(Duration.ofMinutes(6));
             Aggregation valueAgg = new Aggregation("downstream-active-connections", AggregationType.VALUE);
 
             var result = cut.searchEventAnalytics(
                 new QueryContext("DEFAULT", "DEFAULT"),
-                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, NOW, null)
+                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, now, null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
@@ -1156,13 +1153,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_empty_as_delta_when_no_documents_before_end_time() {
-            // DELTA requires at least one snapshot ≤ end; none found ⇒ empty result
             Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(600), NOW.minusSeconds(540), null)
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(600), now.minusSeconds(540), null)
             );
 
             assertThat(result).isEmpty();
@@ -1170,13 +1166,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_compute_monotonic_increase_happy_path_for_single_key_both_directions() {
-            // Monotonic DELTA (single key) = 50 − 10 = 40 per direction for gw-id=1, topic=1.
             Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            // Pick start strictly after the 10 snapshot, end just after the 50 snapshot.
-            Instant from = NOW.minusSeconds(4 * 60 - 1); // 1s after nowMinus4
-            Instant to = NOW.plusSeconds(4 * 60 + 1); // just after nowPlus4, still before nowPlus5
+            Instant from = now.minusSeconds(4 * 60 - 1); // 1s after nowMinus4
+            Instant to = now.plusSeconds(4 * 60 + 1); // just after nowPlus4, still before nowPlus5
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
@@ -1199,11 +1192,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_end_value_when_no_documents_before_start_time() {
-            // DELTA (no start snapshot) over window covering end=50 for gw=1 and gw=2 ⇒ sum per direction = 50 + 50 = 100
             Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-            var start = NOW.minusSeconds(360);
-            var end = NOW.plusSeconds(360);
+            var start = now.minusSeconds(360);
+            var end = now.plusSeconds(360);
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
@@ -1219,14 +1211,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_delta_when_documents_present_before_start_time() {
-            // DELTA = end − start when start snapshot exists
-            // Here: 90 − 10 = 80 per direction (monotonic window)
             Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(180), NOW.plusSeconds(360), null)
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(180), now.plusSeconds(360), null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
@@ -1240,13 +1230,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_handle_counter_reset_with_reset_aware_end_value() {
-            // Reset-aware: if end < start for a key, delta = end (not negative)
-            // Here: 5 < 50 ⇒ delta=5 per direction
             Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
 
-            Instant from = NOW.minusSeconds(13 * 60);
-            Instant to = NOW.minusSeconds(10 * 60);
+            Instant from = now.minusSeconds(13 * 60);
+            Instant to = now.minusSeconds(10 * 60);
 
             var result = cut.searchEventAnalytics(
                 new QueryContext("DEFAULT", "DEFAULT"),
@@ -1268,8 +1256,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 List.of(agg1, agg2),
                 null,
                 NATIVE_API_ID,
-                NOW.minusSeconds(360),
-                NOW.plusSeconds(360),
+                now.minusSeconds(360),
+                now.plusSeconds(360),
                 Duration.ofMinutes(1)
             );
 
@@ -1293,8 +1281,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 List.of(agg1, agg2),
                 null,
                 NATIVE_API_ID,
-                NOW.minusSeconds(360),
-                NOW.plusSeconds(360),
+                now.minusSeconds(360),
+                now.plusSeconds(360),
                 Duration.ofMinutes(1)
             );
 
@@ -1321,8 +1309,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     List.of(agg1, agg2),
                     List.of(new Term("topic", "2")),
                     NATIVE_API_ID,
-                    NOW.minusSeconds(360),
-                    NOW.minusSeconds(180),
+                    now.minusSeconds(360),
+                    now.minusSeconds(180),
                     null
                 )
             );

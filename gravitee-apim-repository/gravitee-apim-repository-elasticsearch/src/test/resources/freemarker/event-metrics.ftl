@@ -20,3 +20,7 @@
 { "@timestamp": "${nowPlus4}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "1", "downstream-publish-messages-total": 50, "downstream-publish-message-bytes": 5000, "upstream-publish-messages-total": 50, "upstream-publish-message-bytes": 5000 }
 { "create" : { ${index} } }
 { "@timestamp": "${nowPlus5}", "gw-id": "2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "2", "downstream-publish-messages-total": 50, "downstream-publish-message-bytes": 5000, "upstream-publish-messages-total": 50, "upstream-publish-message-bytes": 5000 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus11}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "reset-key", "downstream-publish-messages-total": 5, "downstream-publish-message-bytes": 500, "upstream-publish-messages-total": 5, "upstream-publish-message-bytes": 500 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus12}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "reset-key", "downstream-publish-messages-total": 50, "downstream-publish-message-bytes": 5000, "upstream-publish-messages-total": 50, "upstream-publish-message-bytes": 5000 }
