@@ -3126,8 +3126,8 @@ __metadata:
   resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
   dependencies:
     marked-gfm-heading-id: "npm:3.2.0"
-    ngx-dynamic-hooks: "npm:^3.1.2"
-    tslib: "npm:^2.3.0"
+    ngx-dynamic-hooks: "npm:3.1.2"
+    tslib: "npm:2.8.1"
   peerDependencies:
     "@angular/common": ^19.2.0
     "@angular/core": ^19.2.0
@@ -16034,7 +16034,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-dynamic-hooks@npm:^3.1.2":
+"ngx-dynamic-hooks@npm:3.1.2":
   version: 3.1.2
   resolution: "ngx-dynamic-hooks@npm:3.1.2"
   dependencies:
