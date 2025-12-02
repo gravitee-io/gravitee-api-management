@@ -25,7 +25,6 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.PortalPageService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
@@ -45,7 +44,6 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
 
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
-    private final PortalPageService portalPageService;
     private final CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
     @Override
@@ -98,7 +96,6 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
 
-            portalPageService.createDefaultPortalHomePage(environment.getId());
             createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
