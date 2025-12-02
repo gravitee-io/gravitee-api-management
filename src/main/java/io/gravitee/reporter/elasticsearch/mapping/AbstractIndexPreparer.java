@@ -24,19 +24,18 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.functions.Function;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
+@Slf4j
 public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     protected final ReporterConfiguration configuration;
@@ -46,6 +45,11 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     protected final Client client;
 
+    protected final String templatePathPrefix;
+
+    private static final String TEMPLATE_PATH = "/mapping/index-template-";
+    private static final String FTL_EXTENSION = ".ftl";
+
     protected Completable indexMapping() {
         return Completable.merge(Flowable.fromArray(Type.TYPES).map(indexTypeMapper()));
     }
@@ -53,7 +57,33 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
     /**
      * Index mapping for a single {@link Type}.
      */
-    protected abstract Function<Type, CompletableSource> indexTypeMapper();
+    protected Function<Type, CompletableSource> indexTypeMapper() {
+        return type -> {
+            final String typeName = type.getType();
+            boolean dataStream = type.isDataStream();
+            final String templateName = configuration.getIndexName() + '-' + typeName;
+            final String aliasName = configuration.getIndexName() + '-' + typeName;
+
+            log.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
+
+            Map<String, Object> data = getTemplateData();
+            data.put("indexName", configuration.getIndexName() + '-' + typeName);
+
+            final String template = freeMarkerComponent.generateFromTemplate(
+                templatePathPrefix + TEMPLATE_PATH + typeName + FTL_EXTENSION,
+                data
+            );
+
+            final Completable templateCreationCompletable = useOldClient(dataStream)
+                ? client.putTemplate(templateName, template)
+                : client.putIndexTemplate(templateName, template);
+
+            if (configuration.isIlmManagedIndex() && !dataStream) {
+                return templateCreationCompletable.andThen(ensureAlias(aliasName));
+            }
+            return templateCreationCompletable;
+        };
+    }
 
     protected Completable pipeline() {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
@@ -81,5 +111,25 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("extendedRequestMappingTemplate", this.configuration.getExtendedRequestMappingTemplate());
         data.put("extendedSettingsTemplate", this.configuration.getExtendedSettingsTemplate());
         return data;
+    }
+
+    protected Completable ensureAlias(String aliasName) {
+        final String aliasTemplate = freeMarkerComponent.generateFromTemplate(
+            "/common/alias/alias.ftl",
+            Collections.singletonMap("aliasName", aliasName)
+        );
+
+        return client
+            .getAlias(aliasName)
+            .switchIfEmpty(client.createIndexWithAlias(aliasName + "-000001", aliasTemplate).toMaybe())
+            .ignoreElement();
+    }
+
+    protected boolean useOldClient(boolean dataStream) {
+        return false;
+    }
+
+    public Completable prepare() {
+        return indexMapping().andThen(pipeline());
     }
 }
