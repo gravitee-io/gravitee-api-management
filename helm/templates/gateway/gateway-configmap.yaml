@@ -514,8 +514,91 @@ data:
         tcp:
           connectTimeout: {{ .Values.gateway.ratelimit.redis.tcp.connectTimeout | default "5000" }}
           idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
+    {{- end }}
+    {{- end }}
+
+    {{- if .Values.cluster.enabled }}
+    # Cluster configuration for distributed gateways
+    cluster:
+      type: {{ .Values.cluster.type | default "hazelcast" }}
+      {{- if .Values.cluster.hazelcast }}
+      hazelcast:
+        config-path: {{ .Values.cluster.hazelcast.configPath | default "${gravitee.home}/config/hazelcast.xml" }}
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.distributedSync.enabled }}
+    # Distributed Sync configuration - Required for clustering API gateways
+    distributed-sync:
+      type: {{ .Values.distributedSync.type | default "redis" }}
+      {{- if .Values.distributedSync.redis }}
+      redis:
+        host: {{ .Values.distributedSync.redis.host | default "redis" }}
+        port: {{ .Values.distributedSync.redis.port | default 6379 }}
+        {{- if .Values.distributedSync.redis.password }}
+        password: {{ .Values.distributedSync.redis.password }}
+        {{- end }}
+        {{- if .Values.distributedSync.redis.sentinel.enabled }}
+        sentinel:
+          master: {{ .Values.distributedSync.redis.sentinel.master }}
+          {{- if .Values.distributedSync.redis.sentinel.nodes }}
+          nodes:
+            {{- range .Values.distributedSync.redis.sentinel.nodes }}
+            - host: {{ .host }}
+              port: {{ .port }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.distributedSync.redis.ssl.enabled }}
+        ssl: {{ .Values.distributedSync.redis.ssl.enabled }}
+        trustAll: {{ .Values.distributedSync.redis.ssl.trustAll | default true }}
+        {{- if .Values.distributedSync.redis.ssl.tlsProtocols }}
+        tlsProtocols: {{ .Values.distributedSync.redis.ssl.tlsProtocols }}
+        {{- end }}
+        {{- if .Values.distributedSync.redis.ssl.tlsCiphers }}
+        tlsCiphers: {{ .Values.distributedSync.redis.ssl.tlsCiphers }}
+        {{- end }}
+        alpn: {{ .Values.distributedSync.redis.ssl.alpn | default false }}
+        openssl: {{ .Values.distributedSync.redis.ssl.openssl | default false }}
+        {{- if .Values.distributedSync.redis.ssl.keystore }}
+        keystore:
+          type: {{ .Values.distributedSync.redis.ssl.keystore.type | default "pem" }}
+          {{- if .Values.distributedSync.redis.ssl.keystore.path }}
+          path: {{ .Values.distributedSync.redis.ssl.keystore.path }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.keystore.password }}
+          password: {{ .Values.distributedSync.redis.ssl.keystore.password }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.keystore.keyPassword }}
+          keyPassword: {{ .Values.distributedSync.redis.ssl.keystore.keyPassword }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.keystore.alias }}
+          alias: {{ .Values.distributedSync.redis.ssl.keystore.alias }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.keystore.certificates }}
+          certificates:
+            {{- range .Values.distributedSync.redis.ssl.keystore.certificates }}
+            - cert: {{ .cert }}
+              key: {{ .key }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.distributedSync.redis.ssl.truststore }}
+        truststore:
+          type: {{ .Values.distributedSync.redis.ssl.truststore.type | default "pem" }}
+          {{- if .Values.distributedSync.redis.ssl.truststore.path }}
+          path: {{ .Values.distributedSync.redis.ssl.truststore.path }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.truststore.password }}
+          password: {{ .Values.distributedSync.redis.ssl.truststore.password }}
+          {{- end }}
+          {{- if .Values.distributedSync.redis.ssl.truststore.alias }}
+          alias: {{ .Values.distributedSync.redis.ssl.truststore.alias }}
+          {{- end }}
+        {{- end }}
         {{- end }}
       {{- end }}
+    {{- end }}
 
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
@@ -859,4 +942,38 @@ data:
 
     </configuration>
   {{- end -}}
-  {{- end -}}
+  {{- if and (.Values.cluster.enabled) (eq .Values.cluster.type "hazelcast") }}
+  hazelcast.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+
+        <cluster-name>{{ .Values.cluster.hazelcast.clusterName | default "gio-apim-gateway-cluster" }}</cluster-name>
+        <network>
+            <port auto-increment="true" port-count="100">{{ .Values.cluster.hazelcast.port | default 5701 }}</port>
+            <join>
+                <auto-detection enabled="{{ .Values.cluster.hazelcast.autoDetection | default true }}"/>
+                <multicast enabled="{{ .Values.cluster.hazelcast.multicast | default false }}"/>
+                {{- if .Values.cluster.hazelcast.kubernetes.enabled }}
+                <kubernetes enabled="true">
+                    <namespace>{{ .Values.cluster.hazelcast.kubernetes.namespace | default .Release.Namespace }}</namespace>
+                    <service-name>{{ .Values.cluster.hazelcast.kubernetes.serviceName | default (include "gravitee.gateway.fullname" .) }}</service-name>
+                </kubernetes>
+                {{- else }}
+                <tcp-ip enabled="{{ .Values.cluster.hazelcast.tcpIp | default true }}">
+                    {{- if .Values.cluster.hazelcast.members }}
+                    {{- range .Values.cluster.hazelcast.members }}
+                    <member>{{ . }}</member>
+                    {{- end }}
+                    {{- else }}
+                    <interface>{{ .Values.cluster.hazelcast.interface | default "127.0.0.1" }}</interface>
+                    {{- end }}
+                </tcp-ip>
+                {{- end }}
+            </join>
+        </network>
+    </hazelcast>
+  {{- end }}
+{{- end -}}

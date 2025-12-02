@@ -254,6 +254,11 @@ spec:
               mountPath: /opt/graviteeio-gateway/config/logback.xml
               subPath: logback.xml
           {{- end }}
+          {{- if and (.Values.cluster.enabled) (eq .Values.cluster.type "hazelcast") }}
+            - name: config
+              mountPath: /opt/graviteeio-gateway/config/hazelcast.xml
+              subPath: hazelcast.xml
+          {{- end }}
           {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /opt/graviteeio-gateway/plugins/ext/repository-jdbc
