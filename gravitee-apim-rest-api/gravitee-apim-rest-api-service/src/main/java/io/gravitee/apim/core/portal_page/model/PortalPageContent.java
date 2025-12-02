@@ -38,6 +38,8 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
 
     public abstract void update(UpdatePortalPageContent updatePortalPageContent);
 
+    public abstract String getContent();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
