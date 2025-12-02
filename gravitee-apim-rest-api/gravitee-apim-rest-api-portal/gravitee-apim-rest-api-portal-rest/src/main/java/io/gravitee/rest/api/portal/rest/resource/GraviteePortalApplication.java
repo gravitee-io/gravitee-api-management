@@ -27,6 +27,11 @@ import io.gravitee.rest.api.portal.rest.provider.PayloadInputBodyReader;
 import io.gravitee.rest.api.portal.rest.provider.QueryParamExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ThrowableMapper;
 import io.gravitee.rest.api.portal.rest.provider.UnrecognizedPropertyExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.domain.ConflictDomainExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.domain.NotAllowedDomainExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.domain.NotFoundDomainExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.domain.TechnicalDomainExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.portal.rest.resource.bootstrap.PortalUIBootstrapResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
@@ -69,6 +74,12 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
         register(QueryParamExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
+
+        register(ConflictDomainExceptionMapper.class);
+        register(NotAllowedDomainExceptionMapper.class);
+        register(NotFoundDomainExceptionMapper.class);
+        register(TechnicalDomainExceptionMapper.class);
+        register(ValidationDomainExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(GraviteeContextResponseFilter.class);
