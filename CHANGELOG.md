@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.9.2...1.10.0) (2025-12-02)
+
+
+### Features
+
+* operation event metrics ([#95](https://github.com/gravitee-io/gravitee-reporter-common/issues/95)) ([1d8efd7](https://github.com/gravitee-io/gravitee-reporter-common/commit/1d8efd7b0a749ed81912bea68234738d18fcbee2))
+
 ## [1.9.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.9.1...1.9.2) (2025-11-25)
 
 
