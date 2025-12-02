@@ -3174,6 +3174,37 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /portal-navigation-items/{portalNavigationItemId}:
+        parameters:
+            - name: portalNavigationItemId
+              in: path
+              required: true
+              description: Id of a portal navigation item.
+              schema:
+                  type: string
+        get:
+            tags:
+                - Portal
+            summary: Get a specific portal navigation item by its ID.
+            operationId: getPortalNavigationItemById
+            description: |
+                Get a specific portal navigation item by its ID.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemSuccess"
+                404:
+                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+                404:
+                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
 components:
     requestBodies:
         pictureUpdateInputBody:
@@ -6407,6 +6438,12 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/ErrorResponse"
+        PortalNavigationItemNotFoundError:
+            description: Portal navigation item not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
         AuthSuccess:
             description: Auth token in payload and bearer in cookie
             headers:
@@ -6453,6 +6490,12 @@ components:
                         type: array
                         items:
                             $ref: "#/components/schemas/PortalNavigationItem"
+        PortalNavigationItemSuccess:
+            description: A portal navigation item
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/PortalNavigationItem"
 
     securitySchemes:
         BasicAuth:
