@@ -19,11 +19,13 @@ import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionCo
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentByNavigationIdUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNavigationItemMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
@@ -32,6 +34,9 @@ public class PortalNavigationItemResource extends AbstractResource {
 
     @Inject
     private GetPortalNavigationItemUseCase getPortalNavigationItemUseCase;
+
+    @Inject
+    private GetPortalPageContentByNavigationIdUseCase getPortalPageContentByNavigationIdUseCase;
 
     private static final PortalNavigationItemMapper portalNavigationItemMapper = PortalNavigationItemMapper.INSTANCE;
 
@@ -49,5 +54,18 @@ public class PortalNavigationItemResource extends AbstractResource {
         );
 
         return Response.ok(portalNavigationItemMapper.getBasePortalNavigationItem(result.portalNavigationItem())).build();
+    }
+
+    @GET
+    @Path("/content")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
+    public Response getPortalNavigationItemContentById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
+        var executionContext = getExecutionContext();
+        var result = getPortalPageContentByNavigationIdUseCase.execute(
+            new GetPortalPageContentByNavigationIdUseCase.Input(portalNavigationItemId, executionContext.getEnvironmentId(), true)
+        );
+
+        return Response.ok(result.portalPageContent().getContent()).build();
     }
 }
