@@ -45,7 +45,7 @@ public class TimeProvider {
     private final String yesterdayWithDot;
 
     public TimeProvider() {
-        now = Instant.now().minus(30, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
+        now = Instant.now().minus(30, ChronoUnit.MINUTES);
         final Instant yesterday = now.minus(1, ChronoUnit.DAYS);
 
         dateToday = DATE_FORMATTER_WITH_DASH.format(now);
