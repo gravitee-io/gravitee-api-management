@@ -83,8 +83,10 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
                              }
                            }
                          }
@@ -133,8 +135,10 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
                              }
                            }
                          }
@@ -183,8 +187,10 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
                              }
                            }
                          }

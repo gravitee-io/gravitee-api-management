@@ -40,7 +40,11 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
     private ObjectNode query(ApiFieldPeriod query) {
         JsonNode termFilter = json().set("term", json().put("api", query.apiId()));
 
-        ObjectNode timestamp = json().put("gte", query.from().toEpochMilli()).put("lte", query.to().toEpochMilli());
+        ObjectNode timestamp = json()
+            .put("from", query.from().toEpochMilli())
+            .put("to", query.to().toEpochMilli())
+            .put("include_lower", true)
+            .put("include_upper", true);
         JsonNode rangeFilter = json().set("range", json().set("@timestamp", timestamp));
 
         return json().set("bool", json().set("filter", array().add(termFilter).add(rangeFilter)));

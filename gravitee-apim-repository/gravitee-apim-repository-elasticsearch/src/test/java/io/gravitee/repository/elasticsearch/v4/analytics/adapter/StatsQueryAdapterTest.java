@@ -57,8 +57,8 @@ class StatsQueryAdapterTest {
 
             assertEquals(0, node.get("size").asInt());
             assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
+            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/from").asLong());
+            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
         }
 
