@@ -159,7 +159,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
     test('should search message logs', async () => {
       let apiAggregatedMessageLogsResponse = await fetchRestApiSuccess<ApiAggregatedMessageLogsResponse>({
         restApiHttpCall: () =>
-          v2ApiLogsResourceAsApiPublisher.getApiMessageLogsRaw({
+          v2ApiLogsResourceAsApiPublisher.getApiAggregatedMessageLogsRaw({
             envId,
             apiId: importedApi.id,
             requestId,
