@@ -34,7 +34,7 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
 
     private static final String HOOK_ID = "hook-tracing-policy";
 
-    private static final String ATTR_SPAN_POLICY = "gravitee.policy";
+    public static final String ATTR_SPAN_POLICY = "gravitee.policy";
     private static final String ATTR_SPAN_POLICY_TRIGGER_EXECUTED = "gravitee.policy.trigger.executed";
     private static final String ATTR_SPAN_POLICY_TRIGGER_CONDITION = "gravitee.policy.trigger.condition";
     public static final String ATTR_POLICY_TRIGGER_CONDITION_PREFIX = "gravitee.policy.trigger.condition.";
