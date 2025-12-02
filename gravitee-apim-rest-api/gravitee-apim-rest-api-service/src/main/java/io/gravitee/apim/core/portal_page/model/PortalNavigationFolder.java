@@ -19,6 +19,8 @@ import jakarta.annotation.Nonnull;
 
 public final class PortalNavigationFolder extends PortalNavigationItem {
 
+    private static final PortalNavigationItemType TYPE = PortalNavigationItemType.FOLDER;
+
     public PortalNavigationFolder(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
@@ -29,5 +31,10 @@ public final class PortalNavigationFolder extends PortalNavigationItem {
         @Nonnull Boolean published
     ) {
         super(id, organizationId, environmentId, title, area, order, published);
+    }
+
+    @Override
+    public PortalNavigationItemType getType() {
+        return TYPE;
     }
 }

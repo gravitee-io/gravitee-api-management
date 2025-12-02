@@ -73,6 +73,8 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         this.published = published;
     }
 
+    public abstract PortalNavigationItemType getType();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
