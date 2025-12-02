@@ -1,3 +1,10 @@
+# [7.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.1.1...7.2.0) (2025-12-02)
+
+
+### Features
+
+* add request / response durations & counts by operation ([#173](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/issues/173)) ([a34b67b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/a34b67b55fbeadcf7f2215fe74441b6140fa80d6))
+
 ## [7.1.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.1.0...7.1.1) (2025-11-25)
 
 
