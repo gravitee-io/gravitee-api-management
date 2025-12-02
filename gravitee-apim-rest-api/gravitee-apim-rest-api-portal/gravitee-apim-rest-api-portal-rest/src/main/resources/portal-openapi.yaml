@@ -3200,6 +3200,36 @@ paths:
                     $ref: "#/components/responses/PortalNavigationItemNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+
+    /portal-navigation-items/{portalNavigationItemId}/content:
+        parameters:
+            - name: portalNavigationItemId
+              in: path
+              required: true
+              description: Id of a portal navigation item.
+              schema:
+                  type: string
+        get:
+            tags:
+                - Portal
+            summary: Get portal navigation item content by ID.
+            operationId: getPortalNavigationItemContentById
+            description: |
+                Get a specific portal navigation item's content by its ID.
+                Only portal navigation items of type 'PAGE' have content.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemContentSuccess"
+                400:
+                    description: The portal navigation item is not of type 'PAGE'.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
                 404:
                     $ref: "#/components/responses/PortalNavigationItemNotFoundError"
                 500:
@@ -6496,6 +6526,13 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/PortalNavigationItem"
+        PortalNavigationItemContentSuccess:
+            description: Portal page content
+            content:
+                application/json:
+                    schema:
+                        type: string
+                        description: The content of the portal page
 
     securitySchemes:
         BasicAuth:
