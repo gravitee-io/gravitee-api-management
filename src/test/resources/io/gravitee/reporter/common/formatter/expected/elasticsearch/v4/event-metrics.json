@@ -8,6 +8,7 @@
   "gw-id": "test_gateway",
   "env-id": "test_env",
   "org-id": "test_org",
+  "doc-type": "event-metrics",
   "topic": "test_topic",
   "downstream-publish-messages-total": 3112,
   "downstream-publish-message-bytes": 213123,

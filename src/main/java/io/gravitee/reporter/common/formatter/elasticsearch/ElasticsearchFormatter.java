@@ -23,10 +23,10 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
-import io.gravitee.reporter.api.v4.common.Message;
 import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
+import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
 import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
@@ -48,12 +48,16 @@ import java.util.Map;
 public class ElasticsearchFormatter<T extends Reportable>
   extends AbstractFormatter<T> {
 
-  private static final String TEMPLATES_BASE_PATTERN =
-    "/freemarker/es%dx/index/";
+  private static final String TEMPLATES_BASE_PATH = "/freemarker";
+  private static final String TEMPLATES_PATH_PATTERN = "/es%dx/index/";
+  private final String templatePath;
 
   /** Index simple date format **/
   private final DateTimeFormatter dtf;
   private final DateTimeFormatter sdf;
+
+  private final Map<Class<?>, ReportableFormatter<?>> formatters =
+    new HashMap<>();
 
   private static String hostname;
 
@@ -76,10 +80,15 @@ public class ElasticsearchFormatter<T extends Reportable>
 
     this.freeMarkerComponent = FreeMarkerComponent.builder()
       .classLoader(getClass().getClassLoader())
-      .classLoaderTemplateBase(
-        String.format(TEMPLATES_BASE_PATTERN, elasticSearchVersion)
-      )
+      .classLoaderTemplateBase(TEMPLATES_BASE_PATH)
       .build();
+
+    this.templatePath = String.format(
+      TEMPLATES_PATH_PATTERN,
+      elasticSearchVersion
+    );
+
+    initFormatters();
   }
 
   private static DateTimeFormatter dtfWithDefaultZone(String format) {
@@ -92,27 +101,14 @@ public class ElasticsearchFormatter<T extends Reportable>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Buffer format0(T reportable, Map<String, Object> esOptions) {
-    if (reportable instanceof Metrics metrics) {
-      return getSource(metrics, esOptions);
-    } else if (reportable instanceof EndpointStatus endpointStatus) {
-      return getSource(endpointStatus, esOptions);
-    } else if (reportable instanceof Monitor monitor) {
-      return getSource(monitor, esOptions);
-    } else if (reportable instanceof Log log) {
-      return getSource(log, esOptions);
-    } else if (
-      reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics metrics
-    ) {
-      return getSource(metrics, esOptions);
-    } else if (reportable instanceof MessageMetrics metrics) {
-      return getSource(metrics, esOptions);
-    } else if (reportable instanceof io.gravitee.reporter.api.v4.log.Log log) {
-      return getSource(log, esOptions);
-    } else if (reportable instanceof MessageLog log) {
-      return getSource(log, esOptions);
-    } else if (reportable instanceof EventMetrics metrics) {
-      return getSource(metrics, esOptions);
+    ReportableFormatter<T> formatter = (ReportableFormatter<T>) formatters.get(
+      reportable.getClass()
+    );
+
+    if (formatter != null) {
+      return formatter.format(reportable, esOptions);
     }
 
     return null;
@@ -439,10 +435,21 @@ public class ElasticsearchFormatter<T extends Reportable>
     return generateData("event-metrics.ftl", data);
   }
 
+  private Buffer getSource(
+    OperationEventMetrics metrics,
+    Map<String, Object> esOptions
+  ) {
+    final Map<String, Object> data = new HashMap<>(5);
+    addCommonFields(data, metrics, esOptions);
+    data.put("metrics", metrics);
+
+    return generateData("operation-event-metrics.ftl", data);
+  }
+
   private Buffer generateData(String template, Map<String, Object> data) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       freeMarkerComponent.generateFromTemplate(
-        template,
+        templatePath + template,
         data,
         new OutputStreamWriter(baos)
       );
@@ -517,5 +524,35 @@ public class ElasticsearchFormatter<T extends Reportable>
     static final String PEAK_COUNT = "peak_count";
 
     static final String COLLECTORS = "collectors";
+  }
+
+  @FunctionalInterface
+  interface ReportableFormatter<T> {
+    Buffer format(T reportable, Map<String, Object> esOptions);
+  }
+
+  private void initFormatters() {
+    formatters.put(Metrics.class, (r, o) -> getSource((Metrics) r, o));
+    formatters.put(EndpointStatus.class, (r, o) ->
+      getSource((EndpointStatus) r, o)
+    );
+    formatters.put(Monitor.class, (r, o) -> getSource((Monitor) r, o));
+    formatters.put(Log.class, (r, o) -> getSource((Log) r, o));
+    formatters.put(io.gravitee.reporter.api.v4.metric.Metrics.class, (r, o) ->
+      getSource((io.gravitee.reporter.api.v4.metric.Metrics) r, o)
+    );
+    formatters.put(MessageMetrics.class, (r, o) ->
+      getSource((MessageMetrics) r, o)
+    );
+    formatters.put(io.gravitee.reporter.api.v4.log.Log.class, (r, o) ->
+      getSource((io.gravitee.reporter.api.v4.log.Log) r, o)
+    );
+    formatters.put(MessageLog.class, (r, o) -> getSource((MessageLog) r, o));
+    formatters.put(EventMetrics.class, (r, o) ->
+      getSource((EventMetrics) r, o)
+    );
+    formatters.put(OperationEventMetrics.class, (r, o) ->
+      getSource((OperationEventMetrics) r, o)
+    );
   }
 }

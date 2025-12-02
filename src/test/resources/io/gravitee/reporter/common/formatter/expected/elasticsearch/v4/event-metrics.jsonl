@@ -8,6 +8,7 @@
   "env-id": "test_env",
   "org-id": "test_org",
   "topic": "test_topic",
+  "doc-type": "event-metrics",
   "downstream-publish-messages-total": 3112,
   "downstream-publish-message-bytes": 213123,
   "upstream-publish-messages-total": 13123,
