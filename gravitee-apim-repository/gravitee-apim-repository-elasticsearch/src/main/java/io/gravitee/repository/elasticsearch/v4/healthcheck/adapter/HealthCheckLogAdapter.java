@@ -63,7 +63,14 @@ public class HealthCheckLogAdapter implements QueryResponseAdapter<HealthCheckLo
         var termFilter = json().set("term", json().put("api", query.apiId()));
         var rangeFilter = json().set(
             "range",
-            json().set(TIME_FIELD, json().put("gte", query.from().toEpochMilli()).put("lte", query.to().toEpochMilli()))
+            json().set(
+                TIME_FIELD,
+                json()
+                    .put("from", query.from().toEpochMilli())
+                    .put("to", query.to().toEpochMilli())
+                    .put("include_lower", true)
+                    .put("include_upper", true)
+            )
         );
 
         var mustTerm = json();

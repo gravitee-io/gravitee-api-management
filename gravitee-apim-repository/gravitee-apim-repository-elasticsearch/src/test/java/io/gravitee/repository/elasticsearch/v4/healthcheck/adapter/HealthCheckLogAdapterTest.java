@@ -59,8 +59,10 @@ class HealthCheckLogAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697883330000,
-                               "lte": 1697969730000
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
                              }
                            }
                          }
@@ -96,8 +98,10 @@ class HealthCheckLogAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697883330000,
-                               "lte": 1697969730000
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
                              }
                            }
                          }
@@ -132,8 +136,10 @@ class HealthCheckLogAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697883330000,
-                               "lte": 1697969730000
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
                              }
                            }
                          }
