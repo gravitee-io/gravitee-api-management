@@ -31,7 +31,7 @@ public class PortalNavigationItemFixtures {
 
     public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
     private static final String GUIDES_ID = "00000000-0000-0000-0000-000000000002";
-    private static final String SUPPORT_ID = "00000000-0000-0000-0000-000000000003";
+    public static final String SUPPORT_ID = "00000000-0000-0000-0000-000000000003";
     private static final String OVERVIEW_ID = "00000000-0000-0000-0000-000000000004";
     private static final String GETTING_STARTED_ID = "00000000-0000-0000-0000-000000000005";
     private static final String CATEGORY1_ID = "00000000-0000-0000-0000-000000000006";
