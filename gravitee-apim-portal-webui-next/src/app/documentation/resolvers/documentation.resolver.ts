@@ -18,6 +18,8 @@ import {ActivatedRoute, ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSn
 import {map, switchMap, tap, timer} from 'rxjs';
 
 import {PortalNavigationItemsService} from "../../../services/portal-navigation-items.service";
+import {PortalPageContentService} from "../../../services/portal-page-content.service";
+import {PortalNavigationItem, PortalNavigationPage} from "../../../entities/portal-navigation/portal-navigation-item";
 
 // load everything under the selected folder and unfold all of its children
 // path param for parent id
@@ -27,11 +29,21 @@ import {PortalNavigationItemsService} from "../../../services/portal-navigation-
 // maybe cache the page content
 export const documentationResolver = ((route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const itemsService = inject(PortalNavigationItemsService);
+  const contentService = inject(PortalPageContentService);
   const navId = route.params['navId'];
+  const selectedNavId = route.queryParams['selectedNavId'];
+  console.log('selectedNavId', selectedNavId);
   const currentItem = itemsService.topNavbarItems().find(item => item.id === navId);
+
   return itemsService
     .getNavigationItems('TOP_NAVBAR', !!navId, navId)
     .pipe(
+      tap(res => {
+        const seletedItem = res.find(item => item.id === selectedNavId) as PortalNavigationPage;
+        if (seletedItem) {
+          contentService.getPageContent(seletedItem.portalPageContentId).subscribe(res => console.log('res', res))
+        }
+      }),
       map(res => {
         return {
           currentItem,

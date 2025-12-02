@@ -16,14 +16,14 @@
 import { Component, computed, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
+import {PortalNavigationItem, PortalNavigationType} from "../../../../../entities/portal-navigation/portal-navigation-item";
 
-import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+// import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 
 export interface SectionNode {
   id: string;
   label: string;
-  type: PortalNavigationItemType;
+  type: PortalNavigationType;
   data?: PortalNavigationItem;
   children?: SectionNode[];
 }
@@ -34,9 +34,9 @@ type ProcessingNode = SectionNode & {
 };
 
 @Component({
-  selector: 'console-tree-component',
+  selector: 'portal-tree-component',
   standalone: true,
-  imports: [TreeNodeComponent, EmptyStateComponent],
+  imports: [TreeNodeComponent],
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
@@ -49,7 +49,10 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-  edit = output<SectionNode>();
+
+  constructor() {
+    console.log('links', this.links());
+  }
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);

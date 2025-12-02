@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {firstValueFrom, map, Observable, of, tap} from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
-import {PortalNavigationItem} from "../../../entities/portal-navigation/portal-navigation";
+import {PortalNavigationItem} from "../../../entities/portal-navigation/portal-navigation-item";
 import {DocumentationFolderComponent} from "./documentation-folder/documentation-folder.component";
 import {DocumentationPageComponent} from "./documentation-page/documentation-page.component";
+import * as child_process from "node:child_process";
 
 @Component({
   selector: 'app-documentation',
@@ -29,7 +30,7 @@ import {DocumentationPageComponent} from "./documentation-page/documentation-pag
   standalone: true,
   template: `
       @if (selectedItem()?.type === 'FOLDER') {
-        <app-documentation-folder />
+        <app-documentation-folder [items]="children()"/>
       } @else if (selectedItem()?.type === 'PAGE') {
         <app-documentation-page />
       }
@@ -43,4 +44,5 @@ import {DocumentationPageComponent} from "./documentation-page/documentation-pag
 })
 export class DocumentationComponent {
   selectedItem = toSignal<PortalNavigationItem>(inject(ActivatedRoute).data.pipe(map(data => data['data']['currentItem'])));
+  children = toSignal(inject(ActivatedRoute).data.pipe(map(data => data['data']['children'] || [])), { initialValue: [] });
 }

@@ -15,14 +15,11 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { EmptyStateComponentHarness } from '../../../shared/components/empty-state/empty-state.component.harness';
-
 export class TreeComponentHarness extends ComponentHarness {
-  static hostSelector = 'console-tree-component';
+  static hostSelector = 'portal-tree-component';
 
   private getSelectedLabelButton = this.locatorForOptional('.tree__row.selected .tree__label');
   private getTreeLabelButtons = this.locatorForAll('.tree__label');
-  private getEmptyState = this.locatorForOptional(EmptyStateComponentHarness);
 
   async getSelectedItemTitle(): Promise<string | null> {
     const labelButton = await this.getSelectedLabelButton();
@@ -63,10 +60,5 @@ export class TreeComponentHarness extends ComponentHarness {
     }
 
     return titles;
-  }
-
-  async isEmptyStateDisplayed(): Promise<boolean> {
-    const emptyState = await this.getEmptyState();
-    return emptyState !== null;
   }
 }

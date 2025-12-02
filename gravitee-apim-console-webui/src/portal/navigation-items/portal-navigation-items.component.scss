@@ -97,7 +97,7 @@ $typography: map.get(gio.$mat-theme, typography);
     overflow-x: hidden;
     width: 100%;
 
-    portal-tree-component {
+    console-tree-component {
       height: 100%;
     }
   }

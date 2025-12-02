@@ -16,6 +16,7 @@
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 
+// TODO rename to PortalNavigationItemType
 export type PortalNavigationType = 'PAGE' | 'FOLDER' | 'LINK';
 
 export interface BasePortalNavigationItem {

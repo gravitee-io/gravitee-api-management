@@ -19,7 +19,7 @@ import {catchError, map, Observable, switchMap, tap} from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
-import {PortalArea, PortalNavigationFolder, PortalNavigationItem, PortalNavigationLink, PortalNavigationPage} from '../entities/portal-navigation/portal-navigation';
+import {PortalArea, PortalNavigationFolder, PortalNavigationItem, PortalNavigationLink, PortalNavigationPage} from '../entities/portal-navigation/portal-navigation-item';
 
 @Injectable({
   providedIn: 'root',
