@@ -220,7 +220,7 @@ public class UserResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldNotUpdateAvatarWhenSvg() {
+    public void shouldNotUpdateAvatarWhenSvg() {
         final String svgAvatar =
             "data:image/svg+xml;base64,PGJyPgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjQgMTI0IiBmaWxsPSJub25lIj4KPHJlY3Qgd2lkdGg9IjEyNCIgaGVpZ2h0PSIxMjQiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgogICA8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCI+ICAKICAgICAgYWxlcnQoZG9jdW1lbnQubG9jYXRpb24pOwogICA8L3NjcmlwdD4KPC9zdmc+";
         UserInput userInput = new UserInput().id(USER_NAME).avatar(svgAvatar);
