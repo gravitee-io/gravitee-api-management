@@ -82,14 +82,6 @@ public class ComputeFacetsUseCase {
     // Updates the request filter to limit metric access based on the user permissions
     private FacetsRequest applyPermissionFilters(FacetsRequest request, Map<String, AnalyticsQueryFilterDecorator.API> allowedApis) {
         var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
-        return new FacetsRequest(
-            request.timeRange(),
-            updatedFilters,
-            request.metrics(),
-            request.facets(),
-            request.limit(),
-            request.ranges()
-        );
+        return request.withFilters(updatedFilters);
     }
 }
