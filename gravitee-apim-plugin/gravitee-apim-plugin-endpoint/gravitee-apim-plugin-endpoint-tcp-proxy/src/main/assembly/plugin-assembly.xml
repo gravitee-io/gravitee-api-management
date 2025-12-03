@@ -33,7 +33,7 @@
 	<!-- Include plugin schema configuration -->
 	<fileSets>
 		<fileSet>
-			<directory>src/main/resources/schemas</directory>
+			<directory>${project.build.directory}/classes/schemas</directory>
 			<outputDirectory>schemas</outputDirectory>
 		</fileSet>
 		<fileSet>

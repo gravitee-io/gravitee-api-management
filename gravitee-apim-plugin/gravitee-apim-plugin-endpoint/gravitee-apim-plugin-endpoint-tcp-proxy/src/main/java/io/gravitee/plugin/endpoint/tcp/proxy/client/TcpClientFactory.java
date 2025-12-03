@@ -15,15 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.tcp.proxy.client;
 
-import io.gravitee.apim.common.mapper.SslOptionsMapper;
-import io.gravitee.apim.common.mapper.TcpClientOptionsMapper;
-import io.gravitee.apim.common.mapper.TcpProxyOptionsMapper;
-import io.gravitee.apim.common.mapper.TcpTargetMapper;
 import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.tcp.VertxTcpClientFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.mappers.SslOptionsMapper;
+import io.gravitee.plugin.mappers.TcpClientOptionsMapper;
+import io.gravitee.plugin.mappers.TcpProxyOptionsMapper;
+import io.gravitee.plugin.mappers.TcpTargetMapper;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.net.NetClient;
 import java.util.concurrent.atomic.AtomicBoolean;
