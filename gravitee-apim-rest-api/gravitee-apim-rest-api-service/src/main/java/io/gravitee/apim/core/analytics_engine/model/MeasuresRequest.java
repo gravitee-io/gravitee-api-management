@@ -26,4 +26,8 @@ public record MeasuresRequest(TimeRange timeRange, List<Filter> filters, List<Me
     public MeasuresRequest emptyMetrics() {
         return new MeasuresRequest(timeRange, filters, new ArrayList<>());
     }
+
+    public MeasuresRequest withFilters(List<Filter> filters) {
+        return new MeasuresRequest(timeRange, filters, metrics);
+    }
 }
