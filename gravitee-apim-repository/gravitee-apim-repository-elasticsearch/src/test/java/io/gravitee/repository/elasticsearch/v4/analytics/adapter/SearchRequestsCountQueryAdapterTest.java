@@ -113,8 +113,10 @@ class SearchRequestsCountQueryAdapterTest {
                             {
                                  "range": {
                                      "@timestamp": {
-                                         "gte": 1609459200000,
-                                         "lte": 1609545600000
+                                         "from": 1609459200000,
+                                         "include_lower": true,
+                                         "to": 1609545600000,
+                                         "include_upper": true
                                     }
                                 }
                             }
