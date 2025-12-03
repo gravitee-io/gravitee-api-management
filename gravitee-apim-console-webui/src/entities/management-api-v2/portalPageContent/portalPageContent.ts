@@ -25,3 +25,7 @@ export interface NewPortalPageContent {
   type: PortalPageContentType;
   content: string;
 }
+
+export interface UpdatePortalPageContent {
+  content: string;
+}

@@ -18,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { NewPortalPageContent, PortalPageContent } from '../entities/management-api-v2';
+import { NewPortalPageContent, PortalPageContent, UpdatePortalPageContent } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -35,5 +35,9 @@ export class PortalPageContentService {
 
   public createPageContent(newPortalPageContent: NewPortalPageContent): Observable<PortalPageContent> {
     return this.http.post<PortalPageContent>(`${this.constants.env.v2BaseURL}/portal-page-contents`, newPortalPageContent);
+  }
+
+  public updatePageContent(contentId: string, content: UpdatePortalPageContent): Observable<PortalPageContent> {
+    return this.http.put<PortalPageContent>(`${this.constants.env.v2BaseURL}/portal-page-contents/${contentId}`, content);
   }
 }

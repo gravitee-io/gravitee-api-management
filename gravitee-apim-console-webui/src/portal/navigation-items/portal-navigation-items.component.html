@@ -64,7 +64,7 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        <button mat-stroked-button [disabled]="contentControl.pristine">Save</button>
+        <button mat-stroked-button [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
       </div>
     </header>
 
