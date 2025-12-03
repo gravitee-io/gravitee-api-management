@@ -85,6 +85,6 @@ public class ComputeTimeSeriesUseCase {
     ) {
         var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
 
-        return new TimeSeriesRequest(request.timeRange(), request.interval(), updatedFilters);
+        return request.withFilters(updatedFilters);
     }
 }
