@@ -33,6 +33,7 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Assertions;
@@ -152,7 +153,7 @@ class HttpSecurityChainTest {
     }
 
     @Test
-    void shouldInterrupt401WhenNoPolicyHasRelevantSecurityToken() {
+    void shouldInterrupt401WhenNoPolicyHasRelevantSecurityTokenAndWwwAuthenticateReturnsFalse() {
         final Plan plan1 = mockPlan("plan1");
         final Plan plan2 = mockPlan("plan2");
         final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
@@ -164,7 +165,30 @@ class HttpSecurityChainTest {
 
         when(api.getPlans()).thenReturn(plans);
         when(policy1.order()).thenReturn(0);
+        when(policy1.wwwAuthenticate(any())).thenReturn(Single.just(false));
         when(policy2.order()).thenReturn(1);
+        when(policy2.wwwAuthenticate(any())).thenReturn(Single.just(false));
+
+        when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
+
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+
+        obs.assertError(Throwable.class);
+        verifyUnauthorized();
+        verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+    }
+
+    @Test
+    void shouldInterrupt401WhenNoPolicyHasRelevantSecurityTokenAndWwwAuthenticateReturnsTrue() {
+        final Plan plan1 = mockPlan("plan1");
+        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
+
+        final ArrayList<Plan> plans = new ArrayList<>();
+        plans.add(plan1);
+
+        when(api.getPlans()).thenReturn(plans);
+        when(policy1.wwwAuthenticate(any())).thenReturn(Single.just(true));
 
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 

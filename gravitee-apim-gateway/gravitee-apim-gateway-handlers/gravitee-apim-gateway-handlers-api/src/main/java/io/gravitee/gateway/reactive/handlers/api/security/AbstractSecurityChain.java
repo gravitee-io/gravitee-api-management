@@ -26,9 +26,11 @@ import static io.reactivex.rxjava3.core.Completable.defer;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -58,7 +60,7 @@ public abstract class AbstractSecurityChain<
 
     protected static final Single<Boolean> TRUE = Single.just(true);
     protected static final Single<Boolean> FALSE = Single.just(false);
-    private final Flowable<P> chain;
+    protected final Flowable<P> chain;
 
     public AbstractSecurityChain(Flowable<P> securityPlans) {
         this.chain = securityPlans;
@@ -100,13 +102,25 @@ public abstract class AbstractSecurityChain<
                                         .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
                                 );
                             }
-                            return sendError(
-                                ctx,
-                                new ExecutionFailure(UNAUTHORIZED_401)
-                                    .key(PLAN_UNRESOLVABLE)
-                                    .message(UNAUTHORIZED_MESSAGE)
-                                    .cause(securityChainDiagnostic.cause())
-                            );
+
+                            return chain
+                                .filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
+                                .flatMapSingle(securityPlan -> {
+                                    if (ctx instanceof HttpPlainExecutionContext httpCtx) {
+                                        return ((HttpSecurityPlan) securityPlan).wwwAuthenticate(httpCtx);
+                                    }
+                                    return Single.just(false);
+                                })
+                                .any(Boolean::booleanValue)
+                                .flatMapCompletable(wwwAuthenticate ->
+                                    sendError(
+                                        ctx,
+                                        new ExecutionFailure(UNAUTHORIZED_401)
+                                            .key(PLAN_UNRESOLVABLE)
+                                            .message(UNAUTHORIZED_MESSAGE)
+                                            .cause(securityChainDiagnostic.cause())
+                                    )
+                                );
                         }
                         return Completable.complete();
                     })
