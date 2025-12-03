@@ -2497,4 +2497,37 @@ public class UserServiceTest {
         verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API);
         verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION);
     }
+
+    @Test
+    public void shouldOverrideAdminRolesWithIdpMappingsWhenSyncMappingsEnabled() throws Exception {
+        reset(identityProvider, userRepository, roleService, membershipService);
+        mockDefaultEnvironment();
+
+        when(identityProvider.isSyncMappings()).thenReturn(true);
+        when(identityProvider.getId()).thenReturn("oauth2");
+
+        RoleMappingEntity roleMapping = new RoleMappingEntity();
+        roleMapping.setCondition("true");
+        roleMapping.setEnvironments(Map.of(ENVIRONMENT, List.of("USER")));
+        when(identityProvider.getRoleMappings()).thenReturn(List.of(roleMapping));
+
+        User user = mockUser();
+        when(userRepository.findBySource("oauth2", user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(user)).thenReturn(user);
+
+        RoleEntity userRole = mockRoleEntity(RoleScope.ENVIRONMENT, "USER");
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", ORGANIZATION)).thenReturn(Optional.of(userRole));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
+
+        verify(membershipService).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT)),
+            eq(new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER)),
+            argThat(roles -> roles.contains(new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "USER"))),
+            eq("oauth2")
+        );
+    }
 }
