@@ -38,4 +38,16 @@ public record TimeSeriesRequest(
     public TimeSeriesRequest emptyMetrics() {
         return new TimeSeriesRequest(timeRange, interval, filters, new ArrayList<>(), facets, limit, ranges);
     }
+
+    public TimeSeriesRequest withFilters(List<Filter> filters) {
+        return new TimeSeriesRequest(
+            this.timeRange(),
+            this.interval(),
+            filters,
+            this.metrics(),
+            this.facets(),
+            this.limit(),
+            this.ranges()
+        );
+    }
 }
