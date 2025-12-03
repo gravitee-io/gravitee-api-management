@@ -63,6 +63,7 @@ export type NewPortalNavigationItem = NewPagePortalNavigationItem | NewFolderPor
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
   type: T;
+  published: boolean;
   parentId?: string;
   order?: number;
 }

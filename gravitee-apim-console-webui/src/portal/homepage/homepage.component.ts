@@ -27,7 +27,6 @@ import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } fro
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { PortalPagesService } from '../../services-ngx/portal-pages.service';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -67,7 +66,6 @@ export class HomepageComponent {
   });
 
   private readonly snackbarService = inject(SnackBarService);
-  private readonly portalPagesService = inject(PortalPagesService);
   private readonly portalNavigationItemService = inject(PortalNavigationItemService);
   private readonly portalPageContentService = inject(PortalPageContentService);
   private readonly gioPermissionService = inject(GioPermissionService);
@@ -75,9 +73,7 @@ export class HomepageComponent {
   private readonly matDialog = inject(MatDialog);
 
   readonly portalHomepage: WritableSignal<PortalHomepage | null> = signal(null);
-  // TODO: when update of portal navigation item is implemented, read the actual "published" flag from the navigation/page metadata.
-  // For now default to true so the UI has a sane initial state
-  readonly portalHomepagePublished = computed(() => !!this.portalHomepage());
+  readonly portalHomepagePublished = computed(() => this.portalHomepage()?.navigationItem?.published ?? false);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
@@ -103,7 +99,9 @@ export class HomepageComponent {
   public togglePublish(): void {
     const isCurrentlyPublished = this.portalHomepagePublished();
     const nav = this.portalHomepage().navigationItem as PortalNavigationPage;
-    const pageId = nav.portalPageContentId;
+    const pageId = nav.id;
+
+    const updateObj = { ...nav, published: !isCurrentlyPublished };
 
     const data: GioConfirmDialogData = {
       title: `${this.togglePublishActionText()} page?`,
@@ -112,11 +110,6 @@ export class HomepageComponent {
         : `Your changes will be published. The updated page will be visible on your developer portal.`,
       confirmButton: this.togglePublishActionText(),
     };
-
-    const toggleApiCall$ = isCurrentlyPublished
-      ? this.portalPagesService.unpublishPage(pageId)
-      : this.portalPagesService.publishPage(pageId);
-
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
@@ -127,18 +120,15 @@ export class HomepageComponent {
       .afterClosed()
       .pipe(
         filter((confirmed) => confirmed),
-        switchMap((_) => toggleApiCall$),
+        switchMap(() => this.portalNavigationItemService.updateNavigationItem(pageId, updateObj)),
         tap((updatedPage) => {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
-          this.portalHomepage.set(
-            // TODO: handle updated navigation item when that feature is implemented
-            currentNav
-              ? {
-                  navigationItem: currentNav,
-                  content: { id: updatedPage.id, type: 'GRAVITEE_MARKDOWN', content: updatedPage.content },
-                }
-              : null,
-          );
+          this.portalHomepage.update((current) => {
+            return {
+              ...current,
+              navigationItem: { ...currentNav, published: updatedPage.published },
+            };
+          });
           this.snackbarService.success(`Page has been ${updatedPage.published ? 'publish' : 'unpublish'}ed successfully.`);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -157,21 +147,18 @@ export class HomepageComponent {
         ? ((navForUpdate as PortalNavigationPage).portalPageContentId ?? navForUpdate.id)
         : (navForUpdate?.id ?? '');
     this.portalPageContentService
-      .updatePortalPageContent(pageId, {
+      .updatePageContent(pageId, {
         content: this.contentControl.value,
       })
       .pipe(
         tap((portalPage) => {
           this.snackbarService.success(`The page has been updated successfully`);
-          const currentNav = this.portalHomepage()?.navigationItem ?? null;
-          this.portalHomepage.set(
-            currentNav
-              ? {
-                  navigationItem: currentNav,
-                  content: { id: portalPage.id, type: portalPage.type as any, content: portalPage.content },
-                }
-              : null,
-          );
+          this.portalHomepage.update((current) => {
+            return {
+              ...current,
+              content: { id: portalPage.id, type: portalPage.type, content: portalPage.content },
+            };
+          });
         }),
         catchError(() => {
           this.snackbarService.error('An error occurred while updating the homepage');
