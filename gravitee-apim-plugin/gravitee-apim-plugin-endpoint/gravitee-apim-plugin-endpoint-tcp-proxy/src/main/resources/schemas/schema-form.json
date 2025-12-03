@@ -36,7 +36,7 @@
     },
     "properties":{
         "target":{
-            "$ref":"#/definitions/target"
+            "$ref":"#/gioExternalDefinitions/tcpTarget"
         },
         "additionalProperties": false
     },

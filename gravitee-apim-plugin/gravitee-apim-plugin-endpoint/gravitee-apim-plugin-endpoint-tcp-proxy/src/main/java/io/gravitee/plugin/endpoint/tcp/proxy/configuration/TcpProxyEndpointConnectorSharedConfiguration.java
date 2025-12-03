@@ -16,10 +16,11 @@
 package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.tcp.TcpClientOptions;
-import io.gravitee.definition.model.v4.tcp.TcpProxyOptions;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.annotation.ConfigurationEvaluator;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
+import io.gravitee.plugin.configurations.tcp.TcpClientOptions;
+import io.gravitee.plugin.configurations.tcp.TcpProxyOptions;
 import lombok.Data;
 
 /**
@@ -27,14 +28,15 @@ import lombok.Data;
  * @author GraviteeSource Team
  */
 @Data
+@ConfigurationEvaluator
 public class TcpProxyEndpointConnectorSharedConfiguration implements EndpointConnectorSharedConfiguration {
 
     @JsonProperty("tcp")
     private TcpClientOptions tcpClientOptions = new TcpClientOptions();
 
     @JsonProperty("ssl")
-    private SslOptions sslOptions;
+    private SslOptions sslOptions = new SslOptions();
 
     @JsonProperty("proxy")
-    private TcpProxyOptions proxyOptions;
+    private TcpProxyOptions proxyOptions = new TcpProxyOptions();
 }
