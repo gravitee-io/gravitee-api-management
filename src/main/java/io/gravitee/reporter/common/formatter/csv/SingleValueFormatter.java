@@ -126,6 +126,14 @@ public abstract class SingleValueFormatter<T extends Reportable>
     }
   }
 
+  protected void appendLong(Buffer buffer, Long value) {
+    if (value != null) {
+      appendLong(buffer, value.longValue());
+    } else {
+      appendEmpty(buffer);
+    }
+  }
+
   protected void appendLong(Buffer buffer, long value) {
     appendLong(buffer, value, false);
   }

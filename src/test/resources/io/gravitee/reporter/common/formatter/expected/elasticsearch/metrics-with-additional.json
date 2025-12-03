@@ -30,5 +30,14 @@
   "subscription": "04975880-f147-43bc-9758-80f147e3bcbb",
   "custom": {
     "zone": "europe-north1-a"
+  },
+  "additional-metrics": {
+    "long_tokenCount": 12,
+    "double_valueAvg": 12.6,
+    "keyword_name": "the \"name\"",
+    "bool_name": true,
+    "int_name": 42,
+    "string_name": "the \"string\" name",
+    "json_name": "{\"hello\":\"world\"}"
   }
 }

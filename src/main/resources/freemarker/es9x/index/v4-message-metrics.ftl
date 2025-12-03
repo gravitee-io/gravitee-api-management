@@ -24,6 +24,12 @@
   ,"request-id":"${metrics.getRequestId()}"
   ,"api-id":"${metrics.getApiId()}"
   ,"api-name":"${metrics.getApiName()?j_string}"
+  <#if metrics.getOrganizationId()??>
+    ,"org-id":"${metrics.getOrganizationId()}"
+  </#if>
+  <#if metrics.getEnvironmentId()??>
+    ,"env-id":"${metrics.getEnvironmentId()}"
+  </#if>
   <#if metrics.getClientIdentifier()??>
   ,"client-identifier":"${metrics.getClientIdentifier()}"
   </#if>

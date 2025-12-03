@@ -33,6 +33,7 @@ class CsvFormatterTest extends AbstractFormatterTest {
     {
       "log, log.Log, log.json, csv/log.csv",
       "metrics, http.Metrics, metrics.json, csv/metrics.csv",
+      "metrics with additional, http.Metrics, metrics-with-additional.json, csv/metrics-with-additional.csv",
       "metrics with invalid remote address, http.Metrics, metrics-with-invalid-remote-address.json, csv/metrics-with-invalid-remote-address.csv",
       "endpoint status, health.EndpointStatus, endpoint-status.json, csv/endpoint-status.csv",
       "monitor, monitor.Monitor, monitor.json, csv/monitor.csv",

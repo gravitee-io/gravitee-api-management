@@ -39,6 +39,7 @@ class JsonFormatterTest extends AbstractFormatterTest {
     {
       "log, log.Log, log.json, json/log.json",
       "metrics, http.Metrics, metrics.json, json/metrics.json",
+      "metrics with additional, http.Metrics, metrics-with-additional.json, json/metrics-with-additional.json",
       "endpoint status, health.EndpointStatus, endpoint-status.json, json/endpoint-status.json",
       "monitor, monitor.Monitor, monitor.json, json/monitor.json",
       "v4 log, v4.log.Log, v4/log.json, json/v4/log.json",

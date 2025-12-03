@@ -44,6 +44,8 @@ public class MessageMetricsFormatter
     appendLong(buffer, metrics.timestamp().toEpochMilli());
     appendString(buffer, metrics.getApiId());
     appendString(buffer, metrics.getApiName());
+    appendString(buffer, metrics.getOrganizationId());
+    appendString(buffer, metrics.getEnvironmentId());
     appendString(
       buffer,
       metrics.getOperation() != null ? metrics.getOperation().name() : null

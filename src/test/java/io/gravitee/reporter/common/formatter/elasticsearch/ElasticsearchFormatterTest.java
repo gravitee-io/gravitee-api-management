@@ -45,6 +45,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
     {
       "log, log.Log, log.json, elasticsearch/log.json",
       "metrics, http.Metrics, metrics.json, elasticsearch/metrics.json",
+      "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.json",
       "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.json",
       "v4-log, v4.log.Log, v4/log.json, elasticsearch/v4/log.json",
       "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
@@ -84,6 +85,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
     {
       "log, log.Log, log.json, elasticsearch/log.jsonl",
       "metrics, http.Metrics, metrics.json, elasticsearch/metrics.jsonl",
+      "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.jsonl",
       "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.jsonl",
       "v4 log, v4.log.Log, v4/log.json, elasticsearch/v4/log.jsonl",
       "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",

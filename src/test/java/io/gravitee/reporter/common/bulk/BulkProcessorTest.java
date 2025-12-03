@@ -322,6 +322,8 @@ public class BulkProcessorTest {
   private static Metrics buildMetrics() {
     return Metrics.builder()
       .requestId("requestId")
+      .environmentId("environmentId")
+      .organizationId("organizationId")
       .transactionId("transactionId")
       .httpMethod(HttpMethod.GET)
       .uri("/uri")
