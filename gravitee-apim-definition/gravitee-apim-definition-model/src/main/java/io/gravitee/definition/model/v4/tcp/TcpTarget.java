@@ -20,7 +20,9 @@ import lombok.Data;
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.tcp.TcpTarget} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 @Data
 public class TcpTarget {
 
