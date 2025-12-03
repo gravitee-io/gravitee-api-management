@@ -2209,10 +2209,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         List<Membership> overrideUserMemberships = new ArrayList<>();
         // Delete existing memberships
         userMemberships.forEach(membership -> {
-            // Consider only membership "created by" the identity provider
-            if (identityProviderId.equals(membership.getSource())) {
-                // if there is no mapping configured on the social idp, we do not remove / reset it
-                if (hasMapping) {
+            if (hasMapping) {
+                // Consider only membership "created by" the identity provider
+                if (identityProviderId.equals(membership.getSource())) {
                     membershipService.deleteReferenceMemberBySource(
                         executionContext,
                         MembershipReferenceType.valueOf(membership.getReferenceType().name()),
@@ -2221,8 +2220,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         userId,
                         membership.getSource()
                     );
+                } else {
+                    membershipService.deleteReferenceMember(
+                        executionContext,
+                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                        membership.getReferenceId(),
+                        MembershipMemberType.USER,
+                        userId
+                    );
                 }
             } else {
+                // if there is no mapping configured on the social idp, we do not remove / reset it
                 overrideUserMemberships.add(membership);
             }
         });
