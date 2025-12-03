@@ -26,7 +26,9 @@ import lombok.Setter;
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.tcp.TcpProxyOptions} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 @Getter
 @Setter
 @Builder

@@ -20,7 +20,9 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.http.ProtocolVersion} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 public enum ProtocolVersion {
     @JsonEnumDefaultValue
     HTTP_1_1,

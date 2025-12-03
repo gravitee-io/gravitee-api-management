@@ -28,7 +28,10 @@ import lombok.Setter;
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
+ *
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.http.HttpClientOptions} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 @Getter
 @Setter
 @Builder
