@@ -71,4 +71,24 @@ describe('PortalPageContentService', () => {
       req.flush(fakeCreatedContent);
     });
   });
+
+  describe('updatePageContent', () => {
+    it('should call the API', (done) => {
+      const contentId = 'content-1';
+      const updateContent = { content: 'Updated content' };
+      const fakeUpdatedContent = fakePortalPageContent({ id: contentId, content: updateContent.content });
+
+      service.updatePageContent(contentId, updateContent).subscribe((response) => {
+        expect(response).toMatchObject(fakeUpdatedContent);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}`,
+      });
+      expect(req.request.body).toEqual(updateContent);
+      req.flush(fakeUpdatedContent);
+    });
+  });
 });

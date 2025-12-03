@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -359,6 +360,37 @@ describe('PortalNavigationItemsComponent', () => {
       await harness.selectNavigationItemByTitle('Nav Item 3');
       expectGetPageContent('nav-item-3-content', 'This is the content of Nav Item 3');
       expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+  });
+
+  describe('saving content', () => {
+    beforeEach(async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' })],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+    });
+
+    it('should call PUT on save and disable save button after success', async () => {
+      await harness.setEditorContentText('Edited content');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+
+      const saveButton = await rootLoader.getHarness(MatButtonHarness.with({ text: /Save/i }));
+      await saveButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/nav-item-1-content`,
+      });
+      expect(req.request.body).toEqual({ content: 'Edited content' });
+      req.flush({ id: 'nav-item-1-content', content: 'Edited content' });
+
+      fixture.detectChanges();
+
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+      expect(await harness.getEditorContentText()).toBe('Edited content');
     });
   });
 

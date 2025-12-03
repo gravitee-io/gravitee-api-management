@@ -288,4 +288,23 @@ export class PortalNavigationItemsComponent {
       })
       .catch(() => this.snackBarService.error('Failed to navigate to portal navigation item: ' + navId));
   }
+
+  protected onSave() {
+    const navItem = this.selectedNavigationItem().data;
+
+    if (navItem && navItem.type === 'PAGE') {
+      const pageId = navItem.portalPageContentId;
+      this.portalPageContentService
+        .updatePageContent(pageId, { content: this.contentControl.value })
+        .pipe(
+          map(({ content }) => content),
+          catchError(() => {
+            this.snackBarService.error('Failed to update page content');
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe((content) => this.contentControl.reset(content));
+    }
+  }
 }
