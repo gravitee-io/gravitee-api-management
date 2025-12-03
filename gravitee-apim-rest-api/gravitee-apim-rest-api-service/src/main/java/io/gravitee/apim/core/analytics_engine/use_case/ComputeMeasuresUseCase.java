@@ -82,7 +82,6 @@ public class ComputeMeasuresUseCase {
     // Updates the request filter to limit metric access based on the user permissions
     private MeasuresRequest applyPermissionFilters(MeasuresRequest request, Map<String, AnalyticsQueryFilterDecorator.API> allowedApis) {
         var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
-        return new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
+        return request.withFilters(updatedFilters);
     }
 }

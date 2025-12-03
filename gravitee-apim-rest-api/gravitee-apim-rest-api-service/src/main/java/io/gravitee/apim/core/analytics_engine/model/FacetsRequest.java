@@ -33,4 +33,8 @@ public record FacetsRequest(
     public FacetsRequest emptyMetrics() {
         return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
     }
+
+    public FacetsRequest withFilters(List<Filter> filters) {
+        return new FacetsRequest(timeRange, filters, metrics, facets, limit, ranges);
+    }
 }

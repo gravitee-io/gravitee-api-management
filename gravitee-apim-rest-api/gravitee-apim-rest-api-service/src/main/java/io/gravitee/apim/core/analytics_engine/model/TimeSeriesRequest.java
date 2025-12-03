@@ -40,14 +40,6 @@ public record TimeSeriesRequest(
     }
 
     public TimeSeriesRequest withFilters(List<Filter> filters) {
-        return new TimeSeriesRequest(
-            this.timeRange(),
-            this.interval(),
-            filters,
-            this.metrics(),
-            this.facets(),
-            this.limit(),
-            this.ranges()
-        );
+        return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, limit, ranges);
     }
 }

@@ -84,7 +84,6 @@ public class ComputeTimeSeriesUseCase {
         Map<String, AnalyticsQueryFilterDecorator.API> allowedApis
     ) {
         var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
         return request.withFilters(updatedFilters);
     }
 }
