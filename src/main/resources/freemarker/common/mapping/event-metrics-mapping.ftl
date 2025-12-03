@@ -104,15 +104,15 @@
     },
     "request-durations-millis": {
         "type": "long",
-        "time_series_metric": "counter"
+        "time_series_metric": "gauge"
     },
     "endpoint-durations-millis": {
         "type": "long",
-        "time_series_metric": "counter"
+        "time_series_metric": "gauge"
     },
     "response-durations-millis": {
         "type": "long",
-        "time_series_metric": "counter"
+        "time_series_metric": "gauge"
     },
     "requests-total": {
         "type": "integer",
