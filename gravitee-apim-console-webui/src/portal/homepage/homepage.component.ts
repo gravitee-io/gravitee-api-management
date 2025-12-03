@@ -133,7 +133,10 @@ export class HomepageComponent {
           this.portalHomepage.set(
             // TODO: handle updated navigation item when that feature is implemented
             currentNav
-              ? { navigationItem: currentNav, content: { id: updatedPage.id, type: 'GRAVITEE_MARKDOWN', content: updatedPage.content } }
+              ? {
+                  navigationItem: currentNav,
+                  content: { id: updatedPage.id, type: 'GRAVITEE_MARKDOWN', content: updatedPage.content },
+                }
               : null,
           );
           this.snackbarService.success(`Page has been ${updatedPage.published ? 'publish' : 'unpublish'}ed successfully.`);
@@ -153,8 +156,8 @@ export class HomepageComponent {
       navForUpdate?.type === 'PAGE'
         ? ((navForUpdate as PortalNavigationPage).portalPageContentId ?? navForUpdate.id)
         : (navForUpdate?.id ?? '');
-    this.portalPagesService
-      .patchPortalPage(pageId, {
+    this.portalPageContentService
+      .updatePortalPageContent(pageId, {
         content: this.contentControl.value,
       })
       .pipe(
@@ -163,7 +166,10 @@ export class HomepageComponent {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
           this.portalHomepage.set(
             currentNav
-              ? { navigationItem: currentNav, content: { id: portalPage.id, type: portalPage.type as any, content: portalPage.content } }
+              ? {
+                  navigationItem: currentNav,
+                  content: { id: portalPage.id, type: portalPage.type as any, content: portalPage.content },
+                }
               : null,
           );
         }),
