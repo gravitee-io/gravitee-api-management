@@ -81,30 +81,26 @@ public class FileReporter extends AbstractService<Reporter> implements Reporter 
                 );
             }
 
-            Future
-                .join(writers.values().stream().map(VertxFileWriter::initialize).toList())
-                .onComplete(event -> {
-                    if (event.succeeded()) {
-                        LOGGER.info("File reporter successfully started");
-                    } else {
-                        LOGGER.info("An error occurs while starting file reporter", event.cause());
-                    }
-                });
+            Future.join(writers.values().stream().map(VertxFileWriter::initialize).toList()).onComplete(event -> {
+                if (event.succeeded()) {
+                    LOGGER.info("File reporter successfully started");
+                } else {
+                    LOGGER.info("An error occurs while starting file reporter", event.cause());
+                }
+            });
         }
     }
 
     @Override
     protected void doStop() {
         if (configuration.isEnabled()) {
-            Future
-                .join(writers.values().stream().map(VertxFileWriter::stop).toList())
-                .onComplete(event -> {
-                    if (event.succeeded()) {
-                        LOGGER.info("File reporter successfully stopped");
-                    } else {
-                        LOGGER.info("An error occurs while stopping file reporter", event.cause());
-                    }
-                });
+            Future.join(writers.values().stream().map(VertxFileWriter::stop).toList()).onComplete(event -> {
+                if (event.succeeded()) {
+                    LOGGER.info("File reporter successfully stopped");
+                } else {
+                    LOGGER.info("An error occurs while stopping file reporter", event.cause());
+                }
+            });
         }
     }
 }

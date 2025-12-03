@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>22.5.1</version>
+		<version>22.6.0</version>
 	</parent>
 
 	<groupId>io.gravitee.reporter</groupId>
@@ -33,12 +33,10 @@
 	<name>Gravitee.io APIM - Reporter - File</name>
 
 	<properties>
-		<gravitee-bom.version>8.3.41</gravitee-bom.version>
 		<gravitee-apim.version>4.10.0-SNAPSHOT</gravitee-apim.version>
 		<gravitee-reporter-common.version>1.12.0</gravitee-reporter-common.version>
 		<gravitee-node.version>4.8.9</gravitee-node.version>
 
-		<maven-plugin-assembly.version>3.7.1</maven-plugin-assembly.version>
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
 	</properties>
@@ -46,13 +44,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<!-- Import bom to properly inherit all dependencies -->
-			<dependency>
-				<groupId>io.gravitee</groupId>
-				<artifactId>gravitee-bom</artifactId>
-				<version>${gravitee-bom.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
 			<dependency>
 				<groupId>io.gravitee.apim</groupId>
 				<artifactId>gravitee-apim-bom</artifactId>
@@ -83,7 +74,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>${maven-plugin-assembly.version}</version>
 				<configuration>
 					<appendAssemblyId>false</appendAssemblyId>
 					<descriptors>

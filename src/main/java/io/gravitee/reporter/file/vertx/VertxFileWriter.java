@@ -116,31 +116,26 @@ public class VertxFileWriter<T extends Reportable> {
 
         int datePattern = configuration.getFilename().toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
         if (datePattern >= 0) {
-            rolloverFiles =
-                Pattern.compile(
-                    String.format(file.getName(), this.type.getType()).replaceFirst(YYYY_MM_DD, "([0-9]{4}_[0-9]{2}_[0-9]{2})")
-                );
+            rolloverFiles = Pattern.compile(
+                String.format(file.getName(), this.type.getType()).replaceFirst(YYYY_MM_DD, "([0-9]{4}_[0-9]{2}_[0-9]{2})")
+            );
         } else {
             rolloverFiles = null;
         }
 
         rollover = new Timer(VertxFileWriter.class.getName(), true);
 
-        flushId =
-            vertx.setPeriodic(
-                configuration.getFlushInterval(),
-                event -> {
-                    LOGGER.debug("Flush the content to file");
+        flushId = vertx.setPeriodic(configuration.getFlushInterval(), event -> {
+            LOGGER.debug("Flush the content to file");
 
-                    if (asyncFile != null) {
-                        asyncFile.flush(event1 -> {
-                            if (event1.failed()) {
-                                LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
-                            }
-                        });
+            if (asyncFile != null) {
+                asyncFile.flush(event1 -> {
+                    if (event1.failed()) {
+                        LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
                     }
-                }
-            );
+                });
+            }
+        });
     }
 
     public Future<Void> initialize() {
@@ -195,34 +190,29 @@ public class VertxFileWriter<T extends Reportable> {
 
                 vertx
                     .fileSystem()
-                    .open(
-                        filename,
-                        options,
-                        event -> {
-                            if (event.succeeded()) {
-                                asyncFile = event.result();
+                    .open(filename, options, event -> {
+                        if (event.succeeded()) {
+                            asyncFile = event.result();
 
-                                if (oldAsyncFile != null) {
-                                    // Now we can close previous file safely
-                                    stop(oldAsyncFile)
-                                        .onComplete(closeEvent -> {
-                                            if (!closeEvent.succeeded()) {
-                                                LOGGER.error(
-                                                    "An error occurs while closing file writer for type[{}]",
-                                                    this.type,
-                                                    closeEvent.cause()
-                                                );
-                                            }
-                                        });
-                                }
-
-                                promise.complete();
-                            } else {
-                                LOGGER.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
-                                promise.fail(event.cause());
+                            if (oldAsyncFile != null) {
+                                // Now we can close previous file safely
+                                stop(oldAsyncFile).onComplete(closeEvent -> {
+                                    if (!closeEvent.succeeded()) {
+                                        LOGGER.error(
+                                            "An error occurs while closing file writer for type[{}]",
+                                            this.type,
+                                            closeEvent.cause()
+                                        );
+                                    }
+                                });
                             }
+
+                            promise.complete();
+                        } else {
+                            LOGGER.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
+                            promise.fail(event.cause());
                         }
-                    );
+                    });
             } catch (IOException ioe) {
                 promise.fail(ioe);
             }
@@ -233,21 +223,18 @@ public class VertxFileWriter<T extends Reportable> {
 
     public void write(T data) {
         if (asyncFile != null && !asyncFile.writeQueueFull()) {
-            vertx.executeBlocking(
-                (Handler<Promise<Buffer>>) event -> {
-                    Buffer buffer = formatter.format(data);
-                    if (buffer != null) {
-                        event.complete(buffer);
-                    } else {
-                        event.fail("Invalid data");
-                    }
-                },
-                event -> {
-                    if (event.succeeded() && !asyncFile.writeQueueFull()) {
-                        asyncFile.write(event.result().appendBytes(END_OF_LINE));
-                    }
+            vertx.executeBlocking((Handler<Promise<Buffer>>) event -> {
+                Buffer buffer = formatter.format(data);
+                if (buffer != null) {
+                    event.complete(buffer);
+                } else {
+                    event.fail("Invalid data");
                 }
-            );
+            }, event -> {
+                if (event.succeeded() && !asyncFile.writeQueueFull()) {
+                    asyncFile.write(event.result().appendBytes(END_OF_LINE));
+                }
+            });
         }
     }
 
@@ -260,18 +247,17 @@ public class VertxFileWriter<T extends Reportable> {
             }
         }
 
-        stop(asyncFile)
-            .onComplete(event -> {
-                // Cancel timer
-                vertx.cancelTimer(flushId);
+        stop(asyncFile).onComplete(event -> {
+            // Cancel timer
+            vertx.cancelTimer(flushId);
 
-                if (event.succeeded()) {
-                    asyncFile = null;
-                    promise.complete();
-                } else {
-                    promise.fail(event.cause());
-                }
-            });
+            if (event.succeeded()) {
+                asyncFile = null;
+                promise.complete();
+            } else {
+                promise.fail(event.cause());
+            }
+        });
 
         return promise.future();
     }
