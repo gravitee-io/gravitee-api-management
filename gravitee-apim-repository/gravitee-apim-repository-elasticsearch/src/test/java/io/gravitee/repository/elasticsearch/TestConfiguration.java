@@ -22,6 +22,7 @@ import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.vertx.core.Vertx;
+import java.time.Duration;
 import java.util.Collections;
 import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
@@ -113,6 +115,9 @@ public class TestConfiguration {
         if (elasticsearchVersion.startsWith("8")) {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }
+        String regex = ".*(\"message\":\\s?\"started[\\s?|\"].*|] started\n$)";
+        elasticsearchContainer.setWaitStrategy(Wait.forLogMessage(regex, 1).withStartupTimeout(Duration.ofSeconds(120)));
+
         return elasticsearchContainer;
     }
 
