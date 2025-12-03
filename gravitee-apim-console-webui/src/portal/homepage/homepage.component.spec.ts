@@ -25,7 +25,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { HomepageComponent } from './homepage.component';
 
-import { GioTestingModule, CONSTANTS_TESTING } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { fakePortalPageWithDetails } from '../../entities/portal/portal-page-with-details.fixture';
 import { PatchPortalPage } from '../../entities/portal/patch-portal-page';
@@ -77,8 +77,17 @@ describe('HomepageComponent', () => {
       return;
     }
 
-    // Respond with a navigation page that references the portalPage content id
-    navReq.flush({ items: [{ id: 'nav-homepage-id', type: 'PAGE', portalPageContentId: portalPage.id }] });
+    // Respond with a navigation page that references the portalPage content id and carries published status
+    navReq.flush({
+      items: [
+        {
+          id: 'nav-homepage-id',
+          type: 'PAGE',
+          portalPageContentId: portalPage.id,
+          published: portalPage.published ?? false,
+        },
+      ],
+    });
 
     // Then the service fetches the portal page content by content id
     httpTestingController
@@ -154,9 +163,8 @@ describe('HomepageComponent', () => {
   });
 
   describe('togglePublish functionality', () => {
-    // TODO: handle publish/unpublish when feature is re-enabled
-    test.skip('should publish an unpublished page after confirmation', async () => {
-      const unpublishedPage = fakePortalPageWithDetails({ published: true });
+    it('should publish an unpublished page after confirmation', async () => {
+      const unpublishedPage = fakePortalPageWithDetails({ published: false });
       await init(true, unpublishedPage);
 
       const toggleButton = await getToggleButton();
@@ -166,12 +174,13 @@ describe('HomepageComponent', () => {
       await confirmDialog();
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_publish`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-homepage-id`,
       });
-
-      const publishedPage = { ...unpublishedPage, published: true };
-      req.flush(publishedPage);
+      // Ensure we are toggling to published
+      expect(req.request.body?.published).toBe(true);
+      // Respond with updated navigation item (service returns navigation item)
+      req.flush({ id: 'nav-homepage-id', type: 'PAGE', portalPageContentId: unpublishedPage.id, published: true });
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been published successfully.');
@@ -184,8 +193,7 @@ describe('HomepageComponent', () => {
       expect(badgeElement?.classList.contains('gio-badge-success')).toBe(true);
     });
 
-    test.skip('should unpublish a published page after confirmation', async () => {
-      // TODO: handle publish/unpublish when feature is re-enabled
+    it('should unpublish a published page after confirmation', async () => {
       const publishedPage = fakePortalPageWithDetails({ published: true });
       await init(true, publishedPage);
 
@@ -197,11 +205,12 @@ describe('HomepageComponent', () => {
       await confirmDialog();
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_unpublish`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-homepage-id`,
       });
-      const unpublishedPage = { ...publishedPage, published: false };
-      req.flush(unpublishedPage);
+      // Ensure we are toggling to unpublished
+      expect(req.request.body?.published).toBe(false);
+      req.flush({ id: 'nav-homepage-id', type: 'PAGE', portalPageContentId: publishedPage.id, published: false });
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been unpublished successfully.');
@@ -228,16 +237,16 @@ describe('HomepageComponent', () => {
       httpTestingController.verify();
     });
 
-    it('should show an error message if unpublishing fails', async () => {
-      await init(true, fakePortalPageWithDetails({ published: true }));
+    it('should show an error message if publishing fails', async () => {
+      await init(true, fakePortalPageWithDetails({ published: false }));
 
       const toggleButton = await getToggleButton();
       await toggleButton.click();
       await confirmDialog();
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_unpublish`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-homepage-id`,
       });
       req.flush({ message: 'API error on publish' }, { status: 500, statusText: 'Server Error' });
 
@@ -252,8 +261,8 @@ describe('HomepageComponent', () => {
       await confirmDialog();
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_unpublish`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-homepage-id`,
       });
       req.flush({ message: 'API error on unpublish' }, { status: 400, statusText: 'Bad Request' });
 
@@ -291,8 +300,8 @@ describe('HomepageComponent', () => {
 
   function expectPortalPageUpdate(expected: PatchPortalPage, response: PortalPageWithDetails) {
     const req = httpTestingController.expectOne({
-      method: 'PATCH',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${response.id}`,
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${response.id}`,
     });
     expect(req.request.body).toStrictEqual(expected);
     req.flush(response);
