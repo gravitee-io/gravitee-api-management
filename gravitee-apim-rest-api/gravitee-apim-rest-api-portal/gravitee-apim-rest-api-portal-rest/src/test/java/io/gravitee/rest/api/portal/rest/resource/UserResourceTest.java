@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -22,7 +23,10 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -213,6 +217,21 @@ public class UserResourceTest extends AbstractResourceTest {
         target().request().put(Entity.json(user));
 
         verify(userService, never()).update(eq(GraviteeContext.getExecutionContext()), any(), any());
+    }
+
+    @Test
+    public void shouldNotUpdateAvatarWhenSvg() {
+        final String svgAvatar =
+            "data:image/svg+xml;base64,PGJyPgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjQgMTI0IiBmaWxsPSJub25lIj4KPHJlY3Qgd2lkdGg9IjEyNCIgaGVpZ2h0PSIxMjQiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgogICA8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCI+ICAKICAgICAgYWxlcnQoZG9jdW1lbnQubG9jYXRpb24pOwogICA8L3NjcmlwdD4KPC9zdmc+";
+        UserInput userInput = new UserInput().id(USER_NAME).avatar(svgAvatar);
+        UserEntity existingUser = new UserEntity();
+        existingUser.setSource("gravitee");
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingUser);
+
+        final Response response = target().request().put(Entity.json(userInput));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        verify(userService, never()).update(any(), any(), any());
     }
 
     @Test
