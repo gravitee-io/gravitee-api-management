@@ -23,7 +23,9 @@ import lombok.Builder;
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.ssl.none.NoneKeyStore} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 @Builder
 public class NoneKeyStore extends KeyStore {
 
