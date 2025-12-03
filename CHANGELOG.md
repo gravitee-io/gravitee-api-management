@@ -1,3 +1,10 @@
+## [7.2.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.2.0...7.2.1) (2025-12-03)
+
+
+### Bug Fixes
+
+* durations must be gauges ([#182](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/issues/182)) ([094c1c3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/094c1c3312e44776b2bbdca48ee55a2614bd4988))
+
 # [7.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.1.1...7.2.0) (2025-12-02)
 
 
