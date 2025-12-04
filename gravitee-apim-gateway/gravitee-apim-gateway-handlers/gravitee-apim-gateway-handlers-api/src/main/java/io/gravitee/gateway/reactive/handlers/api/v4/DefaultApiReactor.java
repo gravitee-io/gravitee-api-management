@@ -83,15 +83,11 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
-import java.net.ConnectException;
-import java.net.NoRouteToHostException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -258,6 +254,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         metrics.setApiId(api.getId());
         metrics.setApiName(api.getName());
         metrics.setApiType(api.getDefinition().getType().getLabel());
+        metrics.setOrganizationId(api.getOrganizationId());
+        metrics.setEnvironmentId(api.getEnvironmentId());
     }
 
     @Override

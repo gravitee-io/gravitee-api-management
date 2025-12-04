@@ -27,14 +27,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.connector.Connector;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.gravitee.reporter.api.v4.metric.NoopMetrics;
 import java.util.List;
@@ -79,6 +82,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             final Connector mockConnector = mock(Connector.class);
             when(mockConnector.id()).thenReturn("fake-connector");
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, mockConnector);
+            ctx.setAttribute(ContextAttributes.ATTR_QUOTA_COUNT, 4L);
+            ctx.setAttribute(ContextAttributes.ATTR_QUOTA_LIMIT, 10L);
 
             // When
             reporterProcessor.execute(ctx).test().assertResult();
@@ -87,6 +92,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             verify(reporterService).report(ctx.metrics());
             assertNull(ctx.metrics().getLog());
             assertThat(ctx.metrics().getEntrypointId()).isEqualTo("fake-connector");
+
+            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
+            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
             verify(reporterService, never()).report(ctx.metrics().getLog());
         }
 
@@ -147,6 +155,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             // Given
             when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.setAttribute(ExecutionContext.ATTR_QUOTA_COUNT, 4L);
+            ctx.setAttribute(ExecutionContext.ATTR_QUOTA_LIMIT, 10L);
 
             // When
             reporterProcessor.execute(ctx).test().assertResult();
@@ -157,6 +167,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             assertNull(ctx.metrics().getLog());
             verify(reporterService, never()).report(any(io.gravitee.reporter.api.log.Log.class));
             verify(reporterService, never()).report(any(Log.class));
+            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
+            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
         }
 
         @Test

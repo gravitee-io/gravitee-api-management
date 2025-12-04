@@ -16,6 +16,12 @@
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -122,6 +128,24 @@ class MetricsAdapterTest {
 
         // Then
         verify(metricsV4).getApiName();
+    }
+
+    @Test
+    void should_delegate_getOrganization_to_metrics_v4() {
+        // When
+        metricsAdapter.getOrganizationId();
+
+        // Then
+        verify(metricsV4).getOrganizationId();
+    }
+
+    @Test
+    void should_delegate_getEnvironmentId_to_metrics_v4() {
+        // When
+        metricsAdapter.getEnvironmentId();
+
+        // Then
+        verify(metricsV4).getEnvironmentId();
     }
 
     @Test
@@ -413,6 +437,24 @@ class MetricsAdapterTest {
     }
 
     @Test
+    void should_delegate_setOrganizationId_to_metrics_v4() {
+        // When
+        metricsAdapter.setOrganizationId(null);
+
+        // Then
+        verify(metricsV4).setOrganizationId(null);
+    }
+
+    @Test
+    void should_delegate_setEnvironmentId_to_metrics_v4() {
+        // When
+        metricsAdapter.setEnvironmentId(null);
+
+        // Then
+        verify(metricsV4).setEnvironmentId(null);
+    }
+
+    @Test
     void should_delegate_setApplication_to_metrics_v4() {
         // When
         metricsAdapter.setApplication(null);
@@ -659,5 +701,86 @@ class MetricsAdapterTest {
 
         // Then
         verify(metricsV4).addCustomMetric(null, null);
+    }
+
+    @Test
+    void should_delegate_setAdditionalMetrics_to_metrics_v4() {
+        // When
+        metricsAdapter.setAdditionalMetrics(null);
+
+        // Then
+        verify(metricsV4).setAdditionalMetrics(null);
+    }
+
+    @Test
+    void should_delegate_getAdditionalMetrics_to_metrics_v4() {
+        // When
+        metricsAdapter.getAdditionalMetrics();
+
+        // Then
+        verify(metricsV4).getAdditionalMetrics();
+    }
+
+    @Test
+    void should_delegate_putLongAdditionalMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalMetric("key", 1L);
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyLong());
+    }
+
+    @Test
+    void should_delegate_putDoubleAdditionalMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalMetric("key", 1.1);
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyDouble());
+    }
+
+    @Test
+    void should_delegate_putStringMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalMetric("key", "keyword");
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyString());
+    }
+
+    @Test
+    void should_delegate_putKeywordMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalKeywordMetric("key", "keyword");
+
+        // Then
+        verify(metricsV4).putAdditionalKeywordMetric(eq("key"), anyString());
+    }
+
+    @Test
+    void should_delegate_putIntMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalMetric("key", 1);
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyInt());
+    }
+
+    @Test
+    void should_delegate_putBooleanMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalMetric("key", true);
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyBoolean());
+    }
+
+    @Test
+    void should_delegate_putJSONMetric_to_metrics_v4() {
+        // When
+        metricsAdapter.putAdditionalJSONMetric("key", "{ \"key\": \"value\"}");
+
+        // Then
+        verify(metricsV4).putAdditionalMetric(eq("key"), anyString());
     }
 }
