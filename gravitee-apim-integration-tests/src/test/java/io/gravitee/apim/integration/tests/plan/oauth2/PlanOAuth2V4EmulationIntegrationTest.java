@@ -66,6 +66,10 @@ import org.mockito.stubbing.OngoingStubbing;
 @DeployApi("/apis/plan/v2-api.json")
 public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
+    protected String scheme() {
+        return "http";
+    }
+
     @Override
     public void configureResources(Map<String, ResourcePlugin> resources) {
         resources.put("mock-oauth2-resource", ResourceBuilder.build("mock-oauth2-resource", MockOAuth2Resource.class));
@@ -166,6 +170,13 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
             })
             .flatMap(response -> {
                 assertThat(response.statusCode()).isEqualTo(401);
+                String wwwAuthenticateHeader = String.format(
+                    "Bearer resource_metadata=\"%s://localhost:%s/%s/.well-known/oauth-protected-resource\"",
+                    scheme(),
+                    httpConfig.httpPort(),
+                    apiId
+                );
+                assertThat(response.headers().get("WWW-Authenticate")).isEqualTo(wwwAuthenticateHeader);
                 return response.rxBody();
             })
             .test()
