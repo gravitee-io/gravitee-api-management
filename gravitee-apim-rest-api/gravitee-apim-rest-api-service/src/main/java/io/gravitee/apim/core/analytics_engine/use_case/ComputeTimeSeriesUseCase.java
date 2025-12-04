@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -59,31 +60,32 @@ public class ComputeTimeSeriesUseCase {
         validator.validateTimeSeriesRequest(input.request);
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
+
+        var metricsContext = new MetricsContext(input.auditInfo);
+        var filteredContext = analyticsQueryFilterDecorator.getFilteredContext(metricsContext, input.request.filters());
+
         var queryContext = queryContextProvider.resolve(input.request);
-        var responses = executeQueries(executionContext, queryContext);
-        return new Output(TimeSeriesResponse.merge(responses));
+
+        var responses = executeQueries(executionContext, filteredContext, queryContext);
+
+        TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
+
+        return new Output(response);
     }
 
     private List<TimeSeriesResponse> executeQueries(
         ExecutionContext executionContext,
+        MetricsContext metricsContext,
         Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
         var responses = new ArrayList<TimeSeriesResponse>();
-        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
 
         queryContext.forEach((queryService, request) -> {
-            var filteredRequest = applyPermissionFilters(request, allowedApis);
-            responses.add(queryService.searchTimeSeries(executionContext, filteredRequest));
+            var filters = new ArrayList<>(request.filters());
+            filters.addAll(metricsContext.filters());
+
+            responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
         });
         return responses;
-    }
-
-    // Updates the request filter to limit metric access based on the user permissions
-    private TimeSeriesRequest applyPermissionFilters(
-        TimeSeriesRequest request,
-        Map<String, AnalyticsQueryFilterDecorator.API> allowedApis
-    ) {
-        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-        return request.withFilters(updatedFilters);
     }
 }
