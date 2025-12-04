@@ -19,14 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
-import io.gravitee.rest.api.portal.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -34,14 +31,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "DEFAULT";
 
-    @Inject
-    private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Override
     protected String contextPath() {
@@ -56,6 +54,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalNavigationItemsQueryService.reset();
     }
 
     @Test
@@ -69,15 +68,10 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             )
         ).thenReturn(true);
 
-        // Setup mock use-case to return fixture items when no parentId is provided
+        // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
-        when(listPortalNavigationItemsUseCase.execute(any())).thenAnswer(invocation -> {
-            var input = invocation.getArgument(0, ListPortalNavigationItemsUseCase.Input.class);
-            if (input != null && input.parentId().isPresent()) {
-                return new ListPortalNavigationItemsUseCase.Output(List.of());
-            }
-            return new ListPortalNavigationItemsUseCase.Output(items);
-        });
+        items.forEach(item -> item.setEnvironmentId(ENV_ID));
+        portalNavigationItemsQueryService.initWith(items);
 
         // When
         Response response = target()
@@ -105,17 +99,12 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             )
         ).thenReturn(true);
 
-        // Setup mock use-case: return empty list when parentId is provided (fixtures have no parent-child relations)
+        // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
-        when(listPortalNavigationItemsUseCase.execute(any())).thenAnswer(invocation -> {
-            var input = invocation.getArgument(0, ListPortalNavigationItemsUseCase.Input.class);
-            if (input != null && input.parentId().isPresent()) {
-                return new ListPortalNavigationItemsUseCase.Output(List.of());
-            }
-            return new ListPortalNavigationItemsUseCase.Output(items);
-        });
+        items.forEach(item -> item.setEnvironmentId(ENV_ID));
+        portalNavigationItemsQueryService.initWith(items);
 
-        // When
+        // When - using a parentId that doesn't exist in the fixtures
         String parentId = PortalNavigationFixtures.randomNavigationId().toString();
         Response response = target()
             .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
@@ -143,27 +132,31 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             )
         ).thenReturn(true);
 
+        // Given
         var publishedItem = PortalNavigationFixtures.page(
             PortalNavigationFixtures.randomNavigationId(),
             "Published Page",
             PortalArea.TOP_NAVBAR,
             PortalNavigationFixtures.randomPageId()
         );
+        publishedItem.setEnvironmentId(ENV_ID);
+        publishedItem.setPublished(true);
+
         var unpublishedItem = PortalNavigationFixtures.link(
             PortalNavigationFixtures.randomNavigationId(),
             "Unpublished Link",
             PortalArea.TOP_NAVBAR,
             "https://example.com"
         );
+        unpublishedItem.setEnvironmentId(ENV_ID);
         unpublishedItem.setPublished(false);
 
         List<PortalNavigationItem> items = List.of(publishedItem, unpublishedItem);
-
-        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+        portalNavigationItemsQueryService.initWith(items);
 
         // When
         Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
             .queryParam("loadChildren", true)
             .request()
             .get();
@@ -187,17 +180,20 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Root Level
         var grandparentId = PortalNavigationFixtures.randomNavigationId();
         var grandparent = PortalNavigationFixtures.folder(grandparentId, "Grandparent (Pub)", PortalArea.TOP_NAVBAR);
+        grandparent.setEnvironmentId(ENV_ID);
         grandparent.setPublished(true);
 
         // Level 1: Unpublished Parent (Child of Grandparent)
         var parentId = PortalNavigationFixtures.randomNavigationId();
         var parent = PortalNavigationFixtures.folder(parentId, "Parent (Unpub)", PortalArea.TOP_NAVBAR);
+        parent.setEnvironmentId(ENV_ID);
         parent.setParentId(grandparentId);
         parent.setPublished(false);
 
         // Level 1: Published Sibling (Child of Grandparent)
         var siblingId = PortalNavigationFixtures.randomNavigationId();
         var sibling = PortalNavigationFixtures.link(siblingId, "Sibling (Pub)", PortalArea.TOP_NAVBAR, "https://example.com");
+        sibling.setEnvironmentId(ENV_ID);
         sibling.setParentId(grandparentId);
         sibling.setPublished(true);
 
@@ -208,6 +204,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             PortalArea.TOP_NAVBAR,
             PortalNavigationFixtures.randomPageId()
         );
+        child1.setEnvironmentId(ENV_ID);
         child1.setParentId(parentId);
         child1.setPublished(true);
 
@@ -217,12 +214,12 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             PortalArea.TOP_NAVBAR,
             PortalNavigationFixtures.randomPageId()
         );
+        child2.setEnvironmentId(ENV_ID);
         child2.setParentId(parentId);
         child2.setPublished(true);
 
         List<PortalNavigationItem> items = List.of(grandparent, parent, sibling, child1, child2);
-
-        when(listPortalNavigationItemsUseCase.execute(any())).thenReturn(new ListPortalNavigationItemsUseCase.Output(items));
+        portalNavigationItemsQueryService.initWith(items);
 
         // When
         Response response = target().queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
