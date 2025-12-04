@@ -16,13 +16,16 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -33,37 +36,93 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationItemVisibilityDomainService visibilityService;
     private static final Predicate<PortalNavigationItem> IS_FOLDER_PREDICATE = i -> i instanceof PortalNavigationFolder;
 
     public Output execute(Input input) {
-        var directItems = input
-            .parentId()
-            .map(parentId -> queryService.findByParentIdAndEnvironmentId(input.environmentId(), parentId))
-            .orElse(queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(input.environmentId(), input.portalArea()));
-
-        var items = new ArrayList<>(directItems);
-
-        if (!input.loadChildren()) {
-            return new Output(ordered(items));
+        PortalNavigationItem parentItem;
+        if (input.parentId().isPresent()) {
+            parentItem = findAndValidateParent(input);
+            if (parentItem == null) {
+                return new Output(List.of());
+            }
         }
 
-        var queue = new ArrayList<>(items.stream().filter(IS_FOLDER_PREDICATE).toList());
+        List<PortalNavigationItem> rootItems = searchItems(input, input.parentId().orElse(null), input.parentId().isEmpty());
 
-        while (!queue.isEmpty()) {
-            var current = queue.removeFirst();
-            var children = queryService.findByParentIdAndEnvironmentId(current.getEnvironmentId(), current.getId());
-            items.addAll(children);
-            queue.addAll(children.stream().filter(IS_FOLDER_PREDICATE).toList());
+        List<PortalNavigationItem> allItems = new ArrayList<>(rootItems);
+
+        if (input.loadChildren()) {
+            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input);
+            allItems.addAll(descendants);
         }
 
-        return new Output(ordered(items));
+        return new Output(sortItems(allItems));
     }
 
-    private List<PortalNavigationItem> ordered(List<PortalNavigationItem> items) {
+    private PortalNavigationItem findAndValidateParent(Input input) {
+        var parent = queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId().get());
+
+        if (parent == null) {
+            return null;
+        }
+
+        if (input.onlyVisibleInPortal() && visibilityService.isNotVisibleInPortal(parent)) {
+            return null;
+        }
+
+        return parent;
+    }
+
+    /**
+     * Loads children recursively.
+     * Prunes children by discarding if a child is found but deemed "not visible".
+     */
+    private List<PortalNavigationItem> loadDescendants(List<PortalNavigationItem> initialItems, Input input) {
+        List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
+        LinkedList<PortalNavigationItem> queue = new LinkedList<>();
+
+        initialItems.stream().filter(IS_FOLDER_PREDICATE).forEach(queue::add);
+
+        while (!queue.isEmpty()) {
+            var currentFolder = queue.removeFirst();
+
+            var foundChildren = searchItems(input, currentFolder.getId(), false);
+
+            if (!foundChildren.isEmpty()) {
+                childrenAccumulator.addAll(foundChildren);
+
+                foundChildren.stream().filter(IS_FOLDER_PREDICATE).forEach(queue::add);
+            }
+        }
+        return childrenAccumulator;
+    }
+
+    private List<PortalNavigationItem> searchItems(Input input, PortalNavigationItemId parentId, boolean isRootSearch) {
+        var builder = PortalNavigationItemQueryCriteria.builder()
+            .environmentId(input.environmentId())
+            .area(input.portalArea())
+            .parentId(parentId)
+            .root(isRootSearch);
+
+        if (input.onlyVisibleInPortal()) {
+            builder.published(true);
+        }
+
+        return queryService.search(builder.build());
+    }
+
+    private List<PortalNavigationItem> sortItems(List<PortalNavigationItem> items) {
         return items.stream().sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder()).toList();
     }
 
     public record Output(List<PortalNavigationItem> items) {}
 
-    public record Input(String environmentId, PortalArea portalArea, Optional<PortalNavigationItemId> parentId, boolean loadChildren) {}
+    public record Input(
+        String environmentId,
+        PortalArea portalArea,
+        Optional<PortalNavigationItemId> parentId,
+        boolean loadChildren,
+        boolean onlyVisibleInPortal
+    ) {}
 }

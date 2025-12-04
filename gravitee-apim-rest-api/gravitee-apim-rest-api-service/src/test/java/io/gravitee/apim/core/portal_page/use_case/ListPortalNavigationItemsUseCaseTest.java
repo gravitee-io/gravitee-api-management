@@ -17,12 +17,15 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -35,11 +38,13 @@ class ListPortalNavigationItemsUseCaseTest {
     private static final String ENV_ID = "env-id";
 
     private ListPortalNavigationItemsUseCase useCase;
+    private PortalNavigationItemsQueryServiceInMemory queryService;
 
     @BeforeEach
     void setUp() {
-        PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
-        useCase = new ListPortalNavigationItemsUseCase(queryService);
+        queryService = new PortalNavigationItemsQueryServiceInMemory();
+        PortalNavigationItemVisibilityDomainService visibilityDomainService = new PortalNavigationItemVisibilityDomainService();
+        useCase = new ListPortalNavigationItemsUseCase(queryService, visibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -50,7 +55,9 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data for APIs, Guides, Support
 
         // When
-        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true));
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true, false)
+        );
 
         // Then
         assertThat(result.items())
@@ -70,6 +77,7 @@ class ListPortalNavigationItemsUseCaseTest {
                 ENV_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
+                false,
                 false
             )
         );
@@ -88,7 +96,13 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // When
         var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(PortalNavigationItemId.of(APIS_ID)), true)
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(PortalNavigationItemId.of(APIS_ID)),
+                true,
+                false
+            )
         );
 
         // Then
@@ -96,5 +110,180 @@ class ListPortalNavigationItemsUseCaseTest {
             .hasSize(5)
             .extracting(PortalNavigationItem::getTitle)
             .containsExactly("Overview", "Getting Started", "Category1", "page11", "page12");
+    }
+
+    @Test
+    void should_only_return_valid_published_items_if_only_visible_in_portal_is_true() {
+        // Given
+        // Setup data
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true, true)
+        );
+
+        // Then
+        assertThat(result.items())
+            .hasSize(8)
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "page12");
+    }
+
+    @Test
+    void should_not_return_published_item_if_parent_is_unpublished_when_parent_id_null() {
+        // Given
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        unpublishedFolder.setPublished(false);
+
+        var publishedChildPage = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemId.random().toString(),
+            "Published Child Page",
+            unpublishedFolder.getId()
+        );
+        publishedChildPage.setPublished(true);
+
+        queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true, true)
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(0);
+    }
+
+    @Test
+    void should_not_return_published_child_when_parent_is_unpublished_and_parent_id_is_defined() {
+        // Given
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        unpublishedFolder.setPublished(false);
+
+        var publishedChildPage = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemId.random().toString(),
+            "Published Child Page",
+            unpublishedFolder.getId()
+        );
+        publishedChildPage.setPublished(true);
+
+        queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(unpublishedFolder.getId()), true, true)
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(0);
+    }
+
+    @Test
+    void should_return_published_children_when_parent_is_published_and_parent_id_is_defined() {
+        // Given
+        var publishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Published Folder");
+        publishedFolder.setPublished(true);
+
+        var publishedChildPage = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemId.random().toString(),
+            "Published Child Page",
+            publishedFolder.getId()
+        );
+        publishedChildPage.setPublished(true);
+
+        queryService.initWith(List.of(publishedFolder, publishedChildPage));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(publishedFolder.getId()), true, true)
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Published Child Page");
+    }
+
+    @Test
+    void should_empty_list_when_parent_id_defined_but_not_found() {
+        // Given
+        // Setup data
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(PortalNavigationItemId.random()),
+                true,
+                false
+            )
+        );
+
+        // Then
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_list_when_parent_is_found_and_not_visible_in_portal() {
+        // Given
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        unpublishedFolder.setPublished(false);
+
+        var publishedChildPage = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemId.random().toString(),
+            "Published Child Page",
+            unpublishedFolder.getId()
+        );
+
+        queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.of(unpublishedFolder.getId()), true, true)
+        );
+
+        // Then
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_return_only_published_items_when_load_children_false_and_only_visible_in_portal_true() {
+        // Given
+        // Setup data for APIs, Guides, Support
+        var unpublishedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Unpublished Page", null);
+        unpublishedPage.setPublished(false);
+
+        var publishedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Published Page", null);
+        publishedPage.setPublished(true);
+
+        queryService.initWith(List.of(unpublishedPage, publishedPage));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), false, true)
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Published Page");
+    }
+
+    @Test
+    void should_only_return_nav_bar_items_when_area_is_top_navbar() {
+        // Given
+        // Setup data for APIs, Guides, Support
+        var homePageItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Home Page Item", null);
+        homePageItem.setArea(PortalArea.HOMEPAGE);
+        homePageItem.setPublished(true);
+
+        var navBarItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Nav Bar Item", null);
+        navBarItem.setArea(PortalArea.TOP_NAVBAR);
+
+        queryService.initWith(List.of(homePageItem, navBarItem));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(ENV_ID, PortalArea.TOP_NAVBAR, Optional.empty(), true, false)
+        );
+
+        // Then
+        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Nav Bar Item");
     }
 }
