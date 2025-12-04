@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.11.0...1.12.0) (2025-12-04)
+
+
+### Features
+
+* add envId, orgId and additionalMetrics ([0575df7](https://github.com/gravitee-io/gravitee-reporter-common/commit/0575df7ebd8efc31462bf171587cedd8ccf92be8))
+
 # [1.11.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.10.0...1.11.0) (2025-12-04)
 
 
