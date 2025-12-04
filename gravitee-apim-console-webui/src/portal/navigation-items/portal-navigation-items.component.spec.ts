@@ -300,7 +300,7 @@ describe('PortalNavigationItemsComponent', () => {
       await dialog.clickSubmitButton();
       fixture.detectChanges();
 
-      await expectPutPortalNavigationItem(
+      expectPutPortalNavigationItem(
         linkData.id,
         {
           title: 'Updated Link',
@@ -308,6 +308,7 @@ describe('PortalNavigationItemsComponent', () => {
           parentId: linkData.parentId,
           order: linkData.order,
           url: 'https://new.com',
+          published: linkData.published,
         },
         fakePortalNavigationLink({ id: linkData.id, title: 'Updated Link', url: 'https://new.com', area: linkData.area, type: 'LINK' }),
       );
