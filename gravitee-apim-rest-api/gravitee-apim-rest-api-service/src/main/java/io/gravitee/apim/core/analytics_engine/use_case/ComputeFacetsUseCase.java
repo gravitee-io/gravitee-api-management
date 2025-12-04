@@ -20,11 +20,11 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilte
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,32 +56,35 @@ public class ComputeFacetsUseCase {
 
     public record Output(FacetsResponse response) {}
 
-    public ComputeFacetsUseCase.Output execute(ComputeFacetsUseCase.Input input) {
+    public ComputeFacetsUseCase.Output execute(Input input) {
         validator.validateFacetsRequest(input.request);
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
+
+        var metricsContext = new MetricsContext(input.auditInfo);
+        var filteredContext = analyticsQueryFilterDecorator.getFilteredContext(metricsContext, input.request.filters());
+
         var queryContext = queryContextProvider.resolve(input.request);
-        var responses = executeQueries(executionContext, queryContext);
-        return new ComputeFacetsUseCase.Output(FacetsResponse.merge(responses));
+
+        var responses = executeQueries(executionContext, filteredContext, queryContext);
+
+        var response = FacetsResponse.merge(responses);
+
+        return new ComputeFacetsUseCase.Output(response);
     }
 
     private List<FacetsResponse> executeQueries(
         ExecutionContext executionContext,
+        MetricsContext metricsContext,
         Map<AnalyticsEngineQueryService, FacetsRequest> queryContext
     ) {
         var responses = new ArrayList<FacetsResponse>();
-        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
-
         queryContext.forEach((queryService, request) -> {
-            var filteredRequest = applyPermissionFilters(request, allowedApis);
-            responses.add(queryService.searchFacets(executionContext, filteredRequest));
+            var filters = new ArrayList<>(request.filters());
+            filters.addAll(metricsContext.filters());
+
+            responses.add(queryService.searchFacets(executionContext, request.withFilters(filters)));
         });
         return responses;
-    }
-
-    // Updates the request filter to limit metric access based on the user permissions
-    private FacetsRequest applyPermissionFilters(FacetsRequest request, Map<String, AnalyticsQueryFilterDecorator.API> allowedApis) {
-        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-        return request.withFilters(updatedFilters);
     }
 }
