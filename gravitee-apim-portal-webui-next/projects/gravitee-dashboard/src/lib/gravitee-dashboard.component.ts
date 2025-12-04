@@ -17,7 +17,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import moment from 'moment';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { combineLatest, map, of, startWith, switchMap, take } from 'rxjs';
 
 import { Filter, GenericFilterBarComponent, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
 import { timeFrames, timeFrameRangesParams, calculateCustomInterval } from './components/filter/timeframe-selector/utils/timeframe-ranges';
@@ -35,13 +35,14 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
     <gd-generic-filter-bar
       [filters]="filters()"
       [currentSelectedFilters]="currentSelectedFilters()"
-      (selectedFilters)="onSelectedFilters($event)" />
+      (selectedFilters)="onSelectedFilters($event)"
+      class="filterBar" />
 
     <gd-grid [items]="dashboardWidgets()" />
   </div>`,
   styles: `
-    .container {
-      margin: 18px;
+    .filterBar {
+      margin: 15px;
     }
   `,
 })
@@ -61,8 +62,12 @@ export class GraviteeDashboardComponent {
   readonly dashboardWidgets = toSignal(
     toObservable(this.widgetsWithFilters).pipe(
       switchMap(widgets => {
-        const loadObservables = widgets.map(w => this.loadWidgetData(w));
-        return forkJoin(loadObservables);
+        if (widgets.length === 0) {
+          return of([]);
+        }
+
+        const widgetObservables = widgets.map(widget => this.loadWidgetData(widget).pipe(startWith(widget), take(2)));
+        return combineLatest(widgetObservables);
       }),
     ),
     { initialValue: [] as Widget[] },
@@ -109,7 +114,7 @@ export class GraviteeDashboardComponent {
 
     return this.dashboardService
       .getMetrics(this.baseURL(), widget.request.type, widget.request)
-      .pipe(map(response => ({ ...widget, response } satisfies Widget)));
+      .pipe(map(response => ({ ...widget, response }) satisfies Widget));
   }
 
   private getUpdatedWidgetsWithFilters(widgets: Widget[], selectedFilters: SelectedFilter[]): Widget[] {

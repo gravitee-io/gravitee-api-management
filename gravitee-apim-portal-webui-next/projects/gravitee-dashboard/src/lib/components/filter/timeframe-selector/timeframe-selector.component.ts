@@ -83,7 +83,10 @@ export class TimeframeSelectorComponent implements ControlValueAccessor {
   private onChange: (value: TimeframeValue) => void = () => {};
   private onTouched: () => void = () => {};
 
-  constructor(private readonly fb: FormBuilder, private readonly destroyRef: DestroyRef) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly destroyRef: DestroyRef,
+  ) {
     this.form = this.fb.group(
       {
         period: this.fb.control<string>(this.defaultPeriod(), { nonNullable: true }),
