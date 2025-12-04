@@ -253,6 +253,7 @@ export class PortalNavigationItemsComponent {
               type: existingItem.type,
               parentId: existingItem.parentId,
               order: existingItem.order,
+              published: existingItem.published,
               ...result,
             });
           }
