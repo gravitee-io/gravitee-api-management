@@ -44,6 +44,7 @@ class CsvFormatterTest extends AbstractFormatterTest {
       "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
       "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
       "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, csv/v4/event-metrics.csv",
+      "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, csv/v4/operation-event-metrics.csv",
     }
   )
   @ParameterizedTest(name = "{0}")

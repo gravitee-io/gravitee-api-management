@@ -527,7 +527,7 @@ public class ElasticsearchFormatter<T extends Reportable>
   }
 
   @FunctionalInterface
-  interface ReportableFormatter<T> {
+  private interface ReportableFormatter<T> {
     Buffer format(T reportable, Map<String, Object> esOptions);
   }
 

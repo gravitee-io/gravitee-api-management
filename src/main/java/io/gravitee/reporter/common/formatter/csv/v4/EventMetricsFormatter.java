@@ -16,78 +16,36 @@
 package io.gravitee.reporter.common.formatter.csv.v4;
 
 import io.gravitee.reporter.api.v4.metric.EventMetrics;
-import io.gravitee.reporter.common.formatter.csv.SingleValueFormatter;
 import io.vertx.core.buffer.Buffer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class EventMetricsFormatter extends SingleValueFormatter<EventMetrics> {
+public class EventMetricsFormatter
+  extends BaseEventMetricsFormatter<EventMetrics> {
 
   @Override
   protected Buffer format0(EventMetrics data) {
-    final Buffer buffer = Buffer.buffer();
-    appendLong(buffer, data.getTimestamp());
-
-    // Append base dimensions
-    appendString(buffer, data.getGatewayId());
-    appendString(buffer, data.getOrganizationId());
-    appendString(buffer, data.getEnvironmentId());
-    appendString(buffer, data.getApiId());
-    appendString(buffer, data.getPlanId());
-    appendString(buffer, data.getApplicationId());
+    final Buffer buffer = super.format0(data);
     appendString(buffer, data.getTopic());
 
-    //Append metrics
-    Number downstreamPublishMessagesTotal =
-      data.getDownstreamPublishMessagesTotal();
-    appendLong(buffer, getValue(downstreamPublishMessagesTotal));
-    Number downstreamPublishMessageBytes =
-      data.getDownstreamPublishMessageBytes();
-    appendLong(buffer, getValue(downstreamPublishMessageBytes));
-    Number upstreamPublishMessagesTotal =
-      data.getUpstreamPublishMessagesTotal();
-    appendLong(buffer, getValue(upstreamPublishMessagesTotal));
-    Number upstreamPublishMessageBytes = data.getUpstreamPublishMessageBytes();
-    appendLong(buffer, getValue(upstreamPublishMessageBytes));
-    Number downstreamSubscribeMessagesTotal =
-      data.getDownstreamSubscribeMessagesTotal();
-    appendLong(buffer, getValue(downstreamSubscribeMessagesTotal));
-    Number downstreamSubscribeMessageBytes =
-      data.getDownstreamSubscribeMessageBytes();
-    appendLong(buffer, getValue(downstreamSubscribeMessageBytes));
-    Number upstreamSubscribeMessagesTotal =
-      data.getUpstreamSubscribeMessagesTotal();
-    appendLong(buffer, getValue(upstreamSubscribeMessagesTotal));
-    Number upstreamSubscribeMessageBytes =
-      data.getUpstreamSubscribeMessageBytes();
-    appendLong(buffer, getValue(upstreamSubscribeMessageBytes));
-    Number downstreamActiveConnections = data.getDownstreamActiveConnections();
-    appendLong(buffer, getValue(downstreamActiveConnections));
-    Number upstreamActiveConnections = data.getUpstreamActiveConnections();
-    appendLong(buffer, getValue(upstreamActiveConnections));
-    Number upstreamAuthenticatedConnections =
-      data.getUpstreamAuthenticatedConnections();
-    appendLong(buffer, getValue(upstreamAuthenticatedConnections));
-    Number downstreamAuthenticatedConnections =
-      data.getDownstreamAuthenticatedConnections();
-    appendLong(buffer, getValue(downstreamAuthenticatedConnections));
-    Number downstreamAuthenticationFailuresTotal =
-      data.getDownstreamAuthenticationFailuresTotal();
-    appendLong(buffer, getValue(downstreamAuthenticationFailuresTotal));
-    Number upstreamAuthenticationFailuresTotal =
-      data.getUpstreamAuthenticationFailuresTotal();
-    appendLong(buffer, getValue(upstreamAuthenticationFailuresTotal));
-    Number downstreamAuthorizationSuccessesTotal =
-      data.getDownstreamAuthorizationSuccessesTotal();
-    appendLong(buffer, getValue(downstreamAuthorizationSuccessesTotal));
-    Number upstreamAuthorizationSuccessesTotal =
-      data.getUpstreamAuthorizationSuccessesTotal();
-    appendLong(buffer, getValue(upstreamAuthorizationSuccessesTotal));
+    //Append event metrics
+    appendLong(buffer, data.getDownstreamPublishMessagesTotal());
+    appendLong(buffer, data.getDownstreamPublishMessageBytes());
+    appendLong(buffer, data.getUpstreamPublishMessagesTotal());
+    appendLong(buffer, data.getUpstreamPublishMessageBytes());
+    appendLong(buffer, data.getDownstreamSubscribeMessagesTotal());
+    appendLong(buffer, data.getDownstreamSubscribeMessageBytes());
+    appendLong(buffer, data.getUpstreamSubscribeMessagesTotal());
+    appendLong(buffer, data.getUpstreamSubscribeMessageBytes());
+    appendLong(buffer, data.getDownstreamActiveConnections());
+    appendLong(buffer, data.getUpstreamActiveConnections());
+    appendLong(buffer, data.getUpstreamAuthenticatedConnections());
+    appendLong(buffer, data.getDownstreamAuthenticatedConnections());
+    appendLong(buffer, data.getDownstreamAuthenticationFailuresTotal());
+    appendLong(buffer, data.getUpstreamAuthenticationFailuresTotal());
+    appendLong(buffer, data.getDownstreamAuthorizationSuccessesTotal());
+    appendLong(buffer, data.getUpstreamAuthorizationSuccessesTotal());
 
     return buffer;
-  }
-
-  private static long getValue(Number number) {
-    return number != null ? number.longValue() : 0;
   }
 }
