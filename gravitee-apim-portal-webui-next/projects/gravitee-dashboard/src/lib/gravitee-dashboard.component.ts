@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import moment from 'moment';
@@ -36,6 +36,7 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
       [filters]="filters()"
       [currentSelectedFilters]="currentSelectedFilters()"
       (selectedFilters)="onSelectedFilters($event)"
+      (refresh)="onRefresh()"
       class="filterBar" />
 
     <gd-grid [items]="dashboardWidgets()" />
@@ -54,8 +55,10 @@ export class GraviteeDashboardComponent {
   currentSelectedFilters = toSignal(this.activatedRoute.queryParams.pipe(map(params => this.getSelectedFiltersFromQueryParams(params))), {
     initialValue: [] as SelectedFilter[],
   });
+  private readonly refreshTrigger = signal(0);
 
   readonly widgetsWithFilters = computed(() => {
+    this.refreshTrigger();
     return this.getUpdatedWidgetsWithFilters(this.widgetConfigs(), this.currentSelectedFilters());
   });
 
@@ -109,12 +112,16 @@ export class GraviteeDashboardComponent {
     });
   }
 
+  onRefresh(): void {
+    this.refreshTrigger.update(value => value + 1);
+  }
+
   private loadWidgetData(widget: Widget) {
     if (!widget.request) return of(widget);
 
     return this.dashboardService
       .getMetrics(this.baseURL(), widget.request.type, widget.request)
-      .pipe(map(response => ({ ...widget, response }) satisfies Widget));
+      .pipe(map(response => ({ ...widget, response } satisfies Widget)));
   }
 
   private getUpdatedWidgetsWithFilters(widgets: Widget[], selectedFilters: SelectedFilter[]): Widget[] {
