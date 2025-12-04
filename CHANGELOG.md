@@ -1,3 +1,15 @@
+# [7.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.2.1...7.3.0) (2025-12-04)
+
+
+### Bug Fixes
+
+* elastic template path ([d87e2d7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/d87e2d7f59bbd8d6e4934825e60259af8f278525))
+
+
+### Features
+
+* add metrics for AE in cloud ([fc6c962](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/fc6c9624783196a29c37104834cf6cfb32545a4b))
+
 ## [7.2.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.2.0...7.2.1) (2025-12-03)
 
 
