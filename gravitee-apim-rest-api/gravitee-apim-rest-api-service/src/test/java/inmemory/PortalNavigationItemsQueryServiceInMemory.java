@@ -18,9 +18,11 @@ package inmemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class PortalNavigationItemsQueryServiceInMemory
     implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
@@ -52,6 +54,29 @@ public class PortalNavigationItemsQueryServiceInMemory
                 item ->
                     environmentId.equals(item.getEnvironmentId()) &&
                     (parentId == null ? item.getParentId() == null : parentId.equals(item.getParentId()))
+            )
+            .toList();
+    }
+
+    @Override
+    public List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria) {
+        Predicate<PortalNavigationItem> PARENT_ID_FILTER = i -> {
+            if (criteria.getParentId() == null && criteria.getRoot()) {
+                return i.getParentId() == null;
+            } else if (criteria.getParentId() != null) {
+                return criteria.getParentId().equals(i.getParentId());
+            }
+            return true;
+        };
+
+        return storage
+            .stream()
+            .filter(
+                item ->
+                    (criteria.getEnvironmentId() == null || criteria.getEnvironmentId().equals(item.getEnvironmentId())) &&
+                    (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
+                    (PARENT_ID_FILTER.test(item)) &&
+                    (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished()))
             )
             .toList();
     }
