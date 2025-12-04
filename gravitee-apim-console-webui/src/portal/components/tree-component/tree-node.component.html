@@ -17,6 +17,7 @@
 -->
 <div
   class="tree__row"
+  [class.unpublished]="node().data?.published === false"
   role="treeitem"
   tabindex="0"
   [class.selected]="isSelected()"
@@ -49,6 +50,10 @@
   />
 
   <span class="tree__label">{{ node().label }}</span>
+
+  @if (node().data?.published === false) {
+    <mat-icon class="tree__icon tree__icon__status" svgIcon="gio:eye-off" aria-hidden="true" [attr.data-test-icon]="'eye-off'" />
+  }
 
   <button
     type="button"

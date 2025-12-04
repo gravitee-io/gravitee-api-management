@@ -48,6 +48,21 @@ $indent-step: 26px;
         visibility: visible;
       }
     }
+
+    &.unpublished:not(.selected) {
+      .tree__icon__type,
+      .tree__label,
+      .tree__icon__status {
+        color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
+        fill: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
+      }
+
+      .tree__button.more-actions,
+      .tree__button.more-actions mat-icon {
+        color: initial;
+        fill: initial;
+      }
+    }
   }
 
   &__button {
