@@ -131,28 +131,23 @@ class HttpPolicyChainTest {
         final MutableResponse response = mock(MutableResponse.class);
         final DefaultExecutionContext ctx = new DefaultExecutionContext(request, response);
 
-        ctx.addActionOnResponse(onActionResponse);
-        ctx.addActionOnResponse(onActionResponse2);
+        ctx.addActionOnResponse(httpPolicy1, onActionResponse);
+        ctx.addActionOnResponse(httpPolicy2, onActionResponse2);
 
         when(onActionResponse.apply(ctx)).thenReturn(Completable.complete());
         when(onActionResponse2.apply(ctx)).thenReturn(Completable.complete());
 
         final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
 
-        when(httpPolicy1.onResponse(ctx)).thenReturn(Completable.complete());
-        when(httpPolicy2.onResponse(ctx)).thenReturn(Completable.complete());
-
         // Act
-        final TestObserver<Void> obs = httpPolicyChain.execute(ctx).test();
+        final TestObserver<Void> obs = httpPolicyChain.executeActionsOnResponse(ctx).test();
         obs.assertComplete();
 
         // Assert
-        InOrder inOrder = inOrder(onActionResponse, onActionResponse2, httpPolicy1, httpPolicy2);
+        InOrder inOrder = inOrder(onActionResponse, onActionResponse2);
 
         inOrder.verify(onActionResponse2).apply(ctx);
         inOrder.verify(onActionResponse).apply(ctx);
-        inOrder.verify(httpPolicy1).onResponse(ctx);
-        inOrder.verify(httpPolicy2).onResponse(ctx);
     }
 
     @Test
@@ -164,7 +159,7 @@ class HttpPolicyChainTest {
         final MutableResponse response = mock(MutableResponse.class);
         final DefaultExecutionContext ctx = new DefaultExecutionContext(request, response);
 
-        ctx.addActionOnResponse(onActionResponse);
+        ctx.addActionOnResponse(httpPolicy1, onActionResponse);
 
         final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
@@ -202,32 +197,5 @@ class HttpPolicyChainTest {
         // Assert
         verify(httpPolicy1).onRequest(ctx);
         verify(httpPolicy2, never()).onRequest(ctx);
-    }
-
-    @Test
-    void should_interrupt_with_on_response_action_in_error() {
-        // Arrange
-        final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
-        final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
-        final MutableRequest request = mock(MutableRequest.class);
-        final MutableResponse response = mock(MutableResponse.class);
-        final DefaultExecutionContext ctx = new DefaultExecutionContext(request, response);
-
-        ctx.addActionOnResponse(onActionResponse);
-        when(onActionResponse.apply(ctx)).thenReturn(Completable.error(new RuntimeException("action failed")));
-
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
-
-        // Act
-        final TestObserver<Void> obs = httpPolicyChain.execute(ctx).test();
-        obs
-            .assertError(RuntimeException.class)
-            .assertError(t -> "action failed".equals(t.getMessage()))
-            .assertFailure(RuntimeException.class);
-
-        // Assert
-        verify(onActionResponse).apply(ctx);
-        verify(httpPolicy1, never()).onResponse(ctx);
-        verify(httpPolicy2, never()).onResponse(ctx);
     }
 }
