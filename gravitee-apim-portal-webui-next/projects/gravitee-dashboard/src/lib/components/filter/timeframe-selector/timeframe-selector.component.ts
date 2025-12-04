@@ -65,6 +65,7 @@ export interface TimeframeValue {
 export class TimeframeSelectorComponent implements ControlValueAccessor {
   timeFrames = input.required<{ id: string; label: string }[]>();
   customPeriod = input<string>('custom');
+  defaultPeriod = input<string>('1h');
 
   apply = output<void>();
   refresh = output<void>();
@@ -82,13 +83,10 @@ export class TimeframeSelectorComponent implements ControlValueAccessor {
   private onChange: (value: TimeframeValue) => void = () => {};
   private onTouched: () => void = () => {};
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  constructor(private readonly fb: FormBuilder, private readonly destroyRef: DestroyRef) {
     this.form = this.fb.group(
       {
-        period: this.fb.control<string>('', { nonNullable: true }),
+        period: this.fb.control<string>(this.defaultPeriod(), { nonNullable: true }),
         from: this.fb.control<Moment | null>(null),
         to: this.fb.control<Moment | null>(null),
       },
@@ -106,8 +104,8 @@ export class TimeframeSelectorComponent implements ControlValueAccessor {
   }
 
   writeValue(obj: TimeframeValue | null): void {
-    const val: TimeframeValue = obj ?? { period: '', from: null, to: null };
-    this.form.setValue({ period: val.period ?? '', from: val.from ?? null, to: val.to ?? null }, { emitEvent: false });
+    const val: TimeframeValue = obj ?? { period: this.defaultPeriod(), from: null, to: null };
+    this.form.setValue({ period: val.period ?? this.defaultPeriod(), from: val.from ?? null, to: val.to ?? null }, { emitEvent: false });
     this.minDate = val.from ?? null;
   }
 

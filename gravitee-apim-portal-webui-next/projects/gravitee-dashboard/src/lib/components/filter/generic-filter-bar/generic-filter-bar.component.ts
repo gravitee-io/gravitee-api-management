@@ -54,8 +54,8 @@ export interface TimeframeValue {
 })
 export class GenericFilterBarComponent implements OnInit {
   filters = input.required<Filter[]>();
-
   currentSelectedFilters = input.required<SelectedFilter[]>();
+  defaultPeriod = input<string>('1h');
 
   selectedFilters = output<SelectedFilter[]>();
   refresh = output<void>();
@@ -66,7 +66,7 @@ export class GenericFilterBarComponent implements OnInit {
   protected readonly customPeriodKey = 'custom';
 
   constructor() {
-    this.form.addControl('period', new FormControl<TimeframeValue | null>(null));
+    this.form.addControl('period', new FormControl<TimeframeValue | null>({ period: this.defaultPeriod(), from: null, to: null }));
 
     effect(() => {
       this.filters().forEach(filter => {
@@ -106,11 +106,23 @@ export class GenericFilterBarComponent implements OnInit {
         };
 
         this.form.get('period')?.setValue(tfValue, { emitEvent: false });
+      } else {
+        const control = this.form.get('period');
+        if (control) {
+          const currentValue = control.value as TimeframeValue | null;
+          if (!currentValue || !currentValue.period) {
+            control.setValue({ period: this.defaultPeriod(), from: null, to: null }, { emitEvent: false });
+          }
+        }
       }
     });
   }
 
   ngOnInit(): void {
+    if (this.currentSelectedFilters().length === 0) {
+      this.selectedFilters.emit([{ parentKey: 'period', value: this.defaultPeriod() }]);
+    }
+
     this.form.valueChanges
       .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
       .subscribe(formValues => {
