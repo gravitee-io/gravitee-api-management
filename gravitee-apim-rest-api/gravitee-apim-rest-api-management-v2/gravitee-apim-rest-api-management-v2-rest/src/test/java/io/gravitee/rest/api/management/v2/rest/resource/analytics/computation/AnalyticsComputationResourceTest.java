@@ -17,10 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.computation;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.AnalyticsEngineFixtures.*;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
@@ -70,6 +73,9 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
     @Autowired
     AnalyticsRepository analyticsRepository;
+
+    @Autowired
+    NamesPostprocessor namesPostprocessor;
 
     @Override
     protected String contextPath() {
@@ -184,6 +190,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+
+            when(
+                namesPostprocessor.mapNames(any(), any(), any(io.gravitee.apim.core.analytics_engine.model.FacetsResponse.class))
+            ).thenAnswer(invocation -> invocation.getArgument(2));
         }
 
         @Test
@@ -292,6 +302,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+
+            when(
+                namesPostprocessor.mapNames(any(), any(), any(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse.class))
+            ).thenAnswer(invocation -> invocation.getArgument(2));
         }
 
         @Test

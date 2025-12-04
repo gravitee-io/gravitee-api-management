@@ -53,10 +53,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -82,12 +80,15 @@ public interface AnalyticsMeasuresMapper {
             var leaf = new BucketLeaf()
                 .type(BucketLeaf.TypeEnum.LEAF)
                 .key(responseModel.key())
-                .name(responseModel.key())
+                .name(responseModel.name() != null ? responseModel.name() : responseModel.key())
                 .measures(fromResponseModel(responseModel.measures()));
             bucket.setActualInstance(leaf);
             return bucket;
         }
-        var group = new BucketGroup().type(BucketGroup.TypeEnum.GROUP).key(responseModel.key()).name(responseModel.key());
+        var group = new BucketGroup()
+            .type(BucketGroup.TypeEnum.GROUP)
+            .key(responseModel.key())
+            .name(responseModel.name() != null ? responseModel.name() : responseModel.key());
         group.setBuckets(responseModel.buckets().stream().map(this::fromResponseModel).toList());
         bucket.setActualInstance(group);
         return bucket;
