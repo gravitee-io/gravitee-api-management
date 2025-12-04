@@ -46,6 +46,11 @@
                     <gd-stats [data]="item.response" />
                   }
                 }
+                @case ('line') {
+                  @if (isTimeSeriesWidget(item)) {
+                    <gd-line-chart [data]="item.response" />
+                  }
+                }
                 @default {
                   <div>Not yet Formatted - Type: {{ item.type }}</div>
                 }
