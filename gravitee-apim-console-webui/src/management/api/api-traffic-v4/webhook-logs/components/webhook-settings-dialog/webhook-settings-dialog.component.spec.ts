@@ -29,7 +29,7 @@ import { WebhookSettingsDialogComponent, WebhookSettingsDialogData } from './web
 import { WebhookSettingsDialogHarness } from './webhook-settings-dialog.harness';
 
 import { GioTestingModule } from '../../../../../../shared/testing';
-import { ApiV4, fakeProxyApiV4 } from '../../../../../../entities/management-api-v2';
+import { ApiV4, fakeApiV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -66,6 +66,7 @@ describe('WebhookSettingsDialogComponent', () => {
     const openDialogButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '#open-dialog-test' }));
     await openDialogButton.click();
     fixture.detectChanges();
+    await fixture.whenStable();
   };
 
   beforeEach(async () => {
@@ -78,21 +79,36 @@ describe('WebhookSettingsDialogComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('when analytics is enabled initially', () => {
-    const api = fakeProxyApiV4({
+  describe('when entrypoint logging is enabled initially', () => {
+    const api = fakeApiV4({
       id: API_ID,
       analytics: {
         enabled: true,
         sampling: { type: 'COUNT', value: '100' },
-        logging: {
-          content: {
-            messagePayload: false,
-            messageHeaders: false,
-            payload: false,
-            headers: false,
-          },
-        },
       },
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [
+            {
+              type: 'webhook',
+              configuration: {
+                logging: {
+                  enabled: true,
+                  request: {
+                    headers: true,
+                    payload: true,
+                  },
+                  response: {
+                    headers: true,
+                    payload: true,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
     });
 
     beforeEach(async () => await init(api));
@@ -141,6 +157,7 @@ describe('WebhookSettingsDialogComponent', () => {
     });
 
     it('should disable and set content data toggles to false when top toggle is turned off', async () => {
+      const matDialog = TestBed.inject(MatDialog);
       const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
       const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
       const requestHeadersToggle = await harnessLoader.getHarness(
@@ -153,28 +170,53 @@ describe('WebhookSettingsDialogComponent', () => {
         MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
       );
 
-      // Set some content toggles to true first
-      await requestBodyToggle.toggle();
-      await requestHeadersToggle.toggle();
       expect(await requestBodyToggle.isChecked()).toBe(true);
       expect(await requestHeadersToggle.isChecked()).toBe(true);
+      expect(await responseBodyToggle.isChecked()).toBe(true);
+      expect(await responseHeadersToggle.isChecked()).toBe(true);
 
-      // Turn off the top toggle
       await enabledToggle.toggle();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
 
-      // All content toggles should be disabled and false
-      expect(await requestBodyToggle.isChecked()).toBe(false);
-      expect(await requestBodyToggle.isDisabled()).toBe(true);
-      expect(await requestHeadersToggle.isChecked()).toBe(false);
-      expect(await requestHeadersToggle.isDisabled()).toBe(true);
-      expect(await responseBodyToggle.isChecked()).toBe(false);
-      expect(await responseBodyToggle.isDisabled()).toBe(true);
-      expect(await responseHeadersToggle.isChecked()).toBe(false);
-      expect(await responseHeadersToggle.isDisabled()).toBe(true);
+      const dialogRef = matDialog.openDialogs[0];
+      const dialogComponent = dialogRef.componentInstance as WebhookSettingsDialogComponent;
+
+      expect(dialogComponent.form?.get('requestBody')?.disabled).toBe(true);
+      expect(dialogComponent.form?.get('requestHeaders')?.disabled).toBe(true);
+      expect(dialogComponent.form?.get('responseBody')?.disabled).toBe(true);
+      expect(dialogComponent.form?.get('responseHeaders')?.disabled).toBe(true);
+
+      expect(dialogComponent.form?.get('requestBody')?.value).toBe(false);
+      expect(dialogComponent.form?.get('requestHeaders')?.value).toBe(false);
+      expect(dialogComponent.form?.get('responseBody')?.value).toBe(false);
+      expect(dialogComponent.form?.get('responseHeaders')?.value).toBe(false);
+
+      const updatedRequestBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }),
+      );
+      const updatedRequestHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="requestHeaders"]' }),
+      );
+      const updatedResponseBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }),
+      );
+      const updatedResponseHeadersToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseHeaders"]' }),
+      );
+
+      expect(await updatedRequestBodyToggle.isChecked()).toBe(false);
+      expect(await updatedRequestBodyToggle.isDisabled()).toBe(true);
+      expect(await updatedRequestHeadersToggle.isChecked()).toBe(false);
+      expect(await updatedRequestHeadersToggle.isDisabled()).toBe(true);
+      expect(await updatedResponseBodyToggle.isChecked()).toBe(false);
+      expect(await updatedResponseBodyToggle.isDisabled()).toBe(true);
+      expect(await updatedResponseHeadersToggle.isChecked()).toBe(false);
+      expect(await updatedResponseHeadersToggle.isDisabled()).toBe(true);
     });
 
     it('should close the dialog when discard is clicked', async () => {
-      // Make a change to ensure the save bar is visible (it only appears when form has unsaved changes)
       const enabledToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
       await enabledToggle.toggle();
       await fixture.whenStable();
@@ -186,21 +228,36 @@ describe('WebhookSettingsDialogComponent', () => {
     });
   });
 
-  describe('when analytics is disabled initially', () => {
-    const api = fakeProxyApiV4({
+  describe('when entrypoint logging is disabled initially', () => {
+    const api = fakeApiV4({
       id: API_ID,
       analytics: {
-        enabled: false,
+        enabled: true,
         sampling: { type: 'COUNT', value: '100' },
-        logging: {
-          content: {
-            messagePayload: false,
-            messageHeaders: false,
-            payload: false,
-            headers: false,
-          },
-        },
       },
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [
+            {
+              type: 'webhook',
+              configuration: {
+                logging: {
+                  enabled: false,
+                  request: {
+                    headers: false,
+                    payload: false,
+                  },
+                  response: {
+                    headers: false,
+                    payload: false,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
     });
 
     beforeEach(async () => await init(api));
@@ -227,6 +284,78 @@ describe('WebhookSettingsDialogComponent', () => {
       expect(await requestHeadersToggle.isDisabled()).toBe(true);
       expect(await responseBodyToggle.isDisabled()).toBe(true);
       expect(await responseHeadersToggle.isDisabled()).toBe(true);
+    });
+  });
+
+  describe('when saving', () => {
+    const api = fakeApiV4({
+      id: API_ID,
+      analytics: {
+        enabled: true,
+        sampling: { type: 'COUNT', value: '100' },
+      },
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [
+            {
+              type: 'webhook',
+              configuration: {
+                logging: {
+                  enabled: true,
+                  request: {
+                    headers: false,
+                    payload: false,
+                  },
+                  response: {
+                    headers: false,
+                    payload: false,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    beforeEach(async () => await init(api));
+
+    it('should save entrypoint logging configuration', async () => {
+      const dialogHarness = await harnessLoader.getHarness(WebhookSettingsDialogHarness);
+      const requestBodyToggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="requestBody"]' }));
+      const responseBodyToggle = await harnessLoader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="responseBody"]' }),
+      );
+
+      await requestBodyToggle.toggle();
+      await responseBodyToggle.toggle();
+      await fixture.whenStable();
+
+      await dialogHarness.clickSave();
+      fixture.detectChanges();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `https://url.test:3000/management/v2/environments/DEFAULT/apis/${API_ID}`,
+      });
+      expect(req.request.body.listeners[0].entrypoints[0].configuration.logging).toEqual({
+        enabled: true,
+        request: {
+          headers: false,
+          payload: true,
+        },
+        response: {
+          headers: false,
+          payload: true,
+        },
+      });
+      // Verify analytics are not modified
+      expect(req.request.body.analytics).toEqual(api.analytics);
+
+      req.flush({ ...api, ...req.request.body });
+      fixture.detectChanges();
+      await fixture.whenStable();
     });
   });
 });

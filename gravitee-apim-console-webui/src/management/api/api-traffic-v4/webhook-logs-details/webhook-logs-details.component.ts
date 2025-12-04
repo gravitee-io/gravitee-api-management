@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isNumber } from 'angular';
+import { isNumber, isObject } from 'angular';
 
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -25,19 +25,25 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { editor } from 'monaco-editor';
-import { GioBannerModule, GioClipboardModule, GioMonacoEditorModule, MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { GioBannerModule, GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
 import { FormatDurationPipe } from '../../../../shared/pipes/format-duration.pipe';
 import { ConnectionLogDiagnostic } from '../../../../entities/management-api-v2';
-import { WebhookLog } from '../webhook-logs/models/webhook-logs.models';
-import { getWebhookLogMockByRequestId, WEBHOOK_SAMPLE_LOG } from '../webhook-logs/mocks/webhook-logs.mock';
+import { WebhookLog, WebhookAdditionalMetrics } from '../webhook-logs/models/webhook-logs.models';
+import { mapConnectionLogToWebhookLog } from '../webhook-logs/utils/webhook-metrics.utils';
+import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
-type OverviewItem = { label: string; value: string | number; variant?: 'success' | 'warning' | 'error' };
+type OverviewItem = { label: string; value: string | number | boolean; variant?: 'success' | 'warning' | 'error' };
+
 interface HeaderItem {
   key: string;
   value: string;
 }
+
 interface DeliveryAttempt {
   timestamp: string;
   attempt: number;
@@ -45,6 +51,19 @@ interface DeliveryAttempt {
   duration: number;
   reason?: string;
 }
+
+interface RetryTimelineItem {
+  attempt?: number;
+  timestamp: number | string;
+  duration: number;
+  status: number;
+  reason?: string;
+}
+
+interface ParsedHeaders {
+  [key: string]: string | string[];
+}
+
 interface ConnectionFailureDetails {
   errorKey?: string | null;
   componentType?: string | null;
@@ -53,6 +72,14 @@ interface ConnectionFailureDetails {
   diagnostics: ConnectionLogDiagnostic[];
   lastError?: string | null;
 }
+
+const LAST_ERROR_KEY: keyof WebhookAdditionalMetrics = 'string_webhook_last-error';
+const RETRY_TIMELINE_KEY: keyof WebhookAdditionalMetrics = 'json_webhook_retry-timeline';
+const REQ_HEADERS_KEY: keyof WebhookAdditionalMetrics = 'json_webhook_req-headers';
+const RESP_HEADERS_KEY: keyof WebhookAdditionalMetrics = 'json_webhook_resp-headers';
+const REQ_BODY_KEY: keyof WebhookAdditionalMetrics = 'string_webhook_req-body';
+const RESP_BODY_KEY: keyof WebhookAdditionalMetrics = 'string_webhook_resp-body';
+const RESP_BODY_SIZE_KEY: keyof WebhookAdditionalMetrics = 'int_webhook_resp-body-size';
 
 @Component({
   selector: 'webhook-logs-details',
@@ -79,8 +106,12 @@ interface ConnectionFailureDetails {
 export class WebhookLogsDetailsComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly apiLogsService = inject(ApiLogsV2Service);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly requestId = this.activatedRoute.snapshot.params.requestId;
+  readonly apiId = this.activatedRoute.snapshot.params.apiId;
   readonly isNumber = isNumber;
 
   overviewRequest: OverviewItem[] = [];
@@ -93,7 +124,6 @@ export class WebhookLogsDetailsComponent implements OnInit {
   responseBody = '';
   selectedLog: WebhookLog | null = null;
   connectionFailure: ConnectionFailureDetails | null = null;
-  languageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
   readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
     renderLineHighlight: 'none',
     hideCursorInOverviewRuler: true,
@@ -106,33 +136,66 @@ export class WebhookLogsDetailsComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // TODO: Backend Integration Required
-    // - Replace mock data lookup with actual backend API call to fetch log by requestId
-    // - Create/use a service method: getWebhookLogByRequestId(requestId: string, apiId: string)
-    // - Handle loading state while fetching log data
-    // - Handle error states (log not found, network errors, API errors)
-    // - Show appropriate error message or empty state if log cannot be found
-    // - Remove dependency on getWebhookLogMockByRequestId and WEBHOOK_SAMPLE_LOG from webhook-logs.mock.ts
-
-    // Look up the log by requestId from mock data
-    const log = this.findLogByRequestId(this.requestId);
-    this.applyLog(log);
-  }
-
-  private findLogByRequestId(requestId: string | undefined): WebhookLog | null {
-    if (!requestId) {
-      return WEBHOOK_SAMPLE_LOG;
+    if (!this.requestId || !this.apiId) {
+      this.snackBarService.error('Missing request ID or API ID');
+      return;
     }
 
-    return getWebhookLogMockByRequestId(requestId) ?? WEBHOOK_SAMPLE_LOG;
+    const logFromState = this.getWebhookLogFromNavigationState();
+    if (logFromState && logFromState.requestId === this.requestId) {
+      this.applyLog(logFromState);
+      return;
+    }
+
+    this.loadWebhookLog();
+  }
+
+  private getWebhookLogFromNavigationState(): WebhookLog | null {
+    const navigation = this.router.getCurrentNavigation();
+    const fromNavigation = navigation?.extras?.state?.['webhookLog'];
+    const fromHistory = history.state?.['webhookLog'];
+    const candidate = fromNavigation ?? fromHistory;
+
+    if (candidate && isObject(candidate) && 'requestId' in candidate) {
+      return candidate as WebhookLog;
+    }
+
+    return null;
+  }
+
+  private loadWebhookLog(): void {
+    this.apiLogsService
+      .searchApiMessageLogs(this.apiId, {
+        requestId: this.requestId,
+        connectorId: 'webhook',
+        connectorType: 'entrypoint',
+        operation: 'subscribe',
+        page: 1,
+        perPage: 1,
+      })
+      .pipe(
+        catchError(() => {
+          this.snackBarService.error('Failed to load webhook log details');
+          return of({
+            data: [],
+            pagination: { page: 1, perPage: 1, pageCount: 0, pageItemsCount: 0, totalCount: 0 },
+          });
+        }),
+      )
+      .subscribe((response) => {
+        if (response.data && response.data.length > 0) {
+          const webhookLog = mapConnectionLogToWebhookLog(response.data[0]);
+          this.applyLog(webhookLog);
+        } else {
+          this.snackBarService.error('Webhook log not found');
+          this.applyLog(null);
+        }
+        this.cdr.markForCheck();
+      });
   }
 
   formatAttemptTimestamp(timestamp: string): string {
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) {
-      return timestamp;
-    }
-    return date.toLocaleString();
+    return this.formatDateTime(timestamp);
   }
 
   openLogSettings(): void {
@@ -150,11 +213,24 @@ export class WebhookLogsDetailsComponent implements OnInit {
       return;
     }
 
+    if (log.status === 0) {
+      this.connectionFailure = {
+        errorKey: log.errorKey ?? null,
+        componentType: log.errorComponentType ?? null,
+        componentName: log.errorComponentName ?? null,
+        message: log.message ?? null,
+        diagnostics: log.warnings ?? [],
+        lastError: typeof log.additionalMetrics?.[LAST_ERROR_KEY] === 'string' ? log.additionalMetrics[LAST_ERROR_KEY] : null,
+      };
+    } else {
+      this.connectionFailure = null;
+    }
+
     this.deliveryAttemptsDataSource = this.buildDeliveryAttempts(log);
     const attemptsCount = this.deliveryAttemptsDataSource.length || (log.additionalMetrics?.['int_webhook_retry-count'] ?? 1);
 
     this.overviewRequest = [
-      { label: 'Date', value: this.formatDate(log.timestamp) },
+      { label: 'Date', value: this.formatDateTime(log.timestamp) },
       { label: 'Method', value: log.method },
       { label: 'Attempts', value: attemptsCount },
       { label: 'Callback URL', value: log.callbackUrl ?? log.uri },
@@ -162,60 +238,94 @@ export class WebhookLogsDetailsComponent implements OnInit {
 
     this.overviewResponse = [
       { label: 'Status', value: log.status },
-      { label: 'Total duration', value: log.duration || `${(log.gatewayResponseTime / 1000).toFixed(1)} s` },
+      {
+        label: 'Total duration',
+        value: log.duration || `${(log.gatewayResponseTime / 1000).toFixed(1)} s`,
+      },
       { label: 'Payload size', value: this.formatPayloadSize(log) },
-      { label: 'Last error', value: log.additionalMetrics?.['string_webhook_last-error'] ?? '—' },
+      { label: 'Last error', value: log.additionalMetrics?.[LAST_ERROR_KEY] ?? '—' },
     ];
 
-    this.requestHeaders = this.parseHeaders(log.additionalMetrics?.['json_webhook_req-headers']);
-    this.responseHeaders = this.parseHeaders(log.additionalMetrics?.['json_webhook_resp-headers']);
-    this.requestBody = log.additionalMetrics?.['string_webhook_req-body'] ?? '';
-    this.responseBody = log.additionalMetrics?.['string_webhook_resp-body'] ?? '';
-    this.connectionFailure = this.buildConnectionFailure(log);
+    this.requestHeaders = this.parseHeaders(
+      typeof log.additionalMetrics?.[REQ_HEADERS_KEY] === 'string' ? log.additionalMetrics?.[REQ_HEADERS_KEY] : null,
+    );
+
+    this.responseHeaders = this.parseHeaders(
+      typeof log.additionalMetrics?.[RESP_HEADERS_KEY] === 'string' ? log.additionalMetrics?.[RESP_HEADERS_KEY] : null,
+    );
+    this.requestBody = typeof log.additionalMetrics?.[REQ_BODY_KEY] === 'string' ? log.additionalMetrics[REQ_BODY_KEY] : '';
+
+    this.responseBody = typeof log.additionalMetrics?.[RESP_BODY_KEY] === 'string' ? log.additionalMetrics[RESP_BODY_KEY] : '';
+
+    this.cdr.markForCheck();
   }
 
   private buildDeliveryAttempts(log: WebhookLog): DeliveryAttempt[] {
-    const rawTimeline = log.additionalMetrics?.['json_webhook_retry-timeline'];
-    if (!rawTimeline || rawTimeline === '[]') {
+    const rawTimeline = log.additionalMetrics?.[RETRY_TIMELINE_KEY];
+
+    if (typeof rawTimeline !== 'string' || rawTimeline.trim() === '' || rawTimeline === '[]') {
       return [this.createSingleDeliveryAttempt(log)];
     }
 
+    let parsed: RetryTimelineItem[];
+
     try {
-      const parsed = JSON.parse(rawTimeline) as Array<{
-        attempt?: number;
-        timestamp: number | string;
-        duration: number;
-        status: number;
-        reason?: string;
-      }>;
-
-      if (!parsed || parsed.length === 0) {
-        return [this.createSingleDeliveryAttempt(log)];
-      }
-
-      return parsed.map((item, index) => ({
-        attempt: item.attempt ?? index + 1,
-        timestamp: isNumber(item.timestamp)
-          ? new Date(item.timestamp).toISOString()
-          : typeof item.timestamp === 'string'
-            ? item.timestamp
-            : log.timestamp,
-        duration: item.duration ?? log.gatewayResponseTime,
-        status: item.status ?? log.status,
-        reason: item.reason ?? log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
-      }));
+      parsed = JSON.parse(rawTimeline) as RetryTimelineItem[];
     } catch {
       return [this.createSingleDeliveryAttempt(log)];
     }
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [this.createSingleDeliveryAttempt(log)];
+    }
+
+    const lastErrorRaw = log.additionalMetrics?.[LAST_ERROR_KEY];
+    const lastError = typeof lastErrorRaw === 'string' ? lastErrorRaw : undefined;
+
+    return parsed.map((item, index): DeliveryAttempt => {
+      let reason: string | undefined;
+
+      if (typeof item.reason === 'string') {
+        reason = item.reason;
+      } else if (lastError) {
+        reason = lastError;
+      } else {
+        reason = 'Initial delivery attempt';
+      }
+
+      return {
+        attempt: item.attempt ?? index + 1,
+        timestamp: this.normalizeAttemptTimestamp(item.timestamp, log.timestamp),
+        duration: item.duration ?? log.gatewayResponseTime,
+        status: item.status ?? log.status,
+        reason,
+      };
+    });
+  }
+
+  private normalizeAttemptTimestamp(raw: string | number | undefined, fallback: string): string {
+    if (typeof raw === 'string') {
+      return raw;
+    }
+
+    if (isNumber(raw)) {
+      const date = new Date(raw);
+      return Number.isNaN(date.getTime()) ? fallback : date.toISOString();
+    }
+
+    return fallback;
   }
 
   private createSingleDeliveryAttempt(log: WebhookLog): DeliveryAttempt {
+    const rawLastError = log.additionalMetrics?.[LAST_ERROR_KEY];
+    const reason = typeof rawLastError === 'string' ? rawLastError : 'Initial delivery attempt';
+
     return {
       attempt: 1,
       timestamp: log.timestamp,
       duration: log.gatewayResponseTime,
       status: log.status,
-      reason: log.additionalMetrics?.['string_webhook_last-error'] ?? 'Initial delivery attempt',
+      reason,
     };
   }
 
@@ -224,7 +334,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
       return [];
     }
     try {
-      const parsed = JSON.parse(raw) as Record<string, string | string[]>;
+      const parsed: ParsedHeaders = JSON.parse(raw);
       return Object.entries(parsed).map(([key, value]) => ({
         key,
         value: Array.isArray(value) ? value.join(', ') : value,
@@ -234,36 +344,21 @@ export class WebhookLogsDetailsComponent implements OnInit {
     }
   }
 
-  private buildConnectionFailure(log: WebhookLog): ConnectionFailureDetails | null {
-    if (log.status !== 0) {
-      return null;
-    }
-
-    return {
-      errorKey: log.errorKey ?? null,
-      componentType: log.errorComponentType ?? null,
-      componentName: log.errorComponentName ?? null,
-      message: log.message ?? null,
-      diagnostics: log.warnings ?? [],
-      lastError: log.additionalMetrics?.['string_webhook_last-error'] ?? null,
-    };
-  }
-
   private formatPayloadSize(log: WebhookLog): string {
-    const size = log.additionalMetrics?.['int_webhook_resp-body-size'];
+    const size = log.additionalMetrics?.[RESP_BODY_SIZE_KEY];
     if (size === null || size === undefined) {
       return '—';
     }
-    if (size >= 1024) {
+    if (isNumber(size) && size >= 1024) {
       return `${(size / 1024).toFixed(1)} KB`;
     }
     return `${size} B`;
   }
 
-  private formatDate(value: string): string {
+  private formatDateTime(value: string | number): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      return value;
+      return isNumber(value) ? String(value) : value;
     }
     return date.toLocaleString();
   }

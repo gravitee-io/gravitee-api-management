@@ -34,6 +34,7 @@ public class SearchMessageLogsParam {
     public static final String CONNECTOR_TYPE_PARAM_NAME = "connectorType";
     public static final String CONNECTOR_ID_PARAM_NAME = "connectorId";
     public static final String REQUEST_ID_PARAM_NAME = "requestId";
+    public static final String ADDITIONAL_PARAM_NAME = "additional";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -56,4 +57,7 @@ public class SearchMessageLogsParam {
 
     @QueryParam(REQUEST_ID_PARAM_NAME)
     String requestId;
+
+    @QueryParam(ADDITIONAL_PARAM_NAME)
+    String[] additional;
 }

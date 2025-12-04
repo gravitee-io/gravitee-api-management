@@ -21,8 +21,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ConnectorType;
 import io.gravitee.rest.api.management.v2.rest.model.MessageOperation;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchMessageLogsParam;
 import io.gravitee.rest.api.model.analytics.SearchMessageLogsFilters;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -38,13 +38,97 @@ public interface ApiMessageLogsMapper {
     @Mapping(target = "connectorType", expression = "java(mapConnectorType(messageMetrics.getConnectorType()))")
     ApiMessageLog map(MessageLog messageMetrics);
 
+    @Mapping(target = "additional", expression = "java(parseAdditionalParams(searchMessageMetricsParam.getAdditional()))")
     SearchMessageLogsFilters map(SearchMessageLogsParam searchMessageMetricsParam);
 
     default MessageOperation mapOperation(String operation) {
-        return Optional.ofNullable(operation).map(MessageOperation::fromValue).orElse(null);
+        if (operation == null) {
+            return null;
+        }
+        try {
+            return MessageOperation.fromValue(operation);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     default ConnectorType mapConnectorType(String connectorType) {
-        return Optional.ofNullable(connectorType).map(ConnectorType::fromValue).orElse(null);
+        if (connectorType == null) {
+            return null;
+        }
+        try {
+            return ConnectorType.fromValue(connectorType);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    default List<String> parseCommaSeparatedString(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return Arrays.stream(value.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Parses additional query parameters in the format: "fieldName;value1,value2"
+     * Multiple parameters can be provided:
+     *   additional=field1;val1,val2&additional=field2;val3,val4
+     *
+     * Produces:
+     *   { "field1" -> ["val1", "val2"], "field2" -> ["val3", "val4"] }
+     *
+     * If the same field appears multiple times, values are merged:
+     *   additional=field1;val1&additional=field1;val2
+     *   => "field1" -> ["val1", "val2"]
+     */
+    default Map<String, List<String>> parseAdditionalParams(String[] additional) {
+        if (additional == null || additional.length == 0) {
+            return null;
+        }
+
+        Map<String, List<String>> result = new LinkedHashMap<>();
+
+        for (String param : additional) {
+            if (param == null) {
+                continue;
+            }
+
+            String trimmed = param.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            // Split on first ';' only: fieldName;value1,value2
+            String[] parts = trimmed.split(";", 2);
+            if (parts.length != 2) {
+                // Invalid format -> skip
+                continue;
+            }
+
+            String fieldName = parts[0].trim();
+            String valuesStr = parts[1].trim();
+
+            if (fieldName.isEmpty() || valuesStr.isEmpty()) {
+                continue;
+            }
+
+            List<String> values = Arrays.stream(valuesStr.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+            if (values.isEmpty()) {
+                continue;
+            }
+
+            // Merge values for the same field instead of overwriting
+            result.computeIfAbsent(fieldName, k -> new ArrayList<>()).addAll(values);
+        }
+
+        return result.isEmpty() ? null : result;
     }
 }

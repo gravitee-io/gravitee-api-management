@@ -22,16 +22,11 @@ $typography: map.get(gio.$mat-theme, typography);
     align-items: center;
   }
 
-  &__search,
   &__period,
   &__status,
   &__applications {
     padding: 0;
     margin-right: 16px;
-  }
-
-  &__search {
-    width: 320px;
   }
 
   &__period,

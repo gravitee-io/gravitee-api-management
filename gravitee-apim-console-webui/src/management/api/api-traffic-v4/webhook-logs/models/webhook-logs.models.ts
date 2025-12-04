@@ -47,7 +47,7 @@ export interface WebhookAdditionalMetrics {
 export interface WebhookLog extends Omit<ConnectionLog, 'additionalMetrics'> {
   callbackUrl: string;
   duration: string;
-  additionalMetrics?: WebhookAdditionalMetrics;
+  additionalMetrics: Partial<WebhookAdditionalMetrics>;
 }
 
 export interface WebhookLogsResponse {
@@ -56,7 +56,6 @@ export interface WebhookLogsResponse {
 }
 
 export interface WebhookFilters {
-  searchTerm?: string;
   status?: string[];
   application?: string[];
   timeframe?: string;
@@ -71,7 +70,6 @@ export interface WebhookMoreFiltersForm {
 }
 
 export interface WebhookLogsQuickFilters {
-  searchTerm?: string;
   statuses?: number[];
   applications?: MultiFilter;
   period?: SimpleFilter;

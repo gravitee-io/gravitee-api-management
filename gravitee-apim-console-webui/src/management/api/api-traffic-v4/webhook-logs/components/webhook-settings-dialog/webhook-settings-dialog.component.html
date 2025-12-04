@@ -90,7 +90,7 @@
         Cancel
       </button>
       <button
-        [disabled]="form.invalid || form.pristine || !hasFormChanged()"
+        [disabled]="form.invalid || form.pristine || !hasFormChanged() || isSaving"
         mat-raised-button
         type="button"
         color="primary"

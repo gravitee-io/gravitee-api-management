@@ -25,7 +25,7 @@
 >
   <ng-template #timestampTemplate let-log>
     @if (log.timestamp) {
-      <a [routerLink]="['./', log.requestId]">
+      <a (click)="logDetailsClicked.emit(log)" style="cursor: pointer; text-decoration: underline">
         {{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}
       </a>
     } @else {
