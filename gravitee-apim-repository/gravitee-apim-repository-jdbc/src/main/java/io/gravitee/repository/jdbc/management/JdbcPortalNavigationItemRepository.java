@@ -15,11 +15,17 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static org.springframework.util.StringUtils.hasText;
+
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.common.CriteriaClauses;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,6 +121,74 @@ public class JdbcPortalNavigationItemRepository
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete portal navigation items by environmentId", ex);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.searchByCriteria({})", criteria);
+        try {
+            StringBuilder sql = new StringBuilder(getOrm().getSelectAllSql());
+            CriteriaClauses clauses = buildCriteriaClauses(criteria);
+
+            if (!clauses.clauses().isEmpty()) {
+                sql.append(" WHERE ").append(String.join(" AND ", clauses.clauses()));
+            }
+
+            return executeQueryByCriteria(sql.toString(), clauses.params());
+        } catch (Exception ex) {
+            log.error("Failed to search portal navigation items by criteria", ex);
+            throw new TechnicalException("Failed to search portal navigation items by criteria", ex);
+        }
+    }
+
+    private CriteriaClauses buildCriteriaClauses(PortalNavigationItemCriteria criteria) {
+        List<String> clauses = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        if (criteria != null) {
+            if (hasText(criteria.getEnvironmentId())) {
+                clauses.add("environment_id = ?");
+                params.add(criteria.getEnvironmentId());
+            }
+
+            if (hasText(criteria.getParentId())) {
+                clauses.add("parent_id = ?");
+                params.add(criteria.getParentId());
+            } else if (Boolean.TRUE.equals(criteria.getRoot())) {
+                clauses.add("parent_id IS NULL");
+            }
+
+            if (hasText(criteria.getPortalArea())) {
+                try {
+                    PortalNavigationItem.Area area = PortalNavigationItem.Area.valueOf(criteria.getPortalArea());
+                    clauses.add("area = ?");
+                    params.add(area.name());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid portal area value: {}", criteria.getPortalArea());
+                }
+            }
+            if (criteria.getPublished() != null) {
+                clauses.add("published = ?");
+                params.add(criteria.getPublished());
+            }
+        }
+
+        return new CriteriaClauses(clauses, params);
+    }
+
+    private List<PortalNavigationItem> executeQueryByCriteria(String sql, List<Object> params) {
+        return jdbcTemplate.query(sql, ps -> fillPreparedStatement(params, ps), getOrm().getRowMapper());
+    }
+
+    private void fillPreparedStatement(List<Object> params, PreparedStatement ps) throws java.sql.SQLException {
+        int index = 1;
+        for (Object param : params) {
+            switch (param) {
+                case String s -> ps.setString(index++, s);
+                case Boolean b -> ps.setBoolean(index++, b);
+                case null, default -> ps.setObject(index++, param);
+            }
         }
     }
 
