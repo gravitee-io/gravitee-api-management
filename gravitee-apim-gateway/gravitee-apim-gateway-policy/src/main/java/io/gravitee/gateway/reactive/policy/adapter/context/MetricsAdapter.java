@@ -19,7 +19,9 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -43,6 +45,16 @@ public class MetricsAdapter extends Metrics {
     @Override
     public Instant timestamp() {
         return metrics.timestamp();
+    }
+
+    @Override
+    public String getOrganizationId() {
+        return metrics.getOrganizationId();
+    }
+
+    @Override
+    public String getEnvironmentId() {
+        return metrics.getEnvironmentId();
     }
 
     @Override
@@ -244,6 +256,16 @@ public class MetricsAdapter extends Metrics {
     }
 
     @Override
+    public void setOrganizationId(String organizationId) {
+        metrics.setOrganizationId(organizationId);
+    }
+
+    @Override
+    public void setEnvironmentId(String environmentId) {
+        metrics.setEnvironmentId(environmentId);
+    }
+
+    @Override
     public void setTransactionId(final String transactionId) {
         metrics.setTransactionId(transactionId);
     }
@@ -381,5 +403,57 @@ public class MetricsAdapter extends Metrics {
     @Override
     public void addCustomMetric(final String key, final String value) {
         metrics.addCustomMetric(key, value);
+    }
+
+    @Override
+    public void setAdditionalMetrics(Collection<AdditionalMetric> additionalMetrics) {
+        metrics.setAdditionalMetrics(additionalMetrics);
+    }
+
+    @Override
+    public Collection<AdditionalMetric> getAdditionalMetrics() {
+        return metrics.getAdditionalMetrics();
+    }
+
+    @Override
+    public Metrics putAdditionalMetric(String key, Long value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalMetric(String key, Double value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalMetric(String key, String value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalMetric(String key, Boolean value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalMetric(String key, Integer value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalKeywordMetric(String key, String value) {
+        metrics.putAdditionalKeywordMetric(key, value);
+        return this;
+    }
+
+    @Override
+    public Metrics putAdditionalJSONMetric(String key, String value) {
+        metrics.putAdditionalMetric(key, value);
+        return this;
     }
 }
