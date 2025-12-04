@@ -21,4 +21,10 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record TimeSeriesBucketResponse(String key, Long timestamp, List<FacetBucketResponse> buckets, List<Measure> measures) {}
+public record TimeSeriesBucketResponse(
+    String key,
+    String name,
+    Long timestamp,
+    List<FacetBucketResponse> buckets,
+    List<Measure> measures
+) {}

@@ -31,6 +31,7 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -1056,5 +1057,10 @@ public class ResourceContextConfiguration {
     @Bean
     public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator() {
         return mock(AnalyticsQueryFilterDecorator.class);
+    }
+
+    @Bean
+    public NamesPostprocessor namesPostprocessor() {
+        return mock(NamesPostprocessor.class);
     }
 }

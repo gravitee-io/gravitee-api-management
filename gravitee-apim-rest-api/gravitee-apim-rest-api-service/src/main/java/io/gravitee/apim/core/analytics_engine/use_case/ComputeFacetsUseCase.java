@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
@@ -42,14 +43,18 @@ public class ComputeFacetsUseCase {
 
     private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
 
+    private final NamesPostprocessor namesPostprocessor;
+
     public ComputeFacetsUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
-        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator,
+        NamesPostprocessor namesPostprocessor
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
+        this.namesPostprocessor = namesPostprocessor;
     }
 
     public record Input(AuditInfo auditInfo, FacetsRequest request) {}
@@ -70,7 +75,9 @@ public class ComputeFacetsUseCase {
 
         var response = FacetsResponse.merge(responses);
 
-        return new ComputeFacetsUseCase.Output(response);
+        var mappedResponse = namesPostprocessor.mapNames(filteredContext, input.request.facets(), response);
+
+        return new ComputeFacetsUseCase.Output(mappedResponse);
     }
 
     private List<FacetsResponse> executeQueries(
