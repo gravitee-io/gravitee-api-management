@@ -37,6 +37,7 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
 })
 export class GridComponent {
   items = input<Widget[]>();
+  margin = input<number>(32);
   options = input<GridsterConfig>(this.getGridsterOptions());
 
   protected readonly isMeasuresWidget = isMeasuresWidget;
@@ -50,13 +51,15 @@ export class GridComponent {
       itemAspectRatio: 4 / 3,
       pushItems: true,
       draggable: {
-        enabled: true,
+        enabled: false,
         dragHandleClass: '.widget-title-container',
       },
       resizable: {
-        enabled: true,
+        enabled: false,
       },
       outerMargin: true,
+      outerMarginRight: this.margin(),
+      outerMarginLeft: this.margin(),
       setGridSize: true,
       fixedRowHeight: 125,
     };
