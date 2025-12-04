@@ -44,8 +44,8 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public NamesPostprocessor namesPostprocessor() {
-        return new NamesPostProcessorImpl();
+    public NamesPostprocessor namesPostprocessor(ApplicationService applicationSearchService) {
+        return new NamesPostProcessorImpl(applicationSearchService);
     }
 
     @Bean
