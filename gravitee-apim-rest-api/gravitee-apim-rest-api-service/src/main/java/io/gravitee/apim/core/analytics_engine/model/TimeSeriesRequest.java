@@ -32,7 +32,7 @@ public record TimeSeriesRequest(
     List<NumberRange> ranges
 ) {
     public TimeSeriesRequest(TimeRange timeRange, Long interval, List<Filter> filters) {
-        this(timeRange, interval, filters, new ArrayList<>(), List.of(), null, List.of());
+        this(timeRange, interval, filters, List.of(), List.of(), null, List.of());
     }
 
     public TimeSeriesRequest emptyMetrics() {
