@@ -16,13 +16,16 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import moment from 'moment';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 
 import { Filter, GenericFilterBarComponent, SelectedFilter } from './components/filter/generic-filter-bar/generic-filter-bar.component';
+import { timeFrames, timeFrameRangesParams, calculateCustomInterval } from './components/filter/timeframe-selector/utils/timeframe-ranges';
 import { GridComponent } from './components/grid/grid.component';
 import { FilterName } from './components/widget/model/request/enum/filter-name';
-import { RequestFilter } from './components/widget/model/request/request';
-import { Widget } from './components/widget/model/widget/widget';
+import { RequestFilter, TimeRange } from './components/widget/model/request/request';
+import { TimeSeriesRequest } from './components/widget/model/request/time-series-request';
+import { Widget, isTimeSeriesWidget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 @Component({
@@ -72,7 +75,24 @@ export class GraviteeDashboardComponent {
 
   onSelectedFilters($event: SelectedFilter[]) {
     const queryParams: Record<string, string> = {};
-    const groupedFilters = this.groupFilters($event);
+
+    // Séparer les filtres timeframe des autres filtres
+    const periodFilter = $event.find(f => f.parentKey === 'period');
+    const fromFilter = $event.find(f => f.parentKey === 'from');
+    const toFilter = $event.find(f => f.parentKey === 'to');
+
+    // Gérer le timeframe dans les query params
+    if (periodFilter) {
+      queryParams['period'] = periodFilter.value;
+
+      if (periodFilter.value === 'custom' && fromFilter && toFilter) {
+        queryParams['from'] = fromFilter.value;
+        queryParams['to'] = toFilter.value;
+      }
+    }
+
+    const otherFilters = $event.filter(f => !['period', 'from', 'to'].includes(f.parentKey));
+    const groupedFilters = this.groupFilters(otherFilters);
 
     groupedFilters.forEach((values, key) => {
       queryParams[key] = values.join(',');
@@ -89,26 +109,85 @@ export class GraviteeDashboardComponent {
 
     return this.dashboardService
       .getMetrics(this.baseURL(), widget.request.type, widget.request)
-      .pipe(map(response => ({ ...widget, response }) satisfies Widget));
+      .pipe(map(response => ({ ...widget, response } satisfies Widget)));
   }
 
   private getUpdatedWidgetsWithFilters(widgets: Widget[], selectedFilters: SelectedFilter[]): Widget[] {
-    const groupedFilters = this.groupFilters(selectedFilters);
+    const periodFilter = selectedFilters.find(f => f.parentKey === 'period');
+    const fromFilter = selectedFilters.find(f => f.parentKey === 'from');
+    const toFilter = selectedFilters.find(f => f.parentKey === 'to');
+
+    const { timeRange, interval } = this.getTimeRangeAndInterval(periodFilter?.value, fromFilter?.value, toFilter?.value);
+
+    const otherFilters = selectedFilters.filter(f => !['period', 'from', 'to'].includes(f.parentKey));
+    const groupedFilters = this.groupFilters(otherFilters);
     const newFilters: RequestFilter[] = [];
 
     groupedFilters.forEach((values, key) => {
-      newFilters.push({ name: key, operator: 'IN', value: values });
+      if (values.length > 0) {
+        newFilters.push({ name: key as FilterName, operator: 'IN', value: values });
+      }
     });
 
     return widgets.map(widget => {
       if (!widget.request) return widget;
 
+      const finalFilters = newFilters.length > 0 ? newFilters : widget.request.filters;
+
+      if (isTimeSeriesWidget(widget) && interval !== undefined) {
+        return {
+          ...widget,
+          request: { ...widget.request, timeRange, interval, filters: finalFilters } as TimeSeriesRequest,
+          response: undefined,
+        };
+      }
+
       return {
         ...widget,
-        request: { ...widget.request, filters: newFilters },
+        request: { ...widget.request, timeRange, filters: finalFilters },
         response: undefined,
       };
     });
+  }
+
+  private getTimeRangeAndInterval(period?: string, from?: string, to?: string): { timeRange: TimeRange; interval?: number } {
+    const normalizedPeriod = period || '1d';
+
+    if (normalizedPeriod === 'custom' && from && to) {
+      const fromTimestamp = Number.parseInt(from, 10);
+      const toTimestamp = Number.parseInt(to, 10);
+      const interval = calculateCustomInterval(fromTimestamp, toTimestamp);
+
+      return {
+        timeRange: {
+          from: moment(fromTimestamp).toISOString(),
+          to: moment(toTimestamp).toISOString(),
+        },
+        interval,
+      };
+    }
+
+    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '1d');
+    if (!timeFrame) {
+      const defaultTimeFrame = timeFrames[2]; // '1d' est généralement à l'index 2
+      const timeRangeParams = timeFrameRangesParams(defaultTimeFrame.id);
+      return {
+        timeRange: {
+          from: moment(timeRangeParams.from).toISOString(),
+          to: moment(timeRangeParams.to).toISOString(),
+        },
+        interval: timeRangeParams.interval,
+      };
+    }
+    const timeRangeParams = timeFrameRangesParams(timeFrame.id);
+
+    return {
+      timeRange: {
+        from: moment(timeRangeParams.from).toISOString(),
+        to: moment(timeRangeParams.to).toISOString(),
+      },
+      interval: timeRangeParams.interval,
+    };
   }
 
   private groupFilters(selectedFilters: SelectedFilter[]) {
@@ -123,10 +202,30 @@ export class GraviteeDashboardComponent {
 
   private getSelectedFiltersFromQueryParams(params: Params) {
     const selectedFilters: SelectedFilter[] = [];
+
     Object.keys(params).forEach(key => {
-      const values: string[] = params[key].split(',');
-      values.forEach(value => selectedFilters.push({ parentKey: key, value: value.trim() }));
+      const paramValue = params[key];
+
+      if (paramValue == null) return;
+
+      if (key === 'period') {
+        selectedFilters.push({ parentKey: 'period', value: String(paramValue) });
+      } else if (key === 'from') {
+        selectedFilters.push({ parentKey: 'from', value: String(paramValue) });
+      } else if (key === 'to') {
+        selectedFilters.push({ parentKey: 'to', value: String(paramValue) });
+      } else {
+        const paramString = Array.isArray(paramValue) ? paramValue.join(',') : String(paramValue);
+        const values: string[] = paramString.split(',');
+        values.forEach(value => {
+          const trimmedValue = value.trim();
+          if (trimmedValue) {
+            selectedFilters.push({ parentKey: key, value: trimmedValue });
+          }
+        });
+      }
     });
+
     return selectedFilters;
   }
 }

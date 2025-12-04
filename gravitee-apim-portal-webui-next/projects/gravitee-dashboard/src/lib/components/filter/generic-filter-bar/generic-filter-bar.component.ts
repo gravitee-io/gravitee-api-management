@@ -18,11 +18,14 @@ import { Component, effect, input, OnInit, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import moment, { Moment } from 'moment';
 import { distinctUntilChanged, Observable } from 'rxjs';
 
 import { FilterName } from '../../widget/model/request/enum/filter-name';
 import { SelectOption } from '../dropdown-search/dropdown-search-overlay/dropdown-search-overlay.component';
 import { DropdownSearchComponent, ResultsLoaderInput, ResultsLoaderOutput } from '../dropdown-search/dropdown-search.component';
+import { TimeframeSelectorComponent } from '../timeframe-selector/timeframe-selector.component';
+import { customTimeFrames, timeFrames } from '../timeframe-selector/utils/timeframe-ranges';
 
 export interface SelectedFilter {
   parentKey: string;
@@ -30,62 +33,132 @@ export interface SelectedFilter {
 }
 
 export interface Filter {
-  key: FilterName;
+  key: FilterName | 'period';
   label: string;
   data?: SelectOption[];
   data$?: Observable<SelectOption[]>;
   dataLoader?: (input: ResultsLoaderInput) => Observable<ResultsLoaderOutput>;
 }
 
+export interface TimeframeValue {
+  period: string;
+  from?: Moment | null;
+  to?: Moment | null;
+}
+
 @Component({
   selector: 'gd-generic-filter-bar',
-  imports: [DropdownSearchComponent, AsyncPipe, ReactiveFormsModule, MatFormFieldModule, MatSelectModule],
+  imports: [DropdownSearchComponent, AsyncPipe, ReactiveFormsModule, MatFormFieldModule, MatSelectModule, TimeframeSelectorComponent],
   templateUrl: './generic-filter-bar.component.html',
   styleUrl: './generic-filter-bar.component.scss',
 })
 export class GenericFilterBarComponent implements OnInit {
   filters = input.required<Filter[]>();
+
   currentSelectedFilters = input.required<SelectedFilter[]>();
 
   selectedFilters = output<SelectedFilter[]>();
+  refresh = output<void>();
 
-  form = new FormGroup<Record<string, FormControl<string[]>>>({});
+  form = new FormGroup<Record<string, FormControl<string[] | TimeframeValue | null>>>({});
+
+  protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
+  protected readonly customPeriodKey = 'custom';
 
   constructor() {
+    this.form.addControl('period', new FormControl<TimeframeValue | null>(null));
+
     effect(() => {
       this.filters().forEach(filter => {
         if (!this.form.contains(filter.key)) {
-          this.form.addControl(filter.key, new FormControl<string[]>([], { nonNullable: true }));
-        }
-      });
-    });
-
-    effect(() => {
-      // For each current selected filter, set the value of the corresponding control
-      this.currentSelectedFilters().forEach(selectedFilter => {
-        const control = this.form.get(selectedFilter.parentKey);
-        if (control) {
-          const currentValues = control.value;
-          if (!currentValues.includes(selectedFilter.value)) {
-            control.setValue([...currentValues, selectedFilter.value]);
+          if (filter.key === 'period') {
+            return;
+          } else {
+            this.form.addControl(filter.key, new FormControl<string[]>([], { nonNullable: true }));
           }
         }
       });
     });
+
+    effect(() => {
+      const currentFilters = this.currentSelectedFilters();
+
+      this.filters()
+        .filter(f => f.key !== 'period')
+        .forEach(filter => {
+          const values = currentFilters.filter(f => f.parentKey === filter.key).map(f => f.value);
+          const control = this.form.get(filter.key);
+
+          if (control) {
+            control.setValue(values, { emitEvent: false });
+          }
+        });
+
+      const periodFilter = currentFilters.find(f => f.parentKey === 'period');
+      if (periodFilter) {
+        const fromFilter = currentFilters.find(f => f.parentKey === 'from');
+        const toFilter = currentFilters.find(f => f.parentKey === 'to');
+
+        const tfValue: TimeframeValue = {
+          period: periodFilter.value,
+          from: fromFilter ? moment(Number.parseInt(fromFilter.value)) : null,
+          to: toFilter ? moment(Number.parseInt(toFilter.value)) : null,
+        };
+
+        this.form.get('period')?.setValue(tfValue, { emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {
-    this.form.valueChanges.pipe(distinctUntilChanged()).subscribe(value => {
-      const selected: SelectedFilter[] = [];
-      for (const key in value) {
-        const selectedOptions = value[key];
-        if (selectedOptions) {
-          selectedOptions.forEach(option => {
-            selected.push({ parentKey: key, value: option });
-          });
-        }
-      }
-      this.selectedFilters.emit(selected);
-    });
+    this.form.valueChanges
+      .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
+      .subscribe(formValues => {
+        const selected: SelectedFilter[] = [];
+
+        Object.keys(formValues).forEach(key => {
+          const controlValue = formValues[key];
+
+          if (controlValue == null) return;
+
+          if (Array.isArray(controlValue)) {
+            controlValue.forEach(val => {
+              selected.push({ parentKey: key, value: val });
+            });
+          } else if (key === 'period' && typeof controlValue === 'object') {
+            const tf = controlValue satisfies TimeframeValue;
+
+            if (tf.period) {
+              selected.push({ parentKey: 'period', value: tf.period });
+            }
+
+            if (tf.period === this.customPeriodKey) {
+              if (tf.from) {
+                selected.push({ parentKey: 'from', value: tf.from.valueOf().toString() });
+              }
+              if (tf.to) {
+                selected.push({ parentKey: 'to', value: tf.to.valueOf().toString() });
+              }
+            }
+          }
+        });
+        this.selectedFilters.emit(selected);
+      });
+  }
+
+  applyCustomTimeframe() {
+    const control = this.form.get('period');
+    if (control?.value) {
+      const currentValue = control.value as TimeframeValue;
+      const updatedValue: TimeframeValue = {
+        ...currentValue,
+        period: this.customPeriodKey,
+      };
+      control.setValue(updatedValue);
+    }
+  }
+
+  refreshFilters() {
+    this.refresh.emit();
   }
 }

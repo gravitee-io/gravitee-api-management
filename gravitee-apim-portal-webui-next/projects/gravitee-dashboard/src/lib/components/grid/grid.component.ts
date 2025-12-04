@@ -50,13 +50,13 @@ export class GridComponent {
       itemAspectRatio: 4 / 3,
       pushItems: true,
       draggable: {
-        enabled: true,
+        enabled: false,
         dragHandleClass: '.widget-title-container',
       },
       resizable: {
-        enabled: true,
+        enabled: false,
       },
-      outerMargin: true,
+      outerMargin: false,
       setGridSize: true,
       fixedRowHeight: 125,
     };
