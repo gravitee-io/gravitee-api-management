@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
@@ -23,13 +24,14 @@ import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -74,17 +76,32 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
         });
     }
 
-    @Override
-    public Completable execute(BaseExecutionContext ctx) {
-        if (phase == ExecutionPhase.RESPONSE) {
-            final var onResponseActions = ((HttpExecutionContextInternal) ctx).getOnResponseActions();
-            if (onResponseActions != null) {
-                return Flowable.fromIterable(onResponseActions)
-                    .concatMapCompletable(action -> action.apply((HttpExecutionContext) ctx))
-                    .andThen(super.execute(ctx));
-            }
+    /**
+     * Executes all registered onResponse actions for each policy in reverse order.
+     *
+     * This method checks if the provided execution context is an instance of HttpExecutionContextInternal
+     * and if there are any onResponse actions to execute. For each policy, it retrieves the corresponding
+     * onResponse action and executes it within the appropriate component scope. If no actions are found,
+     * the method completes immediately.
+     *
+     * @param ctx the HTTP execution context containing the onResponse actions.
+     * @return a Completable that completes when all actions have been executed.
+     */
+    public Completable executeActionsOnResponse(HttpExecutionContext ctx) {
+        if (!(ctx instanceof HttpExecutionContextInternal internalCtx) || internalCtx.getOnResponseActions() == null) {
+            return Completable.complete();
         }
-        return super.execute(ctx);
+
+        return reversedPolicies().concatMapCompletable(policy -> {
+            var onResponseAction = internalCtx.getOnResponseAction(policy);
+
+            if (onResponseAction != null) {
+                ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
+                return onResponseAction.apply(ctx).doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
+            }
+
+            return Completable.complete();
+        });
     }
 
     @Override

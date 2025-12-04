@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
@@ -37,7 +38,7 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     private EvaluableExecutionContext evaluableExecutionContext;
 
     @Getter
-    private List<Function<HttpExecutionContext, Completable>> onResponseActions = null;
+    private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onResponseActions = null;
 
     public AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -276,12 +277,19 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     }
 
     @Override
-    public void addActionOnResponse(Function<HttpExecutionContext, Completable> function) {
+    public void addActionOnResponse(BasePolicy source, Function<HttpExecutionContext, Completable> function) {
         if (onResponseActions == null) {
-            onResponseActions = new ArrayList<>();
+            onResponseActions = new HashMap<>();
         }
 
-        onResponseActions.addFirst(function);
+        onResponseActions.put(source, function);
+    }
+
+    public Function<HttpExecutionContext, Completable> getOnResponseAction(BasePolicy source) {
+        if (onResponseActions == null) {
+            return null;
+        }
+        return onResponseActions.get(source);
     }
 
     private void prepareTemplateEngine(final TemplateEngine templateEngine) {
