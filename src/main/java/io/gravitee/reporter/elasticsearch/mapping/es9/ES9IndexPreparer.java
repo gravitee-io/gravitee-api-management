@@ -34,6 +34,6 @@ public class ES9IndexPreparer extends AbstractIndexPreparer {
         final FreeMarkerComponent freeMarkerComponent,
         final Client client
     ) {
-        super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/esx9");
+        super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/es9x");
     }
 }
