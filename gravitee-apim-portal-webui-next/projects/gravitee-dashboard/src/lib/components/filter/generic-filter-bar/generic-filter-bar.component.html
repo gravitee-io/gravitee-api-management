@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,21 @@
 -->
 <form [formGroup]="form" class="form">
   @for (filter of filters(); track filter.key) {
-    @if (filter.data) {
-      <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [options]="filter.data" />
-    } @else if (filter.data$) {
+    @if (filter.data && form.controls[filter.key]) {
+      <gd-dropdown-search [formControl]="form.controls[filter.key]!" [label]="filter.label" [options]="filter.data" />
+    } @else if (filter.data$ && form.controls[filter.key]) {
       @let options = filter.data$ | async;
-      <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [options]="options ?? []" />
-    } @else if (filter.dataLoader) {
-      <gd-dropdown-search [formControl]="form.controls[filter.key]" [label]="filter.label" [resultsLoader]="filter.dataLoader" />
+      <gd-dropdown-search [formControl]="form.controls[filter.key]!" [label]="filter.label" [options]="options ?? []" />
+    } @else if (filter.dataLoader && form.controls[filter.key]) {
+      <gd-dropdown-search [formControl]="form.controls[filter.key]!" [label]="filter.label" [resultsLoader]="filter.dataLoader" />
     }
   }
+  <div class="form__timeframe">
+    <gd-timeframe-selector
+      [formControl]="form.controls['period']!"
+      [timeFrames]="timeFrames"
+      [customPeriod]="customPeriodKey"
+      (apply)="applyCustomTimeframe()"
+      (refresh)="refreshFilters()" />
+  </div>
 </form>
