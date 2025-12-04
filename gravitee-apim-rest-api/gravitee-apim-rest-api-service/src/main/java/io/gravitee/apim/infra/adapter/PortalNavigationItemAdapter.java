@@ -128,6 +128,9 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(source = "area", target = "portalArea")
+    io.gravitee.repository.management.api.search.PortalNavigationItemCriteria map(PortalNavigationItemQueryCriteria criteria);
+
     default String mapPortalNavigationItemId(PortalNavigationItemId id) {
         return id != null ? id.json() : null;
     }

@@ -18,12 +18,15 @@ package io.gravitee.apim.core.portal_page.query_service;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import java.util.List;
 
 public interface PortalNavigationItemsQueryService {
     PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
 
     List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
+
+    List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria);
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);
 }

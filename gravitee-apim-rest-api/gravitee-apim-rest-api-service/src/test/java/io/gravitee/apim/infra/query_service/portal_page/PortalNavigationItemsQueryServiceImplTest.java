@@ -17,14 +17,19 @@ package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +38,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -44,6 +50,8 @@ class PortalNavigationItemsQueryServiceImplTest {
     PortalNavigationItemRepository repository;
 
     PortalNavigationItemsQueryServiceImpl service;
+
+    private static final PortalNavigationItemAdapter adapter = PortalNavigationItemAdapter.INSTANCE;
 
     @BeforeEach
     void setUp() {
@@ -214,6 +222,63 @@ class PortalNavigationItemsQueryServiceImplTest {
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while finding top level portal navigation items by environmentId env-id and area TOP_NAVBAR")
                 .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class Search {
+
+        @Test
+        void should_map_all_criteria_fields_correctly() throws TechnicalException {
+            // Given
+            var environmentId = "env-id";
+            var parentId = PortalNavigationItemId.random();
+            var criteria = PortalNavigationItemQueryCriteria.builder()
+                .environmentId(environmentId)
+                .parentId(parentId)
+                .area(PortalArea.TOP_NAVBAR)
+                .published(true)
+                .root(true)
+                .build();
+
+            var domainItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().json(), "Test Item", parentId);
+            domainItem.setEnvironmentId(environmentId);
+            domainItem.setPublished(true);
+            var repoItem = adapter.toRepository(domainItem);
+
+            var repoItems = List.of(repoItem);
+            ArgumentCaptor<PortalNavigationItemCriteria> criteriaCaptor = ArgumentCaptor.forClass(PortalNavigationItemCriteria.class);
+            when(repository.searchByCriteria(criteriaCaptor.capture())).thenReturn(repoItems);
+
+            // When
+            var result = service.search(criteria);
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getTitle()).isEqualTo("Test Item");
+            var capturedCriteria = criteriaCaptor.getValue();
+            assertThat(capturedCriteria.getEnvironmentId()).isEqualTo(environmentId);
+            assertThat(capturedCriteria.getParentId()).isEqualTo(parentId.json());
+            assertThat(capturedCriteria.getPortalArea()).isEqualTo("TOP_NAVBAR");
+            assertThat(capturedCriteria.getPublished()).isTrue();
+            assertThat(capturedCriteria.getRoot()).isTrue();
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            // Given
+            var environmentId = "env-id";
+            var criteria = PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).build();
+            ArgumentCaptor<PortalNavigationItemCriteria> criteriaCaptor = ArgumentCaptor.forClass(PortalNavigationItemCriteria.class);
+            when(repository.searchByCriteria(criteriaCaptor.capture())).thenThrow(new TechnicalException("Database error"));
+
+            // When & Then
+            assertThatThrownBy(() -> service.search(criteria))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessageContaining("An error occurred while searching portal navigation items by criteria")
+                .hasCauseInstanceOf(TechnicalException.class);
+            var capturedCriteria = criteriaCaptor.getValue();
+            assertThat(capturedCriteria.getEnvironmentId()).isEqualTo(environmentId);
         }
     }
 }

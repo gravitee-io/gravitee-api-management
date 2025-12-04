@@ -19,11 +19,13 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -59,13 +61,29 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
     @Override
     public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
         try {
-            var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(parentId.json(), environmentId);
+            var cleanedParentId = Optional.ofNullable(parentId).map(PortalNavigationItemId::json).orElse(null);
+            var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(cleanedParentId, environmentId);
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
                 "An error occurred while finding portal navigation items by parentId %s and environmentId %s",
                 parentId,
                 environmentId
+            );
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria) {
+        try {
+            var repoCriteria = portalNavigationItemAdapter.map(criteria);
+            var results = portalNavigationItemRepository.searchByCriteria(repoCriteria);
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while searching portal navigation items by criteria %s",
+                criteria.toString()
             );
             throw new TechnicalDomainException(errorMessage, e);
         }
