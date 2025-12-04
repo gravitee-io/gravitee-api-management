@@ -24,8 +24,10 @@ import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHOR
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.resource.api.ResourceConfiguration;
 import io.gravitee.resource.oauth2.api.OAuth2Resource;
+import io.gravitee.resource.oauth2.api.OAuth2ResourceMetadata;
 import io.gravitee.resource.oauth2.api.OAuth2Response;
 import io.gravitee.resource.oauth2.api.openid.UserInfoResponse;
+import java.util.List;
 
 /**
  * @author GraviteeSource Team
@@ -55,6 +57,11 @@ public class MockOAuth2Resource extends OAuth2Resource<MockOAuth2Resource.MockOA
 
     @Override
     public void userInfo(String accessToken, Handler<UserInfoResponse> responseHandler) {}
+
+    @Override
+    public OAuth2ResourceMetadata getProtectedResourceMetadata(String protectedResourceUri) {
+        return new OAuth2ResourceMetadata(protectedResourceUri, List.of("https://some.keycloak.com/realms/test"), List.of("read", "write"));
+    }
 
     public class MockOAuth2ResourceConfiguration implements ResourceConfiguration {}
 }

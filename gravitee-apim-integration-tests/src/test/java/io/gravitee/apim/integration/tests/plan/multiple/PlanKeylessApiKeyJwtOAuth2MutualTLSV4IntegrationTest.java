@@ -18,7 +18,11 @@ package io.gravitee.apim.integration.tests.plan.multiple;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configureTrustedHttpClient;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.vertx.core.http.HttpMethod.GET;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -58,14 +62,19 @@ import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.gravitee.policy.oauth2.Oauth2Policy;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
+import io.gravitee.resource.oauth2.api.OAuth2ResourceMetadata;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -75,6 +84,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author GraviteeSource Team
  */
 public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void configureResources(Map<String, ResourcePlugin> resources) {
         resources.put("mock-oauth2-resource", ResourceBuilder.build("mock-oauth2-resource", MockOAuth2Resource.class));
@@ -458,6 +469,11 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
     public class SelectOAuth2Test extends PlanOAuth2V4IntegrationTest {
 
         @Override
+        protected String scheme() {
+            return "https";
+        }
+
+        @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest.configureApi(api, definitionClass);
@@ -519,6 +535,34 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
                     Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
                 );
             });
+        }
+
+        @Test
+        protected void should_return_oauth_protected_resource_metadata(
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig
+        ) {
+            client
+                .rxRequest(GET, "/v4-proxy-api/.well-known/oauth-protected-resource")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    OAuth2ResourceMetadata resourceMetadata = mapper.readValue(body.toString(), OAuth2ResourceMetadata.class);
+                    String protectedResourceUri = String.format("https://localhost:%s/v4-proxy-api/", httpConfig.httpPort());
+                    assertAll(
+                        () -> assertThat(resourceMetadata.protectedResourceUri()).isEqualTo(protectedResourceUri),
+                        () ->
+                            assertThat(resourceMetadata.authorizationServers()).isEqualTo(List.of("https://some.keycloak.com/realms/test")),
+                        () -> assertThat(resourceMetadata.scopesSupported()).containsExactlyInAnyOrder("read", "write")
+                    );
+                    return true;
+                });
         }
 
         @ParameterizedTest

@@ -167,6 +167,7 @@ public class PlanHelper {
 
             OAuth2PolicyConfiguration configuration = new OAuth2PolicyConfiguration();
             configuration.setOauthResource(RESOURCE_ID);
+            configuration.setAddWwwAuthenticateHeader(true);
             try {
                 oauth2Plan.setSecurityDefinition(new ObjectMapper().writeValueAsString(configuration));
             } catch (JsonProcessingException e) {
@@ -234,6 +235,7 @@ public class PlanHelper {
             try {
                 OAuth2PolicyConfiguration configuration = new OAuth2PolicyConfiguration();
                 configuration.setOauthResource(RESOURCE_ID);
+                configuration.setAddWwwAuthenticateHeader(true);
                 io.gravitee.definition.model.v4.plan.Plan oauth2Plan = io.gravitee.definition.model.v4.plan.Plan.builder()
                     .id(PLAN_OAUTH2_ID)
                     .name("plan-oauth2-name")
