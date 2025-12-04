@@ -21,9 +21,8 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
-import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -39,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
@@ -50,13 +49,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     private static final String ENVIRONMENT = "environment-id";
 
     @Inject
-    private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
-
-    @Inject
-    private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
-
-    @Inject
     private EnvironmentService environmentService;
+
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     private WebTarget target;
 
@@ -80,19 +76,15 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalNavigationItemsQueryService.reset();
     }
 
     @Test
     void should_return_portal_navigation_items() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-
-        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            ListPortalNavigationItemsUseCase.Input.class
-        );
-        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
-            new ListPortalNavigationItemsUseCase.Output(items)
-        );
+        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(items);
 
         when(
             permissionService.hasPermission(
@@ -111,33 +103,14 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
             .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
-
-        var capturedInput = inputCaptor.getValue();
-        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
-        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-        assertThat(capturedInput.parentId()).isEmpty();
-        assertThat(capturedInput.loadChildren()).isTrue();
     }
 
     @Test
     void should_return_portal_navigation_items_with_parent_id() {
         // Given
-        var items = PortalNavigationItemFixtures.sampleNavigationItems()
-            .stream()
-            .filter(
-                item ->
-                    item.getId().id().toString().equals("00000000-0000-0000-0000-000000000004") ||
-                    item.getId().id().toString().equals("00000000-0000-0000-0000-000000000005") ||
-                    item.getId().id().toString().equals("00000000-0000-0000-0000-000000000006")
-            )
-            .toList();
-
-        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            ListPortalNavigationItemsUseCase.Input.class
-        );
-        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
-            new ListPortalNavigationItemsUseCase.Output(items)
-        );
+        var allItems = PortalNavigationItemFixtures.sampleNavigationItems();
+        allItems.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(allItems);
 
         when(
             permissionService.hasPermission(
@@ -151,7 +124,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         // When
         Response response = target
             .queryParam("area", PortalArea.TOP_NAVBAR)
-            .queryParam("parentId", "00000000-0000-0000-0000-000000000001")
+            .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
             .queryParam("loadChildren", false)
             .request()
             .get();
@@ -161,29 +134,14 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
             .satisfies(entity -> assertThat(entity.getItems()).hasSize(3));
-
-        var capturedInput = inputCaptor.getValue();
-        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
-        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-        assertThat(capturedInput.parentId()).isPresent();
-        assertThat(capturedInput.parentId().get().id().toString()).isEqualTo("00000000-0000-0000-0000-000000000001");
-        assertThat(capturedInput.loadChildren()).isFalse();
     }
 
     @Test
     void should_return_portal_navigation_items_without_loading_children() {
         // Given
-        var items = PortalNavigationItemFixtures.sampleNavigationItems()
-            .stream()
-            .filter(item -> item.getParentId() == null) // Assuming top-level items
-            .toList();
-
-        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            ListPortalNavigationItemsUseCase.Input.class
-        );
-        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
-            new ListPortalNavigationItemsUseCase.Output(items)
-        );
+        var items = PortalNavigationItemFixtures.sampleNavigationItems();
+        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(items);
 
         when(
             permissionService.hasPermission(
@@ -201,26 +159,22 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(items.size()));
-
-        var capturedInput = inputCaptor.getValue();
-        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
-        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-        assertThat(capturedInput.parentId()).isEmpty();
-        assertThat(capturedInput.loadChildren()).isFalse();
+            .satisfies(entity -> {
+                // Should only return top-level items (parentId == null)
+                var topLevelItems = items
+                    .stream()
+                    .filter(item -> item.getParentId() == null)
+                    .toList();
+                assertThat(entity.getItems()).hasSize(topLevelItems.size());
+            });
     }
 
     @Test
     void should_return_portal_navigation_items_with_parent_id_and_loading_children() {
         // Given
-        var items = PortalNavigationItemFixtures.sampleNavigationItems(); // Assuming this includes the parent and children
-
-        ArgumentCaptor<ListPortalNavigationItemsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            ListPortalNavigationItemsUseCase.Input.class
-        );
-        when(listPortalNavigationItemsUseCase.execute(inputCaptor.capture())).thenReturn(
-            new ListPortalNavigationItemsUseCase.Output(items)
-        );
+        var items = PortalNavigationItemFixtures.sampleNavigationItems();
+        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(items);
 
         when(
             permissionService.hasPermission(
@@ -234,7 +188,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         // When
         Response response = target
             .queryParam("area", PortalArea.TOP_NAVBAR)
-            .queryParam("parentId", "00000000-0000-0000-0000-000000000001")
+            .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
             .queryParam("loadChildren", true)
             .request()
             .get();
@@ -243,14 +197,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
-
-        var capturedInput = inputCaptor.getValue();
-        assertThat(capturedInput.environmentId()).isEqualTo(ENVIRONMENT);
-        assertThat(capturedInput.portalArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-        assertThat(capturedInput.parentId()).isPresent();
-        assertThat(capturedInput.parentId().get().id().toString()).isEqualTo("00000000-0000-0000-0000-000000000001");
-        assertThat(capturedInput.loadChildren()).isTrue();
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(5));
     }
 
     @Test

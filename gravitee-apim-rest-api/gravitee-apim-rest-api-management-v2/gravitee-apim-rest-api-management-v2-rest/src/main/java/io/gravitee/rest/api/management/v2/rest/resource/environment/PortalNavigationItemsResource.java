@@ -75,7 +75,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 GraviteeContext.getCurrentEnvironment(),
                 area,
                 Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
-                loadChildren
+                loadChildren,
+                false
             )
         );
 

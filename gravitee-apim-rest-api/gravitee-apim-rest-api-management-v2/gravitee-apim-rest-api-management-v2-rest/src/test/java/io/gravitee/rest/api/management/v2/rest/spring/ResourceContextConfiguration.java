@@ -34,9 +34,6 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
-import inmemory.PortalNavigationItemsQueryServiceInMemory;
-import inmemory.PortalPageContentCrudServiceInMemory;
-import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -119,6 +116,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudSe
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -911,11 +909,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
-        return new PortalNavigationItemsQueryServiceInMemory();
-    }
-
-    @Bean
     public PortalNavigationItemDomainService portalNavigationItemDomainService() {
         return mock(PortalNavigationItemDomainService.class);
     }
@@ -938,8 +931,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase() {
-        return mock(ListPortalNavigationItemsUseCase.class);
+    public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemVisibilityDomainService portalNavigationItemVisibilityDomainService
+    ) {
+        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationItemVisibilityDomainService);
     }
 
     @Bean
