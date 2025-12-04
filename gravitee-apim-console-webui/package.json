@@ -155,6 +155,7 @@
     "build-storybook": "ng run apim-console:build-storybook",
     "serve": "NODE_OPTIONS=--max_old_space_size=7168 ng serve --disable-host-check --host 0.0.0.0",
     "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev yarn serve",
+    "serve:apim-gko": "BACKEND_ENV=apim-dev-api.team-gko.gravitee.dev yarn serve",
     "test-old": "jest --config old-jest.config.js --detectOpenHandles",
     "test": "jest",
     "test:auto": "jest --watch",

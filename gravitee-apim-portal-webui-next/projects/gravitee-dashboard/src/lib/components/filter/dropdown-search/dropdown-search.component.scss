@@ -17,6 +17,7 @@
 
 :host {
   display: block;
+  background-color: white;
 }
 
 .gio-select-search {
@@ -32,7 +33,7 @@
     transition: border-color 0.2s ease;
 
     &:hover:not(.disabled) {
-      border-color: #da3b00;
+      border-color: black;
     }
 
     &.disabled {
