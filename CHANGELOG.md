@@ -1,3 +1,10 @@
+# [3.7.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.6.0...3.7.0) (2025-12-04)
+
+
+### Features
+
+* bump reporter-common to 1.12.0 ([5ff7aa5](https://github.com/gravitee-io/gravitee-reporter-file/commit/5ff7aa52581b52271eb6042eef8d243973aa0118))
+
 # [3.6.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.6...3.6.0) (2025-10-16)
 
 
