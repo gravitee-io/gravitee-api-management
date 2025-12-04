@@ -51,5 +51,5 @@ public class ApiMetricsDetail {
     String errorComponentName;
     String errorComponentType;
     List<ConnectionDiagnosticModel> warnings;
-    Map<String, String> additionalMetrics;
+    Map<String, Object> additionalMetrics;
 }

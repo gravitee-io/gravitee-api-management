@@ -49,5 +49,5 @@ public class ApiMetricsDetail {
     String errorComponentName;
     String errorComponentType;
     List<ConnectionDiagnostic> warnings;
-    Map<String, String> additionalMetrics;
+    Map<String, Object> additionalMetrics;
 }

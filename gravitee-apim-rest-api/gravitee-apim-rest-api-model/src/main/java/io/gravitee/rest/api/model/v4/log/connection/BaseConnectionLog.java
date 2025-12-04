@@ -51,5 +51,5 @@ public class BaseConnectionLog {
     private String errorComponentName;
     private String errorComponentType;
     private List<ConnectionDiagnosticModel> warnings;
-    private Map<String, String> additionalMetrics;
+    private Map<String, Object> additionalMetrics;
 }
