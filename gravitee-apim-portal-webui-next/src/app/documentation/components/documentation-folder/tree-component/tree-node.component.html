@@ -26,7 +26,7 @@
   [attr.aria-level]="level() + 1"
   [attr.aria-selected]="isSelected()"
   [attr.aria-expanded]="node().type === 'FOLDER' ? isExpanded() : null"
-  (click)="selectNode()"
+  (click)="node().type === 'FOLDER' ? toggleNode() : selectNode()"
   (keydown.enter)="selectNode()"
   (keydown.arrowright)="node().type === 'FOLDER' && isExpanded.set(true)"
   (keydown.arrowleft)="node().type === 'FOLDER' && isExpanded.set(false)"
@@ -35,23 +35,23 @@
     <mat-icon
       class="tree__icon"
       [attr.data-test-icon]="'toggle'"
-      [svgIcon]="isExpanded() ? 'gio:nav-arrow-down' : 'gio:nav-arrow-right'"
+      [fontIcon]="isExpanded() ? 'keyboard_arrow_down' : 'keyboard_arrow_right'"
       aria-hidden="true"
       (click)="toggleNode(); $event.stopPropagation()"
     />
   }
 
+<!--    svgIcon="gio:{{ node().type | lowercase }}"-->
   <mat-icon
     class="tree__icon tree__icon__type"
     [attr.data-test-type]="node().type"
-    svgIcon="gio:{{ node().type | lowercase }}"
     aria-hidden="true"
   />
 
   <span class="tree__label">{{ node().label }}</span>
 
   <button type="button" mat-icon-button class="tree__button more-actions" aria-label="More actions" (click)="$event.stopPropagation()">
-    <mat-icon svgIcon="gio:more-vertical" />
+<!--    <mat-icon svgIcon="gio:more-vertical" />-->
   </button>
 </div>
 

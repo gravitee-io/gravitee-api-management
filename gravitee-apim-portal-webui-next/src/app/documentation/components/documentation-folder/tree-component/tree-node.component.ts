@@ -33,13 +33,13 @@ export class TreeNodeComponent {
   level = input(0);
   selectedId = input<string | null>(null);
 
-  nodeSelected = output<SectionNode>();
+  nodeSelected = output<string>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
   isExpanded = signal<boolean>(true);
 
   selectNode(): void {
-    this.nodeSelected.emit(this.node());
+    this.nodeSelected.emit(this.node().id);
   }
 
   toggleNode(): void {

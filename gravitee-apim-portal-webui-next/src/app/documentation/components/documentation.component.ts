@@ -15,25 +15,33 @@
  */
 import {Component, inject, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 import {firstValueFrom, map, Observable, of, tap} from 'rxjs';
 
-import { LoaderComponent } from '../../../components/loader/loader.component';
 import {PortalNavigationItem} from "../../../entities/portal-navigation/portal-navigation-item";
 import {DocumentationFolderComponent} from "./documentation-folder/documentation-folder.component";
 import {DocumentationPageComponent} from "./documentation-page/documentation-page.component";
-import * as child_process from "node:child_process";
+
+interface DocumentationData {
+  navItem: PortalNavigationItem,
+  children?: PortalNavigationItem[],
+  selectedPageContent?: string,
+}
 
 @Component({
   selector: 'app-documentation',
   imports: [DocumentationFolderComponent, DocumentationPageComponent],
   standalone: true,
   template: `
-      @if (selectedItem()?.type === 'FOLDER') {
-        <app-documentation-folder [items]="children()"/>
-      } @else if (selectedItem()?.type === 'PAGE') {
-        <app-documentation-page />
-      }
+    @let type = documentationData()?.navItem?.type;
+    @if (type === 'FOLDER') {
+      <app-documentation-folder [items]="documentationData()?.children!"
+                                [selectedPageContent]="documentationData()?.selectedPageContent!"/>
+    } @else if (type === 'PAGE') {
+      <app-documentation-page/>
+    } @else {
+      <!--   TODO show a 404?     -->
+    }
   `,
   styles: `
     :host {
@@ -43,6 +51,5 @@ import * as child_process from "node:child_process";
   `
 })
 export class DocumentationComponent {
-  selectedItem = toSignal<PortalNavigationItem>(inject(ActivatedRoute).data.pipe(map(data => data['data']['currentItem'])));
-  children = toSignal(inject(ActivatedRoute).data.pipe(map(data => data['data']['children'] || [])), { initialValue: [] });
+  documentationData = toSignal<DocumentationData>(inject(ActivatedRoute).data.pipe(map(data => data['data'])));
 }

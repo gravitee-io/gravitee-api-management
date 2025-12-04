@@ -23,8 +23,9 @@
     flex-direction: column;
 
     &__breadcrumbs {
-      height: 55px;
-      border-bottom: 1px solid app-theme.$nav-bar-border-color;
+      // TODO in a separate PR
+      //height: 55px;
+      //border-bottom: 1px solid app-theme.$nav-bar-border-color;
     }
 
     &__content {

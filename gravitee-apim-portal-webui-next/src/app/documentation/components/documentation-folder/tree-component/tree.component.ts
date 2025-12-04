@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, output } from '@angular/core';
+import {Component, computed, effect, input, output} from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 import {PortalNavigationItem, PortalNavigationType} from "../../../../../entities/portal-navigation/portal-navigation-item";
-
-// import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 
 export interface SectionNode {
   id: string;
@@ -48,10 +46,19 @@ export class TreeComponent {
   });
 
   selectedId = input<string | null>(null);
-  select = output<SectionNode>();
+  select = output<string>();
 
   constructor() {
-    console.log('links', this.links());
+    effect(() => {
+      if (!this.selectedId()) {
+        const firstItemId = this.tree()[0]?.id;
+        if (firstItemId) {
+          this.select.emit(firstItemId);
+        } else {
+          // TODO show an empty state in documentation folder
+        }
+      }
+    });
   }
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {

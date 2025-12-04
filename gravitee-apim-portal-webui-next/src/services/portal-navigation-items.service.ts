@@ -44,6 +44,19 @@ export class PortalNavigationItemsService {
       .pipe(catchError(_ => of([])));
   }
 
+  getNavigationItem(id: string): Observable<PortalNavigationItem> {
+    return this.http
+      .get<PortalNavigationItem>(`${this.configService.baseURL}/portal-navigation-items/${id}`)
+      .pipe(catchError(_ => of()));
+  }
+
+  getNavigationItemContent(id: string): Observable<string> {
+    return this.http
+      .get(`${this.configService.baseURL}/portal-navigation-items/${id}/content`,
+        { responseType: 'text' })
+      .pipe(catchError(_ => of('')));
+  }
+
   loadTopNavBarItems(): Observable<void> {
     return this.getNavigationItems('TOP_NAVBAR', false).pipe(switchMap(value => {
       this.topNavbarItems.set(value);

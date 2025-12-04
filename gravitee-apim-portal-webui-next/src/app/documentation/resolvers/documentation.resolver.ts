@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import {ActivatedRoute, ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot} from '@angular/router';
-import {map, switchMap, tap, timer} from 'rxjs';
+import {ActivatedRouteSnapshot, Router, RouterStateSnapshot} from '@angular/router';
+import {forkJoin, map} from 'rxjs';
 
 import {PortalNavigationItemsService} from "../../../services/portal-navigation-items.service";
-import {PortalPageContentService} from "../../../services/portal-page-content.service";
-import {PortalNavigationItem, PortalNavigationPage} from "../../../entities/portal-navigation/portal-navigation-item";
+import {of} from "rxjs/internal/observable/of";
 
 // load everything under the selected folder and unfold all of its children
 // path param for parent id
@@ -27,28 +26,26 @@ import {PortalNavigationItem, PortalNavigationPage} from "../../../entities/port
 // id = the root for that view
 // only the page content is loaded incrementally
 // maybe cache the page content
-export const documentationResolver = ((route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+export const documentationResolver = ((route: ActivatedRouteSnapshot) => {
   const itemsService = inject(PortalNavigationItemsService);
-  const contentService = inject(PortalPageContentService);
-  const navId = route.params['navId'];
-  const selectedNavId = route.queryParams['selectedNavId'];
-  console.log('selectedNavId', selectedNavId);
-  const currentItem = itemsService.topNavbarItems().find(item => item.id === navId);
+  const navItem = itemsService.topNavbarItems().find(item => item.id === route.params['navId']);
 
-  return itemsService
-    .getNavigationItems('TOP_NAVBAR', !!navId, navId)
-    .pipe(
-      tap(res => {
-        const seletedItem = res.find(item => item.id === selectedNavId) as PortalNavigationPage;
-        if (seletedItem) {
-          contentService.getPageContent(seletedItem.portalPageContentId).subscribe(res => console.log('res', res))
-        }
-      }),
-      map(res => {
-        return {
-          currentItem,
-          children: res
-        }
-      })
-    )
+  if (!navItem) {
+    inject(Router).navigate(['/404']);
+    return of(null);
+  } else if (navItem.type === 'FOLDER') {
+    const selectedPageId = route.queryParams['pageId'];
+    return forkJoin([
+      itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id),
+      selectedPageId ? itemsService.getNavigationItemContent(selectedPageId) : of(''),
+    ]).pipe(
+      map(([children, selectedPageContent]) => ({
+        navItem,
+        children,
+        selectedPageContent,
+      }))
+    );
+  } else {
+    return of({ navItem });
+  }
 });

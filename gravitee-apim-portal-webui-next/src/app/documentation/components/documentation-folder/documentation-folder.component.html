@@ -1,7 +1,9 @@
 <div class="documentation-folder__sidenav" appIsMobile="documentation-folder__sidenav__mobile">
-  <portal-tree-component [links]="items()" [selectedId]="navId()" (select)="onSelect($event)" />
+  <portal-tree-component [links]="items()" [selectedId]="pageId()" (select)="onSelect($event)" />
 </div>
 <div class="documentation-folder__container">
   <div class="documentation-folder__container__breadcrumbs"></div>
-  <div class="documentation-folder__container__content"></div>
+  <div class="documentation-folder__container__content">
+    <gmd-viewer [content]="selectedPageContent()" appInnerLink />
+  </div>
 </div>

@@ -256,8 +256,9 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        // resolve: { data: documentationResolver },
-        component: DocumentationRedirectToFirstIdComponent,
+        data: { breadcrumb: { alias: 'pageName' } },
+        resolve: { data: documentationResolver },
+        component: DocumentationComponent,
       },
       {
         path: ':navId',
