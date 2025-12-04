@@ -6890,9 +6890,8 @@ components:
                     $ref: "#/components/schemas/ApiLogDiagnostic"
                 additionalMetrics:
                   type: object
-                  additionalProperties:
-                    type: string
-                  description: A map of string keys to string values
+                  additionalProperties: true
+                  description: A map of string keys to values
 
         ApiLogDiagnostic:
           type: object
@@ -9208,9 +9207,8 @@ components:
                       $ref: "#/components/schemas/ApiLogDiagnostic"
                   additionalMetrics:
                     type: object
-                    additionalProperties:
-                      type: string
-                    description: A map of string keys to string values
+                    additionalProperties: true
+                    description: A map of string keys to values
 
         # Analytics - Logs
         ApiLogsResponse:

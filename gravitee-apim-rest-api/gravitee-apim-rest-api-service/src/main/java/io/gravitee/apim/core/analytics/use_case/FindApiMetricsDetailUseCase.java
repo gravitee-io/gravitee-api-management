@@ -19,7 +19,6 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.model.ApiMetricsDetail;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
