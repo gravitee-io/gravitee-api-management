@@ -15,7 +15,7 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -116,6 +116,9 @@ export class PortalNavigationItemsComponent {
     const navId = this.navId();
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
+  });
+  readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
+    return this.selectedNavigationItem()?.data?.published ?? false;
   });
 
   // --- Resize Configuration ---
@@ -307,5 +310,50 @@ export class PortalNavigationItemsComponent {
         )
         .subscribe((content) => this.contentControl.reset(content));
     }
+  }
+
+  onPublishToggle() {
+    const navItem = this.selectedNavigationItem().data;
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: this.getPublishDialogData(navItem),
+        role: 'alertdialog',
+        id: 'managePublishNavigationItemConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() =>
+          this.update(navItem.id, {
+            ...navItem,
+            published: !navItem.published,
+          }),
+        ),
+        tap(() => this.refreshMenuList.next(1)),
+        catchError(() => {
+          this.snackBarService.error('Failed to update publication status');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
+    const isPublished = navItem.published;
+    const typeLabel = navItem.type.toLowerCase();
+
+    const action = isPublished ? 'Unpublish' : 'Publish';
+    const pastAction = `${action.toLowerCase()}ed`;
+
+    const contentScope = navItem.type === 'FOLDER' ? ' and its content ' : ' ';
+
+    return {
+      title: `${action} "${navItem.title}" ${typeLabel}?`,
+      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.`,
+      confirmButton: action,
+    };
   }
 }

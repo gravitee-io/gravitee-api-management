@@ -22,6 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -392,6 +393,93 @@ describe('PortalNavigationItemsComponent', () => {
 
       expect(await harness.isSaveButtonDisabled()).toBe(true);
       expect(await harness.getEditorContentText()).toBe('Edited content');
+    });
+  });
+
+  describe('publishing and unpublishing a navigation item', () => {
+    describe('published navigation item', () => {
+      const publishedNavItem = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+        published: true,
+      });
+      beforeEach(async () => {
+        const fakeResponse = fakePortalNavigationItemsResponse({
+          items: [publishedNavItem],
+        });
+
+        await expectGetNavigationItems(fakeResponse);
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+      it('should show "Unpublish" button and "Publish" label', async () => {
+        expect(await harness.isPublishButtonVisible()).toBe(false);
+        expect(await harness.isUnpublishButtonVisible()).toBe(true);
+
+        expect(await harness.isPublishedBadgeVisible()).toBe(true);
+      });
+      it('should unpublish the item when "Unpublish" button is clicked', async () => {
+        await harness.clickUnpublishButton();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'nav-item-1',
+          {
+            ...publishedNavItem,
+            published: false,
+          },
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+    });
+
+    describe('unpublished navigation item', () => {
+      const unpublishedNavItem = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+        published: false,
+      });
+      beforeEach(async () => {
+        const fakeResponse = fakePortalNavigationItemsResponse({
+          items: [unpublishedNavItem],
+        });
+
+        await expectGetNavigationItems(fakeResponse);
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+      it('should show "Publish" button and "Unpublished" label', async () => {
+        expect(await harness.isPublishButtonVisible()).toBe(true);
+        expect(await harness.isUnpublishButtonVisible()).toBe(false);
+
+        expect(await harness.isPublishedBadgeVisible()).toBe(false);
+        expect(await harness.isUnpublishedBadgeVisible()).toBe(true);
+      });
+      it('should publish the item when "Publish" button is clicked', async () => {
+        await harness.clickPublishButton();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'nav-item-1',
+          {
+            ...unpublishedNavItem,
+            published: true,
+          },
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
     });
   });
 

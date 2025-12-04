@@ -18,6 +18,7 @@ import { GraviteeMarkdownEditorHarness } from '@gravitee/gravitee-markdown';
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { TreeComponentHarness } from '../components/tree-component/tree.component.harness';
 import { EmptyStateComponentHarness } from '../../shared/components/empty-state/empty-state.component.harness';
@@ -27,12 +28,15 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
+  private getPublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Publish$/ }));
+  private getUnpublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Unpublish$/ }));
   private getMenu = this.locatorFor(MatMenuHarness);
   private getTree = this.locatorFor(TreeComponentHarness);
   private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
   private getEmptyEditor = this.locatorForOptional(
     EmptyStateComponentHarness.with({ title: 'Editor', message: 'Use GMD code to customize and edit your page content.' }),
   );
+  private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
@@ -116,5 +120,37 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async isSaveButtonDisabled(): Promise<boolean> {
     const button = await this.getSaveButton();
     return button.isDisabled();
+  }
+
+  async isPublishButtonVisible(): Promise<boolean> {
+    const button = await this.getPublishButton();
+    return button !== null;
+  }
+
+  async clickPublishButton(): Promise<void> {
+    const button = await this.getPublishButton();
+    return button.click();
+  }
+
+  async isUnpublishButtonVisible(): Promise<boolean> {
+    const button = await this.getUnpublishButton();
+    return button !== null;
+  }
+
+  async clickUnpublishButton(): Promise<void> {
+    const button = await this.getUnpublishButton();
+    return button.click();
+  }
+
+  async isPublishedBadgeVisible(): Promise<boolean> {
+    const titleDiv = await this.getTitle();
+    const titleText = await titleDiv.getText();
+    return titleText.includes('Published');
+  }
+
+  async isUnpublishedBadgeVisible(): Promise<boolean> {
+    const titleDiv = await this.getTitle();
+    const titleText = await titleDiv.getText();
+    return titleText.includes('Unpublished');
   }
 }

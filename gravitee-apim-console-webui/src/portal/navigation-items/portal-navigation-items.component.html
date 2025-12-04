@@ -61,9 +61,16 @@
       @if (selectedNavigationItem()) {
         <div class="panel-header__title">
           {{ selectedNavigationItem().label }}
+
+          <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'" data-testid="status-badge">
+            {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+          </span>
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        <button mat-stroked-button (click)="onPublishToggle()">
+          {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+        </button>
         <button mat-stroked-button [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
       </div>
     </header>
