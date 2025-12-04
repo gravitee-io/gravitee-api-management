@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
 
@@ -30,6 +31,8 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
 
     List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
         throws TechnicalException;
+
+    List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException;
 
     void deleteByOrganizationId(String organizationId) throws TechnicalException;
 

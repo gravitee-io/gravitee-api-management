@@ -15,8 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.StringUtils.hasText;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
 import io.gravitee.repository.mongodb.management.internal.portalnavigationitem.PortalNavigationItemMongoRepository;
@@ -27,6 +31,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +45,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
 
     @Autowired
     private GraviteeMapper mapper;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     public Optional<PortalNavigationItem> findById(String id) throws TechnicalException {
@@ -70,6 +80,50 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
         log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}]", area, environmentId);
         Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentId(area, environmentId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException {
+        log.debug("Search PortalNavigationItem by criteria [{}]", criteria);
+        try {
+            Query query = buildQuery(criteria);
+            List<PortalNavigationItemMongo> items = mongoTemplate.find(query, PortalNavigationItemMongo.class);
+            List<PortalNavigationItem> mapped = items.stream().map(mapper::map).collect(Collectors.toList());
+            log.debug("Search PortalNavigationItem by criteria - Done, found {} items", mapped.size());
+            return mapped;
+        } catch (Exception ex) {
+            log.error("Failed to search portal navigation items by criteria", ex);
+            throw new TechnicalException("Failed to search portal navigation items by criteria", ex);
+        }
+    }
+
+    private Query buildQuery(PortalNavigationItemCriteria criteria) {
+        Query query = new Query();
+        if (criteria != null) {
+            if (hasText(criteria.getEnvironmentId())) {
+                query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
+            }
+
+            if (hasText(criteria.getParentId())) {
+                query.addCriteria(where("parentId").is(criteria.getParentId()));
+            } else if (Boolean.TRUE.equals(criteria.getRoot())) {
+                query.addCriteria(where("parentId").isNull());
+            }
+
+            if (hasText(criteria.getPortalArea())) {
+                try {
+                    PortalNavigationItem.Area area = PortalNavigationItem.Area.valueOf(criteria.getPortalArea());
+                    query.addCriteria(where("area").is(area));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid portal area value: {}", criteria.getPortalArea());
+                }
+            }
+
+            if (criteria.getPublished() != null) {
+                query.addCriteria(where("published").is(criteria.getPublished()));
+            }
+        }
+        return query;
     }
 
     @Override

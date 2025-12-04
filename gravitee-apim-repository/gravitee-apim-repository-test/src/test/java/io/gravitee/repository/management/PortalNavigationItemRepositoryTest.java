@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
 import java.util.Set;
@@ -168,5 +169,171 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(updated.isPublished()).isFalse();
 
         portalNavigationItemRepository.delete("update-nav-item");
+    }
+
+    //////////////////////////////////////
+    ////   SEARCH BY CRITERIA TESTS
+    //////////////////////////////////////
+
+    @Test
+    public void should_search_by_environment_id() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(6);
+        assertThat(items).extracting("environmentId").containsOnly("env-1");
+    }
+
+    @Test
+    public void should_search_by_environment_id_and_parent_id() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .parentId("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c")
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(3);
+        assertThat(items)
+            .extracting("id")
+            .containsExactlyInAnyOrder(
+                "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+                "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+                "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+            );
+    }
+
+    @Test
+    public void should_search_by_environment_id_and_root_and_null_parent_id() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .root(true)
+            .parentId(null)
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(3);
+        assertThat(items)
+            .extracting("id")
+            .containsExactlyInAnyOrder(
+                "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+                "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a",
+                "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+            );
+    }
+
+    @Test
+    public void should_search_by_environment_id_and_portal_area() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .portalArea("TOP_NAVBAR")
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(5);
+        assertThat(items).extracting("area").containsOnly(PortalNavigationItem.Area.TOP_NAVBAR);
+    }
+
+    @Test
+    public void should_search_by_environment_id_and_published() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").published(true).build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(6);
+        assertThat(items).extracting("published").containsOnly(true);
+    }
+
+    @Test
+    public void should_search_by_environment_id_and_published_false() throws Exception {
+        // Create an unpublished item for testing
+        PortalNavigationItem unpublishedItem = PortalNavigationItem.builder()
+            .id("unpublished-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Unpublished")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(10)
+            .published(false)
+            .configuration("{}")
+            .build();
+
+        portalNavigationItemRepository.create(unpublishedItem);
+
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").published(false).build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).isNotNull();
+            assertThat(items).hasSize(1);
+            assertThat(items.getFirst().getId()).isEqualTo("unpublished-item");
+            assertThat(items.getFirst().isPublished()).isFalse();
+        } finally {
+            portalNavigationItemRepository.delete("unpublished-item");
+        }
+    }
+
+    @Test
+    public void should_search_with_all_criteria() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .parentId("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c")
+            .portalArea("TOP_NAVBAR")
+            .published(true)
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(3);
+        assertThat(items)
+            .extracting("id")
+            .containsExactlyInAnyOrder(
+                "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+                "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+                "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+            );
+        assertThat(items).extracting("area").containsOnly(PortalNavigationItem.Area.TOP_NAVBAR);
+        assertThat(items).extracting("published").containsOnly(true);
+    }
+
+    @Test
+    public void should_search_without_published_filter_when_published_is_null() throws Exception {
+        // Create both published and unpublished items
+        PortalNavigationItem unpublishedItem = PortalNavigationItem.builder()
+            .id("unpublished-item-2")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Unpublished 2")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(11)
+            .published(false)
+            .configuration("{}")
+            .build();
+
+        portalNavigationItemRepository.create(unpublishedItem);
+
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").published(null).build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).isNotNull();
+            assertThat(items).hasSize(7); // 6 original + 1 unpublished
+            assertThat(items).extracting("id").contains("unpublished-item-2");
+        } finally {
+            portalNavigationItemRepository.delete("unpublished-item-2");
+        }
     }
 }
