@@ -49,10 +49,7 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator(
-        ApiSearchService apiSearchService,
-        ApplicationService applicationSearchService
-    ) {
-        return new ApiAnalyticsQueryFilterDecoratorImpl(apiSearchService, applicationSearchService);
+    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator(ApiSearchService apiSearchService) {
+        return new ApiAnalyticsQueryFilterDecoratorImpl(apiSearchService);
     }
 }

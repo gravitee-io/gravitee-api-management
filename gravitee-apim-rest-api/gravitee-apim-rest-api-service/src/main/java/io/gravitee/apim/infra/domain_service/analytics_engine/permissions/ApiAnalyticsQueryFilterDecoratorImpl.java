@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
 
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.APPLICATION;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.EQ;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
 
@@ -24,11 +23,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -58,25 +54,20 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
-    private static final String UNKNOWN_APPLICATION = "Unknown";
-
     private final ApiSearchService apiSearchService;
-
-    private final ApplicationService applicationSearchService;
 
     @Override
     public MetricsContext getFilteredContext(MetricsContext context, List<Filter> requestFilters) {
         var allowedApis = getAllowedApis(requestFilters);
-        var allowedApplications = getAllowedApplications(requestFilters);
         var updatedFilters = updateContextFilters(context.filters(), allowedApis);
 
-        return context.withApiNamesById(allowedApis).withApplicationNameById(allowedApplications).withFilters(updatedFilters);
+        return context.withApiNamesById(allowedApis).withFilters(updatedFilters);
     }
 
     private Map<String, String> getAllowedApis(List<Filter> filters) {
         QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
 
-        var apiIds = getIdsFromFilters(filters, API);
+        var apiIds = getApiIdsFromFilters(filters);
         if (!(apiIds.isEmpty())) {
             queryBuilder.setFilters(Map.of("id", apiIds));
         }
@@ -100,37 +91,17 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
         return mapApiIdsToNames(content);
     }
 
-    private Map<String, String> getAllowedApplications(List<Filter> filters) {
-        var query = new ApplicationQuery();
-
-        var applicationIds = getIdsFromFilters(filters, APPLICATION);
-        if (!(applicationIds.isEmpty())) {
-            query.setIds(applicationIds);
-        }
-
-        if (!isAdmin()) {
-            query.setUser(getAuthenticatedUser());
-        }
-
-        List<ApplicationListItem> content = applicationSearchService
-            .search(GraviteeContext.getExecutionContext(), query, null, null)
-            .getContent();
-        return mapApplicationIdsToNames(content);
-    }
-
     /**
      * getIdsFromFilters returns all the IDs found in a list of filters.
-     *
-     * @param filterName specifies the filters to look for
      */
-    public static Set<String> getIdsFromFilters(List<Filter> filters, FilterSpec.Name filterName) {
+    public static Set<String> getApiIdsFromFilters(List<Filter> filters) {
         if (filters.isEmpty()) {
             return Set.of();
         }
 
         List<Filter> filtersByName = filters
             .stream()
-            .filter(filter -> filter.name() == filterName)
+            .filter(filter -> filter.name() == API)
             .toList();
 
         if (filtersByName.isEmpty()) {
@@ -175,21 +146,8 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
         return apis.stream().collect(Collectors.toMap(GenericApiEntity::getId, GenericApiEntity::getName));
     }
 
-    private static Map<String, String> mapApplicationIdsToNames(List<ApplicationListItem> applications) {
-        Map<String, String> applicationMap = applications
-            .stream()
-            .collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
-        applicationMap.put("1", UNKNOWN_APPLICATION);
-
-        return applicationMap;
-    }
-
     protected boolean isAdmin() {
         return isUserInRole(ORGANIZATION_ADMIN);
-    }
-
-    protected String getAuthenticatedUser() {
-        return getUserPrincipal().getName();
     }
 
     protected boolean isUserInRole(final String role) {

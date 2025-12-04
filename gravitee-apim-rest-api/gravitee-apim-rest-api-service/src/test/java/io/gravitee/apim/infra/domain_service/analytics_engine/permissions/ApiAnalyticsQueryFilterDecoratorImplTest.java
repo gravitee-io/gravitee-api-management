@@ -41,7 +41,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest {
         void should_get_nothing_when_list_is_empty() {
             List<Filter> emptyFilters = List.of();
 
-            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getIdsFromFilters(emptyFilters, API);
+            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getApiIdsFromFilters(emptyFilters);
 
             assertThat(ids).isEmpty();
         }
@@ -52,7 +52,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest {
 
             List<Filter> filters = List.of(new Filter(API, EQ, apiId), new Filter(APPLICATION, EQ, UUID.randomUUID().toString()));
 
-            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getIdsFromFilters(filters, API);
+            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getApiIdsFromFilters(filters);
 
             assertThat(ids).containsExactly(apiId);
         }
@@ -67,7 +67,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest {
                 new Filter(APPLICATION, EQ, UUID.randomUUID().toString())
             );
 
-            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getIdsFromFilters(filters, API);
+            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getApiIdsFromFilters(filters);
 
             assertThat(ids).containsExactlyInAnyOrder(apiId1, apiId2);
         }
@@ -85,7 +85,7 @@ class ApiAnalyticsQueryFilterDecoratorImplTest {
                 new Filter(APPLICATION, EQ, UUID.randomUUID().toString())
             );
 
-            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getIdsFromFilters(filters, API);
+            var ids = ApiAnalyticsQueryFilterDecoratorImpl.getApiIdsFromFilters(filters);
 
             assertThat(ids).containsExactlyInAnyOrder(apiId1, apiId2, apiId3);
         }
