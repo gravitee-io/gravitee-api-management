@@ -16,9 +16,9 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -41,19 +41,19 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
+    private final PermissionsPreprocessor permissionsPreprocessor;
 
     private final NamesPostprocessor namesPostprocessor;
 
     public ComputeTimeSeriesUseCase(
         AnalyticsQueryContextProvider queryContextProvider,
         AnalyticsQueryValidator validator,
-        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator,
+        PermissionsPreprocessor permissionsPreprocessor,
         NamesPostprocessor namesPostprocessor
     ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
-        this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
+        this.permissionsPreprocessor = permissionsPreprocessor;
         this.namesPostprocessor = namesPostprocessor;
     }
 
@@ -67,7 +67,12 @@ public class ComputeTimeSeriesUseCase {
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
         var metricsContext = new MetricsContext(input.auditInfo);
-        var filteredContext = analyticsQueryFilterDecorator.getFilteredContext(metricsContext, input.request.filters());
+
+        var allowedApis = permissionsPreprocessor.findAllowedApis();
+        var filteredContext = metricsContext.withApiNamesById(allowedApis);
+
+        var filters = permissionsPreprocessor.buildFilterForAllowedApis(filteredContext);
+        filteredContext = filteredContext.withFilters(filters);
 
         var queryContext = queryContextProvider.resolve(input.request);
 

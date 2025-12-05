@@ -38,9 +38,9 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -973,9 +973,9 @@ public class ResourceContextConfiguration {
     public ComputeMeasuresUseCase computeMeasuresUseCase(
         AnalyticsQueryContextProvider analyticsQueryContextProvider,
         AnalyticsQueryValidator analyticsQueryValidator,
-        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+        PermissionsPreprocessor permissionsPreprocessor
     ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, analyticsQueryFilterDecorator);
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, permissionsPreprocessor);
     }
 
     @Bean
@@ -1004,8 +1004,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator() {
-        return mock(AnalyticsQueryFilterDecorator.class);
+    public PermissionsPreprocessor permissionsPreprocessor() {
+        return mock(PermissionsPreprocessor.class);
     }
 
     @Bean

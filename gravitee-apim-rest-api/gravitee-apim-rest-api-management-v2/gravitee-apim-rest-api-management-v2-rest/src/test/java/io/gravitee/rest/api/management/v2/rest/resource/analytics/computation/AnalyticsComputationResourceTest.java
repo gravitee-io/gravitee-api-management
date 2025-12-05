@@ -20,10 +20,7 @@ import static fixtures.AnalyticsEngineFixtures.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
