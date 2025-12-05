@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
@@ -39,16 +41,20 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
+    private final PermissionsPreprocessor permissionsPreprocessor;
+
+    private final NamesPostprocessor namesPostprocessor;
 
     public ComputeTimeSeriesUseCase(
         AnalyticsQueryContextProvider queryContextProvider,
         AnalyticsQueryValidator validator,
-        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+        PermissionsPreprocessor permissionsPreprocessor,
+        NamesPostprocessor namesPostprocessor
     ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
-        this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
+        this.permissionsPreprocessor = permissionsPreprocessor;
+        this.namesPostprocessor = namesPostprocessor;
     }
 
     public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
@@ -59,32 +65,39 @@ public class ComputeTimeSeriesUseCase {
         validator.validateTimeSeriesRequest(input.request);
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
+
+        var metricsContext = new MetricsContext(input.auditInfo);
+
+        var allowedApis = permissionsPreprocessor.findAllowedApis();
+        var filteredContext = metricsContext.withApiNamesById(allowedApis);
+
+        var filters = permissionsPreprocessor.getFiltersWithAllowedApisIds(filteredContext);
+        filteredContext = filteredContext.withFilters(filters);
+
         var queryContext = queryContextProvider.resolve(input.request);
-        var responses = executeQueries(executionContext, queryContext);
-        return new Output(TimeSeriesResponse.merge(responses));
+
+        var responses = executeQueries(executionContext, filteredContext, queryContext);
+
+        TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
+
+        var mappedResponse = namesPostprocessor.mapNames(filteredContext, input.request.facets(), response);
+
+        return new Output(mappedResponse);
     }
 
     private List<TimeSeriesResponse> executeQueries(
         ExecutionContext executionContext,
+        MetricsContext metricsContext,
         Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
         var responses = new ArrayList<TimeSeriesResponse>();
-        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
 
         queryContext.forEach((queryService, request) -> {
-            var filteredRequest = applyPermissionFilters(request, allowedApis);
-            responses.add(queryService.searchTimeSeries(executionContext, filteredRequest));
+            var filters = new ArrayList<>(request.filters());
+            filters.addAll(metricsContext.filters());
+
+            responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
         });
         return responses;
-    }
-
-    // Updates the request filter to limit metric access based on the user permissions
-    private TimeSeriesRequest applyPermissionFilters(
-        TimeSeriesRequest request,
-        Map<String, AnalyticsQueryFilterDecorator.API> allowedApis
-    ) {
-        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
-        return request.withFilters(updatedFilters);
     }
 }

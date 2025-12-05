@@ -16,16 +16,15 @@
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
-public interface AnalyticsQueryFilterDecorator {
-    record API(String name) {}
+public interface PermissionsPreprocessor {
+    Map<String, String> findAllowedApis();
 
-    List<Filter> applyPermissionBasedFilters(List<Filter> filters, Set<String> allowedApiIds);
-    Map<String, API> getAllowedApis();
+    List<Filter> getFiltersWithAllowedApisIds(MetricsContext context);
 }

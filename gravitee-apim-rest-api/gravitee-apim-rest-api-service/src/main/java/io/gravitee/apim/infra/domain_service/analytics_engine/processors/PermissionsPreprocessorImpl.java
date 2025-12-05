@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
+package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.security.Principal;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,50 +46,52 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDecorator {
+public class PermissionsPreprocessorImpl implements PermissionsPreprocessor {
 
-    private static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
+    private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
-    private final ApiAuthorizationService apiAuthorizationService;
-
-    private final PermissionService permissionService;
+    private final ApiSearchService apiSearchService;
 
     @Override
-    public Map<String, API> getAllowedApis() {
-        var allowedApis = new HashMap<String, API>();
+    public Map<String, String> findAllowedApis() {
+        QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
 
-        var executionContext = GraviteeContext.getExecutionContext();
-        if (isEnvironmentAdmin()) {
-            var apiIds = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
-            apiIds.forEach(id -> allowedApis.put(id, new API("")));
-            return allowedApis;
-        }
+        boolean admin = isAdmin();
+        Principal userPrincipal = getUserPrincipal();
+        String name = userPrincipal.getName();
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Page<GenericApiEntity> search = apiSearchService.search(
+            executionContext,
+            name,
+            admin,
+            queryBuilder,
+            new PageableImpl(0, Integer.MAX_VALUE),
+            false,
+            true
+        );
 
-        apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), false)
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-            .forEach(id -> allowedApis.put(id, new API("")));
+        List<GenericApiEntity> content = search.getContent();
 
-        return allowedApis;
+        return mapApiIdsToNames(content);
     }
 
     @Override
-    public List<Filter> applyPermissionBasedFilters(@NotNull List<Filter> filters, Set<String> allowedApiIds) {
-        var updatedFilters = new ArrayList<>(filters);
+    public List<Filter> getFiltersWithAllowedApisIds(MetricsContext context) {
+        var allowedApiIds = context.apiNameById().get().keySet().stream().toList();
 
-        var allowedApisFilter = new Filter(API, IN, allowedApiIds.stream().toList());
-        updatedFilters.add(allowedApisFilter);
-
-        return updatedFilters;
+        return List.of(new Filter(API, IN, allowedApiIds));
     }
 
-    protected boolean isEnvironmentAdmin() {
-        return isUserInRole(ENVIRONMENT_ADMIN);
+    /**
+     * addApiFilters adds a filter on API IDs to the existing filters.
+     */
+
+    private static Map<String, String> mapApiIdsToNames(Collection<GenericApiEntity> apis) {
+        return apis.stream().collect(Collectors.toMap(GenericApiEntity::getId, GenericApiEntity::getName));
     }
 
-    protected String getAuthenticatedUser() {
-        return getUserPrincipal().getName();
+    protected boolean isAdmin() {
+        return isUserInRole(ORGANIZATION_ADMIN);
     }
 
     protected boolean isUserInRole(final String role) {

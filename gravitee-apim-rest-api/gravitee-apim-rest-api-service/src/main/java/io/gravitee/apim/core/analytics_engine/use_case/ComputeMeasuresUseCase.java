@@ -16,15 +16,15 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,16 +40,16 @@ public class ComputeMeasuresUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator;
+    private final PermissionsPreprocessor permissionsPreprocessor;
 
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
-        AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator
+        PermissionsPreprocessor permissionsPreprocessor
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
-        this.analyticsQueryFilterDecorator = analyticsQueryFilterDecorator;
+        this.permissionsPreprocessor = permissionsPreprocessor;
     }
 
     public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
@@ -60,29 +60,36 @@ public class ComputeMeasuresUseCase {
         validator.validateMeasuresRequest(input.request);
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
+
+        var metricsContext = new MetricsContext(input.auditInfo);
+
+        var allowedApis = permissionsPreprocessor.findAllowedApis();
+        var filteredContext = metricsContext.withApiNamesById(allowedApis);
+
+        var filters = permissionsPreprocessor.getFiltersWithAllowedApisIds(filteredContext);
+        filteredContext = filteredContext.withFilters(filters);
+
         var queryContext = queryContextProvider.resolve(input.request);
-        var responses = executeQueries(executionContext, queryContext);
+
+        var responses = executeQueries(executionContext, filteredContext, queryContext);
+
         return new Output(MeasuresResponse.merge(responses));
     }
 
     private List<MeasuresResponse> executeQueries(
         ExecutionContext executionContext,
-        Map<AnalyticsEngineQueryService, MeasuresRequest> queryContext
+        MetricsContext metricsContext,
+        Map<AnalyticsEngineQueryService, MeasuresRequest> queryExecutions
     ) {
         var responses = new ArrayList<MeasuresResponse>();
-        var allowedApis = analyticsQueryFilterDecorator.getAllowedApis();
 
-        queryContext.forEach((queryService, request) -> {
-            var filteredRequest = applyPermissionFilters(request, allowedApis);
-            responses.add(queryService.searchMeasures(executionContext, filteredRequest));
+        queryExecutions.forEach((queryService, request) -> {
+            var filters = new ArrayList<>(request.filters());
+            filters.addAll(metricsContext.filters());
+
+            responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });
+
         return responses;
-    }
-
-    // Updates the request filter to limit metric access based on the user permissions
-    private MeasuresRequest applyPermissionFilters(MeasuresRequest request, Map<String, AnalyticsQueryFilterDecorator.API> allowedApis) {
-        var updatedFilters = analyticsQueryFilterDecorator.applyPermissionBasedFilters(request.filters(), allowedApis.keySet());
-
-        return new MeasuresRequest(request.timeRange(), updatedFilters, request.metrics());
     }
 }

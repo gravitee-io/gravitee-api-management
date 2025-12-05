@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
+package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
 import static org.mockito.Mockito.mock;
 
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,20 +26,22 @@ import org.springframework.context.annotation.Configuration;
 public class ResourceContextConfiguration {
 
     @Bean
-    public ApiAuthorizationService apiAuthorizationService() {
-        return mock(ApiAuthorizationService.class);
+    public ApiSearchService apiSearchService() {
+        return mock(ApiSearchService.class);
     }
 
     @Bean
-    public PermissionService permissionService() {
-        return mock(PermissionService.class);
+    public ApplicationService applicationSearchService() {
+        return mock(ApplicationService.class);
     }
 
     @Bean
-    public ApiAnalyticsQueryFilterDecoratorImpl apiAnalyticsQueryFilterDecorator(
-        ApiAuthorizationService applicationService,
-        PermissionService permissionService
-    ) {
-        return new ApiAnalyticsQueryFilterDecoratorImpl(applicationService, permissionService);
+    public PermissionsPreprocessorImpl permissionsPreprocessor(ApiSearchService apiSearchService) {
+        return new PermissionsPreprocessorImpl(apiSearchService);
+    }
+
+    @Bean
+    public NamesPostProcessorImpl namesPostProcessorImpl(ApplicationService applicationSearchService) {
+        return new NamesPostProcessorImpl(applicationSearchService);
     }
 }

@@ -15,13 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
-import io.gravitee.apim.infra.domain_service.analytics_engine.permissions.ApiAnalyticsQueryFilterDecoratorImpl;
+import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.NamesPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.PermissionsPreprocessorImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
-import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -42,10 +44,12 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator(
-        ApiAuthorizationService apiAuthorizationService,
-        PermissionService permissionService
-    ) {
-        return new ApiAnalyticsQueryFilterDecoratorImpl(apiAuthorizationService, permissionService);
+    public NamesPostprocessor namesPostprocessor(ApplicationService applicationSearchService) {
+        return new NamesPostProcessorImpl(applicationSearchService);
+    }
+
+    @Bean
+    public PermissionsPreprocessor permissionsPreprocessor(ApiSearchService apiSearchService) {
+        return new PermissionsPreprocessorImpl(apiSearchService);
     }
 }

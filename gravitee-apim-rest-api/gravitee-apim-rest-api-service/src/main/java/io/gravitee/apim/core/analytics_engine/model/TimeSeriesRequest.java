@@ -32,7 +32,7 @@ public record TimeSeriesRequest(
     List<NumberRange> ranges
 ) {
     public TimeSeriesRequest(TimeRange timeRange, Long interval, List<Filter> filters) {
-        this(timeRange, interval, filters, new ArrayList<>(), List.of(), null, List.of());
+        this(timeRange, interval, filters, List.of(), List.of(), null, List.of());
     }
 
     public TimeSeriesRequest emptyMetrics() {
@@ -40,14 +40,6 @@ public record TimeSeriesRequest(
     }
 
     public TimeSeriesRequest withFilters(List<Filter> filters) {
-        return new TimeSeriesRequest(
-            this.timeRange(),
-            this.interval(),
-            filters,
-            this.metrics(),
-            this.facets(),
-            this.limit(),
-            this.ranges()
-        );
+        return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, limit, ranges);
     }
 }
