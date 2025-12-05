@@ -123,7 +123,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .order(1)
             .type(PortalNavigationItemType.PAGE)
-            .published(true);
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -150,7 +151,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .type(PortalNavigationItemType.LINK)
             .order(0)
-            .published(true);
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -177,7 +179,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .type(PortalNavigationItemType.FOLDER)
             .order(2)
-            .published(true);
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -204,7 +207,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .type(PortalNavigationItemType.LINK)
             .order(3)
-            .published(false);
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 400 Bad request and response payload with trimmed title
@@ -224,7 +228,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("Won't work")
             .type(PortalNavigationItemType.PAGE)
             .order(1)
-            .published(false);
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(unknownId).request().put(json(payload));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
@@ -240,7 +245,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .order(3)
             .type(PortalNavigationItemType.PAGE)
-            .published(false);
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and updated order
@@ -270,7 +276,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .type(PortalNavigationItemType.LINK)
             .order(0)
             .parentId(UUID.fromString(APIS_ID))
-            .published(false);
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and updated parentId
@@ -298,7 +305,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .type(PortalNavigationItemType.FOLDER)
             .order(2)
-            .published(false);
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and parentId null ==> moving to root level
@@ -326,7 +334,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .title("  Updated Title  ")
             .order(1)
             .type(PortalNavigationItemType.PAGE)
-            .published(true);
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -342,5 +351,34 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getPublished()).isTrue();
+    }
+
+    @Test
+    void should_change_a_page_visibility_to_private() {
+        // Given an existing PAGE item
+        String navId = PAGE11_ID;
+
+        // When: PUT with visibility = PRIVATE
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
+            .title("  Updated Title  ")
+            .order(1)
+            .type(PortalNavigationItemType.PAGE)
+            .published(true)
+            .visibility(PortalVisibility.PRIVATE);
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK and response payload with trimmed title
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
+        assertThat(body).isNotNull();
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
+        assertThat(body.getTitle()).isEqualTo("Updated Title");
+        assertThat(body.getPublished()).isTrue();
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+
+        // And storage reflects the change
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getVisibility()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
     }
 }
