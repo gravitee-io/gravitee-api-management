@@ -52,6 +52,7 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
   { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
   { id: 'agent-to-agent', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Agent to agent', deployed: false },
+  { id: 'llm-proxy', supportedApiType: 'LLM_PROXY', supportedListenerType: 'HTTP', name: 'LLM Proxy Entrypoint', deployed: true },
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
@@ -187,6 +188,37 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(virtualHost.length).toEqual(0);
       const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
       expect(addEntrypointButton.length).toEqual(0);
+    });
+  });
+
+  describe('When API has LLM PROXY architecture type', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'LLM_PROXY',
+      listeners: [{ type: 'HTTP', entrypoints: [{ type: 'llm-proxy' }], paths: [{ path: '/llm-proxy' }] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API);
+    });
+
+    afterEach(() => {
+      expectApiPathVerify();
+    });
+
+    it('should not show the add entrypoint button', async () => {
+      const contextPath = await loader.getAllHarnesses(GioFormListenersContextPathHarness);
+      expect(contextPath.length).toEqual(1);
+      const virtualHost = await loader.getAllHarnesses(GioFormListenersVirtualHostHarness);
+      expect(virtualHost.length).toEqual(0);
+      const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(addEntrypointButton.length).toEqual(0);
+    });
+
+    it('should show listener', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(1);
     });
   });
 
