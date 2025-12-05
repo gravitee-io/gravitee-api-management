@@ -15,6 +15,7 @@ databaseChangeLog:
               - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: order, type: integer, constraints: { nullable: true } }
               - column: {name: published, type: boolean, constraints: { nullable: false } }
+              - column: {name: visibility, type: nvarchar(16), constraints: { nullable: false } }
               - column: {name: configuration, type: nclob, constraints: { nullable: true } }
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}portal_navigation_items
