@@ -1,0 +1,171 @@
+suite: Test Gateway configmap - Distributed Sync
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Set basic host and port for distributed sync
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+
+  - it: Set host and port with username and password for ACL authentication
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+            username: myuser
+            password: mypassword
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+            \s*username: myuser
+            \s*password: mypassword
+
+  - it: Set host and port with password and ssl enabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+            password: mypassword
+            ssl: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+            \s*password: mypassword
+            \s*ssl: true
+            \s*hostnameVerificationAlgorithm: NONE
+            \s*trustAll: true
+            \s*tlsProtocols: TLSv1\.2
+            \s*alpn: false
+            \s*openssl: false
+
+  - it: Set host and port with password, ssl enabled and hostname verification algorithm to HTTPS
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+            password: mypassword
+            ssl: true
+            hostnameVerificationAlgorithm: HTTPS
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+            \s*password: mypassword
+            \s*ssl: true
+            \s*hostnameVerificationAlgorithm: HTTPS
+            \s*trustAll: true
+            \s*tlsProtocols: TLSv1\.2
+            \s*alpn: false
+            \s*openssl: false
+
+  - it: Set configuration with sentinels
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+            sentinel:
+              master: redismaster
+              nodes:
+                - host: sent1
+                  port: 26379
+                - host: sent2
+                  port: 26379
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+            \s*sentinel:
+            \s*master: redismaster
+            \s*nodes:
+            \s*- host: sent1
+            \s*port: 26379
+            \s*- host: sent2
+            \s*port: 26379
+
+  - it: Set operation timeout, tcp connectTimeout and idleTimeout
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+            ssl: false
+            operation:
+              timeout: 15
+            tcp:
+              connectTimeout: 10
+              idleTimeout: 5
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis
+            \s*port: 6379
+            \s*operation:
+            \s*timeout: 15
+            \s*tcp:
+            \s*connectTimeout: 10
+            \s*idleTimeout: 5
