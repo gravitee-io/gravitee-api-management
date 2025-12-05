@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
@@ -44,7 +45,16 @@ public class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
-        var folder = new PortalNavigationFolder(PortalNavigationItemId.of(id), ORG_ID, ENV_ID, title, PortalArea.TOP_NAVBAR, 0, true);
+        var folder = new PortalNavigationFolder(
+            PortalNavigationItemId.of(id),
+            ORG_ID,
+            ENV_ID,
+            title,
+            PortalArea.TOP_NAVBAR,
+            0,
+            true,
+            PortalVisibility.PUBLIC
+        );
         folder.setParentId(parentId);
         return folder;
     }
@@ -58,7 +68,8 @@ public class PortalNavigationItemFixtures {
             PortalArea.TOP_NAVBAR,
             0,
             PortalPageContentId.random(),
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
         page.setParentId(parentId);
         return page;
@@ -73,7 +84,8 @@ public class PortalNavigationItemFixtures {
             PortalArea.TOP_NAVBAR,
             0,
             "http://example.com",
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
         link.setParentId(parentId);
         return link;

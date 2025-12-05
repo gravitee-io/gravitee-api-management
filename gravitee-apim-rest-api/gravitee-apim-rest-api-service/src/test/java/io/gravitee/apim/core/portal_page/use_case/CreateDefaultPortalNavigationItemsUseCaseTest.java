@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -71,6 +72,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(guidesFolder.getParentId()).isNull();
         assertThat(guidesFolder.getTitle()).isEqualTo("Guides");
         assertThat(guidesFolder.getOrder()).isEqualTo(0);
+        assertThat(guidesFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         final var gettingStartedPage = items
             .stream()
@@ -85,6 +87,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(gettingStartedPage.getOrder()).isEqualTo(0);
         assertThat(gettingStartedPage.getOrganizationId()).isEqualTo(guidesFolder.getOrganizationId());
         assertThat(gettingStartedPage.getEnvironmentId()).isEqualTo(guidesFolder.getEnvironmentId());
+        assertThat(gettingStartedPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         final var coreConceptsFolder = items
             .stream()
@@ -96,6 +99,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(coreConceptsFolder.getParentId()).isEqualTo(guidesFolder.getId());
         assertThat(coreConceptsFolder.getTitle()).isEqualTo("Core concepts");
         assertThat(coreConceptsFolder.getOrder()).isEqualTo(1);
+        assertThat(coreConceptsFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         final var authPage = items
             .stream()
@@ -110,6 +114,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(authPage.getOrder()).isEqualTo(0);
         assertThat(authPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
         assertThat(authPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
+        assertThat(authPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         final var firstCallPage = items
             .stream()
@@ -124,6 +129,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(firstCallPage.getOrder()).isEqualTo(1);
         assertThat(firstCallPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
         assertThat(firstCallPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
+        assertThat(firstCallPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         final var docsLink = items
             .stream()
@@ -138,6 +144,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal"
         );
         assertThat(docsLink.getOrder()).isEqualTo(1);
+        assertThat(docsLink.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 
     @Test
@@ -160,5 +167,6 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(((PortalNavigationPage) homePage).getPortalPageContentId()).isNotNull();
         assertThat(homePage.getOrganizationId()).isEqualTo(ORG_ID);
         assertThat(homePage.getEnvironmentId()).isEqualTo(ENV_ID);
+        assertThat(homePage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 }

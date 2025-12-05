@@ -36,9 +36,10 @@ public final class PortalNavigationLink extends PortalNavigationItem {
         @Nonnull PortalArea area,
         @Nonnull Integer order,
         @Nonnull String url,
-        @Nonnull Boolean published
+        @Nonnull Boolean published,
+        @Nonnull PortalVisibility visibility
     ) {
-        super(id, organizationId, environmentId, title, area, order, published);
+        super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.url = url;
     }
 

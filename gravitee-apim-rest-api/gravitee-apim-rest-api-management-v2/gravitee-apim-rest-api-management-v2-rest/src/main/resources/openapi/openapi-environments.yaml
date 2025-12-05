@@ -1773,6 +1773,11 @@ components:
       description: The portal area (used by portal navigation items)
       enum: [ HOMEPAGE, TOP_NAVBAR ]
       example: TOP_NAVBAR
+    PortalVisibility:
+      type: string
+      description: The portal visibility (used by portal navigation items)
+      enum: [ PUBLIC, PRIVATE ]
+      example: PUBLIC
     PortalNavigationItemType:
       type: string
       description: The type of the navigation item
@@ -1815,7 +1820,9 @@ components:
           type: boolean
           description: Whether the navigation item is published or not
           example: true
-      required: [ id, organizationId, environmentId, title, type, area, order, published ]
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+      required: [ id, organizationId, environmentId, title, type, area, order, published, visibility ]
       discriminator:
         propertyName: type
         mapping:

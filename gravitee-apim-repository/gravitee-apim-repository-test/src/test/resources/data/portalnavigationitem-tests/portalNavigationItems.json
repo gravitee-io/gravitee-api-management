@@ -9,7 +9,8 @@
     "parentId": null,
     "order": 1,
     "published": true,
-    "configuration": "{ \"portalPageContentId\": \"550e8400-e29b-41d4-a716-446655440000\" }"
+    "configuration": "{ \"portalPageContentId\": \"550e8400-e29b-41d4-a716-446655440000\" }",
+    "visibility": "PUBLIC"
   },
   {
     "id": "3e8c0d7f-2b3c-4d5e-9f0a-1b2c3d4e5f6a",
@@ -21,7 +22,8 @@
     "parentId": null,
     "order": 2,
     "published": true,
-    "configuration": "{ \"href\": \"https://docs.example.com\" }"
+    "configuration": "{ \"href\": \"https://docs.example.com\" }",
+    "visibility": "PUBLIC"
   },
   {
     "id": "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
@@ -33,7 +35,8 @@
     "parentId": null,
     "order": 3,
     "published": true,
-    "configuration": "{}"
+    "configuration": "{}",
+    "visibility": "PUBLIC"
   },
   {
     "id": "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
@@ -45,7 +48,8 @@
     "parentId": "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
     "order": 1,
     "published": true,
-    "configuration": "{ \"portalPageContentId\": \"660e8400-e29b-41d4-a716-446655440001\" }"
+    "configuration": "{ \"portalPageContentId\": \"660e8400-e29b-41d4-a716-446655440001\" }",
+    "visibility": "PUBLIC"
   },
   {
     "id": "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
@@ -57,7 +61,8 @@
     "parentId": "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
     "order": 2,
     "published": true,
-    "configuration": "{ \"portalPageContentId\": \"770e8400-e29b-41d4-a716-446655440002\" }"
+    "configuration": "{ \"portalPageContentId\": \"770e8400-e29b-41d4-a716-446655440002\" }",
+    "visibility": "PUBLIC"
   },
   {
     "id": "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f",
@@ -69,6 +74,7 @@
     "parentId": "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
     "order": 3,
     "published": true,
-    "configuration": "{ \"portalPageContentId\": \"880e8400-e29b-41d4-a716-446655440003\" }"
+    "configuration": "{ \"portalPageContentId\": \"880e8400-e29b-41d4-a716-446655440003\" }",
+    "visibility": "PUBLIC"
   }
 ]
