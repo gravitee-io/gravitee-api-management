@@ -590,8 +590,6 @@ data:
           host: {{ template "gravitee.kafkaConsole.fullname" . }}
           port: {{ .Values.kafkaConsole.service.externalPort }}
           scheme: http
-          security:
-            secret: {{ .Values.kafkaConsole.jwt.secret }}
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
