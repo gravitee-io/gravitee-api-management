@@ -17,9 +17,16 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, computed, input, outp
 import {CommonModule} from '@angular/common';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
+import { Location } from '@angular/common';
 
 import {SectionNode} from './tree.component';
 import {treeNodeComponentAnimations} from "./tree-node.component.animations";
+import {PortalNavigationLink} from "../../../../../entities/portal-navigation/portal-navigation-item";
+import {
+  PortalNavigationItem,
+  PortalNavigationType
+} from "../../../../../entities/portal-navigation/portal-navigation-item";
+
 
 @Component({
   selector: 'app-tree-node',
@@ -42,12 +49,31 @@ export class TreeNodeComponent implements AfterViewInit {
 
   animationsEnabled = false;
 
+  constructor(private location: Location) {
+  }
+
   selectNode(): void {
     this.nodeSelected.emit(this.node().id);
   }
 
   toggleNode(): void {
     this.isExpanded.update((v) => !v);
+  }
+
+  onClick() {
+    switch (this.node().type) {
+      case 'FOLDER':
+        this.toggleNode();
+        break;
+      case 'PAGE':
+        this.selectNode();
+        break;
+      case 'LINK': {
+        const link = this.node().data as PortalNavigationLink;
+        window.open(link.url, '_blank');
+        break;
+      }
+    }
   }
 
   ngAfterViewInit() {

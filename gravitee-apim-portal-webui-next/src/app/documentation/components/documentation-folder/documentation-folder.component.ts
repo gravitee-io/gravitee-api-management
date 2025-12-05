@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ChangeDetectionStrategy, Component, computed, effect, Input, input, model, Signal, signal} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  Input,
+  input,
+  model, NgZone,
+  Signal,
+  signal
+} from '@angular/core';
 import {MobileClassDirective} from "../../../../directives/mobile-class.directive";
 import {MatCard} from "@angular/material/card";
 import {SectionNode, TreeComponent} from "./tree-component/tree.component";
@@ -48,7 +59,6 @@ export class DocumentationFolderComponent {
   );
   children = signal<PortalNavigationItem[] | null>(null);
   selectedPageContent = signal<string>('');
-  initialized = false;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -61,7 +71,6 @@ export class DocumentationFolderComponent {
     if (selectedPageId) {
       this.router.navigate([], {
         relativeTo: this.activatedRoute,
-        // replaceUrl: true,
         queryParams: {pageId: selectedPageId}
       });
     }
@@ -71,24 +80,34 @@ export class DocumentationFolderComponent {
     this.children.set(null);
 
     const navItem = this.navItem();
-    const loadFunc$ = navItem ? this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id)
-      : of([] as PortalNavigationItem[]);
+    if (!navItem) {
+      // nothing to do
+      return;
+    }
 
-    loadFunc$.subscribe(data => {
-        this.initialized = true;
-        this.children.set(data);
-      }
-    )
+    this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id).subscribe(data => this.children.set(data))
   }
 
   private loadPageContent() {
-    const pageId = this.pageId();
     const children = this.children();
+    if (!children) {
+      this.selectedPageContent.set('');
+      return;
+    }
 
-    const pageExistsInChildren = children?.find((item) => item.id === pageId);
-    const loadFunc$ = pageExistsInChildren ? this.itemsService.getNavigationItemContent(pageId!) : of('');
+    const pageId = this.pageId();
+    if (!pageId) {
+      // nothing to do
+      return;
+    }
 
-    loadFunc$.subscribe(content => this.selectedPageContent.set(content));
+    const pageExistsInChildren = children.find((item) => item.id === pageId);
+    if (!pageExistsInChildren) {
+      setTimeout(() => this.router.navigate(['/404']));
+      return;
+    }
+
+    this.itemsService.getNavigationItemContent(pageId!).subscribe(content => this.selectedPageContent.set(content));
   }
 }
 
