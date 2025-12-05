@@ -24,6 +24,25 @@ metadata:
 data:
   {{- if not (include "gateway.externalConfig" .)}}
   gravitee.yml: |
+    # Distributed Sync Setup
+    {{- if .Values.gateway.cluster }}
+    cluster:
+      type: {{ .Values.gateway.cluster.type }}
+      {{- if eq .Values.gateway.cluster.type "hazelcast" }}
+      hazelcast:
+        config-path: {{ .Values.gateway.cluster.hazelcast.configPath }}
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.gateway.distributedSync }}
+    distributed-sync:
+      type: {{ .Values.gateway.distributedSync.type }}
+      {{- if eq .Values.gateway.distributedSync.type "redis" }}
+      redis:
+        host: {{ .Values.gateway.distributedSync.redis.host }}
+        port: {{ .Values.gateway.distributedSync.redis.port }}
+      {{- end }}
+    {{- end }}
     # Gateway HTTP server
     {{- if .Values.gateway.servers }}
     # add support for multi-servers (both http and tcp)
