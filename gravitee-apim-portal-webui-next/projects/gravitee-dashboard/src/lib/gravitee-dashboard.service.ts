@@ -181,7 +181,7 @@ export class GraviteeDashboardService {
       },
       {
         id: '7',
-        title: 'Response Statuses (mock)',
+        title: 'Response Statuses',
         type: 'line',
         layout: {
           cols: 3,

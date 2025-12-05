@@ -54,7 +54,7 @@ export class LineChartComponent {
       plugins: {
         legend: {
           display: true,
-          position: 'top',
+          position: 'bottom',
           labels: {
             usePointStyle: true,
             pointStyle: 'rectRounded',

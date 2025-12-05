@@ -17,7 +17,7 @@ import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
 import { Converter } from '../../../converter';
-import { TimeSeriesResponse, TimeSeriesBucket } from '../../../widget/model/response/time-series-response';
+import { TimeSeriesResponse, TimeSeriesBucket, TimeSeries } from '../../../widget/model/response/time-series-response';
 
 @Injectable({
   providedIn: 'root',
@@ -31,64 +31,106 @@ export class LineConverterService implements Converter {
       return { labels, datasets };
     }
 
+    this.extractTimeLabelsFromFirstMetric(data, labels);
+    this.processAllMetrics(data, datasets);
+
+    return { labels, datasets };
+  }
+
+  private extractTimeLabelsFromFirstMetric(data: TimeSeriesResponse, labels: string[]): void {
     // Assuming all metrics share the same time buckets (same timestamps & order),
     // build labels from the first metric only.
-    const firstMetric = data.metrics[0];
+    const firstMetric = data.metrics?.[0];
 
-    if (firstMetric.buckets?.length) {
+    if (firstMetric?.buckets?.length) {
       firstMetric.buckets.forEach(timeBucket => {
         labels.push(this.toTimeLabel(timeBucket));
       });
     }
+  }
 
-    data.metrics.forEach((metric, metricIndex) => {
-      const metricBuckets = metric.buckets ?? [];
-      const bucketCount = metricBuckets.length;
+  private processAllMetrics(data: TimeSeriesResponse, datasets: ChartData<'line', number[], string>['datasets']): void {
+    data.metrics?.forEach((metric, metricIndex) => {
+      this.processMetric(metric, metricIndex, datasets);
+    });
+  }
 
-      if (!bucketCount) {
-        return;
-      }
+  private processMetric(metric: TimeSeries, metricIndex: number, datasets: ChartData<'line', number[], string>['datasets']): void {
+    const metricBuckets = metric.buckets ?? [];
+    const bucketCount = metricBuckets.length;
 
-      const hasNestedBuckets = (metricBuckets[0].buckets?.length ?? 0) > 0;
-      const baseMetricLabel = metric.name || `Metric ${metricIndex + 1}`;
+    if (!bucketCount) {
+      return;
+    }
 
-      if (hasNestedBuckets) {
-        const groupMap = new Map<string, number[]>();
+    const hasNestedBuckets = this.hasNestedBuckets(metricBuckets);
+    const baseMetricLabel = this.getBaseMetricLabel(metric, metricIndex);
 
-        metricBuckets.forEach((timeBucket, timeIndex) => {
-          timeBucket.buckets?.forEach(nestedBucket => {
-            const groupName = nestedBucket.name || nestedBucket.key;
-            if (!groupName) {
-              return;
-            }
+    if (hasNestedBuckets) {
+      this.buildGroupedDatasetsFromNestedBuckets(metricBuckets, baseMetricLabel, bucketCount, datasets);
+    } else {
+      this.buildSimpleDatasetFromMetric(metricBuckets, baseMetricLabel, datasets);
+    }
+  }
 
-            if (!groupMap.has(groupName)) {
-              groupMap.set(groupName, new Array(bucketCount).fill(0));
-            }
+  private hasNestedBuckets(metricBuckets: TimeSeriesBucket[]): boolean {
+    return (metricBuckets[0].buckets?.length ?? 0) > 0;
+  }
 
-            const values = groupMap.get(groupName)!;
-            const value = nestedBucket.measures?.[0]?.value ?? 0;
-            values[timeIndex] = value;
-          });
-        });
+  private getBaseMetricLabel(metric: TimeSeries, metricIndex: number): string {
+    return metric.name || `Metric ${metricIndex + 1}`;
+  }
 
-        groupMap.forEach((values, groupName) => {
-          datasets.push({
-            label: `${baseMetricLabel} - ${groupName}`,
-            data: values,
-          });
-        });
-      } else {
-        const dataValues: number[] = metricBuckets.map(bucket => this.getBucketValue(bucket));
+  private buildGroupedDatasetsFromNestedBuckets(
+    metricBuckets: TimeSeriesBucket[],
+    baseMetricLabel: string,
+    bucketCount: number,
+    datasets: ChartData<'line', number[], string>['datasets'],
+  ): void {
+    const groupMap = this.aggregateNestedBucketValuesByGroup(metricBuckets, bucketCount);
 
-        datasets.push({
-          label: baseMetricLabel,
-          data: dataValues,
-        });
-      }
+    groupMap.forEach((values, groupName) => {
+      datasets.push({
+        label: `${baseMetricLabel} - ${groupName}`,
+        data: values,
+      });
+    });
+  }
+
+  private aggregateNestedBucketValuesByGroup(metricBuckets: TimeSeriesBucket[], bucketCount: number): Map<string, number[]> {
+    const groupMap = new Map<string, number[]>();
+
+    metricBuckets.forEach((timeBucket, timeIndex) => {
+      timeBucket.buckets?.forEach(nestedBucket => {
+        const groupName = nestedBucket.name || nestedBucket.key;
+        if (!groupName) {
+          return;
+        }
+
+        if (!groupMap.has(groupName)) {
+          groupMap.set(groupName, new Array(bucketCount).fill(0));
+        }
+
+        const values = groupMap.get(groupName)!;
+        const value = nestedBucket.measures?.[0]?.value ?? 0;
+        values[timeIndex] = value;
+      });
     });
 
-    return { labels, datasets };
+    return groupMap;
+  }
+
+  private buildSimpleDatasetFromMetric(
+    metricBuckets: TimeSeriesBucket[],
+    baseMetricLabel: string,
+    datasets: ChartData<'line', number[], string>['datasets'],
+  ): void {
+    const dataValues: number[] = metricBuckets.map(bucket => this.getBucketValue(bucket));
+
+    datasets.push({
+      label: baseMetricLabel,
+      data: dataValues,
+    });
   }
 
   private getBucketValue(bucket: TimeSeriesBucket): number {
