@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
@@ -102,7 +103,8 @@ class PortalNavigationItemsMapperTest {
                 PortalArea.TOP_NAVBAR,
                 3,
                 "https://example.com",
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             var result = mapper.map(link);

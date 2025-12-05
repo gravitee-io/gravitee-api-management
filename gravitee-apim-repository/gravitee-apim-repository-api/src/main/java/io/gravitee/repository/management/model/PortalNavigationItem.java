@@ -43,6 +43,11 @@ public class PortalNavigationItem {
         TOP_NAVBAR,
     }
 
+    public enum Visibility {
+        PUBLIC,
+        PRIVATE,
+    }
+
     @EqualsAndHashCode.Include
     private String id;
 
@@ -63,4 +68,6 @@ public class PortalNavigationItem {
     private String configuration;
 
     private boolean published;
+
+    private Visibility visibility;
 }

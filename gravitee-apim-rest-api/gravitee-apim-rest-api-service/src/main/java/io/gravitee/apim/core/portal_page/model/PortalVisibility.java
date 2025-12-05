@@ -15,22 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalNavigationItem {
-
-    private String title;
-    private Integer order;
-    private PortalNavigationItemType type;
-    private PortalNavigationItemId parentId;
-    private String url;
-    private Boolean published;
-    private PortalVisibility visibility;
+public enum PortalVisibility {
+    PUBLIC,
+    PRIVATE,
 }

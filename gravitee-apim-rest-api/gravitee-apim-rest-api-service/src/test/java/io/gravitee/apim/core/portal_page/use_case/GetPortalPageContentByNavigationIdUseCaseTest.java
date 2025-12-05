@@ -38,6 +38,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -93,7 +94,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             "APIs",
             PortalArea.TOP_NAVBAR,
             0,
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
 
         var category1Folder = new PortalNavigationFolder(
@@ -103,7 +105,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             "Category1",
             PortalArea.TOP_NAVBAR,
             2,
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
         category1Folder.setParentId(apisFolder.getId());
 
@@ -115,7 +118,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             PortalArea.TOP_NAVBAR,
             2,
             supportContentId,
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
 
         var page11 = new PortalNavigationPage(
@@ -126,7 +130,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             PortalArea.TOP_NAVBAR,
             0,
             page11ContentId,
-            true
+            true,
+            PortalVisibility.PUBLIC
         );
         page11.setParentId(category1Folder.getId());
 
@@ -138,7 +143,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             PortalArea.TOP_NAVBAR,
             3,
             PortalPageContentId.random(),
-            false
+            false,
+            PortalVisibility.PUBLIC
         );
 
         List<PortalNavigationItem> navigationItems = List.of(apisFolder, category1Folder, supportPage, page11, unpublishedPage);
