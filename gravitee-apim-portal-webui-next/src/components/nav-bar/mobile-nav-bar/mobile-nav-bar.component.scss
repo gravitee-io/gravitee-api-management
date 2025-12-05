@@ -69,6 +69,19 @@
     }
   }
 
+  &__ext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      width: 14px;
+      height: 14px;
+      color: app-theme.$nav-bar-link-external-icon-color;
+      font-size: 14px;
+    }
+  }
+
   &__hr {
     height: 1px;
     margin: 8px 0;

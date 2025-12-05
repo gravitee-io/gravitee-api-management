@@ -116,17 +116,17 @@ describe('NavBarComponent', () => {
       componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       componentRef.setInput('currentUser', fakeUser());
-      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-1/i }));
       expect(link1Anchor).toBeTruthy();
-      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-2/i }));
       expect(link2Anchor).toBeTruthy();
     });
 
     it('should show custom links if login is not forced', async () => {
       componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
-      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-1/i }));
       expect(link1Anchor).toBeTruthy();
-      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-2/i }));
       expect(link2Anchor).toBeTruthy();
     });
   });
@@ -188,7 +188,14 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Applications', 'Log out']);
+      expect(linkTexts).toEqual([
+        'Catalog',
+        'Guides',
+        'link-name-1 open_in_new(opens in new tab)',
+        'link-name-2 open_in_new(opens in new tab)',
+        'Applications',
+        'Log out',
+      ]);
     });
 
     it('should show custom links if login is not forced', async () => {
@@ -202,7 +209,13 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Sign in']);
+      expect(linkTexts).toEqual([
+        'Catalog',
+        'Guides',
+        'link-name-1 open_in_new(opens in new tab)',
+        'link-name-2 open_in_new(opens in new tab)',
+        'Sign in',
+      ]);
     });
 
     it('should close menu when clicking outside', async () => {
