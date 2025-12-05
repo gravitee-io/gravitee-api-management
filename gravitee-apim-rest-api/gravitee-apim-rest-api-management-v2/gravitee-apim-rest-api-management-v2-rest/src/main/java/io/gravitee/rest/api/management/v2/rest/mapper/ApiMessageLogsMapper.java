@@ -98,29 +98,43 @@ public interface ApiMessageLogsMapper {
         Map<String, List<String>> result = new LinkedHashMap<>();
 
         for (String param : additional) {
-            // Validate all conditions upfront - skip if any validation fails
-            if (param == null || param.trim().isEmpty()) {
-                continue;
-            }
-
-            String trimmed = param.trim();
-            String[] parts = trimmed.split(";", 2);
-            String fieldName = parts.length == 2 ? parts[0].trim() : "";
-            String valuesStr = parts.length == 2 ? parts[1].trim() : "";
-
-            if (!fieldName.isEmpty() && !valuesStr.isEmpty()) {
-                List<String> values = Arrays.stream(valuesStr.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-
+            String[] parts = parseParamParts(param);
+            if (parts != null) {
+                List<String> values = parseValues(parts[1]);
                 if (!values.isEmpty()) {
-                    // Merge values for the same field instead of overwriting
-                    result.computeIfAbsent(fieldName, k -> new ArrayList<>()).addAll(values);
+                    result.computeIfAbsent(parts[0], k -> new ArrayList<>()).addAll(values);
                 }
             }
         }
 
         return result.isEmpty() ? null : result;
+    }
+
+    private String[] parseParamParts(String param) {
+        if (param == null || param.trim().isEmpty()) {
+            return null;
+        }
+
+        String trimmed = param.trim();
+        String[] parts = trimmed.split(";", 2);
+        if (parts.length != 2) {
+            return null;
+        }
+
+        String fieldName = parts[0].trim();
+        String valuesStr = parts[1].trim();
+
+        if (fieldName.isEmpty() || valuesStr.isEmpty()) {
+            return null;
+        }
+
+        return new String[] { fieldName, valuesStr };
+    }
+
+    private List<String> parseValues(String valuesStr) {
+        return Arrays.stream(valuesStr.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toList());
     }
 }
