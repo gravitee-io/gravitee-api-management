@@ -41,7 +41,10 @@
       @switch (navigationItem.type) {
         @case ('LINK') {
           <a class="mobile-menu__link" [href]="navigationItem.url" [attr.target]="'_blank'" (click)="closeMenu()">
-            {{ navigationItem.title }}
+            <span class="mobile-menu__ext-link">
+              {{ navigationItem.title }}
+              <mat-icon aria-hidden="true">open_in_new</mat-icon> </span
+            ><span class="cdk-visually-hidden">(opens in new tab)</span>
           </a>
         }
         @default {
