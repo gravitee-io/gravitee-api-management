@@ -15,10 +15,10 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Application, ApplicationsResponse, ApplicationType } from '../entities/application/application';
+import { Application, ApplicationInput, ApplicationsResponse, ApplicationType } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +35,12 @@ export class ApplicationService {
 
   getType(applicationId: string): Observable<ApplicationType> {
     return this.http.get<ApplicationType>(`${this.configService.baseURL}/applications/${applicationId}/configuration`);
+  }
+
+  getEnabledApplicationTypes(): Observable<ApplicationType[]> {
+    return this.http
+      .get<{ data: ApplicationType[] }>(`${this.configService.baseURL}/configuration/applications/types`)
+      .pipe(map(response => response.data ?? []));
   }
 
   list(page?: number, size?: number, forSubscription?: boolean): Observable<ApplicationsResponse> {
@@ -56,5 +62,9 @@ export class ApplicationService {
 
   delete(applicationId: string): Observable<void> {
     return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}`);
+  }
+
+  create(applicationInput: ApplicationInput): Observable<Application> {
+    return this.http.post<Application>(`${this.configService.baseURL}/applications`, applicationInput);
   }
 }

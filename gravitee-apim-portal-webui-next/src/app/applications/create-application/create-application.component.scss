@@ -13,9 +13,105 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../scss/theme';
 
 :host {
   display: flex;
   flex-flow: column;
   gap: 34px;
+}
+
+.cards-container {
+  display: flex;
+  gap: 24px;
+
+  mat-card {
+    flex: 1;
+  }
+
+  &--mobile {
+    flex-direction: column;
+  }
+}
+
+.section-title {
+  margin: 16px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.radio-group-label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.type-select-mobile {
+  width: 100%;
+}
+
+.types-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.type-radio {
+  display: block;
+  padding: 12px;
+  border: 1px solid theme.$border-color;
+  border-radius: theme.$container-shape;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+
+  &.mat-mdc-radio-checked {
+    border-color: theme.$primary-main-color;
+    background-color: color-mix(in srgb, theme.$primary-main-color 8%, transparent);
+  }
+}
+
+.application-type-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grant-types-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grant-type-toggle {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 12px;
+
+  mat-slide-toggle {
+    margin: 0;
+  }
+}
+
+.grant-type-label {
+  line-height: 1.5;
+}
+
+.grant-types-error {
+  margin-top: 4px;
+  color: theme.$error-main-color;
+}
+
+.error-message {
+  color: theme.$error-main-color;
+}
+
+.actions {
+  display: flex;
+  margin-top: 24px;
+  gap: 16px;
 }

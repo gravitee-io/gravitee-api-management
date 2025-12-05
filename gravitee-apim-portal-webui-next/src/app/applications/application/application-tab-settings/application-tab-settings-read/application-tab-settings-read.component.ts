@@ -82,8 +82,8 @@ export class ApplicationTabSettingsReadComponent implements OnInit {
           isRedirectUriRequired: this.applicationTypeConfiguration.requires_redirect_uris,
           type: this.applicationTypeConfiguration.name,
           typeDescription: this.applicationTypeConfiguration.description,
-          redirectUris: application.settings.oauth!.redirect_uris,
-          grantTypes: application.settings.oauth!.grant_types.map(
+          redirectUris: application.settings.oauth?.redirect_uris,
+          grantTypes: application.settings.oauth?.grant_types?.map(
             type => this.applicationTypeConfiguration.allowed_grant_types!.find(grantType => grantType.type === type)!.name ?? '',
           ),
           clientId: application.settings.oauth?.client_id,
