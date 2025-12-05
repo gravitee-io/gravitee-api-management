@@ -80,7 +80,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public pathsFormControl: UntypedFormControl;
   public hostsFormControl: UntypedFormControl;
   public hostFormControl: UntypedFormControl;
-  public displayedColumns = ['type', 'qos', 'actions'];
+  public displayedColumns;
   public dataSource: EntrypointVM[] = [];
   public allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
@@ -140,6 +140,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   }
 
   private initForm(api: ApiV4) {
+    this.displayedColumns = api.type === 'LLM_PROXY' ? ['type', 'actions'] : ['type', 'qos', 'actions'];
+
     if (api.type === 'MESSAGE' || api.type === 'NATIVE') {
       const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
       this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
