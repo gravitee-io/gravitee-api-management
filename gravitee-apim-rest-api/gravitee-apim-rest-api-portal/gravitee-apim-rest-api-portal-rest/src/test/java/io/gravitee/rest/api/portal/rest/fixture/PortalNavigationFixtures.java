@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,15 +39,15 @@ public final class PortalNavigationFixtures {
     }
 
     public static PortalNavigationFolder folder(PortalNavigationItemId id, String title, PortalArea area) {
-        return new PortalNavigationFolder(id, "org", "env", title, area, 1, true);
+        return new PortalNavigationFolder(id, "org", "env", title, area, 1, true, PortalVisibility.PUBLIC);
     }
 
     public static PortalNavigationLink link(PortalNavigationItemId id, String title, PortalArea area, String url) {
-        return new PortalNavigationLink(id, "org", "env", title, area, 1, url, true);
+        return new PortalNavigationLink(id, "org", "env", title, area, 1, url, true, PortalVisibility.PUBLIC);
     }
 
     public static PortalNavigationPage page(PortalNavigationItemId id, String title, PortalArea area, PortalPageContentId pageId) {
-        return new PortalNavigationPage(id, "org", "env", title, area, 1, pageId, true);
+        return new PortalNavigationPage(id, "org", "env", title, area, 1, pageId, true, PortalVisibility.PUBLIC);
     }
 
     public static List<PortalNavigationItem> sampleList(PortalArea area) {
