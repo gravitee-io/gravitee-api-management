@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.log.v4.model.message;
 
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 
@@ -31,5 +33,15 @@ public class MessageMetricsQuery {
     private Filter filter;
 
     @Builder(toBuilder = true)
-    public record Filter(String apiId, String requestId, String connectorType, String connectorId, String operation, long from, long to) {}
+    public record Filter(
+        String apiId,
+        String requestId,
+        String connectorType,
+        String connectorId,
+        String operation,
+        long from,
+        long to,
+        Map<String, List<String>> additional,
+        Boolean requiresAdditional
+    ) {}
 }

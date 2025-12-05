@@ -36,9 +36,4 @@ export class WebhookLogsDetailsHarness extends ComponentHarness {
     }
     await button.click();
   }
-
-  async hasEmptyState(): Promise<boolean> {
-    const button = await this.openSettingsButton();
-    return !!button;
-  }
 }

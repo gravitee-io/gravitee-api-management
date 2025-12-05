@@ -140,4 +140,48 @@ class MessageLogsCrudServiceImplTest {
                 assertThat(m.isError()).isTrue();
             });
     }
+
+    @Test
+    void should_pass_additional_fields_and_values_to_query() throws AnalyticsException {
+        when(metricsRepository.searchMessageMetrics(any(QueryContext.class), queryCaptor.capture())).thenReturn(
+            new LogResponse<>(0, List.of())
+        );
+
+        cut.searchApiMessageLogs(
+            GraviteeContext.getExecutionContext(),
+            "api-id",
+            SearchMessageLogsFilters.builder()
+                .additional(Map.of("int_webhook_resp-status", List.of("200", "500"), "string_webhook_url", List.of("https://example.com")))
+                .build(),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(queryCaptor.getValue()).satisfies(mq -> {
+            assertThat(mq.getFilter()).satisfies(f -> {
+                assertThat(f.additional()).isNotNull();
+                assertThat(f.additional().get("int_webhook_resp-status")).containsExactly("200", "500");
+                assertThat(f.additional().get("string_webhook_url")).containsExactly("https://example.com");
+            });
+        });
+    }
+
+    @Test
+    void should_handle_null_additional() throws AnalyticsException {
+        when(metricsRepository.searchMessageMetrics(any(QueryContext.class), queryCaptor.capture())).thenReturn(
+            new LogResponse<>(0, List.of())
+        );
+
+        cut.searchApiMessageLogs(
+            GraviteeContext.getExecutionContext(),
+            "api-id",
+            SearchMessageLogsFilters.builder().additional(null).build(),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(queryCaptor.getValue()).satisfies(mq -> {
+            assertThat(mq.getFilter()).satisfies(f -> {
+                assertThat(f.additional()).isNull();
+            });
+        });
+    }
 }

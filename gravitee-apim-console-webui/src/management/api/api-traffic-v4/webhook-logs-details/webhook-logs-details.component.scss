@@ -55,6 +55,10 @@ mat-card {
 
       > dd {
         margin-left: 0;
+
+        span[class*='gio-badge'] {
+          margin-left: -4px;
+        }
       }
     }
   }
