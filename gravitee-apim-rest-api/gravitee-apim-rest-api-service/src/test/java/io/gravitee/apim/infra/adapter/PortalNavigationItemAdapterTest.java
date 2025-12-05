@@ -215,7 +215,8 @@ class PortalNavigationItemAdapterTest {
                 "My Folder",
                 PortalArea.TOP_NAVBAR,
                 1,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
             entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
 
@@ -232,6 +233,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getParentId()).isEqualTo("550e8400-e29b-41d4-a716-446655440011");
             assertThat(repositoryItem.getOrder()).isEqualTo(1);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{}");
+            assertThat(repositoryItem.isPublished()).isTrue();
+            assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }
 
         @Test
@@ -245,7 +248,8 @@ class PortalNavigationItemAdapterTest {
                 PortalArea.HOMEPAGE,
                 2,
                 PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"),
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             // When
@@ -260,6 +264,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.HOMEPAGE);
             assertThat(repositoryItem.getOrder()).isEqualTo(2);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
+            assertThat(repositoryItem.isPublished()).isTrue();
+            assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }
 
         @Test
@@ -273,7 +279,8 @@ class PortalNavigationItemAdapterTest {
                 PortalArea.TOP_NAVBAR,
                 3,
                 "https://example.com",
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             // When
@@ -288,6 +295,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
             assertThat(repositoryItem.getOrder()).isEqualTo(3);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"https://example.com\"}");
+            assertThat(repositoryItem.isPublished()).isTrue();
+            assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }
 
         @Test
@@ -300,7 +309,8 @@ class PortalNavigationItemAdapterTest {
                 "My Folder",
                 PortalArea.TOP_NAVBAR,
                 0,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             // When

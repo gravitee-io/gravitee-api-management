@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.model.PortalNavigationItem;
@@ -71,7 +72,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, true);
+            final var item = new PortalNavigationFolder(
+                itemId,
+                "organizationId",
+                "environmentId",
+                "title",
+                PortalArea.TOP_NAVBAR,
+                0,
+                true,
+                PortalVisibility.PUBLIC
+            );
 
             service.create(item);
 
@@ -86,6 +96,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).create(captor.capture());
@@ -104,7 +115,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 contentId,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             service.create(item);
@@ -120,6 +132,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{\"portalPageContentId\":\"" + contentId.toString() + "\"}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).create(captor.capture());
@@ -138,7 +151,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 url,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             service.create(item);
@@ -154,6 +168,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{\"url\":\"" + url + "\"}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).create(captor.capture());
@@ -173,7 +188,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 contentId,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
             when(repository.create(any())).thenThrow(new TechnicalException("Database error"));
 
@@ -198,7 +214,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(itemId, "organizationId", "environmentId", "title", PortalArea.TOP_NAVBAR, 0, true);
+            final var item = new PortalNavigationFolder(
+                itemId,
+                "organizationId",
+                "environmentId",
+                "title",
+                PortalArea.TOP_NAVBAR,
+                0,
+                true,
+                PortalVisibility.PUBLIC
+            );
 
             service.update(item);
 
@@ -213,6 +238,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).update(captor.capture());
@@ -231,7 +257,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 contentId,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             service.update(item);
@@ -247,6 +274,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{\"portalPageContentId\":\"" + contentId.toString() + "\"}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).update(captor.capture());
@@ -265,7 +293,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 url,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
 
             service.update(item);
@@ -281,6 +310,7 @@ class PortalNavigationItemsCrudServiceImplTest {
                 .parentId(null)
                 .configuration("{\"url\":\"" + url + "\"}")
                 .published(true)
+                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
                 .build();
 
             verify(repository).update(captor.capture());
@@ -300,7 +330,8 @@ class PortalNavigationItemsCrudServiceImplTest {
                 PortalArea.TOP_NAVBAR,
                 0,
                 contentId,
-                true
+                true,
+                PortalVisibility.PUBLIC
             );
             when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
 
