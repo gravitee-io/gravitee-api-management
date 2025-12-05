@@ -75,14 +75,25 @@
         }
       }
     },
-    "systemProxy": {
-      "title": "Use system proxy",
-      "description": "Use the system proxy configured in APIM installation.",
-      "type": "boolean",
-      "default": false
+    "http": {
+      "$ref": "#/gioExternalDefinitions/httpClientOptions"
+    },
+    "proxy": {
+      "$ref": "#/gioExternalDefinitions/httpProxyOptions"
+    },
+    "ssl": {
+      "$ref": "#/gioExternalDefinitions/sslOptions"
     }
   },
   "required": [
     "url", "method","schedule"
-  ]
+  ],
+  "gioExternalDefinitions": {
+    "maxConcurrentConnections": {
+      "description": "Hide the field because in the case of Http Dynamic Properties, the number of concurrent connections is fixed to 1.",
+      "x-schema-form": {
+        "type": "hidden"
+      }
+    }
+  }
 }
