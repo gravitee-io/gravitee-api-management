@@ -915,6 +915,22 @@ gateway:
   dbLess: false
   type: Deployment
   name: gateway
+
+  # Distributed sync configuration (requires replicaCount > 1)
+  # Uncomment below for Hazelcast cluster cache synchronization
+#  cluster:
+#    type: hazelcast
+#    hazelcast:
+#      configPath: /opt/graviteeio-gateway/config/hazelcast.xml
+
+  # Uncomment below to enable Redis-based distributed sync
+#  distributedSync:
+#    enabled: true
+#    type: redis
+#    redis:
+#      host: redis
+#      port: 6379
+  # Note: Also uncomment 'repository' and 'distributed' in services.sync section below (around line 1475)
   # you can pass a list of bot http and tcp servers in here so the gateway will use this setting to setup its internal servers
 #  servers:
 #    - type: http # tcp
@@ -1453,6 +1469,11 @@ gateway:
       enabled: true
       #delay: 5000
       #unit: MILLISECONDS
+      # Uncomment below for distributed sync (also uncomment distributedSync above)
+      #repository:
+      #  enabled: true
+      #distributed:
+      #  enabled: true
 
     heartbeat:
       enabled: true
