@@ -19,15 +19,14 @@ import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.none.NoneTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
+import io.gravitee.plugin.configurations.ssl.TrustStore;
 import lombok.experimental.UtilityClass;
 import org.jspecify.annotations.Nullable;
 
 @UtilityClass
 public class TrustStoreMigration {
 
-    public static io.gravitee.definition.model.v4.ssl.@Nullable TrustStore convert(
-        io.gravitee.definition.model.ssl.@Nullable TrustStore v2TrustStore
-    ) {
+    public static @Nullable TrustStore convert(io.gravitee.definition.model.ssl.@Nullable TrustStore v2TrustStore) {
         return switch (v2TrustStore) {
             case JKSTrustStore v2Jks -> convertJks(v2Jks);
             case PEMTrustStore v2Pem -> convertPem(v2Pem);
@@ -38,24 +37,24 @@ public class TrustStoreMigration {
         };
     }
 
-    private static io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore convertJks(JKSTrustStore v2Jks) {
-        return new io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore(v2Jks.getPath(), v2Jks.getContent(), v2Jks.getPassword(), null);
+    private static io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore convertJks(JKSTrustStore v2Jks) {
+        return new io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore(v2Jks.getPath(), v2Jks.getContent(), v2Jks.getPassword(), null);
     }
 
-    private static io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore convertPem(PEMTrustStore v2Pem) {
-        return new io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore(v2Pem.getPath(), v2Pem.getContent());
+    private static io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore convertPem(PEMTrustStore v2Pem) {
+        return new io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore(v2Pem.getPath(), v2Pem.getContent());
     }
 
-    private static io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore convertPkcs12(PKCS12TrustStore v2Pkcs12) {
-        io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore pKCS12TrustStore =
-            new io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore();
+    private static io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore convertPkcs12(PKCS12TrustStore v2Pkcs12) {
+        io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore pKCS12TrustStore =
+            new io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore();
         pKCS12TrustStore.setPath(v2Pkcs12.getPath());
         pKCS12TrustStore.setContent(v2Pkcs12.getContent());
         pKCS12TrustStore.setPassword(v2Pkcs12.getPassword());
         return pKCS12TrustStore;
     }
 
-    private static io.gravitee.definition.model.v4.ssl.none.NoneTrustStore convertNone() {
-        return new io.gravitee.definition.model.v4.ssl.none.NoneTrustStore();
+    private static io.gravitee.plugin.configurations.ssl.none.NoneTrustStore convertNone() {
+        return new io.gravitee.plugin.configurations.ssl.none.NoneTrustStore();
     }
 }

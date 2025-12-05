@@ -95,6 +95,10 @@
         <groupId>io.gravitee.spec.gen.api</groupId>
         <artifactId>gravitee-spec-gen-api</artifactId>
     </dependency>
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-common-configurations</artifactId>
+        </dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>

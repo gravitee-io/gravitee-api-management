@@ -546,13 +546,13 @@
   },
   "properties": {
     "ssl": {
-      "$ref": "#/definitions/ssl"
+      "$ref": "#/gioExternalDefinitions/sslOptions"
     },
     "tcp": {
-      "$ref": "#/definitions/tcp"
+      "$ref": "#/gioExternalDefinitions/tcpClientOptions"
     },
     "proxy": {
-      "$ref": "#/definitions/proxy"
+      "$ref": "#/gioExternalDefinitions/tcpProxyOptions"
     }
   }
 }

@@ -15,13 +15,15 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
-import static io.gravitee.definition.model.v4.http.ProtocolVersion.*;
+import static io.gravitee.plugin.configurations.http.ProtocolVersion.HTTP_1_1;
+import static io.gravitee.plugin.configurations.http.ProtocolVersion.HTTP_2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.HttpClientSslOptions;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
+import io.gravitee.plugin.configurations.http.HttpClientOptions;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -78,7 +80,7 @@ public class SharedConfigurationMigration {
             return null;
         }
 
-        var v4 = new io.gravitee.definition.model.v4.http.HttpClientOptions();
+        var v4 = new HttpClientOptions();
 
         var versionV4 = httpClientOptions.getVersion() == io.gravitee.definition.model.ProtocolVersion.HTTP_1_1 ? HTTP_1_1 : HTTP_2;
 

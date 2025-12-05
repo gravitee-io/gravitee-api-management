@@ -29,7 +29,9 @@ import org.mapstruct.factory.Mappers;
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.mappers.KeyStoreMapper} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 @Mapper
 public interface KeyStoreMapper {
     KeyStoreMapper INSTANCE = Mappers.getMapper(KeyStoreMapper.class);

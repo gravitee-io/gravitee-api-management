@@ -60,8 +60,33 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-common-configurations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-annotation-processors</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-        <!-- Tests -->
+        <!-- for annotation processing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.secret</groupId>
+            <artifactId>gravitee-secret-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -75,6 +100,52 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-common-configurations-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>bundle-main-schema-form</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>common-schema-form-bundle</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Filter source artifacts -->
+                            <includeArtifacts>
+                                <include>io.gravitee.plugin:gravitee-plugin-common-configurations</include>
+                            </includeArtifacts>
+
+                            <!-- Files to extract pattern (optionnel, défaut: schemas/**/*.json) -->
+                            <includeSchemas>
+                                <include>schemas/**/schema-form-tcp-target.json</include>
+                            </includeSchemas>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bundle-shared-schema-form</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>common-schema-form-bundle</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Filter source artifacts -->
+                            <includeArtifacts>
+                                <include>io.gravitee.plugin:gravitee-plugin-common-configurations</include>
+                            </includeArtifacts>
+
+                            <!-- Files to extract pattern (optionnel, défaut: schemas/**/*.json) -->
+                            <includeSchemas>
+                                <include>schemas/**/schema-form-ssl.json</include>
+                                <include>schemas/**/schema-form-tcp-client.json</include>
+                                <include>schemas/**/schema-form-tcp-proxy.json</include>
+                            </includeSchemas>
+                            <localSchemaFile>${project.basedir}/src/main/resources/schemas/sharedConfiguration/schema-form.json</localSchemaFile>
+                            <outputFile>${project.build.outputDirectory}/schemas/sharedConfiguration/schema-form.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

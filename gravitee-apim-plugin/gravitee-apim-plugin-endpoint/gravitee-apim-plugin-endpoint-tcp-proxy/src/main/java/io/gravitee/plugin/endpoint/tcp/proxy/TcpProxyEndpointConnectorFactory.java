@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfigurationEvaluator;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,9 +54,13 @@ public class TcpProxyEndpointConnectorFactory implements BaseEndpointConnectorFa
         String sharedConfiguration
     ) {
         try {
+            TcpProxyEndpointConnectorSharedConfigurationEvaluator configurationEvaluator =
+                new TcpProxyEndpointConnectorSharedConfigurationEvaluator(
+                    connectorFactoryHelper.readConfiguration(TcpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
+                );
             return new TcpProxyEndpointConnector(
                 connectorFactoryHelper.readConfiguration(TcpProxyEndpointConnectorConfiguration.class, configuration),
-                connectorFactoryHelper.readConfiguration(TcpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
+                configurationEvaluator.evalNow(deploymentContext)
             );
         } catch (Exception e) {
             log.error("Can't create TCP endpoint connector because no valid configuration", e);

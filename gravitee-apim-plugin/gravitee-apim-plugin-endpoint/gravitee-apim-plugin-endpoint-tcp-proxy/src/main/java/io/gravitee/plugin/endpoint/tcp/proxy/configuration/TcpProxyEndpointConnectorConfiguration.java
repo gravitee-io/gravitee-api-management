@@ -16,8 +16,8 @@
 package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.tcp.TcpTarget;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.plugin.configurations.tcp.TcpTarget;
 import lombok.Data;
 
 /**

@@ -18,7 +18,9 @@ package io.gravitee.definition.model.v4.tcp;
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.tcp.TcpProxyType} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 public enum TcpProxyType {
     SOCKS4,
     SOCKS5,

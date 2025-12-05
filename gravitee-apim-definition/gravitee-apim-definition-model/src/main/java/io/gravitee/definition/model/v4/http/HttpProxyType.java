@@ -18,7 +18,9 @@ package io.gravitee.definition.model.v4.http;
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.http.HttpProxyType} instead
  */
+@Deprecated(since = "4.10.0", forRemoval = true)
 public enum HttpProxyType {
     HTTP,
     SOCKS4,

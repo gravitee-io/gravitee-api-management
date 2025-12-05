@@ -19,7 +19,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceConfiguration;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.plugin.configurations.http.HttpClientOptions;
+import io.gravitee.plugin.configurations.http.HttpProxyOptions;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -56,5 +60,29 @@ public class HttpDynamicPropertiesServiceConfiguration implements ManagementApiS
     private String transformation;
 
     @JsonProperty("systemProxy")
+    @Setter(AccessLevel.NONE)
     private boolean useSystemProxy;
+
+    @JsonProperty("http")
+    @Builder.Default
+    private HttpClientOptions httpClientOptions = new HttpClientOptions();
+
+    @JsonProperty("proxy")
+    @Builder.Default
+    private HttpProxyOptions httpProxyOptions = new HttpProxyOptions();
+
+    @JsonProperty("ssl")
+    @Builder.Default
+    private SslOptions sslOptions = new SslOptions();
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+        // smooth migration: older versions of the plugin didn't have the httpProxyOptions property,
+        // so we simply set the httpProxyOptions.enabled and httpProxyOptions.setUseSystemProxy property
+        // to avoid huge data migration.
+        if (useSystemProxy) {
+            this.httpProxyOptions.setEnabled(true);
+            this.httpProxyOptions.setUseSystemProxy(true);
+        }
+    }
 }
