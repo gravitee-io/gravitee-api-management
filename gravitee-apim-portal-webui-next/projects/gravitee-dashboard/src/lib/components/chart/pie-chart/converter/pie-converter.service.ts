@@ -24,7 +24,7 @@ import { PieType } from '../pie-chart.component';
   providedIn: 'root',
 })
 export class PieConverterService implements Converter {
-  public convert(data: FacetsResponse): ChartData<PieType, number[]> {
+  public convert(data: FacetsResponse): ChartData<PieType, number[], string> {
     const labels: string[] = [];
     const dataValues: number[] = [];
 
@@ -39,6 +39,6 @@ export class PieConverterService implements Converter {
     return {
       labels: labels,
       datasets: [{ data: dataValues }],
-    } satisfies ChartData<PieType, number[]>;
+    } satisfies ChartData<PieType, number[], string>;
   }
 }

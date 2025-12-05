@@ -181,7 +181,7 @@ export class GraviteeDashboardService {
       },
       {
         id: '7',
-        title: 'Response Statues (mock)',
+        title: 'Response Statuses',
         type: 'line',
         layout: {
           cols: 3,
@@ -190,12 +190,14 @@ export class GraviteeDashboardService {
           x: 0,
         },
         request: {
-          type: 'facets',
+          type: 'time-series',
           timeRange: {
             from: '2025-10-07T06:50:30Z',
             to: '2025-12-07T11:35:30Z',
           },
           by: ['HTTP_STATUS_CODE_GROUP'],
+          interval: '1h',
+
           metrics: [
             {
               name: 'HTTP_REQUESTS',
@@ -243,6 +245,9 @@ export class GraviteeDashboardService {
     }
     if (endpoint === 'facets') {
       return this.http.post<FacetsResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
+    }
+    if (endpoint === 'time-series') {
+      return this.http.post<TimeSeriesResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
     }
 
     throw new Error(`Endpoint ${endpoint} not supported`);
