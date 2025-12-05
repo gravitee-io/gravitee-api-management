@@ -15,6 +15,7 @@
  */
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK';
+export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   id: string;
@@ -25,6 +26,7 @@ interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   order: number;
   area: PortalArea;
   published: boolean;
+  visibility: PortalVisibility;
   parentId?: string;
 }
 
@@ -64,6 +66,7 @@ interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
   type: T;
   published: boolean;
+  visibility: PortalVisibility;
   parentId?: string;
   order?: number;
 }
