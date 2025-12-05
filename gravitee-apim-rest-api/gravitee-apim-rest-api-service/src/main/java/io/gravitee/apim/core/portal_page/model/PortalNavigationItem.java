@@ -55,6 +55,10 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
     @Nonnull
     private Boolean published;
 
+    @Setter
+    @Nonnull
+    private PortalVisibility visibility;
+
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
@@ -62,7 +66,8 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         @Nonnull String title,
         @Nonnull PortalArea area,
         @Nonnull Integer order,
-        @Nonnull Boolean published
+        @Nonnull Boolean published,
+        @Nonnull PortalVisibility visibility
     ) {
         this.id = id;
         this.organizationId = organizationId;
@@ -71,6 +76,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         this.area = area;
         this.order = order;
         this.published = published;
+        this.visibility = visibility;
     }
 
     public abstract PortalNavigationItemType getType();
@@ -103,9 +109,38 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         final var order = item.getOrder();
 
         final var newItem = switch (item.getType()) {
-            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, false);
-            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, false);
-            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, false);
+            case FOLDER -> new PortalNavigationFolder(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                false,
+                PortalVisibility.PUBLIC
+            );
+            case PAGE -> new PortalNavigationPage(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                contentId,
+                false,
+                PortalVisibility.PUBLIC
+            );
+            case LINK -> new PortalNavigationLink(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                url,
+                false,
+                PortalVisibility.PUBLIC
+            );
         };
         newItem.setParentId(parentId);
 
