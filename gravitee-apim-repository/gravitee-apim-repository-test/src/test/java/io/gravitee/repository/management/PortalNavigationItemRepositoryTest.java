@@ -101,6 +101,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .order(4)
             .published(true)
             .configuration("{ \"url\": \"https://support.example.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
             .build();
 
         PortalNavigationItem created = portalNavigationItemRepository.create(item);
@@ -142,6 +143,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .order(1)
             .published(true)
             .configuration("{ \"url\": \"https://original.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
             .build();
 
         PortalNavigationItem created = portalNavigationItemRepository.create(item);
@@ -158,6 +160,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .order(2)
             .published(false)
             .configuration("{ \"url\": \"https://updated.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PRIVATE)
             .build();
 
         PortalNavigationItem updated = portalNavigationItemRepository.update(updatedItem);
@@ -167,6 +170,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(updated.getOrder()).isEqualTo(2);
         assertThat(updated.getConfiguration()).isEqualTo("{ \"url\": \"https://updated.com\" }");
         assertThat(updated.isPublished()).isFalse();
+        assertThat(updated.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PRIVATE);
 
         portalNavigationItemRepository.delete("update-nav-item");
     }
@@ -265,6 +269,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .order(10)
             .published(false)
             .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
             .build();
 
         portalNavigationItemRepository.create(unpublishedItem);
@@ -320,6 +325,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .order(11)
             .published(false)
             .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
             .build();
 
         portalNavigationItemRepository.create(unpublishedItem);

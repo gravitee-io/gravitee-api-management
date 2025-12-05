@@ -33,4 +33,5 @@ public class PortalNavigationItemMongo {
     private Integer order;
     private String configuration;
     private boolean published;
+    private PortalNavigationItem.Visibility visibility;
 }
