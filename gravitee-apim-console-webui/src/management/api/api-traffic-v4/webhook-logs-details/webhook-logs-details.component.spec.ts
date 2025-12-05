@@ -80,18 +80,6 @@ describe('WebhookLogsDetailsComponent', () => {
     }
   });
 
-  it('should open reporting settings when empty state action is clicked', async () => {
-    expect(await harness.hasEmptyState()).toBe(true);
-
-    await harness.clickOpenSettings();
-
-    const activatedRoute = TestBed.inject(ActivatedRoute);
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
-      relativeTo: activatedRoute,
-      queryParams: { openSettings: 'true' },
-    });
-  });
-
   describe('buildDeliveryAttempts', () => {
     let component: WebhookLogsDetailsComponent;
 

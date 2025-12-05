@@ -330,6 +330,100 @@ class SearchMessageMetricsQueryAdapterTest {
                   }
                 }
                 """
+            ),
+            Arguments.of(
+                MessageMetricsQuery.Filter.builder()
+                    .connectorId("webhook")
+                    .connectorType("entrypoint")
+                    .operation("subscribe")
+                    .requiresAdditional(true)
+                    .build(),
+                """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "connector-type":"entrypoint" } },
+                        { "term": { "operation":"subscribe" } },
+                        { "term": { "connector-id":"webhook" } },
+                        {
+                          "exists": {
+                            "field": "additional-metrics"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
+            ),
+            Arguments.of(
+                MessageMetricsQuery.Filter.builder()
+                    .connectorId("webhook")
+                    .connectorType("entrypoint")
+                    .operation("subscribe")
+                    .requiresAdditional(false)
+                    .build(),
+                """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "connector-type":"entrypoint" } },
+                        { "term": { "operation":"subscribe" } },
+                        { "term": { "connector-id":"webhook" } }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
+            ),
+            Arguments.of(
+                MessageMetricsQuery.Filter.builder()
+                    .connectorId("webhook")
+                    .connectorType("entrypoint")
+                    .operation("subscribe")
+                    .requiresAdditional(true)
+                    .additional(java.util.Map.of("int_webhook_resp-status", java.util.List.of("200")))
+                    .build(),
+                """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "connector-type":"entrypoint" } },
+                        { "term": { "operation":"subscribe" } },
+                        { "term": { "connector-id":"webhook" } },
+                        {
+                          "exists": {
+                            "field": "additional-metrics"
+                          }
+                        },
+                        {
+                          "term": {
+                            "additional-metrics.int_webhook_resp-status": "200"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
             )
         );
     }

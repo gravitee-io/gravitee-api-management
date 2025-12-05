@@ -54,6 +54,7 @@ public class SearchMessageMetricsQueryAdapter {
         addTermIfNotNull(terms, MessageMetricsFields.OPERATION, filter.operation());
         addRangeQueryIfValid(terms, filter.from(), filter.to());
         addAdditionalFieldsQueries(terms, filter.additional());
+        addExistsFilterIfRequired(terms, filter.requiresAdditional());
 
         return terms.isEmpty() ? null : JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
     }
@@ -125,6 +126,12 @@ public class SearchMessageMetricsQueryAdapter {
         }
 
         terms.add(query);
+    }
+
+    private static void addExistsFilterIfRequired(ArrayList<JsonObject> terms, Boolean requiresAdditional) {
+        if (Boolean.TRUE.equals(requiresAdditional)) {
+            terms.add(JsonObject.of("exists", JsonObject.of("field", MessageMetricsFields.ADDITIONAL_METRICS)));
+        }
     }
 
     private static JsonObject buildSort() {

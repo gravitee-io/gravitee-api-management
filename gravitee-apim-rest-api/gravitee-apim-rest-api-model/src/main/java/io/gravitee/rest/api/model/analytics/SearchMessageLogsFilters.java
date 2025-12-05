@@ -27,5 +27,6 @@ public record SearchMessageLogsFilters(
     String connectorType,
     String connectorId,
     String requestId,
-    Map<String, List<String>> additional
+    Map<String, List<String>> additional,
+    Boolean requiresAdditional
 ) {}

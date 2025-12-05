@@ -160,6 +160,7 @@ export class WebhookLogsComponent implements OnInit {
         applicationIds,
         from,
         to,
+        requiresAdditional: true,
       })
       .pipe(
         map((response) => this.mapToWebhookLogsResponse(response)),

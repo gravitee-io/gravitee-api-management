@@ -90,6 +90,7 @@ export class ApiLogsV2Service {
       applicationIds?: string[];
       statuses?: number[];
       callbackUrls?: string[];
+      requiresAdditional?: boolean;
     },
   ): Observable<{ data: ConnectionLog[]; pagination: Pagination }> {
     let httpParams = new HttpParams();
@@ -102,6 +103,9 @@ export class ApiLogsV2Service {
     if (params?.requestId) httpParams = httpParams.set('requestId', params.requestId);
     if (params?.from != null) httpParams = httpParams.set('from', String(params.from));
     if (params?.to != null) httpParams = httpParams.set('to', String(params.to));
+    if (params?.requiresAdditional != null) {
+      httpParams = httpParams.set('requiresAdditional', String(params.requiresAdditional));
+    }
 
     if (params?.applicationIds && params.applicationIds.length > 0) {
       const applicationIdValues = params.applicationIds.join(',');

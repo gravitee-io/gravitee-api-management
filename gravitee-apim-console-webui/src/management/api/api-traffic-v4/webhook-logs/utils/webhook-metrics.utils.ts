@@ -36,34 +36,22 @@ function parseNumberOrUndefined(raw?: string): number | undefined {
 /**
  * Extracts and transforms additionalMetrics from the backend format
  * to the typed WebhookAdditionalMetrics format.
+ * Since we filter for documents with additional-metrics (requiresAdditional=true),
+ * we're guaranteed that additionalMetrics exists when this function is called.
  */
 export function extractWebhookAdditionalMetrics(additionalMetrics: { [key: string]: string }): Partial<WebhookAdditionalMetrics> {
   const metrics: Partial<WebhookAdditionalMetrics> = {};
 
-  // Fields that are always present (per connector readme)
+  // Fields that are always present
   metrics['string_webhook_req-method'] = additionalMetrics['string_webhook_req-method'];
   metrics['string_webhook_url'] = additionalMetrics['string_webhook_url'];
   metrics['keyword_webhook_app-id'] = additionalMetrics['keyword_webhook_app-id'];
   metrics['keyword_webhook_sub-id'] = additionalMetrics['keyword_webhook_sub-id'];
   metrics['json_webhook_retry-timeline'] = additionalMetrics['json_webhook_retry-timeline'];
-
-  // These fields are supposed to be always present per connector docs,
-  // but when entrypoint logging is disabled, additionalMetrics is empty.
-  // Only set them if they exist in the source to avoid misleading default values.
-  if (additionalMetrics['long_webhook_req-timestamp'] !== undefined) {
-    metrics['long_webhook_req-timestamp'] = parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']);
-  }
-  if (additionalMetrics['int_webhook_resp-status'] !== undefined) {
-    metrics['int_webhook_resp-status'] = parseNumberOrZero(additionalMetrics['int_webhook_resp-status']);
-  }
-  if (additionalMetrics['int_webhook_retry-count'] !== undefined) {
-    metrics['int_webhook_retry-count'] = parseNumberOrZero(additionalMetrics['int_webhook_retry-count']);
-  }
-
-  // bool_webhook_dlq - only set if present in additionalMetrics
-  if (additionalMetrics['bool_webhook_dlq'] !== undefined) {
-    metrics['bool_webhook_dlq'] = additionalMetrics['bool_webhook_dlq'] === 'true';
-  }
+  metrics['long_webhook_req-timestamp'] = parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']);
+  metrics['int_webhook_resp-status'] = parseNumberOrZero(additionalMetrics['int_webhook_resp-status']);
+  metrics['int_webhook_retry-count'] = parseNumberOrZero(additionalMetrics['int_webhook_retry-count']);
+  metrics['bool_webhook_dlq'] = additionalMetrics['bool_webhook_dlq'] === 'true';
 
   // Conditional fields - only assign if present
   if (additionalMetrics['string_webhook_last-error'] !== undefined) {
@@ -104,36 +92,6 @@ export function extractWebhookAdditionalMetrics(additionalMetrics: { [key: strin
 }
 
 /**
- * Extracts the status code from additionalMetrics.
- */
-export function extractStatus(additionalMetrics?: Partial<WebhookAdditionalMetrics>): number {
-  if (!additionalMetrics) {
-    return 0;
-  }
-
-  if (additionalMetrics['int_webhook_resp-status'] !== undefined) {
-    return additionalMetrics['int_webhook_resp-status'];
-  }
-
-  return 0;
-}
-
-/**
- * Extracts the callback URL from additionalMetrics.
- */
-export function extractCallbackUrl(additionalMetrics?: Partial<WebhookAdditionalMetrics>): string {
-  if (!additionalMetrics) {
-    return '';
-  }
-
-  if (additionalMetrics['string_webhook_url']) {
-    return additionalMetrics['string_webhook_url'];
-  }
-
-  return '';
-}
-
-/**
  * Formats a duration in milliseconds to a human-readable string.
  */
 export function formatDuration(ms: number): string {
@@ -150,8 +108,6 @@ export function formatDuration(ms: number): string {
  */
 export function mapConnectionLogToWebhookLog(connectionLog: ConnectionLog): WebhookLog {
   const additionalMetrics = extractWebhookAdditionalMetrics(connectionLog.additionalMetrics || {});
-  const status = extractStatus(additionalMetrics);
-  const callbackUrl = extractCallbackUrl(additionalMetrics);
   const gatewayLatencyMs = connectionLog.gatewayResponseTime || 0;
 
   const webhookLog: WebhookLog = {
@@ -159,7 +115,7 @@ export function mapConnectionLogToWebhookLog(connectionLog: ConnectionLog): Webh
     requestId: connectionLog.requestId,
     timestamp: connectionLog.timestamp,
     method: connectionLog.method,
-    status,
+    status: additionalMetrics['int_webhook_resp-status'] ?? 0,
     application: connectionLog.application,
     plan: connectionLog.plan,
     requestEnded: connectionLog.requestEnded,
@@ -171,7 +127,7 @@ export function mapConnectionLogToWebhookLog(connectionLog: ConnectionLog): Webh
     errorComponentName: connectionLog.errorComponentName,
     errorComponentType: connectionLog.errorComponentType,
     warnings: connectionLog.warnings,
-    callbackUrl,
+    callbackUrl: additionalMetrics['string_webhook_url'] ?? '',
     duration: formatDuration(gatewayLatencyMs),
     additionalMetrics,
   };

@@ -190,27 +190,5 @@
         </div>
       </mat-card-content>
     </mat-card>
-  } @else {
-    <mat-card class="empty-card">
-      <mat-card-content>
-        <mat-icon class="icon" svgIcon="gio:search"></mat-icon>
-        <div class="mat-h3" aria-label="No webhook logs available">No log available</div>
-        <div class="empty-card__body">
-          <span class="empty-card__body__subtitle"> Modify the reporting settings to record additional data for future requests. </span>
-        </div>
-
-        <div class="empty-card__actions__button">
-          <button
-            mat-flat-button
-            color="primary"
-            class="webhook-logs-card__actions__button"
-            (click)="openLogSettings()"
-            data-testId="open-settings-button"
-          >
-            Open log settings
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
   }
 </div>

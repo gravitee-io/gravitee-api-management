@@ -41,6 +41,7 @@ public class MessageMetricsQuery {
         String operation,
         long from,
         long to,
-        Map<String, List<String>> additional
+        Map<String, List<String>> additional,
+        Boolean requiresAdditional
     ) {}
 }

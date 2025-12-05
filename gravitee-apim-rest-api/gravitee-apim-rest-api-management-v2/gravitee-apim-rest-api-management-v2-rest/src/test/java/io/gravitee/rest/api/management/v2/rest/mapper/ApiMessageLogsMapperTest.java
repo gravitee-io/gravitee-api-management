@@ -344,6 +344,42 @@ class ApiMessageLogsMapperTest {
             assertThat(filters.additional()).isNotNull();
             assertThat(filters.additional().get("field1")).containsExactly("value1", "value2", "value3");
         }
+
+        @Test
+        void should_map_requiresAdditional_when_true() {
+            SearchMessageLogsParam param = new SearchMessageLogsParam();
+            param.setFrom(1000L);
+            param.setTo(2000L);
+            param.setRequiresAdditional(true);
+
+            SearchMessageLogsFilters filters = mapper.map(param);
+
+            assertThat(filters.requiresAdditional()).isTrue();
+        }
+
+        @Test
+        void should_map_requiresAdditional_when_false() {
+            SearchMessageLogsParam param = new SearchMessageLogsParam();
+            param.setFrom(1000L);
+            param.setTo(2000L);
+            param.setRequiresAdditional(false);
+
+            SearchMessageLogsFilters filters = mapper.map(param);
+
+            assertThat(filters.requiresAdditional()).isFalse();
+        }
+
+        @Test
+        void should_map_requiresAdditional_when_null() {
+            SearchMessageLogsParam param = new SearchMessageLogsParam();
+            param.setFrom(1000L);
+            param.setTo(2000L);
+            param.setRequiresAdditional(null);
+
+            SearchMessageLogsFilters filters = mapper.map(param);
+
+            assertThat(filters.requiresAdditional()).isNull();
+        }
     }
 
     @Nested
