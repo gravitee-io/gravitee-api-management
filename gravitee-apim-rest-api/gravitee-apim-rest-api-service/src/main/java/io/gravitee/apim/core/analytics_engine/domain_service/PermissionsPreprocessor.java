@@ -18,10 +18,13 @@ package io.gravitee.apim.core.analytics_engine.domain_service;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author GraviteeSource Team
  */
-public interface AnalyticsQueryFilterDecorator {
-    MetricsContext getFilteredContext(MetricsContext context, List<Filter> filters);
+public interface PermissionsPreprocessor {
+    Map<String, String> findAllowedApis();
+
+    List<Filter> buildFilterForAllowedApis(MetricsContext context);
 }
