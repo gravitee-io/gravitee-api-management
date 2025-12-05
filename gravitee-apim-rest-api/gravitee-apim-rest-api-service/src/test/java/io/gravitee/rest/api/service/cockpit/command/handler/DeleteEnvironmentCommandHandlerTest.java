@@ -583,7 +583,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                     13,
                     "{}",
                     true,
-                        PortalNavigationItem.Visibility.PUBLIC
+                    PortalNavigationItem.Visibility.PUBLIC
                 )
             )
         );
