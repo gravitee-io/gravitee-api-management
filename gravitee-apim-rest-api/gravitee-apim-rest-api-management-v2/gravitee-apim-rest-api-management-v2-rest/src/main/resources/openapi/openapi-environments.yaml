@@ -1964,13 +1964,15 @@ components:
           type: boolean
           description: Whether the navigation item is published or not
           example: true
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       discriminator:
         propertyName: type
         mapping:
           FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
           PAGE: "#/components/schemas/UpdatePortalNavigationPage"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
-      required: [ type, title, order, published ]
+      required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
       type: object
       title: "UpdatePortalNavigationFolder"

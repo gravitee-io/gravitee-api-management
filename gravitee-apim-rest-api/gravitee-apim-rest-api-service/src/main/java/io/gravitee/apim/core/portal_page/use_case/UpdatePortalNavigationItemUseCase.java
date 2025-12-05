@@ -18,11 +18,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.rest.api.service.exceptions.ResourceNotFoundException;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -41,7 +41,7 @@ public class UpdatePortalNavigationItemUseCase {
             PortalNavigationItemId.of(input.navigationItemId)
         );
         if (existing == null) {
-            throw new ResourceNotFoundException("Portal navigation item [%s] not found.".formatted(input.navigationItemId));
+            throw new PortalNavigationItemNotFoundException(input.navigationItemId);
         }
         validatorService.validateToUpdate(toUpdate, existing);
         existing.update(toUpdate);
