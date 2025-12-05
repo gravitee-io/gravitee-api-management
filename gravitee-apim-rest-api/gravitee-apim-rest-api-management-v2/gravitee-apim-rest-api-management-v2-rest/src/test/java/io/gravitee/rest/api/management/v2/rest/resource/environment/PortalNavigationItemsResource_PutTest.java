@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
@@ -159,6 +160,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getUrl()).isEqualTo("https://gravitee.io");
         assertThat(body.getPublished()).isTrue();
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -185,6 +187,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getPublished()).isTrue();
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -247,6 +250,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getOrder()).isEqualTo(3);
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -276,6 +280,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getUrl()).isEqualTo("https://gravitee.io");
         assertThat(body.getParentId()).isEqualTo(UUID.fromString(APIS_ID));
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -303,6 +308,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getParentId()).isNull();
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -330,6 +336,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
         assertThat(body.getTitle()).isEqualTo("Updated Title");
         assertThat(body.getPublished()).isTrue();
+        assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
