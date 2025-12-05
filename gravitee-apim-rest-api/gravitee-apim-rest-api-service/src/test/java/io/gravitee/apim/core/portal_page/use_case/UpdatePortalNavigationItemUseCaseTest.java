@@ -30,11 +30,12 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import io.gravitee.rest.api.service.exceptions.ResourceNotFoundException;
 import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -72,6 +73,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             .title("  New Title  ")
             .order(1)
             .published(true)
+            .visibility(existing.getVisibility())
             .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
@@ -97,6 +99,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem().getId()).isEqualTo(originalId);
         assertThat(output.updatedItem().getTitle()).isEqualTo("New Title");
         assertThat(output.updatedItem().getPublished()).isTrue();
+        assertThat(output.updatedItem().getVisibility()).isEqualTo(existing.getVisibility());
     }
 
     @Test
@@ -113,7 +116,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             .build();
 
         // When / Then
-        assertThrows(ResourceNotFoundException.class, () -> useCase.execute(input));
+        assertThrows(PortalNavigationItemNotFoundException.class, () -> useCase.execute(input));
     }
 
     @Test
@@ -192,6 +195,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             .title("  New Title  ")
             .order(1)
             .published(true)
+            .visibility(existing.getVisibility())
             .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
@@ -217,5 +221,45 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem().getId()).isEqualTo(originalId);
         assertThat(output.updatedItem().getTitle()).isEqualTo("New Title");
         assertThat(output.updatedItem().getPublished()).isTrue();
+        assertThat(output.updatedItem().getVisibility()).isEqualTo(existing.getVisibility());
+    }
+
+    @Test
+    void should_change_visibility_to_private() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+        assertThat(existing).isNotNull();
+        var originalId = existing.getId();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.PAGE) // must match existing type
+            .title(existing.getTitle())
+            .order(existing.getOrder())
+            .published(existing.getPublished())
+            .visibility(PortalVisibility.PRIVATE)
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(originalId.toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        // When
+        var output = useCase.execute(input);
+
+        // Then: validator called with provided payload and existing entity
+        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
+
+        // And storage updated with trimmed title
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
+        assertThat(updated).isNotNull();
+
+        // And output contains the updated item
+        assertThat(output.updatedItem()).isNotNull();
+        assertThat(output.updatedItem().getId()).isEqualTo(originalId);
+        assertThat(output.updatedItem().getTitle()).isEqualTo(existing.getTitle());
+        assertThat(output.updatedItem().getPublished()).isEqualTo(existing.getPublished());
+        assertThat(output.updatedItem().getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
     }
 }
