@@ -113,7 +113,7 @@ export class ApiLogsV2Service {
     }
 
     if (params?.statuses && params.statuses.length > 0) {
-      const statusValues = params.statuses.map((s) => String(s)).join(',');
+      const statusValues = params.statuses.map(String).join(',');
       httpParams = this.appendAdditionalFilter(httpParams, 'int_webhook_resp-status', statusValues);
     }
 

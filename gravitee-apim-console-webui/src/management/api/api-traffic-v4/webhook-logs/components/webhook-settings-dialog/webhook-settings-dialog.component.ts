@@ -52,7 +52,7 @@ type WebhookSettingsFormValue = {
   responseHeaders: boolean;
 };
 
-type SamplingDisplayType = SamplingTypeEnum | 'COUNT_PER_TIME_WINDOW' | null;
+type SamplingDisplayType = SamplingTypeEnum | 'COUNT_PER_TIME_WINDOW' | undefined;
 
 @Component({
   selector: 'webhook-settings-dialog',
@@ -316,9 +316,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
     }
     const currentValue = this.form.getRawValue();
 
-    return (Object.keys(this.initialFormValue) as (keyof WebhookSettingsFormValue)[]).some(
-      (key) => currentValue[key] !== this.initialFormValue![key],
-    );
+    return Object.keys(this.initialFormValue).some((key) => currentValue[key] !== this.initialFormValue![key]);
   }
 
   private get sampling(): Analytics['sampling'] | undefined {
@@ -334,7 +332,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
     if (type === 'COUNT' && value?.includes('/')) {
       return 'COUNT_PER_TIME_WINDOW';
     }
-    return type ?? null;
+    return type ?? undefined;
   }
 
   private getCountPerWindowParts(value?: string | null): { count?: number; window?: number } | null {

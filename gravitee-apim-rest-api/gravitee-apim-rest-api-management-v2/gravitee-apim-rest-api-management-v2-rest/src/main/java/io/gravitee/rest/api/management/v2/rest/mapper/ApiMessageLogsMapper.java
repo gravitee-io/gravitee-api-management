@@ -26,9 +26,12 @@ import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { DateMapper.class })
 public interface ApiMessageLogsMapper {
+    Logger logger = LoggerFactory.getLogger(ApiMessageLogsMapper.class);
     ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
     List<ApiMessageLog> map(List<MessageLog> messageMetricsList);
@@ -48,6 +51,7 @@ public interface ApiMessageLogsMapper {
         try {
             return MessageOperation.fromValue(operation);
         } catch (IllegalArgumentException e) {
+            logger.warn("Failed to map operation value: {}", operation, e);
             return null;
         }
     }
@@ -59,6 +63,7 @@ public interface ApiMessageLogsMapper {
         try {
             return ConnectorType.fromValue(connectorType);
         } catch (IllegalArgumentException e) {
+            logger.warn("Failed to map connector type value: {}", connectorType, e);
             return null;
         }
     }
@@ -93,40 +98,27 @@ public interface ApiMessageLogsMapper {
         Map<String, List<String>> result = new LinkedHashMap<>();
 
         for (String param : additional) {
-            if (param == null) {
+            // Validate all conditions upfront - skip if any validation fails
+            if (param == null || param.trim().isEmpty()) {
                 continue;
             }
 
             String trimmed = param.trim();
-            if (trimmed.isEmpty()) {
-                continue;
-            }
-
-            // Split on first ';' only: fieldName;value1,value2
             String[] parts = trimmed.split(";", 2);
-            if (parts.length != 2) {
-                // Invalid format -> skip
-                continue;
+            String fieldName = parts.length == 2 ? parts[0].trim() : "";
+            String valuesStr = parts.length == 2 ? parts[1].trim() : "";
+
+            if (!fieldName.isEmpty() && !valuesStr.isEmpty()) {
+                List<String> values = Arrays.stream(valuesStr.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+
+                if (!values.isEmpty()) {
+                    // Merge values for the same field instead of overwriting
+                    result.computeIfAbsent(fieldName, k -> new ArrayList<>()).addAll(values);
+                }
             }
-
-            String fieldName = parts[0].trim();
-            String valuesStr = parts[1].trim();
-
-            if (fieldName.isEmpty() || valuesStr.isEmpty()) {
-                continue;
-            }
-
-            List<String> values = Arrays.stream(valuesStr.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-
-            if (values.isEmpty()) {
-                continue;
-            }
-
-            // Merge values for the same field instead of overwriting
-            result.computeIfAbsent(fieldName, k -> new ArrayList<>()).addAll(values);
         }
 
         return result.isEmpty() ? null : result;

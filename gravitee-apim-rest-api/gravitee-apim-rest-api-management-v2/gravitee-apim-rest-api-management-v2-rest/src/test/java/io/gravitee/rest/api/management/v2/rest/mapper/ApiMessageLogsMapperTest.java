@@ -148,6 +148,14 @@ class ApiMessageLogsMapperTest {
             assertThat(result.get("field1")).containsExactly("value1", "value3");
             assertThat(result.get("field2")).containsExactly("value2");
         }
+
+        @Test
+        void should_skip_null_entries() {
+            Map<String, List<String>> result = mapper.parseAdditionalParams(new String[] { "field1;value1", null, "field2;value2" });
+            assertThat(result).isNotNull();
+            assertThat(result.get("field1")).containsExactly("value1");
+            assertThat(result.get("field2")).containsExactly("value2");
+        }
     }
 
     @Nested

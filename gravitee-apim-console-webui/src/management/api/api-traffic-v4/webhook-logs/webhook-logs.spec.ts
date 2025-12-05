@@ -342,7 +342,7 @@ describe('WebhookLogsComponent', () => {
     expect(await logsListHarness!.countRows()).toBe(3);
   });
 
-  it('should open the settings dialog when clicking the Configure Reporting button', async () => {
+  it('should open the settings dialog when clicking the Configure Webhook Reporting button', async () => {
     await setupComponent();
 
     await harness.clickConfigureReporting();

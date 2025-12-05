@@ -363,7 +363,7 @@ describe('WebhookLogsDetailsComponent', () => {
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).not.toBeNull();
+      expect(component.connectionFailure).not.toBeUndefined();
       expect(component.connectionFailure?.errorKey).toBe('CONNECTION_FAILED');
       expect(component.connectionFailure?.componentType).toBe('ENDPOINT');
       expect(component.connectionFailure?.componentName).toBe('webhook-endpoint');
@@ -373,22 +373,22 @@ describe('WebhookLogsDetailsComponent', () => {
       expect(component.connectionFailure?.lastError).toBe('Connection failed: timeout');
     });
 
-    it('should set connectionFailure to null when status is not 0', () => {
+    it('should set connectionFailure to undefined when status is not 0', () => {
       const log = createBaseLog();
       log.status = 200;
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).toBeNull();
+      expect(component.connectionFailure).toBeUndefined();
     });
 
-    it('should set connectionFailure to null when status is 500', () => {
+    it('should set connectionFailure to undefined when status is 500', () => {
       const log = createBaseLog();
       log.status = 500;
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).toBeNull();
+      expect(component.connectionFailure).toBeUndefined();
     });
 
     it('should handle connectionFailure when error fields are missing', () => {
@@ -398,13 +398,13 @@ describe('WebhookLogsDetailsComponent', () => {
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).not.toBeNull();
-      expect(component.connectionFailure?.errorKey).toBeNull();
-      expect(component.connectionFailure?.componentType).toBeNull();
-      expect(component.connectionFailure?.componentName).toBeNull();
-      expect(component.connectionFailure?.message).toBeNull();
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.errorKey).toBeUndefined();
+      expect(component.connectionFailure?.componentType).toBeUndefined();
+      expect(component.connectionFailure?.componentName).toBeUndefined();
+      expect(component.connectionFailure?.message).toBeUndefined();
       expect(component.connectionFailure?.diagnostics).toEqual([]);
-      expect(component.connectionFailure?.lastError).toBeNull();
+      expect(component.connectionFailure?.lastError).toBeUndefined();
     });
 
     it('should include lastError from additionalMetrics when status is 0', () => {
@@ -414,30 +414,30 @@ describe('WebhookLogsDetailsComponent', () => {
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).not.toBeNull();
+      expect(component.connectionFailure).not.toBeUndefined();
       expect(component.connectionFailure?.lastError).toBe('Network unreachable');
     });
 
-    it('should handle lastError as null when not a string in additionalMetrics', () => {
+    it('should handle lastError as undefined when not a string in additionalMetrics', () => {
       const log = createBaseLog();
       log.status = 0;
       log.additionalMetrics!['string_webhook_last-error'] = null;
 
       (component as any).applyLog(log);
 
-      expect(component.connectionFailure).not.toBeNull();
-      expect(component.connectionFailure?.lastError).toBeNull();
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.lastError).toBeUndefined();
     });
 
     it('should reset connectionFailure when log is null', () => {
       const log = createBaseLog();
       log.status = 0;
       (component as any).applyLog(log);
-      expect(component.connectionFailure).not.toBeNull();
+      expect(component.connectionFailure).not.toBeUndefined();
 
       (component as any).applyLog(null);
 
-      expect(component.connectionFailure).toBeNull();
+      expect(component.connectionFailure).toBeUndefined();
     });
   });
 });

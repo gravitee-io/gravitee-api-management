@@ -131,7 +131,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     applications: FormControl<string[]>;
     period: FormControl<SimpleFilter>;
   }> {
-    const initialStatuses = this.initialValues?.statuses?.map((status) => String(status)) ?? [];
+    const initialStatuses = this.initialValues?.statuses?.map(String) ?? [];
     const initialApplications = this.initialValues?.applications?.map((app) => app.value) ?? [];
 
     return new FormGroup({

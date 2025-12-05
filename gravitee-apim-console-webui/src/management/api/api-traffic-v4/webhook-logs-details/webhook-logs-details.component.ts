@@ -65,12 +65,12 @@ interface ParsedHeaders {
 }
 
 interface ConnectionFailureDetails {
-  errorKey?: string | null;
-  componentType?: string | null;
-  componentName?: string | null;
-  message?: string | null;
+  errorKey?: string;
+  componentType?: string;
+  componentName?: string;
+  message?: string;
   diagnostics: ConnectionLogDiagnostic[];
-  lastError?: string | null;
+  lastError?: string;
 }
 
 const LAST_ERROR_KEY: keyof WebhookAdditionalMetrics = 'string_webhook_last-error';
@@ -123,7 +123,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   requestBody = '';
   responseBody = '';
   selectedLog: WebhookLog | null = null;
-  connectionFailure: ConnectionFailureDetails | null = null;
+  connectionFailure: ConnectionFailureDetails | undefined = undefined;
   readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
     renderLineHighlight: 'none',
     hideCursorInOverviewRuler: true,
@@ -222,15 +222,15 @@ export class WebhookLogsDetailsComponent implements OnInit {
 
     if (log.status === 0) {
       this.connectionFailure = {
-        errorKey: log.errorKey ?? null,
-        componentType: log.errorComponentType ?? null,
-        componentName: log.errorComponentName ?? null,
-        message: log.message ?? null,
+        errorKey: log.errorKey,
+        componentType: log.errorComponentType,
+        componentName: log.errorComponentName,
+        message: log.message,
         diagnostics: log.warnings ?? [],
-        lastError: typeof lastError === 'string' ? lastError : null,
+        lastError: typeof lastError === 'string' ? lastError : undefined,
       };
     } else {
-      this.connectionFailure = null;
+      this.connectionFailure = undefined;
     }
 
     this.deliveryAttemptsDataSource = this.buildDeliveryAttempts(log);
@@ -253,12 +253,11 @@ export class WebhookLogsDetailsComponent implements OnInit {
       { label: 'Last error', value: typeof lastError === 'string' ? lastError : '—' },
     ];
 
-    this.requestHeaders = this.parseHeaders(typeof reqHeaders === 'string' ? reqHeaders : null);
+    this.requestHeaders = this.parseHeaderString(reqHeaders);
+    this.requestBody = this.parseBodyString(reqBody);
 
-    this.responseHeaders = this.parseHeaders(typeof respHeaders === 'string' ? respHeaders : null);
-    this.requestBody = typeof reqBody === 'string' ? reqBody : '';
-
-    this.responseBody = typeof respBody === 'string' ? respBody : '';
+    this.responseHeaders = this.parseHeaderString(respHeaders);
+    this.responseBody = this.parseBodyString(respBody);
 
     this.cdr.markForCheck();
   }
@@ -266,7 +265,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   private buildDeliveryAttempts(log: WebhookLog): DeliveryAttempt[] {
     const rawTimeline = log.additionalMetrics[RETRY_TIMELINE_KEY];
 
-    if (typeof rawTimeline !== 'string' || rawTimeline.trim() === '' || rawTimeline === '[]') {
+    if (typeof rawTimeline !== 'string' || !rawTimeline.trim() || rawTimeline === '[]') {
       return [this.createSingleDeliveryAttempt(log)];
     }
 
@@ -274,7 +273,9 @@ export class WebhookLogsDetailsComponent implements OnInit {
 
     try {
       parsed = JSON.parse(rawTimeline) as RetryTimelineItem[];
-    } catch {
+    } catch (error) {
+      // eslint-disable-next-line angular/log
+      console.error('Failed to parse retry timeline JSON:', error, { requestId: log.requestId, rawTimeline });
       return [this.createSingleDeliveryAttempt(log)];
     }
 
@@ -332,6 +333,14 @@ export class WebhookLogsDetailsComponent implements OnInit {
     };
   }
 
+  private parseHeaderString(header: string | number | boolean | undefined): HeaderItem[] {
+    return this.parseHeaders(typeof header === 'string' ? header : undefined);
+  }
+
+  private parseBodyString(body: string | number | boolean | undefined): string {
+    return typeof body === 'string' ? body : '';
+  }
+
   private parseHeaders(raw?: string | null): HeaderItem[] {
     if (!raw) {
       return [];
@@ -361,7 +370,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   private formatDateTime(value: string | number): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      return isNumber(value) ? String(value) : value;
+      return String(value);
     }
     return date.toLocaleString();
   }
@@ -374,6 +383,6 @@ export class WebhookLogsDetailsComponent implements OnInit {
     this.responseHeaders = [];
     this.requestBody = '';
     this.responseBody = '';
-    this.connectionFailure = null;
+    this.connectionFailure = undefined;
   }
 }

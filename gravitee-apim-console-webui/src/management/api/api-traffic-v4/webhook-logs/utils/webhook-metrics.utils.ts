@@ -38,55 +38,32 @@ function parseNumberOrUndefined(raw?: string): number | undefined {
  * to the typed WebhookAdditionalMetrics format.
  * Since we filter for documents with additional-metrics (requiresAdditional=true),
  * we're guaranteed that additionalMetrics exists when this function is called.
+ * Only transforms fields that need type conversion (numbers, booleans).
  */
 export function extractWebhookAdditionalMetrics(additionalMetrics: { [key: string]: string }): Partial<WebhookAdditionalMetrics> {
-  const metrics: Partial<WebhookAdditionalMetrics> = {};
+  const metrics: Partial<WebhookAdditionalMetrics> = {
+    // String fields - assign directly
+    'string_webhook_req-method': additionalMetrics['string_webhook_req-method'],
+    string_webhook_url: additionalMetrics['string_webhook_url'],
+    'keyword_webhook_app-id': additionalMetrics['keyword_webhook_app-id'],
+    'keyword_webhook_sub-id': additionalMetrics['keyword_webhook_sub-id'],
+    'json_webhook_retry-timeline': additionalMetrics['json_webhook_retry-timeline'],
+    'string_webhook_last-error': additionalMetrics['string_webhook_last-error'],
+    'json_webhook_req-headers': additionalMetrics['json_webhook_req-headers'],
+    'string_webhook_req-body': additionalMetrics['string_webhook_req-body'],
+    'json_webhook_resp-headers': additionalMetrics['json_webhook_resp-headers'],
+    'string_webhook_resp-body': additionalMetrics['string_webhook_resp-body'],
 
-  // Fields that are always present
-  metrics['string_webhook_req-method'] = additionalMetrics['string_webhook_req-method'];
-  metrics['string_webhook_url'] = additionalMetrics['string_webhook_url'];
-  metrics['keyword_webhook_app-id'] = additionalMetrics['keyword_webhook_app-id'];
-  metrics['keyword_webhook_sub-id'] = additionalMetrics['keyword_webhook_sub-id'];
-  metrics['json_webhook_retry-timeline'] = additionalMetrics['json_webhook_retry-timeline'];
-  metrics['long_webhook_req-timestamp'] = parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']);
-  metrics['int_webhook_resp-status'] = parseNumberOrZero(additionalMetrics['int_webhook_resp-status']);
-  metrics['int_webhook_retry-count'] = parseNumberOrZero(additionalMetrics['int_webhook_retry-count']);
-  metrics['bool_webhook_dlq'] = additionalMetrics['bool_webhook_dlq'] === 'true';
+    // Numeric fields - transform from string to number
+    'long_webhook_req-timestamp': parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']),
+    'int_webhook_resp-status': parseNumberOrZero(additionalMetrics['int_webhook_resp-status']),
+    'int_webhook_retry-count': parseNumberOrZero(additionalMetrics['int_webhook_retry-count']),
+    'long_webhook_resp-time': parseNumberOrUndefined(additionalMetrics['long_webhook_resp-time']),
+    'int_webhook_resp-body-size': parseNumberOrUndefined(additionalMetrics['int_webhook_resp-body-size']),
 
-  // Conditional fields - only assign if present
-  if (additionalMetrics['string_webhook_last-error'] !== undefined) {
-    metrics['string_webhook_last-error'] = additionalMetrics['string_webhook_last-error'] || null;
-  }
-
-  if (additionalMetrics['json_webhook_req-headers'] !== undefined) {
-    metrics['json_webhook_req-headers'] = additionalMetrics['json_webhook_req-headers'] || null;
-  }
-
-  if (additionalMetrics['string_webhook_req-body'] !== undefined) {
-    metrics['string_webhook_req-body'] = additionalMetrics['string_webhook_req-body'] || null;
-  }
-
-  if (additionalMetrics['long_webhook_resp-time'] !== undefined) {
-    const value = parseNumberOrUndefined(additionalMetrics['long_webhook_resp-time']);
-    if (value !== undefined) {
-      metrics['long_webhook_resp-time'] = value;
-    }
-  }
-
-  if (additionalMetrics['int_webhook_resp-body-size'] !== undefined) {
-    const value = parseNumberOrUndefined(additionalMetrics['int_webhook_resp-body-size']);
-    if (value !== undefined) {
-      metrics['int_webhook_resp-body-size'] = value;
-    }
-  }
-
-  if (additionalMetrics['json_webhook_resp-headers'] !== undefined) {
-    metrics['json_webhook_resp-headers'] = additionalMetrics['json_webhook_resp-headers'] || null;
-  }
-
-  if (additionalMetrics['string_webhook_resp-body'] !== undefined) {
-    metrics['string_webhook_resp-body'] = additionalMetrics['string_webhook_resp-body'] || null;
-  }
+    // Boolean field - transform from string to boolean
+    bool_webhook_dlq: additionalMetrics['bool_webhook_dlq'] === 'true',
+  };
 
   return metrics;
 }
