@@ -40,6 +40,17 @@
       outlined-outline-width: 0,
     )
   );
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      height: 14px;
+      font-size: 14px;
+    }
+  }
 }
 
 .actions {

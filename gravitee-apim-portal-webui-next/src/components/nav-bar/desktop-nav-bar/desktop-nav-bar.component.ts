@@ -15,6 +15,7 @@
  */
 import { Component, computed, input, InputSignal } from '@angular/core';
 import { MatAnchor, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
 
@@ -27,7 +28,7 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
   selector: 'app-desktop-nav-bar',
   templateUrl: './desktop-nav-bar.component.html',
   styleUrl: './desktop-nav-bar.component.scss',
-  imports: [NavBarButtonComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink],
+  imports: [NavBarButtonComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink, MatIcon],
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
