@@ -72,16 +72,22 @@ describe('AppComponent', () => {
 
       await TestBed.configureTestingModule({
         imports: [AppComponent, AppTestingModule],
-        providers: [provideHttpClientTesting(), { provide: PortalNavigationItemsService, useValue: { topNavbar: signal(mockItems) } }],
+        providers: [
+          provideHttpClientTesting(),
+          {
+            provide: PortalNavigationItemsService,
+            useValue: { topNavbar: signal(mockItems) },
+          },
+        ],
       }).compileComponents();
       fixture = TestBed.createComponent(AppComponent);
       fixture.detectChanges();
       harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     });
     it('should show custom links', async () => {
-      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-1/i }));
       expect(link1Anchor).toBeTruthy();
-      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-2/i }));
       expect(link2Anchor).toBeTruthy();
     });
   });

@@ -22,7 +22,11 @@
     @switch (navigationItem.type) {
       @case ('LINK') {
         <a [href]="navigationItem.url" target="_blank" mat-stroked-button color="primary" class="menu-items__custom_link">
-          {{ navigationItem.title }}
+          <span class="menu-items__link">
+            {{ navigationItem.title }}
+            <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          </span>
+          <span class="cdk-visually-hidden">(opens in new tab)</span>
         </a>
       }
       @default {
