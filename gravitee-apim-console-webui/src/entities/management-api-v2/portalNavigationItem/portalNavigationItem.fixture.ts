@@ -36,6 +36,7 @@ export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPag
     area: 'HOMEPAGE',
     portalPageContentId: 'page-content-1',
     published: true,
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {
@@ -58,6 +59,7 @@ export function fakePortalNavigationFolder(overrides?: Partial<PortalNavigationF
     order: 1,
     area: 'HOMEPAGE',
     published: true,
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {
@@ -81,6 +83,7 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     area: 'HOMEPAGE',
     url: 'https://example.com',
     published: true,
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {
