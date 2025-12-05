@@ -20,6 +20,10 @@ import io.gravitee.apim.rest.api.common.apiservices.ManagementDeploymentContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
+import io.gravitee.plugin.configurations.http.HttpClientOptions;
+import io.gravitee.plugin.mappers.HttpClientOptionsMapper;
+import io.gravitee.plugin.mappers.HttpProxyOptionsMapper;
+import io.gravitee.plugin.mappers.SslOptionsMapper;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.MalformedURLException;
@@ -51,9 +55,17 @@ public class HttpClientFactory {
             .vertx(deploymentContext.getComponent(Vertx.class))
             .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
             .defaultTarget(configuration.getUrl())
-            .httpOptions(VertxHttpClientOptions.builder().maxConcurrentConnections(1).build())
+            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(prepareHttpClientOptions(configuration)))
+            .sslOptions(SslOptionsMapper.INSTANCE.map(configuration.getSslOptions()))
+            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(configuration.getHttpProxyOptions()))
             .build()
             .createHttpClient();
+    }
+
+    private static HttpClientOptions prepareHttpClientOptions(HttpDynamicPropertiesServiceConfiguration configuration) {
+        // Force max concurrent connections to 1, in the context of this service, we want to have sequential calls.
+        configuration.getHttpClientOptions().setMaxConcurrentConnections(1);
+        return configuration.getHttpClientOptions();
     }
 
     public static URL buildUrl(String uri) {
