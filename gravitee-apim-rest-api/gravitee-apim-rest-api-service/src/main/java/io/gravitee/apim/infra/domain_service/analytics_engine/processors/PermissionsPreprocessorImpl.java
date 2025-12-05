@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.analytics_engine.permissions;
+package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.EQ;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.common.data.domain.Page;
@@ -30,7 +27,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -50,27 +46,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilterDecorator {
+public class PermissionsPreprocessorImpl implements PermissionsPreprocessor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     private final ApiSearchService apiSearchService;
 
     @Override
-    public MetricsContext getFilteredContext(MetricsContext context, List<Filter> requestFilters) {
-        var allowedApis = getAllowedApis(requestFilters);
-        var updatedFilters = updateContextFilters(context.filters(), allowedApis);
-
-        return context.withApiNamesById(allowedApis).withFilters(updatedFilters);
-    }
-
-    private Map<String, String> getAllowedApis(List<Filter> filters) {
+    public Map<String, String> findAllowedApis() {
         QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
-
-        var apiIds = getApiIdsFromFilters(filters);
-        if (!(apiIds.isEmpty())) {
-            queryBuilder.setFilters(Map.of("id", apiIds));
-        }
 
         boolean admin = isAdmin();
         Principal userPrincipal = getUserPrincipal();
@@ -91,56 +75,16 @@ public class ApiAnalyticsQueryFilterDecoratorImpl implements AnalyticsQueryFilte
         return mapApiIdsToNames(content);
     }
 
-    /**
-     * getIdsFromFilters returns all the IDs found in a list of filters.
-     */
-    public static Set<String> getApiIdsFromFilters(List<Filter> filters) {
-        if (filters.isEmpty()) {
-            return Set.of();
-        }
+    @Override
+    public List<Filter> getFiltersWithAllowedApisIds(MetricsContext context) {
+        var allowedApiIds = context.apiNameById().get().keySet().stream().toList();
 
-        List<Filter> filtersByName = filters
-            .stream()
-            .filter(filter -> filter.name() == API)
-            .toList();
-
-        if (filtersByName.isEmpty()) {
-            return Set.of();
-        }
-
-        List eqFilters = filtersByName
-            .stream()
-            .filter(filter -> filter.operator() == EQ)
-            .map(Filter::value)
-            .toList();
-
-        var objectMapper = new ObjectMapper();
-        List inFilters = filtersByName
-            .stream()
-            .filter(filter -> filter.operator() == IN)
-            .map(Filter::value)
-            .filter(Collection.class::isInstance)
-            .flatMap(o -> ((Collection<?>) o).stream())
-            .map(v -> objectMapper.convertValue(v, new TypeReference<>() {}))
-            .toList();
-
-        var apiIds = new HashSet<String>(eqFilters);
-        apiIds.addAll(inFilters);
-
-        return apiIds;
+        return List.of(new Filter(API, IN, allowedApiIds));
     }
 
     /**
      * addApiFilters adds a filter on API IDs to the existing filters.
      */
-    public static List<Filter> updateContextFilters(List<Filter> filters, Map<String, String> allowedApis) {
-        var allowedApiIds = allowedApis.keySet().stream().toList();
-
-        var updatedFilters = new ArrayList<>(filters);
-        updatedFilters.add(new Filter(API, IN, allowedApiIds));
-
-        return updatedFilters;
-    }
 
     private static Map<String, String> mapApiIdsToNames(Collection<GenericApiEntity> apis) {
         return apis.stream().collect(Collectors.toMap(GenericApiEntity::getId, GenericApiEntity::getName));

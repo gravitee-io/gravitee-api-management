@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,8 +26,18 @@ import org.springframework.context.annotation.Configuration;
 public class ResourceContextConfiguration {
 
     @Bean
+    public ApiSearchService apiSearchService() {
+        return mock(ApiSearchService.class);
+    }
+
+    @Bean
     public ApplicationService applicationSearchService() {
         return mock(ApplicationService.class);
+    }
+
+    @Bean
+    public PermissionsPreprocessorImpl permissionsPreprocessor(ApiSearchService apiSearchService) {
+        return new PermissionsPreprocessorImpl(apiSearchService);
     }
 
     @Bean

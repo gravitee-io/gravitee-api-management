@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryFilterDecorator;
 import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.infra.domain_service.analytics_engine.permissions.ApiAnalyticsQueryFilterDecoratorImpl;
+import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.NamesPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.PermissionsPreprocessorImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -49,7 +49,7 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryFilterDecorator analyticsQueryFilterDecorator(ApiSearchService apiSearchService) {
-        return new ApiAnalyticsQueryFilterDecoratorImpl(apiSearchService);
+    public PermissionsPreprocessor permissionsPreprocessor(ApiSearchService apiSearchService) {
+        return new PermissionsPreprocessorImpl(apiSearchService);
     }
 }
