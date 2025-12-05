@@ -310,6 +310,7 @@ describe('PortalNavigationItemsComponent', () => {
           order: linkData.order,
           url: 'https://new.com',
           published: linkData.published,
+          visibility: linkData.visibility,
         },
         fakePortalNavigationLink({ id: linkData.id, title: 'Updated Link', url: 'https://new.com', area: linkData.area, type: 'LINK' }),
       );
