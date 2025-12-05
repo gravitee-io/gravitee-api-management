@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.10.0
-appVersion: 4.10.0
+version: 4.11.0
+appVersion: 4.11.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,28 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: changed
-      description: 'BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency with default concurrent limit 3'
-    - kind: added
-      description: 'Allow to configure Expression Language whitelist.'
-      links:
-        - name: GitHub Issue
-          url: https://github.com/gravitee-io/issues/issues/10533
-    - kind: added
-      description: 'allow redis rate limit configuration to use username for acl configuration'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10966
-    - kind: added
-      description: 'allow configuration of httpClient proxy excludes'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10855
-    - kind: added
-      description: 'Kafka console: allow to define volumes & volume mounts'
-    - kind: added
-      description: 'Kafka console: allow to define a custom mAPI base URL instead of relying on "organization" and "environment" fields'
-    - kind: changed
-      description: 'BREAKING CHANGE: Kafka console: allow to use secrets for "jwt.secret" and "apim.security.token". Use "jwt.secret.value" instead of "jwt.secret" and "apim.security.token.value" instead of "apim.security.token"'
-
+  artifacthub.io/changes:
