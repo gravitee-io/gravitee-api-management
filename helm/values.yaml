@@ -915,6 +915,61 @@ gateway:
   dbLess: false
   type: Deployment
   name: gateway
+
+  # Distributed sync configuration (requires replicaCount > 1)
+  # Uncomment below for Hazelcast cluster cache synchronization
+#  cluster:
+#    type: hazelcast
+#    hazelcast:
+#      configPath: /opt/graviteeio-gateway/config/hazelcast.xml
+
+  # Uncomment below to enable Redis-based distributed sync
+#  distributedSync:
+#    enabled: true
+#    type: redis
+#    redis:
+#      host: redis
+#      port: 6379
+#      # Authentication
+#      username:
+#      password:
+#      # SSL configuration
+#      ssl: false
+#      hostnameVerificationAlgorithm: NONE
+#      trustAll: true
+#      tlsProtocols: TLSv1.2
+#      tlsCiphers:
+#      alpn: false
+#      openssl: false
+#      # Keystore configuration for client certificates
+#      keystore:
+#        type: pem
+#        path: ${gravitee.home}/security/redis-keystore.jks
+#        password:
+#        keyPassword:
+#        alias:
+#        certificates: []
+#        #  - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+#        #    key: ${gravitee.home}/security/redis-mycompany.org.key
+#      # Truststore configuration
+#      truststore:
+#        type: pem
+#        path: ${gravitee.home}/security/redis-truststore.jks
+#        password:
+#        alias:
+#      # Sentinel configuration for high availability
+#      sentinel:
+#        master:
+#        nodes: []
+#        #  - host: sentinel1
+#        #    port: 26379
+#      # Timeout configuration
+#      operation:
+#        timeout: 10
+#      tcp:
+#        connectTimeout: 5000
+#        idleTimeout: 0
+  # Note: Also uncomment 'repository' and 'distributed' in services.sync section below (around line 1475)
   # you can pass a list of bot http and tcp servers in here so the gateway will use this setting to setup its internal servers
 #  servers:
 #    - type: http # tcp
@@ -1453,6 +1508,11 @@ gateway:
       enabled: true
       #delay: 5000
       #unit: MILLISECONDS
+      # Uncomment below for distributed sync (also uncomment distributedSync above)
+      #repository:
+      #  enabled: true
+      #distributed:
+      #  enabled: true
 
     heartbeat:
       enabled: true

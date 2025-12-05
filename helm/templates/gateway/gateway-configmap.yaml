@@ -24,6 +24,89 @@ metadata:
 data:
   {{- if not (include "gateway.externalConfig" .)}}
   gravitee.yml: |
+    # Distributed Sync Setup
+    {{- if .Values.gateway.cluster }}
+    cluster:
+      type: {{ .Values.gateway.cluster.type }}
+      {{- if eq .Values.gateway.cluster.type "hazelcast" }}
+      hazelcast:
+        config-path: {{ .Values.gateway.cluster.hazelcast.configPath }}
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.gateway.distributedSync }}
+    distributed-sync:
+      type: {{ .Values.gateway.distributedSync.type }}
+      {{- if eq .Values.gateway.distributedSync.type "redis" }}
+      redis:
+        host: {{ .Values.gateway.distributedSync.redis.host }}
+        port: {{ .Values.gateway.distributedSync.redis.port }}
+        {{- if .Values.gateway.distributedSync.redis.username }}
+        username: {{ .Values.gateway.distributedSync.redis.username }}
+        {{- end }}
+        {{- if .Values.gateway.distributedSync.redis.password }}
+        password: {{ .Values.gateway.distributedSync.redis.password }}
+        {{- end }}
+        {{- if .Values.gateway.distributedSync.redis.ssl }}
+        ssl: {{ .Values.gateway.distributedSync.redis.ssl }}
+        hostnameVerificationAlgorithm: {{ .Values.gateway.distributedSync.redis.hostnameVerificationAlgorithm | default "NONE" }}
+        trustAll: {{ if hasKey .Values.gateway.distributedSync.redis "trustAll" }}{{ .Values.gateway.distributedSync.redis.trustAll }}{{else}}true{{end}}
+        tlsProtocols: {{ .Values.gateway.distributedSync.redis.tlsProtocols | default "TLSv1.2" }}
+        {{- if .Values.gateway.distributedSync.redis.tlsCiphers }}
+        tlsCiphers: {{ .Values.gateway.distributedSync.redis.tlsCiphers | quote }}
+        {{- end }}
+        alpn: {{ .Values.gateway.distributedSync.redis.alpn | default false }}
+        openssl: {{ .Values.gateway.distributedSync.redis.openssl | default false }}
+        {{- end }}
+        {{- if .Values.gateway.distributedSync.redis.keystore }}
+        keystore:
+          type: {{ .Values.gateway.distributedSync.redis.keystore.type | default "pem" }}
+          path: {{ .Values.gateway.distributedSync.redis.keystore.path | default "${gravitee.home}/security/redis-keystore.jks" }}
+          password: {{ required "The password required to access the keystore must be provided (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.distributedSync.redis.keystore.password }}
+          {{- if .Values.gateway.distributedSync.redis.keystore.keyPassword }}
+          keyPassword: {{ .Values.gateway.distributedSync.redis.keystore.keyPassword | quote }}
+          {{- end }}
+          {{- if .Values.gateway.distributedSync.redis.keystore.alias }}
+          alias: {{ .Values.gateway.distributedSync.redis.keystore.alias }}
+          {{- end }}
+          {{- if and ( eq .Values.gateway.distributedSync.redis.keystore.type "pem" ) ( empty .Values.gateway.distributedSync.redis.keystore.certificates ) }}
+            {{ fail "When configuring Gravitee to use a keystore for mTLS, your certificates must be provided!" }}
+          {{- end }}
+          certificates:
+            {{- range .Values.gateway.distributedSync.redis.keystore.certificates }}
+            - cert: {{ .cert }}
+              key: {{ .key }}
+            {{- end }}
+        {{- end}}
+        {{- if .Values.gateway.distributedSync.redis.truststore }}
+        truststore:
+          type: {{ .Values.gateway.distributedSync.redis.truststore.type | default "pem" }}
+          path: {{ .Values.gateway.distributedSync.redis.truststore.path | default "${gravitee.home}/security/redis-truststore.jks" }}
+          password: {{ required "The password required to access the truststore must be provided! (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.distributedSync.redis.truststore.password }}
+          {{- if .Values.gateway.distributedSync.redis.truststore.alias }}
+          alias: {{ .Values.gateway.distributedSync.redis.truststore.alias }}
+          {{- end }}
+        {{- end }}
+        {{- if (not (empty ((.Values.gateway.distributedSync.redis.sentinel).nodes))) }}
+        sentinel:
+          master: {{ .Values.gateway.distributedSync.redis.sentinel.master }}
+          nodes:
+            {{- range .Values.gateway.distributedSync.redis.sentinel.nodes }}
+            - host: {{ .host }}
+              port: {{ .port }}
+            {{- end }}
+        {{- end }}
+        {{- if (not (empty (.Values.gateway.distributedSync.redis.operation))) }}
+        operation:
+          timeout: {{ .Values.gateway.distributedSync.redis.operation.timeout | default "10" }}
+        {{- end }}
+        {{- if (not (empty (.Values.gateway.distributedSync.redis.tcp))) }}
+        tcp:
+          connectTimeout: {{ .Values.gateway.distributedSync.redis.tcp.connectTimeout | default "5000" }}
+          idleTimeout: {{ .Values.gateway.distributedSync.redis.tcp.idleTimeout | default "0" }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
     # Gateway HTTP server
     {{- if .Values.gateway.servers }}
     # add support for multi-servers (both http and tcp)
