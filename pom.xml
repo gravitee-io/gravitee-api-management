@@ -165,7 +165,7 @@
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
         <skip.validation>false</skip.validation>
-        <gravitee-plugin-common-configurations-maven-plugin.version>1.0.0-alpha.1</gravitee-plugin-common-configurations-maven-plugin.version>
+        <gravitee-plugin-common-configurations-maven-plugin.version>1.0.0-alpha.3</gravitee-plugin-common-configurations-maven-plugin.version>
 
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
