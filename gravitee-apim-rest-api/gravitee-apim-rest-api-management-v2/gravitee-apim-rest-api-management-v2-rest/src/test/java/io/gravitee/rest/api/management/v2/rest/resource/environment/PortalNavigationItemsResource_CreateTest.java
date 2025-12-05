@@ -137,7 +137,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("parentId", page.getParentId())
             .hasFieldOrPropertyWithValue("order", page.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false);
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
@@ -163,7 +164,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("parentId", folder.getParentId())
             .hasFieldOrPropertyWithValue("order", folder.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false);
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
@@ -190,6 +192,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("parentId", link.getParentId())
             .hasFieldOrPropertyWithValue("order", link.getOrder())
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false);
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 }
