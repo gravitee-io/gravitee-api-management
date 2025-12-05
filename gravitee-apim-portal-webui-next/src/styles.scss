@@ -21,6 +21,7 @@
 @forward 'scss/helper';
 @forward 'scss/gmd-overrides';
 @use '@angular/material' as mat;
+@use '@angular/cdk';
 @use './scss/theme';
 @use 'scss/table-light';
 
@@ -39,6 +40,7 @@
 @include mat.elevation-classes();
 @include mat.app-background();
 @include mat.color-variants-backwards-compatibility(theme.$light-theme);
+@include cdk.a11y-visually-hidden();
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
