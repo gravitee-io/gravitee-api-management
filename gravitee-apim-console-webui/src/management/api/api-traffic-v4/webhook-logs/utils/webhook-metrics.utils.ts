@@ -47,10 +47,23 @@ export function extractWebhookAdditionalMetrics(additionalMetrics: { [key: strin
   metrics['keyword_webhook_sub-id'] = additionalMetrics['keyword_webhook_sub-id'];
   metrics['json_webhook_retry-timeline'] = additionalMetrics['json_webhook_retry-timeline'];
 
-  metrics['long_webhook_req-timestamp'] = parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']);
-  metrics['int_webhook_resp-status'] = parseNumberOrZero(additionalMetrics['int_webhook_resp-status']);
-  metrics['int_webhook_retry-count'] = parseNumberOrZero(additionalMetrics['int_webhook_retry-count']);
-  metrics['bool_webhook_dlq'] = additionalMetrics['bool_webhook_dlq'] === 'true';
+  // These fields are supposed to be always present per connector docs,
+  // but when entrypoint logging is disabled, additionalMetrics is empty.
+  // Only set them if they exist in the source to avoid misleading default values.
+  if (additionalMetrics['long_webhook_req-timestamp'] !== undefined) {
+    metrics['long_webhook_req-timestamp'] = parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']);
+  }
+  if (additionalMetrics['int_webhook_resp-status'] !== undefined) {
+    metrics['int_webhook_resp-status'] = parseNumberOrZero(additionalMetrics['int_webhook_resp-status']);
+  }
+  if (additionalMetrics['int_webhook_retry-count'] !== undefined) {
+    metrics['int_webhook_retry-count'] = parseNumberOrZero(additionalMetrics['int_webhook_retry-count']);
+  }
+
+  // bool_webhook_dlq - only set if present in additionalMetrics
+  if (additionalMetrics['bool_webhook_dlq'] !== undefined) {
+    metrics['bool_webhook_dlq'] = additionalMetrics['bool_webhook_dlq'] === 'true';
+  }
 
   // Conditional fields - only assign if present
   if (additionalMetrics['string_webhook_last-error'] !== undefined) {

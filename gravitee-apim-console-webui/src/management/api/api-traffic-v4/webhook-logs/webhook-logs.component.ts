@@ -235,8 +235,11 @@ export class WebhookLogsComponent implements OnInit {
         continue;
       }
 
-      if (!log.application?.id && log.additionalMetrics?.[this.APP_ID_METRIC_KEY]) {
-        applicationIdsToEnrich.add(log.additionalMetrics[this.APP_ID_METRIC_KEY]);
+      if (!log.application?.id) {
+        const appIdFromMetrics = log.additionalMetrics[this.APP_ID_METRIC_KEY];
+        if (appIdFromMetrics && typeof appIdFromMetrics === 'string' && appIdFromMetrics.trim().length > 0) {
+          applicationIdsToEnrich.add(appIdFromMetrics);
+        }
       }
     }
 
@@ -311,7 +314,7 @@ export class WebhookLogsComponent implements OnInit {
     if (log.application?.id) {
       return log.application.id;
     }
-    const metricId = log.additionalMetrics?.[this.APP_ID_METRIC_KEY];
+    const metricId = log.additionalMetrics[this.APP_ID_METRIC_KEY];
     return typeof metricId === 'string' && metricId.trim().length > 0 ? metricId : undefined;
   }
 

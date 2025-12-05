@@ -25,7 +25,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
@@ -140,14 +140,16 @@ export class WebhookSettingsDialogComponent implements OnInit {
             this.form.markAsPristine();
           }
         }),
-        map(() => {
+        tap(() => {
           this.snackBarService.success('Webhook logs settings successfully saved!');
           this.dialogRef.close({ saved: true });
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message || 'Failed to save webhook logs settings');
-          this.isSaving = false;
           return EMPTY;
+        }),
+        finalize(() => {
+          this.isSaving = false;
         }),
         takeUntilDestroyed(this.destroyRef),
       )

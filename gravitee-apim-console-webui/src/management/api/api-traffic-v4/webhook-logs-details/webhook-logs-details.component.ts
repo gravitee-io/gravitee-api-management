@@ -213,6 +213,13 @@ export class WebhookLogsDetailsComponent implements OnInit {
       return;
     }
 
+    const lastError = log.additionalMetrics[LAST_ERROR_KEY];
+    const retryCount = log.additionalMetrics['int_webhook_retry-count'];
+    const reqHeaders = log.additionalMetrics[REQ_HEADERS_KEY];
+    const respHeaders = log.additionalMetrics[RESP_HEADERS_KEY];
+    const reqBody = log.additionalMetrics[REQ_BODY_KEY];
+    const respBody = log.additionalMetrics[RESP_BODY_KEY];
+
     if (log.status === 0) {
       this.connectionFailure = {
         errorKey: log.errorKey ?? null,
@@ -220,14 +227,14 @@ export class WebhookLogsDetailsComponent implements OnInit {
         componentName: log.errorComponentName ?? null,
         message: log.message ?? null,
         diagnostics: log.warnings ?? [],
-        lastError: typeof log.additionalMetrics?.[LAST_ERROR_KEY] === 'string' ? log.additionalMetrics[LAST_ERROR_KEY] : null,
+        lastError: typeof lastError === 'string' ? lastError : null,
       };
     } else {
       this.connectionFailure = null;
     }
 
     this.deliveryAttemptsDataSource = this.buildDeliveryAttempts(log);
-    const attemptsCount = this.deliveryAttemptsDataSource.length || (log.additionalMetrics?.['int_webhook_retry-count'] ?? 1);
+    const attemptsCount = this.deliveryAttemptsDataSource.length || (isNumber(retryCount) ? retryCount : 1);
 
     this.overviewRequest = [
       { label: 'Date', value: this.formatDateTime(log.timestamp) },
@@ -243,25 +250,21 @@ export class WebhookLogsDetailsComponent implements OnInit {
         value: log.duration || `${(log.gatewayResponseTime / 1000).toFixed(1)} s`,
       },
       { label: 'Payload size', value: this.formatPayloadSize(log) },
-      { label: 'Last error', value: log.additionalMetrics?.[LAST_ERROR_KEY] ?? '—' },
+      { label: 'Last error', value: typeof lastError === 'string' ? lastError : '—' },
     ];
 
-    this.requestHeaders = this.parseHeaders(
-      typeof log.additionalMetrics?.[REQ_HEADERS_KEY] === 'string' ? log.additionalMetrics?.[REQ_HEADERS_KEY] : null,
-    );
+    this.requestHeaders = this.parseHeaders(typeof reqHeaders === 'string' ? reqHeaders : null);
 
-    this.responseHeaders = this.parseHeaders(
-      typeof log.additionalMetrics?.[RESP_HEADERS_KEY] === 'string' ? log.additionalMetrics?.[RESP_HEADERS_KEY] : null,
-    );
-    this.requestBody = typeof log.additionalMetrics?.[REQ_BODY_KEY] === 'string' ? log.additionalMetrics[REQ_BODY_KEY] : '';
+    this.responseHeaders = this.parseHeaders(typeof respHeaders === 'string' ? respHeaders : null);
+    this.requestBody = typeof reqBody === 'string' ? reqBody : '';
 
-    this.responseBody = typeof log.additionalMetrics?.[RESP_BODY_KEY] === 'string' ? log.additionalMetrics[RESP_BODY_KEY] : '';
+    this.responseBody = typeof respBody === 'string' ? respBody : '';
 
     this.cdr.markForCheck();
   }
 
   private buildDeliveryAttempts(log: WebhookLog): DeliveryAttempt[] {
-    const rawTimeline = log.additionalMetrics?.[RETRY_TIMELINE_KEY];
+    const rawTimeline = log.additionalMetrics[RETRY_TIMELINE_KEY];
 
     if (typeof rawTimeline !== 'string' || rawTimeline.trim() === '' || rawTimeline === '[]') {
       return [this.createSingleDeliveryAttempt(log)];
@@ -279,7 +282,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
       return [this.createSingleDeliveryAttempt(log)];
     }
 
-    const lastErrorRaw = log.additionalMetrics?.[LAST_ERROR_KEY];
+    const lastErrorRaw = log.additionalMetrics[LAST_ERROR_KEY];
     const lastError = typeof lastErrorRaw === 'string' ? lastErrorRaw : undefined;
 
     return parsed.map((item, index): DeliveryAttempt => {
@@ -317,7 +320,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   }
 
   private createSingleDeliveryAttempt(log: WebhookLog): DeliveryAttempt {
-    const rawLastError = log.additionalMetrics?.[LAST_ERROR_KEY];
+    const rawLastError = log.additionalMetrics[LAST_ERROR_KEY];
     const reason = typeof rawLastError === 'string' ? rawLastError : 'Initial delivery attempt';
 
     return {
@@ -345,7 +348,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
   }
 
   private formatPayloadSize(log: WebhookLog): string {
-    const size = log.additionalMetrics?.[RESP_BODY_SIZE_KEY];
+    const size = log.additionalMetrics[RESP_BODY_SIZE_KEY];
     if (size === null || size === undefined) {
       return '—';
     }

@@ -51,7 +51,7 @@
   </ng-template>
 
   <ng-template #sentToDlqTemplate let-log>
-    {{ log.additionalMetrics?.['bool_webhook_dlq'] != null ? (log.additionalMetrics!['bool_webhook_dlq'] ? 'TRUE' : 'FALSE') : '—' }}
+    {{ log.additionalMetrics?.['bool_webhook_dlq'] != null ? (log.additionalMetrics?.['bool_webhook_dlq'] ? 'TRUE' : 'FALSE') : '—' }}
   </ng-template>
 
   <ng-template #actionsTemplate let-log>
