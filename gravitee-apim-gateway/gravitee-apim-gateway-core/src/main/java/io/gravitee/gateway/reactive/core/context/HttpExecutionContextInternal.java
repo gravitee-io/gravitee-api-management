@@ -20,11 +20,13 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public interface HttpExecutionContextInternal extends HttpExecutionContext {
@@ -55,8 +57,14 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     HttpExecutionContextInternal tracer(Tracer tracer);
 
     /**
+     * Get the action to be executed at the response phase for a given source.
+     * @return the action to be executed at the response phase or <code>null</code> if no action has been registered for this source.
+     */
+    Map<BasePolicy, Function<HttpExecutionContext, Completable>> getOnResponseActions();
+
+    /**
      * Get the list of actions to be executed at the response phase.
      * @return a list of actions to be executed at the response phase.
      */
-    List<Function<HttpExecutionContext, Completable>> getOnResponseActions();
+    Function<HttpExecutionContext, Completable> getOnResponseAction(BasePolicy source);
 }

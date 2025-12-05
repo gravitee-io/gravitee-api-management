@@ -41,6 +41,9 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
     protected final ExecutionPhase phase;
     protected final Flowable<T> policies;
 
+    private final List<T> originalPolicies;
+    private Flowable<T> reversedPolicies;
+
     /**
      * Creates a policy chain with the given list of policies.
      *
@@ -51,7 +54,16 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
     public AbstractPolicyChain(@Nonnull String id, @Nonnull List<T> policies, @Nonnull ExecutionPhase phase) {
         this.id = id;
         this.phase = phase;
+        this.originalPolicies = policies;
         this.policies = Flowable.fromIterable(policies);
+    }
+
+    protected Flowable<T> reversedPolicies() {
+        if (reversedPolicies == null) {
+            reversedPolicies = Flowable.fromIterable(originalPolicies.reversed());
+        }
+
+        return reversedPolicies;
     }
 
     @Override
