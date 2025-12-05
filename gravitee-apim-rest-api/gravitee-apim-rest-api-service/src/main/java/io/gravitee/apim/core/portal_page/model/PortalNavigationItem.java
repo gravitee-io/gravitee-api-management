@@ -152,5 +152,6 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         this.setOrder(navItem.getOrder());
         this.setParentId(navItem.getParentId());
         this.setPublished(navItem.getPublished());
+        this.setVisibility(navItem.getVisibility());
     }
 }
