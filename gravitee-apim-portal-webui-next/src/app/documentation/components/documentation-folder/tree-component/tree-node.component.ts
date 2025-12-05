@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import {AfterViewInit, ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
 
-import { SectionNode } from './tree.component';
+import {SectionNode} from './tree.component';
+import {treeNodeComponentAnimations} from "./tree-node.component.animations";
 
 @Component({
   selector: 'app-tree-node',
@@ -27,8 +28,9 @@ import { SectionNode } from './tree.component';
   templateUrl: './tree-node.component.html',
   styleUrls: ['./tree-node.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: treeNodeComponentAnimations,
 })
-export class TreeNodeComponent {
+export class TreeNodeComponent implements AfterViewInit {
   node = input.required<SectionNode>();
   level = input(0);
   selectedId = input<string | null>(null);
@@ -38,11 +40,17 @@ export class TreeNodeComponent {
   isSelected = computed(() => this.selectedId() === this.node().id);
   isExpanded = signal<boolean>(true);
 
+  animationsEnabled = false;
+
   selectNode(): void {
     this.nodeSelected.emit(this.node().id);
   }
 
   toggleNode(): void {
     this.isExpanded.update((v) => !v);
+  }
+
+  ngAfterViewInit() {
+    this.animationsEnabled = true;
   }
 }

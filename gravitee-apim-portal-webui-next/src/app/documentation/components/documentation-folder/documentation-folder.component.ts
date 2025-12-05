@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, effect, Input, input, model, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, Input, input, model, Signal, signal} from '@angular/core';
 import {MobileClassDirective} from "../../../../directives/mobile-class.directive";
 import {MatCard} from "@angular/material/card";
 import {SectionNode, TreeComponent} from "./tree-component/tree.component";
@@ -21,13 +21,15 @@ import {
   PortalNavigationItem,
   PortalNavigationPage
 } from "../../../../entities/portal-navigation/portal-navigation-item";
-import {BehaviorSubject, catchError, from, map, Observable, switchMap, tap} from "rxjs";
+import {BehaviorSubject, catchError, forkJoin, from, map, Observable, pipe, switchMap, tap} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
 import {PortalNavigationItemsService} from "../../../../services/portal-navigation-items.service";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 import {AsyncPipe} from "@angular/common";
 import {GraviteeMarkdownViewerModule} from "@gravitee/gravitee-markdown";
 import {InnerLinkDirective} from "../../../../directives/inner-link.directive";
+import {of} from "rxjs/internal/observable/of";
+import {matBottomSheetAnimations} from "@angular/material/bottom-sheet";
 
 @Component({
   selector: 'app-documentation-folder',
@@ -37,29 +39,56 @@ import {InnerLinkDirective} from "../../../../directives/inner-link.directive";
   styleUrl: "./documentation-folder.component.scss",
 })
 export class DocumentationFolderComponent {
-  items = input<PortalNavigationItem[] | null>([]);
-  selectedPageContent = model('');
-
-  private readonly pageId$ = this.activatedRoute.queryParams.pipe(map((params) => params['pageId'] ?? null));
-  readonly pageId = toSignal(this.pageId$, {initialValue: null});
+  navItem = input<PortalNavigationItem | null>(null);
+  pageId = toSignal(
+    this.activatedRoute.queryParamMap.pipe(
+      map(params => params.get('pageId'))
+    ),
+    {initialValue: null}
+  );
+  children = signal<PortalNavigationItem[] | null>(null);
+  selectedPageContent = signal<string>('');
+  initialized = false;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
               private itemsService: PortalNavigationItemsService) {
-    effect(() => {
-      if (this.pageId()) {
-        this.itemsService.getNavigationItemContent(this.pageId()).subscribe(content => this.selectedPageContent.set(content));
-      }
-    });
+    effect(() => this.loadChildren());
+    effect(() => this.loadPageContent());
   }
 
-  onSelect(selectedPageId: string) {
+  onSelect(selectedPageId: string | null) {
     if (selectedPageId) {
       this.router.navigate([], {
         relativeTo: this.activatedRoute,
-        queryParams: { pageId: selectedPageId }
+        // replaceUrl: true,
+        queryParams: {pageId: selectedPageId}
       });
     }
+  }
+
+  private loadChildren() {
+    this.children.set(null);
+
+    const navItem = this.navItem();
+    const loadFunc$ = navItem ? this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id)
+      : of([] as PortalNavigationItem[]);
+
+    loadFunc$.subscribe(data => {
+        this.initialized = true;
+        this.children.set(data);
+      }
+    )
+  }
+
+  private loadPageContent() {
+    const pageId = this.pageId();
+    const children = this.children();
+
+    const pageExistsInChildren = children?.find((item) => item.id === pageId);
+    const loadFunc$ = pageExistsInChildren ? this.itemsService.getNavigationItemContent(pageId!) : of('');
+
+    loadFunc$.subscribe(content => this.selectedPageContent.set(content));
   }
 }
 

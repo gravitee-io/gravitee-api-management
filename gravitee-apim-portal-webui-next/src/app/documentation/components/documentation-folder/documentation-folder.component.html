@@ -1,9 +1,11 @@
 <div class="documentation-folder__sidenav" appIsMobile="documentation-folder__sidenav__mobile">
-  <portal-tree-component [links]="items()" [selectedId]="pageId()" (select)="onSelect($event)" />
+  @if (this.children()) {
+    <portal-tree-component [links]="this.children()" [selectedId]="this.pageId()" (select)="onSelect($event)" />
+  }
 </div>
 <div class="documentation-folder__container">
   <div class="documentation-folder__container__breadcrumbs"></div>
   <div class="documentation-folder__container__content">
-    <gmd-viewer [content]="selectedPageContent()" appInnerLink />
+      <gmd-viewer [content]="selectedPageContent()!" appInnerLink />
   </div>
 </div>

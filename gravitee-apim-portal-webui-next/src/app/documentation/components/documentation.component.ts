@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, inject, signal} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {ActivatedRoute} from '@angular/router';
-import {firstValueFrom, map, Observable, of, tap} from 'rxjs';
+import {ActivatedRoute, Router} from '@angular/router';
+import {firstValueFrom, forkJoin, map, Observable, of, tap} from 'rxjs';
 
 import {PortalNavigationItem} from "../../../entities/portal-navigation/portal-navigation-item";
 import {DocumentationFolderComponent} from "./documentation-folder/documentation-folder.component";
 import {DocumentationPageComponent} from "./documentation-page/documentation-page.component";
+import {PortalNavigationItemsService} from "../../../services/portal-navigation-items.service";
 
 interface DocumentationData {
   navItem: PortalNavigationItem,
@@ -35,8 +36,7 @@ interface DocumentationData {
   template: `
     @let type = documentationData()?.navItem?.type;
     @if (type === 'FOLDER') {
-      <app-documentation-folder [items]="documentationData()?.children!"
-                                [selectedPageContent]="documentationData()?.selectedPageContent!"/>
+      <app-documentation-folder [navItem]="documentationData()?.navItem!" />
     } @else if (type === 'PAGE') {
       <app-documentation-page/>
     } @else {

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, computed, effect, input, output} from '@angular/core';
+import {Component, computed, effect, input, model, output, untracked} from '@angular/core';
 
-import { TreeNodeComponent } from './tree-node.component';
-import {PortalNavigationItem, PortalNavigationType} from "../../../../../entities/portal-navigation/portal-navigation-item";
+import {TreeNodeComponent} from './tree-node.component';
+import {
+  PortalNavigationItem,
+  PortalNavigationType
+} from "../../../../../entities/portal-navigation/portal-navigation-item";
 
 export interface SectionNode {
   id: string;
@@ -45,20 +48,21 @@ export class TreeComponent {
     return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
   });
 
-  selectedId = input<string | null>(null);
-  select = output<string>();
+  selectedId = model<string | null>(null);
+  select = output<string | null>();
 
   constructor() {
-    effect(() => {
-      if (!this.selectedId()) {
-        const firstItemId = this.tree()[0]?.id;
-        if (firstItemId) {
-          this.select.emit(firstItemId);
-        } else {
-          // TODO show an empty state in documentation folder
-        }
-      }
-    });
+    effect(() => this.selectFirstPage());
+  }
+
+  selectFirstPage() {
+    const firstItemId = this.selectedId() ?? this.tree()[0]?.id;
+    this.select.emit(firstItemId as any);
+  }
+
+  onNodeSelected(id: string) {
+    this.selectedId.set(id);
+    this.select.emit(id);
   }
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
@@ -105,7 +109,7 @@ export class TreeComponent {
   private sortAndCleanTree(nodes: ProcessingNode[]): SectionNode[] {
     return nodes
       .sort((a, b) => a.__order - b.__order)
-      .map(({ __order, __parentId, ...node }) => ({
+      .map(({__order, __parentId, ...node}) => ({
         ...node,
         children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
       }));
