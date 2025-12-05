@@ -1,33 +1,47 @@
-suite: Test Management API with APIM KAfka Console
+suite: Test Management API with APIM Kafka Console
 templates:
   - "api/api-configmap.yaml"
+  - "api/api-deployment.yaml"
+
+set:
+  kafkaConsole:
+    enabled: true
+
 tests:
-  - it: Should set configuration for Kafka Console if enable
-    template: api/api-configmap.yaml
+  - it: Should generate default env variables
+    template: api/api-deployment.yaml
     set:
       kafkaConsole:
-        enabled: true
         jwt:
-          secret: mySecret
+          secret:
+            value: 4j5ipCZn93qnLBykgex5pSvUdA8Nnqts
     asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |-
-            kafka:
-              console:
-                enabled: true
-                server:
-                  host: RELEASE-NAME-apim-kafkaConsole
-                  port: 8004
-                  scheme: http
-                  security:
-                    secret: mySecret
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GRAVITEE_KAFKA_CONSOLE_SERVER_SECURITY_SECRET"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "4j5ipCZn93qnLBykgex5pSvUdA8Nnqts"
 
-  - it: Should not set configuration for Kafka Console by default
-    template: api/api-configmap.yaml
+  - it: Should generate with env variables using secrets
+    template: api/api-deployment.yaml
+    set:
+      kafkaConsole:
+        jwt:
+          secret:
+            valueFrom:
+              secretKeyRef:
+                name: secretJWTName
+                key: secretJWTKey
     asserts:
-      - notMatchRegex:
-          path: data["gravitee.yml"]
-          pattern: |-
-            kafka:
-              console:
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "GRAVITEE_KAFKA_CONSOLE_SERVER_SECURITY_SECRET"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom
+          value:
+            secretKeyRef:
+              name: secretJWTName
+              key: secretJWTKey
