@@ -15,6 +15,7 @@
  */
 import { Component, input } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
+import _default from 'chart.js/dist/plugins/plugin.tooltip';
 
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
 import { StatsComponent } from '../text/stats/stats.component';
@@ -37,6 +38,7 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
 })
 export class GridComponent {
   items = input<Widget[]>();
+  margin = input<number>(15);
   options = input<GridsterConfig>(this.getGridsterOptions());
 
   protected readonly isMeasuresWidget = isMeasuresWidget;
@@ -47,16 +49,16 @@ export class GridComponent {
       gridType: GridType.VerticalFixed,
       compactType: CompactType.None,
       displayGrid: DisplayGrid.None,
-      itemAspectRatio: 4 / 3,
       pushItems: true,
       draggable: {
-        enabled: true,
+        enabled: false,
         dragHandleClass: '.widget-title-container',
       },
       resizable: {
-        enabled: true,
+        enabled: false,
       },
       outerMargin: true,
+      margin: this.margin(),
       setGridSize: true,
       fixedRowHeight: 125,
     };
