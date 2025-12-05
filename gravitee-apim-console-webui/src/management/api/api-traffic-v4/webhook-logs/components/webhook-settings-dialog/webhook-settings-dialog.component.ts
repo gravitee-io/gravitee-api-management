@@ -316,7 +316,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
     }
     const currentValue = this.form.getRawValue();
 
-    return Object.keys(this.initialFormValue).some((key) => currentValue[key] !== this.initialFormValue![key]);
+    return Object.keys(this.initialFormValue).some((key) => currentValue[key] !== this.initialFormValue[key]);
   }
 
   private get sampling(): Analytics['sampling'] | undefined {
