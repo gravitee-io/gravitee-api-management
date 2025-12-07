@@ -225,9 +225,9 @@
 
         <!-- Needed to define the mapping when seeding the tests data  -->
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-elasticsearch</artifactId>
-            <version>${gravitee-reporter-elasticsearch.version}</version>
+            <groupId>io.gravitee.apim.reporters</groupId>
+            <artifactId>gravitee-apim-reporters-elasticsearch</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
