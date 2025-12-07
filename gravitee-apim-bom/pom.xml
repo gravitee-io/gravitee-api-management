@@ -239,26 +239,23 @@
                 <version>${gravitee-cloud-initializer.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>io.gravitee.plugin</groupId>
-                <artifactId>gravitee-plugin</artifactId>
-                <version>${gravitee-plugin.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node</artifactId>
-                <version>${gravitee-node.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
             <!-- Other dependencies -->
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>${commons-validator.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -770,6 +767,22 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- move these imports at the end so they do no override previous dependencies-->
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin</artifactId>
+                <version>${gravitee-plugin.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node</artifactId>
+                <version>${gravitee-node.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

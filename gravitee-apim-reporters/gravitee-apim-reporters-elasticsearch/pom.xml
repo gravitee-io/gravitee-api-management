@@ -31,10 +31,6 @@
 
     <properties>
         <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
-        <commons-validator.version>1.10.0</commons-validator.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
-
-        <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
 
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
     </properties>
@@ -49,26 +45,8 @@
 
         <!-- Gravitee internal dependencies -->
         <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -79,18 +57,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.policy</groupId>
-            <artifactId>gravitee-policy-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Used to consume JSON REST services -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
@@ -100,7 +67,6 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>${commons-validator.version}</version>
         </dependency>
 
         <dependency>
@@ -110,12 +76,6 @@
         </dependency>
 
         <!-- Vert.x dependencies -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-rx-java3</artifactId>
@@ -145,13 +105,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -168,21 +126,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-remote-resources-plugin</artifactId>
-                <version>${maven-remote-resources-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>bundle</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>freemarker/**</include>
-                    </includes>
-                </configuration>
             </plugin>
         </plugins>
     </build>
