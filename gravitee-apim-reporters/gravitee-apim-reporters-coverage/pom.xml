@@ -43,16 +43,16 @@
             <artifactId>gravitee-apim-reporters-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.gravitee.apim.reporters</groupId>-->
-<!--            <artifactId>io.gravitee.apim.reporters.file</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>io.gravitee.apim.reporters</groupId>-->
-<!--            <artifactId>io.gravitee.apim.reporters.elasticsearch</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.gravitee.apim.reporters</groupId>
+            <artifactId>gravitee-apim-reporters-file</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.reporters</groupId>
+            <artifactId>gravitee-apim-reporters-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
