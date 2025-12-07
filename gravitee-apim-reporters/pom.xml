@@ -35,8 +35,8 @@
 
     <modules>
         <module>gravitee-apim-reporters-common</module>
-        <module>gravitee-apim-reporters-file</module>
-        <module>gravitee-apim-reporters-elasticsearch</module>
-        <module>gravitee-apim-reporterss-coverage</module>
+<!--        <module>gravitee-apim-reporters-file</module>-->
+<!--        <module>gravitee-apim-reporters-elasticsearch</module>-->
+        <module>gravitee-apim-reporters-coverage</module>
     </modules>
 </project>

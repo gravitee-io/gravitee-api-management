@@ -1,0 +1,19 @@
+{ "create" : { "_index" : "gravitee-v4.metric.event.OperationEventMetrics-2023.08.28" } }
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "plan-id": "test_plan",
+  "api-id": "test_api",
+  "app-id": "test_app",
+  "gw-id": "test_gateway",
+  "env-id": "test_env",
+  "org-id": "test_org",
+  "doc-type": "operation-event-metrics",
+  "operation": "PRODUCE",
+  "request-durations-millis": 11111,
+  "response-durations-millis": 22222,
+  "endpoint-durations-millis": 33333,
+  "requests-total": 10,
+  "responses-total": 20,
+  "endpoint-requests-total": 30,
+  "endpoint-responses-total": 40
+}

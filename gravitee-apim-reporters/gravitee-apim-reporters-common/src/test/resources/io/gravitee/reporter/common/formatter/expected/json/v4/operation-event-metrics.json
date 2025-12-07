@@ -1,0 +1,17 @@
+{
+  "timestamp": 1751015211866,
+  "gatewayId": "test_gateway",
+  "organizationId": "test_org",
+  "environmentId": "test_env",
+  "apiId": "test_api",
+  "planId": "test_plan",
+  "applicationId": "test_app",
+  "operation": "PRODUCE",
+  "requestDurationsMillis": 11111,
+  "responseDurationsMillis": 22222,
+  "endpointDurationsMillis": 33333,
+  "requestsTotal": 10,
+  "responsesTotal": 20,
+  "endpointRequestsTotal": 30,
+  "endpointResponsesTotal": 40
+}
