@@ -17,10 +17,10 @@ package io.gravitee.apim.reporters.common.bulk.compressor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.reporters.common.bulk.transformer.TransformedReport;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
-import io.gravitee.apim.reporters.common.bulk.transformer.TransformedReport;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,66 +40,43 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GzipBulkCompressorTest {
 
-  private GzipBulkCompressor cut;
+    private GzipBulkCompressor cut;
 
-  @BeforeEach
-  public void beforeEach() {
-    cut = new GzipBulkCompressor();
-  }
-
-  @Test
-  void should_compress_buffer() throws IOException {
-    TransformedReport transformedReport = new TransformedReport(
-      Buffer.buffer("clear"),
-      Reportable.class
-    );
-    final CompressedBulk expectedBody = cut.compress(
-      List.of(transformedReport)
-    );
-    assertThat(expectedBody.compressed()).isNotEqualTo(
-      transformedReport.transformed()
-    );
-    assertThat(uncompress(expectedBody.compressed())).isEqualTo(
-      transformedReport.transformed()
-    );
-  }
-
-  @Test
-  void should_compute_per_type() throws IOException {
-    TransformedReport metricsType = new TransformedReport(
-      Buffer.buffer("metrics"),
-      Metrics.class
-    );
-    TransformedReport messageMetricsType = new TransformedReport(
-      Buffer.buffer("message_metrics"),
-      MessageMetrics.class
-    );
-    final CompressedBulk expectedBody = cut.compress(
-      List.of(metricsType, messageMetricsType)
-    );
-    assertThat(expectedBody.countPerType()).hasSize(2);
-    assertThat(expectedBody.countPerType())
-      .extracting(metricsType.type())
-      .isEqualTo(1);
-    assertThat(expectedBody.countPerType())
-      .extracting(messageMetricsType.type())
-      .isEqualTo(1);
-  }
-
-  private Buffer uncompress(final Buffer compressBuffer) throws IOException {
-    try (
-      ByteArrayInputStream bis = new ByteArrayInputStream(
-        compressBuffer.getBytes()
-      );
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      GZIPInputStream gzipIS = new GZIPInputStream(bis)
-    ) {
-      byte[] buffer = new byte[1024];
-      int len;
-      while ((len = gzipIS.read(buffer)) != -1) {
-        bos.write(buffer, 0, len);
-      }
-      return Buffer.buffer(bos.toByteArray());
+    @BeforeEach
+    public void beforeEach() {
+        cut = new GzipBulkCompressor();
     }
-  }
+
+    @Test
+    void should_compress_buffer() throws IOException {
+        TransformedReport transformedReport = new TransformedReport(Buffer.buffer("clear"), Reportable.class);
+        final CompressedBulk expectedBody = cut.compress(List.of(transformedReport));
+        assertThat(expectedBody.compressed()).isNotEqualTo(transformedReport.transformed());
+        assertThat(uncompress(expectedBody.compressed())).isEqualTo(transformedReport.transformed());
+    }
+
+    @Test
+    void should_compute_per_type() throws IOException {
+        TransformedReport metricsType = new TransformedReport(Buffer.buffer("metrics"), Metrics.class);
+        TransformedReport messageMetricsType = new TransformedReport(Buffer.buffer("message_metrics"), MessageMetrics.class);
+        final CompressedBulk expectedBody = cut.compress(List.of(metricsType, messageMetricsType));
+        assertThat(expectedBody.countPerType()).hasSize(2);
+        assertThat(expectedBody.countPerType()).extracting(metricsType.type()).isEqualTo(1);
+        assertThat(expectedBody.countPerType()).extracting(messageMetricsType.type()).isEqualTo(1);
+    }
+
+    private Buffer uncompress(final Buffer compressBuffer) throws IOException {
+        try (
+            ByteArrayInputStream bis = new ByteArrayInputStream(compressBuffer.getBytes());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            GZIPInputStream gzipIS = new GZIPInputStream(bis)
+        ) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = gzipIS.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+            return Buffer.buffer(bos.toByteArray());
+        }
+    }
 }

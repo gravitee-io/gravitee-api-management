@@ -26,12 +26,9 @@ import java.util.Objects;
  * @param compressed the compressed buffer.
  * @param countPerType a {@link Map} that contains the number of reports compressed per type.
  */
-public record CompressedBulk(
-  Buffer compressed,
-  Map<String, Integer> countPerType
-) {
-  @Override
-  public String toString() {
-    return Objects.toString(countPerType);
-  }
+public record CompressedBulk(Buffer compressed, Map<String, Integer> countPerType) {
+    @Override
+    public String toString() {
+        return Objects.toString(countPerType);
+    }
 }

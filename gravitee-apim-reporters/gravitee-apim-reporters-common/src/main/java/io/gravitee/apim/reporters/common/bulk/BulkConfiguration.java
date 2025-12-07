@@ -23,50 +23,50 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public record BulkConfiguration(
-  Integer items,
-  Long flushInterval,
-  Integer maxConcurrentSend,
-  Integer maxRetries,
-  Integer retryInitialDelay,
-  Integer retryMaxDelay,
-  Long maxMemorySize
+    Integer items,
+    Long flushInterval,
+    Integer maxConcurrentSend,
+    Integer maxRetries,
+    Integer retryInitialDelay,
+    Integer retryMaxDelay,
+    Long maxMemorySize
 ) {
-  public static final int DEFAULT_ITEMS = 1000;
-  public static final long DEFAULT_FLUSH_INTERVAL = 5L;
-  public static final int DEFAULT_MAX_CONCURRENT_SEND = 100;
-  public static final Integer DEFAULT_RETRY_MAX_RETRIES = 6;
-  public static final int DEFAULT_RETRY_INITIAL_DELAY = 3000;
-  public static final int DEFAULT_RETRY_MAX_DELAY = 30000;
-  public static final long DEFAULT_MAX_MEMORY_SIZE = 26214400;
+    public static final int DEFAULT_ITEMS = 1000;
+    public static final long DEFAULT_FLUSH_INTERVAL = 5L;
+    public static final int DEFAULT_MAX_CONCURRENT_SEND = 100;
+    public static final Integer DEFAULT_RETRY_MAX_RETRIES = 6;
+    public static final int DEFAULT_RETRY_INITIAL_DELAY = 3000;
+    public static final int DEFAULT_RETRY_MAX_DELAY = 30000;
+    public static final long DEFAULT_MAX_MEMORY_SIZE = 26214400;
 
-  public BulkConfiguration {
-    if (items == null) {
-      items = DEFAULT_ITEMS;
-    }
-    if (flushInterval == null) {
-      flushInterval = DEFAULT_FLUSH_INTERVAL;
-    }
-    if (maxConcurrentSend == null) {
-      maxConcurrentSend = DEFAULT_MAX_CONCURRENT_SEND;
-    }
-    if (maxRetries == null) {
-      maxRetries = DEFAULT_RETRY_MAX_RETRIES;
-    }
-    if (retryInitialDelay == null) {
-      retryInitialDelay = DEFAULT_RETRY_INITIAL_DELAY;
-    }
-    if (retryMaxDelay == null) {
-      retryMaxDelay = DEFAULT_RETRY_MAX_DELAY;
-    }
-    if (maxMemorySize == null) {
-      maxMemorySize = DEFAULT_MAX_MEMORY_SIZE;
-    }
+    public BulkConfiguration {
+        if (items == null) {
+            items = DEFAULT_ITEMS;
+        }
+        if (flushInterval == null) {
+            flushInterval = DEFAULT_FLUSH_INTERVAL;
+        }
+        if (maxConcurrentSend == null) {
+            maxConcurrentSend = DEFAULT_MAX_CONCURRENT_SEND;
+        }
+        if (maxRetries == null) {
+            maxRetries = DEFAULT_RETRY_MAX_RETRIES;
+        }
+        if (retryInitialDelay == null) {
+            retryInitialDelay = DEFAULT_RETRY_INITIAL_DELAY;
+        }
+        if (retryMaxDelay == null) {
+            retryMaxDelay = DEFAULT_RETRY_MAX_DELAY;
+        }
+        if (maxMemorySize == null) {
+            maxMemorySize = DEFAULT_MAX_MEMORY_SIZE;
+        }
 
-    if (maxMemorySize.equals(DEFAULT_MAX_MEMORY_SIZE)) {
-      log.warn(
-        "You are using the default 'maxMemorySize' ({}MB). Consider increase this value in case of too frequent 'Dropping bulk of reports' events.",
-        (DEFAULT_MAX_MEMORY_SIZE / 1024 / 1024)
-      );
+        if (maxMemorySize.equals(DEFAULT_MAX_MEMORY_SIZE)) {
+            log.warn(
+                "You are using the default 'maxMemorySize' ({}MB). Consider increase this value in case of too frequent 'Dropping bulk of reports' events.",
+                (DEFAULT_MAX_MEMORY_SIZE / 1024 / 1024)
+            );
+        }
     }
-  }
 }

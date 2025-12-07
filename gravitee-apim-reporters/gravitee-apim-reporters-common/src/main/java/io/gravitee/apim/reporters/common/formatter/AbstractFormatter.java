@@ -26,45 +26,36 @@ import org.apache.commons.validator.routines.InetAddressValidator;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractFormatter<T extends Reportable>
-  implements Formatter<T> {
+public abstract class AbstractFormatter<T extends Reportable> implements Formatter<T> {
 
-  private static final String REMOTE_ADDRESS_FALLBACK = "0.0.0.0";
+    private static final String REMOTE_ADDRESS_FALLBACK = "0.0.0.0";
 
-  @Override
-  public Buffer format(T reportable) {
-    return format(reportable, null);
-  }
-
-  @Override
-  public Buffer format(T reportable, Map<String, Object> options) {
-    if (reportable instanceof Metrics metrics) {
-      metrics.setRemoteAddress(
-        sanitizeRemoteAddress(metrics.getRemoteAddress())
-      );
+    @Override
+    public Buffer format(T reportable) {
+        return format(reportable, null);
     }
 
-    if (
-      reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics metrics
-    ) {
-      metrics.setRemoteAddress(
-        sanitizeRemoteAddress(metrics.getRemoteAddress())
-      );
+    @Override
+    public Buffer format(T reportable, Map<String, Object> options) {
+        if (reportable instanceof Metrics metrics) {
+            metrics.setRemoteAddress(sanitizeRemoteAddress(metrics.getRemoteAddress()));
+        }
+
+        if (reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics metrics) {
+            metrics.setRemoteAddress(sanitizeRemoteAddress(metrics.getRemoteAddress()));
+        }
+
+        return options == null ? format0(reportable) : format0(reportable, options);
     }
 
-    return options == null ? format0(reportable) : format0(reportable, options);
-  }
+    private static String sanitizeRemoteAddress(String remoteAddress) {
+        return InetAddressValidator.getInstance().isValid(remoteAddress) ? remoteAddress : REMOTE_ADDRESS_FALLBACK;
+    }
 
-  private static String sanitizeRemoteAddress(String remoteAddress) {
-    return InetAddressValidator.getInstance().isValid(remoteAddress)
-      ? remoteAddress
-      : REMOTE_ADDRESS_FALLBACK;
-  }
+    protected abstract Buffer format0(T data);
 
-  protected abstract Buffer format0(T data);
-
-  @SuppressWarnings("unused")
-  protected Buffer format0(T data, Map<String, Object> options) {
-    return format0(data);
-  }
+    @SuppressWarnings("unused")
+    protected Buffer format0(T data, Map<String, Object> options) {
+        return format0(data);
+    }
 }

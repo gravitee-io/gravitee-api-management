@@ -32,20 +32,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NoneBulkCompressor implements BulkCompressor {
 
-  @Override
-  public CompressedBulk compress(List<@NonNull TransformedReport> reports)
-    throws IOException {
-    try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      final Map<String, Integer> countPerType = new HashMap<>(8);
-      for (TransformedReport report : reports) {
-        countPerType.compute(report.type(), (clazz, integer) ->
-          integer != null ? ++integer : 1
-        );
+    @Override
+    public CompressedBulk compress(List<@NonNull TransformedReport> reports) throws IOException {
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            final Map<String, Integer> countPerType = new HashMap<>(8);
+            for (TransformedReport report : reports) {
+                countPerType.compute(report.type(), (clazz, integer) -> integer != null ? ++integer : 1);
 
-        // In memory, not blocking.
-        out.write(report.transformed().getBytes());
-      }
-      return new CompressedBulk(Buffer.buffer(out.toByteArray()), countPerType);
+                // In memory, not blocking.
+                out.write(report.transformed().getBytes());
+            }
+            return new CompressedBulk(Buffer.buffer(out.toByteArray()), countPerType);
+        }
     }
-  }
 }

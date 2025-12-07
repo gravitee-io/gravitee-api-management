@@ -20,34 +20,34 @@ package io.gravitee.apim.reporters.common.formatter.elasticsearch;
  * @author GraviteeSource Team
  */
 public enum Type {
-  REQUEST("request"),
-  HEALTH_CHECK("health"),
-  LOG("log"),
-  MONITOR("monitor"),
-  V4_LOG("v4-log"),
-  V4_METRICS("v4-metrics"),
-  V4_MESSAGE_METRICS("v4-message-metrics"),
-  V4_MESSAGE_LOG("v4-message-log"),
-  EVENT_METRICS("event-metrics");
+    REQUEST("request"),
+    HEALTH_CHECK("health"),
+    LOG("log"),
+    MONITOR("monitor"),
+    V4_LOG("v4-log"),
+    V4_METRICS("v4-metrics"),
+    V4_MESSAGE_METRICS("v4-message-metrics"),
+    V4_MESSAGE_LOG("v4-message-log"),
+    EVENT_METRICS("event-metrics");
 
-  private final String type;
+    private final String type;
 
-  public static final Type[] TYPES = new Type[] {
-    REQUEST,
-    MONITOR,
-    HEALTH_CHECK,
-    LOG,
-    V4_LOG,
-    V4_METRICS,
-    V4_MESSAGE_LOG,
-    V4_MESSAGE_METRICS,
-  };
+    public static final Type[] TYPES = new Type[] {
+        REQUEST,
+        MONITOR,
+        HEALTH_CHECK,
+        LOG,
+        V4_LOG,
+        V4_METRICS,
+        V4_MESSAGE_LOG,
+        V4_MESSAGE_METRICS,
+    };
 
-  Type(final String type) {
-    this.type = type;
-  }
+    Type(final String type) {
+        this.type = type;
+    }
 
-  public String getType() {
-    return type;
-  }
+    public String getType() {
+        return type;
+    }
 }

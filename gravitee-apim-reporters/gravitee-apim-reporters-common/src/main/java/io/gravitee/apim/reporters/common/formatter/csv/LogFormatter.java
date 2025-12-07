@@ -29,43 +29,43 @@ import org.slf4j.LoggerFactory;
  */
 public class LogFormatter extends SingleValueFormatter<Log> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
 
-  private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-  public LogFormatter() {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Override
-  public Buffer format0(Log log) {
-    final Buffer buffer = Buffer.buffer();
-
-    appendString(buffer, log.getRequestId());
-    appendString(buffer, log.getApi());
-    appendString(buffer, log.getApiName());
-
-    try {
-      appendString(buffer, mapper.writeValueAsString(log.getClientRequest()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process client request", e);
-    }
-    try {
-      appendString(buffer, mapper.writeValueAsString(log.getClientResponse()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process client response", e);
-    }
-    try {
-      appendString(buffer, mapper.writeValueAsString(log.getProxyRequest()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process proxy request", e);
-    }
-    try {
-      appendString(buffer, mapper.writeValueAsString(log.getProxyResponse()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process proxy response", e);
+    public LogFormatter() {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    return buffer;
-  }
+    @Override
+    public Buffer format0(Log log) {
+        final Buffer buffer = Buffer.buffer();
+
+        appendString(buffer, log.getRequestId());
+        appendString(buffer, log.getApi());
+        appendString(buffer, log.getApiName());
+
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getClientRequest()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process client request", e);
+        }
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getClientResponse()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process client response", e);
+        }
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getProxyRequest()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process proxy request", e);
+        }
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getProxyResponse()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process proxy response", e);
+        }
+
+        return buffer;
+    }
 }

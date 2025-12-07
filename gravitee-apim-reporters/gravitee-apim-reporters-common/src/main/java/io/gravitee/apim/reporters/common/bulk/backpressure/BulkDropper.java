@@ -25,34 +25,26 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 public class BulkDropper {
 
-  private final Map<String, Integer> countPerType = new ConcurrentHashMap<>(8);
+    private final Map<String, Integer> countPerType = new ConcurrentHashMap<>(8);
 
-  public enum Reason {
-    ERROR,
-    OVERFLOW,
-  }
-
-  public void drop(CompressedBulk bulk, Reason reason) {
-    bulk
-      .countPerType()
-      .forEach((bulkType, count) ->
-        countPerType.compute(bulkType, (counterType, total) ->
-          total == null ? count : total + count
-        )
-      );
-
-    if (reason == Reason.OVERFLOW) {
-      log.warn(
-        "Overflow detected. Dropping bulk of reports to avoid too much memory pressure [{}]. Total: [{}].",
-        bulk,
-        countPerType
-      );
-    } else {
-      log.warn(
-        "Bulk error detected. Dropping bulk of reports [{}]. Total: [{}].",
-        bulk,
-        countPerType
-      );
+    public enum Reason {
+        ERROR,
+        OVERFLOW,
     }
-  }
+
+    public void drop(CompressedBulk bulk, Reason reason) {
+        bulk
+            .countPerType()
+            .forEach((bulkType, count) -> countPerType.compute(bulkType, (counterType, total) -> total == null ? count : total + count));
+
+        if (reason == Reason.OVERFLOW) {
+            log.warn(
+                "Overflow detected. Dropping bulk of reports to avoid too much memory pressure [{}]. Total: [{}].",
+                bulk,
+                countPerType
+            );
+        } else {
+            log.warn("Bulk error detected. Dropping bulk of reports [{}]. Total: [{}].", bulk, countPerType);
+        }
+    }
 }

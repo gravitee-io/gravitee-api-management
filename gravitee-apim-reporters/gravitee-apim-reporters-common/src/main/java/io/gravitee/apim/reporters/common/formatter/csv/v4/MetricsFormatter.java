@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.reporters.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.gravitee.apim.reporters.common.formatter.csv.SingleValueFormatter;
 import io.gravitee.apim.reporters.common.formatter.util.ReportableSanitizationUtil;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.vertx.core.buffer.Buffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,66 +28,55 @@ import java.util.Map;
  */
 public class MetricsFormatter extends SingleValueFormatter<Metrics> {
 
-  @Override
-  protected Buffer format0(Metrics metrics) {
-    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
-    final Map<String, String> customMetrics = metrics.getCustomMetrics() == null
-      ? Map.of()
-      : metrics.getCustomMetrics();
+    @Override
+    protected Buffer format0(Metrics metrics) {
+        ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
+        final Map<String, String> customMetrics = metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
 
-    final Buffer buffer = Buffer.buffer();
+        final Buffer buffer = Buffer.buffer();
 
-    appendString(buffer, metrics.getTransactionId());
-    appendString(buffer, metrics.getRequestId());
-    appendLong(buffer, metrics.timestamp().toEpochMilli());
-    appendString(buffer, metrics.getRemoteAddress());
-    appendString(buffer, metrics.getLocalAddress());
-    appendString(buffer, metrics.getApiId());
-    appendString(buffer, metrics.getApiName());
-    appendString(buffer, metrics.getOrganizationId());
-    appendString(buffer, metrics.getEnvironmentId());
-    appendString(buffer, metrics.getApplicationId());
-    appendString(buffer, metrics.getPlanId());
-    appendString(buffer, metrics.getSubscriptionId());
-    appendString(buffer, metrics.getUser());
-    appendString(buffer, metrics.getTenant());
-    appendString(buffer, metrics.getUri());
-    appendString(buffer, metrics.getPathInfo());
-    appendString(buffer, metrics.getMappedPath());
-    appendString(buffer, metrics.getHttpMethod().name());
-    appendInt(buffer, metrics.getStatus());
-    appendString(buffer, metrics.getEntrypointId());
-    appendString(buffer, metrics.getEndpoint());
-    appendString(buffer, metrics.getErrorKey());
-    appendString(buffer, metrics.getErrorMessage(), true, false);
-    appendString(buffer, metrics.getUserAgent(), true, false);
-    appendString(buffer, metrics.getHost());
-    appendLong(buffer, metrics.getRequestContentLength());
-    appendLong(buffer, metrics.getResponseContentLength());
-    appendLong(buffer, metrics.getEndpointResponseTimeMs());
-    appendLong(buffer, metrics.getGatewayResponseTimeMs());
-    appendLong(buffer, metrics.getGatewayLatencyMs());
-    appendString(
-      buffer,
-      metrics.getSecurityType() != null
-        ? metrics.getSecurityType().name()
-        : null
-    );
-    appendString(
-      buffer,
-      metrics.getSecurityToken() != null ? metrics.getApiId() : null,
-      customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty()
-    );
-    appendAdditional(metrics, buffer);
+        appendString(buffer, metrics.getTransactionId());
+        appendString(buffer, metrics.getRequestId());
+        appendLong(buffer, metrics.timestamp().toEpochMilli());
+        appendString(buffer, metrics.getRemoteAddress());
+        appendString(buffer, metrics.getLocalAddress());
+        appendString(buffer, metrics.getApiId());
+        appendString(buffer, metrics.getApiName());
+        appendString(buffer, metrics.getOrganizationId());
+        appendString(buffer, metrics.getEnvironmentId());
+        appendString(buffer, metrics.getApplicationId());
+        appendString(buffer, metrics.getPlanId());
+        appendString(buffer, metrics.getSubscriptionId());
+        appendString(buffer, metrics.getUser());
+        appendString(buffer, metrics.getTenant());
+        appendString(buffer, metrics.getUri());
+        appendString(buffer, metrics.getPathInfo());
+        appendString(buffer, metrics.getMappedPath());
+        appendString(buffer, metrics.getHttpMethod().name());
+        appendInt(buffer, metrics.getStatus());
+        appendString(buffer, metrics.getEntrypointId());
+        appendString(buffer, metrics.getEndpoint());
+        appendString(buffer, metrics.getErrorKey());
+        appendString(buffer, metrics.getErrorMessage(), true, false);
+        appendString(buffer, metrics.getUserAgent(), true, false);
+        appendString(buffer, metrics.getHost());
+        appendLong(buffer, metrics.getRequestContentLength());
+        appendLong(buffer, metrics.getResponseContentLength());
+        appendLong(buffer, metrics.getEndpointResponseTimeMs());
+        appendLong(buffer, metrics.getGatewayResponseTimeMs());
+        appendLong(buffer, metrics.getGatewayLatencyMs());
+        appendString(buffer, metrics.getSecurityType() != null ? metrics.getSecurityType().name() : null);
+        appendString(
+            buffer,
+            metrics.getSecurityToken() != null ? metrics.getApiId() : null,
+            customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty()
+        );
+        appendAdditional(metrics, buffer);
 
-    for (
-      Iterator<String> i = customMetrics.keySet().iterator();
-      i.hasNext();
+        for (Iterator<String> i = customMetrics.keySet().iterator(); i.hasNext(); ) {
+            appendString(buffer, customMetrics.get(i.next()), true, !i.hasNext());
+        }
 
-    ) {
-      appendString(buffer, customMetrics.get(i.next()), true, !i.hasNext());
+        return buffer;
     }
-
-    return buffer;
-  }
 }

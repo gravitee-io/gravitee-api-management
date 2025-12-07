@@ -26,77 +26,63 @@ import java.util.function.Function;
 
 public final class ReportableSanitizationUtil {
 
-  private ReportableSanitizationUtil() {
-    // util class
-  }
-
-  public static void removeCustomMetricsWithNullValues(Metrics metrics) {
-    removeNullsFromMap(
-      metrics,
-      Metrics::getCustomMetrics,
-      Metrics::setCustomMetrics
-    );
-  }
-
-  public static void removeCustomMetricsWithNullValues(
-    io.gravitee.reporter.api.v4.metric.Metrics metrics
-  ) {
-    removeNullsFromMap(
-      metrics,
-      io.gravitee.reporter.api.v4.metric.Metrics::getCustomMetrics,
-      io.gravitee.reporter.api.v4.metric.Metrics::setCustomMetrics
-    );
-  }
-
-  public static void removeCustomMetricsWithNullValues(MessageMetrics metrics) {
-    removeNullsFromMap(
-      metrics,
-      MessageMetrics::getCustomMetrics,
-      MessageMetrics::setCustomMetrics
-    );
-  }
-
-  public static void removeMessageMetadataWithNullValues(Message message) {
-    removeNullsFromMap(message, Message::getMetadata, Message::setMetadata);
-  }
-
-  private static <M, T> void removeNullsFromMap(
-    M target,
-    Function<M, Map<String, T>> getter,
-    BiConsumer<M, Map<String, T>> setter
-  ) {
-    if (target == null) {
-      return;
+    private ReportableSanitizationUtil() {
+        // util class
     }
 
-    final Map<String, T> map = getter.apply(target);
-    if (map == null || map.isEmpty()) {
-      return;
+    public static void removeCustomMetricsWithNullValues(Metrics metrics) {
+        removeNullsFromMap(metrics, Metrics::getCustomMetrics, Metrics::setCustomMetrics);
     }
 
-    // Check for nulls without triggering NPE on maps that don't support nulls (like ConcurrentHashMap)
-    boolean hasNulls = false;
-    for (T value : map.values()) {
-      if (value == null) {
-        hasNulls = true;
-        break;
-      }
+    public static void removeCustomMetricsWithNullValues(io.gravitee.reporter.api.v4.metric.Metrics metrics) {
+        removeNullsFromMap(
+            metrics,
+            io.gravitee.reporter.api.v4.metric.Metrics::getCustomMetrics,
+            io.gravitee.reporter.api.v4.metric.Metrics::setCustomMetrics
+        );
     }
 
-    // Only allocate a new map if we actually found nulls
-    if (hasNulls) {
-      setter.accept(target, removeNullValueEntries(map));
+    public static void removeCustomMetricsWithNullValues(MessageMetrics metrics) {
+        removeNullsFromMap(metrics, MessageMetrics::getCustomMetrics, MessageMetrics::setCustomMetrics);
     }
-  }
 
-  private static <T> Map<String, T> removeNullValueEntries(Map<String, T> map) {
-    // Use a simple loop instead of Stream to reduce overhead and memory allocation
-    Map<String, T> cleanMap = new LinkedHashMap<>(map.size());
-    for (Map.Entry<String, T> entry : map.entrySet()) {
-      if (entry.getValue() != null) {
-        cleanMap.put(entry.getKey(), entry.getValue());
-      }
+    public static void removeMessageMetadataWithNullValues(Message message) {
+        removeNullsFromMap(message, Message::getMetadata, Message::setMetadata);
     }
-    return cleanMap;
-  }
+
+    private static <M, T> void removeNullsFromMap(M target, Function<M, Map<String, T>> getter, BiConsumer<M, Map<String, T>> setter) {
+        if (target == null) {
+            return;
+        }
+
+        final Map<String, T> map = getter.apply(target);
+        if (map == null || map.isEmpty()) {
+            return;
+        }
+
+        // Check for nulls without triggering NPE on maps that don't support nulls (like ConcurrentHashMap)
+        boolean hasNulls = false;
+        for (T value : map.values()) {
+            if (value == null) {
+                hasNulls = true;
+                break;
+            }
+        }
+
+        // Only allocate a new map if we actually found nulls
+        if (hasNulls) {
+            setter.accept(target, removeNullValueEntries(map));
+        }
+    }
+
+    private static <T> Map<String, T> removeNullValueEntries(Map<String, T> map) {
+        // Use a simple loop instead of Stream to reduce overhead and memory allocation
+        Map<String, T> cleanMap = new LinkedHashMap<>(map.size());
+        for (Map.Entry<String, T> entry : map.entrySet()) {
+            if (entry.getValue() != null) {
+                cleanMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return cleanMap;
+    }
 }

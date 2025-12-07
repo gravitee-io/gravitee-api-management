@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.reporters.common.bulk.transformer;
 
-import io.gravitee.reporter.api.Reportable;
 import io.gravitee.apim.reporters.common.formatter.Formatter;
+import io.gravitee.reporter.api.Reportable;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -28,19 +28,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BulkFormatterTransformer implements BulkTransformer {
 
-  private final Formatter<Reportable> formatter;
+    private final Formatter<Reportable> formatter;
 
-  @Override
-  public TransformedReport transform(final Reportable reportable) {
-    return new TransformedReport(
-      Buffer.newInstance(
-        formatter.format(reportable, buildOptions(reportable))
-      ),
-      reportable.getClass()
-    );
-  }
+    @Override
+    public TransformedReport transform(final Reportable reportable) {
+        return new TransformedReport(Buffer.newInstance(formatter.format(reportable, buildOptions(reportable))), reportable.getClass());
+    }
 
-  protected Map<String, Object> buildOptions(final Reportable reportable) {
-    return null;
-  }
+    protected Map<String, Object> buildOptions(final Reportable reportable) {
+        return null;
+    }
 }

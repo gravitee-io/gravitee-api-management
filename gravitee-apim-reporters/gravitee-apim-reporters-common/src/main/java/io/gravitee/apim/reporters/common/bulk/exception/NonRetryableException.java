@@ -19,10 +19,10 @@ import java.io.Serial;
 
 public class NonRetryableException extends RuntimeException {
 
-  @Serial
-  private static final long serialVersionUID = 4365687747607573938L;
+    @Serial
+    private static final long serialVersionUID = 4365687747607573938L;
 
-  public NonRetryableException(String message, Throwable t) {
-    super(message, t);
-  }
+    public NonRetryableException(String message, Throwable t) {
+        super(message, t);
+    }
 }

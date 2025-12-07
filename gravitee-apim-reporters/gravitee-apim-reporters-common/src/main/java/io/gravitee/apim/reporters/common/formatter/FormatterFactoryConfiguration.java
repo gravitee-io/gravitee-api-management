@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.reporters.common.formatter;
 
-import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.apim.reporters.common.MetricsType;
+import io.gravitee.reporter.api.configuration.Rules;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Singular;
@@ -28,13 +28,13 @@ import lombok.Singular;
 @Builder
 public class FormatterFactoryConfiguration {
 
-  @Builder.Default
-  int elasticSearchVersion = 9;
+    @Builder.Default
+    int elasticSearchVersion = 9;
 
-  @Singular
-  Map<MetricsType, Rules> rules;
+    @Singular
+    Map<MetricsType, Rules> rules;
 
-  public Rules getRules(MetricsType metricsType) {
-    return rules.getOrDefault(metricsType, new Rules());
-  }
+    public Rules getRules(MetricsType metricsType) {
+        return rules.getOrDefault(metricsType, new Rules());
+    }
 }

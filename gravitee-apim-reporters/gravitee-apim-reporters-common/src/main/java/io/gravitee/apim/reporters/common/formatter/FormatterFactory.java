@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.reporters.common.formatter;
 
-import io.gravitee.node.api.Node;
-import io.gravitee.reporter.api.Reportable;
 import io.gravitee.apim.reporters.common.MetricsType;
 import io.gravitee.apim.reporters.common.formatter.csv.CsvFormatter;
 import io.gravitee.apim.reporters.common.formatter.elasticsearch.ElasticsearchFormatter;
 import io.gravitee.apim.reporters.common.formatter.json.JsonFormatter;
 import io.gravitee.apim.reporters.common.formatter.msgpack.MsgPackFormatter;
+import io.gravitee.node.api.Node;
+import io.gravitee.reporter.api.Reportable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,36 +30,25 @@ import io.gravitee.apim.reporters.common.formatter.msgpack.MsgPackFormatter;
  */
 public class FormatterFactory {
 
-  private final Node node;
+    private final Node node;
 
-  private final FormatterFactoryConfiguration configuration;
+    private final FormatterFactoryConfiguration configuration;
 
-  public FormatterFactory(
-    Node node,
-    FormatterFactoryConfiguration configuration
-  ) {
-    this.node = node;
-    this.configuration = configuration;
-  }
+    public FormatterFactory(Node node, FormatterFactoryConfiguration configuration) {
+        this.node = node;
+        this.configuration = configuration;
+    }
 
-  public Formatter<Reportable> getFormatter(Type type) {
-    return getFormatter(type, null);
-  }
+    public Formatter<Reportable> getFormatter(Type type) {
+        return getFormatter(type, null);
+    }
 
-  public Formatter<Reportable> getFormatter(
-    Type type,
-    MetricsType metricsType
-  ) {
-    return switch (type) {
-      case CSV -> new CsvFormatter<>();
-      case MESSAGE_PACK -> new MsgPackFormatter<>(
-        configuration.getRules(metricsType)
-      );
-      case JSON -> new JsonFormatter<>(configuration.getRules(metricsType));
-      case ELASTICSEARCH -> new ElasticsearchFormatter<>(
-        node,
-        configuration.elasticSearchVersion
-      );
-    };
-  }
+    public Formatter<Reportable> getFormatter(Type type, MetricsType metricsType) {
+        return switch (type) {
+            case CSV -> new CsvFormatter<>();
+            case MESSAGE_PACK -> new MsgPackFormatter<>(configuration.getRules(metricsType));
+            case JSON -> new JsonFormatter<>(configuration.getRules(metricsType));
+            case ELASTICSEARCH -> new ElasticsearchFormatter<>(node, configuration.elasticSearchVersion);
+        };
+    }
 }

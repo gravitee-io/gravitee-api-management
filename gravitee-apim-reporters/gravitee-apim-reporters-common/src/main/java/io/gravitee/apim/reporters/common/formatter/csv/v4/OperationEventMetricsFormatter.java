@@ -24,23 +24,22 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class OperationEventMetricsFormatter
-  extends BaseEventMetricsFormatter<OperationEventMetrics> {
+public class OperationEventMetricsFormatter extends BaseEventMetricsFormatter<OperationEventMetrics> {
 
-  @Override
-  protected Buffer format0(OperationEventMetrics data) {
-    final Buffer buffer = super.format0(data);
-    appendString(buffer, data.getOperation());
+    @Override
+    protected Buffer format0(OperationEventMetrics data) {
+        final Buffer buffer = super.format0(data);
+        appendString(buffer, data.getOperation());
 
-    //Append operation event metrics
-    appendLong(buffer, data.getRequestDurationsMillis());
-    appendLong(buffer, data.getEndpointDurationsMillis());
-    appendLong(buffer, data.getResponseDurationsMillis());
-    appendInt(buffer, data.getRequestsTotal());
-    appendInt(buffer, data.getEndpointRequestsTotal());
-    appendInt(buffer, data.getEndpointResponsesTotal());
-    appendInt(buffer, data.getResponsesTotal());
+        //Append operation event metrics
+        appendLong(buffer, data.getRequestDurationsMillis());
+        appendLong(buffer, data.getEndpointDurationsMillis());
+        appendLong(buffer, data.getResponseDurationsMillis());
+        appendInt(buffer, data.getRequestsTotal());
+        appendInt(buffer, data.getEndpointRequestsTotal());
+        appendInt(buffer, data.getEndpointResponsesTotal());
+        appendInt(buffer, data.getResponsesTotal());
 
-    return buffer;
-  }
+        return buffer;
+    }
 }

@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.reporters.common.bulk.sender;
 
-import io.gravitee.common.service.Service;
 import io.gravitee.apim.reporters.common.bulk.compressor.CompressedBulk;
 import io.gravitee.apim.reporters.common.bulk.transformer.TransformedReport;
+import io.gravitee.common.service.Service;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
@@ -25,14 +25,14 @@ import io.reactivex.rxjava3.core.Completable;
  * @author GraviteeSource Team
  */
 public interface BulkSender extends Service<BulkSender> {
-  /**
-   * Called as a last step of the bulk process to send a bulk of reportable represented by a {@link CompressedBulk} to the target reporter
-   * </p>
-   * The returned Completable can signal an error using a {@link io.gravitee.apim.reporters.common.bulk.exception.NonRetryableException}
-   * to indicate a failure that should not be retried. Any other exception will be treated as retryable.
-   *
-   * @param bulk
-   * @return {@link Completable} of the result
-   */
-  Completable send(final CompressedBulk bulk);
+    /**
+     * Called as a last step of the bulk process to send a bulk of reportable represented by a {@link CompressedBulk} to the target reporter
+     * </p>
+     * The returned Completable can signal an error using a {@link io.gravitee.apim.reporters.common.bulk.exception.NonRetryableException}
+     * to indicate a failure that should not be retried. Any other exception will be treated as retryable.
+     *
+     * @param bulk
+     * @return {@link Completable} of the result
+     */
+    Completable send(final CompressedBulk bulk);
 }

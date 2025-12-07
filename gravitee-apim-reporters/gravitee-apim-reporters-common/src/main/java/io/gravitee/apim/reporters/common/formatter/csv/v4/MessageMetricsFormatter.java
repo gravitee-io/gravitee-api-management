@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.reporters.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.apim.reporters.common.formatter.csv.SingleValueFormatter;
 import io.gravitee.apim.reporters.common.formatter.util.ReportableSanitizationUtil;
+import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.vertx.core.buffer.Buffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,54 +26,39 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MessageMetricsFormatter
-  extends SingleValueFormatter<MessageMetrics> {
+public class MessageMetricsFormatter extends SingleValueFormatter<MessageMetrics> {
 
-  @Override
-  protected Buffer format0(MessageMetrics metrics) {
-    ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
-    final Map<String, String> customMetrics = metrics.getCustomMetrics() == null
-      ? Map.of()
-      : metrics.getCustomMetrics();
+    @Override
+    protected Buffer format0(MessageMetrics metrics) {
+        ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
+        final Map<String, String> customMetrics = metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
 
-    final Buffer buffer = Buffer.buffer();
+        final Buffer buffer = Buffer.buffer();
 
-    appendString(buffer, metrics.getCorrelationId());
-    appendString(buffer, metrics.getParentCorrelationId());
-    appendString(buffer, metrics.getRequestId());
-    appendLong(buffer, metrics.timestamp().toEpochMilli());
-    appendString(buffer, metrics.getApiId());
-    appendString(buffer, metrics.getApiName());
-    appendString(buffer, metrics.getOrganizationId());
-    appendString(buffer, metrics.getEnvironmentId());
-    appendString(
-      buffer,
-      metrics.getOperation() != null ? metrics.getOperation().name() : null
-    );
-    appendString(
-      buffer,
-      metrics.getConnectorType() != null
-        ? metrics.getConnectorType().name()
-        : null
-    );
-    appendString(buffer, metrics.getConnectorId());
-    appendLong(buffer, metrics.getContentLength());
-    appendLong(buffer, metrics.getCount());
-    appendLong(buffer, metrics.getErrorCount());
-    appendLong(buffer, metrics.getCountIncrement());
-    appendLong(buffer, metrics.getErrorCountIncrement());
-    appendBoolean(buffer, metrics.isError());
-    appendLong(buffer, metrics.getGatewayLatencyMs());
-    appendAdditional(metrics, buffer);
+        appendString(buffer, metrics.getCorrelationId());
+        appendString(buffer, metrics.getParentCorrelationId());
+        appendString(buffer, metrics.getRequestId());
+        appendLong(buffer, metrics.timestamp().toEpochMilli());
+        appendString(buffer, metrics.getApiId());
+        appendString(buffer, metrics.getApiName());
+        appendString(buffer, metrics.getOrganizationId());
+        appendString(buffer, metrics.getEnvironmentId());
+        appendString(buffer, metrics.getOperation() != null ? metrics.getOperation().name() : null);
+        appendString(buffer, metrics.getConnectorType() != null ? metrics.getConnectorType().name() : null);
+        appendString(buffer, metrics.getConnectorId());
+        appendLong(buffer, metrics.getContentLength());
+        appendLong(buffer, metrics.getCount());
+        appendLong(buffer, metrics.getErrorCount());
+        appendLong(buffer, metrics.getCountIncrement());
+        appendLong(buffer, metrics.getErrorCountIncrement());
+        appendBoolean(buffer, metrics.isError());
+        appendLong(buffer, metrics.getGatewayLatencyMs());
+        appendAdditional(metrics, buffer);
 
-    for (
-      Iterator<String> i = customMetrics.keySet().iterator();
-      i.hasNext();
+        for (Iterator<String> i = customMetrics.keySet().iterator(); i.hasNext(); ) {
+            appendString(buffer, customMetrics.get(i.next()), true, !i.hasNext());
+        }
 
-    ) {
-      appendString(buffer, customMetrics.get(i.next()), true, !i.hasNext());
+        return buffer;
     }
-
-    return buffer;
-  }
 }

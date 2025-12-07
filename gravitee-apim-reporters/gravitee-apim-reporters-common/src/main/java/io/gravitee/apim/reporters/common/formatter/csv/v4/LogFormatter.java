@@ -18,8 +18,8 @@ package io.gravitee.apim.reporters.common.formatter.csv.v4;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.apim.reporters.common.formatter.csv.SingleValueFormatter;
+import io.gravitee.reporter.api.v4.log.Log;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,57 +30,48 @@ import org.slf4j.LoggerFactory;
  */
 public class LogFormatter extends SingleValueFormatter<Log> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
 
-  private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-  public LogFormatter() {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Override
-  protected Buffer format0(Log log) {
-    final Buffer buffer = Buffer.buffer();
-
-    appendString(buffer, log.getRequestId());
-    appendString(buffer, log.getApiId());
-    appendString(buffer, log.getApiName());
-    appendString(buffer, log.getClientIdentifier());
-    appendBoolean(buffer, log.isRequestEnded());
-
-    try {
-      appendString(
-        buffer,
-        mapper.writeValueAsString(log.getEntrypointRequest())
-      );
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process entrypoint request", e);
+    public LogFormatter() {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    try {
-      appendString(
-        buffer,
-        mapper.writeValueAsString(log.getEntrypointResponse())
-      );
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process entrypoint response", e);
-    }
+    @Override
+    protected Buffer format0(Log log) {
+        final Buffer buffer = Buffer.buffer();
 
-    try {
-      appendString(buffer, mapper.writeValueAsString(log.getEndpointRequest()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process endpoint request", e);
-    }
+        appendString(buffer, log.getRequestId());
+        appendString(buffer, log.getApiId());
+        appendString(buffer, log.getApiName());
+        appendString(buffer, log.getClientIdentifier());
+        appendBoolean(buffer, log.isRequestEnded());
 
-    try {
-      appendString(
-        buffer,
-        mapper.writeValueAsString(log.getEndpointResponse())
-      );
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process endpoint response", e);
-    }
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getEntrypointRequest()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process entrypoint request", e);
+        }
 
-    return buffer;
-  }
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getEntrypointResponse()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process entrypoint response", e);
+        }
+
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getEndpointRequest()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process endpoint request", e);
+        }
+
+        try {
+            appendString(buffer, mapper.writeValueAsString(log.getEndpointResponse()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process endpoint response", e);
+        }
+
+        return buffer;
+    }
 }

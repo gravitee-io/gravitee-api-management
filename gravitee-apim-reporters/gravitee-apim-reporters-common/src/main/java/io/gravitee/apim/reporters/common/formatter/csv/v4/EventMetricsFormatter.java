@@ -20,32 +20,31 @@ import io.vertx.core.buffer.Buffer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class EventMetricsFormatter
-  extends BaseEventMetricsFormatter<EventMetrics> {
+public class EventMetricsFormatter extends BaseEventMetricsFormatter<EventMetrics> {
 
-  @Override
-  protected Buffer format0(EventMetrics data) {
-    final Buffer buffer = super.format0(data);
-    appendString(buffer, data.getTopic());
+    @Override
+    protected Buffer format0(EventMetrics data) {
+        final Buffer buffer = super.format0(data);
+        appendString(buffer, data.getTopic());
 
-    //Append event metrics
-    appendLong(buffer, data.getDownstreamPublishMessagesTotal());
-    appendLong(buffer, data.getDownstreamPublishMessageBytes());
-    appendLong(buffer, data.getUpstreamPublishMessagesTotal());
-    appendLong(buffer, data.getUpstreamPublishMessageBytes());
-    appendLong(buffer, data.getDownstreamSubscribeMessagesTotal());
-    appendLong(buffer, data.getDownstreamSubscribeMessageBytes());
-    appendLong(buffer, data.getUpstreamSubscribeMessagesTotal());
-    appendLong(buffer, data.getUpstreamSubscribeMessageBytes());
-    appendLong(buffer, data.getDownstreamActiveConnections());
-    appendLong(buffer, data.getUpstreamActiveConnections());
-    appendLong(buffer, data.getUpstreamAuthenticatedConnections());
-    appendLong(buffer, data.getDownstreamAuthenticatedConnections());
-    appendLong(buffer, data.getDownstreamAuthenticationFailuresTotal());
-    appendLong(buffer, data.getUpstreamAuthenticationFailuresTotal());
-    appendLong(buffer, data.getDownstreamAuthorizationSuccessesTotal());
-    appendLong(buffer, data.getUpstreamAuthorizationSuccessesTotal());
+        //Append event metrics
+        appendLong(buffer, data.getDownstreamPublishMessagesTotal());
+        appendLong(buffer, data.getDownstreamPublishMessageBytes());
+        appendLong(buffer, data.getUpstreamPublishMessagesTotal());
+        appendLong(buffer, data.getUpstreamPublishMessageBytes());
+        appendLong(buffer, data.getDownstreamSubscribeMessagesTotal());
+        appendLong(buffer, data.getDownstreamSubscribeMessageBytes());
+        appendLong(buffer, data.getUpstreamSubscribeMessagesTotal());
+        appendLong(buffer, data.getUpstreamSubscribeMessageBytes());
+        appendLong(buffer, data.getDownstreamActiveConnections());
+        appendLong(buffer, data.getUpstreamActiveConnections());
+        appendLong(buffer, data.getUpstreamAuthenticatedConnections());
+        appendLong(buffer, data.getDownstreamAuthenticatedConnections());
+        appendLong(buffer, data.getDownstreamAuthenticationFailuresTotal());
+        appendLong(buffer, data.getUpstreamAuthenticationFailuresTotal());
+        appendLong(buffer, data.getDownstreamAuthorizationSuccessesTotal());
+        appendLong(buffer, data.getUpstreamAuthorizationSuccessesTotal());
 
-    return buffer;
-  }
+        return buffer;
+    }
 }

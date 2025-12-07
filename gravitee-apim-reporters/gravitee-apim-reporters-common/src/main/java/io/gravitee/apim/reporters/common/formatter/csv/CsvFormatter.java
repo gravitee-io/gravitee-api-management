@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.reporters.common.formatter.csv;
 
+import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
+import io.gravitee.apim.reporters.common.formatter.csv.v4.*;
+import io.gravitee.apim.reporters.common.formatter.csv.v4.LogFormatter;
+import io.gravitee.apim.reporters.common.formatter.csv.v4.MetricsFormatter;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.monitor.Monitor;
@@ -22,10 +26,6 @@ import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
-import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
-import io.gravitee.apim.reporters.common.formatter.csv.v4.*;
-import io.gravitee.apim.reporters.common.formatter.csv.v4.LogFormatter;
-import io.gravitee.apim.reporters.common.formatter.csv.v4.MetricsFormatter;
 import io.vertx.core.buffer.Buffer;
 import java.util.Map;
 
@@ -35,47 +35,27 @@ import java.util.Map;
  */
 public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-  private static final Map<
-    Class<? extends Reportable>,
-    AbstractFormatter<? extends Reportable>
-  > FORMATTERS = new java.util.HashMap<>();
+    private static final Map<Class<? extends Reportable>, AbstractFormatter<? extends Reportable>> FORMATTERS = new java.util.HashMap<>();
 
-  static {
-    FORMATTERS.put(EndpointStatus.class, new EndpointStatusFormatter());
-    FORMATTERS.put(
-      io.gravitee.reporter.api.log.Log.class,
-      new io.gravitee.apim.reporters.common.formatter.csv.LogFormatter()
-    );
-    FORMATTERS.put(
-      io.gravitee.reporter.api.http.Metrics.class,
-      new io.gravitee.apim.reporters.common.formatter.csv.MetricsFormatter()
-    );
-    FORMATTERS.put(Monitor.class, new MonitorFormatter());
-    FORMATTERS.put(
-      io.gravitee.reporter.api.v4.log.Log.class,
-      new LogFormatter()
-    );
-    FORMATTERS.put(MessageLog.class, new MessageLogFormatter());
-    FORMATTERS.put(
-      io.gravitee.reporter.api.v4.metric.Metrics.class,
-      new MetricsFormatter()
-    );
-    FORMATTERS.put(MessageMetrics.class, new MessageMetricsFormatter());
-    FORMATTERS.put(EventMetrics.class, new EventMetricsFormatter());
-    FORMATTERS.put(
-      OperationEventMetrics.class,
-      new OperationEventMetricsFormatter()
-    );
-  }
-
-  @Override
-  public Buffer format0(T reportable) {
-    AbstractFormatter<T> formatter = (AbstractFormatter<T>) FORMATTERS.get(
-      reportable.getClass()
-    );
-    if (formatter != null) {
-      return formatter.format(reportable);
+    static {
+        FORMATTERS.put(EndpointStatus.class, new EndpointStatusFormatter());
+        FORMATTERS.put(io.gravitee.reporter.api.log.Log.class, new io.gravitee.apim.reporters.common.formatter.csv.LogFormatter());
+        FORMATTERS.put(io.gravitee.reporter.api.http.Metrics.class, new io.gravitee.apim.reporters.common.formatter.csv.MetricsFormatter());
+        FORMATTERS.put(Monitor.class, new MonitorFormatter());
+        FORMATTERS.put(io.gravitee.reporter.api.v4.log.Log.class, new LogFormatter());
+        FORMATTERS.put(MessageLog.class, new MessageLogFormatter());
+        FORMATTERS.put(io.gravitee.reporter.api.v4.metric.Metrics.class, new MetricsFormatter());
+        FORMATTERS.put(MessageMetrics.class, new MessageMetricsFormatter());
+        FORMATTERS.put(EventMetrics.class, new EventMetricsFormatter());
+        FORMATTERS.put(OperationEventMetrics.class, new OperationEventMetricsFormatter());
     }
-    return null;
-  }
+
+    @Override
+    public Buffer format0(T reportable) {
+        AbstractFormatter<T> formatter = (AbstractFormatter<T>) FORMATTERS.get(reportable.getClass());
+        if (formatter != null) {
+            return formatter.format(reportable);
+        }
+        return null;
+    }
 }

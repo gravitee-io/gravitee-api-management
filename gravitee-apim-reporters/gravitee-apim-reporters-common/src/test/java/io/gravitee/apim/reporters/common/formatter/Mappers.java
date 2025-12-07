@@ -35,36 +35,33 @@ import org.msgpack.jackson.dataformat.MessagePackMapper;
  */
 public class Mappers {
 
-  public static final ObjectMapper JSON = new ObjectMapper();
-  public static final JsonLinesMapper JSON_LINES = new JsonLinesMapper();
-  public static final ObjectMapper MESSAGE_PACK = new MessagePackMapper();
+    public static final ObjectMapper JSON = new ObjectMapper();
+    public static final JsonLinesMapper JSON_LINES = new JsonLinesMapper();
+    public static final ObjectMapper MESSAGE_PACK = new MessagePackMapper();
 
-  static {
-    var resolver = new SimpleAbstractTypeResolver();
-    resolver.addMapping(HttpHeaders.class, DefaultHttpHeaders.class);
-    var module = new SimpleModule();
-    module.addDeserializer(
-      AdditionalMetric.class,
-      new AdditionalMetricDeserialization()
-    );
-    module.setAbstractTypes(resolver);
-    JSON.registerModule(module);
-    JSON.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  }
-
-  public static class JsonLinesMapper {
-
-    public List<JsonNode> readLines(byte[] jsonLines) throws IOException {
-      return JSON.readerFor(JsonNode.class)
-        .readValues(jsonLines)
-        .readAll()
-        .stream()
-        .map(JsonNode.class::cast)
-        .collect(Collectors.toList());
+    static {
+        var resolver = new SimpleAbstractTypeResolver();
+        resolver.addMapping(HttpHeaders.class, DefaultHttpHeaders.class);
+        var module = new SimpleModule();
+        module.addDeserializer(AdditionalMetric.class, new AdditionalMetricDeserialization());
+        module.setAbstractTypes(resolver);
+        JSON.registerModule(module);
+        JSON.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public List<JsonNode> readLines(String jsonLines) throws IOException {
-      return readLines(jsonLines.getBytes());
+    public static class JsonLinesMapper {
+
+        public List<JsonNode> readLines(byte[] jsonLines) throws IOException {
+            return JSON.readerFor(JsonNode.class)
+                .readValues(jsonLines)
+                .readAll()
+                .stream()
+                .map(JsonNode.class::cast)
+                .collect(Collectors.toList());
+        }
+
+        public List<JsonNode> readLines(String jsonLines) throws IOException {
+            return readLines(jsonLines.getBytes());
+        }
     }
-  }
 }

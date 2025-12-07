@@ -29,63 +29,60 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointStatusFormatter
-  extends SingleValueFormatter<EndpointStatus> {
+public class EndpointStatusFormatter extends SingleValueFormatter<EndpointStatus> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-    EndpointStatusFormatter.class
-  );
+    private static final Logger LOG = LoggerFactory.getLogger(EndpointStatusFormatter.class);
 
-  private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-  public EndpointStatusFormatter() {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Override
-  public Buffer format0(EndpointStatus status) {
-    final Buffer buffer = Buffer.buffer();
-
-    appendString(buffer, status.getId());
-    appendString(buffer, status.getApi());
-    appendString(buffer, status.getApiName());
-    appendString(buffer, status.getEndpoint());
-    appendInt(buffer, status.getState());
-    appendBoolean(buffer, status.isAvailable());
-    appendBoolean(buffer, status.isSuccess());
-    appendBoolean(buffer, status.isTransition());
-    appendLong(buffer, status.getResponseTime());
-    append(buffer, status.getSteps());
-
-    return buffer;
-  }
-
-  private void append(Buffer buffer, List<Step> steps) {
-    if (steps != null && !steps.isEmpty()) {
-      Step last = steps.get(0);
-      appendString(buffer, last.getName());
-      appendBoolean(buffer, last.isSuccess());
-      appendLong(buffer, last.getResponseTime());
-      appendString(buffer, last.getMessage(), true);
-
-      try {
-        appendString(buffer, mapper.writeValueAsString(last.getRequest()));
-      } catch (JsonProcessingException e) {
-        LOG.error("Unexpected error while writing request as JSON", e);
-      }
-
-      try {
-        appendString(buffer, mapper.writeValueAsString(last.getResponse()));
-      } catch (JsonProcessingException e) {
-        LOG.error("Unexpected error while writing response as JSON", e);
-      }
-    } else {
-      appendEmpty(buffer);
-      appendEmpty(buffer);
-      appendEmpty(buffer);
-      appendEmpty(buffer);
-      appendEmpty(buffer);
-      appendEmpty(buffer);
+    public EndpointStatusFormatter() {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
-  }
+
+    @Override
+    public Buffer format0(EndpointStatus status) {
+        final Buffer buffer = Buffer.buffer();
+
+        appendString(buffer, status.getId());
+        appendString(buffer, status.getApi());
+        appendString(buffer, status.getApiName());
+        appendString(buffer, status.getEndpoint());
+        appendInt(buffer, status.getState());
+        appendBoolean(buffer, status.isAvailable());
+        appendBoolean(buffer, status.isSuccess());
+        appendBoolean(buffer, status.isTransition());
+        appendLong(buffer, status.getResponseTime());
+        append(buffer, status.getSteps());
+
+        return buffer;
+    }
+
+    private void append(Buffer buffer, List<Step> steps) {
+        if (steps != null && !steps.isEmpty()) {
+            Step last = steps.get(0);
+            appendString(buffer, last.getName());
+            appendBoolean(buffer, last.isSuccess());
+            appendLong(buffer, last.getResponseTime());
+            appendString(buffer, last.getMessage(), true);
+
+            try {
+                appendString(buffer, mapper.writeValueAsString(last.getRequest()));
+            } catch (JsonProcessingException e) {
+                LOG.error("Unexpected error while writing request as JSON", e);
+            }
+
+            try {
+                appendString(buffer, mapper.writeValueAsString(last.getResponse()));
+            } catch (JsonProcessingException e) {
+                LOG.error("Unexpected error while writing response as JSON", e);
+            }
+        } else {
+            appendEmpty(buffer);
+            appendEmpty(buffer);
+            appendEmpty(buffer);
+            appendEmpty(buffer);
+            appendEmpty(buffer);
+            appendEmpty(buffer);
+        }
+    }
 }

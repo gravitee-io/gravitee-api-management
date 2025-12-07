@@ -20,9 +20,9 @@ import static io.gravitee.apim.reporters.common.formatter.Mappers.JSON_LINES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
-import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.apim.reporters.common.formatter.AbstractFormatterTest;
 import io.gravitee.apim.reporters.common.formatter.Type;
+import io.gravitee.reporter.api.monitor.Monitor;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.util.Map;
@@ -36,138 +36,122 @@ import org.junit.jupiter.params.provider.CsvSource;
  */
 class ElasticsearchFormatterTest extends AbstractFormatterTest {
 
-  @Override
-  protected Type type() {
-    return Type.ELASTICSEARCH;
-  }
-
-  @CsvSource(
-    {
-      "log, log.Log, log.json, elasticsearch/log.json",
-      "metrics, http.Metrics, metrics.json, elasticsearch/metrics.json",
-      "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.json",
-      "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.json",
-      "v4-log, v4.log.Log, v4/log.json, elasticsearch/v4/log.json",
-      "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
-      "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.json",
-      "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
-      "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
-      "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
-      "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
-      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, elasticsearch/v4/event-metrics.json",
-      "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
+    @Override
+    protected Type type() {
+        return Type.ELASTICSEARCH;
     }
-  )
-  @ParameterizedTest(name = "{0}")
-  void should_format(
-    String testName,
-    String className,
-    String input,
-    String output
-  ) throws IOException {
-    var utcZone = ZoneId.of("UTC");
 
-    try (var javaTime = mockStatic(ZoneId.class)) {
-      javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
+    @CsvSource(
+        {
+            "log, log.Log, log.json, elasticsearch/log.json",
+            "metrics, http.Metrics, metrics.json, elasticsearch/metrics.json",
+            "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.json",
+            "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.json",
+            "v4-log, v4.log.Log, v4/log.json, elasticsearch/v4/log.json",
+            "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
+            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.json",
+            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
+            "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
+            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
+            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
+            "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, elasticsearch/v4/event-metrics.json",
+            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
+        }
+    )
+    @ParameterizedTest(name = "{0}")
+    void should_format(String testName, String className, String input, String output) throws IOException {
+        var utcZone = ZoneId.of("UTC");
 
-      resetFormatter();
+        try (var javaTime = mockStatic(ZoneId.class)) {
+            javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
 
-      var given = readGiven(input, className);
-      var expected = readExpected(output);
+            resetFormatter();
 
-      assertThat(JSON.readTree(formatter.format(given).getBytes()))
-        .usingRecursiveComparison()
-        .isEqualTo(JSON.readTree(expected));
+            var given = readGiven(input, className);
+            var expected = readExpected(output);
+
+            assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        }
     }
-  }
 
-  @CsvSource(
-    {
-      "log, log.Log, log.json, elasticsearch/log.jsonl",
-      "metrics, http.Metrics, metrics.json, elasticsearch/metrics.jsonl",
-      "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.jsonl",
-      "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.jsonl",
-      "v4 log, v4.log.Log, v4/log.json, elasticsearch/v4/log.jsonl",
-      "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",
-      "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.jsonl",
-      "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
-      "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
-      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, elasticsearch/v4/event-metrics.jsonl",
-      "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.jsonl",
+    @CsvSource(
+        {
+            "log, log.Log, log.json, elasticsearch/log.jsonl",
+            "metrics, http.Metrics, metrics.json, elasticsearch/metrics.jsonl",
+            "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.jsonl",
+            "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.jsonl",
+            "v4 log, v4.log.Log, v4/log.json, elasticsearch/v4/log.jsonl",
+            "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",
+            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.jsonl",
+            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
+            "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
+            "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, elasticsearch/v4/event-metrics.jsonl",
+            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.jsonl",
+        }
+    )
+    @ParameterizedTest(name = "{0}")
+    void should_format_with_options(String testName, String className, String input, String output) throws IOException {
+        var utcZone = ZoneId.of("UTC");
+
+        try (var javaTime = mockStatic(ZoneId.class)) {
+            javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
+
+            resetFormatter();
+
+            Object indexName = "gravitee-" + className + "-2023.08.28";
+            Object pipeline = "my-pipeline";
+
+            var options = Map.of("index", indexName, "pipeline", pipeline);
+            var given = readGiven(input, className);
+            var expected = readExpected(output);
+
+            assertThat(JSON_LINES.readLines(formatter.format(given, options).getBytes()))
+                .usingRecursiveComparison()
+                .isEqualTo(JSON_LINES.readLines(expected));
+        }
     }
-  )
-  @ParameterizedTest(name = "{0}")
-  void should_format_with_options(
-    String testName,
-    String className,
-    String input,
-    String output
-  ) throws IOException {
-    var utcZone = ZoneId.of("UTC");
 
-    try (var javaTime = mockStatic(ZoneId.class)) {
-      javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
+    @Test
+    void should_format_monitor() throws IOException {
+        var utcZone = ZoneId.of("UTC");
 
-      resetFormatter();
+        try (var javaTime = mockStatic(ZoneId.class)) {
+            javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
 
-      Object indexName = "gravitee-" + className + "-2023.08.28";
-      Object pipeline = "my-pipeline";
+            resetFormatter();
 
-      var options = Map.of("index", indexName, "pipeline", pipeline);
-      var given = readGiven(input, className);
-      var expected = readExpected(output);
+            var given = readGiven("monitor.json", Monitor.class);
+            var expected = readExpected("elasticsearch/monitor.json");
 
-      assertThat(
-        JSON_LINES.readLines(formatter.format(given, options).getBytes())
-      )
-        .usingRecursiveComparison()
-        .isEqualTo(JSON_LINES.readLines(expected));
+            assertThat(JSON.readTree(formatter.format(given).getBytes()))
+                .usingRecursiveComparison()
+                .ignoringFields("_children._id._value") // Ignored since it is randomly generated
+                .ignoringFields("_children.hostname._value") // Ignored since it is statically initialized
+                .isEqualTo(JSON.readTree(expected));
+        }
     }
-  }
 
-  @Test
-  void should_format_monitor() throws IOException {
-    var utcZone = ZoneId.of("UTC");
+    @Test
+    void should_format_monitor_with_options() throws IOException {
+        var utcZone = ZoneId.of("UTC");
 
-    try (var javaTime = mockStatic(ZoneId.class)) {
-      javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
+        try (var javaTime = mockStatic(ZoneId.class)) {
+            javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
 
-      resetFormatter();
+            resetFormatter();
 
-      var given = readGiven("monitor.json", Monitor.class);
-      var expected = readExpected("elasticsearch/monitor.json");
+            Object indexName = "gravitee-monitor-2023.08.28";
+            Object pipeline = "my-pipeline";
 
-      assertThat(JSON.readTree(formatter.format(given).getBytes()))
-        .usingRecursiveComparison()
-        .ignoringFields("_children._id._value") // Ignored since it is randomly generated
-        .ignoringFields("_children.hostname._value") // Ignored since it is statically initialized
-        .isEqualTo(JSON.readTree(expected));
+            var options = Map.of("index", indexName, "pipeline", pipeline);
+            var given = readGiven("monitor.json", Monitor.class);
+            var expected = readExpected("elasticsearch/monitor.jsonl");
+
+            assertThat(JSON_LINES.readLines(formatter.format(given, options).getBytes()))
+                .usingRecursiveComparison()
+                .ignoringFields("_children._id._value") // Ignored since it is randomly generated
+                .ignoringFields("_children.hostname._value") // Ignored since it is statically initialized
+                .isEqualTo(JSON_LINES.readLines(expected));
+        }
     }
-  }
-
-  @Test
-  void should_format_monitor_with_options() throws IOException {
-    var utcZone = ZoneId.of("UTC");
-
-    try (var javaTime = mockStatic(ZoneId.class)) {
-      javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
-
-      resetFormatter();
-
-      Object indexName = "gravitee-monitor-2023.08.28";
-      Object pipeline = "my-pipeline";
-
-      var options = Map.of("index", indexName, "pipeline", pipeline);
-      var given = readGiven("monitor.json", Monitor.class);
-      var expected = readExpected("elasticsearch/monitor.jsonl");
-
-      assertThat(
-        JSON_LINES.readLines(formatter.format(given, options).getBytes())
-      )
-        .usingRecursiveComparison()
-        .ignoringFields("_children._id._value") // Ignored since it is randomly generated
-        .ignoringFields("_children.hostname._value") // Ignored since it is statically initialized
-        .isEqualTo(JSON_LINES.readLines(expected));
-    }
-  }
 }

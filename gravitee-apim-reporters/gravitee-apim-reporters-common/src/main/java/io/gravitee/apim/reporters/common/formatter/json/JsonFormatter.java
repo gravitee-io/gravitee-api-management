@@ -17,10 +17,10 @@ package io.gravitee.apim.reporters.common.formatter.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.api.jackson.*;
-import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,28 +31,26 @@ import org.slf4j.LoggerFactory;
  */
 public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-    JsonFormatter.class
-  );
+    private static final Logger LOG = LoggerFactory.getLogger(JsonFormatter.class);
 
-  private final ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
-  public JsonFormatter(final Rules rules) {
-    mapper = JacksonUtils.mapper(rules);
-  }
-
-  @Override
-  public Buffer format0(T data) {
-    try {
-      String json = mapper.writeValueAsString(data);
-      if ("{}".equals(json)) {
-        LOG.trace("Excluding data format in reporter: {}", json);
-        return null;
-      }
-      return Buffer.buffer(json);
-    } catch (JsonProcessingException e) {
-      LOG.error("Unexpected error while formatting data", e);
-      return null;
+    public JsonFormatter(final Rules rules) {
+        mapper = JacksonUtils.mapper(rules);
     }
-  }
+
+    @Override
+    public Buffer format0(T data) {
+        try {
+            String json = mapper.writeValueAsString(data);
+            if ("{}".equals(json)) {
+                LOG.trace("Excluding data format in reporter: {}", json);
+                return null;
+            }
+            return Buffer.buffer(json);
+        } catch (JsonProcessingException e) {
+            LOG.error("Unexpected error while formatting data", e);
+            return null;
+        }
+    }
 }

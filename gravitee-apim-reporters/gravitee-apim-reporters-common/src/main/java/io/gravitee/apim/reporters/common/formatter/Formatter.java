@@ -20,10 +20,10 @@ import io.vertx.core.buffer.Buffer;
 import java.util.Map;
 
 public interface Formatter<T extends Reportable> {
-  Buffer format(T reportable);
+    Buffer format(T reportable);
 
-  @SuppressWarnings("unused")
-  default Buffer format(T reportable, Map<String, Object> options) {
-    return format(reportable);
-  }
+    @SuppressWarnings("unused")
+    default Buffer format(T reportable, Map<String, Object> options) {
+        return format(reportable);
+    }
 }

@@ -25,12 +25,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface BulkCompressor {
-  /**
-   * Called as a second step of the bulk process to compress o bulk of {@link TransformedReport} into one {@link CompressedBulk}
-   *
-   * @param reports
-   * @return a built {@link CompressedBulk}
-   */
-  CompressedBulk compress(List<@NonNull TransformedReport> reports)
-    throws IOException;
+    /**
+     * Called as a second step of the bulk process to compress o bulk of {@link TransformedReport} into one {@link CompressedBulk}
+     *
+     * @param reports
+     * @return a built {@link CompressedBulk}
+     */
+    CompressedBulk compress(List<@NonNull TransformedReport> reports) throws IOException;
 }

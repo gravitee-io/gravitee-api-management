@@ -24,40 +24,35 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 class CsvFormatterTest extends AbstractFormatterTest {
 
-  @Override
-  protected Type type() {
-    return Type.CSV;
-  }
-
-  @CsvSource(
-    {
-      "log, log.Log, log.json, csv/log.csv",
-      "metrics, http.Metrics, metrics.json, csv/metrics.csv",
-      "metrics with additional, http.Metrics, metrics-with-additional.json, csv/metrics-with-additional.csv",
-      "metrics with invalid remote address, http.Metrics, metrics-with-invalid-remote-address.json, csv/metrics-with-invalid-remote-address.csv",
-      "endpoint status, health.EndpointStatus, endpoint-status.json, csv/endpoint-status.csv",
-      "monitor, monitor.Monitor, monitor.json, csv/monitor.csv",
-      "v4 log, v4.log.Log, v4/log.json, csv/v4/log.csv",
-      "v4 metrics, v4.metric.Metrics, v4/metrics.json, csv/v4/metrics.csv",
-      "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, csv/v4/metrics-with-additional.csv",
-      "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, csv/v4/metrics-with-invalid-remote-address.csv",
-      "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, csv/v4/message-metrics.csv",
-      "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
-      "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
-      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, csv/v4/event-metrics.csv",
-      "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, csv/v4/operation-event-metrics.csv",
+    @Override
+    protected Type type() {
+        return Type.CSV;
     }
-  )
-  @ParameterizedTest(name = "{0}")
-  @SuppressWarnings("unused")
-  void should_format(
-    String testName,
-    String className,
-    String input,
-    String output
-  ) {
-    var given = readGiven(input, className);
-    var expected = readExpected(output);
-    assertThat(formatter.format(given)).hasToString(expected);
-  }
+
+    @CsvSource(
+        {
+            "log, log.Log, log.json, csv/log.csv",
+            "metrics, http.Metrics, metrics.json, csv/metrics.csv",
+            "metrics with additional, http.Metrics, metrics-with-additional.json, csv/metrics-with-additional.csv",
+            "metrics with invalid remote address, http.Metrics, metrics-with-invalid-remote-address.json, csv/metrics-with-invalid-remote-address.csv",
+            "endpoint status, health.EndpointStatus, endpoint-status.json, csv/endpoint-status.csv",
+            "monitor, monitor.Monitor, monitor.json, csv/monitor.csv",
+            "v4 log, v4.log.Log, v4/log.json, csv/v4/log.csv",
+            "v4 metrics, v4.metric.Metrics, v4/metrics.json, csv/v4/metrics.csv",
+            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, csv/v4/metrics-with-additional.csv",
+            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, csv/v4/metrics-with-invalid-remote-address.csv",
+            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, csv/v4/message-metrics.csv",
+            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
+            "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
+            "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, csv/v4/event-metrics.csv",
+            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, csv/v4/operation-event-metrics.csv",
+        }
+    )
+    @ParameterizedTest(name = "{0}")
+    @SuppressWarnings("unused")
+    void should_format(String testName, String className, String input, String output) {
+        var given = readGiven(input, className);
+        var expected = readExpected(output);
+        assertThat(formatter.format(given)).hasToString(expected);
+    }
 }

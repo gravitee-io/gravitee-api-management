@@ -34,22 +34,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GzipBulkCompressor implements BulkCompressor {
 
-  @Override
-  public CompressedBulk compress(List<@NonNull TransformedReport> reports)
-    throws IOException {
-    final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    final Map<String, Integer> countPerType = new HashMap<>(8);
+    @Override
+    public CompressedBulk compress(List<@NonNull TransformedReport> reports) throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final Map<String, Integer> countPerType = new HashMap<>(8);
 
-    try (final OutputStream gzip = new GZIPOutputStream(out)) {
-      for (TransformedReport report : reports) {
-        countPerType.compute(report.type(), (clazz, integer) ->
-          integer != null ? ++integer : 1
-        );
+        try (final OutputStream gzip = new GZIPOutputStream(out)) {
+            for (TransformedReport report : reports) {
+                countPerType.compute(report.type(), (clazz, integer) -> integer != null ? ++integer : 1);
 
-        // In memory, not blocking.
-        gzip.write(report.transformed().getBytes());
-      }
+                // In memory, not blocking.
+                gzip.write(report.transformed().getBytes());
+            }
+        }
+        return new CompressedBulk(Buffer.buffer(out.toByteArray()), countPerType);
     }
-    return new CompressedBulk(Buffer.buffer(out.toByteArray()), countPerType);
-  }
 }

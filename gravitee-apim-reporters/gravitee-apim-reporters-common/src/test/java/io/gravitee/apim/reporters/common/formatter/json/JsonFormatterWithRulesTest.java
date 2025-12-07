@@ -19,14 +19,14 @@ import static io.gravitee.apim.reporters.common.formatter.Mappers.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.apim.reporters.common.MetricsType;
+import io.gravitee.apim.reporters.common.formatter.AbstractFormatterTest;
+import io.gravitee.apim.reporters.common.formatter.Type;
 import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
-import io.gravitee.apim.reporters.common.MetricsType;
-import io.gravitee.apim.reporters.common.formatter.AbstractFormatterTest;
-import io.gravitee.apim.reporters.common.formatter.Type;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.Set;
@@ -38,77 +38,68 @@ import org.junit.jupiter.api.Test;
  */
 class JsonFormatterWithRulesTest extends AbstractFormatterTest {
 
-  @Override
-  protected Type type() {
-    return Type.JSON;
-  }
+    @Override
+    protected Type type() {
+        return Type.JSON;
+    }
 
-  @Test
-  void should_format_logs() throws IOException {
-    var given = readGiven("log.json", Log.class);
-    var expected = readExpected("json/log-with-rules.json");
+    @Test
+    void should_format_logs() throws IOException {
+        var given = readGiven("log.json", Log.class);
+        var expected = readExpected("json/log-with-rules.json");
 
-    resetFormatter(MetricsType.REQUEST_LOG);
+        resetFormatter(MetricsType.REQUEST_LOG);
 
-    assertThat(JSON.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_metrics() throws IOException {
-    var given = readGiven("metrics.json", Metrics.class);
-    var expected = readExpected("json/metrics-with-rules.json");
+    @Test
+    void should_format_metrics() throws IOException {
+        var given = readGiven("metrics.json", Metrics.class);
+        var expected = readExpected("json/metrics-with-rules.json");
 
-    resetFormatter(MetricsType.REQUEST);
+        resetFormatter(MetricsType.REQUEST);
 
-    assertThat(JSON.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_monitor() throws IOException {
-    var given = readGiven("monitor.json", Monitor.class);
-    var expected = readExpected("json/monitor-with-rules.json");
+    @Test
+    void should_format_monitor() throws IOException {
+        var given = readGiven("monitor.json", Monitor.class);
+        var expected = readExpected("json/monitor-with-rules.json");
 
-    resetFormatter(MetricsType.NODE_MONITOR);
+        resetFormatter(MetricsType.NODE_MONITOR);
 
-    assertThat(JSON.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_endpoint_status() throws IOException {
-    var given = readGiven("endpoint-status.json", EndpointStatus.class);
-    var expected = readExpected("json/endpoint-status-with-rules.json");
+    @Test
+    void should_format_endpoint_status() throws IOException {
+        var given = readGiven("endpoint-status.json", EndpointStatus.class);
+        var expected = readExpected("json/endpoint-status-with-rules.json");
 
-    resetFormatter(MetricsType.HEALTH_CHECK);
+        resetFormatter(MetricsType.HEALTH_CHECK);
 
-    assertThat(JSON.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_not_return_null_when_not_empty_object()
-    throws JsonProcessingException {
-    var emptyMonitor = new Monitor(System.currentTimeMillis());
-    resetFormatter(MetricsType.NODE_MONITOR);
-    var result = formatter.format(emptyMonitor);
-    assertThat(result).isNotNull();
-    assertThat(JSON.readTree(result.toString()).has("date")).isTrue();
-  }
+    @Test
+    void should_not_return_null_when_not_empty_object() throws JsonProcessingException {
+        var emptyMonitor = new Monitor(System.currentTimeMillis());
+        resetFormatter(MetricsType.NODE_MONITOR);
+        var result = formatter.format(emptyMonitor);
+        assertThat(result).isNotNull();
+        assertThat(JSON.readTree(result.toString()).has("date")).isTrue();
+    }
 
-  @Test
-  void should_return_null_when_empty_object() throws JsonProcessingException {
-    Rules rules = new Rules();
-    rules.setExcludeFields(Set.of("*"));
-    JsonFormatter<Monitor> formatter = new JsonFormatter<>(rules);
+    @Test
+    void should_return_null_when_empty_object() throws JsonProcessingException {
+        Rules rules = new Rules();
+        rules.setExcludeFields(Set.of("*"));
+        JsonFormatter<Monitor> formatter = new JsonFormatter<>(rules);
 
-    Monitor monitor = new Monitor(System.currentTimeMillis());
-    Buffer result = formatter.format(monitor);
-    assertThat(result).isNull();
-  }
+        Monitor monitor = new Monitor(System.currentTimeMillis());
+        Buffer result = formatter.format(monitor);
+        assertThat(result).isNull();
+    }
 }

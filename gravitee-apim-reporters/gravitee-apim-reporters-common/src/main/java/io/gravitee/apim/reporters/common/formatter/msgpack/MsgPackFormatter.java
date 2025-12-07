@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
@@ -28,7 +29,6 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.gravitee.reporter.api.jackson.*;
 import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
-import io.gravitee.apim.reporters.common.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
 import org.msgpack.jackson.dataformat.MessagePackMapper;
 import org.slf4j.Logger;
@@ -38,43 +38,37 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MsgPackFormatter<T extends Reportable>
-  extends AbstractFormatter<T> {
+public class MsgPackFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-    MsgPackFormatter.class
-  );
+    private static final Logger LOG = LoggerFactory.getLogger(MsgPackFormatter.class);
 
-  private final ObjectMapper mapper = new MessagePackMapper();
+    private final ObjectMapper mapper = new MessagePackMapper();
 
-  public MsgPackFormatter(final Rules rules) {
-    if (rules != null && rules.containsRules()) {
-      mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
-      mapper.addMixIn(Request.class, FieldFilterMixin.class);
-      mapper.addMixIn(Response.class, FieldFilterMixin.class);
-      mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
-      mapper.addMixIn(Step.class, FieldFilterMixin.class);
-      mapper.setFilterProvider(new FieldFilterProvider(rules));
+    public MsgPackFormatter(final Rules rules) {
+        if (rules != null && rules.containsRules()) {
+            mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
+            mapper.addMixIn(Request.class, FieldFilterMixin.class);
+            mapper.addMixIn(Response.class, FieldFilterMixin.class);
+            mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
+            mapper.addMixIn(Step.class, FieldFilterMixin.class);
+            mapper.setFilterProvider(new FieldFilterProvider(rules));
+        }
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
+        module.addDeserializer(AdditionalMetric.class, new AdditionalMetricDeserialization());
+        mapper.registerModule(module);
+
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    SimpleModule module = new SimpleModule();
-    module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
-    module.addDeserializer(
-      AdditionalMetric.class,
-      new AdditionalMetricDeserialization()
-    );
-    mapper.registerModule(module);
-
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Override
-  public Buffer format0(T data) {
-    try {
-      return Buffer.buffer(mapper.writeValueAsBytes(data));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unexpected error while formatting data", e);
-      return null;
+    @Override
+    public Buffer format0(T data) {
+        try {
+            return Buffer.buffer(mapper.writeValueAsBytes(data));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unexpected error while formatting data", e);
+            return null;
+        }
     }
-  }
 }

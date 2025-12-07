@@ -16,18 +16,18 @@
 package io.gravitee.apim.reporters.common.formatter;
 
 public enum Type {
-  CSV("csv"),
-  JSON("json"),
-  MESSAGE_PACK("msgpack"),
-  ELASTICSEARCH("json");
+    CSV("csv"),
+    JSON("json"),
+    MESSAGE_PACK("msgpack"),
+    ELASTICSEARCH("json");
 
-  private final String extension;
+    private final String extension;
 
-  Type(final String extension) {
-    this.extension = extension;
-  }
+    Type(final String extension) {
+        this.extension = extension;
+    }
 
-  public String getExtension() {
-    return extension;
-  }
+    public String getExtension() {
+        return extension;
+    }
 }

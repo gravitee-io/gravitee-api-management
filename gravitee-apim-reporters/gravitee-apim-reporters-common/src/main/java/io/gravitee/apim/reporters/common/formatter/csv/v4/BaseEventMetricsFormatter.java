@@ -15,37 +15,36 @@
  */
 package io.gravitee.apim.reporters.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.event.BaseEventMetrics;
 import io.gravitee.apim.reporters.common.formatter.csv.SingleValueFormatter;
+import io.gravitee.reporter.api.v4.metric.event.BaseEventMetrics;
 import io.vertx.core.buffer.Buffer;
 
 /**
  * @author Anthony CALLAERT (anthony.callaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class BaseEventMetricsFormatter<T extends BaseEventMetrics>
-  extends SingleValueFormatter<T> {
+public abstract class BaseEventMetricsFormatter<T extends BaseEventMetrics> extends SingleValueFormatter<T> {
 
-  @Override
-  protected Buffer format0(T data) {
-    final Buffer buffer = Buffer.buffer();
-    appendLong(buffer, data.getTimestamp());
+    @Override
+    protected Buffer format0(T data) {
+        final Buffer buffer = Buffer.buffer();
+        appendLong(buffer, data.getTimestamp());
 
-    // Append base dimensions
-    appendString(buffer, data.getGatewayId());
-    appendString(buffer, data.getOrganizationId());
-    appendString(buffer, data.getEnvironmentId());
-    appendString(buffer, data.getApiId());
-    appendString(buffer, data.getPlanId());
-    appendString(buffer, data.getApplicationId());
-    return buffer;
-  }
+        // Append base dimensions
+        appendString(buffer, data.getGatewayId());
+        appendString(buffer, data.getOrganizationId());
+        appendString(buffer, data.getEnvironmentId());
+        appendString(buffer, data.getApiId());
+        appendString(buffer, data.getPlanId());
+        appendString(buffer, data.getApplicationId());
+        return buffer;
+    }
 
-  protected static long getValue(Number number) {
-    return number != null ? number.longValue() : 0;
-  }
+    protected static long getValue(Number number) {
+        return number != null ? number.longValue() : 0;
+    }
 
-  protected void appendLong(Buffer buffer, Number value) {
-    super.appendLong(buffer, getValue(value));
-  }
+    protected void appendLong(Buffer buffer, Number value) {
+        super.appendLong(buffer, getValue(value));
+    }
 }

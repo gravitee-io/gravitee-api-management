@@ -30,40 +30,33 @@ import org.junit.jupiter.params.provider.CsvSource;
  */
 class JsonFormatterTest extends AbstractFormatterTest {
 
-  @Override
-  protected Type type() {
-    return Type.JSON;
-  }
-
-  @CsvSource(
-    {
-      "log, log.Log, log.json, json/log.json",
-      "metrics, http.Metrics, metrics.json, json/metrics.json",
-      "metrics with additional, http.Metrics, metrics-with-additional.json, json/metrics-with-additional.json",
-      "endpoint status, health.EndpointStatus, endpoint-status.json, json/endpoint-status.json",
-      "monitor, monitor.Monitor, monitor.json, json/monitor.json",
-      "v4 log, v4.log.Log, v4/log.json, json/v4/log.json",
-      "v4 metrics, v4.metric.Metrics, v4/metrics.json, json/v4/metrics.json",
-      "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, json/v4/metrics-with-additional.json",
-      "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
-      "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, json/v4/message-metrics-with-additional.json",
-      "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
-      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, json/v4/event-metrics.json",
-      "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",
+    @Override
+    protected Type type() {
+        return Type.JSON;
     }
-  )
-  @ParameterizedTest(name = "{0}")
-  @SuppressWarnings("unused")
-  void should_format(
-    String testName,
-    String className,
-    String input,
-    String output
-  ) throws IOException {
-    var given = readGiven(input, className);
-    var expected = readExpected(output);
-    assertThat(JSON.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+
+    @CsvSource(
+        {
+            "log, log.Log, log.json, json/log.json",
+            "metrics, http.Metrics, metrics.json, json/metrics.json",
+            "metrics with additional, http.Metrics, metrics-with-additional.json, json/metrics-with-additional.json",
+            "endpoint status, health.EndpointStatus, endpoint-status.json, json/endpoint-status.json",
+            "monitor, monitor.Monitor, monitor.json, json/monitor.json",
+            "v4 log, v4.log.Log, v4/log.json, json/v4/log.json",
+            "v4 metrics, v4.metric.Metrics, v4/metrics.json, json/v4/metrics.json",
+            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, json/v4/metrics-with-additional.json",
+            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
+            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, json/v4/message-metrics-with-additional.json",
+            "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
+            "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, json/v4/event-metrics.json",
+            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",
+        }
+    )
+    @ParameterizedTest(name = "{0}")
+    @SuppressWarnings("unused")
+    void should_format(String testName, String className, String input, String output) throws IOException {
+        var given = readGiven(input, className);
+        var expected = readExpected(output);
+        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 }

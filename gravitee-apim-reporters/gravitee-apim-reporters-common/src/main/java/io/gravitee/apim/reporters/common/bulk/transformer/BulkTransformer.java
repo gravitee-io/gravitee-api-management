@@ -22,11 +22,11 @@ import io.gravitee.reporter.api.Reportable;
  * @author GraviteeSource Team
  */
 public interface BulkTransformer {
-  /**
-   * Called as a first step of the bulk process to transform on reportable to a {@link TransformedReport}
-   *
-   * @param reportable
-   * @return a built  {@link TransformedReport}
-   */
-  TransformedReport transform(final Reportable reportable);
+    /**
+     * Called as a first step of the bulk process to transform on reportable to a {@link TransformedReport}
+     *
+     * @param reportable
+     * @return a built  {@link TransformedReport}
+     */
+    TransformedReport transform(final Reportable reportable);
 }

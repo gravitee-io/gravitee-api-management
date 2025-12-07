@@ -25,37 +25,37 @@ import io.vertx.core.buffer.Buffer;
  */
 public class MonitorFormatter extends SingleValueFormatter<Monitor> {
 
-  @Override
-  public Buffer format0(Monitor monitor) {
-    final Buffer buffer = Buffer.buffer();
+    @Override
+    public Buffer format0(Monitor monitor) {
+        final Buffer buffer = Buffer.buffer();
 
-    // Write info about OS
-    appendShort(buffer, monitor.getOs().cpu.percent);
+        // Write info about OS
+        appendShort(buffer, monitor.getOs().cpu.percent);
 
-    // Write info about process
-    appendLong(buffer, monitor.getProcess().timestamp);
-    appendLong(buffer, monitor.getProcess().openFileDescriptors);
-    appendLong(buffer, monitor.getProcess().maxFileDescriptors);
+        // Write info about process
+        appendLong(buffer, monitor.getProcess().timestamp);
+        appendLong(buffer, monitor.getProcess().openFileDescriptors);
+        appendLong(buffer, monitor.getProcess().maxFileDescriptors);
 
-    // Write info about JVM
-    appendLong(buffer, monitor.getJvm().timestamp);
-    appendLong(buffer, monitor.getJvm().uptime);
+        // Write info about JVM
+        appendLong(buffer, monitor.getJvm().timestamp);
+        appendLong(buffer, monitor.getJvm().uptime);
 
-    appendLong(buffer, monitor.getJvm().mem.heapCommitted);
-    appendLong(buffer, monitor.getJvm().mem.nonHeapCommitted);
-    appendLong(buffer, monitor.getJvm().mem.heapUsed);
-    appendLong(buffer, monitor.getJvm().mem.nonHeapUsed);
-    appendLong(buffer, monitor.getJvm().mem.heapMax);
+        appendLong(buffer, monitor.getJvm().mem.heapCommitted);
+        appendLong(buffer, monitor.getJvm().mem.nonHeapCommitted);
+        appendLong(buffer, monitor.getJvm().mem.heapUsed);
+        appendLong(buffer, monitor.getJvm().mem.nonHeapUsed);
+        appendLong(buffer, monitor.getJvm().mem.heapMax);
 
-    appendInt(buffer, monitor.getJvm().threads.getCount());
-    appendInt(buffer, monitor.getJvm().threads.getPeakCount());
+        appendInt(buffer, monitor.getJvm().threads.getCount());
+        appendInt(buffer, monitor.getJvm().threads.getPeakCount());
 
-    for (JvmInfo.GarbageCollector collector : monitor.getJvm().gc.collectors) {
-      appendString(buffer, collector.getName());
-      appendLong(buffer, collector.getCollectionCount());
-      appendLong(buffer, collector.getCollectionTime());
+        for (JvmInfo.GarbageCollector collector : monitor.getJvm().gc.collectors) {
+            appendString(buffer, collector.getName());
+            appendLong(buffer, collector.getCollectionCount());
+            appendLong(buffer, collector.getCollectionTime());
+        }
+
+        return buffer;
     }
-
-    return buffer;
-  }
 }

@@ -19,10 +19,10 @@ import java.io.Serial;
 
 public class SendReportException extends RuntimeException {
 
-  @Serial
-  private static final long serialVersionUID = -206823564137258857L;
+    @Serial
+    private static final long serialVersionUID = -206823564137258857L;
 
-  public SendReportException(String message, Throwable t) {
-    super(message, t);
-  }
+    public SendReportException(String message, Throwable t) {
+        super(message, t);
+    }
 }

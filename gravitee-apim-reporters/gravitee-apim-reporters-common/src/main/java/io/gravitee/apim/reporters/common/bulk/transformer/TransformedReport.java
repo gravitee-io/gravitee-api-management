@@ -25,11 +25,8 @@ import java.util.Locale;
  * @param transformed the report that has been transformed.
  * @param clazz the initial type of the report.
  */
-public record TransformedReport(
-  Buffer transformed,
-  Class<? extends Reportable> clazz
-) {
-  public String type() {
-    return clazz.getSimpleName().toLowerCase(Locale.ROOT);
-  }
+public record TransformedReport(Buffer transformed, Class<? extends Reportable> clazz) {
+    public String type() {
+        return clazz.getSimpleName().toLowerCase(Locale.ROOT);
+    }
 }

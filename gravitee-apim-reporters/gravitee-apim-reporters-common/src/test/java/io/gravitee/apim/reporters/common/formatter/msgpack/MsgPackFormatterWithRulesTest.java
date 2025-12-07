@@ -19,13 +19,13 @@ import static io.gravitee.apim.reporters.common.formatter.Mappers.JSON;
 import static io.gravitee.apim.reporters.common.formatter.Mappers.MESSAGE_PACK;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.reporters.common.MetricsType;
+import io.gravitee.apim.reporters.common.formatter.AbstractFormatterTest;
+import io.gravitee.apim.reporters.common.formatter.Type;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
-import io.gravitee.apim.reporters.common.MetricsType;
-import io.gravitee.apim.reporters.common.formatter.AbstractFormatterTest;
-import io.gravitee.apim.reporters.common.formatter.Type;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
@@ -35,58 +35,52 @@ import org.junit.jupiter.api.Test;
  */
 class MsgPackFormatterWithRulesTest extends AbstractFormatterTest {
 
-  @Override
-  protected Type type() {
-    return Type.MESSAGE_PACK;
-  }
+    @Override
+    protected Type type() {
+        return Type.MESSAGE_PACK;
+    }
 
-  @Test // FIXME including nested objects should be supported
-  void should_format_logs() throws IOException {
-    var given = readGiven("log.json", Log.class);
-    var expected = readExpected("json/log-with-rules.json");
+    @Test // FIXME including nested objects should be supported
+    void should_format_logs() throws IOException {
+        var given = readGiven("log.json", Log.class);
+        var expected = readExpected("json/log-with-rules.json");
 
-    resetFormatter(MetricsType.REQUEST_LOG);
+        resetFormatter(MetricsType.REQUEST_LOG);
 
-    assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .ignoringFields("_children.clientResponse._children")
-      .ignoringFields("_children.clientRequest._children")
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .ignoringFields("_children.clientResponse._children")
+            .ignoringFields("_children.clientRequest._children")
+            .isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_metrics() throws IOException {
-    var given = readGiven("metrics.json", Metrics.class);
-    var expected = readExpected("json/metrics-with-rules.json");
+    @Test
+    void should_format_metrics() throws IOException {
+        var given = readGiven("metrics.json", Metrics.class);
+        var expected = readExpected("json/metrics-with-rules.json");
 
-    resetFormatter(MetricsType.REQUEST);
+        resetFormatter(MetricsType.REQUEST);
 
-    assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_monitor() throws IOException {
-    var given = readGiven("monitor.json", Monitor.class);
-    var expected = readExpected("json/monitor-with-rules.json");
+    @Test
+    void should_format_monitor() throws IOException {
+        var given = readGiven("monitor.json", Monitor.class);
+        var expected = readExpected("json/monitor-with-rules.json");
 
-    resetFormatter(MetricsType.NODE_MONITOR);
+        resetFormatter(MetricsType.NODE_MONITOR);
 
-    assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 
-  @Test
-  void should_format_endpoint_status() throws IOException {
-    var given = readGiven("endpoint-status.json", EndpointStatus.class);
-    var expected = readExpected("json/endpoint-status-with-rules.json");
+    @Test
+    void should_format_endpoint_status() throws IOException {
+        var given = readGiven("endpoint-status.json", EndpointStatus.class);
+        var expected = readExpected("json/endpoint-status-with-rules.json");
 
-    resetFormatter(MetricsType.HEALTH_CHECK);
+        resetFormatter(MetricsType.HEALTH_CHECK);
 
-    assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
-      .usingRecursiveComparison()
-      .isEqualTo(JSON.readTree(expected));
-  }
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+    }
 }

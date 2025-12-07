@@ -18,9 +18,9 @@ package io.gravitee.apim.reporters.common.formatter.csv.v4;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.apim.reporters.common.formatter.csv.SingleValueFormatter;
 import io.gravitee.apim.reporters.common.formatter.util.ReportableSanitizationUtil;
+import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,44 +31,34 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-    MessageLogFormatter.class
-  );
+    private static final Logger LOG = LoggerFactory.getLogger(MessageLogFormatter.class);
 
-  private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-  public MessageLogFormatter() {
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Override
-  protected Buffer format0(MessageLog log) {
-    final Buffer buffer = Buffer.buffer();
-
-    appendString(buffer, log.getRequestId());
-    appendString(buffer, log.getApiId());
-    appendString(buffer, log.getApiName());
-    appendString(buffer, log.getCorrelationId());
-    appendString(buffer, log.getParentCorrelationId());
-    appendString(
-      buffer,
-      log.getOperation() != null ? log.getOperation().name() : null
-    );
-    appendString(
-      buffer,
-      log.getConnectorType() != null ? log.getConnectorType().name() : null
-    );
-    appendString(buffer, log.getConnectorId());
-
-    try {
-      ReportableSanitizationUtil.removeMessageMetadataWithNullValues(
-        log.getMessage()
-      );
-      appendString(buffer, mapper.writeValueAsString(log.getMessage()));
-    } catch (JsonProcessingException e) {
-      LOG.error("Unable to process message", e);
+    public MessageLogFormatter() {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    return buffer;
-  }
+    @Override
+    protected Buffer format0(MessageLog log) {
+        final Buffer buffer = Buffer.buffer();
+
+        appendString(buffer, log.getRequestId());
+        appendString(buffer, log.getApiId());
+        appendString(buffer, log.getApiName());
+        appendString(buffer, log.getCorrelationId());
+        appendString(buffer, log.getParentCorrelationId());
+        appendString(buffer, log.getOperation() != null ? log.getOperation().name() : null);
+        appendString(buffer, log.getConnectorType() != null ? log.getConnectorType().name() : null);
+        appendString(buffer, log.getConnectorId());
+
+        try {
+            ReportableSanitizationUtil.removeMessageMetadataWithNullValues(log.getMessage());
+            appendString(buffer, mapper.writeValueAsString(log.getMessage()));
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to process message", e);
+        }
+
+        return buffer;
+    }
 }
