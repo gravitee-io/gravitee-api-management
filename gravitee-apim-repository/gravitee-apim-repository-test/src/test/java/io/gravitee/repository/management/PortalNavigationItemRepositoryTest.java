@@ -342,4 +342,53 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             portalNavigationItemRepository.delete("unpublished-item-2");
         }
     }
+
+    @Test
+    public void should_search_public_items() throws Exception {
+        // Create a private item for testing
+        PortalNavigationItem privateItem = PortalNavigationItem.builder()
+            .id("private-item")
+            .organizationId("org-1")
+            .environmentId("public-private-env")
+            .title("Private Item")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(12)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PRIVATE)
+            .build();
+
+        PortalNavigationItem publicItem = PortalNavigationItem.builder()
+            .id("public-item")
+            .organizationId("org-1")
+            .environmentId("public-private-env")
+            .title("Public Item")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(13)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .build();
+
+        portalNavigationItemRepository.create(privateItem);
+        portalNavigationItemRepository.create(publicItem);
+
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("public-private-env")
+                .visibility("PUBLIC")
+                .build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).isNotNull();
+            assertThat(items).hasSize(1);
+            assertThat(items.getFirst().getId()).isEqualTo("public-item");
+            assertThat(items.getFirst().getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+        } finally {
+            portalNavigationItemRepository.delete("public-item");
+        }
+    }
 }
