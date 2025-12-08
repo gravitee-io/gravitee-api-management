@@ -39,7 +39,7 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
   apiLoggingForm: UntypedFormGroup;
   canUpdateSettings: boolean;
   settings: ConsoleSettings;
-  private unsubscribe$ = new Subject();
+  private readonly unsubscribe$ = new Subject();
   public formInitialValues: unknown;
   constructor(
     private readonly fb: UntypedFormBuilder,
@@ -219,7 +219,7 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
         }
       } catch (e) {
         this.applyErrorToDefaultAndLimit(control, defaultControl, limitControl, error);
-        this.snackBarService.error(e);
+        // we can ignire error as the returned object contains the error message we want to display
         return { [error.key]: error.message };
       }
       this.clearDefaultAndLimitCustomError(defaultControl, limitControl, error.key);
