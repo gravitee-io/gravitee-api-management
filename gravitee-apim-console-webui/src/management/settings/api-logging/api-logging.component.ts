@@ -219,7 +219,7 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
         }
       } catch (e) {
         this.applyErrorToDefaultAndLimit(control, defaultControl, limitControl, error);
-        // we can ignire error as the returned object contains the error message we want to display
+        // we can ignore error as the returned object contains the error message we want to display
         return { [error.key]: error.message };
       }
       this.clearDefaultAndLimitCustomError(defaultControl, limitControl, error.key);
