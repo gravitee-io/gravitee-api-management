@@ -58,10 +58,7 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
-    @Mapping(
-        target = "portalPageContentId",
-        expression = "java(PortalPageContentId.of(parsePortalPageContentId(portalNavigationItem.getConfiguration())))"
-    )
+    @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -99,13 +96,13 @@ public interface PortalNavigationItemAdapter {
     }
 
     @Named("parsePortalPageContentId")
-    default String parsePortalPageContentId(String configuration) {
+    default PortalPageContentId parsePortalPageContentId(String configuration) {
         if (configuration == null || configuration.isEmpty()) {
             throw new IllegalArgumentException("PortalNavigationItem configuration is missing for PAGE type");
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration);
-            return node.get(PORTAL_PAGE_CONTENT_ID).asText();
+            return PortalPageContentId.of(node.get(PORTAL_PAGE_CONTENT_ID).asText());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
         }
