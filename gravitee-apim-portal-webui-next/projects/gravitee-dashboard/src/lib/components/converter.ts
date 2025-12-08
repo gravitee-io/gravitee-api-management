@@ -19,5 +19,5 @@ import { PieType } from './chart/pie-chart/pie-chart.component';
 import { Metric, MetricsResponse } from './widget/model/response/response';
 
 export interface Converter {
-  convert(data: MetricsResponse<Metric>): ChartData<PieType, number[]> | number[] | string[];
+  convert(data: MetricsResponse<Metric>): ChartData<PieType | 'line', number[], string> | number[] | string[];
 }
