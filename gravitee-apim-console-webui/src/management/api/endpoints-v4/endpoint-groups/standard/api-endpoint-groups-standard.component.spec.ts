@@ -230,6 +230,17 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
     });
 
+    it('should not allow to add another endpoint to a MCP_PROXY api', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'MCP_PROXY',
+        endpointGroups: [kafkaGroup],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
+    });
+
     it('should not allow to create another endpoint group for a MESSAGE api if existing endpoint is agent to agent', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
