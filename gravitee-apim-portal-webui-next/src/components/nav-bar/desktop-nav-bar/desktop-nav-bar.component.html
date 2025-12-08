@@ -30,9 +30,27 @@
         </a>
       }
       @default {
-        <a [routerLink]="['/documentation', navigationItem.id]" mat-stroked-button color="primary" class="menu-items__custom_link">
-          {{ navigationItem.title }}
-        </a>
+        <div routerLinkActive #rla="routerLinkActive">
+          @if (rla.isActive) {
+            <a
+              [routerLink]="['/documentation', navigationItem.id]"
+              routerLinkActive
+              mat-flat-button
+              color="primary"
+              class="menu-items__custom_link">
+              {{ navigationItem.title }}
+            </a>
+          } @else {
+            <a
+              [routerLink]="['/documentation', navigationItem.id]"
+              routerLinkActive
+              mat-stroked-button
+              color="primary"
+              class="menu-items__custom_link">
+              {{ navigationItem.title }}
+            </a>
+          }
+        </div>
       }
     }
   }

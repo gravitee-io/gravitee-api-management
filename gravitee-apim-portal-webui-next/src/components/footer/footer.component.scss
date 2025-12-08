@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../scss/layout' as layout;
+@use '../../scss/theme' as app-theme;
 
 :host {
   @include layout.full-width-container();
@@ -26,6 +27,8 @@
   align-items: center;
   justify-content: space-between;
   overflow-x: hidden;
+  border-top: 1px solid app-theme.$nav-bar-border-color;
+  padding: 0 24px;
 }
 
 .footer {
