@@ -1026,4 +1026,17 @@ public class ResourceContextConfiguration {
             portalNavigationItemsQueryService
         );
     }
+
+    @Bean
+    public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase(
+        PortalNavigationItemCrudService portalNavigationItemCrudService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalPageContentCrudService portalPageContentCrudService
+    ) {
+        return new DeletePortalNavigationItemUseCase(
+            portalNavigationItemCrudService,
+            portalPageContentCrudService,
+            portalNavigationItemsQueryService
+        );
+    }
 }
