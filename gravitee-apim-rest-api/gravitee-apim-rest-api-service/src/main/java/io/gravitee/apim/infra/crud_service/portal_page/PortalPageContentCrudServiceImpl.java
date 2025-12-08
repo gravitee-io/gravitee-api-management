@@ -76,6 +76,16 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
         }
     }
 
+    @Override
+    public void delete(PortalPageContentId id) {
+        try {
+            portalPageContentRepository.delete(id.json());
+        } catch (TechnicalException e) {
+            final var errorMessage = String.format("An error occurred while deleting portal page content with id %s", id);
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
     private String getDefaultPortalPageContent() {
         if (defaultPortalPageContent == null) {
             try {

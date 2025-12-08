@@ -20,8 +20,10 @@ import jakarta.annotation.Nullable;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
+@SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder {
 
     @Nonnull

@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder
 public final class PortalNavigationFolder extends PortalNavigationItem {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.FOLDER;
