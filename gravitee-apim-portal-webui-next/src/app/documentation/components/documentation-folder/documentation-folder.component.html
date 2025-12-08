@@ -16,7 +16,15 @@
 
 -->
 <div class="documentation-folder__sidenav" appIsMobile="documentation-folder__sidenav__mobile">
-  <div class="empty-state">No items to show</div>
+  @if (this.children() && this.children()!.length > 0) {
+    <app-tree-component
+      class="documentation-folder__sidenav__tree"
+      [items]="this.children()"
+      [selectedId]="this.pageId()"
+      (selectNode)="onSelect($event)" />
+  } @else {
+    <div class="empty-state">No items to show</div>
+  }
 </div>
 <div class="documentation-folder__container">
   <div class="documentation-folder__container__breadcrumbs"></div>
