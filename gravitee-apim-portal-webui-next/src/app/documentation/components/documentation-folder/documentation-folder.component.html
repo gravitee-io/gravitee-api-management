@@ -30,7 +30,7 @@
   <div class="documentation-folder__container__breadcrumbs"></div>
   <div class="documentation-folder__container__content">
     @if (selectedPageContent()) {
-      <gmd-viewer [content]="selectedPageContent()!" appInnerLink />
+      <gmd-viewer [content]="selectedPageContent()" appInnerLink />
     } @else {
       <div class="empty-state">No content to show</div>
     }

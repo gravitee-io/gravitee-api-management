@@ -22,8 +22,21 @@ import { PortalNavigationItemsService } from '../../../services/portal-navigatio
 import { DocumentationData } from '../components/documentation.component';
 
 export const documentationResolver = (route: ActivatedRouteSnapshot): Observable<DocumentationData | null> => {
-  const itemsService = inject(PortalNavigationItemsService);
-  const navItem = itemsService.topNavbarItems().find(item => item.id === route.params['navId']);
+  const topNavbarItems = inject(PortalNavigationItemsService).topNavbarItems();
+  const router = inject(Router);
+  const navId = route.params['navId'];
+
+  if (!navId) {
+    const firstItem = topNavbarItems.find(item => item.type === 'FOLDER' || item.type === 'PAGE');
+    if (firstItem) {
+      router.navigate(['/documentation', firstItem.id], { replaceUrl: true });
+    } else {
+      router.navigate(['/404']);
+    }
+    return of(null);
+  }
+
+  const navItem = topNavbarItems.find(item => item.id === navId);
 
   if (!navItem) {
     inject(Router).navigate(['/404']);

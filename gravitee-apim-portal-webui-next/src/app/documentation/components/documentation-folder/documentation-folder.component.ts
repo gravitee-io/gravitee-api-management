@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
 import { Component, effect, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatCard } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -30,7 +28,7 @@ import { PortalNavigationItemsService } from '../../../../services/portal-naviga
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [MobileClassDirective, TreeComponent, AsyncPipe, MatCard, TreeComponent, GraviteeMarkdownViewerModule, InnerLinkDirective],
+  imports: [MobileClassDirective, TreeComponent, GraviteeMarkdownViewerModule, InnerLinkDirective],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
