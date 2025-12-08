@@ -17,10 +17,10 @@ package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -67,12 +67,7 @@ class PortalNavigationItemsQueryServiceImplTest {
             // Given
             var itemId = "00000000-0000-0000-0000-000000000001";
             var environmentId = "env-id";
-            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
-            repoItem.setId(itemId);
-            repoItem.setEnvironmentId(environmentId);
-            repoItem.setTitle("Test Item");
-            repoItem.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER);
-            repoItem.setArea(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR);
+            var repoItem = PortalNavigationItemsRepositoryFixtures.aFolder(itemId, "Test Item");
             when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
 
             // When
@@ -103,8 +98,7 @@ class PortalNavigationItemsQueryServiceImplTest {
             // Given
             var itemId = "00000000-0000-0000-0000-000000000001";
             var environmentId = "env-id";
-            var repoItem = new io.gravitee.repository.management.model.PortalNavigationItem();
-            repoItem.setId(itemId);
+            var repoItem = PortalNavigationItemsRepositoryFixtures.aFolder(itemId, "Test Item");
             repoItem.setEnvironmentId("different-env");
             when(repository.findById(itemId)).thenReturn(Optional.of(repoItem));
 
@@ -140,14 +134,13 @@ class PortalNavigationItemsQueryServiceImplTest {
             // Given
             var environmentId = "env-id";
             var parentId = "00000000-0000-0000-0000-000000000002";
-            var item1 = new io.gravitee.repository.management.model.PortalNavigationItem();
-            item1.setId("00000000-0000-0000-0000-000000000003");
+            var item1 = PortalNavigationItemsRepositoryFixtures.aPage(
+                "00000000-0000-0000-0000-000000000003",
+                "Item 1",
+                "00000000-0000-0000-0001-000000000004",
+                parentId
+            );
             item1.setEnvironmentId(environmentId);
-            item1.setParentId(parentId);
-            item1.setTitle("Item 1");
-            item1.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.PAGE);
-            item1.setArea(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR);
-            item1.setConfiguration("{ \"portalPageContentId\": \"00000000-0000-0000-0001-000000000004\" }");
 
             var repoItems = List.of(item1);
             when(repository.findAllByParentIdAndEnvironmentId(parentId, environmentId)).thenReturn(repoItems);
@@ -188,13 +181,9 @@ class PortalNavigationItemsQueryServiceImplTest {
             var portalArea = PortalArea.TOP_NAVBAR;
             var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
 
-            var item1 = new io.gravitee.repository.management.model.PortalNavigationItem();
-            item1.setId("00000000-0000-0000-0000-000000000006");
+            var item1 = PortalNavigationItemsRepositoryFixtures.aFolder("00000000-0000-0000-0000-000000000006", "Top Level");
             item1.setEnvironmentId(environmentId);
             item1.setParentId(null);
-            item1.setTitle("Top Level");
-            item1.setType(io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER);
-            item1.setArea(repoArea);
 
             var repoItems = List.of(item1);
             when(repository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(repoArea, environmentId)).thenReturn(repoItems);
