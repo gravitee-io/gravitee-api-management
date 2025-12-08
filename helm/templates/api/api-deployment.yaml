@@ -210,12 +210,14 @@ spec:
               value: "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
             {{- end }}
             {{- end }}
-            {{- if and .Values.kafkaConsole.jwt.secret .Values.kafkaConsole.jwt.secret.value }}
+            {{- with .Values.kafkaConsole.jwt.secret }}
+              {{- if .value }}
             - name: GRAVITEE_KAFKA_CONSOLE_SERVER_SECURITY_SECRET
-              value: {{ .Values.kafkaConsole.jwt.secret.value }}
-            {{- else if and .Values.kafkaConsole.jwt.secret .Values.kafkaConsole.jwt.secret.valueFrom }}
+              value: {{ .value }}
+              {{- else if .valueFrom }}
             - name: GRAVITEE_KAFKA_CONSOLE_SERVER_SECURITY_SECRET
-              valueFrom: {{- toYaml .Values.kafkaConsole.jwt.secret.valueFrom | nindent 16 }}
+              valueFrom: {{- toYaml .valueFrom | nindent 16 }}
+              {{- end }}
             {{- end }}
 {{- if .Values.api.env | default .Values.api.deployment.extraEnvs }}
 {{ toYaml ( .Values.api.env | default .Values.api.deployment.extraEnvs ) | indent 12 }}
