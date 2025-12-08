@@ -84,4 +84,13 @@ export class TreeComponentHarness extends ComponentHarness {
       .then((_) => this.getEditButton())
       .then((editButton) => editButton.click());
   }
+
+  async selectDeleteById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    const deleteButton = this._documentRootLocator.locatorFor(MatMenuItemHarness.with({ selector: `[data-testid="delete-node-button"]` }));
+    return moreActionsButton
+      .click()
+      .then((_) => deleteButton())
+      .then((deleteBtn) => deleteBtn.click());
+  }
 }

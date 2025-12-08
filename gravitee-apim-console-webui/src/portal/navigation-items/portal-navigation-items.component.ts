@@ -15,13 +15,20 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioCardEmptyStateModule,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
@@ -150,7 +157,11 @@ export class PortalNavigationItemsComponent {
   }
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
-    this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+    if (event.action === 'delete') {
+      this.confirmDeleteAction(event);
+    } else {
+      this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+    }
   }
 
   onResizeStart(event: MouseEvent): void {
@@ -358,6 +369,31 @@ export class PortalNavigationItemsComponent {
       .subscribe();
   }
 
+  onDeleteSection(node: SectionNode): Observable<void> {
+    return this.portalNavigationItemsService.deleteNavigationItem(node.id).pipe(
+      tap(() => {
+        const currentNavId = this.navId();
+
+        if (currentNavId === node.id) {
+          this.router
+            .navigate(['.'], {
+              relativeTo: this.activatedRoute,
+              queryParams: { navId: null },
+              queryParamsHandling: 'merge',
+            })
+            .catch(() => this.snackBarService.error('Failed to update selection after deletion'));
+        }
+
+        this.refreshMenuList.next(1);
+        this.snackBarService.success(`Navigation item "${node.label}" deleted`);
+      }),
+      catchError(() => {
+        this.snackBarService.error('Failed to delete navigation item');
+        return EMPTY;
+      }),
+    );
+  }
+
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
     const isPublished = navItem.published;
     const typeLabel = navItem.type.toLowerCase();
@@ -372,5 +408,34 @@ export class PortalNavigationItemsComponent {
       content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.`,
       confirmButton: action,
     };
+  }
+
+  private confirmDeleteAction(event: NodeMenuActionEvent) {
+    const node = event.node;
+    const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
+    const content = `This ${node.type.toLowerCase()} will no longer appear on your site.`;
+
+    const data: GioConfirmAndValidateDialogData = {
+      title,
+      content,
+      validationMessage: `Type <code>${node.label}</code> to confirm.`,
+      validationValue: node.label,
+      confirmButton: 'Delete',
+    };
+
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data,
+        role: 'alertdialog',
+        id: `deleteNavigationItemConfirmDialog-${node.id}`,
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed === true),
+        exhaustMap(() => this.onDeleteSection(node)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 }

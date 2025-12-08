@@ -16,8 +16,10 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { By } from '@angular/platform-browser';
 
 import { TreeComponent } from './tree.component';
+import { TreeNodeComponent } from './tree-node.component';
 
 import { GioTestingModule } from '../../../shared/testing';
 import {
@@ -106,5 +108,24 @@ describe('TreeComponent', () => {
 
     // When selectedId exists, component should NOT emit default selection
     expect(selectSpy).not.toHaveBeenCalled();
+  });
+
+  it('should re-emit delete events from child nodes', () => {
+    const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.detectChanges();
+
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
+
+    const childDebug = fixture.debugElement.query(By.directive(TreeNodeComponent));
+    // fallback if directive lookup fails, query by tag
+    const child = childDebug ? childDebug.componentInstance : fixture.debugElement.query(By.css('app-tree-node')).componentInstance;
+
+    child.nodeMenuAction.emit({ action: 'delete', itemType: 'PAGE', node: { id: 'p1', label: 'Page 1', type: 'PAGE' } });
+
+    expect(actionSpy).toHaveBeenCalledTimes(1);
+    expect(actionSpy).toHaveBeenCalledWith({ action: 'delete', itemType: 'PAGE', node: { id: 'p1', label: 'Page 1', type: 'PAGE' } });
   });
 });
