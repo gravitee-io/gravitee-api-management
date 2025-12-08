@@ -81,12 +81,28 @@
         <mat-icon svgIcon="gio:link"></mat-icon>
         Add Link
       </button>
+      <mat-divider></mat-divider>
     }
-    <mat-divider></mat-divider>
     <button mat-menu-item (click)="triggerEdit()" data-testid="edit-node-button">
       <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
       Edit
     </button>
+    <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren()" matTooltipPosition="right">
+      <button
+        mat-menu-item
+        *gioPermission="{ anyOf: ['environment-documentation-d'] }"
+        [disabled]="hasChildren()"
+        [attr.aria-disabled]="hasChildren()"
+        [attr.tabindex]="hasChildren() ? -1 : null"
+        [class.tree__menu-item-delete]="!hasChildren()"
+        [class.tree__menu-item-delete--disabled]="hasChildren()"
+        (click)="triggerDelete(node())"
+        data-testid="delete-node-button"
+      >
+        <mat-icon [class.tree__menu-item-delete]="!hasChildren()" [class.tree__menu-item-delete--disabled]="hasChildren()">delete</mat-icon>
+        Delete
+      </button>
+    </span>
   </mat-menu>
 </div>
 

@@ -244,6 +244,64 @@ describe('TreeNodeComponent', () => {
     );
   });
 
+  it('should show disabled Delete menu item when folder has children', async () => {
+    const folderNode: SectionNode = {
+      id: 'f-child',
+      label: 'Folder With Children',
+      type: 'FOLDER',
+      children: [baseNode],
+    };
+
+    fixture.componentRef.setInput('node', folderNode);
+    fixture.detectChanges();
+
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
+
+    const triggerBtn = fixture.debugElement.query(By.css('.tree__button.more-actions'));
+    expect(triggerBtn).toBeTruthy();
+    triggerBtn.nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const deleteItem = await rootLoader.getHarness(MatMenuItemHarness.with({ text: /Delete/i }));
+    expect(deleteItem).toBeTruthy();
+    expect(await deleteItem.isDisabled()).toBe(true);
+
+    // clicking disabled item should not emit action
+    await expect(deleteItem.click()).resolves.toBeUndefined();
+    expect(actionSpy).not.toHaveBeenCalled();
+  });
+
+  it('should enable Delete menu item when folder has no children and emit delete action', async () => {
+    const emptyFolder: SectionNode = {
+      id: 'f-empty',
+      label: 'Empty Folder',
+      type: 'FOLDER',
+      children: [],
+    };
+
+    fixture.componentRef.setInput('node', emptyFolder);
+    fixture.detectChanges();
+
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
+
+    const triggerBtn = fixture.debugElement.query(By.css('.tree__button.more-actions'));
+    triggerBtn.nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const deleteItem = await rootLoader.getHarness(MatMenuItemHarness.with({ text: /Delete/i }));
+    expect(await deleteItem.isDisabled()).toBe(false);
+
+    await deleteItem.click();
+    fixture.detectChanges();
+
+    expect(actionSpy).toHaveBeenCalledTimes(1);
+    expect(actionSpy).toHaveBeenCalledWith(expect.objectContaining({ action: 'delete', itemType: 'FOLDER' }));
+  });
+
   it('should render correct icons for node type and toggle state', () => {
     // For PAGE node, type icon should be gio:page
     let typeIcon = fixture.debugElement.query(By.css('.tree__icon.tree__icon__type'));
