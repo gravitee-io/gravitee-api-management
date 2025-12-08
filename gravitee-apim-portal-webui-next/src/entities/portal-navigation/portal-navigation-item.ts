@@ -16,14 +16,14 @@
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 
-export type PortalNavigationType = 'PAGE' | 'FOLDER' | 'LINK';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK';
 
 export interface BasePortalNavigationItem {
   id: string;
   organizationId: string;
   environmentId: string;
   title: string;
-  type: PortalNavigationType;
+  type: PortalNavigationItemType;
   area: PortalArea;
   parentId?: string | null;
   order: number;

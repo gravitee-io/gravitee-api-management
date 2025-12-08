@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
-import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 
 describe('PortalNavigationItemsService', () => {
   let service: PortalNavigationItemsService;
@@ -65,7 +65,7 @@ describe('PortalNavigationItemsService', () => {
 
     service.loadTopNavBarItems().subscribe(items => {
       expect(items).toEqual(mockItems);
-      expect(service.topNavbar()).toEqual(mockItems);
+      expect(service.topNavbarItems()).toEqual(mockItems);
       done();
     });
 
@@ -82,7 +82,7 @@ describe('PortalNavigationItemsService', () => {
 
   it('should set topNavbar to empty array on HTTP error', done => {
     // set a non-empty value first to ensure it gets replaced
-    service.topNavbar.set([
+    service.topNavbarItems.set([
       {
         id: 'x',
         organizationId: 'org1',
@@ -96,7 +96,7 @@ describe('PortalNavigationItemsService', () => {
 
     service.loadTopNavBarItems().subscribe(items => {
       expect(items).toEqual([]);
-      expect(service.topNavbar()).toEqual([]);
+      expect(service.topNavbarItems()).toEqual([]);
       done();
     });
 

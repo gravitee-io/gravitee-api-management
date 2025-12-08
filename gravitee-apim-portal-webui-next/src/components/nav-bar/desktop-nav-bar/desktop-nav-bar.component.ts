@@ -19,7 +19,7 @@ import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
 
-import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
 import { UserAvatarComponent } from '../../user-avatar/user-avatar.component';
 import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.component';

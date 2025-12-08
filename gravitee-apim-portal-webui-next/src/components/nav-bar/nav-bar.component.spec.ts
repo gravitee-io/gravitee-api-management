@@ -25,7 +25,7 @@ import { of } from 'rxjs';
 
 import { NavBarComponent } from './nav-bar.component';
 import { PortalPage } from '../../entities/portal/portal-page';
-import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item';
 import { fakeUser } from '../../entities/user/user.fixtures';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
@@ -65,8 +65,8 @@ describe('NavBarComponent', () => {
     };
 
     const portalNavigationItemsServiceMock: Partial<PortalNavigationItemsService> = {
-      loadTopNavBarItems: () => of([]),
-      topNavbar: {
+      loadTopNavBarItems: () => of(undefined),
+      topNavbarItems: {
         set: () => {},
       } as unknown as WritableSignal<PortalNavigationItem[]>,
     };
