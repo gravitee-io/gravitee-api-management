@@ -37,13 +37,13 @@ import lombok.Setter;
 public class HttpProxyEndpointConnectorSharedConfiguration implements EndpointConnectorSharedConfiguration {
 
     @JsonProperty("proxy")
-    private HttpProxyOptions proxyOptions;
+    private HttpProxyOptions proxyOptions = new HttpProxyOptions();
 
     @JsonProperty("http")
     private HttpClientOptions httpOptions = new HttpClientOptions();
 
     @JsonProperty("ssl")
-    private SslOptions sslOptions;
+    private SslOptions sslOptions = new SslOptions();
 
     @JsonProperty("headers")
     @Secret
