@@ -366,7 +366,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
         }
       } catch (e) {
         control.markAsTouched();
-        this.snackBarService.error(e);
+        // ignore it because the previous validation should have already failed
         return undefined;
       }
       return undefined;
@@ -386,7 +386,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
         }
       } catch (error) {
         control.markAsTouched();
-        this.snackBarService.error(error);
+        // ignore it because the previous validation should have already failed
         return undefined;
       }
       return undefined;
