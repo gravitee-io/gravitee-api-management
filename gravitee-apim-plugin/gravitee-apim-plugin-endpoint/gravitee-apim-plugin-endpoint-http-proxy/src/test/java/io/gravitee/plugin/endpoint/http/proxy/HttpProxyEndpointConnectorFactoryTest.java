@@ -27,6 +27,8 @@ import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.configurations.http.HttpClientOptions;
+import io.gravitee.plugin.configurations.http.HttpProxyOptions;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
 import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,8 +123,11 @@ class HttpProxyEndpointConnectorFactoryTest {
             .isNotNull()
             .usingRecursiveComparison()
             .isEqualTo(new HttpClientOptions());
-        assertThat(connector.sharedConfiguration.getProxyOptions()).isNull();
-        assertThat(connector.sharedConfiguration.getSslOptions()).isNull();
+        assertThat(connector.sharedConfiguration.getProxyOptions())
+            .isNotNull()
+            .usingRecursiveComparison()
+            .isEqualTo(new HttpProxyOptions());
+        assertThat(connector.sharedConfiguration.getSslOptions()).isNotNull().usingRecursiveComparison().isEqualTo(new SslOptions());
     }
 
     static final String CONFIG = "{\n" + "  \"target\": \"https://localhost:8082/echo?foo=bar\"\n" + "}";
