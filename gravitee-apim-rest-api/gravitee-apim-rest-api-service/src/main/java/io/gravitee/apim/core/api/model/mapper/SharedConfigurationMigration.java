@@ -66,10 +66,18 @@ public class SharedConfigurationMigration {
         ObjectNode httpClientOptions = mapHttpClientOptions(source.getHttpClientOptions());
         ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
         ObjectNode sharedConfiguration = objectMapper.createObjectNode();
-        sharedConfiguration.set("http", httpClientOptions);
-        sharedConfiguration.set("ssl", httpClientSslOptionsNode);
-        sharedConfiguration.set("headers", source.getHeaders() == null ? null : objectMapper.valueToTree(source.getHeaders()));
-        sharedConfiguration.set("proxy", source.getHttpProxy() == null ? null : objectMapper.valueToTree((source.getHttpProxy())));
+        if (httpClientOptions != null) {
+            sharedConfiguration.set("http", httpClientOptions);
+        }
+        if (httpClientSslOptionsNode != null) {
+            sharedConfiguration.set("ssl", httpClientSslOptionsNode);
+        }
+        if (source.getHeaders() != null) {
+            sharedConfiguration.set("headers", objectMapper.valueToTree(source.getHeaders()));
+        }
+        if (source.getHttpProxy() != null) {
+            sharedConfiguration.set("proxy", objectMapper.valueToTree((source.getHttpProxy())));
+        }
         return objectMapper.writeValueAsString(sharedConfiguration);
     }
 
