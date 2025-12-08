@@ -24,7 +24,6 @@ import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
@@ -78,12 +77,8 @@ public final class ApiServicesMigration {
             Service.builder().enabled(v2HealthCheckService.isEnabled()).overrideConfiguration(false).type("http-health-check").build()
         );
         String endpointReferenceForMessage = String.format("%s : %s", type.equals(TYPE_ENDPOINT) ? "endpoint" : "endpointgroup", name);
-        if (v2HealthCheckService.getSchedule() != null) {
-            config.put("schedule", v2HealthCheckService.getSchedule());
-        } else {
-            config.putNull("schedule");
-        }
 
+        config.put("schedule", v2HealthCheckService.getSchedule());
         config.put("failureThreshold", 2);
         config.put("successThreshold", 2);
 
