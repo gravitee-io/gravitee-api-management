@@ -59,9 +59,53 @@ public class PortalNavigationItemFixtures {
         return folder;
     }
 
+    public static PortalNavigationFolder aFolder(String title) {
+        return new PortalNavigationFolder(
+            PortalNavigationItemId.random(),
+            ORG_ID,
+            ENV_ID,
+            title,
+            PortalArea.TOP_NAVBAR,
+            0,
+            true,
+            PortalVisibility.PUBLIC
+        );
+    }
+
+    public static PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
+        var folder = new PortalNavigationFolder(
+            PortalNavigationItemId.random(),
+            ORG_ID,
+            ENV_ID,
+            title,
+            PortalArea.TOP_NAVBAR,
+            0,
+            true,
+            PortalVisibility.PUBLIC
+        );
+        folder.setParentId(parentId);
+        return folder;
+    }
+
     public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId) {
         var page = new PortalNavigationPage(
             PortalNavigationItemId.of(id),
+            ORG_ID,
+            ENV_ID,
+            title,
+            PortalArea.TOP_NAVBAR,
+            0,
+            PortalPageContentId.random(),
+            true,
+            PortalVisibility.PUBLIC
+        );
+        page.setParentId(parentId);
+        return page;
+    }
+
+    public static PortalNavigationPage aPage(String title, PortalNavigationItemId parentId) {
+        var page = new PortalNavigationPage(
+            PortalNavigationItemId.random(),
             ORG_ID,
             ENV_ID,
             title,

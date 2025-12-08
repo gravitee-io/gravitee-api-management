@@ -122,6 +122,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
@@ -1011,5 +1012,18 @@ public class ResourceContextConfiguration {
     @Bean
     public BucketNamesPostProcessor bucketNamesPostProcessor() {
         return mock(BucketNamesPostProcessor.class);
+    }
+
+    @Bean
+    public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase(
+        PortalNavigationItemCrudService portalNavigationItemCrudService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalPageContentCrudService portalPageContentCrudService
+    ) {
+        return new DeletePortalNavigationItemUseCase(
+            portalNavigationItemCrudService,
+            portalPageContentCrudService,
+            portalNavigationItemsQueryService
+        );
     }
 }
