@@ -16,9 +16,10 @@
 import { Component, input } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
+import { LineChartComponent } from '../chart/line-chart/line-chart.component';
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
 import { StatsComponent } from '../text/stats/stats.component';
-import { isFacetsWidget, isMeasuresWidget, Widget } from '../widget/model/widget/widget';
+import { isFacetsWidget, isMeasuresWidget, isTimeSeriesWidget, Widget } from '../widget/model/widget/widget';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
@@ -29,6 +30,7 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
     WidgetComponent,
     WidgetTitleComponent,
     WidgetBodyComponent,
+    LineChartComponent,
     PieChartComponent,
     StatsComponent,
   ],
@@ -41,6 +43,7 @@ export class GridComponent {
 
   protected readonly isMeasuresWidget = isMeasuresWidget;
   protected readonly isFacetsWidget = isFacetsWidget;
+  protected readonly isTimeSeriesWidget = isTimeSeriesWidget;
 
   private getGridsterOptions(): GridsterConfig {
     return {
