@@ -122,6 +122,10 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getPublished() != null) {
                 query.addCriteria(where("published").is(criteria.getPublished()));
             }
+
+            if (criteria.getVisibility() != null) {
+                query.addCriteria(where("visibility").is(criteria.getVisibility()));
+            }
         }
         return query;
     }
