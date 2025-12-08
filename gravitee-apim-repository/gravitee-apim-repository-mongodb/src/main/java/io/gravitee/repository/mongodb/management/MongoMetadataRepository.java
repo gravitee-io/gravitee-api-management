@@ -24,6 +24,8 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.MetadataMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataPkMongo;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -134,6 +136,18 @@ public class MongoMetadataRepository implements MetadataRepository {
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);
 
         LOGGER.debug("Find metadata by ref type '{}' done", referenceType);
+        return metadata.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds) {
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return List.of();
+        }
+        final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceIdIn(
+            referenceType,
+            new ArrayList<>(referenceIds)
+        );
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 
