@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *         http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,22 +22,18 @@ $indent-step: 26px;
 
 .tree {
   &__row {
+    position: relative;
     display: flex;
     align-items: center;
-    position: relative;
+    padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
     cursor: pointer;
     transition: background-color 0.2s ease;
-    padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
 
     &.folder {
       padding-left: calc(#{$indent-base} + (var(--level) * #{$indent-step}));
 
       &.child {
         padding-left: calc(#{$indent-base} + (var(--level) * #{$folder-indent-step}));
-      }
-
-      .tree__icon__type {
-        margin-left: 6px;
       }
     }
 
@@ -56,15 +52,6 @@ $indent-step: 26px;
     align-items: center;
     justify-content: center;
     padding: 0;
-
-    &.more-actions {
-      opacity: 0;
-      visibility: hidden;
-      transition:
-        opacity 0.2s ease,
-        visibility 0.2s ease;
-      background-color: transparent;
-    }
   }
 
   &__icon {

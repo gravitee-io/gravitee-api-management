@@ -17,8 +17,8 @@
 
 :host {
   display: flex;
-  flex: 1 1 100%;
   overflow: hidden;
+  flex: 1 1 100%;
 }
 
 .documentation-folder {
@@ -40,18 +40,18 @@
 
   &__container {
     display: flex;
-    flex-grow: 1;
     flex-direction: column;
+    flex-grow: 1;
 
     &__content {
-      padding: 0 30px;
       overflow: auto;
+      padding: 0 30px;
     }
   }
 }
 
 .empty-state {
-  padding: 25px;
   display: flex;
   justify-content: center;
+  padding: 25px;
 }
