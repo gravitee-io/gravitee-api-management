@@ -419,7 +419,7 @@ public class UserServiceTest {
         userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
     }
 
-    @Test(expected = UserAlreadyExistsException.class)
+    @Test(expected = InvalidUserException.class)
     public void shouldNotCreateNormalUserBecauseAlreadyExists() throws TechnicalException {
         final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
         when(newPreRegisterUserEntity.isService()).thenReturn(false);
@@ -781,7 +781,7 @@ public class UserServiceTest {
         );
     }
 
-    @Test(expected = UserAlreadyExistsException.class)
+    @Test(expected = InvalidUserException.class)
     public void shouldNotUpdateUser_EmailAlreadyInUse() throws TechnicalException {
         final String USER_ID = "myuserid";
         final String USER_EMAIL = "my.user@acme.fr";
@@ -818,7 +818,7 @@ public class UserServiceTest {
         verify(userRepository, never()).create(any());
     }
 
-    @Test(expected = UserAlreadyExistsException.class)
+    @Test(expected = InvalidUserException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
         when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class))).thenReturn(
             of(new User())
