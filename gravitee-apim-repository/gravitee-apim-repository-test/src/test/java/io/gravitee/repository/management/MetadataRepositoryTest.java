@@ -24,6 +24,8 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,6 +52,26 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(metadataList);
         assertEquals(1, metadataList.size());
+    }
+
+    @Test
+    public void shouldFindByReferenceTypeAndReferenceIdIn() throws Exception {
+        final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType.API,
+            Set.of("apiId", "api-delete")
+        );
+
+        assertNotNull(metadataList);
+        assertEquals(3, metadataList.size());
+        assertEquals(Set.of("apiId", "api-delete"), metadataList.stream().map(Metadata::getReferenceId).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void shouldFindByReferenceTypeAndReferenceIdIn_returnEmptyWhenEmptyCollection() throws Exception {
+        final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(MetadataReferenceType.API, Set.of());
+
+        assertNotNull(metadataList);
+        assertTrue(metadataList.isEmpty());
     }
 
     @Test
