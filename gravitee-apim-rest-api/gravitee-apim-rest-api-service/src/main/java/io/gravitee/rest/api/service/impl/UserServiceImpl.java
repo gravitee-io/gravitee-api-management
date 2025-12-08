@@ -127,6 +127,7 @@ import io.gravitee.rest.api.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidUserException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.ServiceAccountNotManageableException;
@@ -775,7 +776,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             );
 
             if (checkUser.isPresent()) {
-                throw new UserAlreadyExistsException(
+                throw InvalidUserException.cannotBeCreated(
                     newExternalUserEntity.getSource(),
                     newExternalUserEntity.getSourceId(),
                     organizationId
@@ -973,7 +974,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 organizationId
             );
             if (optionalUser.isPresent()) {
-                throw new UserAlreadyExistsException(
+                throw InvalidUserException.cannotBeCreated(
                     newExternalUserEntity.getSource(),
                     newExternalUserEntity.getSourceId(),
                     organizationId
@@ -1210,7 +1211,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         user.getOrganizationId()
                     );
                     if (optionalUser.isPresent()) {
-                        throw new UserAlreadyExistsException(user.getSource(), updateUserEntity.getEmail(), user.getOrganizationId());
+                        throw InvalidUserException.cannotBeUpdated(user.getSource(), updateUserEntity.getEmail(), user.getOrganizationId());
                     }
                     user.setSourceId(updateUserEntity.getEmail());
                 }
