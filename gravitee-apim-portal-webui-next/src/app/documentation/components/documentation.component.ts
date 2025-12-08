@@ -18,6 +18,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
+import { DocumentationFolderComponent } from './documentation-folder/documentation-folder.component';
+import { DocumentationPageComponent } from './documentation-page/documentation-page.component';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 
 export interface DocumentationData {
@@ -26,13 +28,13 @@ export interface DocumentationData {
 
 @Component({
   selector: 'app-documentation',
-  imports: [],
+  imports: [DocumentationFolderComponent, DocumentationPageComponent],
   standalone: true,
   template: `
     @if (isItemFolder()) {
-<!--      TODO folder component -->
+      <app-documentation-folder [navItem]="navItem()!" />
     } @else {
-<!--      TODO page component -->
+      <app-documentation-page />
     }
   `,
   styles: `
