@@ -952,6 +952,24 @@ paths:
                 $ref: "#/components/schemas/PortalNavigationItem"
         default:
           $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portal Navigation Items
+      summary: Delete a portal navigation item
+      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      operationId: deletePortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Portal navigation item deleted
+        default:
+          $ref: "#/components/responses/Error"
 
 components:
   schemas:
