@@ -280,23 +280,22 @@ workflows:
           matrix:
             parameters:
               jdbcType:
-                - postgresql~13
                 - postgresql~14
                 - postgresql~15
                 - postgresql~16
                 - postgresql~17
-                - mariadb~10.4
-                - mariadb~10.5
+                - postgresql~18
                 - mariadb~10.6
                 - mariadb~10.11
-                - mariadb~11.0
-                - mariadb~11.1
-                - mariadb~11.2
+                - mariadb~11.4
+                - mariadb~11.8
+                - mariadb~12.1
                 - mysql~8.0
-                - mysql~8.2
+                - mysql~8.4
                 - sqlserver~2017-latest
                 - sqlserver~2019-latest
                 - sqlserver~2022-latest
+                - sqlserver~2025-latest
       - job-mongo-test-container:
           name: Management repository tests - Mongo << matrix.mongoVersion >>
           context:
