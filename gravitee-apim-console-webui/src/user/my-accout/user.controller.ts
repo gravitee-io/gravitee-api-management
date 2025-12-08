@@ -64,10 +64,14 @@ class UserController {
   }
 
   save() {
-    this.UserService.save(this.user).then(() => {
-      this.NotificationService.show('User has been updated successfully');
-      this.onSaved();
-    });
+    this.UserService.save(this.user)
+      .then(() => {
+        this.NotificationService.show('User has been updated successfully');
+        this.onSaved();
+      })
+      .catch((error) => {
+        this.NotificationService.showError(error?.data ? error : { data: 'Failed to update user' });
+      });
   }
 
   displayDangerZone(): boolean {
@@ -99,10 +103,14 @@ class UserController {
       })
       .then((response) => {
         if (response) {
-          return this.UserService.removeCurrentUser().then(() => {
-            this.NotificationService.show('You have been successfully deleted');
-            this.onDeleteMyAccount();
-          });
+          return this.UserService.removeCurrentUser()
+            .then(() => {
+              this.NotificationService.show('You have been successfully deleted');
+              this.onDeleteMyAccount();
+            })
+            .catch((error) => {
+              this.NotificationService.showError(error?.data ? error : { data: 'Failed to delete account' });
+            });
         }
       });
   }
@@ -156,10 +164,14 @@ class UserController {
       })
       .then((response) => {
         if (response) {
-          this.TokenService.revoke(token).then(() => {
-            this.NotificationService.show('Token "' + token.name + '" has been revoked.');
-            this.$onInit();
-          });
+          this.TokenService.revoke(token)
+            .then(() => {
+              this.NotificationService.show('Token "' + token.name + '" has been revoked.');
+              this.$onInit();
+            })
+            .catch((error) => {
+              this.NotificationService.showError(error?.data ? error : { data: 'Failed to revoke token' });
+            });
         }
       });
   }
