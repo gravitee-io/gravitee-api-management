@@ -18,6 +18,8 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
+import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -36,17 +38,11 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_folder_to_entity() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440000")
-                .organizationId("org-id")
-                .environmentId("env-id")
-                .title("My Folder")
-                .type(PortalNavigationItem.Type.FOLDER)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .parentId("550e8400-e29b-41d4-a716-446655440001")
-                .order(1)
-                .configuration("{}")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
+                "550e8400-e29b-41d4-a716-446655440000",
+                "My Folder",
+                "550e8400-e29b-41d4-a716-446655440001"
+            );
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -60,22 +56,18 @@ class PortalNavigationItemAdapterTest {
             assertThat(folder.getTitle()).isEqualTo("My Folder");
             assertThat(folder.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(folder.getParentId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
-            assertThat(folder.getOrder()).isEqualTo(1);
+            assertThat(folder.getOrder()).isEqualTo(0);
         }
 
         @Test
         void should_map_page_to_entity() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440002")
-                .organizationId("org-id")
-                .environmentId("env-id")
-                .title("My Page")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(PortalNavigationItem.Area.HOMEPAGE)
-                .order(2)
-                .configuration("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440003\"}")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440002",
+                "My Page",
+                "550e8400-e29b-41d4-a716-446655440003",
+                null
+            );
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -87,24 +79,20 @@ class PortalNavigationItemAdapterTest {
             assertThat(page.getOrganizationId()).isEqualTo("org-id");
             assertThat(page.getEnvironmentId()).isEqualTo("env-id");
             assertThat(page.getTitle()).isEqualTo("My Page");
-            assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE);
+            assertThat(page.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
-            assertThat(page.getOrder()).isEqualTo(2);
+            assertThat(page.getOrder()).isEqualTo(0);
         }
 
         @Test
         void should_map_link_to_entity() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440004")
-                .organizationId("org-id")
-                .environmentId("env-id")
-                .title("My Link")
-                .type(PortalNavigationItem.Type.LINK)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(3)
-                .configuration("{\"url\":\"https://example.com\"}")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
+                "550e8400-e29b-41d4-a716-446655440004",
+                "My Link",
+                "https://example.com",
+                null
+            );
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -118,18 +106,19 @@ class PortalNavigationItemAdapterTest {
             assertThat(link.getTitle()).isEqualTo("My Link");
             assertThat(link.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(link.getUrl()).isEqualTo("https://example.com");
-            assertThat(link.getOrder()).isEqualTo(3);
+            assertThat(link.getOrder()).isEqualTo(0);
         }
 
         @Test
         void should_throw_when_page_configuration_is_missing() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440005")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .configuration(null)
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440005",
+                "page",
+                PortalPageContentId.random().toString(),
+                null
+            );
+            repositoryItem.setConfiguration(null);
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
@@ -140,12 +129,13 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_throw_when_page_configuration_is_empty() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440006")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .configuration("")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440006",
+                "page",
+                PortalPageContentId.random().toString(),
+                null
+            );
+            repositoryItem.setConfiguration("");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
@@ -156,12 +146,13 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_throw_when_page_configuration_is_invalid_json() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440007")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .configuration("invalid json")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440007",
+                "page",
+                PortalPageContentId.random().toString(),
+                null
+            );
+            repositoryItem.setConfiguration("invalid json");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
@@ -172,12 +163,8 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_throw_when_link_configuration_is_missing() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440008")
-                .type(PortalNavigationItem.Type.LINK)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .configuration(null)
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440008", "link", null, null);
+            repositoryItem.setConfiguration(null);
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
@@ -188,12 +175,8 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_throw_when_link_configuration_is_invalid_json() {
             // Given
-            var repositoryItem = PortalNavigationItem.builder()
-                .id("550e8400-e29b-41d4-a716-446655440009")
-                .type(PortalNavigationItem.Type.LINK)
-                .area(PortalNavigationItem.Area.TOP_NAVBAR)
-                .configuration("invalid json")
-                .build();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440009", "link", null, null);
+            repositoryItem.setConfiguration("invalid json");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
@@ -208,16 +191,7 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_folder_to_repository() {
             // Given
-            var entity = new PortalNavigationFolder(
-                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440010"),
-                "org-id",
-                "env-id",
-                "My Folder",
-                PortalArea.TOP_NAVBAR,
-                1,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var entity = PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440010", "My Folder");
             entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
 
             // When
@@ -231,7 +205,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.FOLDER);
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
             assertThat(repositoryItem.getParentId()).isEqualTo("550e8400-e29b-41d4-a716-446655440011");
-            assertThat(repositoryItem.getOrder()).isEqualTo(1);
+            assertThat(repositoryItem.getOrder()).isEqualTo(0);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
@@ -240,17 +214,10 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_page_to_repository() {
             // Given
-            var entity = new PortalNavigationPage(
-                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440012"),
-                "org-id",
-                "env-id",
-                "My Page",
-                PortalArea.HOMEPAGE,
-                2,
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"),
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440012", "My Page", null)
+                .toBuilder()
+                .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
+                .build();
 
             // When
             var repositoryItem = adapter.toRepository(entity);
@@ -261,8 +228,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getEnvironmentId()).isEqualTo("env-id");
             assertThat(repositoryItem.getTitle()).isEqualTo("My Page");
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.PAGE);
-            assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.HOMEPAGE);
-            assertThat(repositoryItem.getOrder()).isEqualTo(2);
+            assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
+            assertThat(repositoryItem.getOrder()).isEqualTo(0);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
@@ -271,17 +238,7 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_link_to_repository() {
             // Given
-            var entity = new PortalNavigationLink(
-                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440014"),
-                "org-id",
-                "env-id",
-                "My Link",
-                PortalArea.TOP_NAVBAR,
-                3,
-                "https://example.com",
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440014", "My Link", null);
 
             // When
             var repositoryItem = adapter.toRepository(entity);
@@ -293,8 +250,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getTitle()).isEqualTo("My Link");
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.LINK);
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
-            assertThat(repositoryItem.getOrder()).isEqualTo(3);
-            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"https://example.com\"}");
+            assertThat(repositoryItem.getOrder()).isEqualTo(0);
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"http://example.com\"}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }
@@ -302,16 +259,7 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_handle_null_parent_id() {
             // Given
-            var entity = new PortalNavigationFolder(
-                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440015"),
-                "org-id",
-                "env-id",
-                "My Folder",
-                PortalArea.TOP_NAVBAR,
-                0,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var entity = PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440015", "My Folder");
 
             // When
             var repositoryItem = adapter.toRepository(entity);
