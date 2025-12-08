@@ -38,6 +38,8 @@ import { CreateApplicationComponent } from './applications/create-application/cr
 import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
+import { DocumentationComponent } from './documentation/components/documentation.component';
+import { documentationResolver } from './documentation/resolvers/documentation.resolver';
 import { GuidesPageComponent } from './guides/components/guides-page.component';
 import { GuidesRedirectToFirstIdComponent } from './guides/components/guides-redirect-to-first-id.component';
 import { GuidesComponent } from './guides/guides.component';
@@ -242,6 +244,24 @@ export const routes: Routes = [
         path: ':pageId',
         component: GuidesPageComponent,
         data: { breadcrumb: { alias: 'pageName' } },
+      },
+    ],
+  },
+  {
+    path: 'documentation',
+    canActivate: [redirectGuard, authGuard],
+    children: [
+      {
+        path: '',
+        data: { breadcrumb: { alias: 'pageName' } },
+        resolve: { data: documentationResolver },
+        component: DocumentationComponent,
+      },
+      {
+        path: ':navId',
+        data: { breadcrumb: { alias: 'pageName' } },
+        resolve: { data: documentationResolver },
+        component: DocumentationComponent,
       },
     ],
   },
