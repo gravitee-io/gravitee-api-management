@@ -101,6 +101,36 @@ public class ApiMetadataQueryServiceImplTest {
         }
 
         @Test
+        void should_use_api_value_when_api_overrides_env_level_key() {
+            givenExistingEnvironmentMetadata(
+                ENV_ID,
+                List.of(
+                    Metadata.builder()
+                        .key("support-email")
+                        .value("env-default@gravitee.io")
+                        .name("Support")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.MAIL)
+                )
+            );
+            givenExistingApiMetadata(
+                API_ID,
+                List.of(
+                    Metadata.builder()
+                        .key("support-email")
+                        .value("api-override@gravitee.io")
+                        .name("Support")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.MAIL)
+                )
+            );
+
+            var result = service.findApiMetadata(ENV_ID, API_ID);
+            assertThat(result).hasSize(1).containsKey("support-email");
+            assertThat(result.get("support-email").getValue()).isEqualTo("api-override@gravitee.io");
+            assertThat(result.get("support-email").getDefaultValue()).isEqualTo("env-default@gravitee.io");
+            assertThat(result.get("support-email").getApiId()).isEqualTo(API_ID);
+        }
+
+        @Test
         void should_return_api_metadata_with_their_default_value() {
             // given
             givenExistingEnvironmentMetadata(
@@ -233,5 +263,94 @@ public class ApiMetadataQueryServiceImplTest {
         when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), any())).thenThrow(
             new TechnicalException(message)
         );
+    }
+
+    @Nested
+    class FindApisMetadata {
+
+        @Test
+        @SneakyThrows
+        void should_return_metadata_for_multiple_apis() {
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(ENV_ID))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("env-key")
+                        .value("env-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build()
+                )
+            );
+
+            when(metadataRepository.findByReferenceTypeAndReferenceIdIn(eq(MetadataReferenceType.API), any())).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .referenceId("api-1")
+                        .key("api-key")
+                        .value("api1-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build(),
+                    Metadata.builder()
+                        .referenceId("api-2")
+                        .key("api-key")
+                        .value("api2-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build()
+                )
+            );
+
+            var result = service.findApisMetadata(ENV_ID, java.util.Set.of("api-1", "api-2"));
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get("api-1")).hasSize(2).containsKeys("env-key", "api-key");
+            assertThat(result.get("api-1").get("env-key").getDefaultValue()).isEqualTo("env-value");
+            assertThat(result.get("api-1").get("api-key").getValue()).isEqualTo("api1-value");
+            assertThat(result.get("api-2").get("api-key").getValue()).isEqualTo("api2-value");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_merge_api_and_env_metadata_when_same_key_at_both_levels() {
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(ENV_ID))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("support-email")
+                        .value("env-default@gravitee.io")
+                        .name("Support")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.MAIL)
+                        .build()
+                )
+            );
+            when(metadataRepository.findByReferenceTypeAndReferenceIdIn(eq(MetadataReferenceType.API), any())).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .referenceId("api-1")
+                        .key("support-email")
+                        .value("api-override@gravitee.io")
+                        .name("Support")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.MAIL)
+                        .build()
+                )
+            );
+
+            var result = service.findApisMetadata(ENV_ID, java.util.Set.of("api-1"));
+
+            assertThat(result).hasSize(1).containsKey("api-1");
+            assertThat(result.get("api-1")).hasSize(1).containsKey("support-email");
+            assertThat(result.get("api-1").get("support-email").getValue()).isEqualTo("api-override@gravitee.io");
+            assertThat(result.get("api-1").get("support-email").getDefaultValue()).isEqualTo("env-default@gravitee.io");
+            assertThat(result.get("api-1").get("support-email").getApiId()).isEqualTo("api-1");
+        }
+
+        @Test
+        void should_return_empty_map_when_api_ids_is_empty() {
+            var result = service.findApisMetadata(ENV_ID, java.util.Set.of());
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_map_when_api_ids_is_null() {
+            var result = service.findApisMetadata(ENV_ID, null);
+            assertThat(result).isEmpty();
+        }
     }
 }
