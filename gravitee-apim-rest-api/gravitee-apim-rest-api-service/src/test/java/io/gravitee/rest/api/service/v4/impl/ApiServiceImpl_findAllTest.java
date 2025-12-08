@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -209,6 +210,9 @@ public class ApiServiceImpl_findAllTest {
     @Mock
     private CategoryMapper categoryMapper;
 
+    @Mock
+    private ApiMetadataQueryService apiMetadataQueryService;
+
     private ApiService apiService;
 
     @AfterClass
@@ -278,7 +282,8 @@ public class ApiServiceImpl_findAllTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
-            apiCategoryService
+            apiCategoryService,
+            apiMetadataQueryService
         );
     }
 
@@ -446,5 +451,40 @@ public class ApiServiceImpl_findAllTest {
             .isEqualTo(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
 
         verify(primaryOwnerService).getPrimaryOwner(anyString(), eq("API_1"));
+    }
+
+    @Test
+    public void should_expand_metadata() {
+        var api = new Api();
+        api.setId("API_1");
+
+        when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(api), 1, 1, 1));
+
+        var metadata = java.util.Map.of(
+            "key1",
+            io.gravitee.apim.core.api.model.ApiMetadata.builder().key("key1").value("value1").build(),
+            "key2",
+            io.gravitee.apim.core.api.model.ApiMetadata.builder().key("key2").defaultValue("default2").build()
+        );
+
+        when(apiMetadataQueryService.findApisMetadata(anyString(), eq(Set.of("API_1")))).thenReturn(java.util.Map.of("API_1", metadata));
+
+        final Page<GenericApiEntity> result = apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("metadata"),
+            new SortableImpl("name", true),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(result.getContent().size()).isEqualTo(1);
+        var apiMetadata = result.getContent().get(0).getMetadata();
+        assertThat(apiMetadata).isNotNull();
+        assertThat(apiMetadata.size()).isEqualTo(2);
+        assertThat(apiMetadata.get("key1")).isEqualTo("value1");
+        assertThat(apiMetadata.get("key2")).isEqualTo("default2");
+
+        verify(apiMetadataQueryService).findApisMetadata(anyString(), eq(Set.of("API_1")));
     }
 }
