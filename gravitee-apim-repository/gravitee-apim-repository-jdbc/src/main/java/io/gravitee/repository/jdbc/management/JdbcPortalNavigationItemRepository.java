@@ -173,6 +173,10 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("published = ?");
                 params.add(criteria.getPublished());
             }
+            if (criteria.getVisibility() != null) {
+                clauses.add("visibility = ?");
+                params.add(criteria.getVisibility());
+            }
         }
 
         return new CriteriaClauses(clauses, params);
