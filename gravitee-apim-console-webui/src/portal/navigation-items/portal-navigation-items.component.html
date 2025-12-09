@@ -46,7 +46,12 @@
 
     @if (menuLinks$ | async; as menuLinks) {
       <mat-card appearance="outlined" class="sections-panel__tree__container">
-        <portal-tree-component [links]="menuLinks" [selectedId]="navId()" (select)="onSelect($event)" (edit)="onEditSection($event)" />
+        <portal-tree-component
+          [links]="menuLinks"
+          [selectedId]="navId()"
+          (select)="onSelect($event)"
+          (nodeMenuAction)="onNodeMenuAction($event)"
+        />
       </mat-card>
     }
   </section>
