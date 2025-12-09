@@ -230,6 +230,19 @@ class SearchApiV4ConnectionLogsUseCaseTest {
     }
 
     @Test
+    void should_return_api_connection_logs_with_no_application_id_if_application_cannot_be_found() {
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(null).build()));
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+        assertThat(result.data())
+            .extracting(ConnectionLogModel::getApplication)
+            .isEqualTo(List.of(BaseApplicationEntity.builder().id(UNKNOWN.toLowerCase()).name(UNKNOWN).build()));
+    }
+
+    @Test
     void should_return_api_connection_logs_for_applications() {
         logStorageService.initWithConnectionLogs(
             List.of(

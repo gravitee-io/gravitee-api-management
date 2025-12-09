@@ -113,6 +113,9 @@ public class SearchApiV4ConnectionLogsUseCase {
     }
 
     private BaseApplicationEntity getApplicationEntity(ExecutionContext executionContext, String applicationId) {
+        if (applicationId == null) {
+            return BaseApplicationEntity.builder().id(UNKNOWN.toLowerCase()).name(UNKNOWN).build();
+        }
         try {
             return applicationCrudService.findById(applicationId, executionContext.getEnvironmentId());
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
