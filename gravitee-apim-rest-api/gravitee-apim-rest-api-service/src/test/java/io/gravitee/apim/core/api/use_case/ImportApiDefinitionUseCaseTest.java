@@ -292,6 +292,42 @@ class ImportApiDefinitionUseCaseTest {
         }
 
         @Test
+        void should_create_a_new_api_with_primary_owner_as_importing_user_if_user_doesnt_exist() {
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "a-custom-id";
+            importDefinition.getApiExport().setId(customId);
+
+            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder()
+                .id("NEW-USER-ID2")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .email(USER_EMAIL)
+                .displayName("Jane2 Doe2")
+                .build();
+            importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            var expected = expectedProxyApi();
+            expected.setId(customId);
+            SoftAssertions.assertSoftly(soft -> {
+                var createdApi = apiCrudService.get(customId);
+                soft.assertThat(createdApi).isEqualTo(expected);
+                soft.assertThat(createdApi.getCreatedAt()).isNotNull();
+                soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
+
+                soft
+                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                    .containsExactly(
+                        new IndexableApi(
+                            expected,
+                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                            Collections.emptySet()
+                        )
+                    );
+            });
+        }
+
+        @Test
         void should_create_a_new_api_without_sub_entities() {
             // Given
             var importDefinition = anApiProxyImportDefinition();
