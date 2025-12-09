@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ElementRef,
-  input,
-  output,
-  signal,
-  viewChild
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { SectionNode } from './tree.component';
-import {
-  PortalNavigationLink
-} from '../../../../../entities/portal-navigation/portal-navigation-item';
+import { PortalNavigationLink } from '../../../../../entities/portal-navigation/portal-navigation-item';
 
 @Component({
   selector: 'app-tree-node',

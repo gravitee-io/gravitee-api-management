@@ -18,21 +18,16 @@ import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
-import { DocumentationData } from '../components/documentation.component';
 
-export const documentationResolver = (route: ActivatedRouteSnapshot): Observable<DocumentationData | null> => {
+export const documentationResolver = (route: ActivatedRouteSnapshot): Observable<PortalNavigationItem | null> => {
   const topNavbarItems = inject(PortalNavigationItemsService).topNavbarItems();
   const router = inject(Router);
   const navId = route.params['navId'];
 
   if (!navId) {
-    const firstItem = topNavbarItems.find(item => item.type === 'FOLDER' || item.type === 'PAGE');
-    if (firstItem) {
-      router.navigate(['/documentation', firstItem.id], { replaceUrl: true });
-    } else {
-      router.navigate(['/404']);
-    }
+    router.navigate(['/']);
     return of(null);
   }
 
@@ -42,6 +37,6 @@ export const documentationResolver = (route: ActivatedRouteSnapshot): Observable
     inject(Router).navigate(['/404']);
     return of(null);
   } else {
-    return of({ navItem });
+    return of(navItem);
   }
 };

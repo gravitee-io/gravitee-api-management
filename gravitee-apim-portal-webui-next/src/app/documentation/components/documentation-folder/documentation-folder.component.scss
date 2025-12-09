@@ -25,8 +25,7 @@
   &__sidenav {
     width: 300px;
     min-width: 300px;
-    border-right: 1px solid app-theme.$nav-bar-border-color;
-    background: app-theme.$background-color;
+    border-right: 1px solid app-theme.$border-color;
 
     &__tree {
       height: 100%;

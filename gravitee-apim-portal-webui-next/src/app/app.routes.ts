@@ -254,13 +254,13 @@ export const routes: Routes = [
       {
         path: '',
         data: { breadcrumb: { alias: 'pageName' } },
-        resolve: { data: documentationResolver },
+        resolve: { navItem: documentationResolver },
         component: DocumentationComponent,
       },
       {
         path: ':navId',
         data: { breadcrumb: { alias: 'pageName' } },
-        resolve: { data: documentationResolver },
+        resolve: { navItem: documentationResolver },
         component: DocumentationComponent,
       },
     ],

@@ -63,7 +63,8 @@ $indent-step: 26px;
     }
   }
 
-  &__label, &__link {
+  &__label,
+  &__link {
     overflow-wrap: anywhere;
   }
 

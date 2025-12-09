@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { Component, computed, effect, input } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { DocumentationFolderComponent } from './documentation-folder/documentation-folder.component';
 import { DocumentationPageComponent } from './documentation-page/documentation-page.component';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
-
-export interface DocumentationData {
-  navItem: PortalNavigationItem;
-}
 
 @Component({
   selector: 'app-documentation',
@@ -45,7 +39,7 @@ export interface DocumentationData {
   `,
 })
 export class DocumentationComponent {
-  navItem = toSignal<PortalNavigationItem>(inject(ActivatedRoute).data.pipe(map(({ data }) => data?.navItem)));
+  navItem = input.required<PortalNavigationItem>();
   isItemFolder = computed(() => this.navItem()?.type === 'FOLDER');
   constructor(private router: Router) {
     effect(() => {
