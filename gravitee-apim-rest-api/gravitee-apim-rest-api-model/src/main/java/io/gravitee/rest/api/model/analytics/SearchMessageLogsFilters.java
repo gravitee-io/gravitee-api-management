@@ -15,7 +15,18 @@
  */
 package io.gravitee.rest.api.model.analytics;
 
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record SearchMessageLogsFilters(long from, long to, String operation, String connectorType, String connectorId, String requestId) {}
+public record SearchMessageLogsFilters(
+    long from,
+    long to,
+    String operation,
+    String connectorType,
+    String connectorId,
+    String requestId,
+    Map<String, List<String>> additional,
+    Boolean requiresAdditional
+) {}

@@ -71,42 +71,27 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     filtersSpy.mockClear();
 
     component.quickFiltersForm.setValue({
-      searchTerm: 'foo',
       statuses: ['200', '500'],
       applications: ['app-1'],
       period: DEFAULT_PERIOD,
     });
 
     expect(filtersSpy).toHaveBeenCalledWith({
-      searchTerm: 'foo',
       statuses: [200, 500],
       applications: [{ value: 'app-1', label: 'Application One' }],
     });
-  });
-
-  it('should clear the search value and emit filters', () => {
-    const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
-    filtersSpy.mockClear();
-    component.quickFiltersForm.setValue({ searchTerm: 'foo', statuses: [], applications: [], period: DEFAULT_PERIOD });
-
-    component.clearSearch();
-
-    expect(component.quickFiltersForm.get('searchTerm')!.value).toBe('');
-    expect(filtersSpy).toHaveBeenCalledWith({ searchTerm: undefined, statuses: undefined, applications: undefined });
   });
 
   it('should emit active period when selection changes', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
     const nonDefaultPeriod = component.periods.find((period) => period.value !== DEFAULT_PERIOD.value)!;
     component.quickFiltersForm.setValue({
-      searchTerm: '',
       statuses: [],
       applications: [],
       period: nonDefaultPeriod,
     });
 
     expect(filtersSpy).toHaveBeenCalledWith({
-      searchTerm: undefined,
       statuses: undefined,
       applications: undefined,
       period: nonDefaultPeriod,
@@ -141,7 +126,6 @@ describe('WebhookLogsQuickFiltersComponent', () => {
   it('should reset filters when clicking reset button', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
     component.quickFiltersForm.setValue({
-      searchTerm: 'acme',
       statuses: ['200'],
       applications: ['app-1'],
       period: DEFAULT_PERIOD,
@@ -155,13 +139,11 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     resetButton.click();
 
     expect(component.quickFiltersForm.value).toEqual({
-      searchTerm: '',
       statuses: [],
       applications: [],
       period: DEFAULT_PERIOD,
     });
     expect(filtersSpy).toHaveBeenCalledWith({
-      searchTerm: undefined,
       statuses: undefined,
       applications: undefined,
     });

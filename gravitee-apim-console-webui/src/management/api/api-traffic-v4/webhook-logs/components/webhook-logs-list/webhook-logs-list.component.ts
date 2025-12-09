@@ -17,7 +17,6 @@ import { Component, computed, input, TemplateRef, viewChild, output } from '@ang
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { LogsListBaseComponent, LogsListColumnDef } from '../../../components/logs-list-base/logs-list-base.component';
@@ -25,23 +24,17 @@ import { GioTableWrapperPagination } from '../../../../../../shared/components/g
 import { Pagination } from '../../../../../../entities/management-api-v2';
 import { WebhookLog } from '../../models/webhook-logs.models';
 
-// TODO: Backend Integration Required
-// - Verify that the WebhookLog interface matches the backend API response structure
-// - Ensure all column data (timestamp, status, callbackUrl, application, sentToDlq) maps correctly from backend
-// - Update if backend returns different field names or structure
-// - Consider adding error handling for malformed log data
-// - Verify pagination component works correctly with backend pagination metadata
-
 @Component({
   selector: 'webhook-logs-list',
   standalone: true,
   templateUrl: './webhook-logs-list.component.html',
   styleUrls: ['./webhook-logs-list.component.scss'],
-  imports: [LogsListBaseComponent, MatIcon, MatTooltipModule, MatButtonModule, RouterLink, DatePipe],
+  imports: [LogsListBaseComponent, MatIcon, MatTooltipModule, MatButtonModule, DatePipe],
 })
 export class WebhookLogsListComponent {
   logs = input.required<WebhookLog[]>();
   pagination = input.required<Pagination>();
+  hasDlqConfigured = input<boolean | undefined>();
 
   paginationUpdated = output<GioTableWrapperPagination>();
   logDetailsClicked = output<WebhookLog>();
@@ -60,14 +53,20 @@ export class WebhookLogsListComponent {
       return [];
     }
 
-    return [
+    const columns: LogsListColumnDef[] = [
       { id: 'timestamp', label: 'Timestamp', template: templates.timestamp! },
       { id: 'status', label: 'Status', template: templates.status! },
       { id: 'callbackUrl', label: 'Callback URL', template: templates.callbackUrl! },
       { id: 'application', label: 'Application', template: templates.application! },
-      { id: 'sentToDlq', label: 'Sent to DLQ', template: templates.sentToDlq! },
-      { id: 'actions', label: '', template: templates.actions! },
     ];
+
+    if (this.hasDlqConfigured() ?? false) {
+      columns.push({ id: 'sentToDlq', label: 'Sent to DLQ', template: templates.sentToDlq! });
+    }
+
+    columns.push({ id: 'actions', label: '', template: templates.actions! });
+
+    return columns;
   });
 
   timestampTemplate = viewChild<TemplateRef<WebhookLog>>('timestampTemplate');

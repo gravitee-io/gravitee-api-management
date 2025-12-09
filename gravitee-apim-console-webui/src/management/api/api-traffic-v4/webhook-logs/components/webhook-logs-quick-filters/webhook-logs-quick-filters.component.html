@@ -19,17 +19,6 @@
   <div class="quick-filters__row">
     @if (quickFiltersForm) {
       <form class="quick-filters__selectors" [formGroup]="quickFiltersForm">
-        <mat-form-field class="quick-filters__search">
-          <mat-label>Search Logs</mat-label>
-          <mat-icon matPrefix>search</mat-icon>
-          <input matInput placeholder="Search request ID, URL, or application" formControlName="searchTerm" />
-          @if (quickFiltersForm.controls.searchTerm.value) {
-            <button matSuffix mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-        </mat-form-field>
-
         <mat-form-field class="quick-filters__period">
           <mat-label>Period</mat-label>
           <mat-select formControlName="period" [compareWith]="comparePeriods">
@@ -99,14 +88,6 @@
     @if (isFiltering) {
       <mat-chip-listbox class="quick-filters__chip_list">
         <span class="quick-filters__applied-label">Filters applied:</span>
-        @if (currentFilters.searchTerm) {
-          <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="clearSearch()">
-            <span class="quick-filters__chip__key">Search:</span>
-            <span class="quick-filters__chip__value">{{ currentFilters.searchTerm }}</span>
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip-option>
-        }
-
         @if (currentFilters.period) {
           <mat-chip-option class="quick-filters__chip" [removable]="true" [disabled]="loading()" (removed)="removePeriod()">
             <span class="quick-filters__chip__key">Period:</span>
