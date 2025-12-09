@@ -23,7 +23,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
@@ -41,14 +40,12 @@ import { WebhookLogsMoreFiltersComponent } from '../webhook-logs-more-filters/we
 import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
 
 type QuickFiltersFormValue = {
-  searchTerm: string;
   statuses: string[];
   applications: string[];
   period: SimpleFilter;
 };
 
 const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
-  searchTerm: '',
   statuses: [],
   applications: [],
   period: DEFAULT_PERIOD,
@@ -67,7 +64,6 @@ const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
     MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatSelectModule,
     WebhookLogsApplicationsFilterComponent,
     WebhookLogsMoreFiltersComponent,
@@ -76,13 +72,6 @@ const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
 export class WebhookLogsQuickFiltersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
-  // TODO: Backend Integration Required
-  // - Verify that availableStatuses and availableCallbackUrls are provided from backend API response
-  // - Consider fetching these dynamically from backend if not included in main logs API response
-  // - Update filter options when new statuses or callback URLs are discovered in API responses
-  // - Ensure filter validation matches backend API requirements
-
-  @Input() availableStatuses: number[] = [];
   @Input() availableCallbackUrls: string[] = [];
   @Input() initialValues: WebhookLogsQuickFiltersInitialValues;
   loading = input<boolean>(false);
@@ -94,15 +83,14 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   readonly defaultFilters = DEFAULT_WEBHOOK_LOGS_FILTERS;
   readonly comparePeriods = (a: SimpleFilter, b: SimpleFilter) => a?.value === b?.value;
   readonly httpStatusChoices = [...httpStatuses];
-  quickFiltersForm: FormGroup<{
-    searchTerm: FormControl<string>;
+  quickFiltersForm!: FormGroup<{
     statuses: FormControl<string[]>;
     applications: FormControl<string[]>;
     period: FormControl<SimpleFilter>;
   }>;
-  currentFilters: WebhookLogsQuickFilters;
+  currentFilters: WebhookLogsQuickFilters = DEFAULT_WEBHOOK_LOGS_FILTERS;
   showMoreFilters = false;
-  moreFiltersValues: WebhookMoreFiltersForm;
+  moreFiltersValues!: WebhookMoreFiltersForm;
   isFiltering = false;
   private applicationsCache: MultiFilter = [];
 
@@ -139,16 +127,14 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   }
 
   private initializeQuickFiltersForm(): FormGroup<{
-    searchTerm: FormControl<string>;
     statuses: FormControl<string[]>;
     applications: FormControl<string[]>;
     period: FormControl<SimpleFilter>;
   }> {
-    const initialStatuses = this.initialValues?.statuses?.map((status) => String(status)) ?? [];
+    const initialStatuses = this.initialValues?.statuses?.map(String) ?? [];
     const initialApplications = this.initialValues?.applications?.map((app) => app.value) ?? [];
 
     return new FormGroup({
-      searchTerm: new FormControl<string>(this.initialValues?.searchTerm ?? '', { nonNullable: true }),
       statuses: new FormControl<string[]>(initialStatuses, { nonNullable: true }),
       applications: new FormControl<string[]>(initialApplications, { nonNullable: true }),
       period: new FormControl<SimpleFilter>(this.initialValues?.period ?? DEFAULT_PERIOD, { nonNullable: true }),
@@ -160,10 +146,6 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     this.applyMoreFilters({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
   }
 
-  clearSearch(): void {
-    this.quickFiltersForm.controls.searchTerm.setValue('', { emitEvent: true });
-  }
-
   openMoreFilters(): void {
     this.showMoreFilters = true;
   }
@@ -173,10 +155,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     if (this.currentFilters?.period !== values.period && values.period) {
       this.quickFiltersForm.controls.period.setValue(values.period, { emitEvent: false, onlySelf: true });
     }
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, values));
-    this.currentFilters = this.mapFormValues(formValues, values);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.updateFilters(values);
     this.showMoreFilters = false;
   }
 
@@ -226,10 +205,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
       }
     });
     this.applicationsCache = merged;
-    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
-    this.filtersChanged.emit(this.mapFormValues(formValues, this.moreFiltersValues));
-    this.currentFilters = this.mapFormValues(formValues, this.moreFiltersValues);
-    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.updateFilters();
   }
 
   private onValuesChanges() {
@@ -245,10 +221,17 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
       } else {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: formValues.period, from: null, to: null };
       }
-      this.filtersChanged.emit(this.mapFormValues(formValues, this.moreFiltersValues));
-      this.currentFilters = this.mapFormValues(formValues, this.moreFiltersValues);
-      this.isFiltering = !isEqual(this.currentFilters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+      this.updateFilters(this.moreFiltersValues);
     });
+  }
+
+  private updateFilters(moreFilters: WebhookMoreFiltersForm = this.moreFiltersValues): void {
+    const formValues: QuickFiltersFormValue = this.quickFiltersForm.getRawValue();
+    const filters = this.mapFormValues(formValues, moreFilters);
+
+    this.currentFilters = filters;
+    this.isFiltering = !isEqual(filters, DEFAULT_WEBHOOK_LOGS_FILTERS);
+    this.filtersChanged.emit(filters);
   }
 
   private mapFormValues(
@@ -261,19 +244,16 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     };
   }
 
-  private mapQuickFiltersFormValues({ searchTerm, statuses, applications, period }: QuickFiltersFormValue) {
-    const trimmedTerm = searchTerm?.trim();
+  private mapQuickFiltersFormValues({ statuses, applications, period }: QuickFiltersFormValue) {
     return {
-      searchTerm: trimmedTerm?.length ? trimmedTerm : undefined,
       statuses: statuses?.length > 0 ? statuses.map((status) => Number(status)).filter((num) => !Number.isNaN(num)) : undefined,
       applications: this.applicationsFromValues(applications),
       period: period && period.value !== DEFAULT_PERIOD.value ? period : undefined,
     };
   }
 
-  private mapMoreFiltersFormValues({ period, from, to, callbackUrls }: WebhookMoreFiltersForm) {
+  private mapMoreFiltersFormValues({ from, to, callbackUrls }: WebhookMoreFiltersForm) {
     return {
-      period,
       from: from?.valueOf(),
       to: to?.valueOf(),
       callbackUrls: callbackUrls && callbackUrls.length > 0 ? callbackUrls : undefined,
@@ -284,6 +264,6 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     if (!ids?.length) {
       return undefined;
     }
-    return ids.map((id) => this.applicationsCache.find((app) => app.value === id) ?? { value: id, label: id }).filter(Boolean);
+    return ids.map((id) => this.applicationsCache.find((app) => app.value === id) ?? { value: id, label: id });
   }
 }

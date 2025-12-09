@@ -46,34 +46,92 @@ public class SearchMessageMetricsQueryAdapter {
         }
 
         var terms = new ArrayList<JsonObject>();
-        if (filter.apiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of(MessageMetricsFields.API_ID, filter.apiId())));
+
+        addTermIfNotNull(terms, MessageMetricsFields.API_ID, filter.apiId());
+        addTermIfNotNull(terms, MessageMetricsFields.REQUEST_ID, filter.requestId());
+        addTermIfNotNull(terms, MessageMetricsFields.CONNECTOR_TYPE, filter.connectorType());
+        addTermIfNotNull(terms, MessageMetricsFields.CONNECTOR_ID, filter.connectorId());
+        addTermIfNotNull(terms, MessageMetricsFields.OPERATION, filter.operation());
+        addRangeQueryIfValid(terms, filter.from(), filter.to());
+        addAdditionalFieldsQueries(terms, filter.additional());
+        addExistsFilterIfRequired(terms, filter.requiresAdditional());
+
+        return terms.isEmpty() ? null : JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
+    }
+
+    private static void addTermIfNotNull(ArrayList<JsonObject> terms, String field, String value) {
+        if (value == null) {
+            return;
         }
-        if (filter.requestId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of(MessageMetricsFields.REQUEST_ID, filter.requestId())));
+        terms.add(JsonObject.of("term", JsonObject.of(field, value)));
+    }
+
+    private static void addRangeQueryIfValid(ArrayList<JsonObject> terms, long from, long to) {
+        if (from <= 0 || from >= to) {
+            return;
         }
-        if (filter.connectorType() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of(MessageMetricsFields.CONNECTOR_TYPE, filter.connectorType())));
-        }
-        if (filter.connectorId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of(MessageMetricsFields.CONNECTOR_ID, filter.connectorId())));
-        }
-        if (filter.operation() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of(MessageMetricsFields.OPERATION, filter.operation())));
-        }
-        if (filter.from() > 0 && filter.from() < filter.to()) {
-            terms.add(
-                JsonObject.of(
-                    "range",
-                    JsonObject.of(MessageMetricsFields.TIMESTAMP, JsonObject.of("gte", filter.from(), "lte", filter.to()))
-                )
-            );
-        }
-        if (!terms.isEmpty()) {
-            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
+        terms.add(JsonObject.of("range", JsonObject.of(MessageMetricsFields.TIMESTAMP, JsonObject.of("gte", from, "lte", to))));
+    }
+
+    private static void addAdditionalFieldsQueries(ArrayList<JsonObject> terms, java.util.Map<String, java.util.List<String>> additional) {
+        if (additional == null || additional.isEmpty()) {
+            return;
         }
 
-        return null;
+        additional.forEach((fieldName, values) -> {
+            if (fieldName == null || fieldName.trim().isEmpty() || values == null || values.isEmpty()) {
+                return;
+            }
+
+            var normalizedValues = new JsonArray();
+            for (String value : values) {
+                if (value == null) {
+                    continue;
+                }
+                var trimmed = value.trim();
+                if (!trimmed.isEmpty()) {
+                    normalizedValues.add(trimmed);
+                }
+            }
+
+            if (!normalizedValues.isEmpty()) {
+                addAdditionalFieldQuery(terms, fieldName.trim(), normalizedValues);
+            }
+        });
+    }
+
+    private static void addAdditionalFieldQuery(ArrayList<JsonObject> terms, String fieldName, JsonArray values) {
+        if (values.isEmpty()) {
+            return;
+        }
+
+        var fieldPath = MessageMetricsFields.ADDITIONAL_METRICS + "." + fieldName;
+
+        JsonObject query;
+
+        if (fieldName.startsWith("string_")) {
+            if (values.size() == 1) {
+                query = JsonObject.of("match_phrase", JsonObject.of(fieldPath, values.getString(0)));
+            } else {
+                var shouldClauses = new JsonArray();
+                for (int i = 0; i < values.size(); i++) {
+                    shouldClauses.add(JsonObject.of("match_phrase", JsonObject.of(fieldPath, values.getString(i))));
+                }
+                query = JsonObject.of("bool", JsonObject.of("should", shouldClauses, "minimum_should_match", 1));
+            }
+        } else {
+            query = values.size() == 1
+                ? JsonObject.of("term", JsonObject.of(fieldPath, values.getString(0)))
+                : JsonObject.of("terms", JsonObject.of(fieldPath, values));
+        }
+
+        terms.add(query);
+    }
+
+    private static void addExistsFilterIfRequired(ArrayList<JsonObject> terms, Boolean requiresAdditional) {
+        if (Boolean.TRUE.equals(requiresAdditional)) {
+            terms.add(JsonObject.of("exists", JsonObject.of("field", MessageMetricsFields.ADDITIONAL_METRICS)));
+        }
     }
 
     private static JsonObject buildSort() {

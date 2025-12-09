@@ -65,6 +65,8 @@ public class MessageLogsCrudServiceImpl implements MessageLogsCrudService {
                             .operation(filters.operation())
                             .from(filters.from())
                             .to(filters.to())
+                            .additional(filters.additional())
+                            .requiresAdditional(filters.requiresAdditional())
                             .build()
                     )
                     .page(pageable.getPageNumber())

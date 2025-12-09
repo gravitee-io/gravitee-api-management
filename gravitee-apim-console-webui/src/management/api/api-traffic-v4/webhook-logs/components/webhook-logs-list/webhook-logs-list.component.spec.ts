@@ -47,7 +47,7 @@ describe('WebhookLogsListComponent', () => {
       status: 502,
       callbackUrl: 'https://callback-error.test',
       application: { id: 'app-2', apiKeyMode: 'UNSPECIFIED' },
-      additionalMetrics: undefined,
+      additionalMetrics: createAdditionalMetrics({ bool_webhook_dlq: false }),
     }),
   ];
 
@@ -67,6 +67,7 @@ describe('WebhookLogsListComponent', () => {
     fixture = TestBed.createComponent(WebhookLogsListComponent);
     fixture.componentRef.setInput('logs', defaultLogs);
     fixture.componentRef.setInput('pagination', defaultPagination);
+    fixture.componentRef.setInput('hasDlqConfigured', true);
     fixture.detectChanges();
 
     harness = await TestbedHarnessEnvironment.harnessForFixture<WebhookLogsListHarness>(fixture, WebhookLogsListHarness);
@@ -88,12 +89,12 @@ describe('WebhookLogsListComponent', () => {
     expect(rowCells[0][1]).toBe('200');
     expect(rowCells[0][2]).toBe('https://callback-success.test');
     expect(rowCells[0][3]).toBe('First application');
-    expect(rowCells[0][4]).toBe('TRUE');
+    expect(rowCells[0][4]).toBe('—');
 
     expect(rowCells[1][1]).toBe('502');
     expect(rowCells[1][2]).toBe('https://callback-error.test');
     expect(rowCells[1][3]).toBe('—');
-    expect(rowCells[1][4]).toBe('—');
+    expect(rowCells[1][4]).toBe('No');
   });
 
   it('should emit log details when action button is clicked', async () => {

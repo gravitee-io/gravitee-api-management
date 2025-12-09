@@ -16,8 +16,8 @@
 import { isNumber } from 'angular';
 
 import { Component, inject, OnInit } from '@angular/core';
-import { map, shareReplay, switchMap, take } from 'rxjs/operators';
-import { ReplaySubject } from 'rxjs';
+import { map, shareReplay, switchMap, take, catchError, finalize } from 'rxjs/operators';
+import { ReplaySubject, of, Observable } from 'rxjs';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -34,17 +34,21 @@ import {
   WebhookLogsQuickFiltersInitialValues,
   WebhookLogsResponse,
 } from './models/webhook-logs.models';
-import { WEBHOOK_LOGS_MOCK_RESPONSE as webhookData } from './mocks/webhook-logs.mock';
+import { mapConnectionLogToWebhookLog } from './utils/webhook-metrics.utils';
 import { WebhookLogsListComponent } from './components/webhook-logs-list/webhook-logs-list.component';
 import { WebhookSettingsDialogComponent } from './components/webhook-settings-dialog/webhook-settings-dialog.component';
 import { WebhookLogsQuickFiltersComponent } from './components/webhook-logs-quick-filters/webhook-logs-quick-filters.component';
 
+import { ConnectionLog, Pagination, Api, ApiV4, Entrypoint } from '../../../../entities/management-api-v2';
 import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
 import { ReportingDisabledBannerComponent } from '../components/reporting-disabled-banner/reporting-disabled-banner.component';
-import { Api, ApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
+import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
+import { ApplicationService } from '../../../../services-ngx/application.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
+import { GioTableWrapperPagination } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
   selector: 'webhook-logs',
@@ -63,69 +67,66 @@ import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-l
   ],
 })
 export class WebhookLogsComponent implements OnInit {
-  private activatedRoute = inject(ActivatedRoute);
-  private router = inject(Router);
-  private apiService = inject(ApiV2Service);
-  private dialog = inject(MatDialog);
-  private snackBarService = inject(SnackBarService);
-  private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly apiService = inject(ApiV2Service);
+  private readonly apiLogsService = inject(ApiLogsV2Service);
+  private readonly apiSubscriptionService = inject(ApiSubscriptionV2Service);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
 
   isReportingDisabled$ = this.api$.pipe(
     map((api) => {
       if (!this.isApiV4(api)) {
         return false;
       }
-      const loggingMode = api.analytics?.logging?.mode;
-      return !api.analytics?.enabled || (!loggingMode?.endpoint && !loggingMode?.entrypoint);
+      const webhookEntrypoint = this.findWebhookEntrypoint(api);
+      if (!webhookEntrypoint) {
+        return false;
+      }
+      return !webhookEntrypoint.configuration?.logging?.enabled;
     }),
   );
+
+  hasDlqConfigured$ = this.api$.pipe(
+    map((api) => {
+      const webhookEntrypoint = this.isApiV4(api) ? this.findWebhookEntrypoint(api) : undefined;
+      return !!webhookEntrypoint?.dlq?.endpoint;
+    }),
+  );
+
   webhookLogsSubject$ = new ReplaySubject<WebhookLogsResponse>(1);
-  webhookLogsData: WebhookLogsResponse | null = null;
+  webhookLogsData: WebhookLogsResponse | undefined = undefined;
   private allLogs: WebhookLog[] = [];
-  private filteredLogs: WebhookLog[] = [];
+
   quickFiltersInitialValues: WebhookLogsQuickFiltersInitialValues = {};
-  statusOptions: number[] = [];
   callbackUrlOptions: string[] = [];
   private readonly periods = PERIODS;
   currentFilters: WebhookLogsQuickFilters = {};
   loading = false;
 
   ngOnInit(): void {
-    // TODO: Backend Integration Required
-    // - Replace mock data (WEBHOOK_LOGS_MOCK_RESPONSE) with actual backend API call
-    // - Create/use a service method to fetch webhook logs with filters (searchTerm, statuses, applications, period, from, to, callbackUrls)
-    // - Implement server-side pagination (currently client-side pagination using filteredLogs.slice())
-    // - Update applyFilters() to call backend API instead of filtering client-side
-    // - Update buildStatusOptions() to fetch available statuses from backend or API response metadata
-    // - Update buildCallbackUrlOptions() to fetch available callback URLs from backend or API response metadata
-    // - Handle loading states during API calls
-    // - Handle error states (network errors, API errors)
-    // - Update refresh() method to refetch data from backend
-    // - Remove dependency on webhook-logs.mock.ts once backend is integrated
-
-    // Build initial values from query params to mimic runtime logs behavior
     const qp = this.activatedRoute.snapshot.queryParams;
+
     const initialStatuses = qp?.statuses
       ? qp.statuses
           .split(',')
           .map((status: string) => Number(status))
           .filter((value) => !Number.isNaN(value))
       : [];
-    const initialSearch: string = qp?.search ?? '';
+
     const initialApplicationsIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',').filter(Boolean) : [];
     const initialPeriod = this.buildInitialPeriod(qp?.period);
     const initialFrom = this.parseTimestamp(qp?.from);
     const initialTo = this.parseTimestamp(qp?.to);
     const initialCallbackUrls: string[] = qp?.callbackUrls ? qp.callbackUrls.split(',').filter(Boolean) : [];
 
-    this.webhookLogsData = webhookData;
-    this.allLogs = webhookData.data;
-    this.buildStatusOptions(initialStatuses);
-    this.buildCallbackUrlOptions(initialCallbackUrls);
     const initialApplications = this.buildInitialApplications(initialApplicationsIds);
 
-    this.quickFiltersInitialValues = {
-      searchTerm: initialSearch || undefined,
+    // Build raw filters from query params
+    const initialFilters: WebhookLogsQuickFilters = {
       statuses: initialStatuses.length ? initialStatuses : undefined,
       applications: initialApplications?.length ? initialApplications : undefined,
       period: initialPeriod.value !== DEFAULT_PERIOD.value ? initialPeriod : undefined,
@@ -134,13 +135,208 @@ export class WebhookLogsComponent implements OnInit {
       callbackUrls: initialCallbackUrls.length ? initialCallbackUrls : undefined,
     };
 
-    this.applyFilters(this.quickFiltersInitialValues);
+    // Normalize and store as currentFilters
+    this.currentFilters = this.normalizeFilters(initialFilters);
 
+    // Use the same values for the quick filters UI
+    this.quickFiltersInitialValues = initialFilters;
+
+    const page = qp?.page ? Number(qp.page) : 1;
+    const perPage = qp?.perPage ? Number(qp.perPage) : 10;
+    this.loadWebhookLogs(this.currentFilters, page, perPage);
+    this.loadCallbackUrlOptions();
     this.openSettingsDialogIfRequested();
   }
 
+  private loadWebhookLogs(filters?: WebhookLogsQuickFilters, page: number = 1, perPage: number = 10): void {
+    this.loading = true;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
+    const normalizedFilters = this.normalizeFilters(filters ?? {});
+    const { statuses, callbackUrls, applicationIds, from, to } = this.buildSearchParams(normalizedFilters);
+
+    this.apiLogsService
+      .searchApiMessageLogs(apiId, {
+        connectorId: 'webhook',
+        connectorType: 'entrypoint',
+        operation: 'subscribe',
+        page,
+        perPage,
+        statuses,
+        callbackUrls,
+        applicationIds,
+        from,
+        to,
+        requiresAdditional: true,
+      })
+      .pipe(
+        map((response) => this.mapToWebhookLogsResponse(response)),
+        switchMap((webhookLogsResponse) => this.addApplicationNameToLogs(webhookLogsResponse)),
+        catchError(() => {
+          this.snackBarService.error('Failed to load webhook logs');
+          return of({
+            data: [],
+            pagination: { page, perPage, pageCount: 0, pageItemsCount: 0, totalCount: 0 },
+          });
+        }),
+        finalize(() => {
+          this.loading = false;
+        }),
+      )
+      .subscribe((webhookLogsResponse) => {
+        this.webhookLogsData = webhookLogsResponse;
+        this.allLogs = webhookLogsResponse.data;
+        this.buildCallbackUrlOptions();
+        this.webhookLogsSubject$.next(webhookLogsResponse);
+        this.updateUrlParams(filters ?? this.currentFilters, page, perPage);
+      });
+  }
+
+  private buildSearchParams(filters: WebhookLogsQuickFilters): {
+    statuses?: number[];
+    callbackUrls?: string[];
+    applicationIds?: string[];
+    from?: number;
+    to?: number;
+  } {
+    const statuses = filters.statuses && filters.statuses.length > 0 ? filters.statuses : undefined;
+    const callbackUrls = filters.callbackUrls && filters.callbackUrls.length > 0 ? filters.callbackUrls : undefined;
+    const applicationIds =
+      filters.applications && filters.applications.length > 0 ? filters.applications.map((app) => app.value) : undefined;
+
+    const customRange = this.buildCustomDateRange(filters);
+    const periodRange = filters.period ? this.preparePeriodRange(filters.period) : undefined;
+    const range = customRange ?? periodRange;
+
+    return {
+      statuses,
+      callbackUrls,
+      applicationIds,
+      from: range?.from,
+      to: range?.to,
+    };
+  }
+
+  private mapToWebhookLogsResponse(response: { data: ConnectionLog[]; pagination: Pagination }): WebhookLogsResponse {
+    const webhookLogs: WebhookLog[] = response.data.map((log) => mapConnectionLogToWebhookLog(log));
+
+    return {
+      data: webhookLogs,
+      pagination: response.pagination,
+    };
+  }
+
+  private readonly APP_ID_METRIC_KEY = 'keyword_webhook_app-id';
+
+  private addApplicationNameToLogs(webhookLogsResponse: WebhookLogsResponse): Observable<WebhookLogsResponse> {
+    const webhookLogs = webhookLogsResponse.data ?? [];
+
+    if (webhookLogs.length === 0) {
+      return of(webhookLogsResponse);
+    }
+
+    const applicationIdsToEnrich = new Set<string>();
+
+    for (const log of webhookLogs) {
+      if (log.application?.id && !log.application.name) {
+        applicationIdsToEnrich.add(log.application.id);
+        continue;
+      }
+
+      if (!log.application?.id) {
+        const appIdFromMetrics = log.additionalMetrics[this.APP_ID_METRIC_KEY];
+        if (appIdFromMetrics && typeof appIdFromMetrics === 'string' && appIdFromMetrics.trim().length > 0) {
+          applicationIdsToEnrich.add(appIdFromMetrics);
+        }
+      }
+    }
+
+    if (applicationIdsToEnrich.size === 0) {
+      return of(webhookLogsResponse);
+    }
+
+    const appIdsArray = Array.from(applicationIdsToEnrich);
+
+    return this.applicationService.findByIds(appIdsArray, 1, appIdsArray.length).pipe(
+      map((applicationsResponse) => {
+        const apps = applicationsResponse?.data ?? [];
+
+        const applicationMap = new Map<string, { id: string; name: string }>();
+        for (const app of apps) {
+          if (app?.id && app?.name) {
+            applicationMap.set(app.id, { id: app.id, name: app.name });
+          }
+        }
+
+        if (applicationMap.size === 0) {
+          return webhookLogsResponse;
+        }
+
+        const enrichedLogs: WebhookLog[] = webhookLogs.map((log) => {
+          const appId = this.resolveApplicationId(log);
+          if (!appId) {
+            return log;
+          }
+
+          const appData = applicationMap.get(appId);
+          if (!appData) {
+            return log;
+          }
+
+          if (log.application && !log.application.name) {
+            return {
+              ...log,
+              application: {
+                ...log.application,
+                name: appData.name,
+              },
+            };
+          }
+
+          if (!log.application) {
+            return {
+              ...log,
+              application: {
+                id: appData.id,
+                name: appData.name,
+                apiKeyMode: 'UNSPECIFIED' as const,
+              },
+            };
+          }
+
+          return log;
+        });
+
+        return {
+          ...webhookLogsResponse,
+          data: enrichedLogs,
+        };
+      }),
+      catchError(() => {
+        return of(webhookLogsResponse);
+      }),
+    );
+  }
+
+  private resolveApplicationId(log: WebhookLog): string | undefined {
+    if (log.application?.id) {
+      return log.application.id;
+    }
+    const metricId = log.additionalMetrics[this.APP_ID_METRIC_KEY];
+    return typeof metricId === 'string' && metricId.trim().length > 0 ? metricId : undefined;
+  }
+
+  paginationUpdated(event: GioTableWrapperPagination): void {
+    const page = event.index;
+    const perPage = event.size;
+    this.loadWebhookLogs(this.currentFilters, page, perPage);
+  }
+
   refresh(): void {
-    this.applyFilters(this.currentFilters);
+    const qp = this.activatedRoute.snapshot.queryParams;
+    const page = qp?.page ? Number(qp.page) : 1;
+    const perPage = qp?.perPage ? Number(qp.perPage) : 10;
+    this.loadWebhookLogs(this.currentFilters, page, perPage);
   }
 
   onFiltersChanged(filters: WebhookLogsQuickFilters): void {
@@ -148,61 +344,61 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   private applyFilters(filters: WebhookLogsQuickFilters = {}): void {
-    if (!this.webhookLogsData) {
-      return;
-    }
-
     const normalizedFilters = this.normalizeFilters(filters);
     this.currentFilters = normalizedFilters;
 
-    const searchTerm = normalizedFilters.searchTerm?.toLowerCase();
-    const statuses = normalizedFilters.statuses;
-    const applications = normalizedFilters.applications?.map((app) => app.value);
-    const customRange = this.buildCustomDateRange(normalizedFilters);
-    const periodRange = normalizedFilters.period ? this.preparePeriodRange(normalizedFilters.period) : undefined;
-    const range = customRange ?? periodRange;
-    const callbackUrls = normalizedFilters.callbackUrls;
-
-    this.filteredLogs = this.allLogs.filter((log) => {
-      const matchesSearch = !searchTerm || this.logMatchesSearchTerm(log, searchTerm);
-      const matchesStatus = !statuses?.length || statuses.includes(log.status);
-      const matchesApplication = !applications?.length || (log.application?.id && applications.includes(log.application.id));
-      const matchesPeriod = !range || this.logMatchesPeriod(log, range);
-      const matchesCallback = !callbackUrls?.length || (log.callbackUrl && callbackUrls.includes(log.callbackUrl));
-      return matchesSearch && matchesStatus && matchesApplication && matchesPeriod && matchesCallback;
-    });
-
-    this.webhookLogsData = {
-      ...this.webhookLogsData,
-      pagination: {
-        ...this.webhookLogsData.pagination,
-        totalCount: this.filteredLogs.length,
-      },
-    };
-
-    const perPage = this.webhookLogsData.pagination.perPage ?? (this.filteredLogs.length || 10);
-    this.pushPage(1, perPage);
-    this.updateUrlParams(normalizedFilters);
+    // Reset to page 1 when filters change
+    this.loadWebhookLogs(normalizedFilters, 1, 10);
   }
 
-  private buildStatusOptions(initialStatuses: number[] = []): void {
-    const statusesSet = new Set<number>(initialStatuses);
-    this.allLogs.forEach((log) => statusesSet.add(log.status));
-    this.statusOptions = Array.from(statusesSet).sort((a, b) => a - b);
-  }
-
-  private buildCallbackUrlOptions(initialUrls: string[] = []): void {
-    const urls = new Set<string>(initialUrls);
+  private buildCallbackUrlOptions(): void {
+    const urlsFromLogs = new Set<string>();
     this.allLogs.forEach((log) => {
       if (log.callbackUrl) {
-        urls.add(log.callbackUrl);
+        urlsFromLogs.add(log.callbackUrl);
       }
     });
-    this.callbackUrlOptions = Array.from(urls).sort((a, b) => a.localeCompare(b));
+
+    const allUrls = new Set<string>([...this.callbackUrlOptions, ...urlsFromLogs]);
+    this.callbackUrlOptions = Array.from(allUrls).sort((a, b) => a.localeCompare(b));
+  }
+
+  private loadCallbackUrlOptions(): void {
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
+    this.apiSubscriptionService
+      .list(apiId, '1', '1000', ['ACCEPTED', 'PENDING', 'PAUSED'])
+      .pipe(
+        map((response) => {
+          const urls = new Set<string>();
+
+          if (response.data) {
+            response.data.forEach((subscription) => {
+              if (
+                subscription.consumerConfiguration?.entrypointId === 'webhook' &&
+                subscription.consumerConfiguration?.entrypointConfiguration?.callbackUrl
+              ) {
+                const callbackUrl = subscription.consumerConfiguration.entrypointConfiguration.callbackUrl;
+                if (callbackUrl) {
+                  urls.add(callbackUrl);
+                }
+              }
+            });
+          }
+
+          return Array.from(urls).sort((a, b) => a.localeCompare(b));
+        }),
+        catchError(() => {
+          // If subscription fetch fails, fallback to empty options
+          return of<string[]>([]);
+        }),
+      )
+      .subscribe((urls) => {
+        this.callbackUrlOptions = urls;
+      });
   }
 
   private normalizeFilters(filters: WebhookLogsQuickFilters = {}): WebhookLogsQuickFilters {
-    const searchTerm = filters?.searchTerm?.trim();
     const statuses = filters?.statuses?.filter((status) => !Number.isNaN(status));
     const uniqueStatuses = statuses?.length ? Array.from(new Set(statuses)) : undefined;
 
@@ -214,21 +410,23 @@ export class WebhookLogsComponent implements OnInit {
 
     const callbackUrls = filters?.callbackUrls?.map((url) => url?.trim()).filter(Boolean);
     const uniqueCallbackUrls = callbackUrls?.length ? Array.from(new Set(callbackUrls)) : undefined;
+
     const normalizedFrom = isNumber(filters?.from) && !Number.isNaN(filters.from) ? filters.from : undefined;
     const normalizedTo = isNumber(filters?.to) && !Number.isNaN(filters.to) ? filters.to : undefined;
 
     const normalized: WebhookLogsQuickFilters = {
-      searchTerm: searchTerm?.length ? searchTerm : undefined,
       statuses: uniqueStatuses,
       applications,
       from: normalizedFrom,
       to: normalizedTo,
       callbackUrls: uniqueCallbackUrls,
     };
+
     const normalizedPeriod = this.normalizePeriod(filters?.period);
     if (normalizedPeriod) {
       normalized.period = normalizedPeriod;
     }
+
     return normalized;
   }
 
@@ -244,47 +442,27 @@ export class WebhookLogsComponent implements OnInit {
     if (!period || period.value === DEFAULT_PERIOD.value) {
       return undefined;
     }
+
     const now = moment();
     const operation = period.value.charAt(0);
     const timeUnit: DurationConstructor = period.value.charAt(period.value.length - 1) as DurationConstructor;
     const duration = Number(period.value.substring(1, period.value.length - 1));
-    let from;
-    if (operation === '-') {
-      from = now.clone().subtract(duration, timeUnit);
-    } else {
-      from = now.clone().add(duration, timeUnit);
-    }
+
+    const from = operation === '-' ? now.clone().subtract(duration, timeUnit) : now.clone().add(duration, timeUnit);
+
     return { from: from.valueOf(), to: now.valueOf() };
   }
 
-  private logMatchesPeriod(log: WebhookLog, range: { from: number; to: number }): boolean {
-    if (!log?.timestamp) {
-      return false;
-    }
-    const timestamp = new Date(log.timestamp).getTime();
-    if (Number.isNaN(timestamp)) {
-      return false;
-    }
-    return timestamp >= range.from && timestamp <= range.to;
-  }
-
-  private logMatchesSearchTerm(log: WebhookLog, term: string): boolean {
-    const searchableFields: string[] = [log.callbackUrl, log.uri, log.requestId, log.application?.name].filter(
-      (field): field is string => typeof field === 'string' && field.length > 0,
-    );
-    return searchableFields.some((field) => field.toLowerCase().includes(term));
-  }
-
-  private updateUrlParams(filters: WebhookLogsQuickFilters): void {
+  private updateUrlParams(filters: WebhookLogsQuickFilters, page: number, perPage: number): void {
     const nextParams = {
-      search: filters.searchTerm ?? null,
       statuses: filters.statuses?.length ? filters.statuses.join(',') : null,
       applicationIds: filters.applications?.length ? filters.applications.map((app) => app.value).join(',') : null,
       period: filters.period?.value ?? null,
       callbackUrls: filters.callbackUrls?.length ? filters.callbackUrls.join(',') : null,
       from: filters.from ?? null,
       to: filters.to ?? null,
-      page: 1,
+      page: page.toString(),
+      perPage: perPage.toString(),
     };
 
     if (this.areQueryParamsEqual(this.activatedRoute.snapshot.queryParams, nextParams)) {
@@ -301,19 +479,19 @@ export class WebhookLogsComponent implements OnInit {
   private areQueryParamsEqual(
     current: Params,
     next: {
-      search: string | null;
       statuses: string | null;
       applicationIds: string | null;
       period: string | null;
       callbackUrls: string | null;
       from: number | null;
       to: number | null;
-      page: number;
+      page: string;
+      perPage: string;
     },
   ): boolean {
-    const currentSearch = current?.search ?? null;
     const currentStatuses = current?.statuses ?? null;
-    const currentPage = current?.page ? Number(current.page) : null;
+    const currentPage = current?.page ?? null;
+    const currentPerPage = current?.perPage ?? null;
     const currentApplications = current?.applicationIds ?? null;
     const currentPeriod = current?.period ?? null;
     const currentCallbackUrls = current?.callbackUrls ?? null;
@@ -321,33 +499,15 @@ export class WebhookLogsComponent implements OnInit {
     const currentTo = current?.to ? Number(current.to) : null;
 
     return (
-      currentSearch === next.search &&
       currentStatuses === next.statuses &&
       currentApplications === next.applicationIds &&
       currentPeriod === next.period &&
       currentCallbackUrls === next.callbackUrls &&
       (currentFrom ?? null) === next.from &&
       (currentTo ?? null) === next.to &&
-      (currentPage ?? 1) === next.page
+      (currentPage ?? '1') === next.page &&
+      (currentPerPage ?? '10') === next.perPage
     );
-  }
-
-  private pushPage(page: number, perPage: number): void {
-    const safePerPage = Math.max(1, perPage > 0 ? perPage : this.filteredLogs.length);
-    const start = (page - 1) * safePerPage;
-    const end = start + safePerPage;
-    const pageData = this.filteredLogs.slice(start, end);
-    const total = this.filteredLogs.length;
-
-    const pagination = {
-      page,
-      perPage: safePerPage,
-      pageItemsCount: pageData.length,
-      pageCount: Math.max(1, Math.ceil(total / safePerPage || 1)),
-      totalCount: total,
-    };
-
-    this.webhookLogsSubject$.next({ pagination, data: pageData });
   }
 
   private buildInitialPeriod(periodValue?: string): SimpleFilter {
@@ -357,10 +517,17 @@ export class WebhookLogsComponent implements OnInit {
     return this.periods.find((period) => period.value === periodValue) ?? DEFAULT_PERIOD;
   }
 
+  /**
+   * Builds initial applications filter from IDs.
+   * Note: This is called before logs are loaded, so `this.allLogs` is empty.
+   * Application labels will fall back to IDs if names aren't available yet.
+   * Labels may be updated later when logs are loaded and enriched with application names.
+   */
   private buildInitialApplications(ids: string[]): MultiFilter | undefined {
     if (!ids?.length) {
       return undefined;
     }
+
     const applicationMap = this.allLogs.reduce((map, log) => {
       if (log.application?.id && log.application?.name) {
         map.set(log.application.id, log.application.name);
@@ -379,7 +546,7 @@ export class WebhookLogsComponent implements OnInit {
         switchMap((api) => {
           if (!this.isApiV4(api)) {
             this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
-            return [];
+            return of(undefined);
           }
 
           const dialogRef = this.dialog.open(WebhookSettingsDialogComponent, {
@@ -392,10 +559,10 @@ export class WebhookLogsComponent implements OnInit {
       )
       .subscribe((result) => {
         if (result?.saved) {
-          // TODO: Backend Integration Required
-          // - Reload webhook logs data after settings are saved (if analytics settings affect log availability)
-          // - Consider showing a success message or notification
-          // - Check if API redeployment is needed and show appropriate banner
+          const qp = this.activatedRoute.snapshot.queryParams;
+          const page = qp?.page ? Number(qp.page) : 1;
+          const perPage = qp?.perPage ? Number(qp.perPage) : 10;
+          this.loadWebhookLogs(this.currentFilters, page, perPage);
         }
       });
   }
@@ -405,7 +572,10 @@ export class WebhookLogsComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['./', log.requestId], { relativeTo: this.activatedRoute });
+    this.router.navigate(['./', log.requestId], {
+      relativeTo: this.activatedRoute,
+      state: { webhookLog: log },
+    });
   }
 
   private openSettingsDialogIfRequested(): void {
@@ -438,5 +608,16 @@ export class WebhookLogsComponent implements OnInit {
 
   private isApiV4(api: Api): api is ApiV4 {
     return api?.definitionVersion === 'V4';
+  }
+
+  /**
+   * Finds the webhook entrypoint from the API's listeners.
+   * The webhook entrypoint configuration contains logging settings at:
+   * entrypoint.configuration.logging.{enabled, request.{headers, payload}, response.{headers, payload}}
+   */
+  private findWebhookEntrypoint(api: ApiV4): Entrypoint | undefined {
+    return (
+      api.listeners?.flatMap((listener) => listener.entrypoints ?? []).find((entrypoint) => entrypoint.type === 'webhook') ?? undefined
+    );
   }
 }

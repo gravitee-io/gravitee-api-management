@@ -29,15 +29,15 @@ export interface WebhookAdditionalMetrics {
   'keyword_webhook_sub-id': string;
   'int_webhook_retry-count': number;
   'json_webhook_retry-timeline': string;
-  'string_webhook_last-error'?: string | null;
+  'string_webhook_last-error'?: string;
   'long_webhook_req-timestamp': number;
-  'json_webhook_req-headers'?: string | null;
-  'string_webhook_req-body'?: string | null;
+  'json_webhook_req-headers'?: string;
+  'string_webhook_req-body'?: string;
   'long_webhook_resp-time'?: number;
   'int_webhook_resp-status': number;
   'int_webhook_resp-body-size'?: number;
-  'json_webhook_resp-headers'?: string | null;
-  'string_webhook_resp-body'?: string | null;
+  'json_webhook_resp-headers'?: string;
+  'string_webhook_resp-body'?: string;
   bool_webhook_dlq: boolean;
 }
 
@@ -47,7 +47,7 @@ export interface WebhookAdditionalMetrics {
 export interface WebhookLog extends Omit<ConnectionLog, 'additionalMetrics'> {
   callbackUrl: string;
   duration: string;
-  additionalMetrics?: WebhookAdditionalMetrics;
+  additionalMetrics: Partial<WebhookAdditionalMetrics>;
 }
 
 export interface WebhookLogsResponse {
@@ -56,7 +56,6 @@ export interface WebhookLogsResponse {
 }
 
 export interface WebhookFilters {
-  searchTerm?: string;
   status?: string[];
   application?: string[];
   timeframe?: string;
@@ -71,7 +70,6 @@ export interface WebhookMoreFiltersForm {
 }
 
 export interface WebhookLogsQuickFilters {
-  searchTerm?: string;
   statuses?: number[];
   applications?: MultiFilter;
   period?: SimpleFilter;

@@ -51,7 +51,7 @@ const createApiWithSampling = (samplingType: string, samplingValue: string) =>
     },
   });
 
-const apiCountPerTimeWindow = createApiWithSampling('COUNT', '60/60');
+const apiCountPerTimeWindow = createApiWithSampling('WINDOWED_COUNT', '60/PT60S');
 const apiCount = createApiWithSampling('COUNT', '100');
 const apiProbability = createApiWithSampling('PROBABILITY', '0.5');
 const apiTemporal = createApiWithSampling('TEMPORAL', 'PT10S');
