@@ -39,7 +39,16 @@ describe('Portal: Business Error - users', () => {
 
   describe('400', () => {
     test('should not create user if already exists', async () => {
-      const expectedError = { message: `A user [${user.email}] already exists for organization ${orgId}.` };
+      const expectedError = {
+        code: 'errors.user.invalid',
+        message: 'User cannot be created.',
+        parameters: {
+          organizationId: orgId,
+          source: 'gravitee',
+          user: user.email,
+        },
+        status: '400',
+      };
       await fail(
         usersPortalApiAsAdmin.registerNewUserRaw({ registerUserInput: UsersFaker.newRegisterUserInput({ email: user.email }) }),
         400,
