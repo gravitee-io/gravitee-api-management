@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNavigationItemMapper;
@@ -58,7 +59,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
             portalNavigationItemMapper.map(area),
             Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
             loadChildren,
-            true
+            PortalNavigationItemViewerContext.forPortal(isAuthenticated())
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(output.items())).build();

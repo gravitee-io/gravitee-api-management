@@ -17,6 +17,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -94,6 +96,31 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_portal_navigation_item_when_user_is_authenticated() {
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var publishedAndPublicItem = PortalNavigationFixtures.page(
+                itemId,
+                "Published Public Page",
+                PortalArea.TOP_NAVBAR,
+                PortalNavigationFixtures.randomPageId()
+            );
+            publishedAndPublicItem.setPublished(true);
+            publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicItem.setEnvironmentId(ENV_ID);
+
+            portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem));
+
+            // When
+            Response response = target(itemId.toString()).request().get();
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(200);
+            var result = response.readEntity(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem.class);
+            assertThat(result).isNotNull();
+            assertThat(result.getActualInstance()).isNotNull();
+        }
+
+        @Test
         void should_return_404_when_item_not_found() {
             // Given
             var unknownId = PortalNavigationFixtures.randomNavigationId();
@@ -149,6 +176,35 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             publishedPage.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(publishedPage));
+            portalPageContentQueryService.initWith(List.of(pageContent));
+
+            // When
+            Response response = target(itemId.toString()).path("content").request().get();
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(200);
+            var content = response.readEntity(String.class);
+            assertThat(content).isEqualTo("Page content text");
+        }
+
+        @Test
+        void should_return_content_when_user_is_authenticated() {
+            // Given
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var contentId = PortalNavigationFixtures.randomPageId();
+            var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                contentId,
+                ORGANIZATION_ID,
+                ENV_ID,
+                "Page content text"
+            );
+
+            var publishedAndPublicPage = PortalNavigationFixtures.page(itemId, "Published Public Page", PortalArea.TOP_NAVBAR, contentId);
+            publishedAndPublicPage.setPublished(true);
+            publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicPage.setEnvironmentId(ENV_ID);
+
+            portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicPage));
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
