@@ -1283,9 +1283,7 @@ components:
                 value:
                     type: array
                     items:
-                        oneOf:
-                            - type: string
-                            - type: integer
+                        type: string
                     description: Filter value (array for IN operator)
             example: { name: "HTTP_STATUS_CODE_GROUP", operator: "IN", value: ["2xx", "3xx"] }
 
