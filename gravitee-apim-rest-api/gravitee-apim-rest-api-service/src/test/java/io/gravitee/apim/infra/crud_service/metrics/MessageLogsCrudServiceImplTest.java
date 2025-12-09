@@ -140,4 +140,43 @@ class MessageLogsCrudServiceImplTest {
                 assertThat(m.isError()).isTrue();
             });
     }
+
+    @Test
+    void should_pass_additional_fields_and_values_to_query() throws AnalyticsException {
+        setupEmptyResponse();
+
+        cut.searchApiMessageLogs(
+            GraviteeContext.getExecutionContext(),
+            "api-id",
+            SearchMessageLogsFilters.builder()
+                .additional(Map.of("int_webhook_resp-status", List.of("200", "500"), "string_webhook_url", List.of("https://example.com")))
+                .build(),
+            new PageableImpl(1, 10)
+        );
+
+        var filter = queryCaptor.getValue().getFilter();
+        assertThat(filter.additional()).isNotNull();
+        assertThat(filter.additional().get("int_webhook_resp-status")).containsExactly("200", "500");
+        assertThat(filter.additional().get("string_webhook_url")).containsExactly("https://example.com");
+    }
+
+    @Test
+    void should_handle_null_additional() throws AnalyticsException {
+        setupEmptyResponse();
+
+        cut.searchApiMessageLogs(
+            GraviteeContext.getExecutionContext(),
+            "api-id",
+            SearchMessageLogsFilters.builder().additional(null).build(),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(queryCaptor.getValue().getFilter().additional()).isNull();
+    }
+
+    private void setupEmptyResponse() throws AnalyticsException {
+        when(metricsRepository.searchMessageMetrics(any(QueryContext.class), queryCaptor.capture())).thenReturn(
+            new LogResponse<>(0, List.of())
+        );
+    }
 }

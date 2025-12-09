@@ -21,13 +21,13 @@ import { WebhookLogsListHarness } from './components/webhook-logs-list/webhook-l
 export class WebhookLogsHarness extends ComponentHarness {
   static hostSelector = 'webhook-logs';
 
-  private readonly configureButton = this.locatorForOptional(MatButtonHarness.with({ text: /configure reporting/i }));
+  private readonly configureButton = this.locatorForOptional(MatButtonHarness.with({ text: /configure webhook reporting/i }));
   private readonly logsList = this.locatorForOptional(WebhookLogsListHarness);
 
   async clickConfigureReporting(): Promise<void> {
     const button = await this.configureButton();
     if (!button) {
-      throw new Error('Configure Reporting button was not found.');
+      throw new Error('Configure Webhook Reporting button was not found.');
     }
     await button.click();
   }

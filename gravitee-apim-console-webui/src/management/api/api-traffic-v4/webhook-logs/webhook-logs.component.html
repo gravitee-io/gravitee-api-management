@@ -17,7 +17,7 @@
 -->
 <api-navigation-header [menuItemHeader]="{ title: 'Webhook Logs' }">
   <div actionButtons>
-    <button mat-raised-button (click)="openSettingsDialog()">Configure Reporting</button>
+    <button mat-raised-button (click)="openSettingsDialog()">Configure Webhook Reporting</button>
   </div>
 </api-navigation-header>
 
@@ -28,7 +28,6 @@
 <mat-card>
   <webhook-logs-quick-filters
     [loading]="loading"
-    [availableStatuses]="statusOptions"
     [availableCallbackUrls]="callbackUrlOptions"
     [initialValues]="quickFiltersInitialValues"
     (filtersChanged)="onFiltersChanged($event)"
@@ -39,7 +38,9 @@
     <webhook-logs-list
       [pagination]="logs.pagination"
       [logs]="logs.data"
+      [hasDlqConfigured]="hasDlqConfigured$ | async"
       (logDetailsClicked)="onLogDetailsClicked($event)"
+      (paginationUpdated)="paginationUpdated($event)"
     ></webhook-logs-list>
   }
 </mat-card>
