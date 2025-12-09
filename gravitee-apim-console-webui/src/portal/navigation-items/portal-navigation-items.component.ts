@@ -358,6 +358,33 @@ export class PortalNavigationItemsComponent {
       .subscribe();
   }
 
+  onDeleteSection(node: SectionNode): void {
+    this.portalNavigationItemsService
+      .deleteNavigationItem(node.id)
+      .pipe(
+        tap(() => {
+          const currentNavId = this.navId();
+          if (currentNavId === node.id) {
+            this.router
+              .navigate(['.'], {
+                relativeTo: this.activatedRoute,
+                queryParams: { navId: null },
+                queryParamsHandling: 'merge',
+              })
+              .catch(() => this.snackBarService.error('Failed to update selection after deletion'));
+          }
+          this.refreshMenuList.next(1);
+          this.snackBarService.success(`Section "${node.label}" deleted`);
+        }),
+        catchError(() => {
+          this.snackBarService.error('Failed to delete navigation item');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
     const isPublished = navItem.published;
     const typeLabel = navItem.type.toLowerCase();

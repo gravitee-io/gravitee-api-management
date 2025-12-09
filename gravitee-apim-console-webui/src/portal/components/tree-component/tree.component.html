@@ -24,6 +24,7 @@
         [selectedId]="selectedId()"
         (nodeSelected)="select.emit($event)"
         (nodeMenuAction)="nodeMenuAction.emit($event)"
+        (delete)="delete.emit($event)"
       ></app-tree-node>
     }
   </div>

@@ -52,4 +52,8 @@ export class PortalNavigationItemService {
       updatePortalNavigationItem,
     );
   }
+
+  public deleteNavigationItem(portalNavigationItemId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/portal-navigation-items/${portalNavigationItemId}`);
+  }
 }

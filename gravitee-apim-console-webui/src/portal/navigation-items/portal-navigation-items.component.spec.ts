@@ -531,6 +531,81 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('deleting a section from tree node "More actions" menu', () => {
+    it('should call DELETE and refresh list when deleting a non-selected item', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[1] } as any;
+
+      component.onDeleteSection(node);
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-2`,
+      });
+      deleteReq.flush({});
+
+      // After deletion, component refreshes the list — satisfy the subsequent GET
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [fakeResponse.items[0]] }));
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Nav Item 1']);
+    });
+
+    it('should clear selection when deleted item is selected', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' })],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const node = { id: 'nav-item-1', label: 'Nav Item 1', type: 'PAGE', data: fakeResponse.items[0] } as any;
+
+      component.onDeleteSection(node);
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-1`,
+      });
+      deleteReq.flush({});
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+
+      expect(routerSpy).toHaveBeenCalled();
+    });
+
+    it('should show error handling when delete API fails', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' })],
+      });
+      await expectGetNavigationItems(fakeResponse);
+
+      const component = fixture.componentInstance;
+      const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[0] } as any;
+
+      component.onDeleteSection(node);
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-2`,
+      });
+      deleteReq.flush('error', { status: 500, statusText: 'Server Error' });
+
+      // No further GET expected; afterEach will verify outstanding requests are handled
+    });
+  });
+
   describe('selecting a navigation item', () => {
     beforeEach(async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
