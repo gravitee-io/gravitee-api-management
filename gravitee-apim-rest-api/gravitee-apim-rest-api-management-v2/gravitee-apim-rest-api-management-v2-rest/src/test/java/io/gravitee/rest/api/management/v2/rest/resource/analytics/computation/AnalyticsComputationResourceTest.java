@@ -20,7 +20,9 @@ import static fixtures.AnalyticsEngineFixtures.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
@@ -72,7 +74,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
     AnalyticsRepository analyticsRepository;
 
     @Autowired
-    NamesPostprocessor namesPostprocessor;
+    FilterPreProcessor filterPreProcessor;
+
+    @Autowired
+    BucketNamesPostProcessor bucketNamesPostprocessor;
 
     @Override
     protected String contextPath() {
@@ -116,6 +121,8 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                     )
                 )
             );
+
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -189,8 +196,14 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             );
 
             when(
-                namesPostprocessor.mapNames(any(), any(), any(io.gravitee.apim.core.analytics_engine.model.FacetsResponse.class))
+                bucketNamesPostprocessor.mapBucketNames(
+                    any(),
+                    any(),
+                    any(io.gravitee.apim.core.analytics_engine.model.FacetsResponse.class)
+                )
             ).thenAnswer(invocation -> invocation.getArgument(2));
+
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -301,8 +314,14 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             );
 
             when(
-                namesPostprocessor.mapNames(any(), any(), any(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse.class))
+                bucketNamesPostprocessor.mapBucketNames(
+                    any(),
+                    any(),
+                    any(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse.class)
+                )
             ).thenAnswer(invocation -> invocation.getArgument(2));
+
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
