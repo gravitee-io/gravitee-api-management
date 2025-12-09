@@ -26,6 +26,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { Router } from '@angular/router';
 
 import { CreateApplicationComponent } from './create-application.component';
+import { FormKeyValuePairsHarness } from '../../../components/form-key-value-pairs/form-key-value-pairs.harness';
 import {
   fakeApplication,
   fakeSimpleApplicationType,
@@ -393,6 +394,83 @@ describe('CreateApplicationComponent', () => {
           }
         }
       }
+    });
+  });
+
+  describe('Metadata (Additional Client Metadata)', () => {
+    beforeEach(async () => {
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/types`).flush({ data: mockApplicationTypes });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const radioButtons = await harnessLoader.getAllHarnesses(MatRadioButtonHarness);
+      await radioButtons[1].check();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('should display metadata field for OAuth application types', async () => {
+      const metadataHarness = await harnessLoader.getHarnessOrNull(FormKeyValuePairsHarness);
+      expect(metadataHarness).toBeTruthy();
+    });
+
+    it('should not display metadata field for simple application type', async () => {
+      const radioButtons = await harnessLoader.getAllHarnesses(MatRadioButtonHarness);
+      await radioButtons[0].check();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const metadataHarness = await harnessLoader.getHarnessOrNull(FormKeyValuePairsHarness);
+      expect(metadataHarness).toBeFalsy();
+    });
+
+    it('should include metadata in API request when creating OAuth application', async () => {
+      const nameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      await nameInput.setValue('Test App with Metadata');
+
+      const metadataHarness = await harnessLoader.getHarness(FormKeyValuePairsHarness);
+      await metadataHarness.setKeyValuePair(0, 'environment', 'production');
+      await fixture.whenStable();
+      await fixture.whenStable();
+
+      await metadataHarness.setKeyValuePair(1, 'version', '1.0.0');
+      await fixture.whenStable();
+
+      const redirectUrisControl = component.redirectUrisControl;
+      redirectUrisControl?.setValue(['https://example.com/callback']);
+
+      const grantTypesControl = component.grantTypesControl;
+      grantTypesControl?.setValue(['authorization_code']);
+
+      const createButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: /Create/ }));
+      await createButton.click();
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications`);
+      expect(req.request.body.settings.oauth.additional_client_metadata).toEqual({
+        environment: 'production',
+        version: '1.0.0',
+      });
+
+      req.flush(fakeApplication({ id: 'new-app-id' }));
+    });
+
+    it('should not include metadata in API request when metadata is empty', async () => {
+      const nameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      await nameInput.setValue('Test App without Metadata');
+
+      const redirectUrisControl = component.redirectUrisControl;
+      redirectUrisControl?.setValue(['https://example.com/callback']);
+
+      const grantTypesControl = component.grantTypesControl;
+      grantTypesControl?.setValue(['authorization_code']);
+
+      const createButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: /Create/ }));
+      await createButton.click();
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications`);
+      expect(req.request.body.settings.oauth.additional_client_metadata).toBeUndefined();
+
+      req.flush(fakeApplication({ id: 'new-app-id' }));
     });
   });
 

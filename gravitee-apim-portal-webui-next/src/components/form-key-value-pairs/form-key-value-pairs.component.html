@@ -1,0 +1,71 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div [appIsMobile]="'table-mobile'">
+  <table class="table-light table-light--fit-content form-key-value-pairs__table">
+    <thead>
+      <tr class="form-key-value-pairs__table__header-row">
+        <th class="mat-column-key m3-title-medium">KEY</th>
+        <th class="mat-column-value m3-title-medium">VALUE</th>
+        <th class="mat-column-actions"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (control of metadataFormArray.controls; track i; let i = $index) {
+        <tr [formGroup]="control">
+          <td class="mat-column-key">
+            <mat-form-field appearance="outline" class="form-key-value-pairs__table__form-field" subscriptSizing="dynamic">
+              <input
+                [id]="'key-value-key-' + i"
+                formControlName="key"
+                matInput
+                placeholder="Name..."
+                class="m3-body-medium"
+                (blur)="onTouched()" />
+            </mat-form-field>
+          </td>
+
+          <td class="mat-column-value">
+            <mat-form-field appearance="outline" class="form-key-value-pairs__table__form-field" subscriptSizing="dynamic">
+              <input
+                [id]="'key-value-value-' + i"
+                formControlName="value"
+                matInput
+                placeholder="Value..."
+                class="m3-body-medium"
+                (blur)="onTouched()" />
+            </mat-form-field>
+          </td>
+
+          <td class="mat-column-actions form-key-value-pairs__table__cell-actions">
+            @if (isDeleteVisible(i)) {
+              <button
+                class="form-key-value-pairs--delete-button"
+                mat-icon-button
+                aria-label="Delete"
+                [disabled]="metadataFormArray.disabled"
+                (click)="onDeletePair(i)">
+                <mat-icon>close_small</mat-icon>
+              </button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
