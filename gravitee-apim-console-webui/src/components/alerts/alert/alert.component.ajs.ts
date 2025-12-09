@@ -63,20 +63,17 @@ const AlertComponentAjs: ng.IComponentOptions = {
         if (this.activatedRoute.snapshot.params.apiId) {
           this.referenceType = Scope.API;
           this.referenceId = this.activatedRoute.snapshot.params.apiId;
-          this.groups = ['API metrics', 'Health-check'];
           this.titlePrefix = this.resolvedApi.name;
         } else if (this.activatedRoute.snapshot.params.applicationId) {
           this.referenceType = Scope.APPLICATION;
           this.referenceId = this.activatedRoute.snapshot.params.applicationId;
-          this.groups = ['Application'];
           this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApplication.data.name;
         } else {
           this.referenceType = Scope.ENVIRONMENT;
-          this.groups = ['Node', 'API metrics', 'Health-check'];
           this.titlePrefix = 'Platform';
         }
-
-        this.rules = Rule.findByScope(this.referenceType);
+        this.groups = Rule.findCategoriesByScope(this.referenceType, Constants?.org?.settings?.cloudHosted?.enabled);
+        this.rules = Rule.findByScope(this.referenceType, Constants?.org?.settings?.cloudHosted?.enabled);
         this.updateMode = this.activatedRoute.snapshot.params.alertId !== undefined;
 
         if (!this.updateMode) {

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
+import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import org.junit.Test;
@@ -88,5 +89,18 @@ public class AlertService_CreateTest extends AlertServiceTest {
         alertService.create(executionContext, alert);
 
         verify(triggerProvider, times(1)).unregister(any(Trigger.class));
+    }
+
+    @Test(expected = NodeAlertNotAllowedInCloudException.class)
+    public void must_throw_NodeAlertNotAllowedInCloudException_when_create_new_node_alert_on_cloud()
+        throws JsonProcessingException, TechnicalException {
+        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        alert.setSource("NODE_HEALTHCHECK");
+
+        when(cloudHosted.getEnabled()).thenReturn(true);
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+
+        alertService.create(executionContext, alert);
     }
 }
