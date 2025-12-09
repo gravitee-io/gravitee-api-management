@@ -146,6 +146,17 @@
                     >The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
                   </mat-hint>
                 </mat-form-field>
+
+                @if (!isSimpleType()) {
+                  <div class="metadata-container">
+                    <div>
+                      <div class="m3-title-medium">
+                        <span i18n="@@createApplicationAdditionalMetadataTitle">Additional Client Metadata (optional)</span>
+                      </div>
+                    </div>
+                    <app-form-key-value-pairs formControlName="metadata" />
+                  </div>
+                }
               </form>
             } @else {
               <p i18n="@@selectApplicationTypeFirst">Please select an application type first</p>
