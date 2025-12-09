@@ -16,13 +16,13 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -36,7 +36,6 @@ public class GetPortalPageContentByNavigationIdUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
-    private final PortalNavigationItemVisibilityDomainService portalNavigationItemVisibilityDomainService;
 
     public Output execute(Input input) {
         // Get the portal navigation item by id and env id
@@ -47,9 +46,7 @@ public class GetPortalPageContentByNavigationIdUseCase {
             )
         ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
 
-        if (input.onlyVisibleInPortal() && portalNavigationItemVisibilityDomainService.isNotVisibleInPortal(portalNavigationItem)) {
-            throw new PortalNavigationItemNotFoundException(input.portalNavigationItemId());
-        }
+        input.viewerContext().validateAccess(portalNavigationItem);
 
         // If the nav item is not a page, throw exception
         if (!(portalNavigationItem instanceof PortalNavigationPage page)) {
@@ -67,7 +64,7 @@ public class GetPortalPageContentByNavigationIdUseCase {
         return new Output(portalPageContent, portalNavigationItem);
     }
 
-    public record Input(String portalNavigationItemId, String environmentId, Boolean onlyVisibleInPortal) {}
+    public record Input(String portalNavigationItemId, String environmentId, PortalNavigationItemViewerContext viewerContext) {}
 
     public record Output(PortalPageContent portalPageContent, PortalNavigationItem portalNavigationItem) {}
 }

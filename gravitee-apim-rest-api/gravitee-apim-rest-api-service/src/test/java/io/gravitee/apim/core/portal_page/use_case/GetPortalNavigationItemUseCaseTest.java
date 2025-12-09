@@ -18,14 +18,15 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PAGE12_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -41,8 +42,7 @@ class GetPortalNavigationItemUseCaseTest {
     @BeforeEach
     void setUp() {
         PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
-        PortalNavigationItemVisibilityDomainService domainService = new PortalNavigationItemVisibilityDomainService();
-        useCase = new GetPortalNavigationItemUseCase(queryService, domainService);
+        useCase = new GetPortalNavigationItemUseCase(queryService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -50,7 +50,11 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_return_portal_navigation_item_when_found() {
         // Given
-        final var input = new GetPortalNavigationItemUseCase.Input(PortalNavigationItemId.of(APIS_ID), ENVIRONMENT_ID, false);
+        final var input = new GetPortalNavigationItemUseCase.Input(
+            PortalNavigationItemId.of(APIS_ID),
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal(false)
+        );
 
         // When
         final var output = useCase.execute(input);
@@ -65,7 +69,11 @@ class GetPortalNavigationItemUseCaseTest {
     void should_throw_when_item_not_found() {
         // Given
         final var unknownId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
-        final var input = new GetPortalNavigationItemUseCase.Input(unknownId, ENVIRONMENT_ID, false);
+        final var input = new GetPortalNavigationItemUseCase.Input(
+            unknownId,
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal(false)
+        );
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
@@ -76,7 +84,11 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_throw_when_item_exists_in_different_environment() {
         // Given
-        final var input = new GetPortalNavigationItemUseCase.Input(PortalNavigationItemId.of(APIS_ID), "different-env", false);
+        final var input = new GetPortalNavigationItemUseCase.Input(
+            PortalNavigationItemId.of(APIS_ID),
+            "different-env",
+            PortalNavigationItemViewerContext.forPortal(false)
+        );
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
@@ -87,7 +99,26 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_throw_when_item_not_visible_in_portal() {
         // Given
-        final var input = new GetPortalNavigationItemUseCase.Input(PortalNavigationItemId.of(PAGE11_ID), ENVIRONMENT_ID, true);
+        final var input = new GetPortalNavigationItemUseCase.Input(
+            PortalNavigationItemId.of(PAGE11_ID),
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal(true)
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(PortalNavigationItemNotFoundException.class)
+            .hasMessage("Portal navigation item not found");
+    }
+
+    @Test
+    void should_throw_when_item_is_private_and_user_is_not_authenticated() {
+        // Given
+        final var input = new GetPortalNavigationItemUseCase.Input(
+            PortalNavigationItemId.of(PAGE12_ID),
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal(false)
+        );
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))

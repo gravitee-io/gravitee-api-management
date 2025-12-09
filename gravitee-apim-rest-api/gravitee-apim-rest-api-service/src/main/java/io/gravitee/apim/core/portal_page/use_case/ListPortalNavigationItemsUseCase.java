@@ -16,13 +16,14 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -36,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
-    private final PortalNavigationItemVisibilityDomainService visibilityService;
     private static final Predicate<PortalNavigationItem> IS_FOLDER_PREDICATE = i -> i instanceof PortalNavigationFolder;
 
     public Output execute(Input input) {
@@ -67,7 +67,7 @@ public class ListPortalNavigationItemsUseCase {
             return null;
         }
 
-        if (input.onlyVisibleInPortal() && visibilityService.isNotVisibleInPortal(parent)) {
+        if (input.viewerContext().shouldNotShow(parent)) {
             return null;
         }
 
@@ -105,8 +105,12 @@ public class ListPortalNavigationItemsUseCase {
             .parentId(parentId)
             .root(isRootSearch);
 
-        if (input.onlyVisibleInPortal()) {
+        if (input.viewerContext().isPortalMode()) {
             builder.published(true);
+
+            if (!input.viewerContext().isAuthenticated()) {
+                builder.visibility(PortalVisibility.PUBLIC);
+            }
         }
 
         return queryService.search(builder.build());
@@ -123,6 +127,6 @@ public class ListPortalNavigationItemsUseCase {
         PortalArea portalArea,
         Optional<PortalNavigationItemId> parentId,
         boolean loadChildren,
-        boolean onlyVisibleInPortal
+        PortalNavigationItemViewerContext viewerContext
     ) {}
 }
