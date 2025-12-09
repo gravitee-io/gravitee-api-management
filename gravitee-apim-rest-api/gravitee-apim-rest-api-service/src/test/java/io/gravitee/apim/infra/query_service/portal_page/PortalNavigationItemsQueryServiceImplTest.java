@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
@@ -239,11 +240,13 @@ class PortalNavigationItemsQueryServiceImplTest {
                 .area(PortalArea.TOP_NAVBAR)
                 .published(true)
                 .root(true)
+                .visibility(PortalVisibility.PRIVATE)
                 .build();
 
             var domainItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().json(), "Test Item", parentId);
             domainItem.setEnvironmentId(environmentId);
             domainItem.setPublished(true);
+            domainItem.setVisibility(PortalVisibility.PRIVATE);
             var repoItem = adapter.toRepository(domainItem);
 
             var repoItems = List.of(repoItem);
@@ -262,6 +265,7 @@ class PortalNavigationItemsQueryServiceImplTest {
             assertThat(capturedCriteria.getPortalArea()).isEqualTo("TOP_NAVBAR");
             assertThat(capturedCriteria.getPublished()).isTrue();
             assertThat(capturedCriteria.getRoot()).isTrue();
+            assertThat(capturedCriteria.getVisibility()).isEqualTo("PRIVATE");
         }
 
         @Test
