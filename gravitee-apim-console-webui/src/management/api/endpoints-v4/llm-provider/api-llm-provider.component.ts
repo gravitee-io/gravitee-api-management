@@ -209,7 +209,8 @@ export class ApiLlmProviderComponent implements OnInit {
       this.formGroup.patchValue({
         name: this.provider.name || '',
         configuration: endpoint?.configuration || {},
-        sharedConfigurationOverride: endpoint?.sharedConfigurationOverride || {},
+        // LLM don’t have the ability to override shared configuration
+        sharedConfigurationOverride: this.provider?.sharedConfiguration || {},
       });
     }
 
