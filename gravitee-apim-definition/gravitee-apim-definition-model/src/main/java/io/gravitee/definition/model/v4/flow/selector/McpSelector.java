@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model.v4.flow.selector;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,6 +34,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class McpSelector extends Selector {
 
+    @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> methods;
 
     public McpSelector() {
