@@ -151,7 +151,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             return true;
         }
 
-        if (!policy.requireSubscription()) {
+        if (!policy.requireSubscription(ctx)) {
             return true;
         }
 
