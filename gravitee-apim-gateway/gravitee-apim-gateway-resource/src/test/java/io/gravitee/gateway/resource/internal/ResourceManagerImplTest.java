@@ -156,11 +156,13 @@ class ResourceManagerImplTest {
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
         resource.setEnabled(false);
 
+        when(resourcePlugin.resource()).thenReturn(Fake.class);
         when(reactable.dependencies(Resource.class)).thenReturn(Set.of(resource));
+        when(resourcePluginManager.get(resource.getType())).thenReturn(resourcePlugin);
         cut.initialize();
 
-        assertThat(cut.containsResource(resource.getName())).isFalse();
-        assertThat(cut.getResource(resource.getName())).isNull();
+        assertThat(cut.containsResource(resource.getName())).isTrue();
+        assertThat(cut.getResource(resource.getName())).isExactlyInstanceOf(Fake.class);
     }
 
     @Test
@@ -235,46 +237,6 @@ class ResourceManagerImplTest {
         assertThat(r).isExactlyInstanceOf(FakeWithDeploymentContext.class);
 
         assertThat(((FakeWithDeploymentContext) r).getDeploymentContext()).isNotNull().isSameAs(deploymentContext);
-    }
-
-    @Test
-    void should_initialize_enabled_resource_and_not_load_disabled_resource() {
-        final Resource enabledResource = buildResource();
-        enabledResource.setName("enabled-resource");
-        enabledResource.setEnabled(true);
-
-        final Resource disabledResource = buildResource();
-        disabledResource.setName("disabled-resource");
-        disabledResource.setType("test-disabled");
-        disabledResource.setEnabled(false);
-
-        final FakeConfiguration fakeConfiguration = new FakeConfiguration();
-        final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
-
-        when(resourcePlugin.resource()).thenReturn(Fake.class);
-        when(reactable.dependencies(Resource.class)).thenReturn(Set.of(enabledResource, disabledResource));
-        when(resourcePluginManager.get(anyString())).thenReturn(resourcePlugin);
-        when(resourcePlugin.configuration()).thenReturn(FakeConfiguration.class);
-        when(resourceConfigurationFactory.create(FakeConfiguration.class, enabledResource.getConfiguration())).thenReturn(
-            fakeConfiguration
-        );
-
-        cut.initialize();
-
-        // Only enabled resource should be loaded due to .filter(Resource::isEnabled)
-        assertThat(cut.containsResource(enabledResource.getName())).isTrue();
-        assertThat(cut.containsResource(disabledResource.getName())).isFalse();
-
-        final Object enabledR = cut.getResource(enabledResource.getName());
-        assertThat(enabledR).isExactlyInstanceOf(Fake.class);
-        assertThat(((Fake) enabledR).configuration()).isSameAs(fakeConfiguration);
-
-        final Object disabledR = cut.getResource(disabledResource.getName());
-        assertThat(disabledR).isNull();
-
-        // Verify only the enabled resource was loaded
-        verify(resourcePluginManager).get(enabledResource.getType());
-        verify(resourcePluginManager, never()).get(disabledResource.getType());
     }
 
     private Resource buildResource() {
