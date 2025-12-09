@@ -27,37 +27,40 @@ const AlertTriggerMetricsRateComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('html-loader!./trigger-metrics-rate.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
-  controller: function () {
-    this.$onInit = () => {
-      this.metrics = Metrics.filterByScope(
-        Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics,
-        this.alert.reference_type,
-      );
-      this.operators = RateCondition.OPERATORS;
+  controller: [
+    'Constants',
+    function (Constants: any) {
+      this.$onInit = () => {
+        this.metrics = Metrics.filterByScope(
+          Rule.findByScopeAndType(this.alert.reference_type, this.alert.type, Constants?.org?.settings?.cloudHosted?.enabled).metrics,
+          this.alert.reference_type,
+        );
+        this.operators = RateCondition.OPERATORS;
 
-      // New alert, initialize it with the condition model
-      if (this.alert.id === undefined) {
-        this.alert.conditions = [
-          {
-            operator: 'GT',
-            type: 'RATE',
-            comparison: {
-              property: this.metrics[0].key,
+        // New alert, initialize it with the condition model
+        if (this.alert.id === undefined) {
+          this.alert.conditions = [
+            {
               operator: 'GT',
-              threshold: 100.0,
-              type: 'THRESHOLD',
+              type: 'RATE',
+              comparison: {
+                property: this.metrics[0].key,
+                operator: 'GT',
+                threshold: 100.0,
+                type: 'THRESHOLD',
+              },
             },
-          },
-        ];
+          ];
 
-        this.alert.dampening = {
-          mode: 'STRICT_COUNT',
-          trueEvaluations: 1,
-          totalEvaluations: 1,
-        };
-      }
-    };
-  },
+          this.alert.dampening = {
+            mode: 'STRICT_COUNT',
+            trueEvaluations: 1,
+            totalEvaluations: 1,
+          };
+        }
+      };
+    },
+  ],
 };
 
 export default AlertTriggerMetricsRateComponent;

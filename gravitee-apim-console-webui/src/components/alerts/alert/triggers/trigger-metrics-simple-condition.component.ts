@@ -27,29 +27,32 @@ const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('html-loader!./trigger-metrics-simple-condition.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
-  controller: function () {
-    this.$onInit = () => {
-      this.metrics = Metrics.filterByScope(
-        Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics,
-        this.alert.reference_type,
-      );
+  controller: [
+    'Constants',
+    function (Constants: any) {
+      this.$onInit = () => {
+        this.metrics = Metrics.filterByScope(
+          Rule.findByScopeAndType(this.alert.reference_type, this.alert.type, Constants?.org?.settings?.cloudHosted?.enabled).metrics,
+          this.alert.reference_type,
+        );
 
-      // New alert, initialize it with the condition model
-      if (this.alert.id === undefined) {
-        this.alert.conditions = [
-          {
-            property: this.metrics[0].key,
-          },
-        ];
+        // New alert, initialize it with the condition model
+        if (this.alert.id === undefined) {
+          this.alert.conditions = [
+            {
+              property: this.metrics[0].key,
+            },
+          ];
 
-        this.alert.dampening = {
-          mode: 'STRICT_COUNT',
-          trueEvaluations: 1,
-          totalEvaluations: 1,
-        };
-      }
-    };
-  },
+          this.alert.dampening = {
+            mode: 'STRICT_COUNT',
+            trueEvaluations: 1,
+            totalEvaluations: 1,
+          };
+        }
+      };
+    },
+  ],
 };
 
 export default AlertTriggerMetricsSimpleConditionComponent;

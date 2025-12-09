@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ControlContainer, FormControl, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 
 import { Metrics, Scope } from '../../../../../entities/alert';
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
 import { AlertTriggerEntity } from '../../../../../entities/alerts/alertTriggerEntity';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   standalone: false,
@@ -38,7 +39,10 @@ export class RuntimeAlertCreateConditionsComponent implements OnInit, OnChanges 
   public types: string[];
   public conditionsForm: FormGroup;
 
-  constructor(private readonly formGroupDirective: FormGroupDirective) {}
+  constructor(
+    @Inject(Constants) private readonly constants: Constants,
+    private readonly formGroupDirective: FormGroupDirective,
+  ) {}
 
   ngOnInit() {
     this.conditionsForm = this.formGroupDirective.form?.get('conditionsForm') as FormGroup;
@@ -48,7 +52,11 @@ export class RuntimeAlertCreateConditionsComponent implements OnInit, OnChanges 
     this.rule = changes?.rule?.currentValue;
     if (this.rule) {
       this.ruleType = `${this.rule.source}@${this.rule.type}`;
-      this.metrics = Metrics.filterByScope(Rule.findByScopeAndType(this.referenceType, this.ruleType)?.metrics ?? [], this.referenceType);
+      const cloudHostedEnabled = this.constants?.org?.settings?.cloudHosted?.enabled;
+      this.metrics = Metrics.filterByScope(
+        Rule.findByScopeAndType(this.referenceType, this.ruleType, cloudHostedEnabled)?.metrics ?? [],
+        this.referenceType,
+      );
       this.createForm(this.ruleType);
     }
   }

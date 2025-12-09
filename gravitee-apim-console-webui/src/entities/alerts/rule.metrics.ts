@@ -19,6 +19,8 @@ import { NodeHealthcheckMetrics, NodeMetrics } from './node.metrics';
 
 import { Metrics, Scope } from '../alert';
 
+type RuleCategory = 'API metrics' | 'Application' | 'Health-check' | 'Node';
+
 export class Rule {
   static API_METRICS_THRESHOLD: Rule = new Rule(
     'REQUEST',
@@ -132,27 +134,55 @@ export class Rule {
   public source: string;
   public type: string;
   public description: string;
-  public category: string;
+  public category: RuleCategory;
   public scopes: Scope[];
   public metrics: Metrics[];
 
-  static findByScope(scope: Scope): Rule[] {
-    return Rule.RULES.filter((rule) => rule.scopes.indexOf(scope) > -1);
+  static getExcludedCloudCategories(cloudEnabled: boolean): string[] {
+    return cloudEnabled ? ['Node'] : [];
   }
 
-  static findByScopeAndType(scope: Scope, type: string): Rule {
-    let source;
+  static findByScope(scope: Scope, cloudEnabled: boolean): Rule[] {
+    const excludedCloudCategories = this.getExcludedCloudCategories(cloudEnabled);
+
+    return Rule.RULES.filter((rule) => rule.scopes.includes(scope) && !excludedCloudCategories.includes(rule.category));
+  }
+
+  static findByScopeAndType(scope: Scope, type: string, cloudEnabled: boolean): Rule | undefined {
+    const excludedCloudCategories = this.getExcludedCloudCategories(cloudEnabled);
+
+    let source: string | undefined;
+    let ruleType = type;
+
+    // Parse `source@type` format
     if (type.includes('@')) {
-      const arr = type.split('@');
-      source = arr[0];
-      type = arr[1];
+      [source, ruleType] = type.split('@');
     }
-    return Rule.RULES.find((rule) => {
-      return (source ? rule.source === source : true) && rule.type === type && rule.scopes.indexOf(scope) !== -1;
-    });
+
+    return Rule.RULES.find(
+      (rule) =>
+        (!source || rule.source === source) &&
+        rule.type === ruleType &&
+        rule.scopes.includes(scope) &&
+        !excludedCloudCategories.includes(rule.category),
+    );
   }
 
-  constructor(source: string, type: string, description: string, scopes: Scope[], category: string, metrics?: Metrics[]) {
+  static findCategoriesByScope(scope: Scope, cloudEnabled: boolean): RuleCategory[] {
+    const baseCategories: Record<Scope, RuleCategory[]> = {
+      [Scope.ENVIRONMENT]: ['Node', 'API metrics', 'Health-check'],
+      [Scope.API]: ['API metrics'],
+      [Scope.APPLICATION]: ['Application'],
+    };
+    const categories = [...baseCategories[scope]];
+
+    if (scope === Scope.ENVIRONMENT && cloudEnabled) {
+      return categories.filter((c) => c !== 'Node');
+    }
+    return categories;
+  }
+
+  constructor(source: string, type: string, description: string, scopes: Scope[], category: RuleCategory, metrics?: Metrics[]) {
     this.source = source;
     this.type = type;
     this.description = description;

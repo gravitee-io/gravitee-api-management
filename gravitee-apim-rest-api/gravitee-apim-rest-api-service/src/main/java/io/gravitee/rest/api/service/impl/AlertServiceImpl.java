@@ -55,6 +55,7 @@ import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
@@ -111,6 +112,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private final AlertTriggerConverter alertTriggerConverter;
 
     private final EnvironmentService environmentService;
+    private final ConfigService configService;
 
     @Autowired
     public AlertServiceImpl(
@@ -126,7 +128,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         ParameterService parameterService,
         @Lazy ApiRepository apiRepository,
         AlertTriggerConverter alertTriggerConverter,
-        EnvironmentService environmentService
+        EnvironmentService environmentService,
+        ConfigService configService
     ) {
         this.configuration = configuration;
         this.mapper = mapper;
@@ -141,6 +144,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         this.apiRepository = apiRepository;
         this.alertTriggerConverter = alertTriggerConverter;
         this.environmentService = environmentService;
+        this.configService = configService;
     }
 
     @Override
@@ -155,7 +159,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public AlertTriggerEntity create(final ExecutionContext executionContext, final NewAlertTriggerEntity newAlertTrigger) {
-        checkAlert(executionContext);
+        checkAlert(executionContext, newAlertTrigger);
 
         try {
             // Get trigger
@@ -194,7 +198,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public AlertTriggerEntity update(final ExecutionContext executionContext, final UpdateAlertTriggerEntity updateAlertTrigger) {
-        checkAlert(executionContext);
+        checkAlert(executionContext, updateAlertTrigger);
 
         try {
             final AlertTrigger alertToUpdate = alertTriggerRepository
@@ -562,12 +566,19 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    private void checkAlert(final ExecutionContext executionContext) {
-        if (
-            !parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION) ||
-            triggerProviderManager.findAll().isEmpty()
-        ) {
+    private void checkAlert(final ExecutionContext executionContext, final Trigger trigger) {
+        boolean alertsEnabled = parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION);
+
+        boolean noTriggerProviders = triggerProviderManager.findAll().isEmpty();
+
+        if (!alertsEnabled || noTriggerProviders) {
             throw new AlertUnavailableException();
+        }
+
+        ConsoleConfigEntity config = configService.getConsoleConfig(executionContext);
+
+        if (Boolean.TRUE.equals(config.getCloudHosted().getEnabled()) && trigger.getSource().startsWith("NODE")) {
+            throw new NodeAlertNotAllowedInCloudException(trigger.getSource());
         }
     }
 
