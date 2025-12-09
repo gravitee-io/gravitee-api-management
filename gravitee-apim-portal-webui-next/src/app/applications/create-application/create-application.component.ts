@@ -33,6 +33,7 @@ import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-na
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../entities/application/application';
+import { ApplicationTypeTranslatePipe } from '../../../pipe/application-type-translate.pipe';
 import { ApplicationService } from '../../../services/application.service';
 import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 
@@ -73,6 +74,7 @@ interface GrantTypeVM {
     MatSlideToggleModule,
     MobileClassDirective,
     ReactiveFormsModule,
+    ApplicationTypeTranslatePipe,
   ],
   templateUrl: './create-application.component.html',
   styleUrl: './create-application.component.scss',
