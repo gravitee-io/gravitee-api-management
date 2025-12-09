@@ -76,7 +76,8 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (criteria.getEnvironmentId() == null || criteria.getEnvironmentId().equals(item.getEnvironmentId())) &&
                     (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
                     (PARENT_ID_FILTER.test(item)) &&
-                    (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished()))
+                    (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&
+                    (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility()))
             )
             .toList();
     }
