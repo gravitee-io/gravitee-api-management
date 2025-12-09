@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,8 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
+import io.gravitee.rest.api.model.settings.CloudHosted;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
@@ -96,6 +99,12 @@ public class AlertServiceTest {
     @Mock
     protected Configuration configuration;
 
+    @Mock
+    protected ConfigService configService;
+
+    @Mock
+    protected CloudHosted cloudHosted;
+
     protected AlertServiceImpl alertService;
 
     protected ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
@@ -115,6 +124,10 @@ public class AlertServiceTest {
             .thenReturn(new String[] { "LOGIN", "PLAIN" });
         lenient().when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false)).thenReturn(false);
         lenient().when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false)).thenReturn(false);
+        var consoleConfigEntity = mock(ConsoleConfigEntity.class);
+        lenient().when(cloudHosted.getEnabled()).thenReturn(Boolean.FALSE);
+        lenient().when(consoleConfigEntity.getCloudHosted()).thenReturn(cloudHosted);
+        lenient().when(configService.getConsoleConfig(executionContext)).thenReturn(consoleConfigEntity);
     }
 
     @NotNull
@@ -132,7 +145,8 @@ public class AlertServiceTest {
             parameterService,
             apiRepository,
             alertTriggerConverter,
-            environmentService
+            environmentService,
+            configService
         );
     }
 

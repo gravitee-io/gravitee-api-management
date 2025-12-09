@@ -25,31 +25,38 @@ const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('html-loader!./trigger-metrics-aggregation.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
-  controller: function () {
-    this.$onInit = () => {
-      this.metrics = Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics;
-      this.operators = AggregationCondition.OPERATORS;
-      this.functions = AggregationCondition.FUNCTIONS;
+  controller: [
+    'Constants',
+    function (Constants: any) {
+      this.$onInit = () => {
+        this.metrics = Rule.findByScopeAndType(
+          this.alert.reference_type,
+          this.alert.type,
+          Constants?.org?.settings?.cloudHosted?.enabled,
+        ).metrics;
+        this.operators = AggregationCondition.OPERATORS;
+        this.functions = AggregationCondition.FUNCTIONS;
 
-      // New alert, initialize it with the condition model
-      if (this.alert.id === undefined) {
-        this.alert.conditions = [
-          {
-            function: 'avg',
-            property: this.metrics[0].key,
-            operator: 'GT',
-            type: 'AGGREGATION',
-          },
-        ];
+        // New alert, initialize it with the condition model
+        if (this.alert.id === undefined) {
+          this.alert.conditions = [
+            {
+              function: 'avg',
+              property: this.metrics[0].key,
+              operator: 'GT',
+              type: 'AGGREGATION',
+            },
+          ];
 
-        this.alert.dampening = {
-          mode: 'STRICT_COUNT',
-          trueEvaluations: 1,
-          totalEvaluations: 1,
-        };
-      }
-    };
-  },
+          this.alert.dampening = {
+            mode: 'STRICT_COUNT',
+            trueEvaluations: 1,
+            totalEvaluations: 1,
+          };
+        }
+      };
+    },
+  ],
 };
 
 export default AlertTriggerMetricsAggregationComponent;
