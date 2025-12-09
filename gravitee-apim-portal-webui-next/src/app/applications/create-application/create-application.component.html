@@ -31,7 +31,7 @@
                 <mat-label i18n="@@createApplicationTypeTitleMobile">Type</mat-label>
                 <mat-select [formControl]="typeIdControl">
                   @for (type of types; track $index) {
-                    <mat-option [value]="type.id">{{ type.name }}</mat-option>
+                    <mat-option [value]="type.id">{{ type | applicationTypeTranslate: 'name' }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -43,8 +43,8 @@
                 @for (type of types; track $index) {
                   <mat-radio-button class="type-radio" [value]="type.id ?? type.name">
                     <div class="application-type-label">
-                      <div class="m3-title-medium">{{ type.name }}</div>
-                      <div class="m3-body-small">{{ type.description }}</div>
+                      <div class="m3-title-medium">{{ type | applicationTypeTranslate: 'name' }}</div>
+                      <div class="m3-body-small">{{ type | applicationTypeTranslate: 'description' }}</div>
                     </div>
                   </mat-radio-button>
                 }
