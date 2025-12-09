@@ -23,7 +23,7 @@
         [level]="0"
         [selectedId]="selectedId()"
         (nodeSelected)="select.emit($event)"
-        (edit)="edit.emit($event)"
+        (nodeMenuAction)="nodeMenuAction.emit($event)"
       ></app-tree-node>
     }
   </div>
