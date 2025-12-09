@@ -27,7 +27,6 @@ import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
@@ -37,7 +36,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetri
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
@@ -49,7 +47,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeries
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -159,23 +156,4 @@ public interface AnalyticsMeasuresMapper {
 
     @Mapping(target = "facets", source = "by")
     TimeSeriesRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest requestEntity);
-
-    default Long parseInterval(Interval interval) {
-        return parseIntervalDuration(interval).toMillis();
-    }
-
-    default Duration parseIntervalDuration(Interval interval) {
-        return switch (interval.getActualInstance()) {
-            case Number n -> Duration.ofMillis(n.longValue());
-            case String s -> parseDurationString(s);
-            default -> throw new TechnicalDomainException("unknown value type for interval");
-        };
-    }
-
-    default Duration parseDurationString(String s) {
-        if (s.endsWith("d")) {
-            return Duration.parse("P" + s.toUpperCase());
-        }
-        return Duration.parse("PT" + s);
-    }
 }
