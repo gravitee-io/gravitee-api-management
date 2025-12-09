@@ -63,8 +63,16 @@ $indent-step: 26px;
     }
   }
 
-  &__label {
+  &__label, &__link {
     overflow-wrap: anywhere;
+  }
+
+  &__link {
+    text-decoration: none;
+
+    &:visited {
+      color: unset;
+    }
   }
 }
 
