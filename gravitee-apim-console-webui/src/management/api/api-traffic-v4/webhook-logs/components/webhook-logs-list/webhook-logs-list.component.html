@@ -25,7 +25,7 @@
 >
   <ng-template #timestampTemplate let-log>
     @if (log.timestamp) {
-      <a [routerLink]="['./', log.requestId]">
+      <a (click)="logDetailsClicked.emit(log)" class="log-timestamp-link">
         {{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}
       </a>
     } @else {
@@ -51,7 +51,11 @@
   </ng-template>
 
   <ng-template #sentToDlqTemplate let-log>
-    {{ log.additionalMetrics?.['bool_webhook_dlq'] != null ? (log.additionalMetrics!['bool_webhook_dlq'] ? 'TRUE' : 'FALSE') : '—' }}
+    @if (log.status === 0 || log.status >= 400) {
+      {{ log.additionalMetrics['bool_webhook_dlq'] != null ? (log.additionalMetrics['bool_webhook_dlq'] ? 'Yes' : 'No') : '—' }}
+    } @else {
+      —
+    }
   </ng-template>
 
   <ng-template #actionsTemplate let-log>

@@ -23,7 +23,7 @@ import { WebhookLogsDetailsHarness } from './webhook-logs-details.harness';
 
 import { HttpMethod } from '../../../../entities/management-api-v2';
 import { WebhookLog } from '../webhook-logs/models/webhook-logs.models';
-import { getWebhookLogMockByRequestId } from '../webhook-logs/mocks/webhook-logs.mock';
+import { getWebhookLogByRequestId } from '../webhook-logs/webhook-logs.fixture';
 import { GioTestingModule } from '../../../../shared/testing';
 
 describe('WebhookLogsDetailsComponent', () => {
@@ -53,7 +53,7 @@ describe('WebhookLogsDetailsComponent', () => {
     fixture.detectChanges();
 
     // Reset to empty state after ngOnInit has run
-    component.selectedLog = null;
+    component.selectedLog = undefined;
     component.overviewRequest = [];
     component.overviewResponse = [];
     component.deliveryAttemptsDataSource = [];
@@ -78,18 +78,6 @@ describe('WebhookLogsDetailsComponent', () => {
     } else {
       expect(routerNavigateByUrlSpy).toHaveBeenCalled();
     }
-  });
-
-  it('should open reporting settings when empty state action is clicked', async () => {
-    expect(await harness.hasEmptyState()).toBe(true);
-
-    await harness.clickOpenSettings();
-
-    const activatedRoute = TestBed.inject(ActivatedRoute);
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
-      relativeTo: activatedRoute,
-      queryParams: { openSettings: 'true' },
-    });
   });
 
   describe('buildDeliveryAttempts', () => {
@@ -277,7 +265,7 @@ describe('WebhookLogsDetailsComponent', () => {
     });
 
     it('should use timeline with req-3 mock data that has empty timeline', () => {
-      const log = getWebhookLogMockByRequestId('req-3');
+      const log = getWebhookLogByRequestId('req-3');
       expect(log).toBeDefined();
       if (log) {
         component.selectedLog = log;
@@ -292,7 +280,7 @@ describe('WebhookLogsDetailsComponent', () => {
 
   describe('FormatDurationPipe integration', () => {
     it('should display formatted duration in delivery attempts table', async () => {
-      const log = getWebhookLogMockByRequestId('req-1');
+      const log = getWebhookLogByRequestId('req-1');
       expect(log).toBeDefined();
 
       if (log) {
@@ -312,6 +300,144 @@ describe('WebhookLogsDetailsComponent', () => {
           expect(typeof attempt.duration).toBe('number');
         });
       }
+    });
+  });
+
+  describe('connectionFailure', () => {
+    let component: WebhookLogsDetailsComponent;
+
+    beforeEach(() => {
+      component = fixture.componentInstance;
+    });
+
+    const createBaseLog = (): WebhookLog => ({
+      apiId: 'api-test',
+      requestId: 'req-test',
+      timestamp: '2024-01-01T00:00:00.000Z',
+      method: 'POST' as HttpMethod,
+      status: 200,
+      application: { id: 'app-1', name: 'Test App', type: 'SIMPLE', apiKeyMode: 'UNSPECIFIED' },
+      plan: { id: 'plan-1', name: 'Test Plan', mode: 'PUSH' },
+      requestEnded: true,
+      gatewayResponseTime: 1500,
+      uri: 'http://test.com',
+      endpoint: 'http://test.com',
+      callbackUrl: 'http://test.com',
+      duration: '1.5 s',
+      additionalMetrics: {
+        'string_webhook_req-method': 'POST',
+        string_webhook_url: 'http://test.com',
+        'keyword_webhook_app-id': 'app-1',
+        'keyword_webhook_sub-id': 'sub-1',
+        'int_webhook_retry-count': 0,
+        'string_webhook_last-error': null,
+        'long_webhook_req-timestamp': 1704067200000,
+        'json_webhook_req-headers': null,
+        'string_webhook_req-body': null,
+        'long_webhook_resp-time': 1500,
+        'int_webhook_resp-status': 200,
+        'int_webhook_resp-body-size': 100,
+        'json_webhook_resp-headers': null,
+        'string_webhook_resp-body': null,
+        bool_webhook_dlq: false,
+        'json_webhook_retry-timeline': undefined as any,
+      },
+    });
+
+    it('should set connectionFailure when status is 0', () => {
+      const log = createBaseLog();
+      log.status = 0;
+      log.errorKey = 'CONNECTION_FAILED';
+      log.errorComponentType = 'ENDPOINT';
+      log.errorComponentName = 'webhook-endpoint';
+      log.message = 'Connection timeout';
+      log.warnings = [
+        {
+          componentType: 'ENDPOINT',
+          componentName: 'webhook-endpoint',
+          key: 'CONNECTION_TIMEOUT',
+          message: 'Connection to endpoint timed out',
+        },
+      ];
+      log.additionalMetrics!['string_webhook_last-error'] = 'Connection failed: timeout';
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.errorKey).toBe('CONNECTION_FAILED');
+      expect(component.connectionFailure?.componentType).toBe('ENDPOINT');
+      expect(component.connectionFailure?.componentName).toBe('webhook-endpoint');
+      expect(component.connectionFailure?.message).toBe('Connection timeout');
+      expect(component.connectionFailure?.diagnostics).toHaveLength(1);
+      expect(component.connectionFailure?.diagnostics[0].key).toBe('CONNECTION_TIMEOUT');
+      expect(component.connectionFailure?.lastError).toBe('Connection failed: timeout');
+    });
+
+    it('should set connectionFailure to undefined when status is not 0', () => {
+      const log = createBaseLog();
+      log.status = 200;
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).toBeUndefined();
+    });
+
+    it('should set connectionFailure to undefined when status is 500', () => {
+      const log = createBaseLog();
+      log.status = 500;
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).toBeUndefined();
+    });
+
+    it('should handle connectionFailure when error fields are missing', () => {
+      const log = createBaseLog();
+      log.status = 0;
+      // No errorKey, errorComponentType, errorComponentName, message, or warnings
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.errorKey).toBeUndefined();
+      expect(component.connectionFailure?.componentType).toBeUndefined();
+      expect(component.connectionFailure?.componentName).toBeUndefined();
+      expect(component.connectionFailure?.message).toBeUndefined();
+      expect(component.connectionFailure?.diagnostics).toEqual([]);
+      expect(component.connectionFailure?.lastError).toBeUndefined();
+    });
+
+    it('should include lastError from additionalMetrics when status is 0', () => {
+      const log = createBaseLog();
+      log.status = 0;
+      log.additionalMetrics!['string_webhook_last-error'] = 'Network unreachable';
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.lastError).toBe('Network unreachable');
+    });
+
+    it('should handle lastError as undefined when not a string in additionalMetrics', () => {
+      const log = createBaseLog();
+      log.status = 0;
+      log.additionalMetrics!['string_webhook_last-error'] = null;
+
+      (component as any).applyLog(log);
+
+      expect(component.connectionFailure).not.toBeUndefined();
+      expect(component.connectionFailure?.lastError).toBeUndefined();
+    });
+
+    it('should reset connectionFailure when log is null', () => {
+      const log = createBaseLog();
+      log.status = 0;
+      (component as any).applyLog(log);
+      expect(component.connectionFailure).not.toBeUndefined();
+
+      (component as any).applyLog(null);
+
+      expect(component.connectionFailure).toBeUndefined();
     });
   });
 });

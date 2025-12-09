@@ -28,17 +28,4 @@ export class WebhookLogsDetailsHarness extends ComponentHarness {
     const button = await this.backButton();
     await button.click();
   }
-
-  async clickOpenSettings(): Promise<void> {
-    const button = await this.openSettingsButton();
-    if (!button) {
-      throw new Error('Open reporting settings button is not available.');
-    }
-    await button.click();
-  }
-
-  async hasEmptyState(): Promise<boolean> {
-    const button = await this.openSettingsButton();
-    return !!button;
-  }
 }

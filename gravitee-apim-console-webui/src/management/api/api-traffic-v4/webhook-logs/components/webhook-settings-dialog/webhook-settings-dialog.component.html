@@ -74,14 +74,7 @@
         </div>
         <div class="sampling-summary__card sampling-summary__card--row">
           <span class="sampling-summary__label">Sampling settings:</span>
-          <span class="sampling-summary__value">
-            @if (samplingCountPerWindowParts) {
-              <span class="sampling-summary__value-item">Message count: {{ samplingCountPerWindowParts.count ?? '—' }}</span>
-              <span class="sampling-summary__value-item">Time window: {{ samplingCountPerWindowParts.window ?? '—' }}</span>
-            } @else {
-              {{ samplingSettingsSummary }}
-            }
-          </span>
+          <span class="sampling-summary__value">{{ samplingSettingsSummary }}</span>
         </div>
       </div>
     </mat-dialog-content>
@@ -90,7 +83,7 @@
         Cancel
       </button>
       <button
-        [disabled]="form.invalid || form.pristine || !hasFormChanged()"
+        [disabled]="form.invalid || form.pristine || !hasFormChanged() || isSaving"
         mat-raised-button
         type="button"
         color="primary"
