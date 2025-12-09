@@ -74,6 +74,16 @@ $indent-step: 26px;
     &:visited {
       color: unset;
     }
+
+    &__icon {
+      position: relative;
+      bottom: 1px;
+      left: 5px;
+      width: 14px;
+      height: 14px;
+      color: #{theme.$nav-bar-link-external-icon-color};
+      font-size: 14px;
+    }
   }
 }
 

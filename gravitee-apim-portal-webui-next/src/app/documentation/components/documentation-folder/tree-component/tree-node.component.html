@@ -30,17 +30,19 @@
   (keydown.enter)="onClick()"
   (keydown.arrowright)="node().type === 'FOLDER' && isExpanded.set(true)"
   (keydown.arrowleft)="node().type === 'FOLDER' && isExpanded.set(false)">
-  @if (node().type === 'FOLDER') {
-    <mat-icon
-      class="tree__icon"
-      [attr.data-test-icon]="'toggle'"
-      [fontIcon]="isExpanded() ? 'keyboard_arrow_down' : 'keyboard_arrow_right'"
-      aria-hidden="true"
-      (click)="toggleNode(); $event.stopPropagation()" />
-  }
   @if (node().type === 'LINK') {
     <a #link class="tree__link" [href]="linkUrl" target="_blank" (click)="$event.stopPropagation()" tabindex="-1">{{ node().label }}</a>
+    <span class="material-icons tree__link__icon" aria-hidden="true" tabindex="-1">open_in_new</span>
   } @else {
+    @if (node().type === 'FOLDER') {
+      <span
+        class="material-icons tree__icon"
+        [attr.data-test-icon]="'toggle'"
+        aria-hidden="true"
+        (click)="toggleNode(); $event.stopPropagation()"
+        >{{ isExpanded() ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</span
+      >
+    }
     <span class="tree__label">{{ node().label }}</span>
   }
 </div>
