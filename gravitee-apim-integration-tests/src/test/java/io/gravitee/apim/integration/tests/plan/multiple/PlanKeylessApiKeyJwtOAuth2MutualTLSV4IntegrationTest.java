@@ -554,7 +554,7 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
                 .assertComplete()
                 .assertValue(body -> {
                     OAuth2ResourceMetadata resourceMetadata = mapper.readValue(body.toString(), OAuth2ResourceMetadata.class);
-                    String protectedResourceUri = String.format("https://localhost:%s/v4-proxy-api/", httpConfig.httpPort());
+                    String protectedResourceUri = String.format("https://localhost:%s/v4-proxy-api", httpConfig.httpPort());
                     assertAll(
                         () -> assertThat(resourceMetadata.protectedResourceUri()).isEqualTo(protectedResourceUri),
                         () ->
