@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentByNavigationIdUseCase;
 import io.gravitee.common.http.MediaType;
@@ -49,7 +50,7 @@ public class PortalNavigationItemResource extends AbstractResource {
             new GetPortalNavigationItemUseCase.Input(
                 PortalNavigationItemId.of(portalNavigationItemId),
                 executionContext.getEnvironmentId(),
-                true
+                PortalNavigationItemViewerContext.forPortal(isAuthenticated())
             )
         );
 
@@ -63,7 +64,11 @@ public class PortalNavigationItemResource extends AbstractResource {
     public Response getPortalNavigationItemContentById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
         var executionContext = getExecutionContext();
         var result = getPortalPageContentByNavigationIdUseCase.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(portalNavigationItemId, executionContext.getEnvironmentId(), true)
+            new GetPortalPageContentByNavigationIdUseCase.Input(
+                portalNavigationItemId,
+                executionContext.getEnvironmentId(),
+                PortalNavigationItemViewerContext.forPortal(isAuthenticated())
+            )
         );
 
         return Response.ok(result.portalPageContent().getContent()).build();
