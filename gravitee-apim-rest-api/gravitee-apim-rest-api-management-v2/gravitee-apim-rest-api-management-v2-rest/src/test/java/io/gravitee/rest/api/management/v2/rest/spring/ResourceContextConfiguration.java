@@ -117,7 +117,6 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudSe
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -935,10 +934,9 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemVisibilityDomainService portalNavigationItemVisibilityDomainService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService
     ) {
-        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationItemVisibilityDomainService);
+        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService);
     }
 
     @Bean
