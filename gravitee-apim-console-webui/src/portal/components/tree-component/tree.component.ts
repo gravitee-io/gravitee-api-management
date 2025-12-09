@@ -28,6 +28,14 @@ export interface SectionNode {
   children?: SectionNode[];
 }
 
+type NodeMenuActionType = 'create' | 'edit';
+
+export interface NodeMenuActionEvent {
+  node: SectionNode;
+  action: NodeMenuActionType;
+  itemType: PortalNavigationItemType;
+}
+
 type ProcessingNode = SectionNode & {
   __order: number;
   __parentId: string | null;
@@ -49,7 +57,7 @@ export class TreeComponent {
 
   selectedId = input<string | null>(null);
   select = output<SectionNode>();
-  edit = output<SectionNode>();
+  nodeMenuAction = output<NodeMenuActionEvent>();
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {
     const nodesById = this.createNodesMap(links);

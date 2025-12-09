@@ -174,7 +174,14 @@ describe('PortalNavigationItemsComponent', () => {
           type: 'PAGE',
           portalPageContentId: 'content-id',
         });
-        expectCreateNavigationItem(fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }), createdItem);
+        expectCreateNavigationItem(
+          fakeNewPagePortalNavigationItem({
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'PAGE',
+          }),
+          createdItem,
+        );
         await expectGetNavigationItems(fakeResponse);
 
         expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
@@ -262,7 +269,7 @@ describe('PortalNavigationItemsComponent', () => {
       const component = fixture.componentInstance;
       const pageData = fakeResponse.items[0] as PortalNavigationItem;
       const pageNode = { id: pageData.id, label: pageData.title, type: pageData.type, data: pageData } as any;
-      component.onEditSection(pageNode);
+      component.onNodeMenuAction({ action: 'edit', itemType: 'PAGE', node: pageNode });
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -287,8 +294,7 @@ describe('PortalNavigationItemsComponent', () => {
       const component = fixture.componentInstance;
       const linkData = fakeResponse.items[1] as PortalNavigationItem;
       const linkNode = { id: linkData.id, label: linkData.title, type: linkData.type, data: linkData } as any;
-
-      component.onEditSection(linkNode);
+      component.onNodeMenuAction({ action: 'edit', itemType: 'LINK', node: linkNode });
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -312,11 +318,87 @@ describe('PortalNavigationItemsComponent', () => {
           published: linkData.published,
           visibility: linkData.visibility,
         },
-        fakePortalNavigationLink({ id: linkData.id, title: 'Updated Link', url: 'https://new.com', area: linkData.area, type: 'LINK' }),
+        fakePortalNavigationLink({
+          id: linkData.id,
+          title: 'Updated Link',
+          url: 'https://new.com',
+          area: linkData.area,
+          type: 'LINK',
+        }),
       );
 
       // After update, component refreshes the list — satisfy the subsequent GET
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: fakeResponse.items }));
+    });
+  });
+
+  describe('creating a page under a folder from tree node "More actions" menu', () => {
+    it('opens create dialog and does not call API when cancelled', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      // cancel should not send any POST request
+      await dialog.clickCancelButton();
+    });
+
+    it('calls backend create with parentId when dialog is submitted', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const title = 'New Child Page';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'PAGE',
+        parentId: folderData.id,
+        portalPageContentId: 'content-id',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: folderData.id }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
     });
   });
 
@@ -369,7 +451,13 @@ describe('PortalNavigationItemsComponent', () => {
   describe('saving content', () => {
     beforeEach(async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
-        items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' })],
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+        ],
       });
 
       await expectGetNavigationItems(fakeResponse);
@@ -658,13 +746,19 @@ describe('PortalNavigationItemsComponent', () => {
   }
 
   function expectCreateNavigationItem(requestBody: NewPortalNavigationItem, result: PortalNavigationItem) {
-    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items` });
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
+    });
     expect(req.request.body).toEqual(requestBody);
     req.flush(result);
   }
 
   function expectPutPortalNavigationItem(id: string, expectedBody: any, response: PortalNavigationItem) {
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}` });
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
+    });
     expect(req.request.body).toEqual(expectedBody);
     req.flush(response);
   }

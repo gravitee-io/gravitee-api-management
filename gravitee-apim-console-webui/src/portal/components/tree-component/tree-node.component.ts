@@ -18,15 +18,17 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDivider } from '@angular/material/divider';
 
-import { SectionNode } from './tree.component';
+import { NodeMenuActionEvent, SectionNode } from './tree.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { PortalNavigationItemType } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'app-tree-node',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatMenuModule, GioPermissionModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatMenuModule, GioPermissionModule, MatDivider],
   templateUrl: './tree-node.component.html',
   styleUrls: ['./tree-node.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,7 +39,29 @@ export class TreeNodeComponent {
   selectedId = input<string | null>(null);
 
   nodeSelected = output<SectionNode>();
-  edit = output<SectionNode>();
+  nodeMenuAction = output<NodeMenuActionEvent>();
+
+  triggerEdit() {
+    const current = this.node();
+    if (!current) return;
+
+    this.nodeMenuAction.emit({
+      action: 'edit',
+      itemType: current.type,
+      node: current,
+    });
+  }
+
+  triggerCreate(itemType: PortalNavigationItemType) {
+    const current = this.node();
+    if (!current) return;
+
+    this.nodeMenuAction.emit({
+      action: 'create',
+      itemType,
+      node: current,
+    });
+  }
 
   isSelected = computed(() => this.selectedId() === this.node().id);
   isExpanded = signal<boolean>(true);
