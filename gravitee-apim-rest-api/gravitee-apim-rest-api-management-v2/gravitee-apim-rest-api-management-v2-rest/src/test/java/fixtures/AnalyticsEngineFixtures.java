@@ -19,7 +19,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetri
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
@@ -63,7 +62,7 @@ public class AnalyticsEngineFixtures {
 
         return new TimeSeriesRequest()
             .timeRange(timeRange())
-            .interval(new Interval("1h"))
+            .interval(3600000)
             .filters(Arrays.asList(filters))
             .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
             .metrics(List.of(metric));
