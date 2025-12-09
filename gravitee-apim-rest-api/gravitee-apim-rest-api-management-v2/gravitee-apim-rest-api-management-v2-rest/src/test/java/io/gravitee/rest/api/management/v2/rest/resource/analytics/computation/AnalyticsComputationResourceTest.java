@@ -40,7 +40,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Interval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
@@ -363,7 +362,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_negative_interval() {
-            var invalidRequest = aRequestCountTimeSeries().interval(new Interval("-1m"));
+            var invalidRequest = aRequestCountTimeSeries().interval(-60000);
             var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
