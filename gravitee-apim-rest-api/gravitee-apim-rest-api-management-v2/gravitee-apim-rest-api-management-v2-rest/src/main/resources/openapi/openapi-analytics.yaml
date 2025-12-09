@@ -1267,7 +1267,7 @@ components:
                 operator:
                     $ref: "#/components/schemas/Operator"
                 value:
-                    type: number
+                    type: integer
                     description: Filter value (number for LTE/GTE)
             example: { name: "HTTP_STATUS", operator: "GTE", value: 200 }
 
@@ -1285,7 +1285,7 @@ components:
                     items:
                         oneOf:
                             - type: string
-                            - type: number
+                            - type: integer
                     description: Filter value (array for IN operator)
             example: { name: "HTTP_STATUS_CODE_GROUP", operator: "IN", value: ["2xx", "3xx"] }
 
