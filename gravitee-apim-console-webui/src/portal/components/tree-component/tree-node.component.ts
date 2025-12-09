@@ -49,4 +49,8 @@ export class TreeNodeComponent {
   toggleNode(): void {
     this.isExpanded.update((v) => !v);
   }
+
+  isUnpublished(): boolean {
+    return this.node().data?.published === false;
+  }
 }
