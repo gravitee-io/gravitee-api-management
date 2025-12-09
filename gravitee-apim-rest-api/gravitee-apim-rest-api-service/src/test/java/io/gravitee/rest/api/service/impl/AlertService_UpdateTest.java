@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
+import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
@@ -129,6 +130,19 @@ public class AlertService_UpdateTest extends AlertServiceTest {
         alertService.update(executionContext, alert);
 
         verify(triggerProvider, times(1)).register(any(Trigger.class));
+    }
+
+    @Test(expected = NodeAlertNotAllowedInCloudException.class)
+    public void must_throw_NodeAlertNotAllowedInCloudException_when_update_new_node_alert_on_cloud()
+        throws JsonProcessingException, TechnicalException {
+        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        alert.setSource("NODE_HEALTHCHECK");
+
+        when(cloudHosted.getEnabled()).thenReturn(true);
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+
+        alertService.update(executionContext, alert);
     }
 
     private void mockAlertSetting(boolean enabled) {
