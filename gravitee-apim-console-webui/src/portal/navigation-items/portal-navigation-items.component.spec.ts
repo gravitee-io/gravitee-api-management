@@ -402,6 +402,134 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('creating a folder under a folder from tree node "More actions" menu', () => {
+    it('calls backend create with parentId when dialog is submitted', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'FOLDER', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const title = 'New Child Folder';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationFolder({
+        id: 'child-folder-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'FOLDER',
+        parentId: folderData.id,
+      });
+
+      expectCreateNavigationItem(
+        { title, area: 'TOP_NAVBAR', type: 'FOLDER', parentId: folderData.id } as NewPortalNavigationItem,
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+  });
+
+  describe('creating a link under a folder from tree node "More actions" menu', () => {
+    it('calls backend create with parentId when dialog is submitted', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'LINK', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const title = 'New Child Link';
+      const url = 'https://example.com';
+      await dialog.setTitleInputValue(title);
+      await dialog.setUrlInputValue(url);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationLink({
+        id: 'child-link-1',
+        title,
+        url,
+        area: 'TOP_NAVBAR',
+        type: 'LINK',
+        parentId: folderData.id,
+      });
+
+      expectCreateNavigationItem(
+        fakeNewLinkPortalNavigationItem({ title, url, area: 'TOP_NAVBAR', type: 'LINK', parentId: folderData.id }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+  });
+
+  describe('editing a folder from tree node "More actions" menu', () => {
+    it('calls backend update when dialog is submitted (folder)', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', area: 'TOP_NAVBAR' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+      component.onNodeMenuAction({ action: 'edit', itemType: 'FOLDER', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      await dialog.setTitleInputValue('Updated Folder');
+      await dialog.clickSubmitButton();
+
+      expectPutPortalNavigationItem(
+        folderData.id,
+        {
+          title: 'Updated Folder',
+          type: folderData.type,
+          parentId: folderData.parentId,
+          order: folderData.order,
+          published: folderData.published,
+          visibility: folderData.visibility,
+        },
+        fakePortalNavigationFolder({ id: folderData.id, title: 'Updated Folder', area: folderData.area, type: 'FOLDER' }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: fakeResponse.items }));
+    });
+  });
+
   describe('selecting a navigation item', () => {
     beforeEach(async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
