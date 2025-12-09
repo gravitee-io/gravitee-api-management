@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.NamesPostprocessorImpl;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.PermissionsPreprocessorImpl;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -44,12 +44,12 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public NamesPostprocessor namesPostprocessor(ApplicationService applicationSearchService) {
-        return new NamesPostprocessorImpl(applicationSearchService);
+    public BucketNamesPostProcessor bucketNamesPostProcessor(ApplicationService applicationSearchService) {
+        return new BucketNamesPostProcessorImpl(applicationSearchService);
     }
 
     @Bean
-    public PermissionsPreprocessor permissionsPreprocessor(ApiSearchService apiSearchService) {
-        return new PermissionsPreprocessorImpl(apiSearchService);
+    public FilterPreProcessor filterPreProcessor(ApiSearchService apiSearchService) {
+        return new ManagementFilterPreProcessor(apiSearchService);
     }
 }

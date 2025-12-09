@@ -20,6 +20,8 @@ import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -136,8 +138,8 @@ public class FilterAdapter {
     }
 
     private JsonArray listValue(Object value) {
-        if (Objects.requireNonNull(value) instanceof List<?> l) {
-            return new JsonArray(l);
+        if (Objects.requireNonNull(value) instanceof Collection<?> l) {
+            return new JsonArray(new ArrayList<>(l));
         }
         return JsonArray.of(value);
     }
