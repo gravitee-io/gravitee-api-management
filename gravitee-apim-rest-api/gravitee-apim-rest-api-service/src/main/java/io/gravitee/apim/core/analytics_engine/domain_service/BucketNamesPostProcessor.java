@@ -25,8 +25,8 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface NamesPostprocessor {
-    FacetsResponse mapNames(MetricsContext context, List<FacetSpec.Name> facets, FacetsResponse response);
+public interface BucketNamesPostProcessor {
+    FacetsResponse mapBucketNames(MetricsContext context, List<FacetSpec.Name> facets, FacetsResponse response);
 
-    TimeSeriesResponse mapNames(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
+    TimeSeriesResponse mapBucketNames(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
 }

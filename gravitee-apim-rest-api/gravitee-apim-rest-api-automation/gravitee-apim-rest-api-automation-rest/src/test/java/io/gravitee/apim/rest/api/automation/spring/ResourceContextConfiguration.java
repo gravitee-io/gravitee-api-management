@@ -37,8 +37,8 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -957,12 +957,12 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PermissionsPreprocessor permissionsPreprocessor() {
-        return mock(PermissionsPreprocessor.class);
+    public FilterPreProcessor permissionsPreprocessor() {
+        return mock(FilterPreProcessor.class);
     }
 
     @Bean
-    public NamesPostprocessor namesPostprocessor() {
-        return mock(NamesPostprocessor.class);
+    public BucketNamesPostProcessor namesPostprocessor() {
+        return mock(BucketNamesPostProcessor.class);
     }
 }

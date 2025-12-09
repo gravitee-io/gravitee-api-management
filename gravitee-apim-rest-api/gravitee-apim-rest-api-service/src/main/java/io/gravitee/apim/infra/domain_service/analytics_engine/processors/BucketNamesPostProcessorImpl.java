@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
@@ -32,14 +32,27 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class NamesPostprocessorImpl implements NamesPostprocessor {
+public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private static final String UNKNOWN_APPLICATION = "Unknown";
+
+    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = Map.of(
+        "100-199",
+        "1XX",
+        "200-299",
+        "2XX",
+        "300-399",
+        "3XX",
+        "400-499",
+        "4XX",
+        "500-599",
+        "5XX"
+    );
 
     private final ApplicationService applicationSearchService;
 
     @Override
-    public FacetsResponse mapNames(MetricsContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
+    public FacetsResponse mapBucketNames(MetricsContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
         var buckets = response
             .metrics()
             .stream()
@@ -96,6 +109,7 @@ public class NamesPostprocessorImpl implements NamesPostprocessor {
 
     FacetBucketResponse mapFacetBucket(MetricsContext context, List<FacetSpec.Name> facets, FacetBucketResponse bucket) {
         var bucketName = switch (facets.getFirst()) {
+            case FacetSpec.Name.HTTP_STATUS_CODE_GROUP -> STATUS_CODE_GROUP_FROM_ES_KEY.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.API -> context
                 .apiNameById()
                 .map(apis -> apis.get(bucket.key()))
@@ -113,7 +127,7 @@ public class NamesPostprocessorImpl implements NamesPostprocessor {
     }
 
     @Override
-    public TimeSeriesResponse mapNames(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response) {
+    public TimeSeriesResponse mapBucketNames(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response) {
         var buckets = response
             .metrics()
             .stream()
@@ -135,12 +149,16 @@ public class NamesPostprocessorImpl implements NamesPostprocessor {
         return new TimeSeriesResponse(mappedMetrics);
     }
 
-    TimeSeriesMetricResponse mapTimeSeriesMetrics(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesMetricResponse metric) {
+    private TimeSeriesMetricResponse mapTimeSeriesMetrics(
+        MetricsContext context,
+        List<FacetSpec.Name> facets,
+        TimeSeriesMetricResponse metric
+    ) {
         var mappedBuckets = mapTimeSeriesBuckets(context, facets, metric.buckets());
         return new TimeSeriesMetricResponse(metric.name(), mappedBuckets);
     }
 
-    List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(
+    private List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(
         MetricsContext context,
         List<FacetSpec.Name> filters,
         List<TimeSeriesBucketResponse> buckets
@@ -155,7 +173,11 @@ public class NamesPostprocessorImpl implements NamesPostprocessor {
             .toList();
     }
 
-    TimeSeriesBucketResponse mapTimeSeriesBucket(MetricsContext context, List<FacetSpec.Name> facets, TimeSeriesBucketResponse bucket) {
+    private TimeSeriesBucketResponse mapTimeSeriesBucket(
+        MetricsContext context,
+        List<FacetSpec.Name> facets,
+        TimeSeriesBucketResponse bucket
+    ) {
         var updatedBuckets = bucket
             .buckets()
             .stream()
@@ -164,12 +186,12 @@ public class NamesPostprocessorImpl implements NamesPostprocessor {
         return new TimeSeriesBucketResponse(bucket.key(), bucket.name(), bucket.timestamp(), updatedBuckets, bucket.measures());
     }
 
-    Map<String, String> populateApplicationNames(List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
+    private Map<String, String> populateApplicationNames(List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
         var applicationIds = getApplicationIdsFromBuckets(facets, buckets);
         return loadApplicationNames(applicationIds);
     }
 
-    Set<String> getApplicationIdsFromBuckets(List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
+    private Set<String> getApplicationIdsFromBuckets(List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
         if (facets.isEmpty()) {
             return Set.of();
         }
