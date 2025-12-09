@@ -30,6 +30,7 @@ import { Router } from '@angular/router';
 import { startWith } from 'rxjs';
 
 import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
+import { FormKeyValuePairsComponent } from '../../../components/form-key-value-pairs/form-key-value-pairs.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../entities/application/application';
@@ -43,6 +44,7 @@ type BaseControls = {
   clientCertificate: FormControl<string>;
   appType: FormControl<string>;
   appClientId: FormControl<string>;
+  metadata: FormControl<Record<string, string> | null>;
   dynamic: FormRecord<FormControl<unknown>>;
 };
 
@@ -57,6 +59,7 @@ interface GrantTypeVM {
   imports: [
     ApplicationTypeTranslatePipe,
     BreadcrumbNavigationComponent,
+    FormKeyValuePairsComponent,
     LoaderComponent,
     MatButtonModule,
     MatCard,
@@ -93,6 +96,7 @@ export class CreateApplicationComponent {
     clientCertificate: new FormControl('', { nonNullable: true }),
     appType: new FormControl('', { nonNullable: true }),
     appClientId: new FormControl('', { nonNullable: true }),
+    metadata: new FormControl<Record<string, string> | null>(null, { nonNullable: false }),
     dynamic: new FormRecord<FormControl<unknown>>({}),
   });
 
@@ -311,12 +315,14 @@ export class CreateApplicationComponent {
       : (() => {
           const grantTypes = (formValue.dynamic?.['grantTypes'] as string[] | undefined) ?? [];
           const redirectUris = (formValue.dynamic?.['redirectUris'] as string[] | undefined) ?? [];
+          const metadata = formValue.metadata ?? null;
 
           return {
             oauth: {
               application_type: selectedType.id || selectedType.name || undefined,
               grant_types: grantTypes.length > 0 ? grantTypes : undefined,
               redirect_uris: redirectUris.length > 0 ? redirectUris : undefined,
+              additional_client_metadata: metadata && Object.keys(metadata).length > 0 ? metadata : undefined,
             },
           };
         })();
