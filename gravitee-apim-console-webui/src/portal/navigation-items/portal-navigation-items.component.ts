@@ -19,7 +19,7 @@ import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule, GioConfirmDialogComponent, G
 import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { toSignal, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
@@ -37,7 +37,7 @@ import {
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { SectionNode, TreeComponent } from '../components/tree-component/tree.component';
+import { NodeMenuActionEvent, SectionNode, TreeComponent } from '../components/tree-component/tree.component';
 import {
   NewPortalNavigationItem,
   PortalArea,
@@ -146,8 +146,8 @@ export class PortalNavigationItemsComponent {
     this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
   }
 
-  onEditSection(node: SectionNode) {
-    this.manageSection(node.type, 'edit', 'TOP_NAVBAR', node.data);
+  onNodeMenuAction(event: NodeMenuActionEvent) {
+    this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
   }
 
   onResizeStart(event: MouseEvent): void {
@@ -246,6 +246,7 @@ export class PortalNavigationItemsComponent {
               type,
               area,
               url: result.url,
+              parentId: existingItem?.id,
             });
           } else {
             if (!existingItem) {

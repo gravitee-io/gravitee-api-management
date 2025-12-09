@@ -62,7 +62,17 @@
     <mat-icon svgIcon="gio:more-vertical" />
   </button>
   <mat-menu #moreMenu="matMenu">
-    <button mat-menu-item (click)="edit.emit(node())"><mat-icon>edit</mat-icon> Edit</button>
+    @if (node()?.type === 'FOLDER') {
+      <button mat-menu-item (click)="triggerCreate('PAGE')">
+        <mat-icon>description</mat-icon>
+        Add Page
+      </button>
+    }
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="triggerEdit()">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
   </mat-menu>
 </div>
 
@@ -74,7 +84,7 @@
         [level]="level() + 1"
         [selectedId]="selectedId()"
         (nodeSelected)="nodeSelected.emit($event)"
-        (edit)="edit.emit($event)"
+        (nodeMenuAction)="nodeMenuAction.emit($event)"
       />
     }
   </div>
