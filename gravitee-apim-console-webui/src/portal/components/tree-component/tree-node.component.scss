@@ -53,8 +53,9 @@ $indent-step: 26px;
       .tree__icon__type,
       .tree__label,
       .tree__icon__status {
-        color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
-        fill: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
+        $unpublished-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker60);
+        color: $unpublished-color;
+        fill: $unpublished-color;
       }
 
       .tree__button.more-actions,
