@@ -59,15 +59,6 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_portal_navigation_items_for_environment() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENV_ID,
-                io.gravitee.rest.api.model.permissions.RolePermissionAction.READ
-            )
-        ).thenReturn(true);
-
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
         items.forEach(item -> item.setEnvironmentId(ENV_ID));
@@ -90,15 +81,6 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_portal_navigation_items_with_parent_id() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENV_ID,
-                io.gravitee.rest.api.model.permissions.RolePermissionAction.READ
-            )
-        ).thenReturn(true);
-
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
         items.forEach(item -> item.setEnvironmentId(ENV_ID));
@@ -123,15 +105,6 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_only_published_navigation_items() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENV_ID,
-                io.gravitee.rest.api.model.permissions.RolePermissionAction.READ
-            )
-        ).thenReturn(true);
-
         // Given
         var publishedItem = PortalNavigationFixtures.page(
             PortalNavigationFixtures.randomNavigationId(),
@@ -175,8 +148,6 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_not_show_children_of_unpublished_parent() {
         // Given
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
-
         // Root Level
         var grandparentId = PortalNavigationFixtures.randomNavigationId();
         var grandparent = PortalNavigationFixtures.folder(grandparentId, "Grandparent (Pub)", PortalArea.TOP_NAVBAR);
@@ -249,5 +220,27 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         }
 
         return null;
+    }
+
+    @Test
+    void should_return_navigation_items_when_user_is_authenticated() {
+        // Given
+        List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
+        items.forEach(item -> item.setEnvironmentId(ENV_ID));
+        portalNavigationItemsQueryService.initWith(items);
+
+        // When
+        Response response = target()
+            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+            .queryParam("loadChildren", true)
+            .request()
+            .get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(
+            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
+        );
+        assertThat(result).hasSize(items.size());
     }
 }

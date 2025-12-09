@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
@@ -76,7 +77,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 area,
                 Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
                 loadChildren,
-                false
+                PortalNavigationItemViewerContext.forConsole()
             )
         );
 
