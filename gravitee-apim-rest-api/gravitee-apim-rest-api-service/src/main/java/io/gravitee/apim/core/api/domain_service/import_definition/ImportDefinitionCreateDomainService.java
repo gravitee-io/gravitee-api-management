@@ -46,6 +46,8 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -98,17 +100,13 @@ public class ImportDefinitionCreateDomainService {
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
         var environmentId = auditInfo.environmentId();
         var organizationId = auditInfo.organizationId();
-        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
-            organizationId,
-            environmentId,
-            Optional.ofNullable(importDefinition)
-                .map(ImportDefinition::getApiExport)
-                .map(ApiExport::getPrimaryOwner)
-                .map(PrimaryOwnerEntity::id)
-                .orElse(auditInfo.actor().userId())
-        );
+        var primaryOwnerId = Optional.ofNullable(importDefinition)
+            .map(ImportDefinition::getApiExport)
+            .map(ApiExport::getPrimaryOwner)
+            .map(PrimaryOwnerEntity::id)
+            .orElse(auditInfo.actor().userId());
+        PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(organizationId, environmentId, primaryOwnerId, auditInfo);
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
-
         var createdApi = createApiDomainService.create(
             ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId),
             primaryOwner,
@@ -128,6 +126,19 @@ public class ImportDefinitionCreateDomainService {
             .process();
 
         return createdApi;
+    }
+
+    private PrimaryOwnerEntity resolvePrimaryOwner(
+        String organizationId,
+        String environmentId,
+        String primaryOwnerId,
+        AuditInfo auditInfo
+    ) {
+        try {
+            return apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, primaryOwnerId);
+        } catch (UserNotFoundException unfe) {
+            return apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, auditInfo.actor().userId());
+        }
     }
 
     private void createMetadata(Set<NewApiMetadata> metadataSet, String apiId, AuditInfo auditInfo) {
