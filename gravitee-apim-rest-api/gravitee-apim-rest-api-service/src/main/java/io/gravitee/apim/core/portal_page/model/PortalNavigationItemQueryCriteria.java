@@ -27,4 +27,5 @@ public class PortalNavigationItemQueryCriteria {
     private PortalNavigationItemId parentId;
     private PortalArea area;
     private Boolean published;
+    private PortalVisibility visibility;
 }

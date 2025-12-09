@@ -16,10 +16,10 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -29,23 +29,22 @@ import lombok.RequiredArgsConstructor;
 public class GetPortalNavigationItemUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
-    private final PortalNavigationItemVisibilityDomainService portalNavigationItemVisibilityDomainService;
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
             portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId())
         ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString()));
 
-        if (
-            Boolean.TRUE.equals(input.onlyVisibleInPortal()) && portalNavigationItemVisibilityDomainService.isNotVisibleInPortal(foundItem)
-        ) {
-            throw new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString());
-        }
+        input.viewerContext().validateAccess(foundItem);
 
         return new Output(foundItem);
     }
 
-    public record Input(PortalNavigationItemId portalNavigationItemId, String environmentId, Boolean onlyVisibleInPortal) {}
+    public record Input(
+        PortalNavigationItemId portalNavigationItemId,
+        String environmentId,
+        PortalNavigationItemViewerContext viewerContext
+    ) {}
 
     public record Output(PortalNavigationItem portalNavigationItem) {}
 }
