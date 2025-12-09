@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
 import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -37,45 +37,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 
 /**
  * @author GraviteeSource Team
  */
-@Service
 @RequiredArgsConstructor
-public class PermissionsPreprocessorImpl implements PermissionsPreprocessor {
+public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     private final ApiSearchService apiSearchService;
 
     @Override
-    public Map<String, String> findAllowedApis() {
-        QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
+    public MetricsContext buildFilters(MetricsContext context) {
+        var userApis = findUserApis();
 
-        var admin = isAdmin();
-        var userPrincipal = getUserPrincipal();
-        var name = userPrincipal.getName();
-        var executionContext = GraviteeContext.getExecutionContext();
+        var userApisIds = userApis.keySet();
 
-        var content = apiSearchService
-            .search(executionContext, name, admin, queryBuilder, new PageableImpl(0, Integer.MAX_VALUE), false, true)
-            .getContent();
+        var permissionsFilter = new Filter(API, IN, userApisIds);
 
-        return mapApiIdsToNames(content);
+        return context.withFilters(List.of(permissionsFilter)).withApiNamesById(userApis);
     }
-
-    @Override
-    public List<Filter> buildFilterForAllowedApis(MetricsContext context) {
-        var allowedApiIds = context.apiNameById().get().keySet().stream().toList();
-
-        return List.of(new Filter(API, IN, allowedApiIds));
-    }
-
-    /**
-     * addApiFilters adds a filter on API IDs to the existing filters.
-     */
 
     private static Map<String, String> mapApiIdsToNames(Collection<GenericApiEntity> apis) {
         return apis.stream().collect(Collectors.toMap(GenericApiEntity::getId, GenericApiEntity::getName));
@@ -101,5 +83,20 @@ public class PermissionsPreprocessorImpl implements PermissionsPreprocessor {
     protected Principal getUserPrincipal() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
+    }
+
+    private Map<String, String> findUserApis() {
+        QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
+
+        var admin = isAdmin();
+        var userPrincipal = getUserPrincipal();
+        var userName = userPrincipal.getName();
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var content = apiSearchService
+            .search(executionContext, userName, admin, queryBuilder, new PageableImpl(0, Integer.MAX_VALUE), false, true)
+            .getContent();
+
+        return mapApiIdsToNames(content);
     }
 }

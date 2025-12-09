@@ -39,8 +39,8 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -156,6 +156,7 @@ import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
@@ -195,6 +196,7 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -973,9 +975,9 @@ public class ResourceContextConfiguration {
     public ComputeMeasuresUseCase computeMeasuresUseCase(
         AnalyticsQueryContextProvider analyticsQueryContextProvider,
         AnalyticsQueryValidator analyticsQueryValidator,
-        PermissionsPreprocessor permissionsPreprocessor
+        FilterPreProcessor filterPreprocessor
     ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, permissionsPreprocessor);
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
     }
 
     @Bean
@@ -1004,12 +1006,12 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PermissionsPreprocessor permissionsPreprocessor() {
-        return mock(PermissionsPreprocessor.class);
+    public FilterPreProcessor filterPreProcessor() {
+        return mock(FilterPreProcessor.class);
     }
 
     @Bean
-    public NamesPostprocessor namesPostprocessor() {
-        return mock(NamesPostprocessor.class);
+    public BucketNamesPostProcessor bucketNamesPostProcessor() {
+        return mock(BucketNamesPostProcessor.class);
     }
 }

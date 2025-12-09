@@ -17,8 +17,8 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
-import io.gravitee.apim.core.analytics_engine.domain_service.NamesPostprocessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.PermissionsPreprocessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
@@ -41,20 +41,20 @@ public class ComputeFacetsUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final PermissionsPreprocessor permissionsPreprocessor;
+    private final FilterPreProcessor filterPreprocessor;
 
-    private final NamesPostprocessor namesPostprocessor;
+    private final BucketNamesPostProcessor bucketNamesPostprocessor;
 
     public ComputeFacetsUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
-        PermissionsPreprocessor permissionsPreprocessor,
-        NamesPostprocessor namesPostprocessor
+        FilterPreProcessor filterPreprocessor,
+        BucketNamesPostProcessor bucketNamesPostprocessor
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
-        this.permissionsPreprocessor = permissionsPreprocessor;
-        this.namesPostprocessor = namesPostprocessor;
+        this.filterPreprocessor = filterPreprocessor;
+        this.bucketNamesPostprocessor = bucketNamesPostprocessor;
     }
 
     public record Input(AuditInfo auditInfo, FacetsRequest request) {}
@@ -66,21 +66,15 @@ public class ComputeFacetsUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContext = new MetricsContext(input.auditInfo);
-
-        var allowedApis = permissionsPreprocessor.findAllowedApis();
-        var filteredContext = metricsContext.withApiNamesById(allowedApis);
-
-        var filters = permissionsPreprocessor.buildFilterForAllowedApis(filteredContext);
-        filteredContext = filteredContext.withFilters(filters);
+        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
 
         var queryContext = queryContextProvider.resolve(input.request);
 
-        var responses = executeQueries(executionContext, filteredContext, queryContext);
+        var responses = executeQueries(executionContext, metricsContextWithPermissions, queryContext);
 
         var response = FacetsResponse.merge(responses);
 
-        var mappedResponse = namesPostprocessor.mapNames(filteredContext, input.request.facets(), response);
+        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(metricsContextWithPermissions, input.request.facets(), response);
 
         return new ComputeFacetsUseCase.Output(mappedResponse);
     }

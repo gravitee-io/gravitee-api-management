@@ -1284,11 +1284,11 @@ spec:
           label: Status Code Group
           type: ENUM
           enumValues:
-              - 1xx
-              - 2xx
-              - 3xx
-              - 4xx
-              - 5xx
+              - 1XX
+              - 2XX
+              - 3XX
+              - 4XX
+              - 5XX
           operators:
               - EQ
               - IN
