@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
@@ -151,6 +152,7 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
         ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_API_TYPE, api.getDefinition().getType().name());
     }
 
     protected void dumpAcceptors() {

@@ -158,7 +158,7 @@ class HttpSecurityPlanTest {
     @Test
     void canExecute_shouldReturnFalse_whenPolicyHasSecurityToken_butSubscriptionNotFound() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(policy.requireSubscription()).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
@@ -177,7 +177,7 @@ class HttpSecurityPlanTest {
     @Test
     void canExecute_shouldReturnFalse_whenPolicyHasSecurityToken_butFoundSubscriptionIsNotOnSamePlan() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(policy.requireSubscription()).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
@@ -198,7 +198,7 @@ class HttpSecurityPlanTest {
     @Test
     void canExecute_shouldReturnFalse_whenPolicyHasSecurityToken_butFoundSubscriptionIsExpired() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(policy.requireSubscription()).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
@@ -221,7 +221,7 @@ class HttpSecurityPlanTest {
     @Test
     void canExecute_shouldReturnTrue_whenPolicyHasSecurityToken_butFoundSubscriptionIsNotExpired() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(policy.requireSubscription()).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
@@ -244,7 +244,7 @@ class HttpSecurityPlanTest {
     @Test
     void execute_shouldReturnFalse_whenExceptionOccurredWhileSearchingSubscriptions() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(policy.requireSubscription()).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
