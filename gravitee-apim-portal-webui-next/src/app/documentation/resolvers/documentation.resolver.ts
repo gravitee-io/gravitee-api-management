@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, ResolveFn, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
 
-export const documentationResolver = (route: ActivatedRouteSnapshot): Observable<PortalNavigationItem | null> => {
+export const documentationResolver = ((route: ActivatedRouteSnapshot): Observable<PortalNavigationItem | null> => {
   const topNavbarItems = inject(PortalNavigationItemsService).topNavbarItems();
   const router = inject(Router);
   const navId = route.params['navId'];
@@ -34,9 +34,9 @@ export const documentationResolver = (route: ActivatedRouteSnapshot): Observable
   const navItem = topNavbarItems.find(item => item.id === navId);
 
   if (!navItem) {
-    inject(Router).navigate(['/404']);
+    router.navigate(['/404']);
     return of(null);
-  } else {
-    return of(navItem);
   }
-};
+
+  return of(navItem);
+}) satisfies ResolveFn<PortalNavigationItem | null>;

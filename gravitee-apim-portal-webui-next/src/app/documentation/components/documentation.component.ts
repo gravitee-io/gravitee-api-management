@@ -41,7 +41,7 @@ import { PortalNavigationItem } from '../../../entities/portal-navigation/portal
 export class DocumentationComponent {
   navItem = input.required<PortalNavigationItem>();
   isItemFolder = computed(() => this.navItem()?.type === 'FOLDER');
-  constructor(private router: Router) {
+  constructor(private readonly router: Router) {
     effect(() => {
       const itemType = this.navItem()?.type;
       if (itemType !== 'FOLDER' && itemType !== 'PAGE') {

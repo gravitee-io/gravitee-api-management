@@ -40,9 +40,9 @@ export class DocumentationFolderComponent {
   selectedPageContent = signal<string>('');
 
   constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private itemsService: PortalNavigationItemsService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly itemsService: PortalNavigationItemsService,
   ) {
     effect(() => this.loadChildren());
     effect(() => this.loadPageContent());

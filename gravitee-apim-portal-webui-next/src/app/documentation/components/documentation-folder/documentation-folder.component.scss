@@ -41,10 +41,11 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    overflow: auto;
 
     &__content {
-      overflow: auto;
       padding: 0 30px;
+      max-width: app-theme.$gmd-viewer-max-width;
     }
   }
 }

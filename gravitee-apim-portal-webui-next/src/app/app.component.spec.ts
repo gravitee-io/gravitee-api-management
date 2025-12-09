@@ -57,6 +57,7 @@ describe('AppComponent', () => {
           area: 'TOP_NAVBAR',
           order: 0,
           url: '/link1',
+          published: true,
         },
         {
           id: 'l2',
@@ -67,6 +68,7 @@ describe('AppComponent', () => {
           area: 'TOP_NAVBAR',
           order: 1,
           url: '/link2',
+          published: true,
         },
       ];
 
@@ -76,7 +78,7 @@ describe('AppComponent', () => {
           provideHttpClientTesting(),
           {
             provide: PortalNavigationItemsService,
-            useValue: { topNavbar: signal(mockItems) },
+            useValue: { topNavbarItems: signal(mockItems) },
           },
         ],
       }).compileComponents();

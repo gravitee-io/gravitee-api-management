@@ -15,29 +15,39 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
+import { DivHarness } from '../../../../../testing/div.harness';
+
 export class TreeComponentHarness extends ComponentHarness {
-  static hostSelector = 'app-tree-component';
+  static readonly hostSelector = 'app-tree-component';
 
-  private getSelectedLabelButton = this.locatorForOptional('.tree__row.selected .tree__label');
-  private getTreeLabelButtons = this.locatorForAll('.tree__label');
+  private readonly getTreeLabelButtons = this.locatorForAll('.tree__label');
 
-  async getSelectedItemTitle(): Promise<string | null> {
-    const labelButton = await this.getSelectedLabelButton();
-    if (!labelButton) {
-      return null;
+  private readonly getFolderItem = this.locatorForAll(DivHarness.with({ selector: '.tree__row.folder' }));
+
+  async getFolderByTitle(title: string): Promise<{
+    label: string;
+    expanded: boolean;
+  } | null> {
+    const buttons = await this.getFolderItem();
+
+    for (const button of buttons) {
+      const label = await button.childLocatorForOptional('.tree__label')();
+      const text = await label?.text();
+      if (text?.trim() === title.trim()) {
+        const iconText = await button
+          .childLocatorForOptional('.tree__icon')()
+          .then(icon => icon?.text());
+        return {
+          label: text,
+          expanded: iconText === 'keyboard_arrow_down',
+        };
+      }
     }
-    return labelButton.text();
+
+    throw new Error(`No item found with title: ${title}`);
   }
 
-  async getSelectedItemType(): Promise<string | null> {
-    const selectedIcon = await this.locatorForOptional('.tree__row.selected .tree__icon')();
-    if (!selectedIcon) {
-      return null;
-    }
-    return selectedIcon.getAttribute('data-test-type');
-  }
-
-  async selectItemByTitle(title: string): Promise<void> {
+  async clickItemByTitle(title: string): Promise<void> {
     const buttons = await this.getTreeLabelButtons();
 
     for (const button of buttons) {

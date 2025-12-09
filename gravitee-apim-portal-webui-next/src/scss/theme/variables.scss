@@ -116,3 +116,5 @@ $table-header-headline-color: var(--gio-app-table-header-headline-color, $defaul
 $chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
+
+$gmd-viewer-max-width: 1280px;
