@@ -554,7 +554,7 @@ paths:
                   timeRange:
                     from: "2025-11-22T16:40:30Z"
                     to: "2025-11-22T16:45:30Z"
-                  interval: 1m
+                  interval: 3600000
                   metrics:
                     - name: "HTTP_REQUESTS"
                       measures: [ "COUNT" ]
@@ -564,7 +564,7 @@ paths:
                   timeRange:
                     from: "2025-11-22T16:40:30Z"
                     to: "2025-11-22T16:45:30Z"
-                  interval: 1m
+                  interval: 3600000
                   metrics:
                     - name: "HTTP_REQUESTS"
                       measures: [ "COUNT" ]
@@ -576,7 +576,7 @@ paths:
                   timeRange:
                     from: "2025-11-22T16:40:30Z"
                     to: "2025-11-22T16:45:30Z"
-                  interval: 1m
+                  interval: 60000
                   by: [ "API" ]
                   ranges: [
                     { from: 100, to: 399 },
@@ -1436,7 +1436,7 @@ components:
                 timeRange:
                     from: "2025-01-01T00:00:00Z"
                     to: "2025-01-31T23:59:59Z"
-                interval: 1h
+                interval: 3600000
                 by: ["API"]
                 filters:
                     - name: "API"
@@ -1778,7 +1778,7 @@ components:
                     example:
                         name: "HTTP_REQUESTS"
                         type: "TIME_SERIES"
-                        interval: "-1d"
+                        interval: -3600000
                 details:
                     type: array
                     description: A list of details about the error
