@@ -14,8 +14,8 @@
         {
           "range": {
             "@timestamp": {
-              "from": ${roundedFrom},
-              "to": ${roundedTo}
+              "gte": ${roundedFrom},
+              "lte": ${roundedTo}
             }
           }
         }
