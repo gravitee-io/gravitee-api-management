@@ -45,10 +45,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'measures',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           metrics: [
             {
               name: 'HTTP_REQUESTS',
@@ -69,10 +65,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'measures',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           metrics: [
             {
               name: 'HTTP_ERRORS',
@@ -93,10 +85,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'measures',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           metrics: [
             {
               name: 'HTTP_GATEWAY_LATENCY',
@@ -117,10 +105,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'measures',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           metrics: [
             {
               name: 'HTTP_GATEWAY_RESPONSE_TIME',
@@ -141,10 +125,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'facets',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           by: ['HTTP_STATUS_CODE_GROUP'],
           metrics: [
             {
@@ -156,7 +136,7 @@ export class GraviteeDashboardService {
       },
       {
         id: '6',
-        title: 'Response Time (mock)',
+        title: 'Response Time',
         type: 'line',
         layout: {
           cols: 3,
@@ -165,16 +145,16 @@ export class GraviteeDashboardService {
           x: 1,
         },
         request: {
-          type: 'facets',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
-          by: ['API', 'APPLICATION'],
+          type: 'time-series',
+          by: [],
           metrics: [
             {
-              name: 'HTTP_REQUESTS',
-              measures: ['RPS'],
+              name: 'HTTP_ENDPOINT_RESPONSE_TIME',
+              measures: ['AVG'],
+            },
+            {
+              name: 'HTTP_GATEWAY_RESPONSE_TIME',
+              measures: ['AVG'],
             },
           ],
         },
@@ -191,13 +171,7 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'time-series',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           by: ['HTTP_STATUS_CODE_GROUP'],
-          interval: '1h',
-
           metrics: [
             {
               name: 'HTTP_REQUESTS',
@@ -218,10 +192,6 @@ export class GraviteeDashboardService {
         },
         request: {
           type: 'facets',
-          timeRange: {
-            from: '2025-10-07T06:50:30Z',
-            to: '2025-12-07T11:35:30Z',
-          },
           limit: 5,
           by: ['APPLICATION'],
           metrics: [

@@ -18,5 +18,5 @@ import { GlobalRequest } from './request';
 
 export interface TimeSeriesRequest extends GlobalRequest<'time-series'> {
   by: FacetName[];
-  interval: number | string;
+  interval?: number | string;
 }
