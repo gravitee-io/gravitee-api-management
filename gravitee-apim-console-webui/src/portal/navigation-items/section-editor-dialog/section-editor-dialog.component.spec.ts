@@ -238,6 +238,24 @@ describe('SectionEditorDialogComponent', () => {
           title: 'Updated Page',
         });
       });
+
+      it('should not allow save when title is not updated', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should disable save when title is the same as before after changes', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        const titleInput = await dialog.getTitleInput();
+        await titleInput.setValue('Updated Page');
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(false);
+
+        await titleInput.setValue('Existing Page');
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
     });
     describe('when editing a link', () => {
       beforeEach(() => {
