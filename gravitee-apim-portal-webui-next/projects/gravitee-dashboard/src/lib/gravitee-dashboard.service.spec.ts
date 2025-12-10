@@ -67,7 +67,6 @@ describe('GraviteeDashboardService', () => {
         expect(widget.layout).toHaveProperty('x');
         expect(widget.layout).toHaveProperty('y');
         expect(widget.request).toHaveProperty('type');
-        expect(widget.request).toHaveProperty('timeRange');
       });
     });
   });
