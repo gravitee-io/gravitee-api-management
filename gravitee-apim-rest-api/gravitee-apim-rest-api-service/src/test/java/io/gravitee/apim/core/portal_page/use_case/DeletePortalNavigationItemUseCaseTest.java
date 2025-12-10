@@ -21,6 +21,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.exception.ItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -180,15 +181,17 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsQueryService.initWith(List.of(parent, child1, child2, grandChild));
 
         // When
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                parent.getId()
+        var throwable = Assertions.catchThrowable(() ->
+            deletePortalNavigationItemUseCase.execute(
+                new DeletePortalNavigationItemUseCase.Input(
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    parent.getId()
+                )
             )
         );
 
         // Then
-        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+        Assertions.assertThat(throwable).isInstanceOf(ItemHasChildrenException.class).hasMessageContaining("has children");
     }
 }
