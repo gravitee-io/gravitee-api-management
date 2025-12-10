@@ -37,6 +37,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.model.AccessControl;
@@ -174,6 +175,17 @@ class ApiExportDomainServiceImplTest {
                 )
             )
             .thenReturn(true);
+        lenient()
+            .when(
+                permissionService.hasPermission(
+                    any(ExecutionContext.class),
+                    anyString(),
+                    any(RolePermission.class),
+                    anyString(),
+                    ArgumentMatchers.<RolePermissionAction>any()
+                )
+            )
+            .thenReturn(true);
     }
 
     @AfterEach
@@ -227,11 +239,7 @@ class ApiExportDomainServiceImplTest {
         when(mediaService.findAllByApiId(anyString())).thenReturn(List.of(MEDIA));
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
@@ -278,11 +286,7 @@ class ApiExportDomainServiceImplTest {
         ).thenReturn(false);
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
@@ -302,11 +306,7 @@ class ApiExportDomainServiceImplTest {
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.NATIVE);
@@ -336,11 +336,7 @@ class ApiExportDomainServiceImplTest {
         );
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().definitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
@@ -367,11 +363,7 @@ class ApiExportDomainServiceImplTest {
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().definitionVersion()).isEqualTo(DefinitionVersion.V2);
@@ -508,11 +500,7 @@ class ApiExportDomainServiceImplTest {
         when(roleQueryService.findByIds(anySet())).thenReturn(roles());
 
         // When
-        GraviteeDefinition export = sut.export(
-            apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
-            EnumSet.noneOf(Excludable.class)
-        );
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.pages()).containsOnly(
@@ -638,7 +626,7 @@ class ApiExportDomainServiceImplTest {
         // When
         GraviteeDefinition export = sut.export(
             apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
+            getAuditInfo(),
             Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
         );
 
@@ -674,7 +662,7 @@ class ApiExportDomainServiceImplTest {
         // When
         GraviteeDefinition export = sut.export(
             apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
+            getAuditInfo(),
             Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
         );
 
@@ -708,7 +696,7 @@ class ApiExportDomainServiceImplTest {
         // When
         GraviteeDefinition export = sut.export(
             apiId,
-            AuditInfo.builder().environmentId("DEFAULT").build(),
+            getAuditInfo(),
             Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
         );
 
@@ -864,5 +852,9 @@ class ApiExportDomainServiceImplTest {
 
     Set<Role> roles() {
         return Set.of(Role.builder().name("PRIMARY_OWNER").scope(Role.Scope.APPLICATION).id("role-id").build());
+    }
+
+    private static AuditInfo getAuditInfo() {
+        return AuditInfo.builder().environmentId("DEFAULT").actor(AuditActor.builder().userId("member-id").build()).build();
     }
 }

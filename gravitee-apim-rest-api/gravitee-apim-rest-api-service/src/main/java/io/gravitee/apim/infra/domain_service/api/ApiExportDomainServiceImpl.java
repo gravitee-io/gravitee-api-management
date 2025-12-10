@@ -64,7 +64,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
@@ -104,13 +103,11 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), apiId);
         var api1 = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-        var members = !excluded.contains(MEMBERS) ? exportApiMembers(apiId) : null;
-        var metadata = !excluded.contains(METADATA)
-            ? exportApiMetadata(executionContext, apiId, executionContext.getEnvironmentId())
-            : null;
+        var members = !excluded.contains(MEMBERS) ? exportApiMembers(apiId, auditInfo, executionContext) : null;
+        var metadata = !excluded.contains(METADATA) ? exportApiMetadata(executionContext, apiId) : null;
 
-        var pages = !excluded.contains(PAGES_MEDIA) ? exportApiPages(apiId) : null;
-        var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId) : null;
+        var pages = !excluded.contains(PAGES_MEDIA) ? exportApiPages(apiId, executionContext) : null;
+        var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId, executionContext) : null;
 
         var workflowState = stream(workflowCrudService.findByApiId(apiId))
             .map(Workflow::getState)
@@ -164,8 +161,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         };
     }
 
-    private Set<ApiMember> exportApiMembers(String apiId) {
-        if (!permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_MEMBER, apiId, READ)) {
+    private Set<ApiMember> exportApiMembers(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
+        if (!permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_MEMBER, apiId, READ)) {
             return null;
         }
         List<Membership> members = stream(membershipCrudService.findByApiId(apiId))
@@ -185,11 +182,14 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .collect(Collectors.toSet());
     }
 
-    private Collection<NewApiMetadata> exportApiMetadata(ExecutionContext executionContext, String apiId, String envId) {
+    private Collection<NewApiMetadata> exportApiMetadata(ExecutionContext executionContext, String apiId) {
         if (!permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, READ)) {
             return null;
         }
-        return Stream.concat(stream(metadataCrudService.findByEnvId(envId)), stream(metadataCrudService.findByApiId(apiId)))
+        return Stream.concat(
+            stream(metadataCrudService.findByEnvId(executionContext.getEnvironmentId())),
+            stream(metadataCrudService.findByApiId(apiId))
+        )
             .map(DEFINITION_ADAPTER::mapMetadata)
             .collect(
                 Collectors.toMap(NewApiMetadata::getKey, Function.identity(), (envMetadata, apiMetadata) -> {
@@ -200,14 +200,14 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .values();
     }
 
-    private List<PageExport> exportApiPages(String apiId) {
-        return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_DOCUMENTATION, apiId, READ)
+    private List<PageExport> exportApiPages(String apiId, ExecutionContext executionContext) {
+        return permissionService.hasPermission(executionContext, API_DOCUMENTATION, apiId, READ)
             ? DEFINITION_ADAPTER.mapPage(pageQueryService.searchByApiId(apiId))
             : null;
     }
 
-    private List<Media> exportApiMedia(String apiId) {
-        return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_DOCUMENTATION, apiId, READ)
+    private List<Media> exportApiMedia(String apiId, ExecutionContext executionContext) {
+        return permissionService.hasPermission(executionContext, API_DOCUMENTATION, apiId, READ)
             ? mediaService.findAllByApiId(apiId)
             : null;
     }
