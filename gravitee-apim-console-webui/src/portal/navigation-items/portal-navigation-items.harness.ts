@@ -153,4 +153,16 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     const titleText = await titleDiv.getText();
     return titleText.includes('Unpublished');
   }
+
+  async isPublicBadgeVisible() {
+    const titleDiv = await this.getTitle();
+    const titleText = await titleDiv.getText();
+    return titleText.includes('Public');
+  }
+
+  async isPrivateBadgeVisible(): Promise<boolean> {
+    const titleDiv = await this.getTitle();
+    const titleText = await titleDiv.getText();
+    return titleText.includes('Private');
+  }
 }
