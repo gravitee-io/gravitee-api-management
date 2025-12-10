@@ -54,6 +54,7 @@ $typography: map.get(gio.$mat-theme, typography);
     @include mat.m2-typography-level($typography, 'subtitle-1');
     display: flex;
     gap: 4px;
+    align-items: center;
   }
 
   &__actions {
