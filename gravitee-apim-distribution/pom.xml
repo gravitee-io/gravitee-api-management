@@ -69,6 +69,9 @@
           Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
     -->
 
+    <modules>
+        <module>gravitee-apim-distribution-es-index-mappings</module>
+    </modules>
 
     <!-- Default dependencies, to allow a full OSS distribution with opensource plugins only -->
     <dependencies>
