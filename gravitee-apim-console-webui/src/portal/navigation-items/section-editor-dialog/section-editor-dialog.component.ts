@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { isEqual } from 'lodash';
 
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
@@ -51,6 +52,11 @@ interface SectionFormControls {
   url?: FormControl<string>; // Optional for 'LINK' type
 }
 
+interface SectionFormValues {
+  title: string;
+  url?: string;
+}
+
 type SectionForm = FormGroup<SectionFormControls>;
 
 @Component({
@@ -73,6 +79,7 @@ export class SectionEditorDialogComponent implements OnInit {
   form: SectionForm = new FormGroup<SectionFormControls>({
     title: new FormControl<string>('', { validators: [Validators.required], nonNullable: true }),
   });
+  public initialFormValues: SectionFormValues;
 
   public type: PortalNavigationItemType;
   public mode: SectionEditorDialogMode;
@@ -97,6 +104,8 @@ export class SectionEditorDialogComponent implements OnInit {
   ngOnInit(): void {
     this.addTypeSpecificControls();
     this.prefillExistingItem();
+
+    this.initialFormValues = this.form.getRawValue();
   }
 
   private addTypeSpecificControls(): void {
@@ -123,5 +132,9 @@ export class SectionEditorDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  formIsUnchanged(): boolean {
+    return isEqual(this.form.getRawValue(), this.initialFormValues);
   }
 }
