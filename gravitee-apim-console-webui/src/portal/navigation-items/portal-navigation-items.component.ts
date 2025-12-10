@@ -17,7 +17,7 @@ import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -62,7 +62,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
     ReactiveFormsModule,
     EmptyStateComponent,
     GioCardEmptyStateModule,
-    MatButton,
+    MatButtonModule,
     TreeComponent,
     GioPermissionModule,
     MatMenuModule,

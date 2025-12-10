@@ -65,11 +65,15 @@
     <header class="panel-header editor-panel__header">
       @if (selectedNavigationItem()) {
         <div class="panel-header__title">
-          {{ selectedNavigationItem().label }}
+          <div>
+            {{ selectedNavigationItem().label }}
+          </div>
 
-          <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'" data-testid="status-badge">
-            {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-          </span>
+          <div>
+            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'" data-testid="status-badge">
+              {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+            </span>
+          </div>
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
