@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
-import io.gravitee.apim.core.portal_page.exception.ItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
@@ -78,14 +77,6 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
     public Response deletePortalNavigationItem(@PathParam("navId") String navigationItemId) {
         var navId = PortalNavigationItemId.of(navigationItemId);
-
-        var directChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
-            GraviteeContext.getCurrentEnvironment(),
-            navId
-        );
-        if (!directChildren.isEmpty()) {
-            throw ItemHasChildrenException.forId(navigationItemId);
-        }
 
         var input = new DeletePortalNavigationItemUseCase.Input(
             GraviteeContext.getCurrentOrganization(),
