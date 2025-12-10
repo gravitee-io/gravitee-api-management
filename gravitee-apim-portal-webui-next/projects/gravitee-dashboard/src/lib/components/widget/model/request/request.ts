@@ -20,7 +20,7 @@ import { MetricName } from './enum/metric-name';
 
 export interface GlobalRequest<E extends RequestType> {
   type: E;
-  timeRange: TimeRange;
+  timeRange?: TimeRange;
   filters?: RequestFilter[];
   metrics: MetricRequest[];
 }
