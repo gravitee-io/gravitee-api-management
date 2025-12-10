@@ -39,6 +39,7 @@ import {
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
+  fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
   PortalNavigationItem,
   PortalNavigationItemsResponse,
@@ -719,6 +720,33 @@ describe('PortalNavigationItemsComponent', () => {
       it('should show "Public" badge', async () => {
         expect(await harness.isPublicBadgeVisible()).toBe(true);
       });
+
+      it('should change visibility in edit dialog', async () => {
+        await harness.editNodeById('nav-item-1');
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const authToggle = await dialog.getAuthenticationToggle();
+        expect(await authToggle.isChecked()).toBe(false);
+
+        await authToggle.toggle();
+
+        await dialog.clickSubmitButton();
+        expectPutPortalNavigationItem(
+          publicNavItem.id,
+          fakeUpdatePagePortalNavigationItem({
+            title: publicNavItem.title,
+            parentId: publicNavItem.parentId,
+            order: publicNavItem.order,
+            published: publicNavItem.published,
+            visibility: 'PRIVATE',
+          }),
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publicNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
     });
 
     describe('private navigation item', () => {
@@ -738,6 +766,33 @@ describe('PortalNavigationItemsComponent', () => {
       });
       it('should show "Private" badge', async () => {
         expect(await harness.isPrivateBadgeVisible()).toBe(true);
+      });
+
+      it('should change visibility in edit dialog', async () => {
+        await harness.editNodeById('nav-item-1');
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const authToggle = await dialog.getAuthenticationToggle();
+        expect(await authToggle.isChecked()).toBe(true);
+
+        await authToggle.toggle();
+
+        await dialog.clickSubmitButton();
+        expectPutPortalNavigationItem(
+          privateNavItem.id,
+          fakeUpdatePagePortalNavigationItem({
+            title: privateNavItem.title,
+            parentId: privateNavItem.parentId,
+            order: privateNavItem.order,
+            published: privateNavItem.published,
+            visibility: 'PUBLIC',
+          }),
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
     });
   });
