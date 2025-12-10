@@ -44,6 +44,11 @@
       </mat-form-field>
     }
 
+    <div class="form-field-title">Authentication</div>
+    <mat-slide-toggle formControlName="isPrivate" aria-label="Use system proxy"
+      >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
+    >
+
     <gio-banner-info type="info">
       This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
     </gio-banner-info>

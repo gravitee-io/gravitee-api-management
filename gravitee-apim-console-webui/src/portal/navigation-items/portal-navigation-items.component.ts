@@ -26,7 +26,7 @@ import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/me
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
-import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 
 import {
@@ -72,6 +72,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
     AsyncPipe,
     MatCardModule,
     NgTemplateOutlet,
+    TitleCasePipe,
   ],
 })
 export class PortalNavigationItemsComponent {
@@ -258,7 +259,6 @@ export class PortalNavigationItemsComponent {
               parentId: existingItem.parentId,
               order: existingItem.order,
               published: existingItem.published,
-              visibility: existingItem.visibility,
               ...result,
             });
           }

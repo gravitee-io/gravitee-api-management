@@ -165,4 +165,9 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     const titleText = await titleDiv.getText();
     return titleText.includes('Private');
   }
+
+  async editNodeById(id: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectEditById(id);
+  }
 }

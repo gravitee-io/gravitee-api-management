@@ -55,6 +55,10 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     gap: 4px;
     align-items: center;
+
+    &__badges {
+      display: flex;
+    }
   }
 
   &__actions {
