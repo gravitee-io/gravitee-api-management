@@ -1,3 +1,10 @@
+## [7.3.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.3.0...7.3.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* ensure templates can be generated independently ([8dfe6df](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/8dfe6dfaf27af0027ac56771413d8f04cc5887dc))
+
 # [7.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.2.1...7.3.0) (2025-12-04)
 
 
