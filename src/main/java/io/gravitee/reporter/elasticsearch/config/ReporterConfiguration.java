@@ -38,6 +38,23 @@ import org.springframework.core.env.ConfigurableEnvironment;
 public class ReporterConfiguration {
 
     private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "http://localhost:9200";
+    public static final String DEFAULT_INDEX_NAME = "gravitee";
+    public static final boolean DEFAULT_PER_TYPE_INDEX = false;
+    public static final String DEFAULT_INDEX_MODE = "daily";
+    public static final int DEFAULT_BULK_ACTIONS = 1000;
+    public static final long DEFAULT_BULK_FLUSH_INTERVAL = 5L;
+    public static final long DEFAULT_REQUEST_TIMEOUT = 30000L;
+    public static final String DEFAULT_PROXY_TYPE = "HTTP";
+    public static final String DEFAULT_PROXY_HTTP_HOST = "localhost";
+    public static final int DEFAULT_PROXY_HTTP_PORT = 3128;
+    public static final String DEFAULT_PROXY_HTTPS_HOST = "localhost";
+    public static final int DEFAULT_PROXY_HTTPS_PORT = 3128;
+    public static final int DEFAULT_NUMBER_OF_SHARDS = 1;
+    public static final int DEFAULT_NUMBER_OF_REPLICAS = 1;
+    public static final String DEFAULT_REFRESH_INTERVAL = "5s";
+    public static final boolean DEFAULT_ENABLED = true;
+    public static final String DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME = "index.lifecycle.name";
+    public static final String DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME = "index.lifecycle.rollover_alias";
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -45,32 +62,32 @@ public class ReporterConfiguration {
     /**
      * Prefix index name.
      */
-    @Value("${reporters.elasticsearch.index:gravitee}")
-    private String indexName;
+    @Value("${reporters.elasticsearch.index:" + DEFAULT_INDEX_NAME + "}")
+    private String indexName = DEFAULT_INDEX_NAME;
 
     /**
      * Single index or index per type?
      */
-    @Value("${reporters.elasticsearch.index_per_type:false}")
-    private boolean perTypeIndex;
+    @Value("${reporters.elasticsearch.index_per_type:" + DEFAULT_PER_TYPE_INDEX + "}")
+    private boolean perTypeIndex = DEFAULT_PER_TYPE_INDEX;
 
     /**
      * Index mode normal (daily index) vs ILM (managed by ILM)
      */
-    @Value("${reporters.elasticsearch.index_mode:daily}")
-    private String indexMode;
+    @Value("${reporters.elasticsearch.index_mode:" + DEFAULT_INDEX_MODE + "}")
+    private String indexMode = DEFAULT_INDEX_MODE;
 
     /**
      * Request actions max by bulk
      */
-    @Value("${reporters.elasticsearch.bulk.actions:1000}")
-    private Integer bulkActions;
+    @Value("${reporters.elasticsearch.bulk.actions:" + DEFAULT_BULK_ACTIONS + "}")
+    private Integer bulkActions = DEFAULT_BULK_ACTIONS;
 
     /**
      * Bulk flush interval in seconds
      */
-    @Value("${reporters.elasticsearch.bulk.flush_interval:5}")
-    private Long flushInterval;
+    @Value("${reporters.elasticsearch.bulk.flush_interval:" + DEFAULT_BULK_FLUSH_INTERVAL + "}")
+    private Long flushInterval = DEFAULT_BULK_FLUSH_INTERVAL;
 
     /**
      * Elasticsearch basic oauth login.
@@ -115,17 +132,17 @@ public class ReporterConfiguration {
     /**
      * Elasticsearch HTTP request timeout.
      */
-    @Value("${reporters.elasticsearch.http.timeout:30000}")
-    private long requestTimeout;
+    @Value("${reporters.elasticsearch.http.timeout:" + DEFAULT_REQUEST_TIMEOUT + "}")
+    private long requestTimeout = DEFAULT_REQUEST_TIMEOUT;
 
-    @Value("${reporters.elasticsearch.http.proxy.type:HTTP}")
-    private String proxyType;
+    @Value("${reporters.elasticsearch.http.proxy.type:" + DEFAULT_PROXY_TYPE + "}")
+    private String proxyType = DEFAULT_PROXY_TYPE;
 
-    @Value("${reporters.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
-    private String proxyHttpHost;
+    @Value("${reporters.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: '" + DEFAULT_PROXY_HTTP_HOST + "'}}")
+    private String proxyHttpHost = DEFAULT_PROXY_HTTP_HOST;
 
-    @Value("${reporters.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
-    private int proxyHttpPort;
+    @Value("${reporters.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: " + DEFAULT_PROXY_HTTP_PORT + "}}")
+    private int proxyHttpPort = DEFAULT_PROXY_HTTP_PORT;
 
     @Value("${reporters.elasticsearch.http.proxy.http.username:#{null}}")
     private String proxyHttpUsername;
@@ -133,11 +150,11 @@ public class ReporterConfiguration {
     @Value("${reporters.elasticsearch.http.proxy.http.password:#{null}}")
     private String proxyHttpPassword;
 
-    @Value("${reporters.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
-    private String proxyHttpsHost;
+    @Value("${reporters.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: '" + DEFAULT_PROXY_HTTPS_HOST + "'}}")
+    private String proxyHttpsHost = DEFAULT_PROXY_HTTPS_HOST;
 
-    @Value("${reporters.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
-    private int proxyHttpsPort;
+    @Value("${reporters.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?:" + DEFAULT_PROXY_HTTPS_PORT + "}}")
+    private int proxyHttpsPort = DEFAULT_PROXY_HTTPS_PORT;
 
     @Value("${reporters.elasticsearch.http.proxy.https.username:#{null}}")
     private String proxyHttpsUsername;
@@ -148,23 +165,23 @@ public class ReporterConfiguration {
     /**
      * Settings: number of shards
      */
-    @Value("${reporters.elasticsearch.settings.number_of_shards:1}")
-    private int numberOfShards;
+    @Value("${reporters.elasticsearch.settings.number_of_shards:" + DEFAULT_NUMBER_OF_SHARDS + "}")
+    private int numberOfShards = DEFAULT_NUMBER_OF_SHARDS;
 
     /**
      * Settings: number of replicas
      */
-    @Value("${reporters.elasticsearch.settings.number_of_replicas:1}")
-    private int numberOfReplicas;
+    @Value("${reporters.elasticsearch.settings.number_of_replicas:" + DEFAULT_NUMBER_OF_REPLICAS + "}")
+    private int numberOfReplicas = DEFAULT_NUMBER_OF_REPLICAS;
 
     /**
      * Settings: refresh interval
      */
-    @Value("${reporters.elasticsearch.settings.refresh_interval:5s}")
-    private String refreshInterval;
+    @Value("${reporters.elasticsearch.settings.refresh_interval:" + DEFAULT_REFRESH_INTERVAL + "}")
+    private String refreshInterval = DEFAULT_REFRESH_INTERVAL;
 
-    @Value("${reporters.elasticsearch.enabled:true}")
-    private boolean enabled;
+    @Value("${reporters.elasticsearch.enabled:" + DEFAULT_ENABLED + "}")
+    private boolean enabled = DEFAULT_ENABLED;
 
     /**
      * Elasticsearch endpoints
@@ -204,14 +221,14 @@ public class ReporterConfiguration {
     /**
      * Policy name Property name
      */
-    @Value("${reporters.elasticsearch.lifecycle.policy_property_name:index.lifecycle.name}")
-    private String indexLifecyclePolicyPropertyName;
+    @Value("${reporters.elasticsearch.lifecycle.policy_property_name:" + DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME + "}")
+    private String indexLifecyclePolicyPropertyName = DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME;
 
     /**
      * Rollover name Property name
      */
-    @Value("${reporters.elasticsearch.lifecycle.rollover_alias_property_name:index.lifecycle.rollover_alias}")
-    private String indexLifecycleRolloverAliasPropertyName;
+    @Value("${reporters.elasticsearch.lifecycle.rollover_alias_property_name:" + DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME + "}")
+    private String indexLifecycleRolloverAliasPropertyName = DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME;
 
     /**
      * Extended settings template

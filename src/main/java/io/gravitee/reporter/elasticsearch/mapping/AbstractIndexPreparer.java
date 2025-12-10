@@ -27,6 +27,7 @@ import io.reactivex.rxjava3.functions.Function;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +46,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     protected final Client client;
 
+    @Getter
     protected final String templatePathPrefix;
 
     private static final String TEMPLATE_PATH = "/mapping/index-template-";
@@ -65,14 +67,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
             final String aliasName = configuration.getIndexName() + '-' + typeName;
 
             log.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
-
-            Map<String, Object> data = getTemplateData();
-            data.put("indexName", configuration.getIndexName() + '-' + typeName);
-
-            final String template = freeMarkerComponent.generateFromTemplate(
-                templatePathPrefix + TEMPLATE_PATH + typeName + FTL_EXTENSION,
-                data
-            );
+            final String template = generateIndexTemplate(type);
 
             final Completable templateCreationCompletable = useOldClient(dataStream)
                 ? client.putTemplate(templateName, template)
@@ -93,6 +88,14 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         }
 
         return Completable.complete();
+    }
+
+    public String generateIndexTemplate(Type type) {
+        final String typeName = type.getType();
+        Map<String, Object> data = getTemplateData();
+        data.put("indexName", configuration.getIndexName() + '-' + typeName);
+
+        return freeMarkerComponent.generateFromTemplate(templatePathPrefix + TEMPLATE_PATH + typeName + FTL_EXTENSION, data);
     }
 
     protected Map<String, Object> getTemplateData() {

@@ -15,6 +15,8 @@
  */
 package io.gravitee.reporter.elasticsearch.spring;
 
+import static io.gravitee.reporter.elasticsearch.config.PipelineConfiguration.DEFAULT_PIPELINE_INGEST_PLUGINS;
+
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.*;
@@ -97,7 +99,7 @@ public class ElasticsearchReporterConfiguration {
 
     @Bean
     public PipelineConfiguration pipelineConfiguration(
-        @Value("${reporters.elasticsearch.pipeline.plugins.ingest:geoip,user_agent}") String ingestPlugins,
+        @Value("${reporters.elasticsearch.pipeline.plugins.ingest:" + DEFAULT_PIPELINE_INGEST_PLUGINS + "}") String ingestPlugins,
         @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}") String userAgentRegexFile,
         FreeMarkerComponent freeMarkerComponent
     ) {

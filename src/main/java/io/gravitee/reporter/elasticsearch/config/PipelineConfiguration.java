@@ -29,6 +29,8 @@ import java.util.stream.Stream;
  */
 public class PipelineConfiguration {
 
+    public static final String DEFAULT_PIPELINE_INGEST_PLUGINS = "geoip,user_agent";
+
     private static final List<String> RETAINED_INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
 
     private final String ingestPlugins;
@@ -40,6 +42,10 @@ public class PipelineConfiguration {
     private final String pipeline = "gravitee_pipeline";
 
     private boolean valid = false;
+
+    public PipelineConfiguration(FreeMarkerComponent freeMarkerComponent) {
+        this(DEFAULT_PIPELINE_INGEST_PLUGINS, null, freeMarkerComponent);
+    }
 
     public PipelineConfiguration(String ingestPlugins, String userAgentRegexFile, FreeMarkerComponent freeMarkerComponent) {
         this.ingestPlugins = ingestPlugins;
