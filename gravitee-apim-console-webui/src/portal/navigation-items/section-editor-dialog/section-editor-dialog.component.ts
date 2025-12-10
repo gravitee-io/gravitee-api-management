@@ -24,7 +24,7 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
+import { PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
@@ -44,16 +44,19 @@ export type SectionEditorDialogData = SectionEditorDialogCreateData | SectionEdi
 
 export interface SectionEditorDialogResult {
   title: string;
+  visibility: PortalVisibility;
   url?: string;
 }
 
 interface SectionFormControls {
   title: FormControl<string>;
+  isPrivate: FormControl<boolean>;
   url?: FormControl<string>; // Optional for 'LINK' type
 }
 
 interface SectionFormValues {
   title: string;
+  isPrivate: boolean;
   url?: string;
 }
 
@@ -78,6 +81,7 @@ type SectionForm = FormGroup<SectionFormControls>;
 export class SectionEditorDialogComponent implements OnInit {
   form: SectionForm = new FormGroup<SectionFormControls>({
     title: new FormControl<string>('', { validators: [Validators.required], nonNullable: true }),
+    isPrivate: new FormControl(false),
   });
   public initialFormValues: SectionFormValues;
 
@@ -120,13 +124,19 @@ export class SectionEditorDialogComponent implements OnInit {
         ...(this.data.existingItem.type === 'LINK' ? { url: this.data.existingItem.url } : {}),
 
         title: this.data.existingItem.title,
+        isPrivate: this.data.existingItem.visibility === 'PRIVATE',
       });
     }
   }
 
   onSubmit(): void {
     if (this.form.valid) {
-      this.dialogRef.close({ ...this.form.getRawValue() });
+      const formValues = this.form.getRawValue();
+      this.dialogRef.close({
+        title: formValues.title,
+        visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
+        ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
+      });
     }
   }
 
