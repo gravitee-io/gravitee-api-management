@@ -26,7 +26,9 @@ ADD docker/config/constants.json /usr/share/nginx/html/constants.json
 ADD docker/config/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 
-RUN chmod -R g=u /usr/share/nginx/ /etc/nginx/
+RUN chown -R nginx:root /usr/share/nginx \
+    && chown -R nginx:root /etc/nginx \
+    && chmod -R g=u /usr/share/nginx/ /etc/nginx/
 
 COPY docker/config/check_ip_config.sh /check_ip_config.sh
 
