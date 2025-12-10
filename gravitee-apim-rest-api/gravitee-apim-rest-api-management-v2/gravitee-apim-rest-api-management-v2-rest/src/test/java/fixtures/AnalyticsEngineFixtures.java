@@ -62,7 +62,7 @@ public class AnalyticsEngineFixtures {
 
         return new TimeSeriesRequest()
             .timeRange(timeRange())
-            .interval(3600000)
+            .interval(3600000L)
             .filters(Arrays.asList(filters))
             .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
             .metrics(List.of(metric));

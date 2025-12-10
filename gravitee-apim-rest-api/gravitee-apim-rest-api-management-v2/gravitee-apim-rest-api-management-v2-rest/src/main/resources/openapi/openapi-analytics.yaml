@@ -1193,6 +1193,7 @@ components:
             A fixed time interval for time series analytics queries.
             Intervals are be expressed in milliseconds.
           type: integer
+          format: int64
           example: 1000
 
         TimeRange:
