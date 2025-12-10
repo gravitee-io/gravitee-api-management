@@ -362,7 +362,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_negative_interval() {
-            var invalidRequest = aRequestCountTimeSeries().interval(-60000);
+            var invalidRequest = aRequestCountTimeSeries().interval(-60000L);
             var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
