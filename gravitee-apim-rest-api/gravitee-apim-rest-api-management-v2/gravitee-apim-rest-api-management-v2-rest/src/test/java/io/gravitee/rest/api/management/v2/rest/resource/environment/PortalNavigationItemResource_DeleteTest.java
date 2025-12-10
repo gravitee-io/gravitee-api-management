@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.mockito.Mockito.when;
@@ -121,5 +122,20 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
         Response response = target.path(unknownId).request().delete();
 
         assertThat(response).hasStatus(NOT_FOUND_404);
+    }
+
+    @Test
+    void should_return_400_when_deleting_item_with_children() {
+        String navId = fixtures.core.model.PortalNavigationItemFixtures.APIS_ID; // fixture parent with children
+
+        var children = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
+            ENVIRONMENT,
+            io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(navId)
+        );
+        org.assertj.core.api.Assertions.assertThat(children).isNotEmpty();
+
+        Response response = target.path(navId).request().delete();
+
+        assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 }

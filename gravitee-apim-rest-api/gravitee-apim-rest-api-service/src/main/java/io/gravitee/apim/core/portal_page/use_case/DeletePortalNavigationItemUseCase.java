@@ -18,15 +18,14 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.exception.ItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -43,28 +42,16 @@ public class DeletePortalNavigationItemUseCase {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId().json());
         }
 
-        List<PortalNavigationItemId> idsToDelete = new ArrayList<>();
-        List<PortalPageContentId> contentIdsToDelete = new ArrayList<>();
-
-        idsToDelete.add(existing.getId());
-        if (existing instanceof PortalNavigationPage page) {
-            contentIdsToDelete.add(page.getPortalPageContentId());
+        // If the item has direct children, deletion is not allowed
+        var directChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(input.environmentId(), existing.getId());
+        if (!directChildren.isEmpty()) {
+            throw ItemHasChildrenException.forId(existing.getId().toString());
         }
 
-        Queue<PortalNavigationItemId> toProcess = new java.util.LinkedList<>();
-        toProcess.add(existing.getId());
-
-        while (!toProcess.isEmpty()) {
-            var processingId = toProcess.poll();
-            portalNavigationItemsQueryService
-                .findByParentIdAndEnvironmentId(input.environmentId(), processingId)
-                .forEach(child -> {
-                    idsToDelete.add(child.getId());
-                    toProcess.add(child.getId());
-                    if (child instanceof PortalNavigationPage childPage) {
-                        contentIdsToDelete.add(childPage.getPortalPageContentId());
-                    }
-                });
+        // Only delete the requested item (no recursive deletion of children)
+        Optional<PortalPageContentId> contentIdToDelete = Optional.empty();
+        if (existing instanceof PortalNavigationPage page) {
+            contentIdToDelete = Optional.of(page.getPortalPageContentId());
         }
 
         // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
@@ -79,8 +66,9 @@ public class DeletePortalNavigationItemUseCase {
             .toList();
         siblingsToUpdate.forEach(sibling -> sibling.setOrder(sibling.getOrder() - 1));
 
-        contentIdsToDelete.forEach(portalPageContentCrudService::delete);
-        idsToDelete.forEach(portalNavigationItemCrudService::delete);
+        // Perform deletions/updates for the single item
+        contentIdToDelete.ifPresent(portalPageContentCrudService::delete);
+        portalNavigationItemCrudService.delete(existing.getId());
         siblingsToUpdate.forEach(portalNavigationItemCrudService::update);
 
         return new Output();
