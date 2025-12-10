@@ -103,6 +103,15 @@ $indent-step: 26px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  &__menu-item-delete {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+
+    :hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, lighter);
+    }
+  }
 }
 
 mat-icon {

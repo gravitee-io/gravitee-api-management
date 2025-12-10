@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NodeMenuActionEvent, SectionNode } from './tree.component';
 
@@ -69,7 +70,10 @@ export class TreeNodeComponent {
   isSelected = computed(() => this.selectedId() === this.node().id);
   isExpanded = signal<boolean>(true);
 
-  constructor(private readonly matDialog: MatDialog) {}
+  constructor(
+    private readonly matDialog: MatDialog,
+    private readonly destroyRef: DestroyRef,
+  ) {}
 
   selectNode(): void {
     this.nodeSelected.emit(this.node());
@@ -86,14 +90,7 @@ export class TreeNodeComponent {
   confirmDelete(node: SectionNode): void {
     const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
 
-    let content = '';
-    if (node.type === 'FOLDER') {
-      content = 'This folder and its content will be permanently deleted. This change will be visible in the Developer Portal.';
-    } else if (node.type === 'PAGE') {
-      content = 'This page will no longer appear on your site.';
-    } else if (node.type === 'LINK') {
-      content = 'This link will no longer appear on your site.';
-    }
+    const content = `This ${node.type.toLowerCase()} will no longer appear on your site.`;
 
     const data: GioConfirmAndValidateDialogData = {
       title,
@@ -111,6 +108,7 @@ export class TreeNodeComponent {
         id: `deleteTreeNodeDialog-${node.id}`,
       })
       .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (confirmed === true) {
           this.delete.emit(node);

@@ -374,7 +374,7 @@ export class PortalNavigationItemsComponent {
               .catch(() => this.snackBarService.error('Failed to update selection after deletion'));
           }
           this.refreshMenuList.next(1);
-          this.snackBarService.success(`Section "${node.label}" deleted`);
+          this.snackBarService.success(`Navigation item "${node.label}" deleted`);
         }),
         catchError(() => {
           this.snackBarService.error('Failed to delete navigation item');

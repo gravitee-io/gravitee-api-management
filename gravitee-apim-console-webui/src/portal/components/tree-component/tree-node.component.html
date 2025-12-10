@@ -81,19 +81,23 @@
         <mat-icon svgIcon="gio:link"></mat-icon>
         Add Link
       </button>
+      <mat-divider></mat-divider>
     }
-    <mat-divider></mat-divider>
     <button mat-menu-item (click)="triggerEdit()" data-testid="edit-node-button">
       <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
       Edit
     </button>
-    <button
-      mat-menu-item
-      *gioPermission="{ anyOf: ['environment-documentation-d'] }"
-      (click)="confirmDelete(node()); $event.stopPropagation()"
-    >
-      <mat-icon>delete</mat-icon> Delete
-    </button>
+
+    @if (!node().children?.length) {
+      <button
+        mat-menu-item
+        class="tree__menu-item-delete"
+        *gioPermission="{ anyOf: ['environment-documentation-d'] }"
+        (click)="confirmDelete(node())"
+      >
+        <mat-icon class="tree__menu-item-delete">delete</mat-icon> Delete
+      </button>
+    }
   </mat-menu>
 </div>
 
