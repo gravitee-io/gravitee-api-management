@@ -39,6 +39,7 @@ import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -107,7 +108,11 @@ class ExportApiUseCaseTest {
     @InjectMocks
     ExportApiUseCase sut;
 
-    AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId("DEFAULT").build();
+    AuditInfo auditInfo = AuditInfo.builder()
+        .organizationId(ORG_ID)
+        .environmentId("DEFAULT")
+        .actor(AuditActor.builder().userId("userrID").build())
+        .build();
 
     @BeforeEach
     void setUp() {
