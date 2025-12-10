@@ -69,10 +69,11 @@
             {{ selectedNavigationItem().label }}
           </div>
 
-          <div>
-            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'" data-testid="status-badge">
+          <div class="panel-header__title__badges">
+            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
               {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
             </span>
+            <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
           </div>
         </div>
       }

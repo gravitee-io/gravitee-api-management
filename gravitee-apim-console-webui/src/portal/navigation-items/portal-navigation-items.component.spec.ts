@@ -700,6 +700,48 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('changing navigation item visibility', () => {
+    describe('public navigation item', () => {
+      const publicNavItem = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+        visibility: 'PUBLIC',
+      });
+      beforeEach(async () => {
+        const fakeResponse = fakePortalNavigationItemsResponse({
+          items: [publicNavItem],
+        });
+
+        await expectGetNavigationItems(fakeResponse);
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+      it('should show "Public" badge', async () => {
+        expect(await harness.isPublicBadgeVisible()).toBe(true);
+      });
+    });
+
+    describe('private navigation item', () => {
+      const privateNavItem = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+        visibility: 'PRIVATE',
+      });
+      beforeEach(async () => {
+        const fakeResponse = fakePortalNavigationItemsResponse({
+          items: [privateNavItem],
+        });
+
+        await expectGetNavigationItems(fakeResponse);
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+      it('should show "Private" badge', async () => {
+        expect(await harness.isPrivateBadgeVisible()).toBe(true);
+      });
+    });
+  });
+
   describe('resizing the sections panel', () => {
     beforeEach(async () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
