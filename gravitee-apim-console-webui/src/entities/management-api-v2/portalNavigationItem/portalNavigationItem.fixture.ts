@@ -22,6 +22,9 @@ import {
   NewPagePortalNavigationItem,
   NewFolderPortalNavigationItem,
   NewLinkPortalNavigationItem,
+  UpdatePagePortalNavigationItem,
+  UpdateLinkPortalNavigationItem,
+  UpdateFolderPortalNavigationItem,
 } from './portalNavigationItem';
 import { PortalNavigationItemsResponse } from './portalNavigationItemsResponse';
 
@@ -151,6 +154,63 @@ export function fakeNewLinkPortalNavigationItem(overrides?: Partial<NewLinkPorta
     type: 'LINK',
     area: 'HOMEPAGE',
     url: 'https://example.com',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdatePagePortalNavigationItem(overrides?: Partial<UpdatePagePortalNavigationItem>): UpdatePagePortalNavigationItem {
+  const base: UpdatePagePortalNavigationItem = {
+    published: false,
+    type: 'PAGE',
+    title: 'Updated Page',
+    visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdateLinkPortalNavigationItem(overrides?: Partial<UpdateLinkPortalNavigationItem>): UpdateLinkPortalNavigationItem {
+  const base: UpdateLinkPortalNavigationItem = {
+    published: false,
+    type: 'LINK',
+    title: 'Updated Link',
+    visibility: 'PUBLIC',
+    url: 'https://updated-example.com',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdateFolderPortalNavigationItem(
+  overrides?: Partial<UpdateFolderPortalNavigationItem>,
+): UpdateFolderPortalNavigationItem {
+  const base: UpdateFolderPortalNavigationItem = {
+    published: false,
+    type: 'FOLDER',
+    title: 'Updated Folder',
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {

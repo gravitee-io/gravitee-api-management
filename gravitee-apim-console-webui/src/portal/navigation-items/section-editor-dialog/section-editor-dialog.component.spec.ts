@@ -106,6 +106,22 @@ describe('SectionEditorDialogComponent', () => {
 
         expect(component.dialogValue).toEqual({
           title: 'My new page',
+          visibility: 'PUBLIC',
+        });
+      });
+      it('should save authentication', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const authToggle = await dialog.getAuthenticationToggle();
+        expect(await authToggle.isChecked()).toEqual(false);
+
+        await authToggle.toggle();
+        const titleInput = await dialog.getTitleInput();
+        await titleInput.setValue('My new page');
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+        expect(component.dialogValue).toEqual({
+          title: 'My new page',
+          visibility: 'PRIVATE',
         });
       });
       it('should close the dialog when canceling', async () => {
@@ -161,6 +177,7 @@ describe('SectionEditorDialogComponent', () => {
 
         expect(component.dialogValue).toEqual({
           title: 'Gravitee Homepage',
+          visibility: 'PUBLIC',
           url: 'https://gravitee.io',
         });
       });
@@ -189,6 +206,7 @@ describe('SectionEditorDialogComponent', () => {
 
         expect(component.dialogValue).toEqual({
           title: 'My new folder',
+          visibility: 'PUBLIC',
         });
       });
       it('should close the dialog when canceling', async () => {
@@ -236,6 +254,7 @@ describe('SectionEditorDialogComponent', () => {
 
         expect(component.dialogValue).toEqual({
           title: 'Updated Page',
+          visibility: 'PUBLIC',
         });
       });
 
@@ -255,6 +274,28 @@ describe('SectionEditorDialogComponent', () => {
 
         await titleInput.setValue('Existing Page');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+    });
+    describe('when editing a private page', () => {
+      beforeEach(() => {
+        const existingPage = fakePortalNavigationPage({
+          id: 'p1',
+          title: 'Existing Page',
+          portalPageContentId: 'content1',
+          visibility: 'PRIVATE',
+        });
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.componentRef.setInput('existingItem', existingPage);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should have authentication as true by default', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const toggle = await dialog.getAuthenticationToggle();
+
+        expect(await toggle.isChecked()).toEqual(true);
       });
     });
     describe('when editing a link', () => {
@@ -288,6 +329,7 @@ describe('SectionEditorDialogComponent', () => {
 
         expect(component.dialogValue).toEqual({
           title: 'Updated Link',
+          visibility: 'PUBLIC',
           url: 'https://new.com',
         });
       });

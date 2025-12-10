@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatMenuItemHarness } from '@angular/material/menu/testing';
 
 import { EmptyStateComponentHarness } from '../../../shared/components/empty-state/empty-state.component.harness';
 
 export class TreeComponentHarness extends ComponentHarness {
   static hostSelector = 'portal-tree-component';
 
+  private readonly _documentRootLocator = this.documentRootLocatorFactory();
+
   private getSelectedLabelButton = this.locatorForOptional('.tree__row.selected .tree__label');
   private getTreeLabelButtons = this.locatorForAll('.tree__label');
   private getEmptyState = this.locatorForOptional(EmptyStateComponentHarness);
+  private getEditButton = this._documentRootLocator.locatorFor(MatMenuItemHarness.with({ selector: '[data-testid="edit-node-button"]' }));
+  protected getMoreActionsButtonById = (id: string) =>
+    this.locatorFor(MatButtonHarness.with({ selector: `[data-testid="more-actions-${id}"]` }));
 
   async getSelectedItemTitle(): Promise<string | null> {
     const labelButton = await this.getSelectedLabelButton();
@@ -68,5 +75,13 @@ export class TreeComponentHarness extends ComponentHarness {
   async isEmptyStateDisplayed(): Promise<boolean> {
     const emptyState = await this.getEmptyState();
     return emptyState !== null;
+  }
+
+  async selectEditById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    return moreActionsButton
+      .click()
+      .then((_) => this.getEditButton())
+      .then((editButton) => editButton.click());
   }
 }
