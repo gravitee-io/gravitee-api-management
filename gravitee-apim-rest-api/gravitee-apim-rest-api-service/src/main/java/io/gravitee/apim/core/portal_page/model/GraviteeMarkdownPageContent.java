@@ -22,6 +22,8 @@ import lombok.Setter;
 @Getter
 public final class GraviteeMarkdownPageContent extends PortalPageContent {
 
+    private static final PortalPageContentType TYPE = PortalPageContentType.GRAVITEE_MARKDOWN;
+
     @Setter
     @Nonnull
     private String content;
@@ -42,6 +44,10 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent {
         @Nonnull String content
     ) {
         return new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, content);
+    }
+
+    public PortalPageContentType getType() {
+        return TYPE;
     }
 
     @Override

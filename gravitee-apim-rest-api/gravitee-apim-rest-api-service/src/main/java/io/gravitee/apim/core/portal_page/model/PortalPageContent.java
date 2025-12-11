@@ -38,6 +38,8 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
 
     public abstract void update(UpdatePortalPageContent updatePortalPageContent);
 
+    public abstract PortalPageContentType getType();
+
     public abstract String getContent();
 
     @Override
