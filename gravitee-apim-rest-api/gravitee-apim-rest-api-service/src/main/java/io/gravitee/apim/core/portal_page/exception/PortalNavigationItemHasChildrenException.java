@@ -19,15 +19,15 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ItemHasChildrenException extends ValidationDomainException {
+public class PortalNavigationItemHasChildrenException extends ValidationDomainException {
 
-    public ItemHasChildrenException(String message, Map<String, String> parameters) {
+    public PortalNavigationItemHasChildrenException(String message, Map<String, String> parameters) {
         super(message, parameters);
     }
 
-    public static ItemHasChildrenException forId(String id) {
+    public static PortalNavigationItemHasChildrenException forId(String id) {
         Map<String, String> params = new HashMap<>();
         params.put("id", id);
-        return new ItemHasChildrenException("Item has children", params);
+        return new PortalNavigationItemHasChildrenException("Item has children", params);
     }
 }
