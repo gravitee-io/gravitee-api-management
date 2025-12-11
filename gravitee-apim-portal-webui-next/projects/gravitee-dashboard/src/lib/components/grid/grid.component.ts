@@ -20,6 +20,7 @@ import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterIt
 
 import { LineChartComponent } from '../chart/line-chart/line-chart.component';
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
+import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { StatsComponent } from '../text/stats/stats.component';
 import { isFacetsWidget, isMeasuresWidget, isTimeSeriesWidget, Widget } from '../widget/model/widget/widget';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
@@ -37,6 +38,7 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
     StatsComponent,
     MatTooltipModule,
     MatProgressSpinner,
+    EmptyStateComponent,
   ],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
