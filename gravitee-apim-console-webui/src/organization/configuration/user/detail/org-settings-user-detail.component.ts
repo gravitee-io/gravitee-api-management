@@ -505,23 +505,41 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .pipe(
         filter((groupeAdded) => !isEmpty(groupeAdded)),
         switchMap((groupeAdded) =>
-          this.groupService.addOrUpdateMemberships(
-            groupeAdded.groupId,
-            [
-              {
-                id: this.user.id,
-                roles: [
-                  { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
-                  { scope: 'API' as const, name: groupeAdded.apiRole },
-                  { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
-                  { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
-                ],
-              },
-            ],
-            groupeAdded.environmentId ?? this.constants.org.currentEnv.name,
-          ),
+          combineLatest([
+            this.groupService.addOrUpdateMemberships(
+              groupeAdded.groupId,
+              [
+                {
+                  id: this.user.id,
+                  roles: [
+                    { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
+                    { scope: 'API' as const, name: groupeAdded.apiRole },
+                    { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
+                    { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
+                  ],
+                },
+              ],
+              groupeAdded.environmentId ?? this.constants.org.currentEnv.name,
+            ),
+            this.groupService.listByOrganization().pipe(shareReplay(1)),
+            of(groupeAdded),
+          ]),
         ),
-        tap(() => {
+        tap(([, allGroups, groupeAdded]) => {
+          const fullGroup = allGroups.find((ag) => ag.id === groupeAdded.groupId);
+          const newGroup: Group = {
+            id: groupeAdded.groupId,
+            name: fullGroup?.name ?? groupeAdded.groupId,
+            environmentId: groupeAdded.environmentId ?? fullGroup?.environmentId ?? this.constants.org.currentEnv.id,
+            environmentName: fullGroup?.environmentName ?? this.constants.org.currentEnv.name,
+            roles: {
+              ...(groupeAdded.isAdmin && { GROUP: 'ADMIN' }),
+              ...(groupeAdded.apiRole && { API: groupeAdded.apiRole }),
+              ...(groupeAdded.applicationRole && { APPLICATION: groupeAdded.applicationRole }),
+              ...(groupeAdded.integrationRole && { INTEGRATION: groupeAdded.integrationRole }),
+            },
+          };
+          this.addGroupToTableAndForm(newGroup);
           this.snackBarService.success('Roles successfully updated');
         }),
         catchError(({ error }) => {
@@ -530,7 +548,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe();
   }
 
   private initOrganizationRolesForm() {
@@ -567,31 +585,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   private initGroupsRolesForm(groups: Group[]) {
-    const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-      const groupRolesFormGroup = control as UntypedFormGroup;
-
-      const GROUP = groupRolesFormGroup.get('GROUP').value;
-      const API = groupRolesFormGroup.get('API').value;
-      const APPLICATION = groupRolesFormGroup.get('APPLICATION').value;
-      const INTEGRATION = groupRolesFormGroup.get('INTEGRATION').value;
-
-      if (GROUP || API || APPLICATION || INTEGRATION) {
-        return null;
-      }
-
-      return {
-        leastOneIsRequired: true,
-      };
-    };
-
     this.groupsRolesFormGroup = new UntypedFormGroup({
       ...groups.reduce((result, group) => {
-        const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis.has(group.id);
-        const apiControl = new UntypedFormControl({
-          value: group.roles['API'],
-          disabled: this.user.status !== 'ACTIVE' || this.isReadOnly || isPrimaryOwnerAndAssociatedWithApi,
-        });
-
         this.initialGroupRoles[group.id] = {
           GROUP: group.roles['GROUP'],
           API: group.roles['API'],
@@ -601,31 +596,44 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         return {
           ...result,
-          [group.id]: new UntypedFormGroup(
-            {
-              GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
-              API: apiControl,
-              APPLICATION: new UntypedFormControl({
-                value: group.roles['APPLICATION'],
-                disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
-              }),
-              INTEGRATION: new UntypedFormControl({
-                value: group.roles['INTEGRATION'],
-                disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
-              }),
-            },
-            [leastOneGroupRoleIsRequiredValidator],
-          ),
+          [group.id]: this.createGroupRolesFormGroup(group),
         };
       }, {}),
     });
 
     this.groupsRolesFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
-      this.toggleSaveBar(true);
+      if (this.groupsRolesFormGroup.dirty) {
+        this.toggleSaveBar(true);
+      }
     });
     this.groupsRolesFormGroup.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((status) => {
       this.invalidStateSaveBar = status !== 'VALID';
     });
+  }
+
+  private addGroupToTableAndForm(group: Group) {
+    // Add to groupsTableDS
+    const newGroupDS: GroupDS = {
+      id: group.id,
+      name: group.name,
+      environmentId: group.environmentId,
+      environmentName: group.environmentName,
+    };
+    this.groupsTableDS = [...this.groupsTableDS, newGroupDS];
+    this.initialTableDS['groupsTableDS'] = this.groupsTableDS;
+    this.tablesUnpaginatedLength['groupsTableDS'] = this.groupsTableDS.length;
+
+    // Store initial group roles
+    this.initialGroupRoles[group.id] = {
+      GROUP: group.roles['GROUP'],
+      API: group.roles['API'],
+      APPLICATION: group.roles['APPLICATION'],
+      INTEGRATION: group.roles['INTEGRATION'],
+    };
+
+    // Add form controls to groupsRolesFormGroup
+    const newGroupFormGroup = this.createGroupRolesFormGroup(group);
+    this.groupsRolesFormGroup.addControl(group.id, newGroupFormGroup);
   }
 
   onDeleteTokenClicked(token: TokenDS) {
@@ -681,5 +689,46 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     if (!apiControl) return false;
 
     return apiControl.value === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis.has(groupId);
+  }
+
+  private leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const groupRolesFormGroup = control as UntypedFormGroup;
+
+    const GROUP = groupRolesFormGroup.get('GROUP').value;
+    const API = groupRolesFormGroup.get('API').value;
+    const APPLICATION = groupRolesFormGroup.get('APPLICATION').value;
+    const INTEGRATION = groupRolesFormGroup.get('INTEGRATION').value;
+
+    if (GROUP || API || APPLICATION || INTEGRATION) {
+      return null;
+    }
+
+    return {
+      leastOneIsRequired: true,
+    };
+  };
+
+  private createGroupRolesFormGroup(group: Group): UntypedFormGroup {
+    const isPrimaryOwnerAndAssociatedWithApi = group.roles['API'] === 'PRIMARY_OWNER' && this.groupsAssociatedWithApis.has(group.id);
+    const apiControl = new UntypedFormControl({
+      value: group.roles['API'],
+      disabled: this.user.status !== 'ACTIVE' || this.isReadOnly || isPrimaryOwnerAndAssociatedWithApi,
+    });
+
+    return new UntypedFormGroup(
+      {
+        GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+        API: apiControl,
+        APPLICATION: new UntypedFormControl({
+          value: group.roles['APPLICATION'],
+          disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+        }),
+        INTEGRATION: new UntypedFormControl({
+          value: group.roles['INTEGRATION'],
+          disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+        }),
+      },
+      [this.leastOneGroupRoleIsRequiredValidator],
+    );
   }
 }
