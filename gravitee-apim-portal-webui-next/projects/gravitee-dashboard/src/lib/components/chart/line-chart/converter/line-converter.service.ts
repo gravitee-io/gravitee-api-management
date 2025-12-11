@@ -17,7 +17,7 @@ import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
 import { Converter } from '../../../converter';
-import { TimeSeriesResponse, TimeSeriesBucket, TimeSeries } from '../../../widget/model/response/time-series-response';
+import { TimeSeries, TimeSeriesBucket, TimeSeriesResponse } from '../../../widget/model/response/time-series-response';
 
 @Injectable({
   providedIn: 'root',
@@ -67,7 +67,7 @@ export class LineConverterService implements Converter {
     const baseMetricLabel = this.getBaseMetricLabel(metric, metricIndex);
 
     if (hasNestedBuckets) {
-      this.buildGroupedDatasetsFromNestedBuckets(metricBuckets, baseMetricLabel, bucketCount, datasets);
+      this.buildGroupedDatasetsFromNestedBuckets(metricBuckets, bucketCount, datasets);
     } else {
       this.buildSimpleDatasetFromMetric(metricBuckets, baseMetricLabel, datasets);
     }
@@ -83,7 +83,6 @@ export class LineConverterService implements Converter {
 
   private buildGroupedDatasetsFromNestedBuckets(
     metricBuckets: TimeSeriesBucket[],
-    baseMetricLabel: string,
     bucketCount: number,
     datasets: ChartData<'line', number[], string>['datasets'],
   ): void {
@@ -91,7 +90,7 @@ export class LineConverterService implements Converter {
 
     groupMap.forEach((values, groupName) => {
       datasets.push({
-        label: `${baseMetricLabel} - ${groupName}`,
+        label: `${groupName}`,
         data: values,
       });
     });
@@ -112,8 +111,8 @@ export class LineConverterService implements Converter {
         }
 
         const values = groupMap.get(groupName)!;
-        const value = nestedBucket.measures?.[0]?.value ?? 0;
-        values[timeIndex] = value;
+
+        values[timeIndex] = nestedBucket.measures?.[0]?.value ?? 0;
       });
     });
 
@@ -148,7 +147,7 @@ export class LineConverterService implements Converter {
   private toTimeLabel(bucket: TimeSeriesBucket): string {
     if (bucket.timestamp != null) {
       const date = new Date(bucket.timestamp);
-      if (!isNaN(date.getTime())) {
+      if (!Number.isNaN(date.getTime())) {
         return date.toISOString();
       }
     }
