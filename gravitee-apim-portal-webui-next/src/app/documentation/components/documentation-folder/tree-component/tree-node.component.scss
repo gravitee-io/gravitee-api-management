@@ -69,6 +69,9 @@ $indent-step: 26px;
   }
 
   &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     text-decoration: none;
 
     &:visited {
@@ -76,9 +79,6 @@ $indent-step: 26px;
     }
 
     &__icon {
-      position: relative;
-      bottom: 1px;
-      left: 5px;
       width: 14px;
       height: 14px;
       color: #{theme.$nav-bar-link-external-icon-color};

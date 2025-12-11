@@ -39,13 +39,13 @@
 
   &__container {
     display: flex;
+    overflow: auto;
     flex-direction: column;
     flex-grow: 1;
-    overflow: auto;
 
     &__content {
-      padding: 0 30px;
       max-width: app-theme.$gmd-viewer-max-width;
+      padding: 0 30px;
     }
   }
 }
