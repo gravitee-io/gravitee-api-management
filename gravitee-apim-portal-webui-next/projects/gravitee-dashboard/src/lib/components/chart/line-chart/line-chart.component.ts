@@ -40,7 +40,7 @@ export class LineChartComponent {
 
     chartData.datasets.forEach(dataset => {
       dataset.tension = 0.4;
-      dataset.fill = false;
+      dataset.fill = 'start';
     });
 
     return chartData;
@@ -65,6 +65,13 @@ export class LineChartComponent {
           intersect: false,
         },
       },
+      elements: {
+        point: {
+          radius: 0,
+          hitRadius: 15,
+          hoverRadius: 8,
+        },
+      },
       scales: {
         x: {
           type: 'time',
@@ -80,6 +87,7 @@ export class LineChartComponent {
         y: {
           display: true,
           beginAtZero: true,
+          stacked: true,
         },
       },
     } satisfies ChartConfiguration<LineType>['options'];
