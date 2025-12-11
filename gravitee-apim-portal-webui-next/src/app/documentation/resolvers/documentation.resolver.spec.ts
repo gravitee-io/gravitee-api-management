@@ -17,30 +17,13 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 
 import { documentationResolver } from './documentation.resolver';
-import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
+import { fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
 
 describe('documentationResolver', () => {
   const executeResolver = (route: ActivatedRouteSnapshot) => TestBed.runInInjectionContext(() => documentationResolver(route));
 
-  const MOCK_ITEMS: PortalNavigationItem[] = [
-    {
-      id: 'l1',
-      title: 'External link',
-      type: 'LINK',
-      order: 0,
-      parentId: null,
-      published: true,
-    } as unknown as PortalNavigationItem,
-    {
-      id: 'p1',
-      title: 'API',
-      type: 'PAGE',
-      order: 1,
-      parentId: null,
-      published: true,
-    } as unknown as PortalNavigationItem,
-  ];
+  const MOCK_ITEMS = [fakePortalNavigationLink(), fakePortalNavigationPage()];
 
   let routerSpy: jest.SpyInstance;
 

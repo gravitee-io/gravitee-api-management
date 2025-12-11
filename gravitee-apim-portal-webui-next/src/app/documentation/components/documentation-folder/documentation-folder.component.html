@@ -23,7 +23,7 @@
       [selectedId]="this.pageId()"
       (selectNode)="onSelect($event)" />
   } @else {
-    <div class="empty-state">No items to show</div>
+    <div class="empty-state" i18n="@@emptyItemsLabel">No items to show</div>
   }
 </div>
 <div class="documentation-folder__container">
@@ -32,7 +32,7 @@
     @if (selectedPageContent()) {
       <gmd-viewer [content]="selectedPageContent()" appInnerLink />
     } @else {
-      <div class="empty-state">No content to show</div>
+      <div class="empty-state" i18n="@@emptyContentLabel">No content to show</div>
     }
   </div>
 </div>
