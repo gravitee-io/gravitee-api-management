@@ -16,7 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { catchError, map, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -53,7 +53,15 @@ export class AuthService {
   }
 
   logout(): Observable<unknown> {
-    return this.http.post<Token>(`${this.configService.baseURL}/auth/logout`, {});
+    return this.http.post<Token>(`${this.configService.baseURL}/auth/logout`, {}).pipe(
+      tap(_ => {
+        const providerId = this.getProviderId();
+        if (providerId) {
+          this.oauthService.logOut();
+          this.removeProviderId();
+        }
+      }),
+    );
   }
 
   authenticateSSO(provider: IdentityProvider, redirectUrl: string) {
@@ -68,13 +76,17 @@ export class AuthService {
     localStorage.setItem('user-provider-id', providerId);
   }
 
-  getProviderId(): string {
+  getProviderId(): string | null {
     return localStorage.getItem('user-provider-id')!;
+  }
+  removeProviderId() {
+    localStorage.removeItem('user-provider-id');
   }
 
   load() {
-    if (this.getProviderId()) {
-      return this._fetchProviderAndConfigure().pipe(
+    const providerId = this.getProviderId();
+    if (providerId) {
+      return this._fetchProviderAndConfigure(providerId).pipe(
         switchMap(() => {
           return fromPromise(
             this.oauthService.tryLoginCodeFlow({
@@ -90,8 +102,8 @@ export class AuthService {
     }
   }
 
-  private _fetchProviderAndConfigure() {
-    return this.identityProviderService.getPortalIdentityProvider(this.getProviderId()).pipe(
+  private _fetchProviderAndConfigure(providerId: string) {
+    return this.identityProviderService.getPortalIdentityProvider(providerId).pipe(
       map(identityProvider => {
         if (identityProvider) {
           this._configure(identityProvider);
