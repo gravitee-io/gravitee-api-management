@@ -39,6 +39,7 @@ export interface Widget<R extends Request = Request> {
   id: string;
   title: string;
   type: WidgetType;
+  description?: string;
   layout: WidgetLayout;
   request?: R;
   response?: RequestResponseMap[R['type']];
