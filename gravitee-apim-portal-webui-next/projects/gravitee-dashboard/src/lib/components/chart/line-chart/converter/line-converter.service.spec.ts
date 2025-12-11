@@ -116,9 +116,9 @@ describe('LineConverterService', () => {
 
       expect(result.labels?.length).toBe(2);
       expect(result.datasets.length).toBe(2);
-      expect(result.datasets[0].label).toBe('HTTP_REQUESTS - 100-199');
+      expect(result.datasets[0].label).toBe('100-199');
       expect(result.datasets[0].data).toEqual([50, 60]);
-      expect(result.datasets[1].label).toBe('HTTP_REQUESTS - 200-299');
+      expect(result.datasets[1].label).toBe('200-299');
       expect(result.datasets[1].data).toEqual([30, 40]);
     });
 
@@ -213,8 +213,8 @@ describe('LineConverterService', () => {
 
       expect(result.labels?.length).toBe(1);
       expect(result.datasets.length).toBe(2);
-      expect(result.datasets[0].label).toBe('HTTP_REQUESTS - 100-199');
-      expect(result.datasets[1].label).toBe('HTTP_REQUESTS - 200-299');
+      expect(result.datasets[0].label).toBe('100-199');
+      expect(result.datasets[1].label).toBe('200-299');
     });
   });
 });
