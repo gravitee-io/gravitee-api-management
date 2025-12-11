@@ -35,7 +35,7 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
     <gd-generic-filter-bar
       [filters]="filters()"
       [currentSelectedFilters]="currentSelectedFilters()"
-      [defaultPeriod]="'1m'"
+      [defaultPeriod]="'5m'"
       (selectedFilters)="onSelectedFilters($event)"
       (refresh)="onRefresh()"
       class="filterBar" />
