@@ -22,15 +22,20 @@ export interface TimeRangeParams {
   interval?: number;
 }
 
+const MINUTE_MS = 1000 * 60;
+const HOUR_MS = MINUTE_MS * 60;
+const DAY_MS = HOUR_MS * 24;
+
 export const timeInMilliseconds: Record<BasicTimeframe, number> = {
-  '1m': 1000 * 60,
-  '1h': 1000 * 60 * 60,
-  '1d': 1000 * 60 * 60 * 24,
-  '1w': 1000 * 60 * 60 * 24 * 7,
-  '1M': 1000 * 60 * 60 * 24 * 30,
+  '1m': MINUTE_MS,
+  '5m': MINUTE_MS * 5,
+  '1h': HOUR_MS,
+  '1d': DAY_MS,
+  '1w': DAY_MS * 7,
+  '1M': DAY_MS * 30,
 };
 
-export type BasicTimeframe = '1m' | '1h' | '1d' | '1w' | '1M';
+export type BasicTimeframe = '1m' | '5m' | '1h' | '1d' | '1w' | '1M';
 
 export const timeFrameRangesParams = (id: BasicTimeframe, nbValuesByBucket = 30): TimeRangeParams => {
   const nowLocal = moment().valueOf();
@@ -50,6 +55,11 @@ export const timeFrames: { label: string; id: BasicTimeframe; timeFrameRangesPar
   {
     label: 'Last minute',
     id: '1m',
+    timeFrameRangesParams: getTimeFramesRangesParams,
+  },
+  {
+    label: 'Last 5 minutes',
+    id: '5m',
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
   {
