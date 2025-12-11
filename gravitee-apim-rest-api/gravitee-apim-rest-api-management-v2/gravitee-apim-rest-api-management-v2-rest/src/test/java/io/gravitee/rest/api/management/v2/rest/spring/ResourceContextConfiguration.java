@@ -21,6 +21,8 @@ import static org.mockito.Mockito.spy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
@@ -424,6 +426,14 @@ public class ResourceContextConfiguration {
     @Bean
     public GetApiDefinitionUseCase getApiDefinitionUseCase() {
         return mock(GetApiDefinitionUseCase.class);
+    }
+
+    @Bean
+    public io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase getApiMetadataUseCase(
+        io.gravitee.apim.core.api.crud_service.ApiCrudService apiCrudService,
+        io.gravitee.apim.core.api.query_service.ApiMetadataQueryService apiMetadataQueryService
+    ) {
+        return new io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase(apiCrudService, apiMetadataQueryService);
     }
 
     @Bean
