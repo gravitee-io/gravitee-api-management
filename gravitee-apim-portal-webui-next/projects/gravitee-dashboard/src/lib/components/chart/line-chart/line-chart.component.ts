@@ -61,7 +61,7 @@ export class LineChartComponent {
           },
         },
         tooltip: {
-          mode: 'index',
+          mode: 'nearest',
           intersect: false,
         },
       },
