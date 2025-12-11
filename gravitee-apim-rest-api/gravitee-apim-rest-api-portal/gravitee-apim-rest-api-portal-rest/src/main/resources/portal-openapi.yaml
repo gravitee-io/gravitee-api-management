@@ -6418,18 +6418,17 @@ components:
             type: object
             description: Portal page content
             properties:
-                id:
-                    type: string
-                    description: The unique ID of the portal page content
                 type:
-                    type: string
-                    description: Content type
-                    enum:
-                        - GRAVITEE_MARKDOWN
+                    $ref: "#/components/schemas/PortalPageContentType"
                 content:
                     type: string
                     description: The content of the page
-            required: [id, type, content]
+            required: [type, content]
+        PortalPageContentType:
+            type: string
+            description: Type of portal page content
+            enum:
+                - GRAVITEE_MARKDOWN
 
     responses:
         InternalServerError:
@@ -6531,8 +6530,7 @@ components:
             content:
                 application/json:
                     schema:
-                        type: string
-                        description: The content of the portal page
+                        $ref: "#/components/schemas/PortalPageContent"
 
     securitySchemes:
         BasicAuth:
