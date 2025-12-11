@@ -184,7 +184,15 @@ export class AuthService {
         }
         this.providerIdSelectedStore = null;
 
-        return from([oidcManager.removeUser(), oidcManager.signoutRedirect().catch(() => null), oidcManager.clearStaleState()]);
+        return from(oidcManager.getUser()).pipe(
+          switchMap((user) =>
+            from([
+              oidcManager.removeUser(),
+              oidcManager.signoutRedirect(user ? { id_token_hint: user.id_token } : {}).catch(() => null),
+              oidcManager.clearStaleState(),
+            ]),
+          ),
+        );
       }),
       switchMap(() => {
         if (!options.disableRedirect) {
