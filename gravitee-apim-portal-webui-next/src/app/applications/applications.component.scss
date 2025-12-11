@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/layout' as layout;
+
 :host {
-  display: flex;
-  flex-flow: column;
-  gap: 32px;
+  @include layout.large-container-legacy();
 }
 
 .tile {
