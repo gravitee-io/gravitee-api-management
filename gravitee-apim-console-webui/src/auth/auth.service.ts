@@ -18,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
 import { Router } from '@angular/router';
 import { from, Observable, of } from 'rxjs';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
 
 import { Constants } from '../entities/Constants';
@@ -185,7 +185,7 @@ export class AuthService {
         this.providerIdSelectedStore = null;
 
         return from(oidcManager.getUser()).pipe(
-          switchMap(user => from([oidcManager.removeUser(), oidcManager.signoutRedirect({ id_token_hint: user.id_token}).catch(() => null), oidcManager.clearStaleState()]))
+          switchMap(user => from([oidcManager.removeUser(), oidcManager.signoutRedirect(user ? { id_token_hint: user.id_token } : {}).catch(() => null), oidcManager.clearStaleState()]))
         ) ;
       }),
       switchMap(() => {
