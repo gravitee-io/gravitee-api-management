@@ -22,7 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -546,7 +546,12 @@ describe('PortalNavigationItemsComponent', () => {
       const component = fixture.componentInstance;
       const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[1] } as any;
 
-      component.onDeleteSection(node);
+      component.onNodeMenuAction({ action: 'delete', itemType: 'FOLDER', node });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
 
       const deleteReq = httpTestingController.expectOne({
         method: 'DELETE',
@@ -572,7 +577,12 @@ describe('PortalNavigationItemsComponent', () => {
       const component = fixture.componentInstance;
       const node = { id: 'nav-item-1', label: 'Nav Item 1', type: 'PAGE', data: fakeResponse.items[0] } as any;
 
-      component.onDeleteSection(node);
+      component.onNodeMenuAction({ action: 'delete', itemType: 'PAGE', node });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
 
       const deleteReq = httpTestingController.expectOne({
         method: 'DELETE',
@@ -594,7 +604,12 @@ describe('PortalNavigationItemsComponent', () => {
       const component = fixture.componentInstance;
       const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[0] } as any;
 
-      component.onDeleteSection(node);
+      component.onNodeMenuAction({ action: 'delete', itemType: 'FOLDER', node });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
 
       const deleteReq = httpTestingController.expectOne({
         method: 'DELETE',
