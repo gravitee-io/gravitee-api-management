@@ -25,6 +25,7 @@ import { CurrentUserService } from '../../services/current-user.service';
   selector: 'app-details',
   imports: [RouterModule, BreadcrumbNavigationComponent],
   templateUrl: './api.component.html',
+  styleUrls: ['./api.component.scss'],
 })
 export class ApiComponent implements OnInit {
   @Input() api!: Api;

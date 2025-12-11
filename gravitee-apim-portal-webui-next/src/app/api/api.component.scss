@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,4 @@
 
 :host {
   @include layout.large-container-legacy();
-}
-
-.not-found__card {
-  display: flex;
-  flex-flow: column;
-  gap: 12px;
 }
