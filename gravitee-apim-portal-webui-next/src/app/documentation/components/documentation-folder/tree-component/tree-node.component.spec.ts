@@ -47,11 +47,12 @@ describe('TreeNodeComponent', () => {
     it('should render node', async () => {
       await init({ node });
 
-      const labelBtn = fixture.debugElement.query(By.css('.tree__link'));
-      expect(labelBtn.nativeElement.textContent.trim()).toBe(node.label);
-
       const icon = fixture.debugElement.query(By.css('.tree__link__icon'));
-      expect(icon.nativeElement.textContent.trim()).toEqual('open_in_new');
+      const iconTextContent = icon.nativeElement.textContent.trim();
+      expect(iconTextContent).toEqual('open_in_new');
+
+      const labelBtn = fixture.debugElement.query(By.css('.tree__link'));
+      expect(labelBtn.nativeElement.textContent.trim()).toBe(`${node.label} ${iconTextContent}`);
     });
 
     it('should redirect on click', async () => {
@@ -100,7 +101,7 @@ describe('TreeNodeComponent', () => {
     });
   });
 
-  describe('test foler node', () => {
+  describe('test folder node', () => {
     const node: SectionNode = {
       id: 'f1',
       label: 'Folder 1',
@@ -135,9 +136,13 @@ describe('TreeNodeComponent', () => {
       expect(innerPage).toBeTruthy();
       expect(innerPage.nativeElement.textContent.trim()).toBe(node.children![0].label);
 
+      const innerLinkIcon = children[1].query(By.css('.tree__link__icon'));
+      const iconTextContent = innerLinkIcon.nativeElement.textContent.trim();
+      expect(iconTextContent).toEqual('open_in_new');
+
       const innerLink = children[1].query(By.css('.tree__link'));
       expect(innerLink).toBeTruthy();
-      expect(innerLink.nativeElement.textContent.trim()).toBe(node.children![1].label);
+      expect(innerLink.nativeElement.textContent.trim()).toBe(`${node.children![1].label} ${iconTextContent}`);
     });
 
     it('should toggle expansion on click', async () => {

@@ -22,7 +22,7 @@ import { provideRouter, Router } from '@angular/router';
 import { DocumentationComponent } from './documentation.component';
 import { DocumentationComponentHarness } from './documentation.component.harness';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
-import { fakePortalNavigationFolder, fakePortalNavigationPage } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakePortalNavigationFolder } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { NotFoundComponent } from '../../not-found/not-found.component';
 
 describe('DocumentationComponent', () => {
@@ -51,16 +51,6 @@ describe('DocumentationComponent', () => {
 
       const page = await harness.getPage();
       expect(page).toBeNull();
-    });
-
-    it('should display page', async () => {
-      await init(fakePortalNavigationPage());
-
-      const folder = await harness.getFolder();
-      expect(folder).toBeNull();
-
-      const page = await harness.getPage();
-      expect(page).not.toBeNull();
     });
 
     it('should redirect to 404', async () => {

@@ -17,18 +17,15 @@ import { Component, computed, effect, input } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DocumentationFolderComponent } from './documentation-folder/documentation-folder.component';
-import { DocumentationPageComponent } from './documentation-page/documentation-page.component';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 
 @Component({
   selector: 'app-documentation',
-  imports: [DocumentationFolderComponent, DocumentationPageComponent],
+  imports: [DocumentationFolderComponent],
   standalone: true,
   template: `
     @if (isItemFolder()) {
       <app-documentation-folder [navItem]="navItem()!" />
-    } @else {
-      <app-documentation-page />
     }
   `,
   styles: `
