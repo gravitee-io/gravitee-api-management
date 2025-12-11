@@ -61,7 +61,9 @@
               <div>No DATA to display</div>
             }
           } @else {
-            <div>Loading...</div>
+            <div class="spinner-container">
+              <mat-spinner diameter="60" matTooltip="Loading..." />
+            </div>
           }
         </gd-widget-body>
       </gd-widget>
