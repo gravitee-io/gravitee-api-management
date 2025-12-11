@@ -56,7 +56,7 @@ export class AuthService {
     return this.http.post<Token>(`${this.configService.baseURL}/auth/logout`, {})
       .pipe(tap(_ => {
         const providerId = this.getProviderId();
-        if (providerId){
+        if (providerId !== null){
           this.oauthService.logOut();
           this.removeProviderId()
         }
