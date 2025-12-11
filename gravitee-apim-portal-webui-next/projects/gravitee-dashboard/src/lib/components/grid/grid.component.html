@@ -20,7 +20,9 @@
   @for (item of items()!; track item.id) {
     <gridster-item [item]="item.layout">
       <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
-        <gd-widget-title>{{ item.title }}</gd-widget-title>
+        <gd-widget-title [matTooltip]="item.description">
+          {{ item.title }}
+        </gd-widget-title>
 
         <gd-widget-body>
           @if (item.response) {

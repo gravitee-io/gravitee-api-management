@@ -36,6 +36,7 @@ export class GraviteeDashboardService {
       {
         id: '1',
         title: 'Requests',
+        description: 'Requests count',
         type: 'stats',
         layout: {
           cols: 1,
@@ -56,6 +57,7 @@ export class GraviteeDashboardService {
       {
         id: '2',
         title: 'Error Rate',
+        description: 'Percentage of responses in error',
         type: 'stats',
         layout: {
           cols: 1,
@@ -76,6 +78,7 @@ export class GraviteeDashboardService {
       {
         id: '3',
         title: 'Average Latency',
+        description: 'Average latency of the Gateway',
         type: 'stats',
         layout: {
           cols: 1,
@@ -96,6 +99,7 @@ export class GraviteeDashboardService {
       {
         id: '4',
         title: 'Average Response Time',
+        description: 'Average response time of the Gateway',
         type: 'stats',
         layout: {
           cols: 1,
@@ -116,6 +120,7 @@ export class GraviteeDashboardService {
       {
         id: '5',
         title: 'HTTP Statuses',
+        description: 'Number of HTTP requests per HTTP Status',
         type: 'doughnut',
         layout: {
           cols: 1,
@@ -137,6 +142,7 @@ export class GraviteeDashboardService {
       {
         id: '6',
         title: 'Response Time',
+        description: 'Average response time of the Endpoint and Gateway',
         type: 'line',
         layout: {
           cols: 3,
@@ -162,6 +168,7 @@ export class GraviteeDashboardService {
       {
         id: '7',
         title: 'Response Statuses',
+        description: 'Number of response statuses over time',
         type: 'line',
         layout: {
           cols: 3,
@@ -182,7 +189,8 @@ export class GraviteeDashboardService {
       },
       {
         id: '8',
-        title: 'Top 5 Requested Applications',
+        title: 'Top 5 Applications',
+        description: 'Top 5 applications by number of HTTP requests',
         type: 'doughnut',
         layout: {
           cols: 1,
