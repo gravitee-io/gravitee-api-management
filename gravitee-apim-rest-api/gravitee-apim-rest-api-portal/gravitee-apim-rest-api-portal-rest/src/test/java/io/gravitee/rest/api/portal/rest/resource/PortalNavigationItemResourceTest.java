@@ -28,6 +28,8 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
+import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
+import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -183,8 +185,9 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
-            var content = response.readEntity(String.class);
-            assertThat(content).isEqualTo("Page content text");
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("Page content text");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
 
         @Test
@@ -212,8 +215,9 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
-            var content = response.readEntity(String.class);
-            assertThat(content).isEqualTo("Page content text");
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("Page content text");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
 
         @Test

@@ -71,6 +71,6 @@ public class PortalNavigationItemResource extends AbstractResource {
             )
         );
 
-        return Response.ok(result.portalPageContent().getContent()).build();
+        return Response.ok(portalNavigationItemMapper.map(result.portalPageContent())).build();
     }
 }

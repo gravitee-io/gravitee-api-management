@@ -23,6 +23,8 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
+import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
+import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -154,8 +156,9 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
-            var content = response.readEntity(String.class);
-            assertThat(content).isEqualTo("Page content text");
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("Page content text");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
 
         @Test
