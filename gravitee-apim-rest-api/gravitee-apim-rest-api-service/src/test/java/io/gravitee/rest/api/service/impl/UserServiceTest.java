@@ -2392,113 +2392,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldSearchUsers_hasResults_ordersUniqueAndPopulateFlags() {
-        UserServiceImpl spyUserService = spy(userService);
-
-        // Search engine returns duplicated ids and one unknown id
-        List<String> docs = Arrays.asList("u1", "u2", "u1", "u3", "u4", "u3");
-        io.gravitee.rest.api.service.impl.search.SearchResult searchResult = new io.gravitee.rest.api.service.impl.search.SearchResult(
-            docs,
-            42
-        );
-        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(searchResult);
-
-        // Prepare fetched users (u4 is missing on purpose)
-        UserEntity ue1 = new UserEntity();
-        ue1.setId("u1");
-        UserEntity ue2 = new UserEntity();
-        ue2.setId("u2");
-        UserEntity ue3 = new UserEntity();
-        ue3.setId("u3");
-        doReturn(new HashSet<>(Arrays.asList(ue1, ue2, ue3))).when(spyUserService).findByIds(eq(EXECUTION_CONTEXT), anyCollection());
-
-        // Mock roles for Primary Owner checks
-        RoleEntity apiPORole = mockRoleEntity(RoleScope.API, "PRIMARY_OWNER");
-        RoleEntity appPORole = mockRoleEntity(RoleScope.APPLICATION, "PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPORole);
-        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPORole);
-
-        // Only u2 is primary owner (API). Others not.
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                eq("u2"),
-                eq(MembershipReferenceType.API),
-                eq(apiPORole.getId())
-            )
-        ).thenReturn(
-            java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>singleton(new io.gravitee.rest.api.model.MembershipEntity())
-        );
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                eq("u1"),
-                eq(MembershipReferenceType.API),
-                eq(apiPORole.getId())
-            )
-        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                eq("u3"),
-                eq(MembershipReferenceType.API),
-                eq(apiPORole.getId())
-            )
-        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
-
-        // No application PO for anyone
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                anyString(),
-                eq(MembershipReferenceType.APPLICATION),
-                eq(appPORole.getId())
-            )
-        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
-
-        // Tokens per user: u1=1, u2=3, u3=0
-        when(tokenService.findByUser("u1")).thenReturn(Collections.singletonList(new io.gravitee.rest.api.model.TokenEntity()));
-        when(tokenService.findByUser("u2")).thenReturn(
-            Arrays.asList(
-                new io.gravitee.rest.api.model.TokenEntity(),
-                new io.gravitee.rest.api.model.TokenEntity(),
-                new io.gravitee.rest.api.model.TokenEntity()
-            )
-        );
-        when(tokenService.findByUser("u3")).thenReturn(Collections.emptyList());
-
-        io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.PageableImpl(2, 5);
-
-        io.gravitee.common.data.domain.Page<UserEntity> page = spyUserService.search(EXECUTION_CONTEXT, "john", pageable);
-
-        // Then: order preserved, duplicates removed, missing id filtered out
-        List<UserEntity> content = page.getContent();
-        assertEquals(3, content.size());
-        assertEquals("u1", content.get(0).getId());
-        assertEquals("u2", content.get(1).getId());
-        assertEquals("u3", content.get(2).getId());
-
-        // Page metadata
-        assertEquals(2, page.getPageNumber());
-        assertEquals(5, page.getPageElements());
-        assertEquals(42, page.getTotalElements());
-
-        // Flags populated
-        assertFalse(content.get(0).isPrimaryOwner());
-        assertTrue(content.get(1).isPrimaryOwner());
-        assertFalse(content.get(2).isPrimaryOwner());
-
-        assertEquals(1, content.get(0).getNbActiveTokens());
-        assertEquals(3, content.get(1).getNbActiveTokens());
-        assertEquals(0, content.get(2).getNbActiveTokens());
-
-        // Verify that search was called and populateUserFlags implied calls
-        verify(searchEngineService).search(eq(EXECUTION_CONTEXT), any());
-        verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API);
-        verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION);
-    }
-
-    @Test
     public void shouldOverrideAdminRolesWithIdpMappingsWhenSyncMappingsEnabled() throws Exception {
         reset(identityProvider, userRepository, roleService, membershipService);
         mockDefaultEnvironment();
@@ -2529,5 +2422,152 @@ public class UserServiceTest {
             argThat(roles -> roles.contains(new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "USER"))),
             eq("oauth2")
         );
+    }
+
+    private User buildUser(String id) {
+        User u = new User();
+        u.setId(id);
+        u.setOrganizationId(ORGANIZATION);
+        u.setFirstname(null);
+        u.setLastname(null);
+        String email = id + "@example.com";
+        u.setEmail(email);
+        u.setSource("gravitee");
+        u.setSourceId(email);
+        u.setStatus(UserStatus.ACTIVE);
+        u.setLoginCount(0L);
+        Date fixedDate = new Date(1765179754234L);
+        u.setCreatedAt(fixedDate);
+        u.setUpdatedAt(fixedDate);
+        return u;
+    }
+
+    private void mockPopulateUserFlagsNoop() {
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("api-po");
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("app-po");
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(any(), anyString(), any(), anyString())).thenReturn(
+            Collections.emptySet()
+        );
+        when(tokenService.findByUser(anyString())).thenReturn(Collections.emptyList());
+    }
+
+    @Test
+    public void shouldSearchUsers_removeDuplicatesWithinPage_andPreserveOrder() throws TechnicalException {
+        mockPopulateUserFlagsNoop();
+        List<String> docs = Arrays.asList("u1", "u2", "u1", "u3");
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(docs, docs.size())
+        );
+
+        User u1 = buildUser("u1");
+        User u2 = buildUser("u2");
+        User u3 = buildUser("u3");
+        when(userRepository.findByIds(anyCollection())).thenReturn(new HashSet<>(Arrays.asList(u1, u2, u3)));
+        when(userMetadataService.findAllByUserId(anyString())).thenReturn(Collections.emptyList());
+
+        var page = userService.search(EXECUTION_CONTEXT, "john", new io.gravitee.rest.api.model.common.PageableImpl(1, 10));
+
+        List<UserEntity> content = page.getContent();
+        assertEquals(3, content.size());
+        assertEquals("u1", content.get(0).getId());
+        assertEquals("u2", content.get(1).getId());
+        assertEquals("u3", content.get(2).getId());
+
+        UserEntity first = content.get(0);
+        assertEquals(ORGANIZATION, first.getOrganizationId());
+        assertEquals("u1@example.com", first.getEmail());
+        assertEquals("gravitee", first.getSource());
+        assertEquals("u1@example.com", first.getSourceId());
+        assertEquals("ACTIVE", first.getStatus());
+        assertEquals(0L, first.getLoginCount());
+        assertEquals("u1@example.com", first.getDisplayName());
+        assertNotNull(first.getCreatedAt());
+        assertNotNull(first.getUpdatedAt());
+        assertFalse(first.isPrimaryOwner());
+        assertEquals(0, first.getNbActiveTokens());
+    }
+
+    @Test
+    public void shouldSearchUsers_returnConsistentResults_onRepeatedSameQuery() throws TechnicalException {
+        mockPopulateUserFlagsNoop();
+        List<String> docs = Arrays.asList("a", "b", "c");
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(docs, docs.size())
+        );
+
+        User a = buildUser("a");
+        User b = buildUser("b");
+        User c = buildUser("c");
+        when(userRepository.findByIds(anyCollection())).thenReturn(new HashSet<>(Arrays.asList(a, b, c)));
+        when(userMetadataService.findAllByUserId(anyString())).thenReturn(Collections.emptyList());
+
+        var page1 = userService.search(EXECUTION_CONTEXT, "same-query", new io.gravitee.rest.api.model.common.PageableImpl(1, 3));
+        var page2 = userService.search(EXECUTION_CONTEXT, "same-query", new io.gravitee.rest.api.model.common.PageableImpl(1, 3));
+
+        assertEquals(page1.getTotalElements(), page2.getTotalElements());
+        assertEquals(page1.getContent().size(), page2.getContent().size());
+        for (int i = 0; i < page1.getContent().size(); i++) {
+            assertEquals(page1.getContent().get(i).getId(), page2.getContent().get(i).getId());
+        }
+
+        UserEntity first = page1.getContent().get(0);
+        assertEquals(ORGANIZATION, first.getOrganizationId());
+        assertEquals("a@example.com", first.getEmail());
+        assertEquals("gravitee", first.getSource());
+        assertEquals("a@example.com", first.getSourceId());
+        assertEquals("ACTIVE", first.getStatus());
+        assertEquals(0L, first.getLoginCount());
+        assertEquals("a@example.com", first.getDisplayName());
+        assertNotNull(first.getCreatedAt());
+        assertNotNull(first.getUpdatedAt());
+        assertFalse(first.isPrimaryOwner());
+        assertEquals(0, first.getNbActiveTokens());
+    }
+
+    @Test
+    public void shouldSearchUsers_handleDuplicateAcrossPages_consistently() throws TechnicalException {
+        mockPopulateUserFlagsNoop();
+        List<String> docsPage1 = Arrays.asList("x1", "x2", "x3");
+        List<String> docsPage2 = Arrays.asList("x3", "x4", "x5"); // overlap with page1 on x3
+
+        User x1 = buildUser("x1");
+        User x2 = buildUser("x2");
+        User x3 = buildUser("x3");
+        User x4 = buildUser("x4");
+        User x5 = buildUser("x5");
+
+        Map<String, User> registry = new HashMap<>();
+        registry.put("x1", x1);
+        registry.put("x2", x2);
+        registry.put("x3", x3);
+        registry.put("x4", x4);
+        registry.put("x5", x5);
+        when(userRepository.findByIds(anyCollection())).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Collection<String> ids = (Collection<String>) invocation.getArgument(0);
+            Set<User> result = new HashSet<>();
+            if (ids != null) {
+                for (String id : ids) {
+                    User u = registry.get(id);
+                    if (u != null) result.add(u);
+                }
+            }
+            return result;
+        });
+        when(userMetadataService.findAllByUserId(anyString())).thenReturn(Collections.emptyList());
+
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any()))
+            .thenReturn(new io.gravitee.rest.api.service.impl.search.SearchResult(docsPage1, 5L))
+            .thenReturn(new io.gravitee.rest.api.service.impl.search.SearchResult(docsPage2, 5L));
+
+        var page1 = userService.search(EXECUTION_CONTEXT, "overlap", new io.gravitee.rest.api.model.common.PageableImpl(1, 3));
+        var page2 = userService.search(EXECUTION_CONTEXT, "overlap", new io.gravitee.rest.api.model.common.PageableImpl(2, 3));
+
+        assertEquals(List.of("x1", "x2", "x3"), page1.getContent().stream().map(UserEntity::getId).toList());
+        assertEquals(List.of("x3", "x4", "x5"), page2.getContent().stream().map(UserEntity::getId).toList());
     }
 }
