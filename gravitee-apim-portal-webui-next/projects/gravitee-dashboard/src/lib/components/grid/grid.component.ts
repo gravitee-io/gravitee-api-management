@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, input } from '@angular/core';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
@@ -35,6 +36,7 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
     PieChartComponent,
     StatsComponent,
     MatTooltipModule,
+    MatProgressSpinner,
   ],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
