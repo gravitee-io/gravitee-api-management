@@ -128,6 +128,8 @@ export class PortalNavigationItemsComponent {
   private readonly MAX_PANEL_WIDTH = 600;
   panelWidth = signal(350);
 
+  readonly contentLoadError = signal(false);
+
   constructor(
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
@@ -184,26 +186,39 @@ export class PortalNavigationItemsComponent {
     toObservable(this.selectedNavigationItem)
       .pipe(
         switchMap((item) => {
+          this.contentLoadError.set(false);
           // Only fetch if it is a PAGE, otherwise return empty
           if (item && item.type === 'PAGE') {
             const pageContentId = (item.data as PortalNavigationPage).portalPageContentId;
             return this.loadPageContent(pageContentId);
           }
-          return of('');
+          return of({ success: true, content: '' });
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((content) => {
-        this.contentControl.reset(content);
+      .subscribe((result) => {
+        if (result.success) {
+          this.contentControl.reset(result.content);
+        }
       });
   }
 
-  private loadPageContent(pageContentId: string): Observable<string> {
+  private loadPageContent(pageContentId: string): Observable<{
+    success: boolean;
+    content: string;
+  }> {
     return this.portalPageContentService.getPageContent(pageContentId).pipe(
-      map(({ content }) => content),
+      map(({ content }) => ({
+        success: true,
+        content,
+      })),
       catchError(() => {
+        this.contentLoadError.set(true);
         this.snackBarService.error('Failed to load page content');
-        return of('');
+        return of({
+          success: false,
+          content: '',
+        });
       }),
     );
   }
