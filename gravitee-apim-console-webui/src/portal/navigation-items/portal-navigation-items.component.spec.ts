@@ -952,6 +952,38 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('page content load failure', () => {
+    it('should show the "Page Not Found" empty state when page content fails to load', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+        ],
+      });
+
+      // First load page tree
+      await expectGetNavigationItems(fakeResponse);
+
+      // Simulate failure when loading page content
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/nav-item-1-content`,
+      });
+      req.flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
+
+      fixture.detectChanges();
+
+      // Now the UI should show the empty state
+      expect(await harness.isPageNotFoundDisplayed()).toBe(true);
+
+      const message = await harness.getPageNotFoundMessage();
+      expect(message).toContain('Failed to load page content.');
+    });
+  });
+
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
