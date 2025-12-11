@@ -75,7 +75,7 @@ export class AuthService {
     localStorage.setItem('user-provider-id', providerId);
   }
 
-  getProviderId(): string {
+  getProviderId(): string | null {
     return localStorage.getItem('user-provider-id')!;
   }
   removeProviderId() {
@@ -83,8 +83,9 @@ export class AuthService {
   }
 
   load() {
-    if (this.getProviderId()) {
-      return this._fetchProviderAndConfigure().pipe(
+    const providerId = this.getProviderId();
+    if (providerId) {
+      return this._fetchProviderAndConfigure(providerId).pipe(
         switchMap(() => {
           return fromPromise(
             this.oauthService.tryLoginCodeFlow({
@@ -100,8 +101,8 @@ export class AuthService {
     }
   }
 
-  private _fetchProviderAndConfigure() {
-    return this.identityProviderService.getPortalIdentityProvider(this.getProviderId()).pipe(
+  private _fetchProviderAndConfigure(providerId: string) {
+    return this.identityProviderService.getPortalIdentityProvider(providerId).pipe(
       map(identityProvider => {
         if (identityProvider) {
           this._configure(identityProvider);

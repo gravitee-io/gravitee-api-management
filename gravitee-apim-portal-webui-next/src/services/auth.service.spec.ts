@@ -66,12 +66,12 @@ describe('AuthService', () => {
 
   it('should call /auth/logout and, when providerId exists, call oauthService.logOut and removeProviderId', () => {
 
-    jest.spyOn(service as any, 'getProviderId').mockReturnValue('google');
+    jest.spyOn(service, 'getProviderId').mockReturnValue('google');
     const logOutSpy = jest
       .spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'logOut')
       .mockReturnValue();
     const removeProviderIdSpy = jest
-      .spyOn(service as any, 'removeProviderId');
+      .spyOn(service, 'removeProviderId');
 
 
     service.logout().subscribe();
@@ -80,21 +80,21 @@ describe('AuthService', () => {
     const req = httpTestingController.expectOne(`${configService.baseURL}/auth/logout`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({});
-    req.flush({}); // kończymy request
+    req.flush({});
 
-    // Assert – efekty uboczne w tap()
+
     expect(logOutSpy).toHaveBeenCalled();
     expect(removeProviderIdSpy).toHaveBeenCalled();
   });
 
   it('should NOT call logOut nor removeProviderId when providerId is missing', () => {
 
-    jest.spyOn(service as any, 'getProviderId').mockReturnValue(null);
+    jest.spyOn(service, 'getProviderId').mockReturnValue(null);
     const logOutSpy = jest
       .spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'logOut')
       .mockReturnValue();
     const removeProviderIdSpy = jest
-      .spyOn(service as any, 'removeProviderId');
+      .spyOn(service, 'removeProviderId');
 
 
     service.logout().subscribe();
