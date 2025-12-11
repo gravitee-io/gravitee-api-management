@@ -20,6 +20,7 @@
 @forward 'scss/m3-adapter';
 @forward 'scss/helper';
 @forward 'scss/gmd-overrides';
+@forward 'scss/layout';
 @use '@angular/material' as mat;
 @use '@angular/cdk';
 @use './scss/theme';
@@ -55,20 +56,6 @@ body {
   margin: 0;
   background-color: theme.$background-color;
   font-family: theme.$font-family;
-
-  .main-container-wrapper,
-  app-footer {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 24px;
-    margin-right: auto;
-    margin-left: auto;
-
-    @media (width >= 1280px) {
-      max-width: 1280px !important;
-    }
-  }
 
   p {
     color: theme.$paragraph-color;

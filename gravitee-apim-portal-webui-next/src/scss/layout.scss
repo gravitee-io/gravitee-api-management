@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/layout' as layout;
-
-:host {
-  @include layout.large-container-legacy();
+@mixin full-width-container {
+  @include -container(100%);
 }
 
-.not-found__card {
-  display: flex;
-  flex-flow: column;
-  gap: 12px;
+@mixin large-container-legacy {
+  @include -container(1280px);
+}
+
+@mixin small-container-legacy {
+  @include -container(400px);
+}
+
+@mixin -container($max-width) {
+  display: block;
+  max-width: $max-width;
+  padding: 0 24px;
+  margin-right: auto;
+  margin-left: auto;
 }
