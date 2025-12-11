@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
-import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData } from '@gravitee/ui-particles-angular';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NodeMenuActionEvent, SectionNode } from './tree.component';
 
@@ -44,6 +41,10 @@ export class TreeNodeComponent {
   nodeSelected = output<SectionNode>();
   nodeMenuAction = output<NodeMenuActionEvent>();
 
+  protected hasChildren = computed(() => {
+    return this.node().children !== undefined && this.node().children.length > 0;
+  });
+
   triggerEdit() {
     const current = this.node();
     if (!current) return;
@@ -65,15 +66,9 @@ export class TreeNodeComponent {
       node: current,
     });
   }
-  delete = output<SectionNode>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
   isExpanded = signal<boolean>(true);
-
-  constructor(
-    private readonly matDialog: MatDialog,
-    private readonly destroyRef: DestroyRef,
-  ) {}
 
   selectNode(): void {
     this.nodeSelected.emit(this.node());
@@ -87,32 +82,7 @@ export class TreeNodeComponent {
     return this.node().data?.published === false;
   }
 
-  confirmDelete(node: SectionNode): void {
-    const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
-
-    const content = `This ${node.type.toLowerCase()} will no longer appear on your site.`;
-
-    const data: GioConfirmAndValidateDialogData = {
-      title,
-      content,
-      validationMessage: `Type <code>${node.label}</code> to confirm.`,
-      validationValue: node.label,
-      confirmButton: 'Delete',
-    };
-
-    this.matDialog
-      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
-        width: '500px',
-        data,
-        role: 'alertdialog',
-        id: `deleteTreeNodeDialog-${node.id}`,
-      })
-      .afterClosed()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((confirmed) => {
-        if (confirmed === true) {
-          this.delete.emit(node);
-        }
-      });
+  triggerDelete(node: SectionNode): void {
+    this.nodeMenuAction.emit({ action: 'delete', itemType: node.type, node });
   }
 }

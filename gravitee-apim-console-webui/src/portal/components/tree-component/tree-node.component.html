@@ -88,16 +88,19 @@
       Edit
     </button>
 
-    @if (!node().children?.length) {
-      <button
-        mat-menu-item
-        class="tree__menu-item-delete"
-        *gioPermission="{ anyOf: ['environment-documentation-d'] }"
-        (click)="confirmDelete(node())"
-      >
-        <mat-icon class="tree__menu-item-delete">delete</mat-icon> Delete
-      </button>
-    }
+    <button
+      mat-menu-item
+      *gioPermission="{ anyOf: ['environment-documentation-d'] }"
+      [disabled]="hasChildren()"
+      [attr.aria-disabled]="hasChildren()"
+      [attr.tabindex]="hasChildren() ? -1 : null"
+      [class.tree__menu-item-delete]="!hasChildren()"
+      [class.tree__menu-item-delete--disabled]="hasChildren()"
+      (click)="triggerDelete(node())"
+    >
+      <mat-icon [class.tree__menu-item-delete]="!hasChildren()" [class.tree__menu-item-delete--disabled]="hasChildren()">delete</mat-icon>
+      Delete
+    </button>
   </mat-menu>
 </div>
 
@@ -110,7 +113,6 @@
         [selectedId]="selectedId()"
         (nodeSelected)="nodeSelected.emit($event)"
         (nodeMenuAction)="nodeMenuAction.emit($event)"
-        (delete)="delete.emit($event)"
       />
     }
   </div>

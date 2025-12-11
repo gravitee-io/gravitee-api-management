@@ -116,16 +116,16 @@ describe('TreeComponent', () => {
     fixture.componentRef.setInput('links', links);
     fixture.detectChanges();
 
-    const deletedSpy = jest.fn();
-    component.delete.subscribe(deletedSpy);
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
 
     const childDebug = fixture.debugElement.query(By.directive(TreeNodeComponent));
     // fallback if directive lookup fails, query by tag
     const child = childDebug ? childDebug.componentInstance : fixture.debugElement.query(By.css('app-tree-node')).componentInstance;
 
-    child.delete.emit({ id: 'p1', label: 'Page 1', type: 'PAGE' });
+    child.nodeMenuAction.emit({ action: 'delete', itemType: 'PAGE', node: { id: 'p1', label: 'Page 1', type: 'PAGE' } });
 
-    expect(deletedSpy).toHaveBeenCalledTimes(1);
-    expect(deletedSpy).toHaveBeenCalledWith({ id: 'p1', label: 'Page 1', type: 'PAGE' });
+    expect(actionSpy).toHaveBeenCalledTimes(1);
+    expect(actionSpy).toHaveBeenCalledWith({ action: 'delete', itemType: 'PAGE', node: { id: 'p1', label: 'Page 1', type: 'PAGE' } });
   });
 });

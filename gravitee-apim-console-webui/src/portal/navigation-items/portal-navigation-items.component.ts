@@ -15,7 +15,14 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { GIO_DIALOG_WIDTH, GioCardEmptyStateModule, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioCardEmptyStateModule,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+} from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -150,7 +157,40 @@ export class PortalNavigationItemsComponent {
   }
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
-    this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+    if (event.action === 'delete') {
+      const node = event.node;
+      const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
+      const content = `This ${node.type.toLowerCase()} will no longer appear on your site.`;
+
+      const data: GioConfirmAndValidateDialogData = {
+        title,
+        content,
+        validationMessage: `Type <code>${node.label}</code> to confirm.`,
+        validationValue: node.label,
+        confirmButton: 'Delete',
+      };
+
+      this.matDialog
+        .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+          width: '500px',
+          data,
+          role: 'alertdialog',
+          id: `deleteNavigationItemConfirmDialog-${node.id}`,
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirmed) => confirmed === true),
+          tap(() => this.onDeleteSection(node)),
+          catchError(() => {
+            // swallow errors from dialog flow
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    } else {
+      this.manageSection(event.itemType, event.action as any, 'TOP_NAVBAR', event.node.data);
+    }
   }
 
   onResizeStart(event: MouseEvent): void {
