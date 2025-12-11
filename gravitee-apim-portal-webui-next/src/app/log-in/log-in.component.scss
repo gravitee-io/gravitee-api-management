@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 @use '../../scss/theme';
+@use '../../scss/layout' as layout;
 
 :host {
+  @include layout.small-container-legacy();
+
   display: flex;
   justify-content: center;
 }
@@ -35,7 +38,7 @@
     }
 
     &__container {
-      width: 400px;
+      width: 100%;
       border-radius: 8px;
 
       &--mobile {
