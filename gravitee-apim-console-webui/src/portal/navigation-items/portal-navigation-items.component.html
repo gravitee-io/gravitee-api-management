@@ -78,7 +78,7 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        <button mat-stroked-button (click)="onPublishToggle()">
+        <button [disabled]="contentLoadError()" mat-stroked-button (click)="onPublishToggle()">
           {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
         </button>
         <button mat-stroked-button [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
@@ -88,7 +88,11 @@
     @if (selectedNavigationItem()) {
       @switch (selectedNavigationItem().type) {
         @case ('PAGE') {
-          <gmd-editor [formControl]="contentControl" />
+          @if (!contentLoadError()) {
+            <gmd-editor [formControl]="contentControl" />
+          } @else {
+            <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
+          }
         }
         @default {
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
@@ -127,6 +131,16 @@
           title="Preview"
           message="Use the page preview to see exactly how your content will look before you publish it."
         />
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>
+
+<ng-template #pageNotFound>
+  <div class="empty-editor">
+    <mat-card appearance="outlined" class="empty-state">
+      <mat-card-content>
+        <empty-state iconName="gio:alert-circle" title="Page Not Found" message="Failed to load page content." />
       </mat-card-content>
     </mat-card>
   </div>

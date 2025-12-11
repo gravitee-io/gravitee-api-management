@@ -37,6 +37,12 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     EmptyStateComponentHarness.with({ title: 'Editor', message: 'Use GMD code to customize and edit your page content.' }),
   );
   private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
+  private getPageNotFoundEmptyState = this.locatorForOptional(
+    EmptyStateComponentHarness.with({
+      title: 'Page Not Found',
+      message: 'Failed to load page content.',
+    }),
+  );
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
@@ -169,5 +175,15 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async editNodeById(id: string): Promise<void> {
     const tree = await this.getTree();
     return tree.selectEditById(id);
+  }
+
+  async isPageNotFoundDisplayed(): Promise<boolean> {
+    const emptyState = await this.getPageNotFoundEmptyState();
+    return emptyState !== null;
+  }
+
+  async getPageNotFoundMessage(): Promise<string | null> {
+    const emptyState = await this.getPageNotFoundEmptyState();
+    return emptyState ? emptyState.getMessage() : null;
   }
 }
