@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -80,5 +81,37 @@ public class PortalNavigationItemDomainService {
         return parentId != null
             ? queryService.findByParentIdAndEnvironmentId(environmentId, parentId)
             : queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, area);
+    }
+
+    public void delete(PortalNavigationItem item) {
+        Optional.ofNullable(item).ifPresentOrElse(
+            existing -> {
+                // Determine if item is a page and collect content id
+                final var contentId = existing instanceof io.gravitee.apim.core.portal_page.model.PortalNavigationPage
+                    ? ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) existing).getPortalPageContentId()
+                    : null;
+
+                // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
+                var parentId = existing.getParentId();
+                var deletedOrder = existing.getOrder();
+                var siblings = retrieveSiblingItems(parentId, existing.getEnvironmentId(), existing.getArea());
+                var siblingsToUpdate = siblings
+                    .stream()
+                    .filter(sibling -> !sibling.getId().equals(existing.getId()))
+                    .filter(sibling -> sibling.getOrder() > deletedOrder)
+                    .toList();
+                siblingsToUpdate.forEach(sibling -> sibling.setOrder(sibling.getOrder() - 1));
+
+                // Perform deletions/updates for the single item
+                if (contentId != null) {
+                    pageContentCrudService.delete(contentId);
+                }
+                crudService.delete(existing.getId());
+                siblingsToUpdate.forEach(crudService::update);
+            },
+            () -> {
+                throw new IllegalArgumentException("item to delete must not be null");
+            }
+        );
     }
 }
