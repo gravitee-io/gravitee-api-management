@@ -279,6 +279,7 @@ class ApiExportDomainServiceImplTest {
         when(
             permissionService.hasPermission(
                 any(ExecutionContext.class),
+                anyString(),
                 any(RolePermission.class),
                 anyString(),
                 ArgumentMatchers.<RolePermissionAction>any()

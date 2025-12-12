@@ -19,15 +19,22 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.GraviteeDefinitionFixtures;
 import fixtures.core.model.PageFixtures;
 import fixtures.core.model.ScoringReportFixture;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ScoringReportQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
@@ -46,6 +53,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -63,6 +71,9 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
     @Inject
     ScoringReportQueryServiceInMemory scoringReportQueryService;
+
+    @Inject
+    ApiExportDomainService exportDomainService;
 
     @Inject
     PageCrudServiceInMemory pageCrudService;
@@ -108,6 +119,9 @@ public class ApiScoringResourceTest extends ApiResourceTest {
         @Test
         void should_return_202_response() {
             apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            when(exportDomainService.export(eq(API), any(AuditInfo.class), eq(EnumSet.noneOf(Excludable.class)))).thenReturn(
+                GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
+            );
 
             final Response response = evaluateTarget.request().post(null);
 

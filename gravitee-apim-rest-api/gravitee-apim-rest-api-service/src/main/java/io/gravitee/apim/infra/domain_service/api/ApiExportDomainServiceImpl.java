@@ -104,10 +104,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         var api1 = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
         var members = !excluded.contains(MEMBERS) ? exportApiMembers(apiId, auditInfo, executionContext) : null;
-        var metadata = !excluded.contains(METADATA) ? exportApiMetadata(executionContext, apiId) : null;
+        var metadata = !excluded.contains(METADATA) ? exportApiMetadata(apiId, auditInfo, executionContext) : null;
 
-        var pages = !excluded.contains(PAGES_MEDIA) ? exportApiPages(apiId, executionContext) : null;
-        var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId, executionContext) : null;
+        var pages = !excluded.contains(PAGES_MEDIA) ? exportApiPages(apiId, auditInfo, executionContext) : null;
+        var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId, auditInfo, executionContext) : null;
 
         var workflowState = stream(workflowCrudService.findByApiId(apiId))
             .map(Workflow::getState)
@@ -182,8 +182,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .collect(Collectors.toSet());
     }
 
-    private Collection<NewApiMetadata> exportApiMetadata(ExecutionContext executionContext, String apiId) {
-        if (!permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, READ)) {
+    private Collection<NewApiMetadata> exportApiMetadata(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
+        if (!permissionService.hasPermission(executionContext, auditInfo.actor().userId(), RolePermission.API_METADATA, apiId, READ)) {
             return null;
         }
         return Stream.concat(
@@ -200,14 +200,14 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .values();
     }
 
-    private List<PageExport> exportApiPages(String apiId, ExecutionContext executionContext) {
-        return permissionService.hasPermission(executionContext, API_DOCUMENTATION, apiId, READ)
+    private List<PageExport> exportApiPages(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
+        return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
             ? DEFINITION_ADAPTER.mapPage(pageQueryService.searchByApiId(apiId))
             : null;
     }
 
-    private List<Media> exportApiMedia(String apiId, ExecutionContext executionContext) {
-        return permissionService.hasPermission(executionContext, API_DOCUMENTATION, apiId, READ)
+    private List<Media> exportApiMedia(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
+        return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
             ? mediaService.findAllByApiId(apiId)
             : null;
     }
