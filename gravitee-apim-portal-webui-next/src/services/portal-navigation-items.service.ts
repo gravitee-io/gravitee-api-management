@@ -20,6 +20,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
 import { PortalArea, PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
 @Injectable({
   providedIn: 'root',
@@ -48,10 +49,8 @@ export class PortalNavigationItemsService {
     return this.http.get<PortalNavigationItem>(`${this.configService.baseURL}/portal-navigation-items/${id}`).pipe(catchError(_ => of()));
   }
 
-  getNavigationItemContent(id: string): Observable<string> {
-    return this.http
-      .get(`${this.configService.baseURL}/portal-navigation-items/${id}/content`, { responseType: 'text' })
-      .pipe(catchError(_ => of('')));
+  getNavigationItemContent(id: string): Observable<PortalPageContent> {
+    return this.http.get<PortalPageContent>(`${this.configService.baseURL}/portal-navigation-items/${id}/content`);
   }
 
   loadTopNavBarItems(): Observable<void> {

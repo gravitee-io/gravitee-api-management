@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
+import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('PortalNavigationItemsService', () => {
   let service: PortalNavigationItemsService;
@@ -27,7 +28,7 @@ describe('PortalNavigationItemsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [AppTestingModule],
       providers: [{ provide: ConfigService, useValue: { baseURL } }],
     });
 
@@ -115,16 +116,18 @@ describe('PortalNavigationItemsService', () => {
   });
 
   it('should get navigation item content', done => {
-    const mockContent = 'MOCK CONTENT';
-    const id = 'testId';
+    const mockContent = {
+      type: 'GRAVITEE_MARKDOWN',
+      content: '# Welcome to the portal\nThis is the home page content.',
+    };
 
-    service.getNavigationItemContent(id).subscribe(items => {
-      expect(items).toEqual(mockContent);
+    service.getNavigationItemContent('1').subscribe(content => {
+      expect(content).toEqual(mockContent);
       done();
     });
 
-    const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/${id}/content`);
-
+    const req = httpMock.expectOne(`${baseURL}/portal-navigation-items/1/content`);
+    expect(req.request.method).toBe('GET');
     req.flush(mockContent);
   });
 
