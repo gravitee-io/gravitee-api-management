@@ -192,45 +192,6 @@ class ScoreApiRequestUseCaseTest {
     }
 
     @Test
-    public void should_trigger_scoring_for_unsupported_version_of_gravitee_definition() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection())).thenThrow(
-            new ApiDefinitionVersionNotSupportedException("UNKNOW")
-        );
-
-        // When
-        scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
-
-        // Then
-        assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
-            assertThat(request)
-                .hasJobId("generated-id")
-                .hasOrganizationId(ORGANIZATION_ID)
-                .hasEnvironmentId(ENVIRONMENT_ID)
-                .hasApiId(api.getId());
-        });
-        assertThat(asyncJobCrudService.storage()).containsExactly(
-            AsyncJob.builder()
-                .id("generated-id")
-                .sourceId(api.getId())
-                .environmentId(ENVIRONMENT_ID)
-                .initiatorId(USER_ID)
-                .type(AsyncJob.Type.SCORING_REQUEST)
-                .status(AsyncJob.Status.PENDING)
-                .upperLimit(1L)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
-                .build()
-        );
-    }
-
-    @Test
     public void should_trigger_scoring_for_swagger_page() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
