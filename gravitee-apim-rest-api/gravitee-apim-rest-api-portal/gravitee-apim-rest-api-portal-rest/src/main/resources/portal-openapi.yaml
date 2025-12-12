@@ -4304,6 +4304,7 @@ components:
             type: string
             example: PROXY
             enum:
+                - A2A_PROXY
                 - LLM_PROXY
                 - MCP_PROXY
                 - PROXY
@@ -5545,6 +5546,7 @@ components:
                     description: ApiType supported by the connector.
                     type: string
                     enum:
+                        - a2a_proxy
                         - llm_proxy
                         - mcp_proxy
                         - proxy

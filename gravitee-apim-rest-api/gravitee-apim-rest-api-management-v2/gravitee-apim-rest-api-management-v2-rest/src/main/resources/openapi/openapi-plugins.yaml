@@ -389,6 +389,7 @@ paths:
                           - HTTP_PROXY
                           - HTTP_MESSAGE
                           - NATIVE_KAFKA
+                          - A2A_PROXY
                           - MCP_PROXY
                           - LLM_PROXY
             tags:
@@ -587,6 +588,7 @@ components:
             description: API's type.
             example: MESSAGE
             enum:
+                - A2A_PROXY
                 - LLM_PROXY
                 - MCP_PROXY
                 - MESSAGE
