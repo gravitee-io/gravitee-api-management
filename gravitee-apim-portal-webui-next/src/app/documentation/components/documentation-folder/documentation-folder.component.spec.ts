@@ -106,7 +106,7 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should not display content', async () => {
-        await init({ content: '' });
+        await init({ content: '', queryParams: {} });
 
         const viewer = await harness.getGmdViewer();
         expect(viewer).toBeNull();
@@ -144,19 +144,13 @@ describe('DocumentationFolderComponent', () => {
       it('should select first page when no pageId provided', async () => {
         await init({ items: MOCK_ITEMS, queryParams: {}, content: MOCK_CONTENT });
 
-        expect(routerSpy).toHaveBeenCalledWith([], {
-          relativeTo: expect.anything(),
-          queryParams: { pageId: 'p1' },
-        });
+        expect(routerSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { pageId: 'p1' } }));
       });
 
-      it('should select page by pageId', async () => {
+      it('should not call router if pageId already specified', async () => {
         await init({ items: MOCK_ITEMS, queryParams: { pageId: 'p1' }, content: MOCK_CONTENT });
 
-        expect(routerSpy).toHaveBeenCalledWith([], {
-          relativeTo: expect.anything(),
-          queryParams: { pageId: 'p1' },
-        });
+        expect(routerSpy).not.toHaveBeenCalled();
       });
     });
   });
@@ -174,10 +168,7 @@ describe('DocumentationFolderComponent', () => {
 
       await tree!.clickItemByTitle('Page 1');
 
-      expect(routerSpy).toHaveBeenCalledWith([], {
-        relativeTo: expect.anything(),
-        queryParams: { pageId: 'p1' },
-      });
+      expect(routerSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { pageId: 'p1' } }));
     });
   });
 

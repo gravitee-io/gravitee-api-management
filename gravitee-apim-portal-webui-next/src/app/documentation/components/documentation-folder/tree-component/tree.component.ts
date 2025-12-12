@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, computed, effect, input, model, output, untracked } from '@angular/core';
+import { AfterViewInit, Component, computed, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../../../entities/portal-navigation/portal-navigation-item';
@@ -45,19 +45,15 @@ export class TreeComponent implements AfterViewInit {
     return items && Array.isArray(items) ? this.mapItemsToNodes(items) : [];
   });
 
-  selectedId = model<string | null>(null);
+  selectedId = input<string | null>(null);
   selectNode = output<string | null>();
-
-  constructor() {
-    effect(() => this.selectFirstPage());
-  }
 
   ngAfterViewInit() {
     this.scrollIntoView();
   }
 
   onNodeSelected(id: string) {
-    this.selectedId.set(id);
+    // this.selectedId.set(id);
     this.selectNode.emit(id);
   }
 
@@ -109,26 +105,6 @@ export class TreeComponent implements AfterViewInit {
         ...node,
         children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
       }));
-  }
-
-  private selectFirstPage() {
-    const tree = this.tree();
-    const firstPageId = untracked(this.selectedId) ?? this.findFirstPageId(tree);
-    if (firstPageId) {
-      this.onNodeSelected(firstPageId);
-    }
-  }
-
-  private findFirstPageId(nodes: SectionNode[]): string | null {
-    for (const node of nodes) {
-      if (node.type === 'PAGE') {
-        return node.id;
-      } else {
-        const id = this.findFirstPageId(node.children ?? []);
-        if (id) return id;
-      }
-    }
-    return null;
   }
 
   private scrollIntoView() {

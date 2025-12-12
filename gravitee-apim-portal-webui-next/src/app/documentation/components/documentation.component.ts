@@ -25,7 +25,7 @@ import { PortalNavigationItem } from '../../../entities/portal-navigation/portal
   standalone: true,
   template: `
     @if (isItemFolder()) {
-      <app-documentation-folder [navItem]="navItem()!" />
+      <app-documentation-folder [navId]="navItem().id" />
     }
   `,
   styles: `

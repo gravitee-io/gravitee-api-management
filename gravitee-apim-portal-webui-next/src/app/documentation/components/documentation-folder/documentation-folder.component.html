@@ -16,11 +16,12 @@
 
 -->
 <div class="documentation-folder__sidenav" appIsMobile="documentation-folder__sidenav__mobile">
-  @if (this.children() && this.children()!.length > 0) {
+  @let children = children$ | async;
+  @if (children && children!.length > 0) {
     <app-tree-component
       class="documentation-folder__sidenav__tree"
-      [items]="this.children()"
-      [selectedId]="this.pageId()"
+      [items]="children"
+      [selectedId]="pageId$ | async"
       (selectNode)="onSelect($event)" />
   } @else {
     <div class="empty-state" i18n="@@emptyItemsLabel">No items to show</div>
