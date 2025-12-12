@@ -455,7 +455,7 @@ class V2ToV4MigrationOperatorTest {
             // Check Endpoint Group
             var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertSoftly(softly -> {
                 softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
                 softly.assertThat(group.getName()).isEqualTo("default-group");
@@ -491,7 +491,7 @@ class V2ToV4MigrationOperatorTest {
             v2Endpoint2.setWeight(5);
             v2Endpoint2.setInherit(false);
             String configJsonForEndpoint =
-                "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}],\"proxy\":null}";
+                "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}]}";
             v2Endpoint2.setConfiguration(configJsonForEndpoint);
             // Setup EndpointGroup
             EndpointGroup v2Group = new EndpointGroup();
@@ -554,7 +554,7 @@ class V2ToV4MigrationOperatorTest {
 
             // Check Endpoint Group
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
                 .singleElement()
                 .satisfies(group -> {
@@ -694,7 +694,7 @@ class V2ToV4MigrationOperatorTest {
         v2Endpoint.setWeight(5);
         v2Endpoint.setInherit(false);
         v2Endpoint.setConfiguration(
-            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
+            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
         );
         // Setup EndpointGroup
         EndpointGroup v2Group = new EndpointGroup();
@@ -776,9 +776,6 @@ class V2ToV4MigrationOperatorTest {
               "type": "http",
               "inherit": true,
               "headers": [],
-              "proxy": null,
-              "http": null,
-              "ssl": null,
               "healthcheck": {
                 "enabled": false,
                 "inherit": false
@@ -837,10 +834,76 @@ class V2ToV4MigrationOperatorTest {
             softly.assertThat(endpoint.getType()).isEqualTo("http-proxy");
             softly.assertThat(endpoint.getName()).isEqualTo("endpoint-1");
             softly.assertThat(endpoint.getWeight()).isEqualTo(5);
-            softly
-                .assertThat(endpoint.getServices().getHealthCheck())
-                .extracting(Service::isOverrideConfiguration, Service::isEnabled, Service::getType, Service::getConfiguration)
-                .contains(true, false, "http-health-check", "{\"schedule\":null,\"failureThreshold\":2,\"successThreshold\":2}");
+            softly.assertThat(endpoint.getServices().getHealthCheck()).isNull();
+        });
+    }
+
+    @Test
+    void should_not_migrate_endpoint_hc_when_inherited() {
+        // Setup Endpoint
+        Endpoint v2Endpoint = new Endpoint();
+        v2Endpoint.setName("endpoint-1");
+        v2Endpoint.setInherit(false);
+        v2Endpoint.setConfiguration(
+            """
+            {
+              "name": "default",
+              "target": "http://test",
+              "weight": 1,
+              "backup": false,
+              "status": "UP",
+              "tenants": [],
+              "type": "http",
+              "inherit": true,
+              "headers": [],
+              "healthcheck": {
+                "schedule": "0 */1 * * * *",
+                "steps": [],
+                "enabled": true,
+                "inherit": true
+              }
+            }
+            """
+        );
+        // Setup EndpointGroup
+        EndpointGroup v2Group = new EndpointGroup();
+        v2Group.setName("default-group");
+        Set<Endpoint> endpoints = new HashSet<>();
+        endpoints.add(v2Endpoint);
+        v2Group.setEndpoints(endpoints);
+
+        // Setup Proxy
+        Proxy proxy = new Proxy();
+        Set<EndpointGroup> endpointGroups = new HashSet<>();
+        endpointGroups.add(v2Group);
+        proxy.setGroups(endpointGroups);
+
+        proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
+
+        // Setup Api V2
+        var apiDef = new io.gravitee.definition.model.Api();
+        apiDef.setId("test-api");
+        apiDef.setName("Test API");
+        apiDef.setVersion("1.0");
+        apiDef.setProxy(proxy);
+
+        var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+        // Act
+        var result = get(mapper.mapApi(api));
+
+        // Check Endpoint Group
+        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        assertSoftly(softly -> {
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(group.getName()).isEqualTo("default-group");
+            softly.assertThat(group.getType()).isEqualTo("http-proxy");
+        });
+
+        // Check Endpoint
+        var endpoint = group.getEndpoints().getFirst();
+        assertSoftly(softly -> {
+            softly.assertThat(endpoint.getServices().getHealthCheck()).isNull();
         });
     }
 

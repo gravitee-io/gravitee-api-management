@@ -32,6 +32,7 @@ import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
+import io.gravitee.definition.model.services.schedule.ScheduledService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
@@ -219,6 +220,7 @@ class ApiMigration {
         var migratedServices = Stream.of(endpointServices, endpointGroupServices)
             .filter(Objects::nonNull)
             .flatMap(s -> s.getAll().stream())
+            .filter(s -> !(s instanceof ScheduledService) || ((ScheduledService) s).getSchedule() != null)
             .flatMap(service -> Stream.ofNullable(apiServicesMigration.convert(service, TYPE_ENDPOINTGROUP, name)))
             .collect(MigrationResult.collectList());
 
@@ -249,14 +251,16 @@ class ApiMigration {
             JsonNode hcNode = jsonNode.path("healthcheck");
             if (!hcNode.isMissingNode() && !hcNode.isNull()) {
                 EndpointHealthCheckService epHealthCheckService = jsonMapper.treeToValue(hcNode, EndpointHealthCheckService.class);
-                var serviceMigrationResult = apiServicesMigration.convert(epHealthCheckService, TYPE_ENDPOINT, name);
-                if (serviceMigrationResult != null) {
-                    return migrationResult.foldLeft(serviceMigrationResult, (endpointSvc, serviceV4) -> {
-                        if (endpointSvc != null) {
-                            endpointSvc.setHealthCheck(serviceV4);
-                        }
-                        return endpointSvc;
-                    });
+                if (epHealthCheckService.getSchedule() != null && !epHealthCheckService.isInherit()) {
+                    var serviceMigrationResult = apiServicesMigration.convert(epHealthCheckService, TYPE_ENDPOINT, name);
+                    if (serviceMigrationResult != null) {
+                        return migrationResult.foldLeft(serviceMigrationResult, (endpointSvc, serviceV4) -> {
+                            if (endpointSvc != null) {
+                                endpointSvc.setHealthCheck(serviceV4);
+                            }
+                            return endpointSvc;
+                        });
+                    }
                 }
             }
         } catch (JsonProcessingException e) {
