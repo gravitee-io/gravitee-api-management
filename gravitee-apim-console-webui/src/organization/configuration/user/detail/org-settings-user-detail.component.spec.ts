@@ -436,7 +436,6 @@ describe('OrgSettingsUserDetailComponent', () => {
     const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
     const groupsTable = await groupsCard.getHarness(MatTableHarness);
 
-    // First row and delete column
     const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[5].getHarness(MatButtonHarness);
 
     await deleteUserGroupButton.click();
@@ -446,7 +445,6 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupA/members/${user.id}`);
     expect(req.request.method).toEqual('DELETE');
-    // No flush to stop test here
   });
 
   it('should display APIs user membership', async () => {
@@ -609,6 +607,33 @@ describe('OrgSettingsUserDetailComponent', () => {
         ],
       },
     ]);
+    req.flush([fakeGroupMembership({ id: 'userId', roles: [{ scope: 'GROUP', name: 'ADMIN' }] })]);
+
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+    expectApiSearchRequest();
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', name: 'Group A' }),
+      fakeGroup({ id: 'groupB', name: 'Group B', roles: { GROUP: 'ADMIN' } }),
+    ]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    const orgRolesReq = httpTestingController.match(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`);
+    if (orgRolesReq.length > 0) {
+      orgRolesReq[0].flush([]);
+      fixture.detectChanges();
+    }
+
+    fixture.detectChanges();
+
+    const groupsCardAfterAdd = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
+    const groupsTableAfterAdd = await groupsCardAfterAdd.getHarness(MatTableHarness);
+    const rows = await groupsTableAfterAdd.getRows();
+    expect(rows.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should open dialog to create a token', async () => {
