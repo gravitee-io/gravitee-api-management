@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
+import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('PortalNavigationItemsService', () => {
   let service: PortalNavigationItemsService;
@@ -27,7 +28,7 @@ describe('PortalNavigationItemsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [AppTestingModule],
       providers: [{ provide: ConfigService, useValue: { baseURL } }],
     });
 
@@ -109,5 +110,43 @@ describe('PortalNavigationItemsService', () => {
     );
 
     req.flush('Server error', { status: 500, statusText: 'Server Error' });
+  });
+
+  it('should get navigation item by id', done => {
+    const mockItem: PortalNavigationItem = {
+      id: '1',
+      organizationId: 'org1',
+      environmentId: 'env1',
+      title: 'Home',
+      type: 'PAGE',
+      area: 'TOP_NAVBAR',
+      order: 0,
+      portalPageContentId: 'content1',
+    };
+
+    service.getNavigationItem('1').subscribe(item => {
+      expect(item).toEqual(mockItem);
+      done();
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/portal-navigation-items/1`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockItem);
+  });
+
+  it('should get navigation item content by id', done => {
+    const mockContent = {
+      type: 'GRAVITEE_MARKDOWN',
+      content: '# Welcome to the portal\nThis is the home page content.',
+    };
+
+    service.getNavigationItemContent('1').subscribe(content => {
+      expect(content).toEqual(mockContent);
+      done();
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/portal-navigation-items/1/content`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockContent);
   });
 });
