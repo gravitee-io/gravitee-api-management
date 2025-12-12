@@ -156,7 +156,6 @@ import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
@@ -196,7 +195,6 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -1015,15 +1013,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase(
-        PortalNavigationItemCrudService portalNavigationItemCrudService,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentCrudService portalPageContentCrudService
-    ) {
-        return new DeletePortalNavigationItemUseCase(
-            portalNavigationItemCrudService,
-            portalPageContentCrudService,
-            portalNavigationItemsQueryService
-        );
+    public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
+        return mock(DeletePortalNavigationItemUseCase.class);
     }
 }
