@@ -234,4 +234,59 @@ public class ApiMetadataQueryServiceImplTest {
             new TechnicalException(message)
         );
     }
+
+    @Nested
+    class FindApisMetadata {
+
+        @Test
+        @SneakyThrows
+        void should_return_metadata_for_multiple_apis() {
+            when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(ENV_ID))).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .key("env-key")
+                        .value("env-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build()
+                )
+            );
+
+            when(metadataRepository.findByReferenceType(MetadataReferenceType.API)).thenReturn(
+                List.of(
+                    Metadata.builder()
+                        .referenceId("api-1")
+                        .key("api-key")
+                        .value("api1-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build(),
+                    Metadata.builder()
+                        .referenceId("api-2")
+                        .key("api-key")
+                        .value("api2-value")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                        .build()
+                )
+            );
+
+            var result = service.findApisMetadata(ENV_ID, java.util.Set.of("api-1", "api-2"));
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get("api-1")).hasSize(2).containsKeys("env-key", "api-key");
+            assertThat(result.get("api-1").get("env-key").getDefaultValue()).isEqualTo("env-value");
+            assertThat(result.get("api-1").get("api-key").getValue()).isEqualTo("api1-value");
+            assertThat(result.get("api-2").get("api-key").getValue()).isEqualTo("api2-value");
+        }
+
+        @Test
+        void should_return_empty_map_when_api_ids_is_empty() {
+            var result = service.findApisMetadata(ENV_ID, java.util.Set.of());
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_map_when_api_ids_is_null() {
+            var result = service.findApisMetadata(ENV_ID, null);
+            assertThat(result).isEmpty();
+        }
+    }
 }
