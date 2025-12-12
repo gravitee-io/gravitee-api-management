@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.crud_service;
 
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 
 public interface PortalPageContentCrudService {
     PortalPageContent create(PortalPageContent content);
@@ -23,4 +24,6 @@ public interface PortalPageContentCrudService {
     PortalPageContent createDefault(String organizationId, String environmentId);
 
     PortalPageContent update(PortalPageContent content);
+
+    void delete(PortalPageContentId id);
 }

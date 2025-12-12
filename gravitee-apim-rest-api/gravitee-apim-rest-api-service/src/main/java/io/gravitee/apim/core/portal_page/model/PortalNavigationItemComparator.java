@@ -25,4 +25,8 @@ public class PortalNavigationItemComparator {
             .thenComparing(PortalNavigationItem::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Objects::hashCode);
     }
+
+    public static Comparator<PortalNavigationItem> byOrder() {
+        return Comparator.comparing(PortalNavigationItem::getOrder);
+    }
 }

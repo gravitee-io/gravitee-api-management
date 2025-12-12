@@ -122,6 +122,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
@@ -155,7 +156,6 @@ import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
@@ -195,7 +195,6 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -1011,5 +1010,10 @@ public class ResourceContextConfiguration {
     @Bean
     public BucketNamesPostProcessor bucketNamesPostProcessor() {
         return mock(BucketNamesPostProcessor.class);
+    }
+
+    @Bean
+    public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
+        return mock(DeletePortalNavigationItemUseCase.class);
     }
 }

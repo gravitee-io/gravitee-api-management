@@ -81,4 +81,29 @@ public class PortalNavigationItemDomainService {
             ? queryService.findByParentIdAndEnvironmentId(environmentId, parentId)
             : queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, area);
     }
+
+    public void delete(PortalNavigationItem item) {
+        // Determine if item is a page and collect content id
+        final var contentId = item instanceof io.gravitee.apim.core.portal_page.model.PortalNavigationPage
+            ? ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) item).getPortalPageContentId()
+            : null;
+
+        // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
+        var parentId = item.getParentId();
+        var deletedOrder = item.getOrder();
+        var siblings = retrieveSiblingItems(parentId, item.getEnvironmentId(), item.getArea());
+        var siblingsToUpdate = siblings
+            .stream()
+            .filter(sibling -> !sibling.getId().equals(item.getId()))
+            .filter(sibling -> sibling.getOrder() > deletedOrder)
+            .toList();
+        siblingsToUpdate.forEach(sibling -> sibling.setOrder(sibling.getOrder() - 1));
+
+        // Perform deletions/updates for the single item
+        if (contentId != null) {
+            pageContentCrudService.delete(contentId);
+        }
+        crudService.delete(item.getId());
+        siblingsToUpdate.forEach(crudService::update);
+    }
 }

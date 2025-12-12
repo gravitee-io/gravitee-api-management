@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
@@ -29,6 +32,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -40,6 +44,12 @@ public class PortalNavigationItemResource extends AbstractResource {
 
     @Inject
     private UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase;
+
+    @Inject
+    private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
+
+    @Inject
+    private PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     private static final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -61,5 +71,21 @@ public class PortalNavigationItemResource extends AbstractResource {
         var output = updatePortalNavigationItemUseCase.execute(input);
 
         return Response.ok(mapper.map(output.updatedItem())).build();
+    }
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    public Response deletePortalNavigationItem(@PathParam("navId") String navigationItemId) {
+        var navId = PortalNavigationItemId.of(navigationItemId);
+
+        var input = new DeletePortalNavigationItemUseCase.Input(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            navId
+        );
+
+        deletePortalNavigationItemUseCase.execute(input);
+
+        return Response.noContent().build();
     }
 }

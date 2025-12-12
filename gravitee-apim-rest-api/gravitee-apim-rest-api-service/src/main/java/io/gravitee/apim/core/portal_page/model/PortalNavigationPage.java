@@ -18,8 +18,10 @@ package io.gravitee.apim.core.portal_page.model;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
+@SuperBuilder(toBuilder = true)
 public final class PortalNavigationPage extends PortalNavigationItem {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;

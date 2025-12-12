@@ -507,4 +507,9 @@ public class InMemoryConfiguration {
     public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
         return new PortalNavigationItemsQueryServiceInMemory();
     }
+
+    @Bean
+    public PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService() {
+        return new PortalNavigationItemsCrudServiceInMemory();
+    }
 }

@@ -68,4 +68,9 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
         }
         return null;
     }
+
+    @Override
+    public void delete(PortalPageContentId id) {
+        storage.removeIf(content -> content.getId().id().equals(id.id()));
+    }
 }
