@@ -86,8 +86,7 @@ public class ScoreApiRequestUseCase {
             apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class))
         )
             .map(this::assetToScore)
-            // export service throw error in some case (like if API isn't V4)
-            .onErrorResumeNext(th -> Flowable.empty());
+            .doOnError(throwable -> log.error("An error occurs while exporting API [{}]", input.apiId, throwable));
 
         return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
             .subscribeOn(Schedulers.io())
