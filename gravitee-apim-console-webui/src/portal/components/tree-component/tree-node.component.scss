@@ -103,6 +103,27 @@ $indent-step: 26px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  &__menu-item-delete {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+
+    :hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, lighter);
+    }
+  }
+
+  &__menu-item-delete--disabled {
+    // muted/lighter appearance
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
+    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
+    opacity: 0.8;
+
+    // remove hover effect for disabled state
+    :hover {
+      background-color: transparent;
+    }
+  }
 }
 
 mat-icon {

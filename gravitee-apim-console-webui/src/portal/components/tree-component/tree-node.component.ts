@@ -41,6 +41,10 @@ export class TreeNodeComponent {
   nodeSelected = output<SectionNode>();
   nodeMenuAction = output<NodeMenuActionEvent>();
 
+  protected hasChildren = computed(() => {
+    return this.node().children !== undefined && this.node().children.length > 0;
+  });
+
   triggerEdit() {
     const current = this.node();
     if (!current) return;
@@ -76,5 +80,9 @@ export class TreeNodeComponent {
 
   isUnpublished(): boolean {
     return this.node().data?.published === false;
+  }
+
+  triggerDelete(node: SectionNode): void {
+    this.nodeMenuAction.emit({ action: 'delete', itemType: node.type, node });
   }
 }

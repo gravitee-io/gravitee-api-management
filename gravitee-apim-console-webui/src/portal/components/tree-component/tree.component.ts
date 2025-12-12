@@ -28,7 +28,7 @@ export interface SectionNode {
   children?: SectionNode[];
 }
 
-type NodeMenuActionType = 'create' | 'edit';
+type NodeMenuActionType = 'create' | 'edit' | 'delete';
 
 export interface NodeMenuActionEvent {
   node: SectionNode;

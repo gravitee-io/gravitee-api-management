@@ -22,7 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -58,7 +58,7 @@ describe('PortalNavigationItemsComponent', () => {
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-documentation-c', 'environment-documentation-u'],
+          useValue: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
         },
       ],
     }).compileComponents();
@@ -528,6 +528,87 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: fakeResponse.items }));
+    });
+  });
+
+  describe('deleting a section from tree node "More actions" menu', () => {
+    it('should call DELETE and refresh list when deleting a non-selected item', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      await harness.deleteNodeById('nav-item-2');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-2`,
+      });
+      deleteReq.flush({});
+
+      // After deletion, component refreshes the list — satisfy the subsequent GET
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [fakeResponse.items[0]] }));
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Nav Item 1']);
+    });
+
+    it('should clear selection when deleted item is selected', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' })],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      await harness.deleteNodeById('nav-item-1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-1`,
+      });
+      deleteReq.flush({});
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+
+      expect(routerSpy).toHaveBeenCalled();
+    });
+
+    it('should show error handling when delete API fails', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' })],
+      });
+      await expectGetNavigationItems(fakeResponse);
+
+      await harness.deleteNodeById('nav-item-2');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
+
+      const deleteReq = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-2`,
+      });
+      deleteReq.flush('error', { status: 500, statusText: 'Server Error' });
+
+      // No further GET expected; afterEach will verify outstanding requests are handled
     });
   });
 
