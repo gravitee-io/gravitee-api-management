@@ -95,6 +95,7 @@
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <commons-pool2.version>2.12.1</commons-pool2.version>
         <commons-text.version>1.13.0</commons-text.version>
+        <commons-validator.version>1.10.0</commons-validator.version>
         <dozer.version>7.0.0</dozer.version>
         <flexmark.version>0.64.8</flexmark.version>
         <freemarker.version>2.3.34</freemarker.version>
@@ -465,6 +466,7 @@
                 <module>gravitee-apim-parent</module>
                 <module>gravitee-apim-plugin</module>
                 <module>gravitee-apim-repository</module>
+                <module>gravitee-apim-reporters</module>
                 <module>gravitee-apim-rest-api</module>
             </modules>
         </profile>
@@ -541,6 +543,18 @@
             </activation>
             <modules>
                 <module>gravitee-apim-repository</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>reporter-modules</id>
+            <activation>
+                <property>
+                    <name>reporter-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-reporters</module>
             </modules>
         </profile>
         <profile>

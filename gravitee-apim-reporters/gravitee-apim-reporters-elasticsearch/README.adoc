@@ -1,0 +1,64 @@
+= Gravitee Elasticsearch Reporter
+
+ifdef::env-github[]
+image:https://img.shields.io/static/v1?label=Available%20at&message=Gravitee.io&color=1EC9D2["Gravitee.io", link="https://download.gravitee.io/#/gravitee-reporter-elasticsearch/"]
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["License", link="https://github.com/gravitee-io/gravitee-reporter-elasticsearch/blob/master/LICENSE.txt"]
+image:https://img.shields.io/badge/semantic--release-conventional%20commits-e10079?logo=semantic-release["Releases", link="https://github.com/gravitee-io/gravitee-reporter-elasticsearch/releases"]
+image:https://circleci.com/gh/gravitee-io/gravitee-reporter-elasticsearch.svg?style=svg["CircleCI", link="https://circleci.com/gh/gravitee-io/gravitee-reporter-elasticsearch"]
+image:https://f.hubspotusercontent40.net/hubfs/7600448/gravitee-github-button.jpg["Join the community forum", link="https://community.gravitee.io?utm_source=readme", height=20]
+endif::[]
+
+
+== Presentation
+
+This reporter writes access logs to an Elasticsearch instance
+
+
+== Compatibility with APIM
+
+|===
+|Plugin version    | APIM version       | ES version    | JDK version
+
+| 7.x              | 4.10.x              | 7.x and later | 17
+
+| 6.x              | 4.8.x              | 7.x and later | 17
+| 5.x              | 4.0.x              | 7.x and later | 17
+| 4.x              | 3.20.x to 4.0.x    | 5.x and later | 11
+| 3.x              | 3.18.x to 3.19.x   | 5.x to 7.x    | 8
+|===
+
+Do not use 6.3.0 as it contains a breaking change, 6.3.1 is compatible with APIM 4.8x and above.
+
+== Configuration
+
+Please visit our https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories#api-gateway-configuration[documentation website] for further information.
+
+=== ILM
+If you use ElasticSearch in version 7 minimum, you can configure your reporter to use ILM (Index Lifecyle Management) policies.
+
+First, you need to define ILM policies in your ES instance. You may find the documentation https://www.elastic.co/guide/en/elasticsearch/reference/current/set-up-lifecycle-policy.html#ilm-create-policy[here]
+
+Then you can activate the ILM feature by adding these settings in the gravitee.yml file of APIM Gateway:
+
+```yaml
+  elasticsearch:
+    enabled: true # Is the reporter enabled or not (default to true)
+    endpoints:
+      - http://${ds.elastic.host}:${ds.elastic.port}
+    lifecycle:
+      policies:
+        health: hot_delete_health # ILM policy for the gravitee-health-* indexes
+        monitor: hot_delete_monitor # ILM policy for the gravitee-monitor-* indexes
+        request: hot_delete_request # ILM policy for the gravitee-request-* indexes
+        log: hot_delete_log # ILM policy for the gravitee-log-* indexes
+    index_mode: ilm         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+```
+
+== Testing
+
+By default, unit tests are run with a TestContainer version of ElasticSearch 8.5.2, but sometimes it can be useful to run them against other version of ElasticSearch.
+To do so you can use the following commands:
+
+* ES 7.x: `mvn clean test -Delasticsearch.version=7.17.7`
+* ES 8.x: `mvn clean test -Delasticsearch.version=8.5.2` (Default)
+

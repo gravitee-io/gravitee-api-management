@@ -46,6 +46,7 @@ import {
   TestIntegrationJob,
   TestPluginJob,
   TestRepositoryJob,
+  TestReportersJob,
   TestRestApiJob,
   TriggerSaasDockerImagesJob,
   ValidateJob,
@@ -284,6 +285,30 @@ export class PullRequestsWorkflow {
           }),
         );
         requires.push('Test repository');
+      }
+
+      if (!filterJobs || shouldTestReporters(environment.changedFiles)) {
+        const testReportersJob = TestReportersJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(testReportersJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testReportersJob, {
+            name: 'Test reporters',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-reporters',
+            context: config.jobContext,
+            requires: ['Test reporters'],
+            working_directory: 'gravitee-apim-reporters',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test reporters');
       }
     }
 
@@ -568,12 +593,12 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(publishOnArtifactoryJob, {
         name: 'Publish on artifactory',
         context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
+        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test reporters', 'Test rest-api'],
       }),
       new workflow.WorkflowJob(publishOnNexusJob, {
         name: 'Publish on nexus',
         context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
+        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test reporters', 'Test rest-api'],
       }),
       new workflow.WorkflowJob(deployOnAzureJob, {
         name: 'Deploy on Azure cluster',
@@ -583,6 +608,7 @@ export class PullRequestsWorkflow {
           'Test gateway',
           'Test plugins',
           'Test repository',
+          'Test reporters',
           'Test rest-api',
           'Build APIM Management API docker image',
           'Build APIM Gateway docker image',
@@ -631,6 +657,7 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
     'gravitee-apim-parent',
     'gravitee-apim-plugin',
     'gravitee-apim-repository',
+    'gravitee-apim-reporters',
     'gravitee-apim-rest-api',
   ];
   return (
@@ -664,6 +691,7 @@ function shouldTestIntegrationTests(changedFiles: string[]): boolean {
     'gravitee-apim-integration-tests',
     'gravitee-apim-parent',
     'gravitee-apim-plugin',
+    'gravitee-apim-reporters',
   ];
   return (
     shouldTestAllBackend(changedFiles) ||
@@ -681,6 +709,14 @@ function shouldTestGateway(changedFiles: string[]): boolean {
 
 function shouldTestRepository(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestReporters(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-reporters'];
   return (
     shouldTestAllBackend(changedFiles) ||
     changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))

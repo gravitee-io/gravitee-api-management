@@ -1,0 +1,5 @@
+{
+  "date": 1692357451748,
+  "clientRequest": { "uri": "/test" },
+  "clientResponse": { "status": 200 }
+}

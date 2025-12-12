@@ -963,9 +963,9 @@
 
         <!-- Reporters -->
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-elasticsearch</artifactId>
-            <version>${gravitee-reporter-elasticsearch.version}</version>
+            <groupId>io.gravitee.apim.reporters</groupId>
+            <artifactId>gravitee-apim-reporters-elasticsearch</artifactId>
+            <version>${project.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -976,9 +976,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-file</artifactId>
-            <version>${gravitee-reporter-file.version}</version>
+            <groupId>io.gravitee.apim.reporters</groupId>
+            <artifactId>gravitee-apim-reporters-file</artifactId>
+            <version>${project.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -2062,20 +2062,6 @@
                     </exclusions>
                 </dependency>
 
-                <!-- Reporters -->
-                <dependency>
-                    <groupId>com.graviteesource.reporter</groupId>
-                    <artifactId>gravitee-reporter-tcp</artifactId>
-                    <version>${gravitee-reporter-tcp.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
                 <!-- Resources -->
                 <dependency>
                     <groupId>io.gravitee.resource</groupId>
