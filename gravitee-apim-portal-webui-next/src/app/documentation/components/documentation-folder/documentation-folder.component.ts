@@ -16,7 +16,7 @@
 import { Component, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable, Subject, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -84,6 +84,9 @@ export class DocumentationFolderComponent {
       return of('');
     }
 
-    return this.itemsService.getNavigationItemContent(pageId).pipe(map(content => content));
+    return this.itemsService.getNavigationItemContent(pageId).pipe(
+      map(({ content }) => content),
+      catchError(() => of('')),
+    );
   }
 }

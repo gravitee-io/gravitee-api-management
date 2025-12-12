@@ -84,7 +84,9 @@ describe('DocumentationFolderComponent', () => {
     routerSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
 
     jest.spyOn(navigationService, 'getNavigationItems').mockReturnValue(of(params.items as unknown as PortalNavigationItem[]));
-    jest.spyOn(navigationService, 'getNavigationItemContent').mockReturnValueOnce(of(params.content!));
+    jest
+      .spyOn(navigationService, 'getNavigationItemContent')
+      .mockReturnValueOnce(of({ content: params.content!, type: 'GRAVITEE_MARKDOWN' }));
 
     fixture = TestBed.createComponent(DocumentationFolderComponent);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationFolderComponentHarness);
