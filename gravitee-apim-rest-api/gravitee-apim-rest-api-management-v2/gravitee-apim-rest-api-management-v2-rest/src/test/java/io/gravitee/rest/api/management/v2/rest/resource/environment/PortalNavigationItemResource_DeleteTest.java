@@ -20,13 +20,14 @@ import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.PortalNavigationItemFixtures;
-import inmemory.PortalNavigationItemsCrudServiceInMemory;
-import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemHasChildrenException;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
@@ -51,10 +53,7 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
     private EnvironmentService environmentService;
 
     @Inject
-    private PortalNavigationItemsQueryService portalNavigationItemsQueryService;
-
-    @Inject
-    private PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService;
+    private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     private WebTarget target;
 
@@ -84,58 +83,79 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
             )
         ).thenReturn(true);
 
-        // Seed storage with sample items and adjust env/org to current test values
-        var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(i -> {
-            i.setEnvironmentId(ENVIRONMENT);
-            i.setOrganizationId(ORGANIZATION);
-        });
-        ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(items);
-        portalNavigationItemCrudService.initWith(items);
+        // In this test we mock the Delete use case; no need to seed in-memory CRUD/query services
     }
 
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        Mockito.reset(deletePortalNavigationItemUseCase);
     }
 
     @Test
     void should_delete_item_and_return_204() {
         String navId = PAGE11_ID;
 
+        when(deletePortalNavigationItemUseCase.execute(any())).thenReturn(new DeletePortalNavigationItemUseCase.Output());
+
         Response response = target.path(navId).request().delete();
 
         assertThat(response).hasStatus(NO_CONTENT_204);
 
-        var deleted = portalNavigationItemCrudService
-            .storage()
-            .stream()
-            .filter(item -> item.getId().toString().equals(navId))
-            .findFirst();
-        org.assertj.core.api.Assertions.assertThat(deleted).isEmpty();
+        verify(deletePortalNavigationItemUseCase).execute(
+            org.mockito.ArgumentMatchers.argThat(
+                input ->
+                    input != null &&
+                    input.environmentId().equals(ENVIRONMENT) &&
+                    input.navigationItemId() != null &&
+                    input.navigationItemId().toString().equals(navId)
+            )
+        );
     }
 
     @Test
     void should_return_404_when_item_not_found() {
         String unknownId = PortalNavigationItemId.random().toString();
 
+        when(deletePortalNavigationItemUseCase.execute(any())).thenThrow(new PortalNavigationItemNotFoundException(unknownId));
+
         Response response = target.path(unknownId).request().delete();
 
         assertThat(response).hasStatus(NOT_FOUND_404);
+
+        verify(deletePortalNavigationItemUseCase).execute(
+            org.mockito.ArgumentMatchers.argThat(
+                input ->
+                    input != null &&
+                    input.environmentId().equals(ENVIRONMENT) &&
+                    input.navigationItemId() != null &&
+                    input.navigationItemId().toString().equals(unknownId)
+            )
+        );
     }
 
     @Test
     void should_return_400_when_deleting_item_with_children() {
         String navId = fixtures.core.model.PortalNavigationItemFixtures.APIS_ID; // fixture parent with children
 
-        var children = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
-            ENVIRONMENT,
-            io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(navId)
+        when(deletePortalNavigationItemUseCase.execute(any())).thenThrow(
+            PortalNavigationItemHasChildrenException.forId(
+                io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(navId).toString()
+            )
         );
-        org.assertj.core.api.Assertions.assertThat(children).isNotEmpty();
 
         Response response = target.path(navId).request().delete();
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
+
+        verify(deletePortalNavigationItemUseCase).execute(
+            org.mockito.ArgumentMatchers.argThat(
+                input ->
+                    input != null &&
+                    input.environmentId().equals(ENVIRONMENT) &&
+                    input.navigationItemId() != null &&
+                    input.navigationItemId().toString().equals(navId)
+            )
+        );
     }
 }
