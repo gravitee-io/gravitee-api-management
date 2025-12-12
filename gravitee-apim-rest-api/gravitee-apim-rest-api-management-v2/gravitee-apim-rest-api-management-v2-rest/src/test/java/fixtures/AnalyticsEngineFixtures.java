@@ -15,17 +15,7 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.*;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +52,7 @@ public class AnalyticsEngineFixtures {
 
         return new TimeSeriesRequest()
             .timeRange(timeRange())
-            .interval(3600000L)
+            .interval(new CustomInterval(3600000L))
             .filters(Arrays.asList(filters))
             .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
             .metrics(List.of(metric));
