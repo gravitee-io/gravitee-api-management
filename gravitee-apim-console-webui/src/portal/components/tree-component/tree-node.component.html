@@ -97,6 +97,7 @@
       [class.tree__menu-item-delete]="!hasChildren()"
       [class.tree__menu-item-delete--disabled]="hasChildren()"
       (click)="triggerDelete(node())"
+      data-testid="delete-node-button"
     >
       <mat-icon [class.tree__menu-item-delete]="!hasChildren()" [class.tree__menu-item-delete--disabled]="hasChildren()">delete</mat-icon>
       Delete

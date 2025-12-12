@@ -58,7 +58,7 @@ describe('PortalNavigationItemsComponent', () => {
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-documentation-c', 'environment-documentation-u'],
+          useValue: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
         },
       ],
     }).compileComponents();
@@ -543,10 +543,7 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetNavigationItems(fakeResponse);
       expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
 
-      const component = fixture.componentInstance;
-      const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[1] } as any;
-
-      component.onNodeMenuAction({ action: 'delete', itemType: 'FOLDER', node });
+      await harness.deleteNodeById('nav-item-2');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -574,10 +571,7 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetNavigationItems(fakeResponse);
       expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
 
-      const component = fixture.componentInstance;
-      const node = { id: 'nav-item-1', label: 'Nav Item 1', type: 'PAGE', data: fakeResponse.items[0] } as any;
-
-      component.onNodeMenuAction({ action: 'delete', itemType: 'PAGE', node });
+      await harness.deleteNodeById('nav-item-1');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -601,10 +595,7 @@ describe('PortalNavigationItemsComponent', () => {
       });
       await expectGetNavigationItems(fakeResponse);
 
-      const component = fixture.componentInstance;
-      const node = { id: 'nav-item-2', label: 'Nav Item 2', type: 'FOLDER', data: fakeResponse.items[0] } as any;
-
-      component.onNodeMenuAction({ action: 'delete', itemType: 'FOLDER', node });
+      await harness.deleteNodeById('nav-item-2');
       fixture.detectChanges();
       await fixture.whenStable();
 
