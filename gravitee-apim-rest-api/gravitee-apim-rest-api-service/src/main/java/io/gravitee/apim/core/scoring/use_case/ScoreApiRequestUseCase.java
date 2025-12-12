@@ -84,10 +84,7 @@ public class ScoreApiRequestUseCase {
 
         var export$ = Flowable.fromCallable(() ->
             apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class))
-        )
-            .map(this::assetToScore)
-            // export service throw error in some case (like if API isn't V4)
-            .onErrorResumeNext(th -> Flowable.empty());
+        ).map(this::assetToScore);
 
         return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
             .subscribeOn(Schedulers.io())
