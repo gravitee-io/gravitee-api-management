@@ -34,28 +34,18 @@ import { Constants } from '../../../entities/Constants';
 
 const TYPES_INFOS = {
   SIMPLE: {
-    title: 'Simple',
-    subtitle: 'A hands-free application. Using this type, you will be able to define the client_id by your own',
     icon: 'gio:hand',
   },
   BROWSER: {
-    title: 'SPA',
-    subtitle: 'Angular, React, Ember, ...',
     icon: 'gio:laptop',
   },
   WEB: {
-    title: 'Web',
-    subtitle: 'Java, .Net, ...',
     icon: 'gio:language',
   },
   NATIVE: {
-    title: 'Native',
-    subtitle: 'iOS, Android, ...',
     icon: 'gio:tablet-device',
   },
   BACKEND_TO_BACKEND: {
-    title: 'Backend to backend',
-    subtitle: 'Machine to machine',
     icon: 'gio:share-2',
   },
 };
@@ -95,8 +85,8 @@ export class ApplicationCreationComponent implements OnInit {
         return {
           ...type,
           id: type.id.toUpperCase(),
-          title: typeInfo.title,
-          subtitle: typeInfo.subtitle,
+          title: type.name,
+          subtitle: type.description,
           icon: typeInfo.icon,
         };
       }),
