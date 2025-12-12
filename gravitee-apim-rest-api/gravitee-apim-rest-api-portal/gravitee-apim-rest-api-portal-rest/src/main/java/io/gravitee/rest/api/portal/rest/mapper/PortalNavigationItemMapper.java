@@ -21,11 +21,14 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -52,6 +55,9 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder map(PortalNavigationFolder folder);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationLink map(PortalNavigationLink link);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
+
+    @Mapping(source = "type", target = "type")
+    io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent content);
 
     default String map(@Nullable PortalNavigationItemId portalNavigationItemId) {
         if (portalNavigationItemId == null) {
