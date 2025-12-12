@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, input } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { map, Observable, Subject, switchMap, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
@@ -35,18 +36,17 @@ import { PortalNavigationItemsService } from '../../../../services/portal-naviga
 })
 export class DocumentationFolderComponent {
   navItem = input<PortalNavigationItem | null>(null);
-  children = signal<PortalNavigationItem[] | null>(null);
-  pageId = toSignal<string>(this.activatedRoute.queryParams.pipe(map(params => params['pageId'])), { initialValue: null });
-  selectedPageContent = signal<string>('');
+  children = toSignal(toObservable(this.navItem).pipe(switchMap(this.loadChildren.bind(this))), { initialValue: null });
+
+  pageIdEmitter$ = new Subject<string>();
+  pageId = toSignal(this.pageIdEmitter$, { initialValue: null });
+  selectedPageContent = toSignal(this.pageIdEmitter$.pipe(switchMap(this.loadPageContent.bind(this))), { initialValue: '' });
 
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly itemsService: PortalNavigationItemsService,
-  ) {
-    effect(() => this.loadChildren());
-    effect(() => this.loadPageContent());
-  }
+  ) {}
 
   onSelect(selectedPageId: string | null) {
     if (selectedPageId) {
@@ -54,40 +54,36 @@ export class DocumentationFolderComponent {
         relativeTo: this.activatedRoute,
         queryParams: { pageId: selectedPageId },
       });
+      this.pageIdEmitter$.next(selectedPageId);
     }
   }
 
-  private loadChildren() {
-    this.children.set(null);
-
-    const navItem = this.navItem();
+  private loadChildren(navItem: PortalNavigationItem | null) {
     if (!navItem) {
-      // nothing to do
-      return;
+      return of(null);
     }
 
-    this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id).subscribe(data => this.children.set(data));
+    return this.itemsService
+      .getNavigationItems('TOP_NAVBAR', true, navItem.id)
+      .pipe(tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])));
   }
 
-  private loadPageContent() {
+  private loadPageContent(pageId: string | null): Observable<string> {
     const children = this.children();
     if (!children) {
-      this.selectedPageContent.set('');
-      return;
+      return of('');
     }
 
-    const pageId = this.pageId();
     if (!pageId) {
-      // nothing to do
-      return;
+      return of('');
     }
 
     const pageExistsInChildren = children.find(item => item.id === pageId);
     if (!pageExistsInChildren) {
       setTimeout(() => this.router.navigate(['/404']));
-      return;
+      return of('');
     }
 
-    this.itemsService.getNavigationItemContent(pageId).subscribe(content => this.selectedPageContent.set(content));
+    return this.itemsService.getNavigationItemContent(pageId).pipe(map(content => content));
   }
 }

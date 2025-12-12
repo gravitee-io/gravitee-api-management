@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, computed, effect, input, model, output } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, input, model, output, untracked } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../../../entities/portal-navigation/portal-navigation-item';
@@ -112,7 +112,8 @@ export class TreeComponent implements AfterViewInit {
   }
 
   private selectFirstPage() {
-    const firstPageId = this.selectedId() ?? this.findFirstPageId(this.tree());
+    const tree = this.tree();
+    const firstPageId = untracked(this.selectedId) ?? this.findFirstPageId(tree);
     if (firstPageId) {
       this.onNodeSelected(firstPageId);
     }

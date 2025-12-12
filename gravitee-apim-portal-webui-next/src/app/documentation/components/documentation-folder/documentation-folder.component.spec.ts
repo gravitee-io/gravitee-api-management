@@ -151,11 +151,11 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should select page by pageId', async () => {
-        await init({ items: MOCK_ITEMS, queryParams: { pageId: 'p3' }, content: MOCK_CONTENT });
+        await init({ items: MOCK_ITEMS, queryParams: { pageId: 'p1' }, content: MOCK_CONTENT });
 
         expect(routerSpy).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
-          queryParams: { pageId: 'p3' },
+          queryParams: { pageId: 'p1' },
         });
       });
     });
