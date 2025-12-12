@@ -4593,6 +4593,7 @@ components:
                 - $ref: "#/components/schemas/SubscriptionListener"
                 - $ref: "#/components/schemas/TcpListener"
                 - $ref: "#/components/schemas/KafkaListener"
+                - $ref: "#/components/schemas/MqttListener"
             discriminator:
                 propertyName: type
                 mapping:
@@ -4600,6 +4601,7 @@ components:
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
                     KAFKA: "#/components/schemas/KafkaListener"
+                    MQTT: "#/components/schemas/MqttListener"
         BaseListener:
             type: object
             required:
@@ -4623,6 +4625,7 @@ components:
                     TCP: "#/components/schemas/TcpListener"
                     SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
                     KAFKA: "#/components/schemas/KafkaListener"
+                    MQTT: "#/components/schemas/MqttListener"
         ListenerType:
             type: string
             description: Listener type.
@@ -5925,6 +5928,24 @@ components:
                       - "hosts"
         KafkaListener:
             title: "KafkaListener"
+            required:
+                - type
+            allOf:
+                - $ref: "#/components/schemas/BaseListener"
+                - type: object
+                  properties:
+                      host:
+                          description: A hostname for which the API will match against SNI.
+                          type: string
+                      port:
+                          type: integer
+                          minimum: 0
+                          description: The port of the listener
+                          example: 8080
+                  required:
+                      - "host"
+        MqttListener:
+            title: "MqttListener"
             required:
                 - type
             allOf:

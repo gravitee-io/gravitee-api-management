@@ -517,7 +517,7 @@ components:
             maxLength: 64
           uniqueItems: true
           default: [ ]
-          examples: 
+          examples:
             - ["example"]
         metadata:
           type: array
@@ -749,7 +749,7 @@ components:
           items:
             type: string
           type: array
-          examples: 
+          examples:
             - [ "https://myapp.example.com/oauth/callback" ]
           default: []
         additionalClientMetadata:
@@ -1129,6 +1129,7 @@ components:
                - ["webhook"]
                - ["http-proxy"]
                - ["native-kafka"]
+               - ["native-mqtt"]
                - ["http-post"]
                - ["agent-to-agent"]
                - ["tcp-proxy"]
@@ -1249,7 +1250,7 @@ components:
           type: object
           description: JSON Configuration that replaces the shared configuration defined at the group level.
         services:
-          $ref: "#/components/schemas/EndpointServices" 
+          $ref: "#/components/schemas/EndpointServices"
         secondary:
           type: boolean
           description: Define this endpoint as fallback endpoint in case other endpoints are no longer responding.
@@ -1469,6 +1470,7 @@ components:
         - $ref: "#/components/schemas/SubscriptionListener"
         - $ref: "#/components/schemas/TcpListener"
         - $ref: "#/components/schemas/KafkaListener"
+        - $ref: "#/components/schemas/MqttListener"
       discriminator:
         propertyName: type
         mapping:
@@ -1476,6 +1478,7 @@ components:
           TCP: "#/components/schemas/TcpListener"
           SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
           KAFKA: "#/components/schemas/KafkaListener"
+          MQTT: "#/components/schemas/MqttListener"
     BaseListener:
       description: Base listener
       type: object
@@ -1502,6 +1505,7 @@ components:
           TCP: "#/components/schemas/TcpListener"
           SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
           KAFKA: "#/components/schemas/KafkaListener"
+          MQTT: "#/components/schemas/MqttListener"
     ListenerType:
       type: string
       description: Listener type.
@@ -1512,6 +1516,7 @@ components:
         - SUBSCRIPTION
         - TCP
         - KAFKA
+        - MQTT
     LoadBalancer:
       description: Load Balancer to distribute traffic between endpoints.
       type: object
@@ -1584,10 +1589,10 @@ components:
       properties:
         request:
           type: boolean
-          description: Enables logging durring request phase 
+          description: Enables logging durring request phase
         response:
           type: boolean
-          description: Enables logging durring response phase 
+          description: Enables logging durring response phase
     TracingV4:
       description: OpenTelemetry tracing (Not for native APIs)
       type: object
@@ -1713,7 +1718,7 @@ components:
       properties:
         host:
           type: string
-          description: Virtual host required to access this API. (`Host` or `:Authority` headers, remote address for websockets) 
+          description: Virtual host required to access this API. (`Host` or `:Authority` headers, remote address for websockets)
         path:
           type: string
           default: "/"
@@ -1764,7 +1769,7 @@ components:
         - API
         - CATALOG
       default: API
-    PlanValidation: 
+    PlanValidation:
       type: string
       description: |
         Specifies if subscriptions must be manually validated by a human actor.
@@ -1784,7 +1789,7 @@ components:
         - STANDARD
         - PUSH
     PrimaryOwner:
-      description: User owner of this. Can perform all possible actions on it. 
+      description: User owner of this. Can perform all possible actions on it.
       type: object
       properties:
         id:
@@ -2084,6 +2089,20 @@ components:
               type: string
           required:
             - "host"
+    MqttListener:
+      description: MQTT listener
+      title: "MQTTListener"
+      required:
+        - type
+      allOf:
+        - $ref: "#/components/schemas/BaseListener"
+        - type: object
+          properties:
+            host:
+              description: A hostname for which the API will match against SNI.
+              type: string
+          required:
+            - "host"
     FailoverV4:
       description: Defines the failover behavior to bypass endpoints when some are slow.
       type: object
@@ -2303,7 +2322,7 @@ components:
       schema:
         type: boolean
         default: false
-        examples: 
+        examples:
           - true
     hridParam:
       name: hrid

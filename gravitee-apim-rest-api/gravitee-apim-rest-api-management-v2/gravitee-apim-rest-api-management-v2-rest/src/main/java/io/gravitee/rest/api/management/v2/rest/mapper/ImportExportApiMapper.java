@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListene
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.nativeapi.mqtt.MqttListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
@@ -135,11 +136,14 @@ public interface ImportExportApiMapper {
         return switch (src) {
             case null -> null;
             case KafkaListener kafka -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapKafkaListener(kafka));
+            case MqttListener mqtt -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapMqttListener(mqtt));
             default -> throw new IllegalStateException("Unexpected value: " + src);
         };
     }
 
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener mapKafkaListener(KafkaListener kafka);
+
+    io.gravitee.rest.api.management.v2.rest.model.MqttListener mapMqttListener(MqttListener mqtt);
 
     @SneakyThrows
     @AfterMapping

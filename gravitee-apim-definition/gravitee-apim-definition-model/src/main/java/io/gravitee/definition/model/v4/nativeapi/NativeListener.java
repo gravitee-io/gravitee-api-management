@@ -16,12 +16,14 @@
 package io.gravitee.definition.model.v4.nativeapi;
 
 import static io.gravitee.definition.model.v4.nativeapi.NativeListener.KAFKA_LABEL;
+import static io.gravitee.definition.model.v4.nativeapi.NativeListener.MQTT_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.nativeapi.mqtt.MqttListener;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
@@ -41,17 +43,26 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL) })
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
+        @JsonSubTypes.Type(value = MqttListener.class, name = MQTT_LABEL),
+    }
+)
 @Schema(
     name = "NativeListenerV4",
     discriminatorProperty = "type",
-    discriminatorMapping = { @DiscriminatorMapping(value = KAFKA_LABEL, schema = KafkaListener.class) },
-    oneOf = { KafkaListener.class }
+    discriminatorMapping = {
+        @DiscriminatorMapping(value = KAFKA_LABEL, schema = KafkaListener.class),
+        @DiscriminatorMapping(value = MQTT_LABEL, schema = MqttListener.class),
+    },
+    oneOf = { KafkaListener.class, MqttListener.class }
 )
 @SuperBuilder(toBuilder = true)
 public abstract class NativeListener extends AbstractListener<NativeEntrypoint> {
 
     public static final String KAFKA_LABEL = "kafka";
+    public static final String MQTT_LABEL = "mqtt";
 
     protected NativeListener(ListenerType type) {
         super(type);

@@ -4201,6 +4201,7 @@ components:
                 - TCP
                 - SUBSCRIPTION
                 - KAFKA
+                - MQTT
         ApiType:
             description: Type of V4 APIs.
             type: string
@@ -5492,6 +5493,7 @@ components:
                         - subscription
                         - tcp
                         - kafka
+                        - mqtt
                 schema:
                     type: string
                     description: Schema of the connector.

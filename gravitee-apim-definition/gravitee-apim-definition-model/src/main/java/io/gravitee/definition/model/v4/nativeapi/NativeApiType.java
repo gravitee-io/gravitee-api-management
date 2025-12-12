@@ -27,9 +27,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum NativeApiType {
-    KAFKA("kafka");
+    KAFKA("kafka"),
+    MQTT("mqtt");
 
-    private static final Map<String, NativeApiType> LABELS_MAP = Map.of(KAFKA.label, KAFKA);
+    private static final Map<String, NativeApiType> LABELS_MAP = Map.of(KAFKA.label, KAFKA, MQTT.label, MQTT);
 
     @JsonValue
     private final String label;

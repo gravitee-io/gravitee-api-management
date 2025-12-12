@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListene
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.nativeapi.mqtt.MqttListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public interface ListenerMapper {
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener kafkaListener);
+    io.gravitee.rest.api.management.v2.rest.model.MqttListener map(MqttListener mqttListener);
 
     @Mapping(target = "pathMappingsPattern", source = "pathMappings", qualifiedByName = "toPathMappingsPattern")
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);

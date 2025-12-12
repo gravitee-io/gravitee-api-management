@@ -389,6 +389,7 @@ paths:
                           - HTTP_PROXY
                           - HTTP_MESSAGE
                           - NATIVE_KAFKA
+                          - NATIVE_MQTT
                           - MCP_PROXY
                           - LLM_PROXY
             tags:
@@ -534,6 +535,11 @@ components:
                                   uniqueItems: true
                                   items:
                                       $ref: "#/components/schemas/FlowPhase"
+                              NATIVE_MQTT:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
                               MCP_PROXY:
                                   type: array
                                   uniqueItems: true
@@ -601,6 +607,7 @@ components:
                 - SUBSCRIPTION
                 - TCP
                 - KAFKA
+                - MQTT
         ConnectorFeature:
             type: string
             description: A feature used by a connector

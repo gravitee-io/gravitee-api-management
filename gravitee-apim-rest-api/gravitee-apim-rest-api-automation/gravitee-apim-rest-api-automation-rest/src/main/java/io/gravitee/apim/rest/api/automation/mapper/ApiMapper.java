@@ -29,6 +29,7 @@ import io.gravitee.apim.rest.api.automation.model.HttpSelector;
 import io.gravitee.apim.rest.api.automation.model.KafkaListener;
 import io.gravitee.apim.rest.api.automation.model.Listener;
 import io.gravitee.apim.rest.api.automation.model.McpSelector;
+import io.gravitee.apim.rest.api.automation.model.MqttListener;
 import io.gravitee.apim.rest.api.automation.model.PageV4;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.ResponseTemplate;
@@ -106,6 +107,8 @@ public interface ApiMapper {
 
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener listener);
 
+    io.gravitee.rest.api.management.v2.rest.model.MqttListener map(MqttListener listener);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener listener);
 
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
@@ -113,6 +116,8 @@ public interface ApiMapper {
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
 
     KafkaListener map(io.gravitee.rest.api.management.v2.rest.model.KafkaListener listener);
+
+    MqttListener map(io.gravitee.rest.api.management.v2.rest.model.MqttListener listener);
 
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
 

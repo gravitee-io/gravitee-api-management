@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.nativeapi.mqtt.MqttListener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -97,6 +98,11 @@ public class NativeApi extends AbstractApi {
     @JsonIgnore
     public boolean isKafkaNative() {
         return ApiType.NATIVE.equals(type) && listeners.stream().anyMatch(KafkaListener.class::isInstance);
+    }
+
+    @JsonIgnore
+    public boolean isMqttNative() {
+        return ApiType.NATIVE.equals(type) && listeners.stream().anyMatch(MqttListener.class::isInstance);
     }
 
     @JsonIgnore
