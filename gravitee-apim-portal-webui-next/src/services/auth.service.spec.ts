@@ -22,10 +22,12 @@ import { AuthService } from './auth.service';
 import { IdentityProviderService } from './identity-provider.service';
 import { IdentityProvider } from '../entities/configuration/identity-provider';
 import { AppTestingModule, IdentityProviderServiceStub, OAuthServiceStub, TESTING_BASE_URL } from '../testing/app-testing.module';
+import {ConfigService} from "./config.service";
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpTestingController: HttpTestingController;
+  let configService: ConfigService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -33,6 +35,7 @@ describe('AuthService', () => {
     });
     service = TestBed.inject(AuthService);
     httpTestingController = TestBed.inject(HttpTestingController);
+    configService = TestBed.inject(ConfigService);
   });
 
   it('should call log in endpoint', done => {
@@ -59,6 +62,49 @@ describe('AuthService', () => {
 
     expect(initCodeFlow).toHaveBeenCalledWith(redirectUrl);
     expect(storeProviderId).toHaveBeenCalled();
+  });
+
+  it('should call /auth/logout and, when providerId exists, call oauthService.logOut and removeProviderId', () => {
+
+    jest.spyOn(service, 'getProviderId').mockReturnValue('google');
+    const logOutSpy = jest
+      .spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'logOut')
+      .mockReturnValue();
+    const removeProviderIdSpy = jest
+      .spyOn(service, 'removeProviderId');
+
+
+    service.logout().subscribe();
+
+
+    const req = httpTestingController.expectOne(`${configService.baseURL}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({});
+
+
+    expect(logOutSpy).toHaveBeenCalled();
+    expect(removeProviderIdSpy).toHaveBeenCalled();
+  });
+
+  it('should NOT call logOut nor removeProviderId when providerId is missing', () => {
+
+    jest.spyOn(service, 'getProviderId').mockReturnValue(null);
+    const logOutSpy = jest
+      .spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'logOut')
+      .mockReturnValue();
+    const removeProviderIdSpy = jest
+      .spyOn(service, 'removeProviderId');
+
+
+    service.logout().subscribe();
+
+    const req = httpTestingController.expectOne(`${configService.baseURL}/auth/logout`);
+    req.flush({});
+
+
+    expect(logOutSpy).not.toHaveBeenCalled();
+    expect(removeProviderIdSpy).not.toHaveBeenCalled();
   });
 
   it('should retrieve token on load from SSO provider', done => {

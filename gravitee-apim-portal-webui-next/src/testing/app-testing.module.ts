@@ -92,6 +92,9 @@ export class OAuthServiceStub {
   configure() {
     // nothing to do
   }
+  logOut():void{
+
+  }
 }
 
 /**
