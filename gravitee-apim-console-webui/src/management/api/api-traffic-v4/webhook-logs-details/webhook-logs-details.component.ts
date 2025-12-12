@@ -128,6 +128,9 @@ export class WebhookLogsDetailsComponent implements OnInit {
     renderLineHighlight: 'none',
     hideCursorInOverviewRuler: true,
     overviewRulerBorder: false,
+    occurrencesHighlight: 'off',
+    selectionHighlight: false,
+    readOnly: true,
     scrollbar: {
       vertical: 'hidden',
       horizontal: 'hidden',
