@@ -52,6 +52,7 @@ import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from 
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { ApiImportV4Component, ApiImportV4DialogData } from '../import-v4/api-import-v4.component';
 
 export interface MigrateDialogResult {
   confirmed: boolean;
@@ -362,6 +363,33 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  importV4Api() {
+    this.matDialog
+      .open<ApiImportV4Component, ApiImportV4DialogData, ApiV4>(ApiImportV4Component, {
+        data: {
+          apiId: this.apiId,
+          isUpdateMode: true,
+        },
+        role: 'alertdialog',
+        id: 'importV4ApiDialog',
+        width: '800px',
+        maxWidth: '90vw',
+      })
+      .afterClosed()
+      .pipe(
+        filter((api) => !!api),
+        tap(() => {
+          this.refresh$.next();
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? 'An error occurred while updating the API.');
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),

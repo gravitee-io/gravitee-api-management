@@ -17,7 +17,7 @@
 -->
 <mat-card class="import">
   <mat-card-header>
-    <mat-card-title>Import API</mat-card-title>
+    <mat-card-title>{{ isUpdateMode ? 'Update API' : 'Import API' }}</mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <form [formGroup]="form">
@@ -96,13 +96,17 @@
           mat-raised-button
           color="primary"
           class="import__save-button"
-          aria-label="Import API"
+          [attr.aria-label]="isUpdateMode ? 'Update API' : 'Import API'"
           [disabled]="form.invalid || !importType"
           (click)="import()"
         >
-          Import API
+          {{ isUpdateMode ? 'Update API' : 'Import API' }}
         </button>
-        <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
+        @if (isUpdateMode && dialogRef) {
+          <button mat-button mat-raised-button (click)="dialogRef.close()" aria-label="Cancel">Cancel</button>
+        } @else if (!isUpdateMode) {
+          <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>
+        }
       </div>
     </form>
   </mat-card-content>
