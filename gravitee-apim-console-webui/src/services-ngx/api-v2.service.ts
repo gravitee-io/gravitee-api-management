@@ -147,6 +147,22 @@ export class ApiV2Service {
     });
   }
 
+  updateApiWithDefinition(apiId: string, importApi: any): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  updateApiWithSwagger(apiId: string, descriptor: ImportSwaggerDescriptor): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/import/swagger`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   exportCRD(apiId: string): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/crd`, {
       responseType: 'blob',

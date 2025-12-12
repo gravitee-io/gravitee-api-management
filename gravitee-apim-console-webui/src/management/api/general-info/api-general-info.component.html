@@ -161,16 +161,29 @@
           <mat-icon svgIcon="gio:upload" />
           Export
         </button>
-        <button
-          *gioPermission="{ anyOf: ['api-definition-c'] }"
-          mat-button
-          class="details-card__actions_btn"
-          [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4' || api.definitionVersion === 'V1'"
-          (click)="importApi()"
-        >
-          <mat-icon svgIcon="gio:download" />
-          Import
-        </button>
+        @if (api.definitionVersion === 'V4') {
+          <button
+            *gioPermission="{ anyOf: ['api-definition-u'] }"
+            mat-button
+            class="details-card__actions_btn"
+            data-testid="api_info_import_v4_menu"
+            (click)="importV4Api()"
+          >
+            <mat-icon svgIcon="gio:download" />
+            Import
+          </button>
+        } @else {
+          <button
+            *gioPermission="{ anyOf: ['api-definition-c'] }"
+            mat-button
+            class="details-card__actions_btn"
+            [disabled]="isKubernetesOrigin || api.definitionVersion === 'V1'"
+            (click)="importApi()"
+          >
+            <mat-icon svgIcon="gio:download" />
+            Import
+          </button>
+        }
         <button
           *gioPermission="{ anyOf: ['api-definition-c'] }"
           mat-button

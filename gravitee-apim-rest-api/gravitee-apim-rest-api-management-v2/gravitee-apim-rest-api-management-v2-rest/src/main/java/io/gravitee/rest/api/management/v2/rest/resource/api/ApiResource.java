@@ -20,6 +20,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -29,6 +30,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateApiWithDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -124,6 +126,11 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
+import io.gravitee.common.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
@@ -240,6 +247,18 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     CreatePromotionUseCase promotionUseCase;
+
+    @Inject
+    UpdateApiWithDefinitionUseCase updateApiWithDefinitionUseCase;
+
+    @Inject
+    private ApiStateDomainService apiStateDomainService;
+
+    @Inject
+    private HttpClientService httpClientService;
+
+    @Inject
+    private ObjectMapper objectMapper;
 
     @Context
     protected UriInfo uriInfo;
@@ -437,6 +456,16 @@ public class ApiResource extends AbstractResource {
         return updatedApi;
     }
 
+
+    private static void verifyImage(String imageContent, String imageUsage) {
+        try {
+            ImageUtils.verify(imageContent);
+        } catch (InvalidImageException e) {
+            log.warn("Error while parsing {} while importing api", imageUsage, e);
+            throw new BadRequestException("Invalid image format for api " + imageUsage);
+        }
+    }
+
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApi(@PathParam("apiId") String apiId, @QueryParam("closePlans") boolean closePlans) {
@@ -513,6 +542,70 @@ public class ApiResource extends AbstractResource {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
     }
+
+    @PUT
+    @Path("/_import/definition")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiWithDefinition(@PathParam("apiId") String apiId, @Valid @NotNull io.gravitee.rest.api.management.v2.rest.model.ExportApiV4 apiToImport) {
+        return updateApiFromImport(apiId, apiToImport);
+    }
+
+    @PUT
+    @Path("/_import/url")
+    @Consumes({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiWithDefinitionUrl(@PathParam("apiId") String apiId, @Valid @NotNull String definitionUrl) {
+        try {
+            // Trim the URL to remove any whitespace
+            String trimmedUrl = definitionUrl.trim();
+
+            // Validate and sanitize the URL
+            UrlSanitizerUtils.checkAllowed(trimmedUrl, null, false);
+
+            // Fetch the content from the URL
+            Buffer buffer = httpClientService.request(HttpMethod.GET, trimmedUrl, null, null, null);
+            String jsonContent = buffer.toString();
+
+            // Parse the JSON content into ExportApiV4
+            io.gravitee.rest.api.management.v2.rest.model.ExportApiV4 apiToImport = objectMapper.readValue(
+                jsonContent,
+                io.gravitee.rest.api.management.v2.rest.model.ExportApiV4.class
+            );
+
+            return updateApiFromImport(apiId, apiToImport);
+        } catch (Exception e) {
+            log.error("Error while importing API definition from URL", e);
+            throw new TechnicalManagementException("Error while importing API definition from URL: " + e.getMessage());
+        }
+    }
+
+    private Response updateApiFromImport(String apiId, io.gravitee.rest.api.management.v2.rest.model.ExportApiV4 apiToImport) {
+        verifyImage(apiToImport.getApiPicture(), "picture");
+        verifyImage(apiToImport.getApiBackground(), "background");
+
+        var importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(apiToImport);
+        try {
+            var audit = getAuditInfo();
+            var output = updateApiWithDefinitionUseCase.execute(
+                new UpdateApiWithDefinitionUseCase.Input(apiId, importDefinition, audit)
+            );
+
+            boolean isSynchronized = apiStateDomainService.isSynchronized(output.updatedApi(), audit);
+
+            var updatedDate = java.util.Date.from(output.updatedApi().getUpdatedAt().toInstant());
+
+            return Response.ok(ApiMapper.INSTANCE.map(output.updatedApi(), uriInfo, isSynchronized))
+                .tag(Long.toString(updatedDate.getTime()))
+                .lastModified(updatedDate)
+                .build();
+        } catch (io.gravitee.apim.core.api.exception.InvalidPathsException e) {
+            throw new BadRequestException("Cannot update API with invalid paths: " + e.getMessage());
+        }
+    }
+
 
     @GET
     @Path("/_export/crd")
