@@ -90,6 +90,12 @@
   gap: 12px;
 }
 
+.metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .grant-type-toggle {
   display: flex;
   align-items: center;

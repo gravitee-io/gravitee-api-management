@@ -1,0 +1,95 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme';
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.table-mobile {
+  overflow-x: auto;
+}
+
+.form-key-value-pairs {
+  &__table {
+    width: 100%;
+
+    .mat-column-actions {
+      width: 5%;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    thead {
+      background-color: color-mix(in srgb, theme.$primary-main-color 8%, theme.$card-background-color);
+
+      th {
+        padding: 12px 24px;
+      }
+
+      .mat-column-actions {
+        width: 5%;
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    &__cell-actions {
+      padding-right: 8px;
+    }
+
+    &__form-field {
+      display: block;
+      width: 100%;
+      padding-top: 0;
+      margin: 0;
+
+      @include mat.form-field-overrides(
+        (
+          container-height: 36px,
+          container-vertical-padding: 6px,
+          subscript-text-line-height: 0,
+          subscript-text-size: 0,
+          outlined-outline-width: 0,
+          outlined-focus-outline-width: 0,
+          outlined-outline-color: transparent,
+          filled-container-color: transparent,
+          filled-disabled-container-color: transparent,
+        )
+      );
+
+      .mat-mdc-form-field-flex {
+        width: 100%;
+      }
+    }
+  }
+
+  &--delete-button {
+    color: theme.$default-text-color;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      color: theme.$error-main-color;
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+}
