@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/layout' as layout;
-@use '../../scss/theme' as app-theme;
+@use '../../../../scss/theme' as app-theme;
 
 :host {
-  @include layout.full-width-container();
-
   display: flex;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  flex-flow: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  border-top: 1px solid app-theme.$footer-border-color;
-  overflow-x: hidden;
+  overflow: hidden;
+  flex: 1 1 100%;
 }
 
-.footer {
-  &__copyright {
-    text-align: end;
+.documentation-folder {
+  &__sidenav {
+    width: 300px;
+    min-width: 300px;
+    border-right: 1px solid app-theme.$border-color;
+
+    &__tree {
+      height: 100%;
+    }
   }
+
+  &__container {
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+    flex-grow: 1;
+
+    &__content {
+      max-width: app-theme.$gmd-viewer-max-width;
+      padding: 0 30px;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  padding: 25px;
 }

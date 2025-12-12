@@ -19,17 +19,18 @@
   display: flex;
   width: 100%;
   max-width: 100%;
-  min-height: 95vh;
+  height: 100vh;
   box-sizing: border-box;
   flex-flow: column;
   margin: auto;
-  gap: 40px;
 }
 
 .main-container-wrapper {
+  display: flex;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   flex: 1 1 100%;
+  justify-content: center;
   overflow-x: hidden;
 }

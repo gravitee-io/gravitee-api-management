@@ -26,3 +26,5 @@ globalThis.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
+
+window.HTMLElement.prototype.scrollIntoView = jest.fn();

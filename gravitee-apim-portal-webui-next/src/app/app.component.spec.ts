@@ -21,7 +21,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { AppComponent } from './app.component';
-import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { AppTestingModule } from '../testing/app-testing.module';
 
@@ -57,6 +57,7 @@ describe('AppComponent', () => {
           area: 'TOP_NAVBAR',
           order: 0,
           url: '/link1',
+          published: true,
         },
         {
           id: 'l2',
@@ -67,6 +68,7 @@ describe('AppComponent', () => {
           area: 'TOP_NAVBAR',
           order: 1,
           url: '/link2',
+          published: true,
         },
       ];
 
@@ -76,7 +78,7 @@ describe('AppComponent', () => {
           provideHttpClientTesting(),
           {
             provide: PortalNavigationItemsService,
-            useValue: { topNavbar: signal(mockItems) },
+            useValue: { topNavbarItems: signal(mockItems) },
           },
         ],
       }).compileComponents();

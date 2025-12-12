@@ -15,24 +15,24 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { catchError, Observable, tap } from 'rxjs';
+import { catchError, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
-import { PortalArea, PortalNavigationItem } from '../entities/portal-navigation/portal-navigation';
+import { PortalArea, PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PortalNavigationItemsService {
-  public topNavbar: WritableSignal<PortalNavigationItem[]> = signal([]);
+  public topNavbarItems: WritableSignal<PortalNavigationItem[]> = signal([]);
 
   constructor(
     private readonly http: HttpClient,
     private readonly configService: ConfigService,
   ) {}
 
-  loadNavigationItems(area: PortalArea, loadChildren: boolean = true, parentId?: string): Observable<PortalNavigationItem[]> {
+  getNavigationItems(area: PortalArea, loadChildren: boolean = true, parentId?: string): Observable<PortalNavigationItem[]> {
     const params = {
       ...(parentId ? { parentId } : {}),
       area,
@@ -44,7 +44,22 @@ export class PortalNavigationItemsService {
       .pipe(catchError(_ => of([])));
   }
 
-  loadTopNavBarItems(): Observable<PortalNavigationItem[]> {
-    return this.loadNavigationItems('TOP_NAVBAR', false).pipe(tap(value => this.topNavbar.set(value)));
+  getNavigationItem(id: string): Observable<PortalNavigationItem> {
+    return this.http.get<PortalNavigationItem>(`${this.configService.baseURL}/portal-navigation-items/${id}`).pipe(catchError(_ => of()));
+  }
+
+  getNavigationItemContent(id: string): Observable<string> {
+    return this.http
+      .get(`${this.configService.baseURL}/portal-navigation-items/${id}/content`, { responseType: 'text' })
+      .pipe(catchError(_ => of('')));
+  }
+
+  loadTopNavBarItems(): Observable<void> {
+    return this.getNavigationItems('TOP_NAVBAR', false).pipe(
+      switchMap(value => {
+        this.topNavbarItems.set(value);
+        return of(undefined);
+      }),
+    );
   }
 }
