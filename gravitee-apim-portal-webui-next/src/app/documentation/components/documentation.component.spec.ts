@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -22,17 +22,19 @@ import { provideRouter, Router } from '@angular/router';
 import { DocumentationComponent } from './documentation.component';
 import { DocumentationComponentHarness } from './documentation.component.harness';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
-import { fakePortalNavigationFolder } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakePortalNavigationFolder, fakePortalNavigationPage } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 import { NotFoundComponent } from '../../not-found/not-found.component';
 
 describe('DocumentationComponent', () => {
   let fixture: ComponentFixture<DocumentationComponent>;
   let harness: DocumentationComponentHarness;
   let routerSpy: jest.SpyInstance;
+  let httpTestingController: HttpTestingController;
 
   const init = async (navItem: PortalNavigationItem | null) => {
     await TestBed.configureTestingModule({
-      imports: [DocumentationComponent, MatIconTestingModule, HttpClientTestingModule],
+      imports: [DocumentationComponent, MatIconTestingModule, AppTestingModule],
       providers: [provideRouter([{ path: '404', component: NotFoundComponent }])],
     }).compileComponents();
 
@@ -40,17 +42,25 @@ describe('DocumentationComponent', () => {
 
     fixture = TestBed.createComponent(DocumentationComponent);
     fixture.componentRef.setInput('navItem', navItem);
+    httpTestingController = TestBed.inject(HttpTestingController);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationComponentHarness);
   };
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   describe('initial load', () => {
     it('should display folder', async () => {
-      await init(fakePortalNavigationFolder());
+      await init(fakePortalNavigationFolder({ id: 'folder1' }));
+
+      expectGetNavigationItemsRequest('folder1', []);
+
       const folder = await harness.getFolder();
       expect(folder).not.toBeNull();
 
       const page = await harness.getPage();
-      expect(page).toBeNull();
+      expect(await page?.isShowingEmptyState()).toEqual(true);
     });
 
     it('should redirect to 404', async () => {
@@ -58,5 +68,29 @@ describe('DocumentationComponent', () => {
 
       expect(routerSpy).toHaveBeenCalledWith(['/404']);
     });
+
+    it('should display page', async () => {
+      await init(fakePortalNavigationPage({ id: 'page1' }));
+
+      expectPageContentRequest('page1', 'This is the page content');
+
+      const page = await harness.getPage();
+      expect(page).not.toBeNull();
+      expect(await page!.isShowingMarkdownContent()).toBe(true);
+    });
   });
+
+  function expectPageContentRequest(pageId: string, content: string) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items/${pageId}/content`);
+    expect(req.request.method).toEqual('GET');
+    req.flush({ content, type: 'GRAVITEE_MARKDOWN' });
+  }
+
+  function expectGetNavigationItemsRequest(parentId: string, response: PortalNavigationItem[]) {
+    const req = httpTestingController.expectOne(
+      `${TESTING_BASE_URL}/portal-navigation-items?parentId=${parentId}&area=TOP_NAVBAR&loadChildren=true`,
+    );
+    expect(req.request.method).toEqual('GET');
+    req.flush(response);
+  }
 });
