@@ -37,6 +37,10 @@ public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
     @Override
     public void provide(TemplateContext templateContext) {
+        // Keep this variable for backward compatibility for migration purpose
+        if (apiVariables.getProperties() != null) {
+            templateContext.setVariable("properties", apiVariables.getProperties());
+        }
         templateContext.setVariable("api", apiVariables);
     }
 }
