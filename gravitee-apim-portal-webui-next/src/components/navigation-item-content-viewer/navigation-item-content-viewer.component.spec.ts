@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
-
 import { NavigationItemContentViewerComponent } from './navigation-item-content-viewer.component';
+import { NavigationItemContentViewerHarness } from './navigation-item-content-viewer.harness';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
 
 interface initData {
-  pageContent: PortalPageContent;
+  pageContent: PortalPageContent | null;
 }
 
 describe('NavigationItemContentViewerComponent', () => {
   let fixture: ComponentFixture<NavigationItemContentViewerComponent>;
-  let loader: HarnessLoader;
+  let harness: NavigationItemContentViewerHarness;
 
   const init = async (data: initData) => {
     await TestBed.configureTestingModule({
@@ -36,9 +34,9 @@ describe('NavigationItemContentViewerComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.componentRef.setInput('pageContent', data.pageContent);
 
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
     fixture.detectChanges();
   };
 
@@ -51,10 +49,25 @@ describe('NavigationItemContentViewerComponent', () => {
       await init({ pageContent });
     });
     it('should render markdown viewer', async () => {
-      const markdownViewer = await loader.getHarnessOrNull(GraviteeMarkdownViewerHarness);
+      const markdownViewer = await harness.getGMDViewer();
       expect(markdownViewer).not.toBeNull();
 
       expect(await markdownViewer?.getRenderedHtml()).toContain('<h1 id="hello-world">Hello World</h1>');
+    });
+  });
+
+  describe('if page content is empty', () => {
+    beforeEach(async () => {
+      await init({ pageContent: null });
+    });
+
+    it('should not render markdown viewer', async () => {
+      const markdownViewer = await harness.getGMDViewer();
+      expect(markdownViewer).toBeNull();
+    });
+
+    it('should display no content message', async () => {
+      expect(await harness.isShowingEmptyState()).toBe(true);
     });
   });
 });

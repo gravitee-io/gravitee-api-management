@@ -27,5 +27,5 @@ import { PortalPageContent } from '../../entities/portal-navigation/portal-page-
   styleUrl: './navigation-item-content-viewer.component.scss',
 })
 export class NavigationItemContentViewerComponent {
-  pageContent = input.required<PortalPageContent>();
+  pageContent = input.required<PortalPageContent | null>();
 }
