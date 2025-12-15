@@ -25,14 +25,13 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.reactor.AbstractReactableApi;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.expression.spel.SpelEvaluationException;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiTemplateVariableProviderTest {
@@ -97,6 +96,20 @@ class ApiTemplateVariableProviderTest {
         }
 
         @Test
+        void should_provide_properties_in_EL_for_compatibility() {
+            var apiDefinition = anApiV4().toBuilder().properties(List.of(Property.builder().key("prop1").value("value1").build())).build();
+
+            TemplateEngine engine = buildTemplateEngine(apiDefinition);
+            var s1 = engine.eval("{#api.properties[prop1]}", String.class).toSingle();
+            var s2 = engine.eval("{#properties[prop1]}", String.class).toSingle();
+            Single.zip(s1, s2, (v1, v2) ->
+                assertThat(v1).as("api.properties and properties should be equivalent").isEqualTo(v2).isEqualTo("value1")
+            )
+                .test()
+                .assertComplete();
+        }
+
+        @Test
         void should_throw_when_evaluate_null_api_properties_in_EL() {
             var noProperties = anApiV4();
 
@@ -156,6 +169,23 @@ class ApiTemplateVariableProviderTest {
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             engine.eval("{#api.properties[prop1]}", String.class).test().assertValue("value1");
             engine.eval("{#api.properties[prop2]}", String.class).test().assertValue("value2");
+        }
+
+        @Test
+        void should_provide_properties_in_EL_for_compatibility() {
+            var apiDefinition = aNativeApiV4()
+                .toBuilder()
+                .properties(List.of(Property.builder().key("prop1").value("value1").build()))
+                .build();
+
+            TemplateEngine engine = buildTemplateEngine(apiDefinition);
+            var s1 = engine.eval("{#api.properties[prop1]}", String.class).toSingle();
+            var s2 = engine.eval("{#properties[prop1]}", String.class).toSingle();
+            Single.zip(s1, s2, (v1, v2) ->
+                assertThat(v1).as("api.properties and properties should be equivalent").isEqualTo(v2).isEqualTo("value1")
+            )
+                .test()
+                .assertComplete();
         }
 
         @Test
