@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.kubernetes.mapper.CustomResource;
 import io.gravitee.kubernetes.mapper.ObjectMeta;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -101,6 +103,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
         removeUnsupportedFields();
+        removeNulls(apiDefinition);
     }
 
     public void setContextPath(String contextPath) {
@@ -210,5 +213,32 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
             headerMap.put(name, value);
         });
         return headerMap;
+    }
+
+    private void removeNulls(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode objNode = (ObjectNode) node;
+            Iterator<Map.Entry<String, JsonNode>> fields = objNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                JsonNode child = entry.getValue();
+
+                if (child.isNull()) {
+                    fields.remove();
+                } else if (child.isContainerNode()) {
+                    removeNulls(child);
+                }
+            }
+        } else if (node.isArray()) {
+            ArrayNode arrNode = (ArrayNode) node;
+            for (int i = arrNode.size() - 1; i >= 0; i--) {
+                JsonNode element = arrNode.get(i);
+                if (element.isNull()) {
+                    arrNode.remove(i);
+                } else if (element.isContainerNode()) {
+                    removeNulls(element);
+                }
+            }
+        }
     }
 }

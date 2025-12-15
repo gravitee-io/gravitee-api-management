@@ -175,6 +175,22 @@ class ApiDefinitionResourceTest {
         assertEquals(version, resource.getSpec().get("version").asText());
     }
 
+    @Test
+    void shouldRemoveNullFields() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+
+        var proxy = (ObjectNode) resource.getSpec().get("proxy");
+        assertTrue(proxy.has("groups"));
+        var groups = (ArrayNode) proxy.get("groups");
+        assertEquals(1, groups.size());
+        var group = groups.get(0);
+        assertTrue(group.has("endpoints"));
+        var endpoints = group.get("endpoints");
+        assertFalse(endpoints.has("proxy"));
+        assertFalse(endpoints.has("http"));
+        assertFalse(endpoints.has("ssl"));
+    }
+
     private ObjectNode readDefinition(String fileName) throws Exception {
         String path = "io/gravitee/definition/model/kubernetes/v1alpha1/" + fileName;
         URL resource = getClass().getClassLoader().getResource(path);

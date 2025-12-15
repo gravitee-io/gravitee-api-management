@@ -130,7 +130,10 @@
             "weight": 1,
             "type": "http",
             "target": "https://api.gravitee.io/echo",
-            "status": "UP"
+            "status": "UP",
+            "proxy": null,
+            "http": null,
+            "ssl": null
           }
         ],
         "load_balancing": {
