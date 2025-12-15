@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { ComponentHarness } from '@angular/cdk/testing';
 
 import { DocumentationFolderComponentHarness } from './documentation-folder/documentation-folder.component.harness';
+import { NavigationItemContentViewerHarness } from '../../../components/navigation-item-content-viewer/navigation-item-content-viewer.harness';
 
 export class DocumentationComponentHarness extends ComponentHarness {
-  static readonly hostSelector = 'app-documentation-folder';
+  static readonly hostSelector = 'app-documentation';
 
   private readonly getDocumentationFolder = this.locatorForOptional(DocumentationFolderComponentHarness);
-  private readonly getDocumentationPage = this.locatorForOptional('app-documentation-page');
+  private readonly getDocumentationPage = this.locatorForOptional(NavigationItemContentViewerHarness);
 
   async getFolder(): Promise<DocumentationFolderComponentHarness | null> {
     return this.getDocumentationFolder();
   }
 
-  async getPage(): Promise<TestElement | null> {
+  async getPage(): Promise<NavigationItemContentViewerHarness | null> {
     return this.getDocumentationPage();
   }
 }
