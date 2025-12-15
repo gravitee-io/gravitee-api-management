@@ -32,7 +32,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.*;
-import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -90,6 +89,24 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             .when(applicationMapper)
             .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
 
+        doReturn(new Application().id("A").name("A"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any(), eq(false));
+        doReturn(new Application().id("B").name("B"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any(), eq(false));
+        doReturn(new HashSet<>(Arrays.asList(applicationA, applicationB)))
+            .when(applicationService)
+            .findByUser(eq(GraviteeContext.getExecutionContext()), anyString(), any());
+
+        io.gravitee.common.data.domain.Page<ApplicationListItem> defaultPage = new io.gravitee.common.data.domain.Page<>(
+            Arrays.asList(applicationA, applicationB),
+            1,
+            2,
+            2
+        );
+        doReturn(defaultPage).when(applicationService).search(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
         ApplicationEntity createdEntity = mock(ApplicationEntity.class);
         doReturn("NEW").when(createdEntity).getId();
         doReturn(createdEntity).when(applicationService).create(eq(GraviteeContext.getExecutionContext()), any(), any());
@@ -101,19 +118,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplications() {
-        final Response response = target().request().get();
+        final Response response = target().queryParam("size", -1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Sortable sort = new SortableImpl("name", true);
-        Mockito.verify(applicationService).findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
-
-        ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture(), eq(null));
-
-        String expectedBasePath = target().getUri().toString();
-        List<String> bastPathList = ac.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath + "/A"));
-        assertTrue(bastPathList.contains(expectedBasePath + "/B"));
+        Mockito.verify(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
@@ -142,33 +151,26 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationD.setId("D");
         applicationD.setName("d");
 
-        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationA, applicationB, applicationC, applicationD));
+        Set<ApplicationListItem> mockApplications = new LinkedHashSet<>(
+            Arrays.asList(applicationA, applicationB, applicationC, applicationD)
+        );
         Sortable sort = new SortableImpl("name", true);
-        doReturn(new HashSet<>(Arrays.asList("A", "B", "C", "D")))
-            .when(applicationService)
-            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
-        doReturn(mockApplications)
-            .when(applicationService)
-            .findByIdsAndStatus(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList("A", "B", "C", "D")),
-                eq(ApplicationStatus.ACTIVE)
-            );
+        doReturn(mockApplications).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any(), eq(false));
         doReturn(new Application().id("B").name("b"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any(), eq(false));
         doReturn(new Application().id("C").name("C"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationC), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationC), any(), eq(false));
         doReturn(new Application().id("D").name("d"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationD), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationD), any(), eq(false));
 
-        final Response response = target().request().get();
+        final Response response = target().queryParam("size", -1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
@@ -189,8 +191,22 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationB.setId("B");
         Collection<String> mockFilteredApp = Arrays.asList(applicationB.getId(), applicationA.getId());
         doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.DESC));
+        io.gravitee.common.data.domain.Page<ApplicationListItem> page = new io.gravitee.common.data.domain.Page<>(
+            Arrays.asList(applicationA, applicationB),
+            1,
+            2,
+            2
+        );
+        doReturn(page)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
 
-        final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
+        final Response response = target()
+            .queryParam("order", "-nbSubscriptions")
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.DESC));
@@ -209,8 +225,22 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationB.setId("B");
         Collection<String> mockFilteredApp = Arrays.asList(applicationA.getId(), applicationB.getId());
         doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.ASC));
+        io.gravitee.common.data.domain.Page<ApplicationListItem> page = new io.gravitee.common.data.domain.Page<>(
+            Arrays.asList(applicationA, applicationB),
+            1,
+            2,
+            2
+        );
+        doReturn(page)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
 
-        final Response response = target().queryParam("order", "nbSubscriptions").request().get();
+        final Response response = target()
+            .queryParam("order", "nbSubscriptions")
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.ASC));
@@ -223,6 +253,29 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsWithPaginatedLink() {
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("A");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        applicationB.setName("B");
+        io.gravitee.common.data.domain.Page<ApplicationListItem> page = new io.gravitee.common.data.domain.Page<>(
+            Collections.singletonList(applicationB),
+            2,
+            1,
+            2
+        );
+        doReturn(page)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
+
+        doReturn(new Application().id("A").name("A"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+        doReturn(new Application().id("B").name("B"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
+
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
@@ -331,27 +384,27 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApplication() {
+        io.gravitee.common.data.domain.Page<ApplicationListItem> emptyPage = new io.gravitee.common.data.domain.Page<>(
+            Collections.emptyList(),
+            10,
+            1,
+            0
+        );
+        doReturn(emptyPage).when(applicationService).search(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
-        List<Error> errors = errorResponse.getErrors();
-        assertNotNull(errors);
-        assertEquals(1, errors.size());
-
-        Error error = errors.get(0);
-        assertEquals("errors.pagination.invalid", error.getCode());
-        assertEquals("400", error.getStatus());
-        assertEquals("Pagination is not valid", error.getMessage());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertNotNull(applicationsResponse);
+        assertTrue(applicationsResponse.getData() == null || applicationsResponse.getData().isEmpty());
     }
 
     @Test
     public void shouldGetNoApplicationAndNoLink() {
         Sortable sort = new SortableImpl("name", true);
-        doReturn(new HashSet<>()).when(applicationService).findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
+        doReturn(Collections.emptySet()).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
 
-        //Test with default limit
-        final Response response = target().request().get();
+        final Response response = target().queryParam("size", -1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
@@ -359,16 +412,94 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNull(links);
+    }
 
-        //Test with small limit
-        final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
-        assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
+    @Test
+    public void shouldGetApplicationsForSubscriptionWithPagination() {
+        // forSubscription=true should call findIdsByUserAndPermission with CREATE
+        Set<String> ids = new LinkedHashSet<>(Arrays.asList("A", "B"));
+        doReturn(ids)
+            .when(applicationService)
+            .findIdsByUserAndPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                anyString(),
+                eq(new SortableImpl("name", true)),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(RolePermissionAction.CREATE)
+            );
 
-        applicationsResponse = anotherResponse.readEntity(ApplicationsResponse.class);
-        assertEquals(0, applicationsResponse.getData().size());
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("A");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        applicationB.setName("B");
+        doReturn(new HashSet<>(Arrays.asList(applicationA, applicationB)))
+            .when(applicationService)
+            .findByIdsAndStatus(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")), eq(ApplicationStatus.ACTIVE));
 
-        links = applicationsResponse.getLinks();
-        assertNull(links);
+        doReturn(new Application().id("A").name("A"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+        doReturn(new Application().id("B").name("B"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
+
+        final Response response = target().queryParam("page", 1).queryParam("size", 2).queryParam("forSubscription", true).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(applicationService).findIdsByUserAndPermission(
+            eq(GraviteeContext.getExecutionContext()),
+            anyString(),
+            eq(new SortableImpl("name", true)),
+            eq(RolePermission.APPLICATION_SUBSCRIPTION),
+            eq(RolePermissionAction.CREATE)
+        );
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertNotNull(applicationsResponse);
+        assertEquals(2, applicationsResponse.getData().size());
+        assertNotNull(applicationsResponse.getLinks());
+    }
+
+    @Test
+    public void shouldGetApplicationsWithPaginationUsingSearchBranch() {
+        // forSubscription=false with pagination should use applicationService.search and include paginateMetaData
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("A");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        applicationB.setName("B");
+        io.gravitee.common.data.domain.Page<ApplicationListItem> page = new io.gravitee.common.data.domain.Page<>(
+            Arrays.asList(applicationA, applicationB),
+            1,
+            2,
+            2
+        );
+        doReturn(page)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
+
+        doReturn(new Application().id("A").name("A"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+        doReturn(new Application().id("B").name("B"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
+
+        final Response response = target().queryParam("page", 1).queryParam("size", 2).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(applicationService).search(eq(GraviteeContext.getExecutionContext()), any(), eq(new SortableImpl("name", true)), any());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+        assertNotNull(applicationsResponse.getLinks());
+        Map<String, Map<String, Object>> metadata = applicationsResponse.getMetadata();
+        assertNotNull(metadata);
+        assertTrue(metadata.containsKey("paginateMetaData"));
+        assertEquals(2, metadata.get("paginateMetaData").get("totalElements"));
     }
 
     @Test
