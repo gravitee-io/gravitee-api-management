@@ -59,7 +59,7 @@ import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
-import { homepageResolver } from '../resolvers/homepage.resolver';
+import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
 import { HomepageComponent } from './homepage/homepage.component';
@@ -138,7 +138,9 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [redirectGuard, authGuard],
-    resolve: { homepage: homepageResolver },
+    resolve: {
+      pageContent: homepageContentResolver,
+    },
     component: HomepageComponent,
   },
   {
