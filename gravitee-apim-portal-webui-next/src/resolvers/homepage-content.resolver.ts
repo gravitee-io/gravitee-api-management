@@ -15,28 +15,29 @@
  */
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, EMPTY, switchMap } from 'rxjs';
 
-import { PortalPage } from '../entities/portal/portal-page';
-import { PortalService } from '../services/portal.service';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
+import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 
-export const homepageResolver = ((
+export const homepageContentResolver = ((
   _route: ActivatedRouteSnapshot,
   _state: RouterStateSnapshot,
-  portalService: PortalService = inject(PortalService),
+  portalNavigationItemsService: PortalNavigationItemsService = inject(PortalNavigationItemsService),
   router: Router = inject(Router),
-) =>
-  portalService.getPortalHomepages('CONTENT').pipe(
-    map(homepages => {
-      const homepage = (homepages ?? [])[0];
-      if (!homepage) {
+) => {
+  return portalNavigationItemsService.getNavigationItems('HOMEPAGE', false).pipe(
+    switchMap(homepages => {
+      if (!homepages?.length) {
         router.navigate(['catalog']);
-        return null;
+        return EMPTY;
       }
-      return homepage;
+
+      return portalNavigationItemsService.getNavigationItemContent(homepages[0].id);
     }),
     catchError(_ => {
       router.navigate(['catalog']);
-      return of(null);
+      return EMPTY;
     }),
-  )) satisfies ResolveFn<PortalPage | null>;
+  );
+}) satisfies ResolveFn<PortalPageContent>;
