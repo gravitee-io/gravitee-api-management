@@ -29,10 +29,6 @@
 <div class="documentation-folder__container">
   <div class="documentation-folder__container__breadcrumbs"></div>
   <div class="documentation-folder__container__content">
-    @if (selectedPageContent()) {
-      <gmd-viewer [content]="selectedPageContent()" appInnerLink />
-    } @else {
-      <div class="empty-state" i18n="@@emptyContentLabel">No content to show</div>
-    }
+    <app-navigation-item-content-viewer [pageContent]="selectedPageContent()" />
   </div>
 </div>
