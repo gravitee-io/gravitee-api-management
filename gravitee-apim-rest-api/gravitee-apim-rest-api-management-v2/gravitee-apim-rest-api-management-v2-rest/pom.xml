@@ -220,12 +220,14 @@
 					<generateSupportingFiles>true</generateSupportingFiles>
 					<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
 					<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
+                    <importMappings>Interval=io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval</importMappings>
 					<configOptions>
 						<dateLibrary>java8</dateLibrary>
 						<useBeanValidation>true</useBeanValidation>
 					</configOptions>
 					<typeMappings>
 						<typeMapping>BigDecimal=Number</typeMapping>
+                        <typeMapping>Interval=CustomInterval</typeMapping>
 					</typeMappings>
 					<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
 				</configuration>
