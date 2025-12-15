@@ -15,7 +15,7 @@ module.exports = {
     },
   },
   ignorePatterns: ['**/*.js', '**/*.json', '**/*.html'],
-  plugins: ['@typescript-eslint', 'eslint-plugin-import', 'rxjs'],
+  plugins: ['@typescript-eslint', 'eslint-plugin-import', 'rxjs', 'unused-imports'],
   extends: [
     'angular',
     'eslint:recommended',
@@ -52,12 +52,16 @@ module.exports = {
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
     '@typescript-eslint/ban-types': 'error',
-    '@typescript-eslint/no-unused-vars': [
+    '@typescript-eslint/no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
       'error',
       {
+        vars: 'all',
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
+        args: 'after-used',
       },
     ],
     '@typescript-eslint/ban-ts-comment': 'warn',
