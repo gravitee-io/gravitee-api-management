@@ -1191,10 +1191,15 @@ components:
         Interval:
           description: |
             A fixed time interval for time series analytics queries.
-            Intervals are be expressed in milliseconds.
-          type: integer
-          format: int64
-          example: 1000
+            Intervals are be expressed in milliseconds or duration strings (e.g., 10s, 1m, 5h).
+          oneOf:
+            - type: string
+              pattern: ^\d+[smhd]$
+              description: Shorthand for expressing interval in seconds, minutes, hours or days as a string
+              example: "1s"
+            - type: number
+              description: Interval in milliseconds
+              example: 1000
 
         TimeRange:
             type: object
