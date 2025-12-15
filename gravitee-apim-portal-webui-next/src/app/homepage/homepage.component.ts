@@ -16,19 +16,17 @@
 /*
  * Copyright (C) 2025 The Gravitee team
  */
-import { Component, computed, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
-import { GraviteeMarkdownViewerModule } from '../../../projects/gravitee-markdown/src/lib/gravitee-markdown-viewer/gravitee-markdown-viewer.module';
-import { InnerLinkDirective } from '../../directives/inner-link.directive';
-import { PortalPage } from '../../entities/portal/portal-page';
+import { NavigationItemContentViewerComponent } from '../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
+import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
 
 @Component({
   selector: 'app-homepage',
-  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective],
-  template: ` <gmd-viewer [content]="homepageContent()" appInnerLink /> `,
+  imports: [NavigationItemContentViewerComponent],
+  template: `<app-navigation-item-content-viewer [pageContent]="pageContent()" />`,
+  styleUrls: ['./homepage.component.scss'],
 })
 export class HomepageComponent {
-  homepage = input<PortalPage>({ id: '' });
-
-  homepageContent = computed(() => this.homepage().content ?? '');
+  pageContent = input.required<PortalPageContent>();
 }
