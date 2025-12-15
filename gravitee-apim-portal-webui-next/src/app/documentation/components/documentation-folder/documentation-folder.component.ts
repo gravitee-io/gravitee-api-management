@@ -16,20 +16,21 @@
 import { Component, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, Observable, Subject, switchMap, tap } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { TreeComponent } from './tree-component/tree.component';
-import { InnerLinkDirective } from '../../../../directives/inner-link.directive';
+import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
+import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [MobileClassDirective, TreeComponent, GraviteeMarkdownViewerModule, InnerLinkDirective],
+  imports: [MobileClassDirective, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -40,7 +41,7 @@ export class DocumentationFolderComponent {
 
   pageIdEmitter$ = new Subject<string>();
   pageId = toSignal(this.pageIdEmitter$, { initialValue: null });
-  selectedPageContent = toSignal(this.pageIdEmitter$.pipe(switchMap(this.loadPageContent.bind(this))), { initialValue: '' });
+  selectedPageContent = toSignal(this.pageIdEmitter$.pipe(switchMap(this.loadPageContent.bind(this))), { initialValue: null });
 
   constructor(
     private readonly router: Router,
@@ -68,25 +69,22 @@ export class DocumentationFolderComponent {
       .pipe(tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])));
   }
 
-  private loadPageContent(pageId: string | null): Observable<string> {
+  private loadPageContent(pageId: string | null): Observable<PortalPageContent | null> {
     const children = this.children();
     if (!children) {
-      return of('');
+      return of(null);
     }
 
     if (!pageId) {
-      return of('');
+      return of(null);
     }
 
     const pageExistsInChildren = children.find(item => item.id === pageId);
     if (!pageExistsInChildren) {
       setTimeout(() => this.router.navigate(['/404']));
-      return of('');
+      return of(null);
     }
 
-    return this.itemsService.getNavigationItemContent(pageId).pipe(
-      map(({ content }) => content),
-      catchError(() => of('')),
-    );
+    return this.itemsService.getNavigationItemContent(pageId).pipe(catchError(() => of(null)));
   }
 }

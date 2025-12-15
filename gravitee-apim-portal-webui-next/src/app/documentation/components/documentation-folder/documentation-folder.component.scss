@@ -39,14 +39,7 @@
     flex-grow: 1;
 
     &__content {
-      max-width: app-theme.$gmd-viewer-max-width;
       padding: 0 30px;
     }
   }
-}
-
-.empty-state {
-  display: flex;
-  justify-content: center;
-  padding: 25px;
 }
