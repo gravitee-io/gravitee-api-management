@@ -18,7 +18,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { provideRouter, Router, RouteReuseStrategy, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
@@ -32,6 +32,7 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
 import { ThemeService } from '../services/theme.service';
+import { DocumentationRouteReuseStrategy } from './documentation/strategies/documentation-route-reuse.strategy';
 
 function initApp(
   authService: AuthService,
@@ -87,5 +88,9 @@ export const appConfig: ApplicationConfig = {
       useValue: { dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS' },
     },
     provideCharts(withDefaultRegisterables()),
+    {
+      provide: RouteReuseStrategy,
+      useClass: DocumentationRouteReuseStrategy,
+    },
   ],
 };
