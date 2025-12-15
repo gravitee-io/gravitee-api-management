@@ -16,10 +16,12 @@
 package io.gravitee.gateway.reactive.reactor.processor.forward;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import org.springframework.util.StringUtils;
@@ -46,6 +48,8 @@ public class XForwardForProcessor implements Processor {
         return Completable.fromRunnable(() -> {
             final HttpBaseRequest request = ctx.request();
 
+            ctx.setAttribute(ContextAttributes.ATTR_REQUEST_ORIGINAL_URL, generateOriginalUrl(ctx.request()));
+
             String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
 
             if (StringUtils.hasText(xForwardedForHeader)) {
@@ -65,5 +69,66 @@ public class XForwardForProcessor implements Processor {
                     });
             }
         });
+    }
+
+    static String generateOriginalUrl(HttpBaseRequest request) {
+        String scheme = request.scheme();
+        String originalHost = request.originalHost();
+        String uri = request.uri();
+
+        String forwardedHeaderValue = request.headers().get(HttpHeaderNames.FORWARDED);
+        String protoHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_PROTO);
+        String hostHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_HOST);
+
+        if (!StringUtils.hasText(forwardedHeaderValue) && !StringUtils.hasText(protoHeaderValue) && !StringUtils.hasText(hostHeaderValue)) {
+            return scheme + "://" + originalHost + uri;
+        }
+
+        if (forwardedHeaderValue != null) {
+            String separator = forwardedHeaderValue.contains(";") ? ";" : ",";
+            for (String element : forwardedHeaderValue.split(separator)) {
+                String normalizedElement = element.toLowerCase().trim();
+                if (normalizedElement.startsWith("proto=")) {
+                    scheme = element.trim().substring(6);
+                }
+                if (normalizedElement.startsWith("host=")) {
+                    String host = element.trim().substring(5);
+                    int commaIndex = host.indexOf(',');
+                    originalHost = commaIndex == -1 ? host : host.substring(0, commaIndex).trim();
+                }
+            }
+        } else {
+            if (protoHeaderValue != null) {
+                scheme = protoHeaderValue;
+            }
+
+            if (hostHeaderValue != null) {
+                int commaIndex = hostHeaderValue.indexOf(',');
+                originalHost = commaIndex == -1 ? hostHeaderValue : hostHeaderValue.substring(0, commaIndex).trim();
+            }
+        }
+
+        String originalHostWithScheme = scheme + "://" + originalHost;
+        if (originalHost.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*")) {
+            originalHostWithScheme = originalHost;
+        }
+
+        String portHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_PORT);
+        if (portHeaderValue != null) {
+            URI hostUri = URI.create(originalHostWithScheme);
+            if (
+                hostUri.getPort() == -1 &&
+                ((scheme.equals("http") && !portHeaderValue.equals("80")) || (scheme.equals("https") && !portHeaderValue.equals("443")))
+            ) {
+                originalHostWithScheme += ":" + portHeaderValue;
+            }
+        }
+
+        String prefixHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_PREFIX);
+        if (prefixHeaderValue != null) {
+            uri = prefixHeaderValue + uri;
+        }
+
+        return originalHostWithScheme + uri;
     }
 }
