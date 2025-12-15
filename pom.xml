@@ -34,8 +34,9 @@
 
     <properties>
         <gravitee-bom.version>8.3.47</gravitee-bom.version>
-        <gravitee-apim.version>4.10.0-SNAPSHOT</gravitee-apim.version>
-        <gravitee-reporter-api.version>1.38.1</gravitee-reporter-api.version>
+        <gravitee-gateway-api.version>4.1.0</gravitee-gateway-api.version>
+        <gravitee-common.version>4.8.0</gravitee-common.version>
+        <gravitee-reporter-api.version>1.38.3</gravitee-reporter-api.version>
         <gravitee-node.version>4.8.9</gravitee-node.version>
         <awaitility.version>4.3.0</awaitility.version>
 
@@ -53,13 +54,6 @@
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
-            <dependency>
-                <groupId>io.gravitee.apim</groupId>
-                <artifactId>gravitee-apim-bom</artifactId>
-                <version>${gravitee-apim.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -74,6 +68,7 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
+            <version>${gravitee-common.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -87,6 +82,7 @@
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>
+            <version>${gravitee-gateway-api.version}</version>
             <scope>provided</scope>
         </dependency>
 
