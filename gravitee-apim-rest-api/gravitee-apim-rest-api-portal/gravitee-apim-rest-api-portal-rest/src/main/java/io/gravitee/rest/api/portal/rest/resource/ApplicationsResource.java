@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.portal.rest.resource.ApplicationsOrderParam.A
 import static io.gravitee.rest.api.portal.rest.resource.ApplicationsOrderParam.ApplicationsOrder.NB_SUBSCRIPTIONS_DESC;
 import static java.util.stream.Collectors.groupingBy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -27,10 +28,12 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -161,6 +164,9 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Collection<String> applicationIds;
+        boolean withPagination = true;
+        Map<String, Map<String, Object>> resPageMetaData = new HashMap<>();
+
         if (forSubscription) {
             applicationIds = applicationService.findIdsByUserAndPermission(
                 executionContext,
@@ -170,11 +176,22 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 RolePermissionAction.CREATE
             );
         } else {
-            applicationIds = applicationService.findIdsByUser(
+            ApplicationQuery applicationQuery = ApplicationQuery.builder()
+                .user(getAuthenticatedUser())
+                .status(ApplicationStatus.ACTIVE.name())
+                .build();
+            Page<ApplicationListItem> applicationPage = applicationService.search(
                 executionContext,
-                getAuthenticatedUser(),
-                applicationsOrderParam.toSortable()
+                applicationQuery,
+                applicationsOrderParam.toSortable(),
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
             );
+
+            applicationIds = applicationPage.getContent().stream().map(ApplicationListItem::getId).collect(Collectors.toList());
+            Map<String, Object> paginateMeta = new HashMap<>();
+            paginateMeta.put("totalElements", applicationPage.getTotalElements());
+            resPageMetaData.put("paginateMetaData", paginateMeta);
+            withPagination = false;
         }
 
         if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
@@ -184,7 +201,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             );
         }
 
-        return createListResponse(executionContext, applicationIds, paginationParam);
+        return createListResponse(executionContext, applicationIds, paginationParam, resPageMetaData, withPagination);
     }
 
     private Response getAllApplications(ApplicationsOrderParam applicationsOrderParam) {
