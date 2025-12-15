@@ -30,9 +30,7 @@
         </a>
       }
       @default {
-        <a [routerLink]="['/documentation', navigationItem.id]" mat-stroked-button color="primary" class="menu-items__custom_link">
-          {{ navigationItem.title }}
-        </a>
+        <app-nav-bar-button [path]="['/documentation', navigationItem.id]">{{ navigationItem.title }}</app-nav-bar-button>
       }
     }
   }

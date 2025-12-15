@@ -22,7 +22,7 @@ import { isEmpty } from 'lodash';
 import { catchError, map } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
 import { PortalService } from '../../../services/portal.service';
 
