@@ -6,6 +6,7 @@
       "typescript": {}
     }
   },
+  "plugins": ["unused-imports"],
   "overrides": [
     {
       "files": ["*.ts"],
@@ -36,12 +37,16 @@
           }
         ],
         "@typescript-eslint/member-ordering": "error",
-        "@typescript-eslint/no-unused-vars": [
+        "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
           "error",
           {
+            "vars": "all",
             "argsIgnorePattern": "^_",
             "varsIgnorePattern": "^_",
-            "caughtErrorsIgnorePattern": "^_"
+            "caughtErrorsIgnorePattern": "^_",
+            "args": "after-used"
           }
         ],
         "import/no-unresolved": "error",
