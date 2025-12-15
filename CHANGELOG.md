@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.12.0...1.12.1) (2025-12-15)
+
+
+### Bug Fixes
+
+* update pom.xml ([b57cd83](https://github.com/gravitee-io/gravitee-reporter-common/commit/b57cd83914cbfc24a8aa9f64fd37be0626cbaf8a))
+
 # [1.12.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.11.0...1.12.0) (2025-12-04)
 
 
