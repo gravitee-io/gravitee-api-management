@@ -15,7 +15,6 @@
  */
 import { IHttpResponse, ILocationService, IScope } from 'angular';
 
-import * as _ from 'lodash';
 import { forEach, includes, keys, toLower } from 'lodash';
 
 import { ApiService } from './api.service';
