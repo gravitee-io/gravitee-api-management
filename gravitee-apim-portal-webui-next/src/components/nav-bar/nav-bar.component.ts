@@ -17,7 +17,7 @@ import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { isEmpty } from 'lodash';
 
-import { PortalNavigationItem } from '../../entities/portal-navigation/portal-navigation';
+import { PortalNavigationItem } from '../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../entities/user/user';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
