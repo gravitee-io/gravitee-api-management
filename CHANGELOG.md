@@ -1,3 +1,10 @@
+## [3.7.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.7.0...3.7.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* update dependencies version ([523ae2e](https://github.com/gravitee-io/gravitee-reporter-file/commit/523ae2ea05abb7cd224ae71641ad0dffcd8dcd61))
+
 # [3.7.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.6.0...3.7.0) (2025-12-04)
 
 
