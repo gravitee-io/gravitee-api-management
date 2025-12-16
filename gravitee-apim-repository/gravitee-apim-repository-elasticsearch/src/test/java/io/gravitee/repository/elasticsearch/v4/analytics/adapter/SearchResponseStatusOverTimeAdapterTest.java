@@ -79,7 +79,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                    "query": {
                      "bool": {
                        "filter": [
-                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy","llm-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
                          {
                            "range": {
                              "@timestamp": {
@@ -129,7 +129,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                    "query": {
                      "bool": {
                        "filter": [
-                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}}]}},
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy","llm-proxy"]}}]}}]}},
                          {
                            "range": {
                              "@timestamp": {
@@ -179,7 +179,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                    "query": {
                      "bool": {
                        "filter": [
-                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy","llm-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
                          {
                            "range": {
                              "@timestamp": {

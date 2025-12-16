@@ -35,7 +35,7 @@ import java.util.TreeSet;
 
 public class SearchResponseStatusOverTimeAdapter {
 
-    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy", "llm-proxy");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final String AGGREGATION_BY_DATE = "by_date";

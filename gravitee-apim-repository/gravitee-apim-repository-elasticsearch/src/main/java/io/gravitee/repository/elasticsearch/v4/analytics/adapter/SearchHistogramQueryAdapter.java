@@ -33,7 +33,7 @@ import java.util.Map;
 public class SearchHistogramQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final List<String> ENTRYPOINT_IDS = List.of("http-post", "http-get", "http-proxy", "mcp-proxy");
+    private static final List<String> ENTRYPOINT_IDS = List.of("http-post", "http-get", "http-proxy", "llm-proxy", "mcp-proxy");
     private static final Map<AggregationType, String> AGGREGATION_PREFIX = Map.of(
         AggregationType.FIELD,
         "by_",

@@ -33,7 +33,7 @@ public class ResponseTimeRangeQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy");
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy", "llm-proxy");
     private static final String TIME_FIELD = "@timestamp";
     private static final String RESPONSE_TIME_FIELD = "gateway-response-time-ms";
     private static final String REDUCE_OPERATION = "avg";
