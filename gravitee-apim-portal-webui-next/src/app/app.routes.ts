@@ -59,6 +59,8 @@ import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
+import { RegistrationComponent } from './registration/registration.component';
 
 const apiRoutes: Routes = [
   {
@@ -151,6 +153,11 @@ export const routes: Routes = [
         resolve: {
           categories: categoriesResolver,
         },
+      },
+      {
+        path: 'all',
+        redirectTo: '',
+        pathMatch: 'full',
       },
       {
         path: 'categories',
@@ -271,6 +278,16 @@ export const routes: Routes = [
         ],
       },
     ],
+  },
+  {
+    path: 'registration',
+    component: RegistrationComponent,
+    canActivate: [anonymousGuard],
+  },
+  {
+    path: 'registration/confirm/:token',
+    component: RegistrationConfirmationComponent,
+    canActivate: [anonymousGuard],
   },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard] },
   { path: '404', component: NotFoundComponent },
