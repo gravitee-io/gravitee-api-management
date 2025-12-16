@@ -1,0 +1,119 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card appearance="outlined" class="registration-confirmation registration-confirmation__form__container content">
+  @if (error() === 401) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTokenErrorTitle">
+        Invalid token
+      </mat-card-title>
+      <mat-card-content class="registration-confirmation__form__content">
+        <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value</mat-error>
+      </mat-card-content>
+    </mat-card-header>
+  } @else if (!submitted()) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
+        >Confirm registration
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="registration-confirmation__form__content">
+      <form
+        [formGroup]="registrationConfirmationForm"
+        (ngSubmit)="confirmRegistration()"
+        [appIsMobile]="'registrationConfirmation__form__container--mobile'">
+        <div class="registration-confirmation__form">
+          <div class="registration-confirmation__form__fields">
+            <mat-form-field appearance="outline" class="registration-confirmation__form__input">
+              <mat-label i18n="@@registrationConfirmationUsername">Firstname</mat-label>
+              <input matInput formControlName="firstname" />
+              @if (registrationConfirmationForm.controls.firstname.hasError('required')) {
+                <mat-error i18n="@@registrationConfirmationFirstnameErrorRequired">Firstname is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="registration-confirmation__form__input">
+              <mat-label i18n="@@registrationConfirmationLastname">Lastname</mat-label>
+              <input matInput formControlName="lastname" />
+              @if (registrationConfirmationForm.controls.lastname.hasError('required')) {
+                <mat-error i18n="@@registrationConfirmationLastnameErrorRequired">Lastname is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="registration-confirmation__form__input">
+              <mat-label i18n="@@registrationConfirmationEmail">Email</mat-label>
+              <input type="text" matInput formControlName="email" />
+              @if (registrationConfirmationForm.controls.email.hasError('required')) {
+                <mat-error i18n="@@registrationConfirmationEmailErrorRequired">Email is required</mat-error>
+              }
+              @if (registrationConfirmationForm.controls.email.hasError('email')) {
+                <mat-error i18n="@@registrationConfirmationEmailErrorFormat">Email format error</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="registration-confirmation__form__input">
+              <mat-label i18n="@@registrationConfirmationChoosePassword">Choose a password</mat-label>
+              <input type="password" matInput formControlName="password" />
+              @if (registrationConfirmationForm.controls.password.hasError('required')) {
+                <mat-error i18n="@@registrationConfirmationPasswordErrorRequired">Password is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="log-in__form__input">
+              <mat-label i18n="@@registrationConfirmationConfirmPassword">Confirm your password</mat-label>
+              <input type="password" matInput formControlName="confirmedPassword" />
+              @if (registrationConfirmationForm.controls.confirmedPassword.hasError('required')) {
+                <mat-error i18n="@@registrationConfirmationPasswordErrorRequired">Password is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          @if (error() === 400) {
+            <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid password</mat-error>
+          }
+          <div class="registration-confirmation__form__buttons">
+            <button
+              [disabled]="registrationConfirmationForm.invalid"
+              type="submit"
+              mat-flat-button
+              i18n="@@registrationConfirmationAction"
+              class="registration-confirmation__form__submit">
+              CONFIRM
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  } @else if (submitted()) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
+        >Registration confirmed
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="registration-confirmation__success__content">
+      <div class="registration-confirmation__success__content__icon">
+        <mat-icon>how_to_reg</mat-icon>
+      </div>
+      <div i18n="@@registrationConfirmationSuccessMessage">An email has been confirmed</div>
+      <button
+        type="submit"
+        mat-flat-button
+        i18n="@@registrationConfirmationAction"
+        class="registration-confirmation__form__submit"
+        routerLink="/">
+        Back to portal
+      </button>
+    </mat-card-content>
+  }
+</mat-card>
