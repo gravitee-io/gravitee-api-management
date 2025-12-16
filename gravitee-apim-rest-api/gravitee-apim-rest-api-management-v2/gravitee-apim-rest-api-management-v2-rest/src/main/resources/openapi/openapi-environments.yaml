@@ -1910,13 +1910,15 @@ components:
           format: uuid
           description: The parent ID of the navigation item, if not provided item is created at root
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       discriminator:
         propertyName: type
         mapping:
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
-      required: [ title, type, area ]
+      required: [ title, type, area, visibility ]
     CreatePortalNavigationFolder:
       type: object
       title: "CreatePortalNavigationFolder"

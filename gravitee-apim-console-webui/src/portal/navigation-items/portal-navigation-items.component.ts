@@ -274,6 +274,7 @@ export class PortalNavigationItemsComponent {
               area,
               url: result.url,
               parentId: existingItem?.id,
+              visibility: result.visibility,
             });
           } else {
             if (!existingItem) {

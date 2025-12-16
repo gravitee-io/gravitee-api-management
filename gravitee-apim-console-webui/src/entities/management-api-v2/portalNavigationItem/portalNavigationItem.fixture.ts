@@ -119,6 +119,7 @@ export function fakeNewPagePortalNavigationItem(overrides?: Partial<NewPagePorta
     title: 'New Page',
     type: 'PAGE',
     area: 'HOMEPAGE',
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {
@@ -136,6 +137,7 @@ export function fakeNewFolderPortalNavigationItem(overrides?: Partial<NewFolderP
     title: 'New Folder',
     type: 'FOLDER',
     area: 'HOMEPAGE',
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {
@@ -154,6 +156,7 @@ export function fakeNewLinkPortalNavigationItem(overrides?: Partial<NewLinkPorta
     type: 'LINK',
     area: 'HOMEPAGE',
     url: 'https://example.com',
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(overrides)) {

@@ -15,19 +15,13 @@
  */
 package fixtures;
 
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
-import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
-import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
-import io.gravitee.rest.api.management.v2.rest.model.FlowPhase;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
-import java.net.URI;
+import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class PortalNavigationItemsFixtures {
 
@@ -45,7 +39,8 @@ public class PortalNavigationItemsFixtures {
             .title(title)
             .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .order(1)
-            .parentId(parentId);
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC);
     }
 
     public static BaseCreatePortalNavigationItem aCreatePortalNavigationFolder() {
@@ -58,7 +53,8 @@ public class PortalNavigationItemsFixtures {
             .title(title)
             .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .order(2)
-            .parentId(parentId);
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC);
     }
 
     public static BaseCreatePortalNavigationItem aCreatePortalNavigationLink() {
@@ -73,6 +69,23 @@ public class PortalNavigationItemsFixtures {
             .title(title)
             .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .order(3)
-            .parentId(parentId);
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseCreatePortalNavigationItem aPrivateCreatePortalNavigationPage() {
+        var title = "My Page";
+        var id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var parentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002");
+        var contentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003");
+        return new CreatePortalNavigationPage()
+            .portalPageContentId(contentId)
+            .type(PortalNavigationItemType.PAGE)
+            .id(id)
+            .title(title)
+            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .order(1)
+            .parentId(parentId)
+            .visibility(PortalVisibility.PRIVATE);
     }
 }

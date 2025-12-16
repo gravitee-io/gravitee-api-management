@@ -239,6 +239,7 @@ describe('PortalNavigationItemsComponent', () => {
             title,
             area: 'TOP_NAVBAR',
             type: 'FOLDER',
+            visibility: 'PUBLIC',
           },
           fakePortalNavigationFolder({
             title,
@@ -438,7 +439,13 @@ describe('PortalNavigationItemsComponent', () => {
       });
 
       expectCreateNavigationItem(
-        { title, area: 'TOP_NAVBAR', type: 'FOLDER', parentId: folderData.id } as NewPortalNavigationItem,
+        {
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'FOLDER',
+          parentId: folderData.id,
+          visibility: 'PUBLIC',
+        } as NewPortalNavigationItem,
         createdItem,
       );
       await expectGetNavigationItems(fakeResponse);
@@ -565,7 +572,13 @@ describe('PortalNavigationItemsComponent', () => {
 
     it('should clear selection when deleted item is selected', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
-        items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' })],
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+        ],
       });
 
       await expectGetNavigationItems(fakeResponse);
