@@ -23,10 +23,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.cache.TemplateLoader;
-import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import io.gravitee.apim.infra.template.FreemarkerConfigurationFactory;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
@@ -223,12 +223,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     private Configuration initCurrentOrgFreemarkerConfiguration(String currentOrganization) {
-        // Init the configuration
-        final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
-            freemarker.template.Configuration.VERSION_2_3_22
-        );
-
-        configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
+        final Configuration configuration = FreemarkerConfigurationFactory.createSecureConfiguration();
 
         // Get template loaders
         MultiTemplateLoader multiLoader = createMultiTemplateLoaderForOrganization(currentOrganization);
