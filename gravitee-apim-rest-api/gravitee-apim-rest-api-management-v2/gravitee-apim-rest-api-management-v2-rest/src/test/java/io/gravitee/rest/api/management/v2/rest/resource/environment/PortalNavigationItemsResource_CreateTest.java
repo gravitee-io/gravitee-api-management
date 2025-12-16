@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMappe
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
+import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -194,5 +195,33 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_check_visibility_when_portal_navigation_page_created_with_visibility_set_to_private() {
+        // Given
+        final var page = PortalNavigationItemsFixtures.aPrivateCreatePortalNavigationPage();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(page), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(page));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", page.getId())
+            .hasFieldOrPropertyWithValue("title", page.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
+            .hasFieldOrPropertyWithValue("portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
+            .hasFieldOrPropertyWithValue("parentId", page.getParentId())
+            .hasFieldOrPropertyWithValue("order", page.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", PortalVisibility.PRIVATE);
     }
 }

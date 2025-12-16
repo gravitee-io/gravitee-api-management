@@ -46,6 +46,7 @@ interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
   type: T;
   area: PortalArea;
+  visibility: PortalVisibility;
   parentId?: string;
   order?: number;
 }

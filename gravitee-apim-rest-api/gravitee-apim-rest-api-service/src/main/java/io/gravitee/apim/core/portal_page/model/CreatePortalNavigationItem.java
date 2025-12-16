@@ -34,4 +34,5 @@ public final class CreatePortalNavigationItem {
     private PortalNavigationItemId parentId;
     private PortalPageContentId portalPageContentId;
     private String url;
+    private String visibility;
 }
