@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,10 +49,14 @@ import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.mapper.NotificationTemplateMapper;
+import java.io.StringReader;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -361,5 +366,57 @@ public class NotificationTemplateServiceTest {
             true
         );
         assertThat(result).isEqualTo("");
+    }
+
+    @Getter
+    @Builder
+    @ToString
+    public static class TestData {
+
+        private String id;
+    }
+
+    @Test
+    public void should_not_access_get_class() {
+        var api = TestData.builder().id("test").build();
+        assertThatExceptionOfType(TemplateProcessingException.class).isThrownBy(() ->
+            notificationTemplateService.resolveInlineTemplateWithParam(
+                ORGANIZATION_ID,
+                NOTIFICATION_TEMPLATE_NAME,
+                new StringReader("${api.class}"),
+                Map.of("api", api),
+                false
+            )
+        );
+    }
+
+    @Test
+    public void should_not_access_protection_domain() {
+        var api = TestData.builder().id("test").build();
+        assertThatExceptionOfType(TemplateProcessingException.class).isThrownBy(() ->
+            notificationTemplateService.resolveInlineTemplateWithParam(
+                ORGANIZATION_ID,
+                NOTIFICATION_TEMPLATE_NAME,
+                new StringReader("${api.class.protectionDomain}"),
+                Map.of("api", api),
+                false
+            )
+        );
+    }
+
+    @Test
+    public void should_not_access_restricted_methods_combination() {
+        var api = TestData.builder().id("test").build();
+        assertThatExceptionOfType(TemplateProcessingException.class).isThrownBy(() ->
+            notificationTemplateService.resolveInlineTemplateWithParam(
+                ORGANIZATION_ID,
+                NOTIFICATION_TEMPLATE_NAME,
+                new StringReader(
+                    "${api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream()}"
+                ),
+                Map.of("api", api),
+                false
+            )
+        );
     }
 }
