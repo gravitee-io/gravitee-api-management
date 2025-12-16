@@ -20,8 +20,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
-import { TreeComponentHarness } from '../components/tree-component/tree.component.harness';
 import { EmptyStateComponentHarness } from '../../shared/components/empty-state/empty-state.component.harness';
+import { FlatTreeComponentHarness } from '../components/flat-tree/flat-tree.component.harness';
 
 export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
@@ -31,7 +31,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getPublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Publish$/ }));
   private getUnpublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Unpublish$/ }));
   private getMenu = this.locatorFor(MatMenuHarness);
-  private getTree = this.locatorFor(TreeComponentHarness);
+  private getTree = this.locatorFor(FlatTreeComponentHarness);
   private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
   private getEmptyEditor = this.locatorForOptional(
     EmptyStateComponentHarness.with({ title: 'Editor', message: 'Use GMD code to customize and edit your page content.' }),
