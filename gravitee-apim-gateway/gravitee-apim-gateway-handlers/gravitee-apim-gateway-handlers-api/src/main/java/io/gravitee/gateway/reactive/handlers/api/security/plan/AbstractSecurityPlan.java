@@ -172,7 +172,11 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
                 }
                 securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName(), subscription.getApplicationName());
             } else {
-                securityChainDiagnostic.markPlanHasNoSubscription(planContext.planName());
+                securityChainDiagnostic.markPlanHasNoSubscription(
+                    planContext.planName(),
+                    securityToken.getTokenType(),
+                    securityToken.getTokenValue()
+                );
             }
             return false;
         } catch (Exception t) {
