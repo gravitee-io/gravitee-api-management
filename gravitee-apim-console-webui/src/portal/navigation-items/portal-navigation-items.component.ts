@@ -44,7 +44,7 @@ import {
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { NodeMenuActionEvent, SectionNode, TreeComponent } from '../components/tree-component/tree.component';
+import { NodeMenuActionEvent, SectionNode, FlatTreeComponent } from '../components/flat-tree/flat-tree.component';
 import {
   NewPortalNavigationItem,
   PortalArea,
@@ -70,7 +70,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
     EmptyStateComponent,
     GioCardEmptyStateModule,
     MatButtonModule,
-    TreeComponent,
+    FlatTreeComponent,
     GioPermissionModule,
     MatMenuModule,
     MatMenuTrigger,
