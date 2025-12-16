@@ -29,7 +29,7 @@ import io.gravitee.gateway.reactive.core.connection.DefaultConnectionDrainManage
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.connection.ConnectionDrainProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
@@ -102,7 +102,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
             assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
             assertInstanceOf(MetricsProcessor.class, processors.get(2));
-            assertInstanceOf(XForwardForProcessor.class, processors.get(3));
+            assertInstanceOf(XForwardProcessor.class, processors.get(3));
             assertInstanceOf(TraceContextProcessor.class, processors.get(4));
         }
 
@@ -125,7 +125,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
             assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
             assertInstanceOf(MetricsProcessor.class, processors.get(2));
-            assertInstanceOf(XForwardForProcessor.class, processors.get(3));
+            assertInstanceOf(XForwardProcessor.class, processors.get(3));
         }
     }
 

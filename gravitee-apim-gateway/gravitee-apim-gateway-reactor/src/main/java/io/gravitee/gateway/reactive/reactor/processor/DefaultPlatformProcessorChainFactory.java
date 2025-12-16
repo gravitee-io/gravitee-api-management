@@ -19,7 +19,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.connection.ConnectionDrainProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
@@ -67,7 +67,7 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         preProcessorList.add(new MetricsProcessor(gatewayConfiguration));
 
         if (xForwardProcessor) {
-            preProcessorList.add(new XForwardForProcessor());
+            preProcessorList.add(new XForwardProcessor());
         }
 
         // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
