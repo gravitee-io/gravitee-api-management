@@ -17,8 +17,9 @@
 
 :host {
   @include layout.large-container-legacy();
+}
 
-  display: flex;
+.content {
   flex-flow: column;
   gap: 32px;
 }

@@ -15,12 +15,14 @@
     limitations under the License.
 
 -->
-@if (showBanner) {
-  <app-catalog-banner />
-}
+<div class="content">
+  @if (showBanner) {
+    <app-catalog-banner />
+  }
 
-<app-breadcrumb-navigation />
+  <app-breadcrumb-navigation />
 
-@if (query$ | async; as query) {
-  <app-apis-list [query]="query.query" [currentCategory]="currentCategory() ?? {}" (searchTerm)="onSearch($event)" />
-}
+  @if (query$ | async; as query) {
+    <app-apis-list [query]="query.query" [currentCategory]="currentCategory() ?? {}" (searchTerm)="onSearch($event)" />
+  }
+</div>

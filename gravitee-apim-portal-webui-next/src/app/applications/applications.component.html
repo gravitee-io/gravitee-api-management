@@ -15,43 +15,45 @@
     limitations under the License.
 
 -->
-<mat-card appearance="outlined">
-  <mat-card-content class="tile">
-    <div class="app-list-header">
-      <div class="app-list-header__title">
-        <h2 i18n="@@applicationsGridTitle">Applications</h2>
-        <div class="description" i18n="@@applicationsGridDescription">
-          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
-          via subscriptions.
+<div class="content">
+  <mat-card appearance="outlined">
+    <mat-card-content class="tile">
+      <div class="app-list-header">
+        <div class="app-list-header__title">
+          <h2 i18n="@@applicationsGridTitle">Applications</h2>
+          <div class="description" i18n="@@applicationsGridDescription">
+            An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
+            via subscriptions.
+          </div>
         </div>
+        @if (canCreate()) {
+          <div>
+            <button mat-stroked-button class="secondary-button" [routerLink]="['create']">
+              <mat-icon>add</mat-icon>
+              <span i18n="@@applicationsCreateButton">Create</span>
+            </button>
+          </div>
+        }
       </div>
-      @if (canCreate()) {
-        <div>
-          <button mat-stroked-button class="secondary-button" [routerLink]="['create']">
-            <mat-icon>add</mat-icon>
-            <span i18n="@@applicationsCreateButton">Create</span>
-          </button>
-        </div>
-      }
-    </div>
 
-    @if (applicationPaginator$ | async; as applications) {
-      @if (applications.data.length === 0) {
-        <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
-      } @else {
-        <div
-          class="app-list__container"
-          [ngClass]="appListContainerClasses()"
-          infiniteScroll
-          (scrolled)="loadMoreApplications(applications)">
-          @for (application of applications.data; track application.id) {
-            <app-application-card [application]="application" />
-          }
-        </div>
+      @if (applicationPaginator$ | async; as applications) {
+        @if (applications.data.length === 0) {
+          <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
+        } @else {
+          <div
+            class="app-list__container"
+            [ngClass]="appListContainerClasses()"
+            infiniteScroll
+            (scrolled)="loadMoreApplications(applications)">
+            @for (application of applications.data; track application.id) {
+              <app-application-card [application]="application" />
+            }
+          </div>
+        }
       }
-    }
-    @if (loadingPage$ | async) {
-      <app-loader />
-    }
-  </mat-card-content>
-</mat-card>
+      @if (loadingPage$ | async) {
+        <app-loader />
+      }
+    </mat-card-content>
+  </mat-card>
+</div>
