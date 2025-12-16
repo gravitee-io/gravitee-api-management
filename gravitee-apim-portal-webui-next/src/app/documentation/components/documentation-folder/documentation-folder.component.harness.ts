@@ -17,7 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
-import { TreeComponentHarness } from './tree-component/tree.component.harness';
+import { BreadcrumbsComponentHarness } from './breadcrumb/breadcrumbs.component.harness';
+import { TreeComponentHarness } from './tree/tree.component.harness';
 import { DivHarness } from '../../../../testing/div.harness';
 
 export class DocumentationFolderComponentHarness extends ComponentHarness {
@@ -31,6 +32,8 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
     DivHarness.with({ selector: '.documentation-folder__container .empty-state' }),
   );
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
+
+  private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
 
   async getTreeHarness(): Promise<TreeComponentHarness | null> {
     return this.getTree();
@@ -46,5 +49,9 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getGmdViewer(): Promise<GraviteeMarkdownViewerHarness | null> {
     return this.getGraviteeMarkdownViewer();
+  }
+
+  async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {
+    return this.getBreadcrumbsHarness();
   }
 }

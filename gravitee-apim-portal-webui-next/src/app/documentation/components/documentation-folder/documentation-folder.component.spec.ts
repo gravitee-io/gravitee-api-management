@@ -17,7 +17,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { ActivatedRoute, Params, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
@@ -34,7 +34,6 @@ describe('DocumentationFolderComponent', () => {
   let fixture: ComponentFixture<DocumentationFolderComponent>;
   let harness: DocumentationFolderComponentHarness;
   let navigationService: PortalNavigationItemsService;
-  let activatedRoute: ActivatedRoute;
   let routerSpy: jest.SpyInstance;
 
   const makeItem = (
@@ -55,7 +54,8 @@ describe('DocumentationFolderComponent', () => {
     }
   };
 
-  const MOCK_ITEMS = [
+  const MOCK_ITEM = { title: 'Test item' };
+  const MOCK_CHILDREN = [
     makeItem('f1', 'FOLDER', 'Folder 1', 0),
     makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
     makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
@@ -69,18 +69,26 @@ describe('DocumentationFolderComponent', () => {
   const init = async (
     params: Partial<{ queryParams: { pageId?: string }; items: PortalNavigationItem[]; content: string }> = {
       queryParams: { pageId: 'p2' },
-      items: MOCK_ITEMS,
+      items: MOCK_CHILDREN,
       content: MOCK_CONTENT,
     },
   ) => {
     await TestBed.configureTestingModule({
       imports: [DocumentationFolderComponent, MatIconTestingModule, HttpClientTestingModule],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParams: { ...params.queryParams },
+            },
+          },
+        },
+      ],
     }).compileComponents();
 
     navigationService = TestBed.inject(PortalNavigationItemsService);
-    activatedRoute = TestBed.inject(ActivatedRoute);
-    activatedRoute.queryParams = of(params.queryParams as unknown as Params);
     routerSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
 
     jest.spyOn(navigationService, 'getNavigationItems').mockReturnValue(of(params.items as unknown as PortalNavigationItem[]));
@@ -89,8 +97,8 @@ describe('DocumentationFolderComponent', () => {
       .mockReturnValueOnce(of({ content: params.content!, type: 'GRAVITEE_MARKDOWN' }));
 
     fixture = TestBed.createComponent(DocumentationFolderComponent);
+    fixture.componentRef.setInput('navItem', MOCK_ITEM);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationFolderComponentHarness);
-    fixture.componentRef.setInput('navItem', {});
 
     fixture.detectChanges();
   };
@@ -144,7 +152,7 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should select first page when no pageId provided', async () => {
-        await init({ items: MOCK_ITEMS, queryParams: {}, content: MOCK_CONTENT });
+        await init({ items: MOCK_CHILDREN, queryParams: {}, content: MOCK_CONTENT });
 
         expect(routerSpy).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
@@ -153,13 +161,44 @@ describe('DocumentationFolderComponent', () => {
       });
 
       it('should select page by pageId', async () => {
-        await init({ items: MOCK_ITEMS, queryParams: { pageId: 'p1' }, content: MOCK_CONTENT });
+        await init({ items: MOCK_CHILDREN, queryParams: { pageId: 'p1' }, content: MOCK_CONTENT });
 
         expect(routerSpy).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
           queryParams: { pageId: 'p1' },
         });
       });
+    });
+  });
+
+  describe('breadcrumbs', () => {
+    it('should display only top level label', async () => {
+      await init({ items: [], content: '', queryParams: {} });
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item');
+    });
+
+    it('should display several levels', async () => {
+      await init();
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
+    });
+
+    it('should update on selection', async () => {
+      await init();
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
+
+      const tree = await harness.getTreeHarness();
+
+      await tree!.clickItemByTitle('Page 1');
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Folder 2/Page 1');
+
+      await tree!.clickItemByTitle('Page 3');
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Page 3');
     });
   });
 
