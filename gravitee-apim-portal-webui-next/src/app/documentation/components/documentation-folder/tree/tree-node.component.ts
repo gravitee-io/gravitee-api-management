@@ -18,8 +18,8 @@ import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { SectionNode } from './tree.component';
 import { PortalNavigationLink } from '../../../../../entities/portal-navigation/portal-navigation-item';
+import { TreeNode } from '../../../services/documentation-tree.service';
 
 @Component({
   selector: 'app-tree-node',
@@ -30,7 +30,7 @@ import { PortalNavigationLink } from '../../../../../entities/portal-navigation/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TreeNodeComponent {
-  node = input.required<SectionNode>();
+  node = input.required<TreeNode>();
   level = input(0);
   selectedId = input<string | null>(null);
 

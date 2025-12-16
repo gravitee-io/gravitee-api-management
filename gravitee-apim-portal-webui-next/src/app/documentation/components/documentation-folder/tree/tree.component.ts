@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, computed, effect, input, model, output, untracked } from '@angular/core';
+import { AfterViewInit, Component, effect, input, model, output, untracked } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
-import { PortalNavigationItem, PortalNavigationItemType } from '../../../../../entities/portal-navigation/portal-navigation-item';
-import { Breadcrumb } from '../breadcrumb/breadcrumbs.component';
-
-export interface SectionNode {
-  id: string;
-  label: string;
-  type: PortalNavigationItemType;
-  data?: PortalNavigationItem;
-  children?: SectionNode[];
-  breadcrumbs?: Breadcrumb[];
-}
-
-type ProcessingNode = SectionNode & {
-  __order: number;
-  __parentId: string | null;
-};
+import { TreeNode } from '../../../services/documentation-tree.service';
 
 @Component({
   selector: 'app-tree-component',
@@ -41,16 +26,9 @@ type ProcessingNode = SectionNode & {
   styleUrls: ['./tree.component.scss'],
 })
 export class TreeComponent implements AfterViewInit {
-  items = input<PortalNavigationItem[] | null>(null);
-  tree = computed(() => {
-    const items = this.items();
-    return items && Array.isArray(items) ? this.mapItemsToNodes(items) : [];
-  });
-
+  tree = input.required<TreeNode[]>();
   selectedId = model<string | null>(null);
-  selectNode = output<SectionNode | null>();
-
-  private nodesById = new Map<string, ProcessingNode>();
+  selectNode = output<string | null>();
 
   constructor() {
     effect(() => this.selectFirstPage());
@@ -62,70 +40,7 @@ export class TreeComponent implements AfterViewInit {
 
   onNodeSelected(id: string) {
     this.selectedId.set(id);
-    this.selectNode.emit(this.nodesById.get(id) ?? null);
-  }
-
-  private mapItemsToNodes(items: PortalNavigationItem[]): SectionNode[] {
-    this.nodesById = this.createNodesMap(items);
-    const roots = this.connectNodes(this.nodesById);
-    return this.sortAndCleanTree(this.attachBreadcrumbs(roots));
-  }
-
-  private createNodesMap(items: PortalNavigationItem[]): Map<string, ProcessingNode> {
-    const nodes = new Map<string, ProcessingNode>();
-
-    for (const item of items) {
-      const type = item.type;
-
-      nodes.set(item.id, {
-        id: item.id,
-        label: item.title,
-        type,
-        data: item,
-        children: type === 'FOLDER' ? [] : undefined,
-        __order: item.order ?? 0,
-        __parentId: item.parentId ?? null,
-      } as ProcessingNode);
-    }
-    return nodes;
-  }
-
-  private connectNodes(nodes: Map<string, ProcessingNode>): ProcessingNode[] {
-    const roots: ProcessingNode[] = [];
-
-    for (const node of nodes.values()) {
-      const parent = node.__parentId ? nodes.get(node.__parentId) : null;
-      if (parent) {
-        parent.children ??= [];
-        parent.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    }
-
-    return roots;
-  }
-
-  private sortAndCleanTree(nodes: ProcessingNode[]): SectionNode[] {
-    return nodes
-      .toSorted((a, b) => a.__order - b.__order)
-      .map(({ __order, __parentId, ...node }) => ({
-        ...node,
-        children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
-      }));
-  }
-
-  private attachBreadcrumbs(nodes: ProcessingNode[], breadcrumbs: Breadcrumb[] = []): ProcessingNode[] {
-    return nodes.map(node => {
-      const children = (node.children ?? []) as ProcessingNode[];
-      const newBreadcrumbs = [...breadcrumbs, { id: node.id, label: node.label }];
-      if (children.length > 0) {
-        node.children = this.attachBreadcrumbs(children, newBreadcrumbs);
-      } else if (node.type === 'PAGE') {
-        node.breadcrumbs = newBreadcrumbs;
-      }
-      return node;
-    });
+    this.selectNode.emit(id);
   }
 
   private selectFirstPage() {
@@ -136,7 +51,7 @@ export class TreeComponent implements AfterViewInit {
     }
   }
 
-  private findFirstPageId(nodes: SectionNode[]): string | null {
+  private findFirstPageId(nodes: TreeNode[]): string | null {
     for (const node of nodes) {
       if (node.type === 'PAGE') {
         return node.id;

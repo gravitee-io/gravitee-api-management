@@ -19,7 +19,7 @@
   @if (this.children() && this.children()!.length > 0) {
     <app-tree-component
       class="documentation-folder__sidenav__tree"
-      [items]="this.children()"
+      [tree]="this.tree()"
       [selectedId]="this.pageId()"
       (selectNode)="onSelect($event)" />
   } @else {
