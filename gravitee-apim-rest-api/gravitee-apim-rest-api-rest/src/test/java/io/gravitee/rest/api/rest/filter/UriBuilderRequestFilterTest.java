@@ -220,7 +220,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderHostHeaderWithMultipleHostsAndPortCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
-        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io,gravitee.io:8443");
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io:8443,gravitee.io");
 
         filter.filter(containerRequestContext);
 
