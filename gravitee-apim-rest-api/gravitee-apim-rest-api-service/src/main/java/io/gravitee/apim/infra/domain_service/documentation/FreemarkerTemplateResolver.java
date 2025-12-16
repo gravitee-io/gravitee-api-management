@@ -16,12 +16,12 @@
 package io.gravitee.apim.infra.domain_service.documentation;
 
 import freemarker.cache.StringTemplateLoader;
-import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.apim.core.documentation.domain_service.TemplateResolverDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
+import io.gravitee.apim.infra.template.FreemarkerConfigurationFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
@@ -31,11 +31,16 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 @Service
 public class FreemarkerTemplateResolver implements TemplateResolverDomainService {
 
+    private final Configuration configuration;
+
+    public FreemarkerTemplateResolver() {
+        this.configuration = initFreemarkerConfiguration();
+    }
+
     @Override
     public String resolveTemplate(String content, Map<String, Object> params) throws InvalidPageContentException {
-        Configuration freemarkerConfiguration = initFreemarkerConfiguration();
         try {
-            Template template = new Template("template", new StringReader(content), freemarkerConfiguration);
+            Template template = new Template("template", new StringReader(content), configuration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
         } catch (IOException e) {
             throw new InvalidPageContentException("Invalid template " + e.getMessage(), e);
@@ -46,11 +51,7 @@ public class FreemarkerTemplateResolver implements TemplateResolverDomainService
 
     private Configuration initFreemarkerConfiguration() {
         // Init the configuration
-        final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
-            freemarker.template.Configuration.VERSION_2_3_22
-        );
-
-        configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
+        final Configuration configuration = FreemarkerConfigurationFactory.createSecureConfiguration();
 
         configuration.setTemplateLoader(new StringTemplateLoader());
         return configuration;

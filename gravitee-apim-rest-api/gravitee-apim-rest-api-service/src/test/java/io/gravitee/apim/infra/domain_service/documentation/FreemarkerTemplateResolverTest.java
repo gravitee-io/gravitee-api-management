@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.documentation;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.gravitee.apim.core.api.model.Api;
@@ -153,9 +153,37 @@ class FreemarkerTemplateResolverTest {
             Arguments.of("picture", "a lovely picture"),
             Arguments.of("state", "STARTED"),
             Arguments.of("visibility", "PUBLIC"),
+            Arguments.of("tags?first", "first tag"),
+            Arguments.of("tags?sequence[0]", "first tag"),
             Arguments.of("tags[0]", "first tag"),
             Arguments.of("primaryOwner.displayName", "po display name"),
             Arguments.of("primaryOwner.email", "po email")
         );
+    }
+
+    @Test
+    void should_not_access_get_class() {
+        var api = ApiFreemarkerTemplate.builder().id("api-id").build();
+        var throwable = catchThrowable(() -> resolver.resolveTemplate("${api.class}", Map.of("api", api)));
+        assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
+    }
+
+    @Test
+    void should_not_access_protection_domain() {
+        var api = ApiFreemarkerTemplate.builder().id("api-id").build();
+        var throwable = catchThrowable(() -> resolver.resolveTemplate("${api.class.protectionDomain}", Map.of("api", api)));
+        assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
+    }
+
+    @Test
+    void should_not_access_restricted_methods_combination() {
+        var api = ApiFreemarkerTemplate.builder().id("api-id").build();
+        var throwable = catchThrowable(() ->
+            resolver.resolveTemplate(
+                "${api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream()}",
+                Map.of("api", api)
+            )
+        );
+        assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
     }
 }
