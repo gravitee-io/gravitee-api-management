@@ -13,22 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+$container-padding-vertical-legacy: 2rem;
+$container-padding-horizontal: 16px;
+
+/**
+  * Mixins for containers
+  *
+  * They expect an inner class `.content` to center the content and set the correct width
+ */
+
 @mixin full-width-container {
   @include -container(100%);
 }
 
 @mixin large-container-legacy {
-  @include -container(1280px);
+  @include -container-legacy(1280px);
 }
 
 @mixin small-container-legacy {
-  @include -container(400px);
+  @include -container-legacy(400px);
 }
 
 @mixin -container($max-width) {
   display: block;
-  max-width: $max-width;
-  padding: 0 24px;
-  margin-right: auto;
-  margin-left: auto;
+  width: 100%;
+  padding: 0 $container-padding-horizontal;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+
+  & > .content {
+    display: flex;
+    width: 100%;
+    max-width: $max-width;
+    justify-content: center; // when flex-flow is column
+    justify-self: center; // when flex-flow is row
+  }
+}
+
+@mixin -container-legacy($max-width) {
+  @include -container($max-width);
+
+  padding-top: $container-padding-vertical-legacy;
+  padding-bottom: $container-padding-vertical-legacy;
 }
