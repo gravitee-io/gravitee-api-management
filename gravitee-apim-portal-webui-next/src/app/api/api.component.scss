@@ -18,3 +18,7 @@
 :host {
   @include layout.large-container-legacy();
 }
+
+.content {
+  flex-flow: column;
+}
