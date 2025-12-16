@@ -133,8 +133,8 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
 
         if (hostHeaderValue != null) {
             // Split the header value in case of multiple entries (e.g., localhost,localhost)
-            String[] hosts = hostHeaderValue.split(",");
-            String effectiveHost = hosts[hosts.length - 1].trim(); // Use the last host in the chain
+            int commaIndex = hostHeaderValue.indexOf(',');
+            String effectiveHost = commaIndex == -1 ? hostHeaderValue : hostHeaderValue.substring(0, commaIndex).trim(); // Use the first host in the chain
 
             if (effectiveHost.contains(":")) {
                 int lastColonIdx = effectiveHost.lastIndexOf(':');
