@@ -108,7 +108,7 @@ describe('TreeComponent', () => {
       fixture.componentRef.setInput('items', items);
       fixture.detectChanges();
 
-      expect(selectSpy).toHaveBeenCalledWith('p1');
+      expect(selectSpy).toHaveBeenCalledWith(expect.objectContaining({ label: 'Page 1' }));
     });
 
     it('should autoselect intermediary page', () => {
@@ -121,7 +121,7 @@ describe('TreeComponent', () => {
       fixture.componentRef.setInput('items', items);
       fixture.detectChanges();
 
-      expect(selectSpy).toHaveBeenCalledWith('p2');
+      expect(selectSpy).toHaveBeenCalledWith(expect.objectContaining({ label: 'Page 2' }));
     });
 
     it('should autoselect top level page', () => {
@@ -134,7 +134,7 @@ describe('TreeComponent', () => {
       fixture.componentRef.setInput('items', items);
       fixture.detectChanges();
 
-      expect(selectSpy).toHaveBeenCalledWith('p3');
+      expect(selectSpy).toHaveBeenCalledWith(expect.objectContaining({ label: 'Page 3' }));
     });
 
     it('should select the page by pageId', () => {
@@ -145,7 +145,7 @@ describe('TreeComponent', () => {
       fixture.componentRef.setInput('selectedId', 'p3');
       fixture.detectChanges();
 
-      expect(selectSpy).toHaveBeenCalledWith('p3');
+      expect(selectSpy).toHaveBeenCalledWith(expect.objectContaining({ label: 'Page 3' }));
     });
   });
 
