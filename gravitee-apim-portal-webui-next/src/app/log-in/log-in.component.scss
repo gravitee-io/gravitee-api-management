@@ -18,13 +18,11 @@
 
 :host {
   @include layout.small-container-legacy();
-
-  display: flex;
-  justify-content: center;
 }
 
 .log-in {
   display: flex;
+  width: 100%;
   flex-flow: column;
   gap: 20px;
 
@@ -38,7 +36,7 @@
     }
 
     &__container {
-      width: 100%;
+      // width: 100%;
       border-radius: 8px;
 
       &--mobile {

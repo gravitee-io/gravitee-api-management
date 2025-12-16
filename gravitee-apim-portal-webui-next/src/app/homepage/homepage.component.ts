@@ -24,7 +24,7 @@ import { PortalPageContent } from '../../entities/portal-navigation/portal-page-
 @Component({
   selector: 'app-homepage',
   imports: [NavigationItemContentViewerComponent],
-  template: `<app-navigation-item-content-viewer [pageContent]="pageContent()" />`,
+  template: `<div class="content"><app-navigation-item-content-viewer [pageContent]="pageContent()" /></div>`,
   styleUrls: ['./homepage.component.scss'],
 })
 export class HomepageComponent {

@@ -15,7 +15,11 @@
     limitations under the License.
 
 -->
-<form [formGroup]="logInForm" (ngSubmit)="logIn()" class="log-in__form__container" [appIsMobile]="'log-in__form__container--mobile'">
+<form
+  [formGroup]="logInForm"
+  (ngSubmit)="logIn()"
+  class="log-in__form__container content"
+  [appIsMobile]="'log-in__form__container--mobile'">
   <mat-card appearance="outlined" class="log-in">
     <mat-card-header class="log-in__form__header">
       <mat-card-title class="log-in__form__title" i18n="@@logInTitle">Login</mat-card-title>
