@@ -53,16 +53,101 @@ class SecurityChainDiagnosticTest {
         }
 
         @Test
-        @DisplayName("Should return exception for no subscription plans")
-        void shouldReturnExceptionForNoSubscriptionPlans() {
+        @DisplayName("Should return exception for no subscription plans with API key")
+        void shouldReturnExceptionForNoSubscriptionPlansWithApiKey() {
             // Given
-            diagnostic.markPlanHasNoSubscription("plan1");
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", "1234567890abcdef");
 
             // When
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No active subscription was found for the following plan: plan1");
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: 1234***cdef (plan: plan1)");
+        }
+
+        @Test
+        @DisplayName("Should return exception for no subscription plans with client ID")
+        void shouldReturnExceptionForNoSubscriptionPlansWithClientId() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "CLIENT_ID", "my-client-id-12345");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for Client ID: my-c***2345 (plan: plan1)");
+        }
+
+        @Test
+        @DisplayName("Should return exception for no subscription plans with client ID short token")
+        void shouldReturnExceptionForNoSubscriptionPlansWithClientIdShortToken() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "CLIENT_ID", "my");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for Client ID: m*** (plan: plan1)");
+        }
+
+        @Test
+        @DisplayName("Should return exception for no subscription plans with certificate")
+        void shouldReturnExceptionForNoSubscriptionPlansWithCertificate() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "CERTIFICATE", "CN=mycert,O=myorg");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for Certificate: CN=m***yorg (plan: plan1)");
+        }
+
+        @Test
+        @DisplayName("Should mention API key and client ID when mixed")
+        void shouldMentionApiKeyAndClientIdWhenMixed() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", "1234567890abcdef");
+            diagnostic.markPlanHasNoSubscription("plan2", "CLIENT_ID", "my-client-id-12345");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo(
+                "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Client ID: my-c***2345 (plan: plan2)"
+            );
+        }
+
+        @Test
+        @DisplayName("Should mention certificate and API key when mixed")
+        void shouldMentionCertificateAndApiKeyWhenMixed() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("plan1", "API_KEY", "1234567890abcdef");
+            diagnostic.markPlanHasNoSubscription("plan2", "CERTIFICATE", "CN=mycert,O=myorg");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo(
+                "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Certificate: CN=m***yorg (plan: plan2)"
+            );
+        }
+
+        @Test
+        @DisplayName("Should list multiple plans for same credential type")
+        void shouldListMultiplePlansWithAndForSameCredentialType() {
+            // Given
+            diagnostic.markPlanHasNoSubscription("key", "API_KEY", "a657000000097e6");
+            diagnostic.markPlanHasNoSubscription("second key plan", "API_KEY", "a657000000097e6");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: a657***97e6 (plans: key, second key plan)");
         }
 
         @Test
@@ -125,7 +210,7 @@ class SecurityChainDiagnosticTest {
         void shouldPrioritizeInvalidTokenOverOtherIssues() {
             // Given
             diagnostic.markPlanHasNoToken("plan1");
-            diagnostic.markPlanHasNoSubscription("plan2");
+            diagnostic.markPlanHasNoSubscription("plan2", "CLIENT_ID", "my-client-id-12345");
             diagnostic.markPlanHasInvalidToken("plan3");
 
             // When
@@ -140,13 +225,13 @@ class SecurityChainDiagnosticTest {
         void shouldPrioritizeNoSubscriptionOverExpiredSubscription() {
             // Given
             diagnostic.markPlanHasExpiredSubscription("plan1", "app1");
-            diagnostic.markPlanHasNoSubscription("plan2");
+            diagnostic.markPlanHasNoSubscription("plan2", "API_KEY", "short");
 
             // When
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No active subscription was found for the following plan: plan2");
+            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: sh***rt (plan: plan2)");
         }
 
         @Test
