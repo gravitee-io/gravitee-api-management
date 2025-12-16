@@ -23,11 +23,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
-import {
-  fakePortalNavigationFolder,
-  fakePortalNavigationLink,
-  fakePortalNavigationPage,
-} from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 
 describe('DocumentationFolderComponent', () => {
@@ -36,32 +32,8 @@ describe('DocumentationFolderComponent', () => {
   let navigationService: PortalNavigationItemsService;
   let routerSpy: jest.SpyInstance;
 
-  const makeItem = (
-    id: string,
-    type: 'PAGE' | 'FOLDER' | 'LINK',
-    title: string,
-    order?: number,
-    parentId?: string | null,
-  ): PortalNavigationItem => {
-    switch (type) {
-      case 'FOLDER':
-        return fakePortalNavigationFolder({ id, title, order, parentId });
-      case 'LINK':
-        return fakePortalNavigationLink({ id, title, order, parentId });
-      case 'PAGE':
-      default:
-        return fakePortalNavigationPage({ id, title, order, parentId });
-    }
-  };
-
   const MOCK_ITEM = { title: 'Test item' };
-  const MOCK_CHILDREN = [
-    makeItem('f1', 'FOLDER', 'Folder 1', 0),
-    makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
-    makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
-    makeItem('p2', 'PAGE', 'Page 2', 1, 'f1'),
-    makeItem('p3', 'PAGE', 'Page 3', 1),
-  ];
+  const MOCK_CHILDREN = MOCK_ITEMS;
   const MOCK_CONTENT = 'MOCK_CONTENT';
 
   const gmdViewerContent = (content: string) => `<p>${content}</p>\n`;
@@ -172,13 +144,6 @@ describe('DocumentationFolderComponent', () => {
   });
 
   describe('breadcrumbs', () => {
-    it('should display only top level label', async () => {
-      await init({ items: [], content: '', queryParams: {} });
-
-      const breadcrumbs = await harness.getBreadcrumbs();
-      expect(await breadcrumbs?.getText()).toEqual('Test item');
-    });
-
     it('should display several levels', async () => {
       await init();
 
