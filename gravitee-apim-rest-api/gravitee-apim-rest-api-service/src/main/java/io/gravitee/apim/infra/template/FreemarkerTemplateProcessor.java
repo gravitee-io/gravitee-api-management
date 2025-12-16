@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.template;
 
-import freemarker.core.TemplateClassResolver;
+import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.apim.core.template.TemplateProcessor;
@@ -32,13 +32,14 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 @Service
 public class FreemarkerTemplateProcessor implements TemplateProcessor {
 
+    private final Configuration configuration;
+
+    public FreemarkerTemplateProcessor() {
+        this.configuration = FreemarkerConfigurationFactory.createSecureConfiguration();
+    }
+
     @Override
     public String processInlineTemplate(String template, Map<String, Object> params) throws TemplateProcessorException {
-        final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
-            freemarker.template.Configuration.VERSION_2_3_22
-        );
-        configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
-
         try {
             Template freemarkerTemplate = new Template("", new StringReader(template), configuration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(freemarkerTemplate, params);
