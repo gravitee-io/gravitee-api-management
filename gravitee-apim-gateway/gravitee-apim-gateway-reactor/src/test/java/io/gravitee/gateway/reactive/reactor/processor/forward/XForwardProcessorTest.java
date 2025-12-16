@@ -37,9 +37,9 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class XForwardForProcessorTest extends AbstractProcessorTest {
+public class XForwardProcessorTest extends AbstractProcessorTest {
 
-    private XForwardForProcessor xForwardForProcessor;
+    private XForwardProcessor xForwardProcessor;
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
@@ -57,13 +57,13 @@ public class XForwardForProcessorTest extends AbstractProcessorTest {
 
     @BeforeEach
     public void setUp() {
-        xForwardForProcessor = new XForwardForProcessor();
+        xForwardProcessor = new XForwardProcessor();
         ctx.metrics(Metrics.builder().build());
     }
 
     @Test
     void shouldNotChangeRemoteAddressWithXForwardedForHeader() {
-        xForwardForProcessor.execute(ctx).test().assertResult();
+        xForwardProcessor.execute(ctx).test().assertResult();
         verify(mockRequest, times(4)).headers();
         assertThat(ctx.metrics().getRemoteAddress()).isNull();
     }
@@ -72,7 +72,7 @@ public class XForwardForProcessorTest extends AbstractProcessorTest {
     @MethodSource("provideParameters")
     void shouldOverrideRemoteAddressWithForwardedForHeader(String header, String remoteAddress) {
         spyRequestHeaders.set(HttpHeaderNames.X_FORWARDED_FOR, header);
-        xForwardForProcessor.execute(ctx).test().assertResult();
+        xForwardProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).remoteAddress(remoteAddress);
         assertThat(ctx.metrics().getRemoteAddress()).isEqualTo(remoteAddress);
     }
@@ -85,7 +85,7 @@ public class XForwardForProcessorTest extends AbstractProcessorTest {
         when(mockRequest.headers()).thenReturn(data.headers);
         when(mockRequest.uri()).thenReturn(data.uri);
 
-        String originalUrl = XForwardForProcessor.generateOriginalUrl(mockRequest);
+        String originalUrl = XForwardProcessor.generateOriginalUrl(mockRequest);
 
         assertThat(originalUrl).isEqualTo(expected);
     }
