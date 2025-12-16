@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.security;
 
+import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 
 @Data
@@ -25,8 +28,10 @@ public class SecurityChainDiagnostic {
     List<String> noTokenPlans;
     List<String> invalidTokenPlans;
     List<String> noMatchingRulePlans;
-    List<String> noSubscriptionPlans;
+    List<NoSubscriptionInfo> noSubscriptionPlans;
     List<String> expiredSubscriptionPlans;
+
+    private record NoSubscriptionInfo(String planName, String tokenType, String maskedToken) {}
 
     public void markPlanHasNoToken(String planName) {
         if (noTokenPlans == null) {
@@ -44,11 +49,24 @@ public class SecurityChainDiagnostic {
         noMatchingRulePlans.add(planName);
     }
 
-    public void markPlanHasNoSubscription(String planName) {
+    public void markPlanHasNoSubscription(String planName, String tokenType, String tokenValue) {
         if (noSubscriptionPlans == null) {
             noSubscriptionPlans = new ArrayList<>();
         }
-        noSubscriptionPlans.add(planName);
+        noSubscriptionPlans.add(new NoSubscriptionInfo(planName, tokenType, maskToken(tokenValue)));
+    }
+
+    private String maskToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return "***";
+        }
+        if (token.length() <= 4) {
+            return token.charAt(0) + "***";
+        }
+        if (token.length() <= 8) {
+            return token.substring(0, 2) + "***" + token.substring(token.length() - 2);
+        }
+        return token.substring(0, 4) + "***" + token.substring(token.length() - 4);
     }
 
     public void markPlanHasExpiredSubscription(String planName, String applicationName) {
@@ -71,7 +89,7 @@ public class SecurityChainDiagnostic {
         }
 
         if (noSubscriptionPlans != null) {
-            return new Exception("No active subscription was found for the following " + formatPlans(noSubscriptionPlans));
+            return new Exception(formatNoSubscriptionMessage());
         }
 
         if (expiredSubscriptionPlans != null) {
@@ -87,6 +105,38 @@ public class SecurityChainDiagnostic {
         }
 
         return new Exception("No valid plan was found for this request.");
+    }
+
+    private String formatNoSubscriptionMessage() {
+        return (
+            "No subscription was found for " +
+            noSubscriptionPlans
+                .stream()
+                .collect(
+                    Collectors.groupingBy(
+                        info -> SecurityToken.TokenType.valueOfOrNone(info.tokenType),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                    )
+                )
+                .entrySet()
+                .stream()
+                .map(entry -> buildNoSubscriptionMessage(entry.getKey(), entry.getValue()))
+                .collect(Collectors.joining(" or for "))
+        );
+    }
+
+    private String buildNoSubscriptionMessage(SecurityToken.TokenType tokenType, List<NoSubscriptionInfo> planDetails) {
+        String label = switch (tokenType) {
+            case API_KEY, MD5_API_KEY -> "API Key";
+            case CLIENT_ID -> "Client ID";
+            case CERTIFICATE -> "Certificate";
+            default -> "credentials";
+        };
+        // Token value is the same for all plans of the same type within a request
+        String maskedToken = planDetails.getFirst().maskedToken();
+        List<String> planNames = planDetails.stream().map(NoSubscriptionInfo::planName).toList();
+        return label + ": " + maskedToken + " (" + formatPlans(planNames) + ")";
     }
 
     private String formatPlans(List<String> plans) {
