@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class XForwardForProcessorTest {
+public class XForwardProcessorTest {
 
     private MutableExecutionContext context;
 
