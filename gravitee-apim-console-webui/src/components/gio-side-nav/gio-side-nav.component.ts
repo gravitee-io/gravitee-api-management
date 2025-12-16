@@ -154,15 +154,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
     ];
 
-    if (!this.constants?.org?.settings?.cloudHosted?.enabled) {
-      mainMenuItems.push({
-        icon: 'gio:cloud-server',
-        displayName: 'Gateways',
-        routerLink: './gateways',
-        permissions: ['environment-instance-r'],
-        category: 'Gateways',
-      });
-    }
+    mainMenuItems.push({
+      icon: 'gio:cloud-server',
+      displayName: 'Gateways',
+      routerLink: './gateways',
+      permissions: ['environment-instance-r'],
+      category: 'Gateways',
+    });
     mainMenuItems.push({
       icon: 'gio:cluster',
       routerLink: './clusters',
