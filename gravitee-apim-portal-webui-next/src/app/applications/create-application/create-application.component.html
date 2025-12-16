@@ -15,177 +15,179 @@
     limitations under the License.
 
 -->
-<app-breadcrumb-navigation />
-<mat-card appearance="outlined">
-  <mat-card-content>
-    <h2 i18n="@@applicationsCreateTitle">Create new application</h2>
-    <p i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
-    @if (enabledApplicationTypes(); as types) {
-      <div class="cards-container" [appIsMobile]="'cards-container--mobile'">
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <h3 class="section-title" i18n="@@createApplicationSecuritySetupTitle">Set up security</h3>
-            @if (isMobile()) {
-              <mat-form-field appearance="outline" class="type-select-mobile">
-                <mat-label i18n="@@createApplicationTypeTitleMobile">Type</mat-label>
-                <mat-select [formControl]="typeIdControl">
+<div class="content">
+  <app-breadcrumb-navigation />
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <h2 i18n="@@applicationsCreateTitle">Create new application</h2>
+      <p i18n="@@applicationsCreateDescription">An application is used to register and agree to plans.</p>
+      @if (enabledApplicationTypes(); as types) {
+        <div class="cards-container" [appIsMobile]="'cards-container--mobile'">
+          <mat-card appearance="outlined">
+            <mat-card-content>
+              <h3 class="section-title" i18n="@@createApplicationSecuritySetupTitle">Set up security</h3>
+              @if (isMobile()) {
+                <mat-form-field appearance="outline" class="type-select-mobile">
+                  <mat-label i18n="@@createApplicationTypeTitleMobile">Type</mat-label>
+                  <mat-select [formControl]="typeIdControl">
+                    @for (type of types; track $index) {
+                      <mat-option [value]="type.id">{{ type | applicationTypeTranslate: 'name' }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              } @else {
+                <span class="radio-group-label m3-title-medium" id="application-type-radio-group-label" i18n="@@createApplicationTypeLabel"
+                  >Type</span
+                >
+                <mat-radio-group aria-labelledby="application-type-radio-group-label" class="types-group" [formControl]="typeIdControl">
                   @for (type of types; track $index) {
-                    <mat-option [value]="type.id">{{ type | applicationTypeTranslate: 'name' }}</mat-option>
+                    <mat-radio-button class="type-radio" [value]="type.id ?? type.name">
+                      <div class="application-type-label">
+                        <div class="m3-title-medium">{{ type | applicationTypeTranslate: 'name' }}</div>
+                        <div class="m3-body-small">{{ type | applicationTypeTranslate: 'description' }}</div>
+                      </div>
+                    </mat-radio-button>
                   }
-                </mat-select>
-              </mat-form-field>
-            } @else {
-              <span class="radio-group-label m3-title-medium" id="application-type-radio-group-label" i18n="@@createApplicationTypeLabel"
-                >Type</span
-              >
-              <mat-radio-group aria-labelledby="application-type-radio-group-label" class="types-group" [formControl]="typeIdControl">
-                @for (type of types; track $index) {
-                  <mat-radio-button class="type-radio" [value]="type.id ?? type.name">
-                    <div class="application-type-label">
-                      <div class="m3-title-medium">{{ type | applicationTypeTranslate: 'name' }}</div>
-                      <div class="m3-body-small">{{ type | applicationTypeTranslate: 'description' }}</div>
-                    </div>
-                  </mat-radio-button>
-                }
-              </mat-radio-group>
-            }
-          </mat-card-content>
-        </mat-card>
+                </mat-radio-group>
+              }
+            </mat-card-content>
+          </mat-card>
 
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <h3 class="section-title" i18n="@@createApplicationDetailsTitle">Application details</h3>
-            @if (selectedType()) {
-              <form class="form" [formGroup]="form">
-                <mat-form-field appearance="outline">
-                  <mat-label i18n="@@createApplicationName">Application name</mat-label>
-                  <input matInput formControlName="name" />
-                  @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-                    <mat-error i18n="@@createApplicationNameRequired">Name is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label i18n="@@createApplicationDescription">Description (optional)</mat-label>
-                  <textarea matInput formControlName="description" rows="3"></textarea>
-                </mat-form-field>
-
-                <mat-divider />
-                <h3 class="section-title" i18n="@@createApplicationSecurityTitle">Security</h3>
-
-                @if (isSimpleType()) {
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label i18n="@@createApplicationType">Type</mat-label>
-                    <input matInput formControlName="appType" />
-                    <mat-hint i18n="@@createApplicationTypeHint">Type of the application (mobile, web, ...)</mat-hint>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label i18n="@@createApplicationClientId">Client ID</mat-label>
-                    <input matInput formControlName="appClientId" />
-                    <mat-hint i18n="@@createApplicationClientIdHint"
-                      >The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
-                    </mat-hint>
-                  </mat-form-field>
-                }
-
-                @if (grantTypesList().length > 0) {
-                  <div class="grant-types-container">
-                    <div>
-                      <div class="m3-title-medium">
-                        <span i18n="@@createApplicationGrantTypes">Select the grant types your application will use</span>
-                      </div>
-                      <div class="m3-body-medium" i18n="@@createApplicationGrantTypesHint">
-                        For security, enable only the ones you need.
-                      </div>
-                    </div>
-                    @for (grantType of grantTypesList(); track grantType.type) {
-                      <div class="grant-type-toggle">
-                        <mat-slide-toggle
-                          [checked]="isGrantTypeSelected(grantType.type)"
-                          [disabled]="grantType.isDisabled"
-                          (change)="toggleGrantType(grantType.type, $event.checked)">
-                          <span class="grant-type-label">{{ grantType.name }}</span>
-                        </mat-slide-toggle>
-                      </div>
+          <mat-card appearance="outlined">
+            <mat-card-content>
+              <h3 class="section-title" i18n="@@createApplicationDetailsTitle">Application details</h3>
+              @if (selectedType()) {
+                <form class="form" [formGroup]="form">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@createApplicationName">Application name</mat-label>
+                    <input matInput formControlName="name" />
+                    @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+                      <mat-error i18n="@@createApplicationNameRequired">Name is required</mat-error>
                     }
-                  </div>
-                }
+                  </mat-form-field>
 
-                @if (requiresRedirectUris() && redirectUrisControl; as redirectUrisCtrl) {
-                  <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
-                    <mat-label i18n="@@applicationRedirectUris">Redirect URIs</mat-label>
-                    <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
-                      @for (uri of redirectUrisCtrl.value; track uri) {
-                        <mat-chip-row (removed)="removeRedirectUri(uri)">
-                          {{ uri }}
-                          <button matChipRemove [attr.aria-label]="'remove redirect URI ' + uri">
-                            <mat-icon>cancel</mat-icon>
-                          </button>
-                        </mat-chip-row>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@createApplicationDescription">Description (optional)</mat-label>
+                    <textarea matInput formControlName="description" rows="3"></textarea>
+                  </mat-form-field>
+
+                  <mat-divider />
+                  <h3 class="section-title" i18n="@@createApplicationSecurityTitle">Security</h3>
+
+                  @if (isSimpleType()) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label i18n="@@createApplicationType">Type</mat-label>
+                      <input matInput formControlName="appType" />
+                      <mat-hint i18n="@@createApplicationTypeHint">Type of the application (mobile, web, ...)</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label i18n="@@createApplicationClientId">Client ID</mat-label>
+                      <input matInput formControlName="appClientId" />
+                      <mat-hint i18n="@@createApplicationClientIdHint"
+                        >The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
+                      </mat-hint>
+                    </mat-form-field>
+                  }
+
+                  @if (grantTypesList().length > 0) {
+                    <div class="grant-types-container">
+                      <div>
+                        <div class="m3-title-medium">
+                          <span i18n="@@createApplicationGrantTypes">Select the grant types your application will use</span>
+                        </div>
+                        <div class="m3-body-medium" i18n="@@createApplicationGrantTypesHint">
+                          For security, enable only the ones you need.
+                        </div>
+                      </div>
+                      @for (grantType of grantTypesList(); track grantType.type) {
+                        <div class="grant-type-toggle">
+                          <mat-slide-toggle
+                            [checked]="isGrantTypeSelected(grantType.type)"
+                            [disabled]="grantType.isDisabled"
+                            (change)="toggleGrantType(grantType.type, $event.checked)">
+                            <span class="grant-type-label">{{ grantType.name }}</span>
+                          </mat-slide-toggle>
+                        </div>
                       }
-
-                      <input
-                        [matChipInputFor]="redirectURIChipGrid"
-                        [matChipInputAddOnBlur]="true"
-                        (matChipInputTokenEnd)="addRedirectUri($event)" />
-                    </mat-chip-grid>
-                    <mat-hint i18n="@@applicationRedirectUrisHint">
-                      The URI where the authorization server sends OAuth responses.
-                    </mat-hint>
-                    @if (redirectUrisCtrl.touched && (redirectUrisCtrl.hasError('required') || redirectUrisCtrl.hasError('minlength'))) {
-                      <mat-error i18n="@@redirectUrisRequired">At least one valid redirect URI is required</mat-error>
-                    }
-                  </mat-form-field>
-                }
-
-                <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                  <mat-label i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</mat-label>
-                  <textarea matInput formControlName="clientCertificate" rows="6"></textarea>
-                  <mat-hint i18n="@@createApplicationClientCertificateHint"
-                    >The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
-                  </mat-hint>
-                </mat-form-field>
-
-                @if (!isSimpleType()) {
-                  <div class="metadata-container">
-                    <div>
-                      <div class="m3-title-medium">
-                        <span i18n="@@createApplicationAdditionalMetadataTitle">Additional Client Metadata (optional)</span>
-                      </div>
                     </div>
-                    <app-form-key-value-pairs formControlName="metadata" />
-                  </div>
-                }
-              </form>
-            } @else {
-              <p i18n="@@selectApplicationTypeFirst">Please select an application type first</p>
-            }
-          </mat-card-content>
-        </mat-card>
-      </div>
-    } @else {
-      <app-loader />
-    }
+                  }
 
-    @if (hasApplicationError) {
-      <div class="m3-title-medium error-message" i18n="@@createApplicationGeneralErrorMessage">
-        There was an error creating your application and it could not be processed. Try again, and if the issue persists, contact your
-        portal administrator.
-      </div>
-    }
+                  @if (requiresRedirectUris() && redirectUrisControl; as redirectUrisCtrl) {
+                    <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+                      <mat-label i18n="@@applicationRedirectUris">Redirect URIs</mat-label>
+                      <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
+                        @for (uri of redirectUrisCtrl.value; track uri) {
+                          <mat-chip-row (removed)="removeRedirectUri(uri)">
+                            {{ uri }}
+                            <button matChipRemove [attr.aria-label]="'remove redirect URI ' + uri">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
 
-    <div class="actions">
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        [disabled]="form.invalid || !selectedType()"
-        (click)="onCreate()"
-        i18n="@@createApplicationCreateButton">
-        Create
-      </button>
-      <button mat-flat-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
-    </div>
-  </mat-card-content>
-</mat-card>
+                        <input
+                          [matChipInputFor]="redirectURIChipGrid"
+                          [matChipInputAddOnBlur]="true"
+                          (matChipInputTokenEnd)="addRedirectUri($event)" />
+                      </mat-chip-grid>
+                      <mat-hint i18n="@@applicationRedirectUrisHint">
+                        The URI where the authorization server sends OAuth responses.
+                      </mat-hint>
+                      @if (redirectUrisCtrl.touched && (redirectUrisCtrl.hasError('required') || redirectUrisCtrl.hasError('minlength'))) {
+                        <mat-error i18n="@@redirectUrisRequired">At least one valid redirect URI is required</mat-error>
+                      }
+                    </mat-form-field>
+                  }
+
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</mat-label>
+                    <textarea matInput formControlName="clientCertificate" rows="6"></textarea>
+                    <mat-hint i18n="@@createApplicationClientCertificateHint"
+                      >The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
+                    </mat-hint>
+                  </mat-form-field>
+
+                  @if (!isSimpleType()) {
+                    <div class="metadata-container">
+                      <div>
+                        <div class="m3-title-medium">
+                          <span i18n="@@createApplicationAdditionalMetadataTitle">Additional Client Metadata (optional)</span>
+                        </div>
+                      </div>
+                      <app-form-key-value-pairs formControlName="metadata" />
+                    </div>
+                  }
+                </form>
+              } @else {
+                <p i18n="@@selectApplicationTypeFirst">Please select an application type first</p>
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      } @else {
+        <app-loader />
+      }
+
+      @if (hasApplicationError) {
+        <div class="m3-title-medium error-message" i18n="@@createApplicationGeneralErrorMessage">
+          There was an error creating your application and it could not be processed. Try again, and if the issue persists, contact your
+          portal administrator.
+        </div>
+      }
+
+      <div class="actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="form.invalid || !selectedType()"
+          (click)="onCreate()"
+          i18n="@@createApplicationCreateButton">
+          Create
+        </button>
+        <button mat-flat-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

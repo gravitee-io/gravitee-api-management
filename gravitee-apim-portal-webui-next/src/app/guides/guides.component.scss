@@ -19,6 +19,10 @@
   @include layout.large-container-legacy();
 }
 
+mat-card {
+  width: 100%;
+}
+
 .guides {
   display: flex;
   justify-content: center;

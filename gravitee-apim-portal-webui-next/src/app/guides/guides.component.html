@@ -15,25 +15,31 @@
     limitations under the License.
 
 -->
-<mat-card appearance="outlined">
-  <mat-card-content class="guides">
-    @if (pagesData(); as pagesData) {
-      @if (pagesData.nodes.length) {
-        <div class="guides__side-bar">
-          <app-page-tree class="guides__side-bar__tree" [activePage]="pageId()!" [pages]="pagesData.nodes" (openFile)="showPage($event)" />
-        </div>
+<div class="content">
+  <mat-card appearance="outlined">
+    <mat-card-content class="guides">
+      @if (pagesData(); as pagesData) {
+        @if (pagesData.nodes.length) {
+          <div class="guides__side-bar">
+            <app-page-tree
+              class="guides__side-bar__tree"
+              [activePage]="pageId()!"
+              [pages]="pagesData.nodes"
+              (openFile)="showPage($event)" />
+          </div>
 
-        <div class="guides__page-content">
-          <router-outlet />
-        </div>
+          <div class="guides__page-content">
+            <router-outlet />
+          </div>
+        } @else {
+          <div class="guides__empty">
+            <div class="m3-body-large" i18n="@@guidesNoPagesTitle">Sorry, there are no guides listed yet.</div>
+            <div class="m3-body-medium" i18n="@@guidesNoPagesSubtitle">Please check back later for more content.</div>
+          </div>
+        }
       } @else {
-        <div class="guides__empty">
-          <div class="m3-body-large" i18n="@@guidesNoPagesTitle">Sorry, there are no guides listed yet.</div>
-          <div class="m3-body-medium" i18n="@@guidesNoPagesSubtitle">Please check back later for more content.</div>
-        </div>
+        <app-loader />
       }
-    } @else {
-      <app-loader />
-    }
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>
