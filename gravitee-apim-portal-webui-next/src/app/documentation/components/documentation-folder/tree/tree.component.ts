@@ -17,6 +17,7 @@ import { AfterViewInit, Component, computed, effect, input, model, output, untra
 
 import { TreeNodeComponent } from './tree-node.component';
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../../../entities/portal-navigation/portal-navigation-item';
+import { Breadcrumb } from '../breadcrumb/breadcrumbs.component';
 
 export interface SectionNode {
   id: string;
@@ -24,6 +25,7 @@ export interface SectionNode {
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   children?: SectionNode[];
+  breadcrumbs?: Breadcrumb[];
 }
 
 type ProcessingNode = SectionNode & {
@@ -46,7 +48,9 @@ export class TreeComponent implements AfterViewInit {
   });
 
   selectedId = model<string | null>(null);
-  selectNode = output<string | null>();
+  selectNode = output<SectionNode | null>();
+
+  private nodesById = new Map<string, ProcessingNode>();
 
   constructor() {
     effect(() => this.selectFirstPage());
@@ -58,13 +62,13 @@ export class TreeComponent implements AfterViewInit {
 
   onNodeSelected(id: string) {
     this.selectedId.set(id);
-    this.selectNode.emit(id);
+    this.selectNode.emit(this.nodesById.get(id) ?? null);
   }
 
   private mapItemsToNodes(items: PortalNavigationItem[]): SectionNode[] {
-    const nodesById = this.createNodesMap(items);
-    const roots = this.connectNodes(nodesById);
-    return this.sortAndCleanTree(roots);
+    this.nodesById = this.createNodesMap(items);
+    const roots = this.connectNodes(this.nodesById);
+    return this.sortAndCleanTree(this.attachBreadcrumbs(roots));
   }
 
   private createNodesMap(items: PortalNavigationItem[]): Map<string, ProcessingNode> {
@@ -109,6 +113,19 @@ export class TreeComponent implements AfterViewInit {
         ...node,
         children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
       }));
+  }
+
+  private attachBreadcrumbs(nodes: ProcessingNode[], breadcrumbs: Breadcrumb[] = []): ProcessingNode[] {
+    return nodes.map(node => {
+      const children = (node.children ?? []) as ProcessingNode[];
+      const newBreadcrumbs = [...breadcrumbs, { id: node.id, label: node.label }];
+      if (children.length > 0) {
+        node.children = this.attachBreadcrumbs(children, newBreadcrumbs);
+      } else if (node.type === 'PAGE') {
+        node.breadcrumbs = newBreadcrumbs;
+      }
+      return node;
+    });
   }
 
   private selectFirstPage() {
