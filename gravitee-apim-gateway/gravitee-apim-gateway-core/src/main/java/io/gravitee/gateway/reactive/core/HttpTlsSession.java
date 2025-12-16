@@ -122,42 +122,42 @@ public class HttpTlsSession implements TlsSession {
 
     @Override
     public Principal getPeerPrincipal() throws SSLPeerUnverifiedException {
-        return delegate.getPeerPrincipal();
+        return delegate != null ? delegate.getPeerPrincipal() : null;
     }
 
     @Override
     public Principal getLocalPrincipal() {
-        return delegate.getLocalPrincipal();
+        return delegate != null ? delegate.getLocalPrincipal() : null;
     }
 
     @Override
     public String getCipherSuite() {
-        return delegate.getCipherSuite();
+        return delegate != null ? delegate.getCipherSuite() : null;
     }
 
     @Override
     public String getProtocol() {
-        return delegate.getProtocol();
+        return delegate != null ? delegate.getProtocol() : null;
     }
 
     @Override
     public String getPeerHost() {
-        return delegate.getPeerHost();
+        return delegate != null ? delegate.getPeerHost() : null;
     }
 
     @Override
     public int getPeerPort() {
-        return delegate.getPeerPort();
+        return delegate != null ? delegate.getPeerPort() : -1;
     }
 
     @Override
     public int getPacketBufferSize() {
-        return delegate.getPacketBufferSize();
+        return delegate != null ? delegate.getPacketBufferSize() : -1;
     }
 
     @Override
     public int getApplicationBufferSize() {
-        return delegate.getApplicationBufferSize();
+        return delegate != null ? delegate.getApplicationBufferSize() : -1;
     }
 
     @Override
