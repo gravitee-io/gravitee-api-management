@@ -17,18 +17,13 @@
 @use '../../scss/theme' as app-theme;
 
 :host {
-  @include layout.full-width-container();
-
   display: flex;
-  width: 100%;
-  max-width: 100%;
+  overflow: hidden;
   box-sizing: border-box;
-  flex-flow: row;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 layout.$container-padding-horizontal;
   border-top: 1px solid app-theme.$footer-border-color;
-  overflow-x: hidden;
 }
 
 .footer {
