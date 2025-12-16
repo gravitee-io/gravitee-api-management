@@ -16,26 +16,43 @@
 @use '../../scss/theme';
 @use '../../scss/layout' as layout;
 
-%link-style {
-  margin-top: 5px;
-  color: #{theme.$primary-main-color};
-  text-align: center;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 :host {
+  display: flex;
+  justify-content: center;
   @include layout.small-container-legacy();
 }
 
-.log-in {
+.registration {
   display: flex;
   width: 100%;
   flex-flow: column;
   gap: 20px;
+
+  &__success {
+    &__container {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+
+      &__icon {
+        font-size: 64px;
+
+        mat-icon {
+          width: 64px;
+          height: 64px;
+          font-size: 64px;
+          line-height: 64px;
+          text-align: center;
+        }
+      }
+
+      button {
+        margin-top: 20px;
+      }
+    }
+  }
 
   &__form {
     display: flex;
@@ -47,7 +64,7 @@
     }
 
     &__container {
-      // width: 100%;
+      width: 400px;
       border-radius: 8px;
 
       &--mobile {
@@ -75,68 +92,8 @@
       width: 100%;
     }
 
-    &__forgot-password {
-      @extend %link-style;
-    }
-
     &__error {
       text-align: center;
-    }
-  }
-
-  &__registration {
-    margin-top: 20px;
-    text-align: center;
-
-    a {
-      @extend %link-style;
-    }
-  }
-
-  &__or-separator {
-    position: relative;
-    display: flex;
-    height: 30px;
-    align-items: center;
-    margin: 20px 0;
-
-    &__line {
-      width: 100%;
-      border-top: 1px solid #{theme.$card-border-color};
-    }
-
-    &__label {
-      position: absolute;
-      display: flex;
-      width: 40px;
-      height: 100%;
-      align-items: center;
-      justify-content: center;
-      margin: auto;
-      background: #{theme.$card-background-color};
-      inset: 0;
-    }
-  }
-
-  &__sso-provider {
-    width: 100%;
-    padding: 0 18px;
-    margin-bottom: 16px;
-    color: #{theme.$button-text-text-color};
-
-    &:last-of-type {
-      margin-bottom: 0;
-    }
-
-    &__container {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    &__logo {
-      width: 23px;
-      height: 23px;
     }
   }
 }
