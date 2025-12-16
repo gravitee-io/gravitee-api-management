@@ -1,0 +1,147 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!--
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+@if (tree().length > 0) {
+  <mat-tree #treeBase [dataSource]="tree()" [childrenAccessor]="childrenAccessor" class="flat-tree">
+    <mat-tree-node
+      [matTreeNodePaddingIndent]="26"
+      class="tree__row"
+      *matTreeNodeDef="let node"
+      matTreeNodePadding
+      (click)="onNodeClick(node)"
+      tabindex="0"
+      (keydown.enter)="onNodeClick(node)"
+      [class.unpublished]="isUnpublished(node)"
+      [class.selected]="isSelected(node)"
+    >
+      <div class="tree__spacer"></div>
+      <ng-container *ngTemplateOutlet="nodeContent; context: { $implicit: node }"></ng-container>
+    </mat-tree-node>
+
+    <mat-tree-node
+      [matTreeNodePaddingIndent]="26"
+      class="tree__row"
+      *matTreeNodeDef="let node; when: hasChild"
+      matTreeNodePadding
+      (click)="onNodeClick(node)"
+      tabindex="0"
+      (keydown.enter)="onNodeClick(node)"
+      [class.unpublished]="isUnpublished(node)"
+      [class.selected]="isSelected(node)"
+    >
+      <mat-icon
+        matTreeNodeToggle
+        class="tree__icon"
+        [attr.data-test-icon]="'toggle'"
+        [svgIcon]="treeBase.isExpanded(node) ? 'gio:nav-arrow-down' : 'gio:nav-arrow-right'"
+        aria-hidden="true"
+      />
+      <ng-container *ngTemplateOutlet="nodeContent; context: { $implicit: node }"></ng-container>
+    </mat-tree-node>
+  </mat-tree>
+
+  <ng-template #nodeContent let-node>
+    <mat-icon
+      class="tree__icon tree__icon__type"
+      [attr.data-test-type]="node.type"
+      svgIcon="gio:{{ node.type | lowercase }}"
+      aria-hidden="true"
+    ></mat-icon>
+
+    <span class="tree__label" [class.selected]="isSelected(node)" (click)="onNodeClick(node)">
+      {{ node.label }}
+    </span>
+
+    @if (isUnpublished(node)) {
+      <mat-icon class="tree__icon tree__icon__status" svgIcon="gio:eye-off" aria-hidden="true" [attr.data-test-icon]="'eye-off'"></mat-icon>
+    }
+
+    <button
+      type="button"
+      mat-icon-button
+      class="tree__button more-actions"
+      aria-label="More actions"
+      [attr.data-testid]="'more-actions-' + node.id"
+      [matMenuTriggerFor]="moreMenu"
+      (click)="$event.stopPropagation()"
+      *gioPermission="{ anyOf: ['environment-documentation-u', 'environment-documentation-d'] }"
+    >
+      <mat-icon svgIcon="gio:more-vertical"></mat-icon>
+    </button>
+
+    <mat-menu #moreMenu="matMenu">
+      @if (node.type === 'FOLDER') {
+        <button mat-menu-item (click)="onCreate(node, 'PAGE')">
+          <mat-icon svgIcon="gio:page"></mat-icon>
+          Add Page
+        </button>
+        <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
+          <mat-icon svgIcon="gio:folder"></mat-icon>
+          Add Folder
+        </button>
+        <button mat-menu-item (click)="onCreate(node, 'LINK')">
+          <mat-icon svgIcon="gio:link"></mat-icon>
+          Add Link
+        </button>
+        <mat-divider></mat-divider>
+      }
+
+      <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
+        <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        Edit
+      </button>
+
+      <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
+        <button
+          mat-menu-item
+          *gioPermission="{ anyOf: ['environment-documentation-d'] }"
+          [disabled]="hasChildren(node)"
+          [attr.aria-disabled]="hasChildren(node)"
+          [attr.tabindex]="hasChildren(node) ? -1 : null"
+          [class.tree__menu-item-delete]="!hasChildren(node)"
+          [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+          (click)="onDelete(node)"
+          data-testid="delete-node-button"
+        >
+          <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+            >delete</mat-icon
+          >
+          Delete
+        </button>
+      </span>
+    </mat-menu>
+  </ng-template>
+} @else {
+  <div class="tree__empty-state">
+    <empty-state iconName="gio:page" title="Items" message="Start by adding your first page." />
+  </div>
+}

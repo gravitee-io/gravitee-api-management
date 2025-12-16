@@ -1,0 +1,137 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'sass:map';
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.flat-tree {
+  @include mat.tree-overrides(
+    (
+      node-min-height: 36px,
+    )
+  );
+  background: transparent;
+}
+
+.tree {
+  &__empty-state {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
+
+      .tree__button.more-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &.selected {
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+      color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
+      background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, lighter80);
+
+      .tree__button.more-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &.unpublished:not(.selected) {
+      .tree__icon__type,
+      .tree__label,
+      .tree__icon__status {
+        $unpublished-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker60);
+        color: $unpublished-color;
+        fill: $unpublished-color;
+      }
+
+      .tree__button.more-actions,
+      .tree__button.more-actions mat-icon {
+        color: initial;
+      }
+    }
+  }
+
+  &__button {
+    @include mat.icon-button-overrides(
+      (
+        state-layer-size: 28px,
+        icon-size: 16px,
+      )
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &.more-actions {
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+      background-color: transparent;
+    }
+  }
+
+  &__spacer {
+    width: 25px;
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 4px;
+  }
+
+  &__label {
+    padding-left: 8px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+
+    &.selected {
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+      color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker40);
+    }
+  }
+
+  &__menu-item-delete {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+
+    :hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, lighter);
+    }
+  }
+
+  &__menu-item-delete--disabled {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
+    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
+    opacity: 0.8;
+
+    :hover {
+      background-color: transparent;
+    }
+  }
+}
+
+mat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
