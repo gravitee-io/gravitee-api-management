@@ -255,13 +255,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        data: { breadcrumb: { alias: 'pageName' } },
         resolve: { navItem: documentationResolver },
         component: DocumentationComponent,
       },
       {
         path: ':navId',
-        data: { breadcrumb: { alias: 'pageName' } },
         resolve: { navItem: documentationResolver },
         component: DocumentationComponent,
       },
