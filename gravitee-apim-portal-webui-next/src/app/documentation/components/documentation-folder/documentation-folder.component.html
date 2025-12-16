@@ -27,7 +27,9 @@
   }
 </div>
 <div class="documentation-folder__container">
-  <div class="documentation-folder__container__breadcrumbs"></div>
+  <div class="documentation-folder__container__breadcrumbs">
+    <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
+  </div>
   <div class="documentation-folder__container__content">
     <app-navigation-item-content-viewer [pageContent]="selectedPageContent()" />
   </div>
