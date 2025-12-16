@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
@@ -22,12 +22,13 @@ import { of } from 'rxjs/internal/observable/of';
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
-import { SectionNode, TreeComponent } from './tree/tree.component';
+import { TreeComponent } from './tree/tree.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
+import { DocumentationTreeService } from '../../services/documentation-tree.service';
 
 @Component({
   selector: 'app-documentation-folder',
@@ -39,8 +40,11 @@ import { PortalNavigationItemsService } from '../../../../services/portal-naviga
 export class DocumentationFolderComponent {
   navItem = input.required<PortalNavigationItem | null>();
   children = toSignal(toObservable(this.navItem).pipe(switchMap(this.loadChildren.bind(this))), { initialValue: null });
+  tree = computed(() => {
+    const items = this.children();
+    return items && Array.isArray(items) ? this.documentationTreeService.mapItemsToNodes(items) : [];
+  });
 
-  topLevelBreadcrumb = computed<Breadcrumb>(() => ({ id: this.navItem()!.id, label: this.navItem()!.title }));
   breadcrumbs = signal<Breadcrumb[]>([]);
 
   pageIdEmitter$ = new Subject<string>();
@@ -51,17 +55,22 @@ export class DocumentationFolderComponent {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly itemsService: PortalNavigationItemsService,
-  ) {}
+    private readonly documentationTreeService: DocumentationTreeService,
+  ) {
+    effect(() => {
+      documentationTreeService.setParentItem(this.navItem()!);
+    });
+  }
 
-  onSelect(selectedPage: SectionNode | null) {
-    if (selectedPage) {
-      const selectedPageId = selectedPage.id;
+  onSelect(selectedPageId: string | null) {
+    if (selectedPageId) {
       this.router.navigate([], {
         relativeTo: this.activatedRoute,
         queryParams: { pageId: selectedPageId },
       });
       this.pageIdEmitter$.next(selectedPageId);
-      this.breadcrumbs.set([this.topLevelBreadcrumb(), ...(selectedPage.breadcrumbs ?? [])]);
+      const breadcrumbs = this.documentationTreeService.getBreadcrumbsByNodeId(selectedPageId);
+      this.breadcrumbs.set(breadcrumbs);
     }
   }
 
@@ -72,7 +81,12 @@ export class DocumentationFolderComponent {
 
     return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id).pipe(
       tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])),
-      tap(() => this.breadcrumbs.set([this.topLevelBreadcrumb()])),
+      tap(() => {
+        const topLevelBreadcrumbs = this.documentationTreeService.getParentItemBreadcrumb()
+          ? [this.documentationTreeService.getParentItemBreadcrumb()!]
+          : [];
+        this.breadcrumbs.set(topLevelBreadcrumbs);
+      }),
     );
   }
 
