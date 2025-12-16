@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class XForwardForProcessor implements Processor {
+public class XForwardProcessor implements Processor {
 
     /**
      * {@link Pattern} for a comma delimited string that support whitespace characters
