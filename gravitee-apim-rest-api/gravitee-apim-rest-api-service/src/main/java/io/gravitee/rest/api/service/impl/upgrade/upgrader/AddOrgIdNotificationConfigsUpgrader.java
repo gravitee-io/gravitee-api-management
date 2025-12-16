@@ -30,6 +30,8 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +47,6 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     private final ApplicationRepository applicationRepository;
     private final GenericNotificationConfigRepository genericNotificationConfigRepository;
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
-    Set<Environment> environments;
-    Set<Api> apis;
-    Set<Application> applications;
 
     public AddOrgIdNotificationConfigsUpgrader(
         @Lazy EnvironmentRepository environmentRepository,
@@ -55,7 +54,7 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
         @Lazy ApplicationRepository applicationRepository,
         @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository
-    ) throws TechnicalException {
+    ) {
         this.environmentRepository = environmentRepository;
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
@@ -87,7 +86,7 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     }
 
     private String getOrgId(String refId, NotificationReferenceType referenceType) throws TechnicalException {
-        if (referenceType == NotificationReferenceType.ENVIRONMENT) {
+        if (referenceType == NotificationReferenceType.ENVIRONMENT || referenceType == NotificationReferenceType.PORTAL) {
             return getEnvironmentOrgId(refId);
         }
         if (referenceType == NotificationReferenceType.API) {
@@ -103,26 +102,52 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     public boolean upgrade() {
         try {
             var genericNotificationConfigs = genericNotificationConfigRepository.findAll();
-            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigs) {
-                if (genericNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
-                    genericNotificationConfig.setReferenceType(NotificationReferenceType.ENVIRONMENT);
-                }
-                String orgId = getOrgId(genericNotificationConfig.getReferenceId(), genericNotificationConfig.getReferenceType());
-                genericNotificationConfig.setOrganizationId(orgId);
-                genericNotificationConfigRepository.update(genericNotificationConfig);
-            }
             log.info("Migrating {} genericNotificationConfigs -> adding orgId value", genericNotificationConfigs.size());
 
-            var portalNotificationConfigs = portalNotificationConfigRepository.findAll();
-            for (PortalNotificationConfig portalNotificationConfig : portalNotificationConfigs) {
-                if (portalNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
-                    portalNotificationConfig.setReferenceType(NotificationReferenceType.ENVIRONMENT);
+            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigs) {
+                String orgId = getOrgId(genericNotificationConfig.getReferenceId(), genericNotificationConfig.getReferenceType());
+
+                if (genericNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
+                    List<String> hooks = new ArrayList<>(
+                        genericNotificationConfig.getHooks() != null ? genericNotificationConfig.getHooks() : List.of()
+                    );
+
+                    genericNotificationConfigRepository.delete(genericNotificationConfig.getId());
+
+                    genericNotificationConfig.setReferenceType(NotificationReferenceType.ENVIRONMENT);
+                    genericNotificationConfig.setOrganizationId(orgId);
+                    genericNotificationConfig.setHooks(hooks);
+
+                    genericNotificationConfigRepository.create(genericNotificationConfig);
+                } else {
+                    genericNotificationConfig.setOrganizationId(orgId);
+                    genericNotificationConfigRepository.update(genericNotificationConfig);
                 }
-                String orgId = getOrgId(portalNotificationConfig.getReferenceId(), portalNotificationConfig.getReferenceType());
-                portalNotificationConfig.setOrganizationId(orgId);
-                portalNotificationConfigRepository.update(portalNotificationConfig);
             }
+
+            var portalNotificationConfigs = portalNotificationConfigRepository.findAll();
             log.info("Migrating {} portalNotificationConfigs -> adding orgId value", portalNotificationConfigs.size());
+
+            for (PortalNotificationConfig portalNotificationConfig : portalNotificationConfigs) {
+                String orgId = getOrgId(portalNotificationConfig.getReferenceId(), portalNotificationConfig.getReferenceType());
+
+                if (portalNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
+                    List<String> hooks = new ArrayList<>(
+                        portalNotificationConfig.getHooks() != null ? portalNotificationConfig.getHooks() : List.of()
+                    );
+
+                    portalNotificationConfigRepository.delete(portalNotificationConfig);
+
+                    portalNotificationConfig.setReferenceType(NotificationReferenceType.ENVIRONMENT);
+                    portalNotificationConfig.setOrganizationId(orgId);
+                    portalNotificationConfig.setHooks(hooks);
+
+                    portalNotificationConfigRepository.create(portalNotificationConfig);
+                } else {
+                    portalNotificationConfig.setOrganizationId(orgId);
+                    portalNotificationConfigRepository.update(portalNotificationConfig);
+                }
+            }
 
             return true;
         } catch (Exception e) {
