@@ -109,6 +109,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
         final var contentId = item.getPortalPageContentId();
         final var url = item.getUrl();
         final var order = item.getOrder();
+        final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC.name();
 
         final var newItem = switch (item.getType()) {
             case FOLDER -> new PortalNavigationFolder(
@@ -119,7 +120,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
                 area,
                 order,
                 false,
-                PortalVisibility.PUBLIC
+                PortalVisibility.valueOf(visibility)
             );
             case PAGE -> new PortalNavigationPage(
                 id,
@@ -130,7 +131,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
                 order,
                 contentId,
                 false,
-                PortalVisibility.PUBLIC
+                PortalVisibility.valueOf(visibility)
             );
             case LINK -> new PortalNavigationLink(
                 id,
@@ -141,7 +142,7 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
                 order,
                 url,
                 false,
-                PortalVisibility.PUBLIC
+                PortalVisibility.valueOf(visibility)
             );
         };
         newItem.setParentId(parentId);
