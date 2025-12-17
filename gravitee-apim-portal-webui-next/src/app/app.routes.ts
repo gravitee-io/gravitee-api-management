@@ -40,10 +40,6 @@ import { CategoryApisComponent } from './catalog/categories-view/category-apis/c
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
-import { GuidesPageComponent } from './guides/components/guides-page.component';
-import { GuidesRedirectToFirstIdComponent } from './guides/components/guides-redirect-to-first-id.component';
-import { GuidesComponent } from './guides/guides.component';
-import { environmentPagesResolver } from './guides/resolvers/environment-pages.resolver';
 import { LogInComponent } from './log-in/log-in.component';
 import { ResetPasswordConfirmationComponent } from './log-in/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { ResetPasswordComponent } from './log-in/reset-password/reset-password.component';
@@ -228,24 +224,6 @@ export const routes: Routes = [
             data: { breadcrumb: { skip: true } },
           },
         ],
-      },
-    ],
-  },
-  {
-    path: 'guides',
-    canActivate: [redirectGuard, authGuard],
-    component: GuidesComponent,
-    data: { breadcrumb: { label: 'Documentation', disable: true } },
-    resolve: { pages: environmentPagesResolver },
-    children: [
-      {
-        path: '',
-        component: GuidesRedirectToFirstIdComponent,
-      },
-      {
-        path: ':pageId',
-        component: GuidesPageComponent,
-        data: { breadcrumb: { alias: 'pageName' } },
       },
     ],
   },
