@@ -149,7 +149,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'Sign in']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Sign in']);
     });
 
     it('should show logout button if user connected', async () => {
@@ -162,7 +162,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'Applications', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Log out']);
     });
 
     it('should not show menu if user is not connected and login is forced', async () => {
@@ -190,7 +190,7 @@ describe('NavBarComponent', () => {
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
       expect(linkTexts).toEqual([
         'Catalog',
-        'Guides',
+
         'link-name-1 open_in_new(opens in new tab)',
         'link-name-2 open_in_new(opens in new tab)',
         'Applications',
@@ -211,7 +211,7 @@ describe('NavBarComponent', () => {
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
       expect(linkTexts).toEqual([
         'Catalog',
-        'Guides',
+
         'link-name-1 open_in_new(opens in new tab)',
         'link-name-2 open_in_new(opens in new tab)',
         'Sign in',
@@ -255,7 +255,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Catalog', 'Guides', 'Sign in']);
+      expect(linkTexts).toEqual(['Catalog', 'Sign in']);
     });
   });
 
