@@ -18,7 +18,14 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, Router, RouteReuseStrategy, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import {
+  provideRouter,
+  Router,
+  RouteReuseStrategy,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withRouterConfig
+} from '@angular/router';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
@@ -61,7 +68,13 @@ function initApp(
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
+    provideRouter(routes,
+      withInMemoryScrolling({
+        anchorScrolling: 'enabled',
+        scrollPositionRestoration: 'enabled',
+      }),
+      withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })
+    ),
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     provideOAuthClient(),

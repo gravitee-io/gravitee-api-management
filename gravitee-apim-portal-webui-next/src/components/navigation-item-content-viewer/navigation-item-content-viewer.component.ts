@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import {Component, input, viewChild} from '@angular/core';
 
-import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import {GraviteeMarkdownViewerComponent, GraviteeMarkdownViewerModule} from '@gravitee/gravitee-markdown';
 
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
@@ -28,4 +28,9 @@ import { PortalPageContent } from '../../entities/portal-navigation/portal-page-
 })
 export class NavigationItemContentViewerComponent {
   pageContent = input.required<PortalPageContent | null>();
+  gmdViewerContent = viewChild(GraviteeMarkdownViewerComponent);
+
+  scrollToAnchorById(id: string, options: ScrollIntoViewOptions = { behavior: 'smooth' }) {
+    this.gmdViewerContent()?.scrollToAnchorById(id, options);
+  }
 }

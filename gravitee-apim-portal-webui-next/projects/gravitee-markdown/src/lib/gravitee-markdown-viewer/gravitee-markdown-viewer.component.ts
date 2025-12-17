@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, ViewEncapsulation } from '@angular/core';
+import {Component, effect, ElementRef, input, viewChild, ViewEncapsulation} from '@angular/core';
 import DOMPurify from 'dompurify';
-import { HookParserEntry } from 'ngx-dynamic-hooks';
+import {
+  DynamicHooksComponent,
+  HookParserEntry,
+  LoadedComponent,
+  OnDynamicData,
+  OnDynamicMount
+} from 'ngx-dynamic-hooks';
 
 import { componentAttributeNames } from '../components/component-attribute-selectors';
 import { prefixStripperParser } from '../components/prefix-stripper.parser';
@@ -33,6 +39,7 @@ export class GraviteeMarkdownViewerComponent {
   content = input<string>('');
   renderedContent!: string;
   parsers: HookParserEntry[] = prefixStripperParser;
+  host = viewChild('gmdHooks', { read: ElementRef<HTMLElement> });
 
   constructor(private readonly markdownService: GraviteeMarkdownRendererService) {
     effect(() => {
@@ -47,5 +54,9 @@ export class GraviteeMarkdownViewerComponent {
         ADD_ATTR: componentAttributeNames,
       });
     });
+  }
+
+  scrollToAnchorById(id: string, options: ScrollIntoViewOptions): void {
+    this.host()?.nativeElement.querySelector(`#${id}`)?.scrollIntoView(options);
   }
 }

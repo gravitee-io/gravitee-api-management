@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, input, signal } from '@angular/core';
+import {Component, computed, effect, ElementRef, inject, input, signal, ViewChild, viewChild} from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { GmdButtonComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import {
+  GmdButtonComponent,
+  GraviteeMarkdownViewerComponent,
+  GraviteeMarkdownViewerModule
+} from '@gravitee/gravitee-markdown';
 
 import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
 import { SidenavToggleButtonComponent } from './sidenav-toggle-button/sidenav-toggle-button.component';
@@ -65,6 +69,9 @@ export class DocumentationFolderComponent {
   pageId = toSignal(this.pageIdEmitter$, { initialValue: null });
   selectedPageContent = toSignal(this.pageIdEmitter$.pipe(switchMap(this.loadPageContent.bind(this))), { initialValue: null });
 
+  contentContainer = viewChild('contentContainer', {read: ElementRef<HTMLElement> });
+  contentViewer = viewChild(NavigationItemContentViewerComponent);
+
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
@@ -76,11 +83,13 @@ export class DocumentationFolderComponent {
     });
   }
 
-  onSelect(selectedPageId: string | null) {
+  onSelect(event: { id: string, fromInput: boolean } | null) {
+    const selectedPageId = event?.id;
     if (selectedPageId) {
       this.router.navigate([], {
         relativeTo: this.activatedRoute,
         queryParams: { pageId: selectedPageId },
+        fragment: event.fromInput ? (this.activatedRoute.snapshot.fragment ?? undefined) : undefined,
       });
       this.pageIdEmitter$.next(selectedPageId);
       const breadcrumbs = this.documentationTreeService.getBreadcrumbsByNodeId(selectedPageId);
@@ -130,6 +139,26 @@ export class DocumentationFolderComponent {
       return of(null);
     }
 
-    return this.itemsService.getNavigationItemContent(pageId).pipe(catchError(() => of(null)));
+    return this.itemsService.getNavigationItemContent(pageId).pipe(
+      tap(() => {
+        setTimeout(() => {
+          const anchorId = this.activatedRoute.snapshot.fragment;
+          if (anchorId) {
+            this.scrollToAnchorById(anchorId);
+          } else {
+            this.scrollToTop();
+          }
+        })
+      }),
+      catchError(() => of(null)),
+    );
+  }
+
+  private scrollToAnchorById(id: string) {
+    this.contentViewer()?.scrollToAnchorById(id);
+  }
+
+  private scrollToTop() {
+    this.contentContainer()?.nativeElement.scrollTo(0,0);
   }
 }

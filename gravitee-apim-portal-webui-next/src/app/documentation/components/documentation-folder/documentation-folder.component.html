@@ -38,7 +38,7 @@
     <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
     <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
   </div>
-  <div class="documentation-folder__container__content">
+  <div #contentContainer class="documentation-folder__container__content">
     <app-navigation-item-content-viewer [pageContent]="selectedPageContent()" />
   </div>
 </div>

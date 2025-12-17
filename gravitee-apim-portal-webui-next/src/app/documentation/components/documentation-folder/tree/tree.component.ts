@@ -28,7 +28,7 @@ import { TreeNode } from '../../../services/documentation-tree.service';
 export class TreeComponent implements AfterViewInit {
   tree = input.required<TreeNode[]>();
   selectedId = model<string | null>(null);
-  selectNode = output<string | null>();
+  selectNode = output<{ id: string, fromInput: boolean } | null>();
 
   constructor() {
     effect(() => this.selectFirstPage());
@@ -38,16 +38,17 @@ export class TreeComponent implements AfterViewInit {
     this.scrollIntoView();
   }
 
-  onNodeSelected(id: string) {
+  onNodeSelected(id: string, fromInput = false) {
     this.selectedId.set(id);
-    this.selectNode.emit(id);
+    this.selectNode.emit({ id, fromInput });
   }
 
   private selectFirstPage() {
     const tree = this.tree();
-    const firstPageId = untracked(this.selectedId) ?? this.findFirstPageId(tree);
+    const selectedId = untracked(this.selectedId);
+    const firstPageId = selectedId ?? this.findFirstPageId(tree);
     if (firstPageId) {
-      this.onNodeSelected(firstPageId);
+      this.onNodeSelected(firstPageId, !!selectedId);
     }
   }
 
