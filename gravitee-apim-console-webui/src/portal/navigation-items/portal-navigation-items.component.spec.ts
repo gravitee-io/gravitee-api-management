@@ -44,6 +44,7 @@ import {
   PortalNavigationItem,
   PortalNavigationItemsResponse,
 } from '../../entities/management-api-v2';
+import { SectionNode } from '../components/flat-tree/flat-tree.component';
 
 describe('PortalNavigationItemsComponent', () => {
   let fixture: ComponentFixture<PortalNavigationItemsComponent>;
@@ -1224,6 +1225,64 @@ describe('PortalNavigationItemsComponent', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('item reordering', () => {
+    const page1 = fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', order: 0, portalPageContentId: 'content-1' });
+    const page2 = fakePortalNavigationPage({ id: 'page-2', title: 'Page 2', order: 1, portalPageContentId: 'content-2' });
+    const fakeResponse = fakePortalNavigationItemsResponse({
+      items: [page1, page2],
+    });
+    const page1Content = 'This is the content of Page 1';
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent(page1.portalPageContentId, page1Content);
+    });
+
+    it('should call backend update with new order when items are reordered', async () => {
+      const component = fixture.componentInstance;
+
+      // Simulate reordering: move "Page 2" to position 0
+      const reorderedItems = [
+        { ...fakeResponse.items[1], order: 0 },
+        { ...fakeResponse.items[0], order: 1 },
+      ];
+
+      component.onNodeMoved({
+        node: fakeSectionNode({ id: 'page-2', data: page2 }),
+        newParentId: null,
+        newOrder: 0,
+      });
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        'page-2',
+        fakeUpdatePagePortalNavigationItem({
+          title: page2.title,
+          parentId: page2.parentId,
+          order: 0,
+          published: page2.published,
+          visibility: page2.visibility,
+        }),
+        fakePortalNavigationPage({}),
+      );
+
+      // After update, component refreshes the list — satisfy the subsequent GET
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: reorderedItems }));
+      expectGetPageContent('content-1', 'This is the content of Page 1');
+    });
+  });
+
+  function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
+    return {
+      id: 'node-1',
+      label: 'Node 1',
+      type: 'PAGE',
+      data: fakePortalNavigationPage({ id: 'node-1', title: 'Node 1', portalPageContentId: 'node-1-content' }),
+      children: [],
+      ...sectionNode,
+    };
+  }
 
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
     httpTestingController
