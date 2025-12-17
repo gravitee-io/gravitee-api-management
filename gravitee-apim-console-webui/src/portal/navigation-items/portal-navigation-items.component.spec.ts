@@ -26,7 +26,7 @@ import { GioConfirmDialogHarness, GioConfirmAndValidateDialogHarness } from '@gr
 
 import SpyInstance = jest.SpyInstance;
 
-import { PortalNavigationItemsComponent } from './portal-navigation-items.component';
+import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal-navigation-items.component';
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 
@@ -1075,6 +1075,153 @@ describe('PortalNavigationItemsComponent', () => {
 
       const message = await harness.getPageNotFoundMessage();
       expect(message).toContain('Failed to load page content.');
+    });
+  });
+
+  describe('first available page selection (findFirstAvailablePage)', () => {
+    it('should navigate to the first PAGE inside the first root FOLDER when no navId is provided', async () => {
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 1 });
+      const childPage = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title: 'Child Page 1',
+        parentId: 'folder-1',
+        portalPageContentId: 'child-content-1',
+        order: 1,
+      });
+      const rootPage = fakePortalNavigationPage({
+        id: 'root-page-1',
+        title: 'Root Page 1',
+        portalPageContentId: 'root-content-1',
+        order: 2,
+      });
+
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [folder, childPage, rootPage] });
+
+      // Load tree, then expect the component to auto-select the first page within the first folder
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('child-content-1', 'This is the content of Child Page 1');
+
+      // Verify selection and navigation
+      expect(await harness.getSelectedNavigationItemTitle()).toBe('Child Page 1');
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: 'child-page-1' } }));
+
+      // Verify content is displayed
+      expect(await harness.getEditorContentText()).toBe('This is the content of Child Page 1');
+    });
+  });
+
+  describe('findFirstAvailablePage', () => {
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+    });
+    it('selects root page when it appears before a folder', () => {
+      /**
+       * page1
+       * folder1
+       *  └─ page11
+       *
+       * selected => page1
+       */
+      const folder1 = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 1 });
+      const page11 = fakePortalNavigationPage({
+        id: 'page-11',
+        title: 'Page 11',
+        parentId: 'folder-1',
+        portalPageContentId: 'content-11',
+        order: 1,
+      });
+      const page1 = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Page 1',
+        portalPageContentId: 'content-1',
+        order: 0,
+      });
+      const items: PortalNavigationItem[] = [page1, folder1, page11];
+
+      const result = findFirstAvailablePage(null, items);
+
+      expect(result?.id).toBe('page-1');
+    });
+
+    it('selects page inside folder when folder appears before root page', () => {
+      /**
+       * folder1
+       *  └─ page11
+       * page1
+       *
+       * selected => page11
+       */
+      const folder1 = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 1 });
+      const page1 = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Page 1',
+        portalPageContentId: 'content-1',
+        order: 1,
+      });
+      const page11 = fakePortalNavigationPage({
+        id: 'page-11',
+        title: 'Page 11',
+        portalPageContentId: 'content-11',
+        order: 0,
+        parentId: 'folder-1',
+      });
+      const items: PortalNavigationItem[] = [folder1, page1, page11];
+
+      const result = findFirstAvailablePage(null, items);
+
+      expect(result?.id).toBe('page-11');
+    });
+
+    it('selects deeply nested page when no page exists at higher levels', () => {
+      /**
+       * folder1
+       *  └─ folder11
+       *      ├─ page111
+       *      └─ page112
+       *
+       * selected => page111
+       */
+      const folder1 = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 0 });
+      const folder11 = fakePortalNavigationFolder({
+        id: 'folder-11',
+        title: 'Folder 11',
+        parentId: 'folder-1',
+        order: 0,
+      });
+      const page111 = fakePortalNavigationPage({
+        id: 'page-111',
+        title: 'Page 111',
+        portalPageContentId: 'content-111',
+        parentId: 'folder-11',
+        order: 0,
+      });
+      const page112 = fakePortalNavigationPage({
+        id: 'page-112',
+        title: 'Page 112',
+        portalPageContentId: 'content-112',
+        order: 1,
+        parentId: 'folder-111',
+      });
+      const items: PortalNavigationItem[] = [folder1, folder11, page111, page112];
+
+      const result = findFirstAvailablePage(null, items);
+
+      expect(result?.id).toBe('page-111');
+    });
+
+    it('returns null when no pages exist', () => {
+      const folder1 = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 0 });
+      const folder11 = fakePortalNavigationFolder({
+        id: 'folder-11',
+        parentId: 'folder-1',
+        title: 'Folder 11',
+        order: 0,
+      });
+      const items: PortalNavigationItem[] = [folder1, folder11];
+
+      const result = findFirstAvailablePage(null, items);
+
+      expect(result).toBeNull();
     });
   });
 
