@@ -38,6 +38,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.junit.function.ThrowingRunnable;
@@ -88,8 +89,19 @@ class CreatePortalNavigationItemUseCaseTest {
         useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
         // Then
-        final var result = queryService.findByParentIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
-        assertThat(result).extracting(PortalNavigationItem::getId).contains(createPortalNavigationItem.getId());
+        final var items = queryService.findByParentIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
+        final var createdItem = items
+            .stream()
+            .filter(item -> item.getId().equals(createPortalNavigationItem.getId()))
+            .findFirst();
+        assertThat(createdItem).isPresent();
+        assertThat(createdItem.get()).satisfies(item -> {
+            assertThat(item.getTitle()).isEqualTo(createPortalNavigationItem.getTitle());
+            assertThat(item.getArea()).isEqualTo(createPortalNavigationItem.getArea());
+            assertThat(item.getOrder()).isEqualTo(createPortalNavigationItem.getOrder());
+            assertThat(item.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(item.getPublished()).isFalse();
+        });
     }
 
     @Test

@@ -73,6 +73,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(guidesFolder.getTitle()).isEqualTo("Guides");
         assertThat(guidesFolder.getOrder()).isEqualTo(0);
         assertThat(guidesFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(guidesFolder.getPublished()).isTrue();
 
         final var gettingStartedPage = items
             .stream()
@@ -88,6 +89,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(gettingStartedPage.getOrganizationId()).isEqualTo(guidesFolder.getOrganizationId());
         assertThat(gettingStartedPage.getEnvironmentId()).isEqualTo(guidesFolder.getEnvironmentId());
         assertThat(gettingStartedPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(gettingStartedPage.getPublished()).isTrue();
 
         final var coreConceptsFolder = items
             .stream()
@@ -100,6 +102,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(coreConceptsFolder.getTitle()).isEqualTo("Core concepts");
         assertThat(coreConceptsFolder.getOrder()).isEqualTo(1);
         assertThat(coreConceptsFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(coreConceptsFolder.getPublished()).isTrue();
 
         final var authPage = items
             .stream()
@@ -115,6 +118,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(authPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
         assertThat(authPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
         assertThat(authPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(authPage.getPublished()).isTrue();
 
         final var firstCallPage = items
             .stream()
@@ -130,6 +134,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(firstCallPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
         assertThat(firstCallPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
         assertThat(firstCallPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(firstCallPage.getPublished()).isTrue();
 
         final var docsLink = items
             .stream()
@@ -145,6 +150,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         );
         assertThat(docsLink.getOrder()).isEqualTo(1);
         assertThat(docsLink.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(docsLink.getPublished()).isTrue();
     }
 
     @Test
@@ -168,5 +174,6 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(homePage.getOrganizationId()).isEqualTo(ORG_ID);
         assertThat(homePage.getEnvironmentId()).isEqualTo(ENV_ID);
         assertThat(homePage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(homePage.getPublished()).isTrue();
     }
 }
