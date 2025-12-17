@@ -15,19 +15,27 @@
     limitations under the License.
 
 -->
-<div class="documentation-folder__sidenav" appIsMobile="documentation-folder__sidenav__mobile">
-  @if (this.children() && this.children()!.length > 0) {
-    <app-tree-component
-      class="documentation-folder__sidenav__tree"
-      [tree]="this.tree()"
-      [selectedId]="this.pageId()"
-      (selectNode)="onSelect($event)" />
-  } @else {
-    <div class="empty-state" i18n="@@emptyItemsLabel">No items to show</div>
-  }
+<div
+  class="documentation-folder__sidenav"
+  [class.collapsed]="sidenavCollapsed()"
+  appIsMobile="documentation-folder__sidenav__mobile"
+  (triggerBreakpoint)="onTriggerResponsiveBreakpoint($event)">
+  <div class="documentation-folder__sidenav__content">
+    @if (children() && children()!.length > 0) {
+      <app-tree-component
+        class="documentation-folder__sidenav__tree"
+        [tree]="tree()"
+        [selectedId]="pageId()"
+        (selectNode)="onSelect($event)" />
+    } @else {
+      <div class="empty-state" i18n="@@emptyItemsLabel">No items to show</div>
+    }
+  </div>
+  <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
 </div>
 <div class="documentation-folder__container">
   <div class="documentation-folder__container__breadcrumbs">
+    <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
     <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
   </div>
   <div class="documentation-folder__container__content">
