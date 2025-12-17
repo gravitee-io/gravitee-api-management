@@ -8508,7 +8508,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chartjs-adapter-date-fns@npm:^3.0.0":
+"chartjs-adapter-date-fns@npm:3.0.0":
   version: 3.0.0
   resolution: "chartjs-adapter-date-fns@npm:3.0.0"
   peerDependencies:
@@ -9259,7 +9259,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^4.1.0":
+"date-fns@npm:4.1.0":
   version: 4.1.0
   resolution: "date-fns@npm:4.1.0"
   checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
@@ -11545,8 +11545,8 @@ __metadata:
     angular-oauth2-oidc: "npm:20.0.2"
     asciidoctor: "npm:3.0.4"
     chart.js: "npm:4.3.0"
-    chartjs-adapter-date-fns: "npm:^3.0.0"
-    date-fns: "npm:^4.1.0"
+    chartjs-adapter-date-fns: "npm:3.0.0"
+    date-fns: "npm:4.1.0"
     dompurify: "npm:3.2.7"
     eslint: "npm:8.57.1"
     eslint-config-prettier: "npm:9.1.0"
