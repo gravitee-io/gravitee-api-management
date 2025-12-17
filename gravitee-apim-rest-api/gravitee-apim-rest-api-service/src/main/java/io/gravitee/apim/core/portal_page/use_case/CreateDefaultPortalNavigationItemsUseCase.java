@@ -145,7 +145,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     }
 
     private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId, PortalArea area) {
-        return CreatePortalNavigationItem.builder().title(title).area(area).parentId(parentId).build();
+        return CreatePortalNavigationItem.builder().title(title).area(area).parentId(parentId).published(true).build();
     }
 
     private PortalPageContent createPortalPageContent(String organizationId, String environmentId, String contentPath) {
