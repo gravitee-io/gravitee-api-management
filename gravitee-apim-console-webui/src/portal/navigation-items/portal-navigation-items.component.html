@@ -88,10 +88,18 @@
     @if (selectedNavigationItem()) {
       @switch (selectedNavigationItem().type) {
         @case ('PAGE') {
-          @if (!contentLoadError()) {
-            <gmd-editor [formControl]="contentControl" />
-          } @else {
+          @if (isLoadingPageContent()) {
+            <div class="empty-editor">
+              <mat-card appearance="outlined"> </mat-card>
+
+              <hr />
+
+              <mat-card appearance="outlined"> </mat-card>
+            </div>
+          } @else if (contentLoadError()) {
             <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
+          } @else {
+            <gmd-editor [formControl]="contentControl" />
           }
         }
         @default {
@@ -123,6 +131,8 @@
         <empty-state iconName="gio:code" title="Editor" message="Use GMD code to customize and edit your page content." />
       </mat-card-content>
     </mat-card>
+
+    <hr />
 
     <mat-card appearance="outlined" class="empty-state">
       <mat-card-content>
