@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
@@ -49,14 +51,18 @@ class UpdatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
+    private PortalNavigationItemDomainService domainService;
+    private PortalPageContentCrudServiceInMemory pageContentCrudService;
 
     @BeforeEach
     void setUp() {
         final var storage = new ArrayList<PortalNavigationItem>();
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
+        pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         validatorService = mock(PortalNavigationItemValidatorService.class);
-        useCase = new UpdatePortalNavigationItemUseCase(crudService, queryService, validatorService);
+        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
+        useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -261,5 +267,44 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem().getTitle()).isEqualTo(existing.getTitle());
         assertThat(output.updatedItem().getPublished()).isEqualTo(existing.getPublished());
         assertThat(output.updatedItem().getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void should_update_order() {
+        // Given an existing PAGE item
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+        assertThat(existing).isNotNull();
+        var originalId = existing.getId();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.PAGE) // must match existing type
+            .title(existing.getTitle())
+            .order(2)
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(originalId.toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        // When
+        var output = useCase.execute(input);
+
+        // Then: validator called with provided payload and existing entity
+        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
+
+        // And storage updated with new order
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
+        assertThat(updated).isNotNull();
+        assertThat(updated.getOrder()).isEqualTo(2);
+
+        // And output contains the updated item
+        assertThat(output.updatedItem()).isNotNull();
+        assertThat(output.updatedItem().getId()).isEqualTo(originalId);
+        assertThat(output.updatedItem().getOrder()).isEqualTo(2);
     }
 }
