@@ -31,33 +31,58 @@
     limitations under the License.
 -->
 @if (tree().length > 0) {
-  <mat-tree #treeBase [dataSource]="tree()" [childrenAccessor]="childrenAccessor" class="flat-tree">
+  <mat-tree
+    #treeBase
+    class="flat-tree"
+    [dataSource]="tree()"
+    [childrenAccessor]="childrenAccessor"
+    cdkDropList
+    (cdkDropListDropped)="onDrop($event)"
+  >
     <mat-tree-node
-      [matTreeNodePaddingIndent]="26"
       class="tree__row"
+      tabindex="0"
       *matTreeNodeDef="let node"
       matTreeNodePadding
+      [matTreeNodePaddingIndent]="26"
+      cdkDrag
+      [cdkDragData]="node"
+      (cdkDragStarted)="onDragStarted($event)"
       (click)="onNodeClick(node)"
-      tabindex="0"
       (keydown.enter)="onNodeClick(node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
     >
+      <div *cdkDragPreview class="tree__drag-preview">
+        <mat-icon [svgIcon]="'gio:' + (node.type | lowercase)"></mat-icon>
+        {{ node.label }}
+      </div>
+      <div *cdkDragPlaceholder class="tree__drag-placeholder"></div>
+
       <div class="tree__spacer"></div>
       <ng-container *ngTemplateOutlet="nodeContent; context: { $implicit: node }"></ng-container>
     </mat-tree-node>
 
     <mat-tree-node
-      [matTreeNodePaddingIndent]="26"
       class="tree__row"
+      tabindex="0"
       *matTreeNodeDef="let node; when: hasChild"
       matTreeNodePadding
+      [matTreeNodePaddingIndent]="26"
+      cdkDrag
+      [cdkDragData]="node"
+      (cdkDragStarted)="onDragStarted($event)"
       (click)="onNodeClick(node)"
-      tabindex="0"
       (keydown.enter)="onNodeClick(node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
     >
+      <div *cdkDragPreview class="tree__drag-preview">
+        <mat-icon [svgIcon]="'gio:' + (node.type | lowercase)"></mat-icon>
+        {{ node.label }}
+      </div>
+      <div *cdkDragPlaceholder class="tree__drag-placeholder"></div>
+
       <mat-icon
         matTreeNodeToggle
         class="tree__icon"

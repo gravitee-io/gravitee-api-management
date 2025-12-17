@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 
-import { FlatTreeComponent } from './flat-tree.component';
+import { FlatTreeComponent, SectionNode } from './flat-tree.component';
 import { FlatTreeComponentHarness } from './flat-tree.component.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
@@ -38,7 +39,7 @@ describe('FlatTreeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FlatTreeComponent, MatIconTestingModule, GioTestingModule, NoopAnimationsModule],
+      imports: [FlatTreeComponent, MatIconTestingModule, GioTestingModule, NoopAnimationsModule, DragDropModule],
       providers: [
         {
           provide: GioPermissionService,
@@ -46,20 +47,6 @@ describe('FlatTreeComponent', () => {
             hasAnyMatching: jest.fn().mockReturnValue(true),
           },
         },
-        // // Prevent Angular from injecting style tags (which jsdom can't parse due to `@layer`).
-        // {
-        //   provide: SharedStylesHost,
-        //   useValue: {
-        //     addStyles: () => {},
-        //     addStyle: () => {},
-        //     addHost: () => {},
-        //     removeHost: () => {},
-        //     ngOnDestroy: () => {},
-        //     onStylesAdded: () => {},
-        //     addUsage: () => {},
-        //     removeUsage: () => {},
-        //   },
-        // },
       ],
     }).compileComponents();
 
@@ -319,4 +306,165 @@ describe('FlatTreeComponent', () => {
     expect(titles).toContain('Folder 1');
     expect(titles).toContain('Link 1');
   });
+
+  describe('Drag & Drop Scenarios', () => {
+    let nodeMovedSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      nodeMovedSpy = jest.spyOn(component.nodeMoved, 'emit');
+    });
+
+    const findNode = (id: string, nodes = component.tree()): any => {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        if (node.children) {
+          const found = findNode(id, node.children);
+          if (found) return found;
+        }
+      }
+    };
+
+    const dropScenarios = [
+      {
+        description: 'should move Folder 1 down to 2nd position',
+        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1), makeItem('f1', 'FOLDER', '3', 2)],
+        dragId: 'f1',
+        dropIndex: 1,
+        prevIndex: 2,
+        expected: { newParentId: null, newOrder: 1 },
+      },
+      {
+        description: 'should move Page 2 into top position of Folder 1',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '1.2', 1, 'f1')],
+        dragId: 'p2',
+        dropIndex: 1, // Gap between F1 and P1
+        prevIndex: 2,
+        expected: { newParentId: 'f1', newOrder: 0 },
+      },
+      {
+        description: 'should move Page 2 to root position',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '1.2', 1, 'f1')],
+        dragId: 'p2',
+        dropIndex: 0, // Top of list
+        prevIndex: 2,
+        expected: { newParentId: null, newOrder: 0 },
+      },
+      {
+        description: 'should move Page 1 below Folder 1 (sibling)',
+        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('f1', 'FOLDER', '2', 1), makeItem('p2', 'PAGE', '3', 2)],
+        dragId: 'p1',
+        dropIndex: 2,
+        prevIndex: 0,
+        expected: { newParentId: null, newOrder: 2 },
+      },
+      {
+        description: 'should move Root Page 2 into Folder 1 (above Child Page 1)',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
+        dragId: 'p2',
+        dropIndex: 1,
+        prevIndex: 2,
+        expected: { newParentId: 'f1', newOrder: 0 },
+      },
+      {
+        description: 'should move Page 1 into Folder 1 at 2nd position (descending)',
+        links: [
+          makeItem('p1', 'PAGE', '1', 0),
+          makeItem('f1', 'FOLDER', '2', 1),
+          makeItem('p2', 'PAGE', '2.1', 0, 'f1'),
+          makeItem('p3', 'PAGE', '2.2', 1, 'f1'),
+        ],
+        dragId: 'p1',
+        dropIndex: 2, // Gap between P2 and P3
+        prevIndex: 0,
+        expected: { newParentId: 'f1', newOrder: 1 },
+      },
+      {
+        description: 'should NOT place inside folder if already sibling and moving down 1 slot',
+        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('f1', 'FOLDER', '2', 1), makeItem('p2', 'PAGE', '2.1', 0, 'f1')],
+        dragId: 'p1',
+        dropIndex: 1,
+        prevIndex: 0,
+        expected: { newParentId: null, newOrder: 1 },
+      },
+      {
+        description: 'should move nested Page 1 to root bottom',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
+        dragId: 'p1',
+        dropIndex: 2, // After P2
+        prevIndex: 1,
+        expected: { newParentId: null, newOrder: 2 },
+      },
+      {
+        description: 'should move last item up one space',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '2', 1), makeItem('p2', 'PAGE', '3', 2)],
+        dragId: 'p2',
+        dropIndex: 1,
+        prevIndex: 2,
+        expected: { newParentId: null, newOrder: 1 },
+      },
+    ];
+
+    it.each(dropScenarios)('$description', async ({ links, dragId, dropIndex, prevIndex, expected }) => {
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const nodeToMove = findNode(dragId);
+      if (!nodeToMove) throw new Error(`Node ${dragId} not found in test setup`);
+
+      const event = createDropEvent(nodeToMove, dropIndex, prevIndex);
+      component.onDrop(event);
+
+      expect(nodeMovedSpy).toHaveBeenCalledWith({
+        node: nodeToMove,
+        newParentId: expected.newParentId,
+        newOrder: expected.newOrder,
+      });
+    });
+
+    it('should not emit event if dropped at same position', async () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const pageNode = component.tree()[0];
+      const event = createDropEvent(pageNode, 0, 0);
+
+      component.onDrop(event);
+      expect(nodeMovedSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle drag start and hide descendants', fakeAsync(async () => {
+      const links = [
+        makeItem('p1', 'PAGE', 'Page 1', 0),
+        makeItem('f1', 'FOLDER', 'Folder 1', 1),
+        makeItem('sp1', 'PAGE', 'Sub Page 1', 0, 'f1'),
+      ];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      tick();
+
+      const folderNode = findNode('f1');
+      component.onDragStarted({ source: { data: folderNode } } as any);
+      tick();
+      fixture.detectChanges();
+
+      const treeTitles = await harness.getAllItemTitles();
+      expect(treeTitles).toEqual(['Page 1', 'Folder 1']);
+    }));
+  });
+
+  function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {
+    return {
+      item: { data: itemData },
+      currentIndex,
+      previousIndex,
+      container: { data: [] },
+      previousContainer: { data: [] },
+      isPointerOverContainer: true,
+      distance: { x: 0, y: 0 },
+      dropPoint: { x: 0, y: 0 },
+      event: new MouseEvent('mouseup'),
+    } as unknown as CdkDragDrop<SectionNode[]>;
+  }
 });
