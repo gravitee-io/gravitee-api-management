@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import { GmdButtonComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
+import { SidenavToggleButtonComponent } from './sidenav-toggle-button/sidenav-toggle-button.component';
 import { TreeComponent } from './tree/tree.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
@@ -32,7 +35,17 @@ import { DocumentationTreeService } from '../../services/documentation-tree.serv
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [MobileClassDirective, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent, BreadcrumbsComponent],
+  imports: [
+    MobileClassDirective,
+    TreeComponent,
+    GraviteeMarkdownViewerModule,
+    NavigationItemContentViewerComponent,
+    BreadcrumbsComponent,
+    GmdButtonComponent,
+    MatButton,
+    NgTemplateOutlet,
+    SidenavToggleButtonComponent,
+  ],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -45,6 +58,7 @@ export class DocumentationFolderComponent {
     return items && Array.isArray(items) ? this.documentationTreeService.mapItemsToNodes(items) : [];
   });
 
+  sidenavCollapsed = signal(false);
   breadcrumbs = signal<Breadcrumb[]>([]);
 
   pageIdEmitter$ = new Subject<string>();
@@ -71,6 +85,16 @@ export class DocumentationFolderComponent {
       this.pageIdEmitter$.next(selectedPageId);
       const breadcrumbs = this.documentationTreeService.getBreadcrumbsByNodeId(selectedPageId);
       this.breadcrumbs.set(breadcrumbs);
+    }
+  }
+
+  onToggleSidenav() {
+    this.sidenavCollapsed.set(!this.sidenavCollapsed());
+  }
+
+  onTriggerResponsiveBreakpoint(breakpoint: 'mobile' | null) {
+    if ((breakpoint === null && this.sidenavCollapsed()) || (breakpoint !== null && !this.sidenavCollapsed())) {
+      this.onToggleSidenav();
     }
   }
 

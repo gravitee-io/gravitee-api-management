@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, inject, input, computed, ElementRef, Renderer2, effect } from '@angular/core';
+import { Directive, inject, input, computed, ElementRef, Renderer2, effect, output } from '@angular/core';
 
 import { ObservabilityBreakpointService } from '../services/observability-breakpoint.service';
 
@@ -33,6 +33,8 @@ import { ObservabilityBreakpointService } from '../services/observability-breakp
 export class MobileClassDirective {
   public appIsMobile = input<string>();
 
+  triggerBreakpoint = output<'mobile' | null>();
+
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
   private isMobileState = inject(ObservabilityBreakpointService).isMobile;
@@ -45,10 +47,12 @@ export class MobileClassDirective {
       const className = this.activeMobileClass();
       if (className) {
         this.renderer.addClass(this.el.nativeElement, className);
+        this.triggerBreakpoint.emit('mobile');
       }
       onCleanup(() => {
         if (className) {
           this.renderer.removeClass(this.el.nativeElement, className);
+          this.triggerBreakpoint.emit(null);
         }
       });
     });
