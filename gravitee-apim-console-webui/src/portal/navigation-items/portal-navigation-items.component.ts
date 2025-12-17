@@ -44,12 +44,13 @@ import {
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { NodeMenuActionEvent, SectionNode, FlatTreeComponent } from '../components/flat-tree/flat-tree.component';
+import { NodeMenuActionEvent, SectionNode, FlatTreeComponent, NodeMovedEvent } from '../components/flat-tree/flat-tree.component';
 import {
   NewPortalNavigationItem,
   PortalArea,
   PortalNavigationItem,
   PortalNavigationItemType,
+  PortalNavigationLink,
   PortalNavigationPage,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
@@ -443,6 +444,33 @@ export class PortalNavigationItemsComponent {
       .pipe(
         filter((confirmed) => confirmed === true),
         exhaustMap(() => this.onDeleteSection(node)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  onNodeMoved($event: NodeMovedEvent) {
+    const { node, newParentId, newOrder } = $event;
+
+    const updateItem: UpdatePortalNavigationItem = {
+      title: node.data.title,
+      type: node.data.type,
+      published: node.data.published,
+      visibility: node.data.visibility,
+      url: node.type === 'LINK' ? (node.data as PortalNavigationLink).url : undefined,
+      parentId: newParentId ?? undefined,
+      order: newOrder,
+    };
+
+    this.update(node.id, updateItem)
+      .pipe(
+        tap(() => {
+          this.refreshMenuList.next(1);
+        }),
+        catchError(() => {
+          this.snackBarService.error('Failed to move navigation item');
+          return EMPTY;
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
