@@ -1028,11 +1028,11 @@ public class ResourceContextConfiguration {
 
     @Bean
     public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
-        PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemValidatorService validatorService
+        PortalNavigationItemValidatorService validatorService,
+        PortalNavigationItemDomainService domainService
     ) {
-        return new UpdatePortalNavigationItemUseCase(portalNavigationItemCrudService, portalNavigationItemsQueryService, validatorService);
+        return new UpdatePortalNavigationItemUseCase(portalNavigationItemsQueryService, validatorService, domainService);
     }
 
     @Bean
