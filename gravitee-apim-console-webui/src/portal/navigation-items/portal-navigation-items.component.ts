@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
+import { GraviteeMarkdownEditorComponent, GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
 import {
   GIO_DIALOG_WIDTH,
@@ -23,7 +23,7 @@ import {
   GioConfirmDialogComponent,
   GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
-import { Component, computed, DestroyRef, inject, NgZone, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -96,6 +96,9 @@ export class PortalNavigationItemsComponent {
   // Route State
   private readonly navId$ = this.activatedRoute.queryParams.pipe(map((params) => params['navId'] ?? null));
   readonly navId = toSignal(this.navId$, { initialValue: null });
+  readonly isLoadingPageContent = signal(false);
+
+  editor = viewChild(GraviteeMarkdownEditorComponent);
 
   // Menu Data State
   private readonly refreshMenuList = new BehaviorSubject(1);
@@ -196,8 +199,11 @@ export class PortalNavigationItemsComponent {
   private setupPageContentSubscription(): void {
     toObservable(this.selectedNavigationItem)
       .pipe(
-        switchMap((item) => {
+        tap((item) => {
+          this.isLoadingPageContent.set(!!item && item.type === 'PAGE');
           this.contentLoadError.set(false);
+        }),
+        switchMap((item) => {
           // Only fetch if it is a PAGE, otherwise return empty
           if (item && item.type === 'PAGE') {
             const pageContentId = (item.data as PortalNavigationPage).portalPageContentId;
@@ -208,6 +214,8 @@ export class PortalNavigationItemsComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((result) => {
+        this.isLoadingPageContent.set(false);
+
         if (result.success) {
           this.contentControl.reset(result.content);
         }

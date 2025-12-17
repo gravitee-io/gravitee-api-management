@@ -16,13 +16,22 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+@use '@gravitee/gravitee-markdown' as gmd;
 
 @use '../../scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
+$outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+
+  @include gmd.editor-overrides(
+    (
+      container-outline-color: $outline-color,
+    )
+  );
+
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -41,6 +50,7 @@ $typography: map.get(gio.$mat-theme, typography);
   flex-direction: column;
   background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   min-height: 0;
+  min-width: 0;
 }
 
 .panel-header {
@@ -112,6 +122,12 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .editor-panel {
+  @include mat.card-overrides(
+    (
+      outlined-outline-color: $outline-color,
+    )
+  );
+
   gmd-editor {
     flex-grow: 1;
     min-height: 0;
@@ -119,10 +135,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__header {
     padding: 16px 16px 0 16px;
-  }
-
-  .empty-editor {
-    flex-grow: 1;
   }
 }
 
@@ -134,11 +146,21 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .empty-editor {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  display: flex;
   padding: 16px;
   height: 100%;
+  flex-grow: 1;
+
+  hr {
+    width: 1px;
+    border: none;
+    background-color: $outline-color;
+    margin: 0 12px;
+  }
+
+  mat-card {
+    width: 50%;
+  }
 }
 
 .resize-handle-container {
