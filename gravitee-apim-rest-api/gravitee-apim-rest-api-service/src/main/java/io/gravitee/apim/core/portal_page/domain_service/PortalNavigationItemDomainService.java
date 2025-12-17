@@ -23,9 +23,12 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -37,15 +40,13 @@ public class PortalNavigationItemDomainService {
     private final PortalPageContentCrudService pageContentCrudService;
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
-        final var order = createPortalNavigationItem.getOrder();
-        // Order is zero based, so new max order == size()
-        final var newMaxOrder = this.retrieveSiblingItems(
+        int sanitizedOrder = this.sanitizeOrderForInsertion(
             createPortalNavigationItem.getParentId(),
             environmentId,
-            createPortalNavigationItem.getArea()
-        ).size();
-        // Limit the new item's order to at most new max order
-        createPortalNavigationItem.setOrder(order == null ? newMaxOrder : Math.min(order, newMaxOrder));
+            createPortalNavigationItem.getArea(),
+            createPortalNavigationItem.getOrder()
+        );
+        createPortalNavigationItem.setOrder(sanitizedOrder);
 
         if (
             createPortalNavigationItem.getType() == PortalNavigationItemType.PAGE &&
@@ -105,5 +106,105 @@ public class PortalNavigationItemDomainService {
         }
         crudService.delete(item.getId());
         siblingsToUpdate.forEach(crudService::update);
+    }
+
+    public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
+        final Integer originalOrder = originalItem.getOrder();
+        final PortalNavigationItemId originalParentId = originalItem.getParentId();
+
+        boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId());
+
+        int sanitizedOrder = isMoveToNewParent
+            ? this.sanitizeOrderForInsertion(
+                toUpdate.getParentId(),
+                originalItem.getEnvironmentId(),
+                originalItem.getArea(),
+                toUpdate.getOrder()
+            )
+            : this.sanitizeOrderForReordering(
+                toUpdate.getParentId(),
+                originalItem.getEnvironmentId(),
+                originalItem.getArea(),
+                toUpdate.getOrder()
+            );
+
+        toUpdate.setOrder(sanitizedOrder);
+
+        originalItem.update(toUpdate);
+
+        var updatedItem = crudService.update(originalItem);
+
+        List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
+        if (!Objects.equals(originalParentId, updatedItem.getParentId())) {
+            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem));
+            siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId));
+        } else if (!Objects.equals(originalOrder, updatedItem.getOrder())) {
+            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem));
+        }
+        siblingsToUpdate.forEach(crudService::update);
+
+        return updatedItem;
+    }
+
+    private int sanitizeOrderForReordering(PortalNavigationItemId parentId, String environmentId, PortalArea area, Integer order) {
+        final var siblingItems = this.retrieveSiblingItems(parentId, environmentId, area);
+        final var maxOrder = Math.max(0, siblingItems.size() - 1);
+        if (Objects.isNull(order)) return maxOrder;
+        return Math.min(order, maxOrder);
+    }
+
+    private int sanitizeOrderForInsertion(PortalNavigationItemId parentId, String environmentId, PortalArea area, Integer order) {
+        final var newMaxOrder = this.retrieveSiblingItems(parentId, environmentId, area).size();
+        if (Objects.isNull(order)) return newMaxOrder;
+
+        return Math.min(order, newMaxOrder);
+    }
+
+    private List<PortalNavigationItem> reorderOriginSiblings(
+        Integer originalOrder,
+        PortalNavigationItem updatedItem,
+        PortalNavigationItemId originalParentId
+    ) {
+        return this.retrieveSiblingItems(originalParentId, updatedItem.getEnvironmentId(), updatedItem.getArea())
+            .stream()
+            .filter(sibling -> sibling.getOrder() > originalOrder)
+            .peek(sibling -> {
+                sibling.setOrder(sibling.getOrder() - 1);
+            })
+            .toList();
+    }
+
+    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea())
+            .stream()
+            .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
+            .peek(sibling -> {
+                sibling.setOrder(sibling.getOrder() + 1);
+            })
+            .toList();
+    }
+
+    private List<PortalNavigationItem> reorderDestinationSiblings(Integer originalOrder, PortalNavigationItem updatedItem) {
+        Predicate<PortalNavigationItem> shouldBeDecremented = sibling ->
+            sibling.getOrder() > originalOrder && sibling.getOrder() <= updatedItem.getOrder();
+
+        Predicate<PortalNavigationItem> shouldBeIncremented = sibling ->
+            sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
+
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea())
+            .stream()
+            .filter(
+                sibling ->
+                    !Objects.equals(sibling.getId(), updatedItem.getId()) &&
+                    (shouldBeDecremented.test(sibling) || shouldBeIncremented.test(sibling))
+            )
+            .peek(sibling -> {
+                if (shouldBeDecremented.test(sibling)) {
+                    sibling.setOrder(sibling.getOrder() - 1);
+                } else if (shouldBeIncremented.test(sibling)) {
+                    sibling.setOrder(sibling.getOrder() + 1);
+                }
+            })
+            .toList();
     }
 }
