@@ -910,8 +910,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PortalNavigationItemDomainService portalNavigationItemDomainService() {
-        return mock(PortalNavigationItemDomainService.class);
+    public PortalNavigationItemDomainService portalNavigationItemDomainService(
+        PortalNavigationItemCrudService portalNavigationItemCrudService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalPageContentCrudService portalPageContentCrudService
+    ) {
+        return new PortalNavigationItemDomainService(
+            portalNavigationItemCrudService,
+            portalNavigationItemsQueryService,
+            portalPageContentCrudService
+        );
     }
 
     @Bean
