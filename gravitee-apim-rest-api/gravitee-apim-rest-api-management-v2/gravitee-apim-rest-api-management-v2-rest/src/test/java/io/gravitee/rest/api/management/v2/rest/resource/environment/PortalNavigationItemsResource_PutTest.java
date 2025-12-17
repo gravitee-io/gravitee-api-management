@@ -381,4 +381,30 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getVisibility()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
     }
+
+    @Test
+    void should_change_order() {
+        // Given an existing PAGE item id from fixtures
+        String navId = PAGE11_ID;
+
+        // When: PUT with a new order that affects siblings
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
+            .title("  Updated Title  ")
+            .order(1) // Current order is 2 in fixtures, so moving to 1 should shift others
+            .type(PortalNavigationItemType.PAGE)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK and response payload with updated order
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
+        assertThat(body).isNotNull();
+        assertThat(body.getId()).isEqualTo(UUID.fromString(navId));
+        assertThat(body.getOrder()).isEqualTo(1);
+
+        // And storage reflects the change
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getOrder()).isEqualTo(1);
+    }
 }
