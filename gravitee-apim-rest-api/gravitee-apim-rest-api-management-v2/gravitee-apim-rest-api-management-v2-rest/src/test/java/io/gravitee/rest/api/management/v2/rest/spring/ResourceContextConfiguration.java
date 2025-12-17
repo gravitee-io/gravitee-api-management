@@ -893,14 +893,14 @@ public class ResourceContextConfiguration {
 
     @Bean
     public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
-        PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemValidatorService portalNavigationItemValidatorService
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        PortalNavigationItemDomainService domainService
     ) {
         return new UpdatePortalNavigationItemUseCase(
-            portalNavigationItemCrudService,
             portalNavigationItemsQueryService,
-            portalNavigationItemValidatorService
+            portalNavigationItemValidatorService,
+            domainService
         );
     }
 
