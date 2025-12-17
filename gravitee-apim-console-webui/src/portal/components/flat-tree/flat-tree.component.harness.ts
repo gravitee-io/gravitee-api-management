@@ -75,21 +75,23 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     return iconType.getName();
   }
 
-  async selectItemByTitle(title: string): Promise<void> {
+  async getNodeHarnessByTitle(title: string): Promise<MatTreeNodeHarness> {
     const tree = await this.getTree();
-    if (!tree) {
-      throw new Error('Tree not found');
-    }
-    const nodes = await tree.getNodes();
+    if (!tree) throw new Error('Tree not found');
 
+    const nodes = await tree.getNodes();
     for (const node of nodes) {
-      const labelText = await this.getNodeLabelText(node);
-      if (labelText.trim().includes(title.trim())) {
-        return node.host().then((host) => host.click());
+      const labelText = await node.getText();
+      if (labelText.trim() === title.trim()) {
+        return node;
       }
     }
+    throw new Error(`Node with title "${title}" not found.`);
+  }
 
-    throw new Error(`No item found with title: ${title}`);
+  async selectItemByTitle(title: string): Promise<void> {
+    const node = await this.getNodeHarnessByTitle(title);
+    return node.host().then((host) => host.click());
   }
 
   async getAllItemTitles(): Promise<string[]> {
