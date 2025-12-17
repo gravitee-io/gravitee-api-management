@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule, LowerCasePipe } from '@angular/common';
+import { CdkDragDrop, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -32,6 +33,12 @@ export interface SectionNode {
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   children?: SectionNode[];
+}
+
+export interface NodeMovedEvent {
+  node: SectionNode;
+  newParentId: string | null;
+  newOrder: number;
 }
 
 type NodeMenuActionType = 'create' | 'edit' | 'delete';
@@ -70,6 +77,7 @@ type ProcessingNode = SectionNode & {
     EmptyStateComponent,
     GioPermissionModule,
     LowerCasePipe,
+    DragDropModule,
   ],
   templateUrl: './flat-tree.component.html',
   styleUrls: ['./flat-tree.component.scss'],
@@ -80,6 +88,7 @@ export class FlatTreeComponent {
 
   nodeSelect = output<SectionNode>();
   nodeMenuAction = output<NodeMenuActionEvent>();
+  nodeMoved = output<NodeMovedEvent>();
 
   childrenAccessor = (node: SectionNode) => node.children ?? [];
   hasChild = (_: number, node: SectionNode) => !!node.children && node.children.length > 0;
@@ -101,7 +110,7 @@ export class FlatTreeComponent {
       const tree = this.treeBase();
 
       if (nodes.length > 0 && tree) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           tree.expandAll();
         });
       }
@@ -138,6 +147,79 @@ export class FlatTreeComponent {
 
   hasChildren(node: FlatTreeNode): boolean {
     return node.expandable;
+  }
+
+  onDrop(event: CdkDragDrop<SectionNode[]>) {
+    const { previousIndex, currentIndex, item } = event;
+
+    if (previousIndex === currentIndex) return;
+
+    const nodeToMove = item.data as SectionNode;
+    const visibleNodes = this.getVisibleNodes();
+
+    let newParentId: string | null;
+    let newOrder: number;
+
+    if (currentIndex === 0) {
+      // Dropped at the very top
+      newParentId = null;
+      newOrder = 0;
+    } else {
+      // Dropped elsewhere
+      if (currentIndex >= visibleNodes.length) {
+        // Dropped at the very end of the list
+        const lastNode = visibleNodes.at(visibleNodes.length - 1);
+        newParentId = lastNode.data.parentId ?? null;
+        newOrder = lastNode.data.order + 1;
+      } else {
+        // Dropped between other items
+        const replacedItem = visibleNodes.at(currentIndex);
+        const isMovingDown = previousIndex < currentIndex;
+        const isParentChange = nodeToMove.data.parentId !== replacedItem.data.parentId;
+
+        newParentId = replacedItem.data.parentId ?? null;
+        newOrder = isMovingDown && isParentChange ? replacedItem.data.order + 1 : replacedItem.data.order;
+      }
+
+      // Prevent self-parenting
+      if (newParentId === nodeToMove.id) {
+        newParentId = null;
+      }
+    }
+
+    if (nodeToMove.type === 'FOLDER') {
+      this.treeBase()?.expandAll();
+    }
+
+    this.nodeMoved.emit({ node: nodeToMove, newParentId, newOrder });
+  }
+
+  onDragStarted(event: CdkDragStart<SectionNode>) {
+    const draggedNode = event.source.data;
+
+    // If it's a folder, find all its descendants to hide them
+    if (draggedNode.type === 'FOLDER' && draggedNode.children) {
+      const tree = this.treeBase();
+      tree.collapse(draggedNode);
+    }
+  }
+
+  private getVisibleNodes(): SectionNode[] {
+    const result: SectionNode[] = [];
+    const tree = this.treeBase();
+
+    const traverse = (nodes: SectionNode[]) => {
+      for (const node of nodes) {
+        result.push(node);
+        // Only add children if the node is expanded
+        if (node.children && tree?.isExpanded(node)) {
+          traverse(node.children);
+        }
+      }
+    };
+
+    traverse(this.tree());
+    return result;
   }
 
   private mapFlatTreeNodeToSectionNode(flatTreeNode: FlatTreeNode): SectionNode {
