@@ -15,7 +15,14 @@
  */
 @use '../../../../scss/theme' as app-theme;
 
+$sidenav-min-width: 330px;
+$sidenav-horizontal-padding: 40px;
+$sidenav-vertical-padding: 25px;
+$sidenav-content-width: calc($sidenav-min-width - $sidenav-horizontal-padding * 2);
+$transition-base: 300ms ease-in-out;
+
 :host {
+  position: relative;
   display: flex;
   overflow: hidden;
   flex: 1 1 100%;
@@ -23,12 +30,54 @@
 
 .documentation-folder {
   &__sidenav {
-    width: 300px;
-    min-width: 300px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    overflow: hidden;
+    width: $sidenav-min-width;
+    min-width: $sidenav-min-width;
+    box-sizing: border-box;
     border-right: 1px solid app-theme.$border-color;
+    background: app-theme.$background-color;
+    transition:
+      min-width $transition-base,
+      width $transition-base;
+
+    &__content {
+      display: flex;
+      overflow: hidden auto;
+      padding: $sidenav-vertical-padding $sidenav-horizontal-padding;
+      transition: padding $transition-base;
+    }
 
     &__tree {
+      min-width: $sidenav-content-width;
       height: 100%;
+    }
+
+    &.collapsed {
+      width: 0;
+      min-width: 0;
+
+      &__content {
+        padding: $sidenav-vertical-padding 0;
+      }
+    }
+
+    app-sidenav-toggle-button-component {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      display: none;
+    }
+
+    &__mobile {
+      position: absolute;
+      height: 100%;
+
+      app-sidenav-toggle-button-component {
+        display: block;
+      }
     }
   }
 
@@ -38,8 +87,12 @@
     flex-grow: 1;
 
     &__breadcrumbs {
+      display: flex;
       min-height: 55px;
+      align-items: center;
+      padding: 0 15px;
       border-bottom: 1px solid app-theme.$nav-bar-border-color;
+      gap: 10px;
     }
 
     &__content {
