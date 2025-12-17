@@ -55,6 +55,6 @@ export class PageMarkdownComponent implements OnChanges {
       return this.markdownService.render(this.content, this.configuration.baseURL, `/catalog/api/${this.apiId}/documentation`, this.pages);
     }
 
-    return this.markdownService.render(this.content, this.configuration.baseURL, `/guides`, this.pages);
+    return '';
   }
 }

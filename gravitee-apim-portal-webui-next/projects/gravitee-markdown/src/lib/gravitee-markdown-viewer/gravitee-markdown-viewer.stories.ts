@@ -156,7 +156,6 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
     </gmd-md>
     <gmd-cell style="text-align: center; margin: auto;">
         <gmd-button link="/catalog">Explore all APIs</gmd-button>
-        <gmd-button link="/guides" appearance="outlined" style="--gmd-button-outlined-label-text-weight: 700; --gmd-button-outlined-label-text-color: black;"
         >Get started</gmd-button>
     </gmd-cell>
     <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
@@ -204,7 +203,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-card-title>Your first API call</gmd-card-title>
         <gmd-md>Learn how to make a basic request and receive a response.Learn how to make a basic request and receive a response.</gmd-md>
         <div class="flex-container">
-          <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
+          <gmd-button link="/catalog" appearance="outlined" class="get-started-card__button"
           >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
@@ -212,7 +211,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-card-title>Authentication walkthrough</gmd-card-title>
         <gmd-md>A step-by-step guide to generating and managing API keys.</gmd-md>
         <div class="flex-container">
-          <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
+          <gmd-button link="/catalog" appearance="outlined" class="get-started-card__button"
           >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
@@ -220,7 +219,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-card-title>Integrating SDK into your project</gmd-card-title>
         <gmd-md>Use our official library to simplify your code.</gmd-md>
         <div class="flex-container">
-          <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
+          <gmd-button link="/catalog" appearance="outlined" class="get-started-card__button"
           >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
