@@ -19,15 +19,15 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { TreeComponent } from './tree.component';
 import { PortalNavigationItem } from '../../../../../entities/portal-navigation/portal-navigation-item';
-import {
-  fakePortalNavigationFolder,
-  fakePortalNavigationLink,
-  fakePortalNavigationPage,
-} from '../../../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { makeItem, MOCK_ITEMS } from '../../../../../mocks/portal-navigation-item.mocks';
+import { DocumentationTreeService, TreeNode } from '../../../services/documentation-tree.service';
 
 describe('TreeComponent', () => {
+  const documentationTreeService = new DocumentationTreeService();
   let fixture: ComponentFixture<TreeComponent>;
   let component: TreeComponent;
+  const items: PortalNavigationItem[] = MOCK_ITEMS;
+  let itemsTree: TreeNode[];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -36,36 +36,12 @@ describe('TreeComponent', () => {
 
     fixture = TestBed.createComponent(TreeComponent);
     component = fixture.componentInstance;
+
+    itemsTree = documentationTreeService.mapItemsToNodes(items);
   });
 
-  const makeItem = (
-    id: string,
-    type: 'PAGE' | 'FOLDER' | 'LINK',
-    title: string,
-    order?: number,
-    parentId?: string | null,
-  ): PortalNavigationItem => {
-    switch (type) {
-      case 'FOLDER':
-        return fakePortalNavigationFolder({ id, title, order, parentId });
-      case 'LINK':
-        return fakePortalNavigationLink({ id, title, order, parentId });
-      case 'PAGE':
-      default:
-        return fakePortalNavigationPage({ id, title, order, parentId });
-    }
-  };
-
-  const items = [
-    makeItem('f1', 'FOLDER', 'Folder 1', 0),
-    makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
-    makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
-    makeItem('p2', 'PAGE', 'Page 2', 1, 'f1'),
-    makeItem('p3', 'PAGE', 'Page 3', 1),
-  ];
-
   it('should build a sorted tree with proper types and parent/child relationships', () => {
-    const items = [
+    const items = documentationTreeService.mapItemsToNodes([
       // root page with smallest order -> should be first
       makeItem('r1', 'PAGE', 'Root Page 1', 0),
       // folder root
@@ -74,9 +50,9 @@ describe('TreeComponent', () => {
       makeItem('l1', 'LINK', 'External Link', 3),
       // child page under folder
       makeItem('c1', 'PAGE', 'Child Page', 2, 'f1'),
-    ];
+    ]);
 
-    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('tree', items);
     fixture.detectChanges();
 
     const tree = component.tree();
@@ -105,7 +81,7 @@ describe('TreeComponent', () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
-      fixture.componentRef.setInput('items', items);
+      fixture.componentRef.setInput('tree', itemsTree);
       fixture.detectChanges();
 
       expect(selectSpy).toHaveBeenCalledWith('p1');
@@ -118,7 +94,7 @@ describe('TreeComponent', () => {
       items[1].order = 1;
       items[3].order = 0;
 
-      fixture.componentRef.setInput('items', items);
+      fixture.componentRef.setInput('tree', documentationTreeService.mapItemsToNodes(items));
       fixture.detectChanges();
 
       expect(selectSpy).toHaveBeenCalledWith('p2');
@@ -131,7 +107,7 @@ describe('TreeComponent', () => {
       items[0].order = 1;
       items[4].order = 0;
 
-      fixture.componentRef.setInput('items', items);
+      fixture.componentRef.setInput('tree', documentationTreeService.mapItemsToNodes(items));
       fixture.detectChanges();
 
       expect(selectSpy).toHaveBeenCalledWith('p3');
@@ -141,7 +117,7 @@ describe('TreeComponent', () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
-      fixture.componentRef.setInput('items', items);
+      fixture.componentRef.setInput('tree', itemsTree);
       fixture.componentRef.setInput('selectedId', 'p3');
       fixture.detectChanges();
 
@@ -152,7 +128,7 @@ describe('TreeComponent', () => {
   it('should scroll into view on page load', () => {
     const scrollIntoViewSpy = jest.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(() => {});
 
-    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('tree', itemsTree);
     fixture.componentRef.setInput('selectedId', 'p3');
     fixture.detectChanges();
 

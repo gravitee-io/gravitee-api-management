@@ -17,13 +17,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { TreeNodeComponent } from './tree-node.component';
-import { SectionNode } from './tree.component';
+import { TreeNode } from '../../../services/documentation-tree.service';
 
 describe('TreeNodeComponent', () => {
   let fixture: ComponentFixture<TreeNodeComponent>;
   let component: TreeNodeComponent;
 
-  const init = async (params: Partial<{ node: SectionNode }> = {}) => {
+  const init = async (params: Partial<{ node: TreeNode }> = {}) => {
     await TestBed.configureTestingModule({
       imports: [TreeNodeComponent],
       providers: [],
@@ -38,7 +38,7 @@ describe('TreeNodeComponent', () => {
   };
 
   describe('test link node', () => {
-    const node: SectionNode = {
+    const node: TreeNode = {
       id: 'n3',
       label: 'Link 1',
       type: 'LINK',
@@ -69,7 +69,7 @@ describe('TreeNodeComponent', () => {
   });
 
   describe('test page node', () => {
-    const node: SectionNode = {
+    const node: TreeNode = {
       id: 'n1',
       label: 'Page 1',
       type: 'PAGE',
@@ -102,7 +102,7 @@ describe('TreeNodeComponent', () => {
   });
 
   describe('test folder node', () => {
-    const node: SectionNode = {
+    const node: TreeNode = {
       id: 'f1',
       label: 'Folder 1',
       type: 'FOLDER',
@@ -165,7 +165,7 @@ describe('TreeNodeComponent', () => {
   });
 
   it('should compute selected state from selectedId input', async () => {
-    const node: SectionNode = {
+    const node: TreeNode = {
       id: 'n1',
       label: 'Folder 1',
       type: 'FOLDER',

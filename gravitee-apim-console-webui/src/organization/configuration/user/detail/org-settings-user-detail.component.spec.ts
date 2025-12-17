@@ -436,7 +436,6 @@ describe('OrgSettingsUserDetailComponent', () => {
     const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
     const groupsTable = await groupsCard.getHarness(MatTableHarness);
 
-    // First row and delete column
     const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[5].getHarness(MatButtonHarness);
 
     await deleteUserGroupButton.click();
@@ -446,7 +445,6 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupA/members/${user.id}`);
     expect(req.request.method).toEqual('DELETE');
-    // No flush to stop test here
   });
 
   it('should display APIs user membership', async () => {
@@ -575,13 +573,13 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const addGroupButton = await groupsCard.getHarness(MatButtonHarness.with({ text: /Add a group/ }));
     await addGroupButton.click();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
     fixture.detectChanges();
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
     expectRolesListRequest('INTEGRATION');
-
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
 
     const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
     await groupIdSelect.open();
@@ -609,6 +607,16 @@ describe('OrgSettingsUserDetailComponent', () => {
         ],
       },
     ]);
+    req.flush([fakeGroupMembership({ id: 'userId', roles: [{ scope: 'GROUP', name: 'ADMIN' }] })]);
+
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'groupA', name: 'Group A' }), fakeGroup({ id: 'groupB', name: 'Group B' })]);
+
+    fixture.detectChanges();
+
+    const groupsCardAfterAdd = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
+    const groupsTableAfterAdd = await groupsCardAfterAdd.getHarness(MatTableHarness);
+    const rows = await groupsTableAfterAdd.getRows();
+    expect(rows.length).toBe(2);
   });
 
   it('should open dialog to create a token', async () => {

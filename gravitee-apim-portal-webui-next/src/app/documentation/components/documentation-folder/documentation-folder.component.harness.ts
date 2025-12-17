@@ -17,27 +17,53 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
-import { TreeComponentHarness } from './tree-component/tree.component.harness';
+import { BreadcrumbsComponentHarness } from './breadcrumb/breadcrumbs.component.harness';
+import { SidenavToggleButtonComponentHarness } from './sidenav-toggle-button/sidenav-toggle-button.component.harness';
+import { TreeComponentHarness } from './tree/tree.component.harness';
 import { DivHarness } from '../../../../testing/div.harness';
 
 export class DocumentationFolderComponentHarness extends ComponentHarness {
   static readonly hostSelector = 'app-documentation-folder';
 
+  private readonly getSidenavHarness = this.locatorForOptional(DivHarness.with({ selector: '.documentation-folder__sidenav' }));
+
+  private readonly getSidenavToggleButtonHarness = this.locatorForOptional(SidenavToggleButtonComponentHarness);
+
   private readonly getTree = this.locatorForOptional(TreeComponentHarness);
-  private readonly getTreeEmptyStateHarness = this.locatorForOptional(
-    DivHarness.with({ selector: '.documentation-folder__sidenav .empty-state' }),
-  );
+
+  private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
+
   private readonly getContentEmptyStateHarness = this.locatorForOptional(
     DivHarness.with({ selector: '.documentation-folder__container .empty-state' }),
   );
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
 
+  async getSidenav(): Promise<DivHarness | null> {
+    return this.getSidenavHarness();
+  }
+
+  async getSidenavCollapsedState(): Promise<boolean | null> {
+    return this.getSidenav()
+      .then(sidenav => sidenav?.host())
+      .then(host => host?.hasClass('collapsed') ?? null);
+  }
+
+  async getSidenavEmptyState(): Promise<DivHarness | null> {
+    return this.getSidenavHarness().then(sidenav =>
+      sidenav ? sidenav.childLocatorForOptional(DivHarness.with({ selector: '.empty-state' }))() : null,
+    );
+  }
+
+  async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
+    return this.getSidenavToggleButtonHarness();
+  }
+
   async getTreeHarness(): Promise<TreeComponentHarness | null> {
     return this.getTree();
   }
 
-  async getItemsEmptyState(): Promise<DivHarness | null> {
-    return this.getTreeEmptyStateHarness();
+  async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {
+    return this.getBreadcrumbsHarness();
   }
 
   async getContentEmptyState(): Promise<DivHarness | null> {

@@ -28,25 +28,8 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketGroup;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetMetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucket;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketGroup;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.*;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -156,4 +139,8 @@ public interface AnalyticsMeasuresMapper {
 
     @Mapping(target = "facets", source = "by")
     TimeSeriesRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest requestEntity);
+
+    default Long map(CustomInterval interval) {
+        return interval.toMillis();
+    }
 }

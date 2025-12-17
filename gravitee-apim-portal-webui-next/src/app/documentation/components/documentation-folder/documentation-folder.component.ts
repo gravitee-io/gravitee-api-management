@@ -13,31 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import { GmdButtonComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
-import { TreeComponent } from './tree-component/tree.component';
+import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
+import { SidenavToggleButtonComponent } from './sidenav-toggle-button/sidenav-toggle-button.component';
+import { TreeComponent } from './tree/tree.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
+import { DocumentationTreeService } from '../../services/documentation-tree.service';
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [MobileClassDirective, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent],
+  imports: [
+    MobileClassDirective,
+    TreeComponent,
+    GraviteeMarkdownViewerModule,
+    NavigationItemContentViewerComponent,
+    BreadcrumbsComponent,
+    GmdButtonComponent,
+    MatButton,
+    NgTemplateOutlet,
+    SidenavToggleButtonComponent,
+  ],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
 })
 export class DocumentationFolderComponent {
-  navItem = input<PortalNavigationItem | null>(null);
+  navItem = input.required<PortalNavigationItem | null>();
   children = toSignal(toObservable(this.navItem).pipe(switchMap(this.loadChildren.bind(this))), { initialValue: null });
+  tree = computed(() => {
+    const items = this.children();
+    return items && Array.isArray(items) ? this.documentationTreeService.mapItemsToNodes(items) : [];
+  });
+
+  sidenavCollapsed = signal(false);
+  breadcrumbs = signal<Breadcrumb[]>([]);
 
   pageIdEmitter$ = new Subject<string>();
   pageId = toSignal(this.pageIdEmitter$, { initialValue: null });
@@ -47,7 +69,12 @@ export class DocumentationFolderComponent {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly itemsService: PortalNavigationItemsService,
-  ) {}
+    private readonly documentationTreeService: DocumentationTreeService,
+  ) {
+    effect(() => {
+      documentationTreeService.setParentItem(this.navItem()!);
+    });
+  }
 
   onSelect(selectedPageId: string | null) {
     if (selectedPageId) {
@@ -56,6 +83,18 @@ export class DocumentationFolderComponent {
         queryParams: { pageId: selectedPageId },
       });
       this.pageIdEmitter$.next(selectedPageId);
+      const breadcrumbs = this.documentationTreeService.getBreadcrumbsByNodeId(selectedPageId);
+      this.breadcrumbs.set(breadcrumbs);
+    }
+  }
+
+  onToggleSidenav() {
+    this.sidenavCollapsed.set(!this.sidenavCollapsed());
+  }
+
+  onTriggerResponsiveBreakpoint(breakpoint: 'mobile' | null) {
+    if ((breakpoint === null && this.sidenavCollapsed()) || (breakpoint !== null && !this.sidenavCollapsed())) {
+      this.onToggleSidenav();
     }
   }
 
@@ -64,9 +103,15 @@ export class DocumentationFolderComponent {
       return of(null);
     }
 
-    return this.itemsService
-      .getNavigationItems('TOP_NAVBAR', true, navItem.id)
-      .pipe(tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])));
+    return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id).pipe(
+      tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])),
+      tap(() => {
+        const topLevelBreadcrumbs = this.documentationTreeService.getParentItemBreadcrumb()
+          ? [this.documentationTreeService.getParentItemBreadcrumb()!]
+          : [];
+        this.breadcrumbs.set(topLevelBreadcrumbs);
+      }),
+    );
   }
 
   private loadPageContent(pageId: string | null): Observable<PortalPageContent | null> {

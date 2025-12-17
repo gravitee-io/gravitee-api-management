@@ -40,6 +40,9 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
         @case ('MESSAGE') {
           <api-analytics-message />
         }
+        @case ('LLM_PROXY') {
+          <api-analytics-proxy />
+        }
         @case ('PROXY') {
           <api-analytics-proxy />
         }

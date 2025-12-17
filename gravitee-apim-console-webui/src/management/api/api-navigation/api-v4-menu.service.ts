@@ -51,7 +51,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
-      ...(api.type !== 'LLM_PROXY' ? [this.addApiTrafficMenuEntry(hasTcpListeners, api.type)] : []),
+      this.addApiTrafficMenuEntry(hasTcpListeners, api.type),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
       ...(webhooksMenuEntry ? [webhooksMenuEntry] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
@@ -382,7 +382,7 @@ export class ApiV4MenuService implements ApiMenuService {
         icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/analytics',
       };
-      if (apiType === 'PROXY' || apiType === 'MCP_PROXY') {
+      if (apiType === 'PROXY' || apiType === 'MCP_PROXY' || apiType === 'LLM_PROXY') {
         return baseMenuItem;
       } else {
         return {

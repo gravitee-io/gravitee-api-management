@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
-import { Inject, Injectable } from '@angular/core';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { Constants } from '../entities/Constants';
+export class SidenavToggleButtonComponentHarness extends ComponentHarness {
+  static readonly hostSelector = 'app-sidenav-toggle-button-component';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class CloudHostedGuard implements CanActivate {
-  constructor(
-    private router: Router,
-    @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  async getIcon() {
+    return this.locatorFor('.material-icons')();
+  }
 
-  canActivate(_route: ActivatedRouteSnapshot): boolean {
-    return !this.constants?.org?.settings?.cloudHosted?.enabled;
+  async getButton() {
+    return this.locatorFor(MatButtonHarness.with())();
   }
 }
