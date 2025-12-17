@@ -247,6 +247,33 @@ class HttpProxyEndpointConnectorTest {
         verify(ctx, never()).interruptWith(any(ExecutionFailure.class));
     }
 
+    @Test
+    void should_rewrite_server_null_in_timeout_error_message() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+
+        NoStackTraceTimeoutException timeoutException = new NoStackTraceTimeoutException(
+            "The timeout period of 10000ms has been exceeded while executing GET /late for server null"
+        );
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+        when(metrics.getEndpoint()).thenReturn("https://test34.free.beeceptor.com/late");
+
+        TestObserver<Void> testObserver = cut.connect(ctx).test();
+
+        verify(ctx).interruptWith(failureCaptor.capture());
+        ExecutionFailure capturedFailure = failureCaptor.getValue();
+        assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
+        assertThat(capturedFailure.key()).isEqualTo(REQUEST_TIMEOUT);
+        assertThat(capturedFailure.cause().getMessage()).isEqualTo(
+            "The timeout period of 10000ms has been exceeded while executing GET /late for endpoint https://test34.free.beeceptor.com/late"
+        );
+
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
+    }
+
     @Nested
     class ConnectTest {
 
