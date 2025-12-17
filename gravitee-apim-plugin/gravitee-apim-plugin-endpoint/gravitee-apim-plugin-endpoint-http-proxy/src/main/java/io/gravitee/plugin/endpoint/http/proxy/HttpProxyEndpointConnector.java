@@ -54,6 +54,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
     static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
+    private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
 
@@ -156,7 +157,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
                 new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
             );
             case NoStackTraceTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(rewriteServerNull(e, ctx))
             );
             case ReadTimeoutException e -> ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
@@ -168,5 +169,13 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
                 new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
             );
         };
+    }
+
+    private Throwable rewriteServerNull(NoStackTraceTimeoutException e, HttpExecutionContext ctx) {
+        String msg = e.getMessage();
+        String endpoint = ctx.metrics().getEndpoint();
+        return (msg != null && msg.endsWith(SERVER_NULL_PATTERN) && endpoint != null)
+            ? new NoStackTraceTimeoutException(msg.replace(SERVER_NULL_PATTERN, " for endpoint " + endpoint))
+            : e;
     }
 }
