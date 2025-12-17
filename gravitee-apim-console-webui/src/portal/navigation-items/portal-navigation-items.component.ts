@@ -107,7 +107,7 @@ export class PortalNavigationItemsComponent {
 
       // If no navId in query params, navigate to first PAGE item
       if (items && items.length > 0 && !currentNavId) {
-        const firstPage = items.find((i) => i.type === 'PAGE');
+        const firstPage = findFirstAvailablePage(null, items);
         if (firstPage) {
           this.navigateToItemByNavId(firstPage.id);
         }
@@ -439,4 +439,40 @@ export class PortalNavigationItemsComponent {
       )
       .subscribe();
   }
+}
+
+export function findFirstAvailablePage(
+  rootFolder: PortalNavigationItem | null,
+  items: PortalNavigationItem[],
+): PortalNavigationItem | null {
+  // 1. Index elements by parentId to avoid filtering the full array at each recursive step
+  const childrenMap = new Map<string | null, PortalNavigationItem[]>();
+
+  items.forEach((item) => {
+    const pId = item.parentId ?? null;
+    if (!childrenMap.has(pId)) childrenMap.set(pId, []);
+    childrenMap.get(pId)!.push(item);
+  });
+
+  // 2. Internal recursive function using the Map
+  function search(currentFolder: PortalNavigationItem | null): PortalNavigationItem | null {
+    const parentId = currentFolder ? currentFolder.id : null;
+    const children = childrenMap.get(parentId) || [];
+
+    // Sort children only when accessed
+    const sortedChildren = [...children].sort((a, b) => a.order - b.order);
+
+    for (const element of sortedChildren) {
+      if (element.type === 'PAGE') {
+        return element;
+      }
+      if (element.type === 'FOLDER') {
+        const found = search(element);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  return search(rootFolder);
 }
