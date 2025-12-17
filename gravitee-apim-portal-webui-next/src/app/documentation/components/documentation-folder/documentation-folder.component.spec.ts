@@ -83,7 +83,7 @@ describe('DocumentationFolderComponent', () => {
         const tree = await harness.getTreeHarness();
         expect(tree).toBeNull();
 
-        const emptyState = await harness.getItemsEmptyState();
+        const emptyState = await harness.getSidenavEmptyState();
         expect(await emptyState?.getText()).toEqual('No items to show');
       });
 
@@ -107,7 +107,7 @@ describe('DocumentationFolderComponent', () => {
 
         expect(await tree!.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1', 'Page 2', 'Page 3']);
 
-        const emptyState = await harness.getItemsEmptyState();
+        const emptyState = await harness.getSidenavEmptyState();
         expect(await emptyState?.getText()).toBeUndefined();
       });
 
@@ -206,5 +206,21 @@ describe('DocumentationFolderComponent', () => {
 
     const item = await tree!.getFolderByTitle('Folder 1');
     expect(item?.expanded).toEqual(false);
+  });
+
+  it('should collapse sidenav on toggle click', async () => {
+    await init();
+
+    let isSidenavCollapsed = await harness.getSidenavCollapsedState();
+    expect(isSidenavCollapsed).toBeDefined();
+    expect(isSidenavCollapsed).toEqual(false);
+
+    const toggleButton = await harness.getSidenavToggleButton().then(toggle => toggle?.getButton());
+    expect(toggleButton).toBeDefined();
+    await toggleButton!.click();
+
+    isSidenavCollapsed = await harness.getSidenavCollapsedState();
+    expect(isSidenavCollapsed).toBeDefined();
+    expect(isSidenavCollapsed).toEqual(true);
   });
 });
