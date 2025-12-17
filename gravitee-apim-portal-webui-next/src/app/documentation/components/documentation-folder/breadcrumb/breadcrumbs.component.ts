@@ -35,8 +35,6 @@ export interface Breadcrumb {
       :host {
         display: flex;
         align-items: center;
-        padding: 0 30px;
-        height: 100%;
         gap: 15px;
       }
     `,
