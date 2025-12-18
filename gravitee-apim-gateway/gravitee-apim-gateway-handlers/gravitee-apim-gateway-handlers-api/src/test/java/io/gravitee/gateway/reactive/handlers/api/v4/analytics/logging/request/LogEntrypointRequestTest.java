@@ -29,8 +29,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -57,16 +57,16 @@ class LogEntrypointRequestTest {
     protected LoggingContext loggingContext;
 
     @Mock
-    protected HttpRequest request;
+    protected HttpRequestInternal request;
 
     @Mock
-    BaseExecutionContext ctx;
+    private HttpExecutionContextInternal ctx;
 
     @Captor
-    ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+    private ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
 
     @Test
-    void shouldLogMethodAndUriOnly() {
+    void should_log_method_and_uri_only() {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.uri()).thenReturn(URI);
 
@@ -75,6 +75,7 @@ class LogEntrypointRequestTest {
 
         final var logRequest = new LogEntrypointRequest(loggingContext, request);
         logRequest.capture(ctx);
+
         assertThat(logRequest.getMethod()).isEqualTo(HttpMethod.POST);
         assertThat(logRequest.getUri()).isEqualTo(URI);
         assertNull(logRequest.getHeaders());
@@ -82,7 +83,7 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void shouldLogHeaders() {
+    void should_log_headers() {
         final HttpHeaders headers = new VertxHttpHeaders(new HeadersMultiMap());
 
         headers.set("X-Test1", "Value1");
@@ -102,7 +103,7 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void shouldLogBody() {
+    void should_log_body() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
 
         when(request.chunks()).thenReturn(body);
@@ -125,7 +126,7 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void shouldNotLogBodyWhenContentTypeExcluded() {
+    void should_not_log_body_when_content_type_excluded() {
         final HttpHeaders headers = HttpHeaders.create();
         headers.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
         when(request.headers()).thenReturn(headers);
@@ -142,7 +143,7 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void shouldLogPartialBodyWhenMaxPayloadSizeIsDefined() {
+    void should_log_partial_body_when_max_payload_size_is_defined() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
         final int maxPayloadSize = 5;
 
@@ -166,7 +167,7 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void shouldLogBodyNotCaptureWhenBodyNotLoggable() {
+    void should_log_body_not_capture_when_body_not_loggable() {
         when(request.headers()).thenReturn(HttpHeaders.create());
         when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
         when(loggingContext.entrypointRequestPayload()).thenReturn(true);

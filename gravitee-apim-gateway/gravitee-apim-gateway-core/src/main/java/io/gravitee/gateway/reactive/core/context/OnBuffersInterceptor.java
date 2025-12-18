@@ -15,20 +15,20 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.Response;
-import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
-import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.reactivex.rxjava3.core.FlowableTransformer;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpResponseInternal extends HttpResponse, OnMessagesInterceptor<Message>, OnBuffersInterceptor {
+public interface OnBuffersInterceptor {
     /**
-     * Allows to replace the response headers.
+     * Register a <code>onBuffers</code> interceptor.
+     * This allows to apply custom operations on the stream of buffers even if the stream changes later during the chain (e.g. onChunks or onBody).
+     * Main usage is to capture the stream of buffers at the endpoint level for logging purpose.
      *
-     * @param headers the new response headers.
+     * @param buffersInterceptor the interceptor to register.
      */
-    HttpResponseInternal setHeaders(final HttpHeaders headers);
+    void registerBuffersInterceptor(final FlowableTransformer<Buffer, Buffer> buffersInterceptor);
 }

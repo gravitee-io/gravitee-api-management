@@ -15,7 +15,12 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
+import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 
 /**
@@ -26,9 +31,30 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
  */
 public class LogEntrypointRequest extends LogRequest {
 
-    public LogEntrypointRequest(LoggingContext loggingContext, HttpPlainRequest request) {
+    public LogEntrypointRequest(LoggingContext loggingContext, HttpRequestInternal request) {
         super(loggingContext, request);
         this.setUri(request.uri());
+    }
+
+    public void capture(HttpExecutionContextInternal ctx) {
+        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+            final Buffer buffer = Buffer.buffer();
+
+            if (loggingContext.isBodyLoggable()) {
+                request.chunks(
+                    request
+                        .chunks()
+                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doOnComplete(() -> this.setBody(buffer.toString()))
+                );
+            } else {
+                this.setBody("BODY NOT CAPTURED");
+            }
+        }
+
+        if (isLogHeaders()) {
+            this.setHeaders(HttpHeaders.create(request.headers()));
+        }
     }
 
     protected boolean isLogPayload() {
