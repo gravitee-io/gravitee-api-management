@@ -1271,6 +1271,110 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: reorderedItems }));
       expectGetPageContent('content-1', 'This is the content of Page 1');
     });
+
+    describe('when user has edited the current page', () => {
+      let component: PortalNavigationItemsComponent;
+      beforeEach(async () => {
+        await harness.setEditorContentText('Cats rule');
+        component = fixture.componentInstance;
+      });
+
+      it('should show dialog when user has edited page content and then reordered', async () => {
+        component.onNodeMoved({
+          node: fakeSectionNode({ id: 'page-2', data: page2 }),
+          newParentId: null,
+          newOrder: 0,
+        });
+        fixture.detectChanges();
+
+        expect(await rootLoader.getHarnessOrNull(GioConfirmDialogHarness)).toBeTruthy();
+      });
+
+      it('should not update order if user cancels dialog', async () => {
+        component.onNodeMoved({
+          node: fakeSectionNode({ id: 'page-2', data: page2 }),
+          newParentId: null,
+          newOrder: 0,
+        });
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await dialog.cancel();
+      });
+
+      it('should update order of Page 2 and discard content changes on confirm', async () => {
+        component.onNodeMoved({
+          node: fakeSectionNode({ id: 'page-2', data: page2 }),
+          newParentId: null,
+          newOrder: 0,
+        });
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'page-2',
+          fakeUpdatePagePortalNavigationItem({
+            title: page2.title,
+            parentId: page2.parentId,
+            order: 0,
+            published: page2.published,
+            visibility: page2.visibility,
+          }),
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({
+            items: [
+              fakePortalNavigationPage({ id: 'page-1', portalPageContentId: page1.portalPageContentId, order: 1 }),
+              fakePortalNavigationPage({ id: 'page-2', order: 0 }),
+            ],
+          }),
+        );
+        expectGetPageContent(page1.portalPageContentId, page1Content);
+
+        expect(await harness.getEditorContentText()).toEqual(page1Content);
+      });
+
+      it('should update order of Page 1 and update Page 1 content if user confirms', async () => {
+        component.onNodeMoved({
+          node: fakeSectionNode({ id: 'page-1', data: page1 }),
+          newParentId: null,
+          newOrder: 1,
+        });
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'page-1',
+          fakeUpdatePagePortalNavigationItem({
+            title: page1.title,
+            parentId: page1.parentId,
+            order: 1,
+            published: page1.published,
+            visibility: page1.visibility,
+          }),
+          fakePortalNavigationPage({}),
+        );
+
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({
+            items: [
+              fakePortalNavigationPage({ id: 'page-1', portalPageContentId: page1.portalPageContentId, order: 1 }),
+              fakePortalNavigationPage({ id: 'page-2', order: 0 }),
+            ],
+          }),
+        );
+        expectGetPageContent(page1.portalPageContentId, page1Content);
+
+        expect(await harness.getEditorContentText()).toEqual(page1Content);
+      });
+    });
   });
 
   function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
