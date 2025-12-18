@@ -60,21 +60,21 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
         List<Error> errors = new ArrayList<>();
         Map<String, PageCRD> sanitizedPages = new HashMap<>();
 
-        input.pages.forEach((k, v) -> {
+        input.pages.forEach((key, pageCRD) -> {
             try {
-                Page page = PageModelFactory.fromCRDSpec(k, v);
+                Page page = PageModelFactory.fromCRDSpec(key, pageCRD);
                 page.setReferenceId(input.apiId());
                 if (page.getId() == null) {
-                    page.setId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(k).buildId());
-                    v.setId(page.getId());
+                    page.setId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(key).buildId());
+                    pageCRD.setId(page.getId());
                 }
-                page.setHrid(k);
-                if (v.getParentId() == null && v.getParentHrid() != null) {
-                    page.setParentId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(v.getParentHrid()).buildId());
+                page.setHrid(key);
+                if (pageCRD.getParentId() == null && pageCRD.getParentHrid() != null) {
+                    page.setParentId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(pageCRD.getParentHrid()).buildId());
                 }
 
                 pageSourceValidator
-                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))
+                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(key, page.getSource()))
                     .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
 
                 accessControlsValidator
@@ -87,14 +87,14 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                         input.auditInfo.organizationId(),
                         false
                     );
-                    sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
+                    sanitizedPages.put(key, PageModelFactory.toCRDSpec(sanitizedPage));
                 }
 
                 if (page.getType() != Page.Type.ROOT && StringUtils.isEmpty(page.getName())) {
-                    errors.add(Error.severe("Page [%s] is missing required property [name]", k));
+                    errors.add(Error.severe("Page [%s] is missing required property [name]", key));
                 }
             } catch (Exception e) {
-                errors.add(Error.severe("invalid documentation page [%s]. Error: %s", k, e.getMessage()));
+                errors.add(Error.severe("invalid documentation page [%s]. Error: %s", key, e.getMessage()));
             }
         });
 

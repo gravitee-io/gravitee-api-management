@@ -68,7 +68,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull SubscriptionSpec spec,
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("legacy") boolean legacy
+        @QueryParam("legacyID") boolean legacyID,
+        @QueryParam("legacyApiID") boolean legacyApiID,
+        @QueryParam("legacyAppID") boolean legacyAppID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -85,11 +87,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
             )
             .build();
 
+        // Legacy mode means 'Hrid' fields contains GUID from GKO Status
+        // that were preexisting in the kube cluster
         SubscriptionCRDSpec subscriptionCRDSpec = new SubscriptionCRDSpec(
-            legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId(),
-            legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
-            legacy ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId(),
-            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId(),
+            legacyID ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId(),
+            legacyAppID ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
+            legacyApiID ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId(),
+            legacyApiID ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId(),
             spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 
