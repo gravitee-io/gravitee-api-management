@@ -43,14 +43,15 @@
         </#if>
         <#if query.query()?has_content>
         <#-- Use cleaned query filter if ranges were extracted, otherwise use original -->
+        <#-- If ranges were extracted, cleanedQueryFilter may be empty (all filters were ranges) -->
         <#if responseTimeRanges?? && responseTimeRanges?has_content>
-          <#-- Ranges were extracted, use cleaned filter -->
+          <#-- Ranges were extracted, use cleaned filter (may be empty if query only contained ranges) -->
           <#assign queryFilter = (cleanedQueryFilter?? && cleanedQueryFilter?has_content)?then(cleanedQueryFilter, "")>
         <#else>
           <#-- No ranges extracted, use original filter -->
           <#assign queryFilter = query.query().filter()>
         </#if>
-        <#-- Only process if there's still content after removing ranges -->
+        <#-- Only generate query_string if there's remaining content after removing ranges -->
         <#if queryFilter?has_content && queryFilter?trim?length gt 0>
         <#-- Remove leading spaces in quoted values: _id:" value" -> _id:"value" -->
         <#assign processedQuery = queryFilter?replace('_id:" ', '_id:"', 'r')>
