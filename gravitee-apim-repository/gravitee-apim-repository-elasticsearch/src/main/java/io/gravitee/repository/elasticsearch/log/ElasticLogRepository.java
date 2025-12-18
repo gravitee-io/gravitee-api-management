@@ -84,16 +84,16 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     // Pre-compiled pattern for removing response-time ranges from query filters
     private static final Pattern RESPONSE_TIME_RANGE_REMOVAL_PATTERN = Pattern.compile(
         "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)" +
-        "|" +
-        "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)" +
-        "|" +
-        "response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
-        "|" +
-        "response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"" +
-        "|" +
-        "\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
-        "|" +
-        "\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\""
+            "|" +
+            "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)" +
+            "|" +
+            "response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+            "|" +
+            "response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"" +
+            "|" +
+            "\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+            "|" +
+            "\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\""
     );
 
     @Override
@@ -221,7 +221,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
      * Extract response-time range queries from the filter string.
      * Supports both regular quotes (") and escaped quotes (\") formats.
      * Patterns: response-time:"[X TO Y]" or OR "[X TO Y]"
-     * 
+     *
      * Validates that from <= to for each range. Invalid ranges are skipped with a warning.
      * Duplicate ranges are automatically deduplicated.
      *
@@ -271,13 +271,13 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             try {
                 final int from = Integer.parseInt(matcher.group(1));
                 final int to = Integer.parseInt(matcher.group(2));
-                
+
                 // Validate range: from must be <= to
                 if (from > to) {
                     logger.warn("Invalid response-time range: from {} > to {}, skipping", from, to);
                     continue;
                 }
-                
+
                 final String rangeKey = from + "-" + to;
                 if (seenRanges.add(rangeKey)) {
                     final Map<String, Object> range = new HashMap<>();
