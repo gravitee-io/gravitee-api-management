@@ -44,17 +44,18 @@ public class LoggingHook implements InvokerHook {
     @Override
     public Completable pre(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> {
+            final HttpExecutionContextInternal ctxInternal = (HttpExecutionContextInternal) ctx;
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext != null) {
                 if (loggingContext.endpointRequest()) {
-                    ((LogEndpointRequest) log.getEndpointRequest()).capture(ctx);
+                    ((LogEndpointRequest) log.getEndpointRequest()).setupCapture(ctxInternal);
                 }
 
-                if (loggingContext.endpointResponseHeaders() || loggingContext.endpointResponse()) {
-                    ((HttpExecutionContextInternal) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
+                if (loggingContext.endpointResponse()) {
+                    ((LogEndpointResponse) log.getEndpointResponse()).setupCapture(ctxInternal);
                 }
             }
         });
@@ -63,34 +64,19 @@ public class LoggingHook implements InvokerHook {
     @Override
     public Completable post(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> {
+            final HttpExecutionContextInternal ctxInternal = (HttpExecutionContextInternal) ctx;
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext != null) {
                 if (loggingContext.endpointRequest()) {
-                    // Pre-set URI: required for GET, fallback for POST/PUT.
-                    String endpoint = ctx.metrics().getEndpoint();
-                    if (endpoint != null && !endpoint.isBlank()) {
-                        log.getEndpointRequest().setUri(endpoint);
-                    }
-                    log.getEndpointRequest().setMethod(ctx.request().method());
-                }
-                if (loggingContext.endpointRequestHeaders()) {
-                    log.getEndpointRequest().setHeaders(ctx.request().headers());
-                }
-            }
-
-            if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
-                final ExecutionFailure executionFailure = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE
-                );
-                if (executionFailure == null) {
-                    ((LogEndpointResponse) log.getEndpointResponse()).capture(ctx);
+                    ((LogEndpointRequest) log.getEndpointRequest()).finalizeCapture(ctxInternal);
                 }
 
-                final HttpResponseInternal response = ((HttpExecutionContextInternal) ctx).response();
-                response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
+                if (loggingContext.endpointResponse()) {
+                    ((LogEndpointResponse) log.getEndpointResponse()).finalizeCapture(ctxInternal);
+                }
             }
         });
     }

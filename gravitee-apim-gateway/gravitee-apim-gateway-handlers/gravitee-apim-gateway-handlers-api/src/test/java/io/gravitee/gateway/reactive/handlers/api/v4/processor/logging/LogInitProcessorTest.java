@@ -155,7 +155,6 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
     @Test
     void shouldInitEndpointRequestWhenEndpointRequestLogEnabled() {
         when(loggingContext.endpointRequest()).thenReturn(true);
-        when(mockRequest.chunks()).thenReturn(Flowable.empty());
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();

@@ -23,6 +23,8 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
+import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
@@ -69,8 +71,8 @@ public class LogInitProcessor implements Processor {
     }
 
     private void initLogEntity(final HttpExecutionContextInternal ctx, final LoggingContext loggingContext) {
-        HttpPlainRequest request = ctx.request();
-        HttpPlainResponse response = ctx.response();
+        HttpRequestInternal request = ctx.request();
+        HttpResponseInternal response = ctx.response();
 
         Log log = Log.builder()
             .timestamp(request.timestamp())
@@ -90,7 +92,7 @@ public class LogInitProcessor implements Processor {
             log.setEntrypointResponse(logResponse);
         }
         if (loggingContext.endpointRequest()) {
-            final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+            final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, request);
             log.setEndpointRequest(logRequest);
         }
         if (loggingContext.endpointResponse()) {
