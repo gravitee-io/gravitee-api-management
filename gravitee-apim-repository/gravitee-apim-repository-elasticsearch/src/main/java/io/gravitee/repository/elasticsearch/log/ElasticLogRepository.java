@@ -76,6 +76,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
     private static final int MAX_RESULT_WINDOW = 10000;
 
+    private static final Pattern RESPONSE_TIME_RANGE_REGULAR = Pattern.compile("response-time:\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\"");
+    private static final Pattern RESPONSE_TIME_RANGE_ESCAPED = Pattern.compile("response-time:\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
+    private static final Pattern OR_RANGE_REGULAR = Pattern.compile("\\s+OR\\s+\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\"");
+    private static final Pattern OR_RANGE_ESCAPED = Pattern.compile("\\s+OR\\s+\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
+
     @Override
     public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {
         final Long from = query.timeRange().range().from();
@@ -174,11 +179,9 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         final Map<String, Object> data = new HashMap<>();
         data.put("query", query);
 
-        // Always initialize these variables so template can access them
         List<Map<String, Object>> responseTimeRanges = new ArrayList<>();
         String cleanedQueryFilter = null;
 
-        // Extract response-time range queries and remove them from the query string
         if (query.query() != null && query.query().filter() != null) {
             final String originalFilter = query.query().filter();
             logger.debug("Processing query filter: [{}]", originalFilter);
@@ -191,7 +194,6 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             }
         }
 
-        // Always put these in the data map, even if empty
         data.put("responseTimeRanges", responseTimeRanges);
         data.put("cleanedQueryFilter", cleanedQueryFilter);
 
@@ -201,12 +203,12 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     /**
-     * Extract response-time range queries from the filter string
-     * Pattern: response-time:"[X TO Y]" or OR "[X TO Y]" (in response-time context)
-     */
-    /**
-     * Extract response-time range queries from the filter string
-     * Pattern: response-time:"[X TO Y]" or OR "[X TO Y]" (in response-time context)
+     * Extract response-time range queries from the filter string.
+     * Supports both regular quotes (") and escaped quotes (\") formats.
+     * Patterns: response-time:"[X TO Y]" or OR "[X TO Y]"
+     *
+     * @param filter the query filter string
+     * @return list of extracted ranges, each containing "gte" and "lte" keys
      */
     private List<Map<String, Object>> extractResponseTimeRanges(final String filter) {
         final List<Map<String, Object>> ranges = new ArrayList<>();
@@ -216,61 +218,12 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
         logger.debug("Extracting ranges from filter: [{}]", filter);
 
-        // Use a Set to track unique ranges and avoid duplicates
         final Set<String> seenRanges = new HashSet<>();
 
-        // Pattern 1: response-time:"[X TO Y]" (regular quotes)
-        final Pattern pattern1a = Pattern.compile("response-time:\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\"");
-        final Matcher matcher1a = pattern1a.matcher(filter);
-
-        while (matcher1a.find()) {
-            final int from = Integer.parseInt(matcher1a.group(1));
-            final int to = Integer.parseInt(matcher1a.group(2));
-            final String rangeKey = from + "-" + to;
-            if (seenRanges.add(rangeKey)) {
-                final Map<String, Object> range = new HashMap<>();
-                range.put("gte", from);
-                range.put("lte", to);
-                ranges.add(range);
-                logger.debug("Extracted response-time range: {} TO {}", from, to);
-            }
-        }
-
-        // Pattern 1b: response-time:\"[X TO Y]\" (escaped quotes - fallback if pattern1a found nothing)
-        if (ranges.isEmpty()) {
-            final Pattern pattern1b = Pattern.compile("response-time:\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
-            final Matcher matcher1b = pattern1b.matcher(filter);
-
-            while (matcher1b.find()) {
-                final int from = Integer.parseInt(matcher1b.group(1));
-                final int to = Integer.parseInt(matcher1b.group(2));
-                final String rangeKey = from + "-" + to;
-                if (seenRanges.add(rangeKey)) {
-                    final Map<String, Object> range = new HashMap<>();
-                    range.put("gte", from);
-                    range.put("lte", to);
-                    ranges.add(range);
-                    logger.debug("Extracted response-time range (escaped): {} TO {}", from, to);
-                }
-            }
-        }
-
-        // Pattern 2: OR \"[X TO Y]\" (for OR conditions with escaped quotes)
-        final Pattern pattern2 = Pattern.compile("\\s+OR\\s+\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
-        final Matcher matcher2 = pattern2.matcher(filter);
-
-        while (matcher2.find()) {
-            final int from = Integer.parseInt(matcher2.group(1));
-            final int to = Integer.parseInt(matcher2.group(2));
-            final String rangeKey = from + "-" + to;
-            if (seenRanges.add(rangeKey)) {
-                final Map<String, Object> range = new HashMap<>();
-                range.put("gte", from);
-                range.put("lte", to);
-                ranges.add(range);
-                logger.debug("Extracted response-time range (OR): {} TO {}", from, to);
-            }
-        }
+        extractRangeFromMatcher(RESPONSE_TIME_RANGE_REGULAR.matcher(filter), seenRanges, ranges, "");
+        extractRangeFromMatcher(RESPONSE_TIME_RANGE_ESCAPED.matcher(filter), seenRanges, ranges, " (escaped)");
+        extractRangeFromMatcher(OR_RANGE_REGULAR.matcher(filter), seenRanges, ranges, " (OR)");
+        extractRangeFromMatcher(OR_RANGE_ESCAPED.matcher(filter), seenRanges, ranges, " (OR, escaped)");
 
         if (ranges.isEmpty()) {
             logger.debug("No ranges extracted from filter: [{}]", filter);
@@ -282,65 +235,79 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     /**
-     * Remove response-time range patterns from the query filter
+     * Helper method to extract ranges from a matcher and add them to the ranges list.
+     * Handles deduplication and error handling.
+     *
+     * @param matcher the matcher containing range matches
+     * @param seenRanges set of already seen range keys for deduplication
+     * @param ranges list to add extracted ranges to
+     * @param logPrefix prefix for log messages
+     */
+    private void extractRangeFromMatcher(
+        final Matcher matcher,
+        final Set<String> seenRanges,
+        final List<Map<String, Object>> ranges,
+        final String logPrefix
+    ) {
+        while (matcher.find()) {
+            try {
+                final int from = Integer.parseInt(matcher.group(1));
+                final int to = Integer.parseInt(matcher.group(2));
+                final String rangeKey = from + "-" + to;
+                if (seenRanges.add(rangeKey)) {
+                    final Map<String, Object> range = new HashMap<>();
+                    range.put("gte", from);
+                    range.put("lte", to);
+                    ranges.add(range);
+                    logger.debug("Extracted response-time range{}: {} TO {}", logPrefix, from, to);
+                }
+            } catch (NumberFormatException e) {
+                logger.warn("Failed to parse range values from match: {}", matcher.group(), e);
+            }
+        }
+    }
+
+    /**
+     * Remove response-time range patterns from the query filter.
+     * Uses a comprehensive regex pattern to match all variations in a single pass.
      */
     private String removeResponseTimeRanges(final String filter) {
         if (isEmpty(filter)) {
             return filter;
         }
 
-        String cleaned = filter;
-        logger.debug("Removing ranges from filter: [{}]", cleaned);
+        logger.debug("Removing ranges from filter: [{}]", filter);
 
-        // Try both patterns - regular quotes first (most likely), then escaped quotes
-        // Pattern set 1: Regular quotes (response-time:"[X TO Y]")
-        // Remove entire parenthesized groups
-        cleaned = cleaned.replaceAll(
-            "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)",
-            ""
-        );
-        cleaned = cleaned.replaceAll("\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"\\s*\\)", "");
-        cleaned = cleaned.replaceAll("\\(response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\)", "");
-        // Remove individual patterns
-        cleaned = cleaned.replaceAll("response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"", "");
-        cleaned = cleaned.replaceAll("\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"", "");
+        final String rangePattern =
+            // Parenthesized groups with regular quotes
+            "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)" +
+            "|" +
+            // Parenthesized groups with escaped quotes
+            "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)" +
+            "|" +
+            // Standalone ranges with regular quotes
+            "response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+            "|" +
+            // Standalone ranges with escaped quotes
+            "response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"" +
+            "|" +
+            // OR conditions with regular quotes
+            "\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+            "|" +
+            // OR conditions with escaped quotes
+            "\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"";
 
-        // Pattern set 2: Escaped quotes (response-time:\"[X TO Y]\") - fallback
-        if (cleaned.equals(filter)) {
-            logger.debug("Regular quote patterns didn't match, trying escaped quotes");
-            cleaned = cleaned.replaceAll(
-                "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)",
-                ""
-            );
-            cleaned = cleaned.replaceAll("\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"\\s*\\)", "");
-            cleaned = cleaned.replaceAll(
-                "\\(response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\)",
-                ""
-            );
-            cleaned = cleaned.replaceAll("response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"", "");
-            cleaned = cleaned.replaceAll("\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"", "");
-        }
+        String cleaned = filter.replaceAll(rangePattern, "");
 
-        // Clean up empty parentheses (multiple patterns to catch various spacing)
-        cleaned = cleaned.replaceAll("\\(\\s*\\)", "");
-        cleaned = cleaned.replaceAll("\\(\\s+\\)", "");
-
-        // Clean up extra spaces and operators
-        cleaned = cleaned.replaceAll("\\s+AND\\s+AND", " AND");
-        cleaned = cleaned.replaceAll("\\s+OR\\s+OR", " OR");
-        cleaned = cleaned.replaceAll("\\(\\s+AND", "(");
-        cleaned = cleaned.replaceAll("AND\\s+\\)", ")");
-        cleaned = cleaned.replaceAll("\\(\\s+OR", "(");
-        cleaned = cleaned.replaceAll("OR\\s+\\)", ")");
-        cleaned = cleaned.trim();
-
-        // Remove leading/trailing AND/OR operators
-        cleaned = cleaned.replaceAll("^\\s*(AND|OR)\\s+", "");
-        cleaned = cleaned.replaceAll("\\s+(AND|OR)\\s*$", "");
-
-        // Final cleanup of empty parentheses and whitespace
-        cleaned = cleaned.replaceAll("\\(\\s*\\)", "");
-        cleaned = cleaned.trim();
+        cleaned = cleaned
+            .replaceAll("\\(\\s*\\)", "") // Empty parentheses
+            .replaceAll("\\s+AND\\s+AND", " AND") // Duplicate AND
+            .replaceAll("\\s+OR\\s+OR", " OR") // Duplicate OR
+            .replaceAll("\\(\\s+(AND|OR)", "($1") // Operator after opening paren
+            .replaceAll("(AND|OR)\\s+\\)", "$1)") // Operator before closing paren
+            .replaceAll("^\\s*(AND|OR)\\s+", "") // Leading operator
+            .replaceAll("\\s+(AND|OR)\\s*$", "") // Trailing operator
+            .trim();
 
         logger.debug("Removed response-time ranges. Original: [{}], Cleaned: [{}]", filter, cleaned);
 
