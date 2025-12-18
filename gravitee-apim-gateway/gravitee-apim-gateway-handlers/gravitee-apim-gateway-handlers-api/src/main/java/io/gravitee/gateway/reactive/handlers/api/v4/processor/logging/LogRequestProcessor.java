@@ -51,7 +51,9 @@ public class LogRequestProcessor implements Processor {
             LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext.entrypointRequest()) {
-                ((LogEntrypointRequest) log.getEntrypointRequest()).capture(ctx);
+                LogEntrypointRequest entrypointRequest = (LogEntrypointRequest) log.getEntrypointRequest();
+                entrypointRequest.capture(ctx);
+                entrypointRequest.finalizeCapture(ctx);
             }
         });
     }

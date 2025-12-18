@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
@@ -25,13 +26,12 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,176 +56,187 @@ class LogEndpointRequestTest {
     protected LoggingContext loggingContext;
 
     @Mock
-    protected ExecutionContext ctx;
+    protected HttpRequestInternal request;
 
     @Mock
-    protected Request request;
-
-    @Mock
-    private Metrics metrics;
-
-    @Mock
-    BaseExecutionContext baseExecutionContext;
+    private HttpExecutionContextInternal ctx;
 
     @Captor
-    ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+    private ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+
+    @Captor
+    private ArgumentCaptor<FlowableTransformer<Buffer, Buffer>> buffersInterceptorCaptor;
+
+    private LogEndpointRequest cut;
 
     @BeforeEach
     void init() {
+        final Metrics metrics = new Metrics();
+        metrics.setEndpoint(URI);
+        when(request.method()).thenReturn(HttpMethod.POST);
+        lenient().doNothing().when(request).registerBuffersInterceptor(buffersInterceptorCaptor.capture());
         when(ctx.request()).thenReturn(request);
         when(ctx.metrics()).thenReturn(metrics);
-        when(metrics.getEndpoint()).thenReturn(URI);
+
+        cut = new LogEndpointRequest(loggingContext, request);
     }
 
     @Test
-    void shouldLogMethodAndUriOnly() {
-        when(request.method()).thenReturn(HttpMethod.POST);
+    void should_log_method_and_uri_only() {
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
-        when(request.chunks())
-            .thenReturn(Flowable.empty())
-            .thenAnswer(i -> chunksCaptor.getValue());
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request).chunks(chunksCaptor.capture());
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(null, false);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertComplete();
-
-        assertThat(logRequest.getMethod()).isEqualTo(HttpMethod.POST);
-        assertThat(logRequest.getUri()).isEqualTo(URI);
-        assertNull(logRequest.getHeaders());
-        assertNull(logRequest.getBody());
+        assertThat(cut.getMethod()).isEqualTo(HttpMethod.POST);
+        assertThat(cut.getUri()).isEqualTo(URI);
+        assertNull(cut.getHeaders());
+        assertNull(cut.getBody());
     }
 
     @Test
-    void shouldLogHeaders() {
-        final HttpHeaders headers = new VertxHttpHeaders(new HeadersMultiMap());
+    void should_log_headers() {
+        final HttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        existingHeaders.set("X-Test1", "Value1");
+        existingHeaders.set("X-Test2", "Value2");
+        existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
 
-        headers.set("X-Test1", "Value1");
-        headers.set("X-Test2", "Value2");
-        headers.set("X-Test3", List.of("Value3-a", "Value3-b"));
-
-        when(request.headers()).thenReturn(headers);
-        when(request.method()).thenReturn(HttpMethod.POST);
+        initializeHeaders(existingHeaders);
         when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
-        when(request.chunks())
-            .thenReturn(Flowable.empty())
-            .thenAnswer(i -> chunksCaptor.getValue());
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request).chunks(chunksCaptor.capture());
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(null, false);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertComplete();
-
-        assertNotSame(headers, logRequest.getHeaders());
-        assertThat(logRequest.getHeaders().deeplyEquals(headers)).isTrue();
-        assertNull(logRequest.getBody());
+        assertNotSame(existingHeaders, cut.getHeaders());
+        assertThat(cut.getHeaders().deeplyEquals(existingHeaders)).isTrue();
+        assertNull(cut.getBody());
     }
 
     @Test
-    void shouldLogBody() {
-        final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+    void should_log_headers_including_all_headers_added_by_the_endpoint() {
+        final HttpHeaders backendHeaders = HttpHeaders.create().set("X-To-Backend1", "Backend1").set("X-To-Backend2", "Backend2");
+        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        existingHeaders.set("X-Test1", "Value1");
+        existingHeaders.set("X-Test2", "Value2");
+        existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
 
-        when(request.chunks())
-            .thenReturn(body)
-            .thenAnswer(i -> chunksCaptor.getValue());
-        doNothing().when(request).chunks(chunksCaptor.capture());
-        when(request.headers()).thenReturn(HttpHeaders.create());
+        initializeHeaders(existingHeaders);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(true);
+        when(loggingContext.endpointRequestPayload()).thenReturn(false);
+
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(backendHeaders, false);
+
+        final HttpHeaders allHeaders = HttpHeaders.create(existingHeaders);
+        backendHeaders.forEach(e -> allHeaders.set(e.getKey(), e.getValue()));
+
+        assertNotSame(existingHeaders, cut.getHeaders());
+        assertThat(cut.getHeaders().deeplyEquals(allHeaders)).isTrue();
+        assertNull(cut.getBody());
+    }
+
+    @Test
+    void should_log_body_only() {
+        initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request, times(2)).chunks(any(Flowable.class));
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(HttpHeaders.create().set("X-To-Backend1", "Backend1"), true);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertComplete();
-
-        assertNull(logRequest.getHeaders());
-        assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT);
+        assertNull(cut.getHeaders());
+        assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
     }
 
     @Test
-    void shouldNotLogBodyWhenContentTypeExcluded() {
-        final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-        final HttpHeaders headers = HttpHeaders.create();
-        headers.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
+    void should_log_body_and_headers() {
+        final HttpHeaders backendHeaders = HttpHeaders.create().set("X-To-Backend1", "Backend1");
 
-        when(request.chunks()).thenReturn(body);
-        doNothing().when(request).chunks(chunksCaptor.capture());
-        when(request.headers()).thenReturn(headers);
+        initializeHeaders(HttpHeaders.create());
+        when(loggingContext.endpointRequestHeaders()).thenReturn(true);
+        when(loggingContext.endpointRequestPayload()).thenReturn(true);
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(backendHeaders, true);
+
+        assertThat(cut.getHeaders().deeplyEquals(backendHeaders)).isTrue();
+        assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
+    }
+
+    @Test
+    void should_not_log_body_when_content_type_is_excluded() {
+        final HttpHeaders initialHeaders = HttpHeaders.create();
+        initialHeaders.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
+
+        initializeHeaders(initialHeaders);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request).chunks(chunksCaptor.capture());
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(HttpHeaders.create(), false);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertComplete();
-
-        assertNull(logRequest.getHeaders());
-        assertNull(logRequest.getBody());
+        assertNull(cut.getHeaders());
+        assertNull(cut.getBody());
     }
 
     @Test
-    void shouldLogPartialBodyWhenMaxPayloadSizeIsDefined() {
-        final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+    void should_log_partial_pody_when_max_payload_size_is_defined() {
         final int maxPayloadSize = 5;
 
-        when(request.chunks())
-            .thenReturn(body)
-            .thenAnswer(i -> chunksCaptor.getValue());
-        doNothing().when(request).chunks(chunksCaptor.capture());
-        when(request.headers()).thenReturn(HttpHeaders.create());
+        initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
-        when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request, times(2)).chunks(any(Flowable.class));
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(HttpHeaders.create(), true);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getAllValues().get(chunksCaptor.getAllValues().size() - 1).test();
-        obs.assertComplete();
-
-        assertNull(logRequest.getHeaders());
-        assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+        assertNull(cut.getHeaders());
+        assertThat(cut.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
     }
 
     @Test
-    void shouldLogBodyNotCaptureWhenBodyNotLoggable() {
-        final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-
-        when(request.chunks())
-            .thenReturn(body)
-            .thenAnswer(i -> chunksCaptor.getValue());
-        doNothing().when(request).chunks(chunksCaptor.capture());
-        when(request.headers()).thenReturn(HttpHeaders.create());
+    void should_log_body_not_captured_when_body_is_not_loggable() {
+        initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(false);
         when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
-        final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture(baseExecutionContext);
-        verify(request, times(1)).chunks(any(Flowable.class));
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(HttpHeaders.create(), true);
 
-        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertComplete();
+        assertNull(cut.getHeaders());
+        assertThat(cut.getBody()).isEqualTo("BODY NOT CAPTURED");
+    }
 
-        assertNull(logRequest.getHeaders());
-        assertThat(logRequest.getBody()).isEqualTo("BODY NOT CAPTURED");
+    private void triggerRequestToBackend(HttpHeaders backendHeaders, boolean expectCaptureBody) {
+        if (backendHeaders != null) {
+            backendHeaders.forEach(e -> request.headers().set(e.getKey(), e.getValue()));
+        }
+
+        if (expectCaptureBody) {
+            Flowable.fromPublisher(
+                buffersInterceptorCaptor.getValue().apply(Flowable.just(Buffer.buffer(LogEndpointRequestTest.BODY_CONTENT)))
+            )
+                .test()
+                .assertComplete();
+        }
+        cut.finalizeCapture(ctx);
+    }
+
+    private void initializeHeaders(HttpHeaders initialHeaders) {
+        when(request.headers()).thenReturn(initialHeaders);
     }
 }

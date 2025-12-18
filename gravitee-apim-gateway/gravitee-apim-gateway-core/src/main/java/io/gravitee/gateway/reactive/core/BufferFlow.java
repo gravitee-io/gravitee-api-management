@@ -16,21 +16,25 @@
 package io.gravitee.gateway.reactive.core;
 
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.reactive.core.context.OnBuffersInterceptor;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BufferFlow {
+public class BufferFlow implements OnBuffersInterceptor {
 
-    private Supplier<Boolean> isStreaming;
+    private List<FlowableTransformer<Buffer, Buffer>> bufferInterceptors;
+
+    private final Supplier<Boolean> isStreaming;
     private Flowable<Buffer> chunks;
     private Maybe<Buffer> cachedBuffer;
 
@@ -46,6 +50,7 @@ public class BufferFlow {
     public Maybe<Buffer> body() {
         if (Boolean.FALSE.equals(isStreaming.get())) {
             this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
+            applyBuffersInterceptors();
             return chunks.firstElement();
         } else {
             return Maybe.empty();
@@ -66,12 +71,14 @@ public class BufferFlow {
         if (Boolean.FALSE.equals(isStreaming.get())) {
             cachedBuffer = Maybe.just(buffer);
             this.chunks = cachedBuffer.toFlowable();
+            applyBuffersInterceptors();
         }
     }
 
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
         if (Boolean.FALSE.equals(isStreaming.get())) {
             this.chunks = bodyFromCache(this::reduceBody).compose(onBody).compose(bodyToCache()).toFlowable();
+            applyBuffersInterceptors();
             return this.chunks.ignoreElements();
         } else {
             return Completable.complete();
@@ -80,22 +87,33 @@ public class BufferFlow {
 
     public Flowable<Buffer> chunks() {
         chunks = chunksFromCache(this::chunksOrEmpty);
+        applyBuffersInterceptors();
         return chunks;
     }
 
     public void chunks(final Flowable<Buffer> chunks) {
         cachedBuffer = null;
         this.chunks = chunks;
+        applyBuffersInterceptors();
     }
 
     public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
         this.chunks = this.chunksFromCache(this::chunks).compose(onChunks).compose(chunksToCache());
+        applyBuffersInterceptors();
 
         return this.chunks.ignoreElements();
     }
 
     public boolean hasChunks() {
         return chunks != null;
+    }
+
+    @Override
+    public void registerBuffersInterceptor(FlowableTransformer<Buffer, Buffer> buffersInterceptor) {
+        if (this.bufferInterceptors == null) {
+            this.bufferInterceptors = new java.util.ArrayList<>();
+        }
+        this.bufferInterceptors.add(buffersInterceptor);
     }
 
     private Flowable<Buffer> chunksOrEmpty() {
@@ -161,5 +179,18 @@ public class BufferFlow {
 
     private FlowableTransformer<Buffer, Buffer> chunksToCache() {
         return upstream -> upstream.reduce(Buffer::appendBuffer).compose(bodyToCache()).toFlowable();
+    }
+
+    private void applyBuffersInterceptors() {
+        if (bufferInterceptors != null) {
+            for (FlowableTransformer<Buffer, Buffer> bufferInterceptor : bufferInterceptors) {
+                this.chunks = this.chunks.compose(bufferInterceptor);
+            }
+
+            // Make sure to apply the interceptors once.
+            bufferInterceptors.clear();
+        } else {
+            this.chunks = this.chunks.compose(c -> c);
+        }
     }
 }

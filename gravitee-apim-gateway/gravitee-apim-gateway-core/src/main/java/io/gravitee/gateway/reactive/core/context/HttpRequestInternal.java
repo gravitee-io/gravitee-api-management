@@ -22,7 +22,7 @@ import io.gravitee.gateway.reactive.api.message.Message;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<Message> {
+public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<Message>, OnBuffersInterceptor {
     /**
      * Allow setting context path.
      *
