@@ -312,6 +312,26 @@ describe('DocumentationNewPageComponent', () => {
           expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
         });
 
+        it('should show error if internal server error raised on save', async () => {
+          const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+          await editor.setValue('unsafe content');
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({}, { status: 500, statusText: 'Unexpected error' });
+          fixture.detectChanges();
+
+          const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+          expect(await snackBar.getMessage()).toEqual('Error during page creation.');
+        });
+
         it('should show error if raised on publish', async () => {
           const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
           await editor.setValue('unsafe content');
