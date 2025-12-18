@@ -82,13 +82,13 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiByHRID(
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("legacy") boolean legacy,
+        @QueryParam("legacyID") boolean legacyID,
         @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        boolean hridContainsUUID = legacy || setHRID;
+        boolean hridContainsUUID = legacyID || setHRID;
         var input = new ExportApiCRDUseCase.Input(
             hridContainsUUID ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
             IDExportStrategy.ALL,
@@ -137,7 +137,7 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacy") boolean legacy) {
+    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacyID") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {

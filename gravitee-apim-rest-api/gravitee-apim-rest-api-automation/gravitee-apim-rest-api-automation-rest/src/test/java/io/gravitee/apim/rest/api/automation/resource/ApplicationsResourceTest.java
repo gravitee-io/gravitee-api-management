@@ -26,7 +26,6 @@ import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -100,11 +99,7 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_state_from_hrid() {
             when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
-                call -> {
-                    var input = (ValidateApplicationCRDDomainService.Input) call.getArgument(0);
-                    input.spec().setId(IdBuilder.builder(input.auditInfo(), input.spec().getHrid()).buildId());
-                    return Validator.Result.ofValue(input);
-                }
+                call -> Validator.Result.ofValue(call.getArgument(0))
             );
 
             var state = expectEntity("application-with-hrid.json", dryRun);

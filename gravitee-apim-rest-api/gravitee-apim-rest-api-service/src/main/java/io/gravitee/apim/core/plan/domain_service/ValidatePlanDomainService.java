@@ -25,7 +25,6 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,23 +64,6 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         input.plans.forEach((k, planCRD) -> {
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
-                if (planCRD.getId() == null) {
-                    planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
-                }
-
-                plan.setHrid(k);
-                if (
-                    (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
-                    (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
-                ) {
-                    planCRD.setGeneralConditions(
-                        IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid())
-                            .withExtraId(plan.getGeneralConditionsHrid())
-                            .buildId()
-                    );
-                    plan.setGeneralConditionsHrid(planCRD.getGeneralConditionsHrid());
-                    plan.setGeneralConditions(planCRD.getGeneralConditions());
-                }
 
                 planValidator.validatePlanSecurity(
                     plan,

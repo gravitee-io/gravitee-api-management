@@ -66,7 +66,7 @@ public class SharedPolicyGroupIdHelper {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> struct = (Map<String, Object>) rawMap;
                 String hrid = (String) struct.get(HRID_FIELD);
-                if (hrid != null) {
+                if (hrid != null && !hrid.isEmpty()) {
                     struct.put(SHARED_POLICY_GROUP_ID_FIELD, IdBuilder.builder(auditInfo, hrid).buildCrossId());
                 }
             }
