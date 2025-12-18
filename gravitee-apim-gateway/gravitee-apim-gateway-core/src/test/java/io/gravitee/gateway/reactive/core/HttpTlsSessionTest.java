@@ -180,55 +180,6 @@ class HttpTlsSessionTest {
     }
 
     @Nested
-    class NoSslSessionDelegate {
-
-        @BeforeEach
-        void setUp() {
-            cut = new HttpTlsSession(null, HttpHeaders.create(), null);
-        }
-
-        @Test
-        void should_not_be_ssl_connection() {
-            assertThat(cut.isSSLConnection()).isFalse();
-        }
-
-        @Test
-        void should_return_minus_one_for_peer_port() {
-            assertThat(cut.getPeerPort()).isEqualTo(-1);
-        }
-
-        @Test
-        void should_return_null_peer_host() {
-            assertThat(cut.getPeerHost()).isNull();
-        }
-
-        @Test
-        void should_return_null_cipher_suite() {
-            assertThat(cut.getCipherSuite()).isNull();
-        }
-
-        @Test
-        void should_return_null_protocol() {
-            assertThat(cut.getProtocol()).isNull();
-        }
-
-        @Test
-        void should_return_null_peer_principal() throws Exception {
-            assertThat(cut.getPeerPrincipal()).isNull();
-        }
-
-        @Test
-        void should_return_null_local_principal() {
-            assertThat(cut.getLocalPrincipal()).isNull();
-        }
-
-        @Test
-        void should_return_empty_peer_certificates_when_no_header() throws Exception {
-            assertThat(cut.getPeerCertificates()).isEmpty();
-        }
-    }
-
-    @Nested
     class ClientAuthCertificateExtraction {
 
         public static final String SSL_CERT_HEADER = "ssl-cert-header";
