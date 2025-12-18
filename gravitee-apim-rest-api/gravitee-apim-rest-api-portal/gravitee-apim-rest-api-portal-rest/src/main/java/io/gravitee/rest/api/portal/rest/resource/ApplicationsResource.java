@@ -161,7 +161,6 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Collection<String> applicationIds;
-        boolean withPagination = true;
         Map<String, Map<String, Object>> resPageMetaData = new HashMap<>();
 
         if (forSubscription) {
@@ -185,10 +184,10 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             );
 
             applicationIds = applicationPage.getContent().stream().map(ApplicationListItem::getId).collect(Collectors.toList());
-            Map<String, Object> paginateMeta = new HashMap<>();
-            paginateMeta.put("totalElements", applicationPage.getTotalElements());
-            resPageMetaData.put("paginateMetaData", paginateMeta);
-            withPagination = false;
+
+            Map<String, Object> totalOnly = new HashMap<>();
+            totalOnly.put("totalElements", applicationPage.getTotalElements());
+            resPageMetaData.put("paginateMetaData", totalOnly);
         }
 
         if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
@@ -198,7 +197,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             );
         }
 
-        return createListResponse(executionContext, applicationIds, paginationParam, resPageMetaData, withPagination);
+        return createListResponse(executionContext, applicationIds, paginationParam, resPageMetaData);
     }
 
     private Response getAllApplications(ApplicationsOrderParam applicationsOrderParam) {
