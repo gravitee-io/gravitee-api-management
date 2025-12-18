@@ -151,7 +151,7 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean legacy) {
-            try (var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().delete()) {
+            try (var response = rootTarget().queryParam("legacyID", legacy).path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }
