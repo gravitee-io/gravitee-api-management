@@ -19,7 +19,10 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 
@@ -30,34 +33,13 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
 
     protected final LoggingContext loggingContext;
-    protected final HttpPlainRequest request;
+    protected final HttpRequestInternal request;
 
-    protected LogRequest(LoggingContext loggingContext, HttpPlainRequest request) {
+    protected LogRequest(LoggingContext loggingContext, HttpRequestInternal request) {
         this.loggingContext = loggingContext;
         this.request = request;
 
         this.setMethod(request.method());
-    }
-
-    public void capture(BaseExecutionContext ctx) {
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
-            final Buffer buffer = Buffer.buffer();
-
-            if (loggingContext.isBodyLoggable()) {
-                request.chunks(
-                    request
-                        .chunks()
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doOnComplete(() -> this.setBody(buffer.toString()))
-                );
-            } else {
-                this.setBody("BODY NOT CAPTURED");
-            }
-        }
-
-        if (isLogHeaders()) {
-            this.setHeaders(HttpHeaders.create(request.headers()));
-        }
     }
 
     protected abstract boolean isLogPayload();

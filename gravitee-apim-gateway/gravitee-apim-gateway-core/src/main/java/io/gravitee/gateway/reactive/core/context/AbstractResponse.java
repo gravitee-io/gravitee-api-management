@@ -36,7 +36,7 @@ import io.reactivex.rxjava3.core.Single;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractResponse implements MutableResponse, HttpResponseInternal {
+public abstract class AbstractResponse implements MutableResponse, HttpResponseInternal, OnBuffersInterceptor {
 
     protected BufferFlow bufferFlow;
     protected MessageFlow<Message> messageFlow;
@@ -189,5 +189,10 @@ public abstract class AbstractResponse implements MutableResponse, HttpResponseI
         }
 
         return this.messageFlow;
+    }
+
+    @Override
+    public void registerBuffersInterceptor(FlowableTransformer<Buffer, Buffer> buffersInterceptor) {
+        lazyBufferFlow().registerBuffersInterceptor(buffersInterceptor);
     }
 }

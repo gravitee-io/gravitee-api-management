@@ -15,11 +15,13 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
-import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
+import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 
@@ -31,12 +33,37 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
  */
 public class LogEndpointRequest extends LogRequest {
 
-    public LogEndpointRequest(LoggingContext loggingContext, HttpPlainExecutionContext ctx) {
-        super(loggingContext, ctx.request());
+    public LogEndpointRequest(LoggingContext loggingContext, HttpRequestInternal request) {
+        super(loggingContext, request);
         this.setUri("");
+    }
+
+    public void setupCapture(HttpExecutionContextInternal ctx) {
+        final Buffer buffer = Buffer.buffer();
+
+        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+            request.registerBuffersInterceptor(chunks -> {
+                if (loggingContext.isBodyLoggable()) {
+                    chunks = chunks
+                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doFinally(() -> this.setBody(buffer.toString()));
+                } else {
+                    this.setBody("BODY NOT CAPTURED");
+                }
+
+                return chunks;
+            });
+        }
+    }
+
+    public void finalizeCapture(HttpExecutionContextInternal ctx) {
+        if (isLogHeaders()) {
+            this.setHeaders(HttpHeaders.create(request.headers()));
+        }
+
         Metrics metrics = ctx.metrics();
-        HttpPlainRequest request = ctx.request();
-        request.chunks(request.chunks().doOnSubscribe(s -> this.setUri(metrics.getEndpoint() != null ? metrics.getEndpoint() : "")));
+        this.setUri(metrics.getEndpoint() != null ? metrics.getEndpoint() : "");
+        setMethod(ctx.request().method());
     }
 
     @Override
