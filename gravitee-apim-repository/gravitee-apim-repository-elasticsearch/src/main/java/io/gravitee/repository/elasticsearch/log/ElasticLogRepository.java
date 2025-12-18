@@ -182,10 +182,10 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         if (query.query() != null && query.query().filter() != null) {
             final String originalFilter = query.query().filter();
             logger.debug("Processing query filter: [{}]", originalFilter);
-            
+
             responseTimeRanges = extractResponseTimeRanges(originalFilter);
             cleanedQueryFilter = removeResponseTimeRanges(originalFilter);
-            
+
             if (!responseTimeRanges.isEmpty()) {
                 logger.debug("Extracted {} response-time range(s), cleaned filter: [{}]", responseTimeRanges.size(), cleanedQueryFilter);
             }
@@ -215,14 +215,14 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         }
 
         logger.debug("Extracting ranges from filter: [{}]", filter);
-        
+
         // Use a Set to track unique ranges and avoid duplicates
         final Set<String> seenRanges = new HashSet<>();
-        
+
         // Pattern 1: response-time:"[X TO Y]" (regular quotes)
         final Pattern pattern1a = Pattern.compile("response-time:\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\"");
         final Matcher matcher1a = pattern1a.matcher(filter);
-        
+
         while (matcher1a.find()) {
             final int from = Integer.parseInt(matcher1a.group(1));
             final int to = Integer.parseInt(matcher1a.group(2));
@@ -235,12 +235,12 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 logger.debug("Extracted response-time range: {} TO {}", from, to);
             }
         }
-        
+
         // Pattern 1b: response-time:\"[X TO Y]\" (escaped quotes - fallback if pattern1a found nothing)
         if (ranges.isEmpty()) {
             final Pattern pattern1b = Pattern.compile("response-time:\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
             final Matcher matcher1b = pattern1b.matcher(filter);
-            
+
             while (matcher1b.find()) {
                 final int from = Integer.parseInt(matcher1b.group(1));
                 final int to = Integer.parseInt(matcher1b.group(2));
@@ -254,11 +254,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 }
             }
         }
-        
+
         // Pattern 2: OR \"[X TO Y]\" (for OR conditions with escaped quotes)
         final Pattern pattern2 = Pattern.compile("\\s+OR\\s+\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
         final Matcher matcher2 = pattern2.matcher(filter);
-        
+
         while (matcher2.find()) {
             final int from = Integer.parseInt(matcher2.group(1));
             final int to = Integer.parseInt(matcher2.group(2));
@@ -291,31 +291,40 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
         String cleaned = filter;
         logger.debug("Removing ranges from filter: [{}]", cleaned);
-        
+
         // Try both patterns - regular quotes first (most likely), then escaped quotes
         // Pattern set 1: Regular quotes (response-time:"[X TO Y]")
         // Remove entire parenthesized groups
-        cleaned = cleaned.replaceAll("\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)", "");
+        cleaned = cleaned.replaceAll(
+            "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)",
+            ""
+        );
         cleaned = cleaned.replaceAll("\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"\\s*\\)", "");
         cleaned = cleaned.replaceAll("\\(response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\)", "");
         // Remove individual patterns
         cleaned = cleaned.replaceAll("response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"", "");
         cleaned = cleaned.replaceAll("\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"", "");
-        
+
         // Pattern set 2: Escaped quotes (response-time:\"[X TO Y]\") - fallback
         if (cleaned.equals(filter)) {
             logger.debug("Regular quote patterns didn't match, trying escaped quotes");
-            cleaned = cleaned.replaceAll("\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)", "");
+            cleaned = cleaned.replaceAll(
+                "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)",
+                ""
+            );
             cleaned = cleaned.replaceAll("\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"\\s*\\)", "");
-            cleaned = cleaned.replaceAll("\\(response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\)", "");
+            cleaned = cleaned.replaceAll(
+                "\\(response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\)",
+                ""
+            );
             cleaned = cleaned.replaceAll("response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"", "");
             cleaned = cleaned.replaceAll("\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"", "");
         }
-        
+
         // Clean up empty parentheses (multiple patterns to catch various spacing)
         cleaned = cleaned.replaceAll("\\(\\s*\\)", "");
         cleaned = cleaned.replaceAll("\\(\\s+\\)", "");
-        
+
         // Clean up extra spaces and operators
         cleaned = cleaned.replaceAll("\\s+AND\\s+AND", " AND");
         cleaned = cleaned.replaceAll("\\s+OR\\s+OR", " OR");
@@ -324,17 +333,17 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         cleaned = cleaned.replaceAll("\\(\\s+OR", "(");
         cleaned = cleaned.replaceAll("OR\\s+\\)", ")");
         cleaned = cleaned.trim();
-        
+
         // Remove leading/trailing AND/OR operators
         cleaned = cleaned.replaceAll("^\\s*(AND|OR)\\s+", "");
         cleaned = cleaned.replaceAll("\\s+(AND|OR)\\s*$", "");
-        
+
         // Final cleanup of empty parentheses and whitespace
         cleaned = cleaned.replaceAll("\\(\\s*\\)", "");
         cleaned = cleaned.trim();
-        
+
         logger.debug("Removed response-time ranges. Original: [{}], Cleaned: [{}]", filter, cleaned);
-        
+
         return cleaned;
     }
 
