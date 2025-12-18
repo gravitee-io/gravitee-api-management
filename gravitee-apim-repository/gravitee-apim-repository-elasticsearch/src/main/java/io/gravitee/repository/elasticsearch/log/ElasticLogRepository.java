@@ -81,6 +81,21 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     private static final Pattern OR_RANGE_REGULAR = Pattern.compile("\\s+OR\\s+\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\"");
     private static final Pattern OR_RANGE_ESCAPED = Pattern.compile("\\s+OR\\s+\\\\\"\\[(\\d+)\\s+TO\\s+(\\d+)\\]\\\\\"");
 
+    // Pre-compiled pattern for removing response-time ranges from query filters
+    private static final Pattern RESPONSE_TIME_RANGE_REMOVAL_PATTERN = Pattern.compile(
+        "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)" +
+        "|" +
+        "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)" +
+        "|" +
+        "response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+        "|" +
+        "response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"" +
+        "|" +
+        "\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
+        "|" +
+        "\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\""
+    );
+
     @Override
     public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {
         final Long from = query.timeRange().range().from();
@@ -180,7 +195,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         data.put("query", query);
 
         List<Map<String, Object>> responseTimeRanges = new ArrayList<>();
-        String cleanedQueryFilter = null;
+        String cleanedQueryFilter = "";
 
         if (query.query() != null && query.query().filter() != null) {
             final String originalFilter = query.query().filter();
@@ -206,6 +221,9 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
      * Extract response-time range queries from the filter string.
      * Supports both regular quotes (") and escaped quotes (\") formats.
      * Patterns: response-time:"[X TO Y]" or OR "[X TO Y]"
+     * 
+     * Validates that from <= to for each range. Invalid ranges are skipped with a warning.
+     * Duplicate ranges are automatically deduplicated.
      *
      * @param filter the query filter string
      * @return list of extracted ranges, each containing "gte" and "lte" keys
@@ -236,7 +254,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
     /**
      * Helper method to extract ranges from a matcher and add them to the ranges list.
-     * Handles deduplication and error handling.
+     * Handles deduplication, validation, and error handling.
      *
      * @param matcher the matcher containing range matches
      * @param seenRanges set of already seen range keys for deduplication
@@ -253,6 +271,13 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             try {
                 final int from = Integer.parseInt(matcher.group(1));
                 final int to = Integer.parseInt(matcher.group(2));
+                
+                // Validate range: from must be <= to
+                if (from > to) {
+                    logger.warn("Invalid response-time range: from {} > to {}, skipping", from, to);
+                    continue;
+                }
+                
                 final String rangeKey = from + "-" + to;
                 if (seenRanges.add(rangeKey)) {
                     final Map<String, Object> range = new HashMap<>();
@@ -269,7 +294,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
     /**
      * Remove response-time range patterns from the query filter.
-     * Uses a comprehensive regex pattern to match all variations in a single pass.
+     * Uses a pre-compiled comprehensive regex pattern to match all variations in a single pass.
+     * Supports both regular quotes (") and escaped quotes (\") formats.
+     *
+     * @param filter the query filter string
+     * @return the filter string with all response-time range patterns removed
      */
     private String removeResponseTimeRanges(final String filter) {
         if (isEmpty(filter)) {
@@ -278,26 +307,8 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
         logger.debug("Removing ranges from filter: [{}]", filter);
 
-        final String rangePattern =
-            // Parenthesized groups with regular quotes
-            "\\(\\s*response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"(?:\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\")*\\s*\\)" +
-            "|" +
-            // Parenthesized groups with escaped quotes
-            "\\(\\s*response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"(?:\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\")*\\s*\\)" +
-            "|" +
-            // Standalone ranges with regular quotes
-            "response-time:\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
-            "|" +
-            // Standalone ranges with escaped quotes
-            "response-time:\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"" +
-            "|" +
-            // OR conditions with regular quotes
-            "\\s+OR\\s+\"\\[\\d+\\s+TO\\s+\\d+\\]\"" +
-            "|" +
-            // OR conditions with escaped quotes
-            "\\s+OR\\s+\\\\\"\\[\\d+\\s+TO\\s+\\d+\\]\\\\\"";
-
-        String cleaned = filter.replaceAll(rangePattern, "");
+        // Remove all response-time range patterns in a single pass using pre-compiled pattern
+        String cleaned = RESPONSE_TIME_RANGE_REMOVAL_PATTERN.matcher(filter).replaceAll("");
 
         cleaned = cleaned
             .replaceAll("\\(\\s*\\)", "") // Empty parentheses
