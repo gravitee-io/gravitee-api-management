@@ -69,7 +69,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull SubscriptionSpec spec,
         @PathParam("apiHrid") String apiHrid,
-        @QueryParam("legacy") boolean legacy
+        @QueryParam("legacyID") boolean legacyID,
+        @QueryParam("legacyApiID") boolean legacyApiID,
+        @QueryParam("legacyAppID") boolean legacyAppID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -86,15 +88,17 @@ public class ApiSubscriptionsResource extends AbstractResource {
             )
             .build();
 
+        // Legacy mode means 'Hrid' fields contains GUID from GKO Status
+        // that were preexisting in the kube cluster
         SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
-            .id(legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId())
-            .applicationId(legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId())
-            .referenceId(legacy ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId())
-            .referenceType(SubscriptionReferenceType.API)
-            .planId(legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
-            .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
-            .metadata(spec.getMetadata())
-            .build();
+                .id(legacyID ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId())
+                .applicationId(legacyAppID ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId())
+                .referenceId(legacyApiID ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId())
+                .referenceType(SubscriptionReferenceType.API)
+                .planId(legacyApiIDcy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
+                .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
+                .metadata(spec.getMetadata())
+                .build();
 
         SubscriptionCRDStatus status = importSubscriptionSpecUseCase
             .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))

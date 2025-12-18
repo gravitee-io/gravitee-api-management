@@ -42,25 +42,16 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
 
-        if (input.crd().getCrossId() == null && input.crd().getHrid() == null) {
-            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
-            return Result.ofErrors(errors);
-        }
-
-        if (input.crd().getHrid() == null) {
-            input.crd().setHrid(input.crd().getCrossId());
-            var idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getCrossId());
-            if (input.crd().getSharedPolicyGroupId() == null) {
-                input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-            }
+        if (input.crd().getCrossId() == null) {
+            IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
+            input.crd().setCrossId(idBuilder.buildCrossId());
+            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
         } else {
-            var idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getHrid());
-            if (input.crd().getCrossId() == null) {
-                input.crd().setCrossId(idBuilder.buildCrossId());
-            }
-            if (input.crd().getSharedPolicyGroupId() == null) {
-                input.crd().setSharedPolicyGroupId(idBuilder.buildId());
-            }
+            IdBuilder idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getCrossId());
+            input.crd().setSharedPolicyGroupId(idBuilder.buildId());
+            // ID are sent by GKO upgraded resources, so HRID does not make sense
+            // to avoid confusion when looking into the database, we remove it
+            input.crd().setHrid(null);
         }
 
         var sanitizedBuilder = input.crd.toBuilder();
