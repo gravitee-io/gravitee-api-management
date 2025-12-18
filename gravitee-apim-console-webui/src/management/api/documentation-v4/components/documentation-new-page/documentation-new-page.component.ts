@@ -286,7 +286,7 @@ export class DocumentationNewPageComponent implements OnInit {
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 500 && err.error.message.includes('fetch') && formValue.sourceType === 'EXTERNAL') {
+        if (err.status === 500 && err.error?.message?.includes('fetch') && formValue.sourceType === 'EXTERNAL') {
           this.snackBarService.error('External source configuration invalid.');
         } else {
           this.snackBarService.error(err.error?.message ?? 'Error during page creation.');
