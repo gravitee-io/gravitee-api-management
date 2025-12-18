@@ -452,28 +452,58 @@ export class PortalNavigationItemsComponent {
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
 
+    if (this.contentControl.pristine) {
+      this.updateItemOrderAndRefreshList(newParentId, newOrder, node.data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    } else {
+      this.openDiscardChangesDialog()
+        .pipe(
+          filter((confirmed) => !!confirmed),
+          switchMap(() => this.updateItemOrderAndRefreshList(newParentId, newOrder, node.data)),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    }
+  }
+
+  private openDiscardChangesDialog() {
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Discard changes',
+          content: 'There are unsaved changes on this page. Would you like to discard changes or continue editing?',
+          confirmButton: 'Discard Changes',
+          cancelButton: 'Continue Editing',
+        },
+        role: 'alertdialog',
+        id: 'discardChangesConfirmDialog',
+      })
+      .afterClosed();
+  }
+
+  private updateItemOrderAndRefreshList(
+    newParentId: string | null,
+    newOrder: number,
+    navItem: PortalNavigationItem,
+  ): Observable<PortalNavigationItem> {
     const updateItem: UpdatePortalNavigationItem = {
-      title: node.data.title,
-      type: node.data.type,
-      published: node.data.published,
-      visibility: node.data.visibility,
-      url: node.type === 'LINK' ? (node.data as PortalNavigationLink).url : undefined,
+      title: navItem.title,
+      type: navItem.type,
+      published: navItem.published,
+      visibility: navItem.visibility,
+      url: (navItem as PortalNavigationLink).url,
       parentId: newParentId ?? undefined,
       order: newOrder,
     };
-
-    this.update(node.id, updateItem)
-      .pipe(
-        tap(() => {
-          this.refreshMenuList.next(1);
-        }),
-        catchError(() => {
-          this.snackBarService.error('Failed to move navigation item');
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    return this.update(navItem.id, updateItem).pipe(
+      tap(() => {
+        this.refreshMenuList.next(1);
+      }),
+      catchError(() => {
+        this.snackBarService.error('Failed to move navigation item');
+        return EMPTY;
+      }),
+    );
   }
 }
 
