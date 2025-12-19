@@ -19,13 +19,14 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public record MetricsContext(
-    AuditInfo auditInfo,
+    @Getter AuditInfo auditInfo,
     Optional<Map<String, String>> apiNameById,
     Optional<Map<String, String>> applicationNameById,
     List<Filter> filters

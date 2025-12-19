@@ -15,30 +15,26 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,59 +46,90 @@ import org.springframework.security.core.context.SecurityContextImpl;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ManagementFilterPreProcessorTest {
 
-    private final ApiSearchService apiSearchService = mock(ApiSearchService.class);
+    record TestCase(String userId, String role, List<String> expectedApiIds) {}
 
-    private final FilterPreProcessor filterPreProcessor = new ManagementFilterPreProcessor(apiSearchService);
-
+    private final ApiAuthorizationService apiAuthorizationService = mock(ApiAuthorizationService.class);
+    private final ApiRepository apiRepository = mock(ApiRepository.class);
     private final Authentication authentication = mock(Authentication.class);
+
+    private final FilterPreProcessor filterPreProcessor = new ManagementFilterPreProcessor(apiAuthorizationService, apiRepository);
+
+    // Test data
+    private static final Api api1 = Api.builder().id("id1").name("api1").build();
+    private static final Api api2 = Api.builder().id("id2").name("api2").build();
+    private static final Api api3 = Api.builder().id("id3").name("api3").build();
+
+    private static final String adminUserId = UUID.randomUUID().toString();
+    private static final List<Api> adminApis = List.of(api1, api2, api3);
+
+    private static final String nonAdminUserId = UUID.randomUUID().toString();
+    private static final List<Api> nonAdminApis = List.of(api2);
 
     @BeforeEach
     void setUp() {
+        when(apiAuthorizationService.findApiIdsByUserId(any(), eq(adminUserId), any(), anyBoolean())).thenThrow(
+            new RuntimeException("should not be called")
+        );
+
+        when(apiAuthorizationService.findApiIdsByUserId(any(), eq(nonAdminUserId), any(), anyBoolean())).thenReturn(
+            nonAdminApis.stream().map(Api::getId).collect(Collectors.toSet())
+        );
+
+        when(apiRepository.search(any(), any())).thenAnswer(invocation -> {
+            ApiCriteria criteria = invocation.getArgument(0);
+            if (criteria.getIds() == null) {
+                return adminApis;
+            }
+
+            return nonAdminApis;
+        });
+    }
+
+    AuditInfo buildAuditInfo(String userId) {
+        var actor = AuditActor.builder().userId(userId).build();
+        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    }
+
+    void setUpSecurityContext(String role) {
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        var organizationAdmin = new GrantedAuthority() {
+        var grantedAuthority = new GrantedAuthority() {
             @Override
             public String getAuthority() {
-                return "ORGANIZATION:ADMIN";
+                return role;
             }
         };
 
-        Collection<? extends GrantedAuthority> authorities = new ArrayList<>(List.of(organizationAdmin));
+        Collection<? extends GrantedAuthority> authorities = new ArrayList<>(List.of(grantedAuthority));
+
         doReturn(authorities).when(authentication).getAuthorities();
-        when(authentication.getName()).thenReturn("test-user");
-
-        GraviteeContext.setCurrentOrganization("DEFAULT");
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
     }
 
-    @Test
-    void should_not_allow_access_to_any_api() {
-        var content = new Page<GenericApiEntity>(List.of(), 0, 0, 0);
-        when(apiSearchService.search(any(), any(), anyBoolean(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(content);
+    @ParameterizedTest
+    @MethodSource("testCases")
+    void should_return_allowed_apis(TestCase testCase) {
+        var auditInfo = buildAuditInfo(testCase.userId);
+        setUpSecurityContext(testCase.role);
 
-        var filters = filterPreProcessor.buildFilters(new MetricsContext(AuditInfo.builder().build())).filters();
+        var contextWithFilters = filterPreProcessor.buildFilters(new MetricsContext(auditInfo));
 
-        assertThat(filters).isEqualTo(List.of(new Filter(API, IN, Set.of())));
+        assertThat(contextWithFilters.filters()).size().isEqualTo(1);
+
+        var value = contextWithFilters.filters().getFirst().value();
+        assertThat(value)
+            .isInstanceOf(Set.class)
+            .asInstanceOf(InstanceOfAssertFactories.SET)
+            .containsExactlyInAnyOrderElementsOf(testCase.expectedApiIds);
     }
 
-    @Test
-    void should_allow_access_to_all_apis() {
-        GenericApiEntity api1 = newApiEntity("id1", "api1");
-        GenericApiEntity api2 = newApiEntity("id2", "api2");
-
-        var content = new Page<>(List.of(api1, api2), 0, 2, 2);
-        when(apiSearchService.search(any(), any(), anyBoolean(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(content);
-
-        var expectedApis = Set.of("id1", "id2");
-
-        var contextWithFilters = filterPreProcessor.buildFilters(new MetricsContext(AuditInfo.builder().build()));
-
-        assertThat(contextWithFilters.filters()).isNotEmpty();
-
-        assertThat(contextWithFilters.filters()).extracting(Filter::value).containsExactlyInAnyOrder(expectedApis);
+    private static Stream<TestCase> testCases() {
+        return Stream.of(
+            new TestCase(adminUserId, "ORGANIZATION:ADMIN", apiIds(adminApis)),
+            new TestCase(nonAdminUserId, "ORGANIZATION:USER", apiIds(nonAdminApis))
+        );
     }
 
-    private GenericApiEntity newApiEntity(String id, String name) {
-        return ApiEntity.builder().id(id).name(name).build();
+    private static List<String> apiIds(List<Api> apis) {
+        return apis.stream().map(Api::getId).toList();
     }
 }
