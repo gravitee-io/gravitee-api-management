@@ -639,7 +639,7 @@ class AnalyticsEngineQueryServiceImplTest {
         @Test
         void should_search_top_value_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of("downstream-active-connections", List.of(2L), "upstream-active-connections", List.of(2L))
+                Map.of("downstream-active-connections", List.of(2D), "upstream-active-connections", List.of(2D))
             );
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
@@ -651,15 +651,15 @@ class AnalyticsEngineQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().get("downstream-active-connections")).isEqualTo(List.of(2L));
-                assertThat(analytics.values().get("upstream-active-connections")).isEqualTo(List.of(2L));
+                assertThat(analytics.values().get("downstream-active-connections")).isEqualTo(List.of(2D));
+                assertThat(analytics.values().get("upstream-active-connections")).isEqualTo(List.of(2D));
             });
         }
 
         @Test
         void should_search_top_delta_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of("downstream-publish-messages-total", List.of(213L), "upstream-publish-messages-total", List.of(213L))
+                Map.of("downstream-publish-messages-total", List.of(213D), "upstream-publish-messages-total", List.of(213D))
             );
 
             List<Aggregation> aggregations = List.of(
@@ -672,16 +672,16 @@ class AnalyticsEngineQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(List.of(213L));
-                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(List.of(213L));
+                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(List.of(213D));
+                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(List.of(213D));
             });
         }
 
         @Test
         void should_search_top_trends_for_a_given_native_api() {
-            Map<String, List<Long>> values = new HashMap<>();
-            values.put("downstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
-            values.put("upstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+            Map<String, List<Double>> values = new HashMap<>();
+            values.put("downstream-publish-messages-total", List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D));
+            values.put("upstream-publish-messages-total", List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D));
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(values);
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
@@ -697,10 +697,10 @@ class AnalyticsEngineQueryServiceImplTest {
 
             assertThat(stats).hasValueSatisfying(analytics -> {
                 assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(
-                    List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)
+                    List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D)
                 );
                 assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(
-                    List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)
+                    List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D)
                 );
             });
         }

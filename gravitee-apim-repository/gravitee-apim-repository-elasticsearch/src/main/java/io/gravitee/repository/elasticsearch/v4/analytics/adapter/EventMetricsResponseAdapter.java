@@ -64,7 +64,7 @@ public class EventMetricsResponseAdapter {
             return Optional.empty();
         }
 
-        Map<String, List<Long>> result = new HashMap<>();
+        Map<String, List<Double>> result = new HashMap<>();
 
         aggregations.forEach((key, value) -> {
             switch (aggregationType) {
@@ -83,14 +83,14 @@ public class EventMetricsResponseAdapter {
         return result.isEmpty() ? Optional.empty() : Optional.of(new EventAnalyticsAggregate(result));
     }
 
-    private static void parseLatestValueBuckets(Aggregation agg, Map<String, List<Long>> result) {
+    private static void parseLatestValueBuckets(Aggregation agg, Map<String, List<Double>> result) {
         List<JsonNode> buckets = agg.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) {
             return;
         }
 
-        Map<String, Long> metricValueMap = new HashMap<>();
+        Map<String, Double> metricValueMap = new HashMap<>();
 
         buckets
             .stream()
@@ -108,19 +108,19 @@ public class EventMetricsResponseAdapter {
                         String metric = fieldName.substring(LATEST_PREFIX.length());
                         JsonNode topMetricsNode = bucket.get(fieldName);
                         // Require a top hit AND the metric value to be present and numeric
-                        Long value = parseTopMetricsNode(topMetricsNode, metric);
+                        Double value = parseTopMetricsNode(topMetricsNode, metric);
 
                         if (value == null) return;
 
                         // Sum across composite buckets
-                        metricValueMap.merge(metric, value, Long::sum);
+                        metricValueMap.merge(metric, value, Double::sum);
                     })
             );
 
         metricValueMap.forEach((metric, total) -> result.put(metric, List.of(total)));
     }
 
-    private static Long parseTopMetricsNode(JsonNode topMetricsNode, String metric) {
+    private static Double parseTopMetricsNode(JsonNode topMetricsNode, String metric) {
         if (isTopHitMissing(topMetricsNode)) {
             return null;
         }
@@ -144,51 +144,51 @@ public class EventMetricsResponseAdapter {
             return null;
         }
 
-        return valueNode.asLong();
+        return valueNode.asDouble();
     }
 
-    private static void parseStartAndEndValueBuckets(Aggregation agg, Map<String, List<Long>> result) {
+    private static void parseStartAndEndValueBuckets(Aggregation agg, Map<String, List<Double>> result) {
         List<JsonNode> buckets = agg.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) return;
 
-        Map<String, Long> metricValueMap = new HashMap<>();
+        Map<String, Double> metricValueMap = new HashMap<>();
 
         for (JsonNode bucket : buckets) {
             JsonNode startValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START);
             JsonNode endValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE);
 
-            Map<String, Long> startValuesMap = collectTopMetrics(startValueNode, START_PREFIX);
-            Map<String, Long> endValuesMap = collectTopMetrics(endValueNode, END_PREFIX);
+            Map<String, Double> startValuesMap = collectTopMetrics(startValueNode, START_PREFIX);
+            Map<String, Double> endValuesMap = collectTopMetrics(endValueNode, END_PREFIX);
 
             Set<String> fields = new HashSet<>(startValuesMap.keySet());
             fields.addAll(endValuesMap.keySet());
 
             for (String metric : fields) {
-                Long endVal = endValuesMap.get(metric);
+                Double endVal = endValuesMap.get(metric);
 
                 if (endVal == null) continue;
 
-                Long startVal = startValuesMap.get(metric);
+                Double startVal = startValuesMap.get(metric);
 
                 if (startVal == null) {
-                    startVal = 0L; // baseline 0 when no start value
+                    startVal = 0D; // baseline 0 when no start value
                 }
 
-                long delta = endVal - startVal;
+                double delta = endVal - startVal;
 
-                if (delta < 0L) {
-                    delta = 0L;
+                if (delta < 0) {
+                    delta = 0D;
                 }
 
-                metricValueMap.merge(metric, delta, Long::sum);
+                metricValueMap.merge(metric, delta, Double::sum);
             }
         }
 
         metricValueMap.forEach((metric, delta) -> result.put(metric, List.of(delta)));
     }
 
-    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result, HistogramQuery query) {
+    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Double>> result, HistogramQuery query) {
         List<JsonNode> buckets = aggregation.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) return;
@@ -198,7 +198,7 @@ public class EventMetricsResponseAdapter {
         if (first == null || !first.has(PER_INTERVAL)) return;
 
         Set<Long> timeline = new HashSet<>();
-        Map<SeriesKey, Long> valuesByKey = new HashMap<>();
+        Map<SeriesKey, Double> valuesByKey = new HashMap<>();
         Map<String, Set<String>> metricToIds = new HashMap<>();
 
         parseCompositeIdBuckets(buckets, timeline, valuesByKey, metricToIds);
@@ -208,7 +208,7 @@ public class EventMetricsResponseAdapter {
         List<Long> sortedTimeline = sortedTimeline(timeline);
 
         metricToIds.forEach((metric, ids) -> {
-            List<List<Long>> deltaSeriesList = buildDeltaSeriesPerId(metric, ids, sortedTimeline, valuesByKey);
+            List<List<Double>> deltaSeriesList = buildDeltaSeriesPerId(metric, ids, sortedTimeline, valuesByKey);
             result.put(metric, buildTrendFromDeltaSeries(deltaSeriesList));
         });
 
@@ -218,7 +218,7 @@ public class EventMetricsResponseAdapter {
     private static void parseCompositeIdBuckets(
         List<JsonNode> buckets,
         Set<Long> timeline,
-        Map<SeriesKey, Long> valuesByKey,
+        Map<SeriesKey, Double> valuesByKey,
         Map<String, Set<String>> metricToIds
     ) {
         for (JsonNode perIdBucket : buckets) {
@@ -242,7 +242,7 @@ public class EventMetricsResponseAdapter {
                         if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) return;
 
                         String metric = fieldName.substring(MAX_PREFIX.length());
-                        Long maxValue = parseMaxValueNode(interval.get(fieldName));
+                        Double maxValue = parseMaxValueNode(interval.get(fieldName));
 
                         if (maxValue == null) return;
 
@@ -260,25 +260,25 @@ public class EventMetricsResponseAdapter {
         return sorted;
     }
 
-    private static List<List<Long>> buildDeltaSeriesPerId(
+    private static List<List<Double>> buildDeltaSeriesPerId(
         String metric,
         Set<String> ids,
         List<Long> timeline,
-        Map<SeriesKey, Long> valuesByKey
+        Map<SeriesKey, Double> valuesByKey
     ) {
-        List<List<Long>> deltaSeriesList = new ArrayList<>(ids.size());
+        List<List<Double>> deltaSeriesList = new ArrayList<>(ids.size());
 
         for (String id : ids) {
-            List<Long> deltaSeries = new ArrayList<>(timeline.size());
-            Long previous = null;
+            List<Double> deltaSeries = new ArrayList<>(timeline.size());
+            Double previous = null;
 
             for (Long ts : timeline) {
-                Long current = valuesByKey.get(new SeriesKey(metric, id, ts));
+                Double current = valuesByKey.get(new SeriesKey(metric, id, ts));
 
                 if (current == null) {
                     deltaSeries.add(null); // data gap
                 } else if (previous == null) {
-                    deltaSeries.add(0L); // first observation baseline
+                    deltaSeries.add(0D); // first observation baseline
                     previous = current;
                 } else {
                     // reset-aware delta
@@ -293,18 +293,18 @@ public class EventMetricsResponseAdapter {
         return deltaSeriesList;
     }
 
-    private static List<Long> buildTrendFromDeltaSeries(List<List<Long>> deltaSeriesList) {
+    private static List<Double> buildTrendFromDeltaSeries(List<List<Double>> deltaSeriesList) {
         if (deltaSeriesList.isEmpty()) return List.of();
 
         int dataPoints = deltaSeriesList.getFirst().size();
-        List<Long> trend = new ArrayList<>(dataPoints);
+        List<Double> trend = new ArrayList<>(dataPoints);
 
         for (int i = 0; i < dataPoints; i++) {
-            long sum = 0L;
+            double sum = 0D;
             boolean hasValue = false;
 
-            for (List<Long> series : deltaSeriesList) {
-                Long delta = series.get(i);
+            for (List<Double> series : deltaSeriesList) {
+                Double delta = series.get(i);
 
                 if (delta != null) {
                     sum += delta;
@@ -318,7 +318,7 @@ public class EventMetricsResponseAdapter {
         return trend;
     }
 
-    private static void convertToRate(HistogramQuery query, Map<String, List<Long>> result) {
+    private static void convertToRate(HistogramQuery query, Map<String, List<Double>> result) {
         Duration interval = query
             .timeRange()
             .interval()
@@ -351,18 +351,18 @@ public class EventMetricsResponseAdapter {
         return (keyNode != null && keyNode.isNumber()) ? keyNode.asLong() : null;
     }
 
-    private static Long parseMaxValueNode(final JsonNode node) {
+    private static Double parseMaxValueNode(final JsonNode node) {
         if (node == null) {
             return null;
         }
 
         JsonNode valueNode = node.get("value");
 
-        return (valueNode == null || !valueNode.isNumber()) ? null : valueNode.asLong();
+        return (valueNode == null || !valueNode.isNumber()) ? null : valueNode.asDouble();
     }
 
-    private static Map<String, Long> collectTopMetrics(JsonNode parent, String prefix) {
-        Map<String, Long> values = new HashMap<>();
+    private static Map<String, Double> collectTopMetrics(JsonNode parent, String prefix) {
+        Map<String, Double> values = new HashMap<>();
 
         if (parent == null) return values;
 
@@ -374,7 +374,7 @@ public class EventMetricsResponseAdapter {
                 if (!fieldName.startsWith(prefix)) return;
 
                 String metric = fieldName.substring(prefix.length());
-                Long value = parseTopMetricsNode(parent.get(fieldName), metric);
+                Double value = parseTopMetricsNode(parent.get(fieldName), metric);
 
                 if (value != null) {
                     values.put(metric, value);

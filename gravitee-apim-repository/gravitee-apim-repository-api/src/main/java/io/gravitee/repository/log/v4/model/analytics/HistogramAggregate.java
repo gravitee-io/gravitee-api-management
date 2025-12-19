@@ -21,5 +21,5 @@ import java.util.Map;
 public interface HistogramAggregate {
     record Counts(String field, String name, Map<String, List<Long>> counts) implements HistogramAggregate {}
 
-    record Metric(String field, String name, List<Long> values) implements HistogramAggregate {}
+    record Metric(String field, String name, List<Double> values) implements HistogramAggregate {}
 }
