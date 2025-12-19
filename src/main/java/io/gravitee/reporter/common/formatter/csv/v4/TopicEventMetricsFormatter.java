@@ -15,20 +15,23 @@
  */
 package io.gravitee.reporter.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.EventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 import io.vertx.core.buffer.Buffer;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author GraviteeSource Team
+ */
 @Slf4j
-public class EventMetricsFormatter
-  extends BaseEventMetricsFormatter<EventMetrics> {
+public class TopicEventMetricsFormatter
+  extends BaseEventMetricsFormatter<TopicEventMetrics> {
 
   @Override
-  protected Buffer format0(EventMetrics data) {
+  protected Buffer format0(TopicEventMetrics data) {
     final Buffer buffer = super.format0(data);
     appendString(buffer, data.getTopic());
 
-    //Append event metrics
+    //Append topic event metrics
     appendLong(buffer, data.getDownstreamPublishMessagesCountIncrement());
     appendLong(buffer, data.getDownstreamPublishMessageBytesIncrement());
     appendLong(buffer, data.getUpstreamPublishMessagesCountIncrement());
@@ -37,20 +40,6 @@ public class EventMetricsFormatter
     appendLong(buffer, data.getDownstreamSubscribeMessageBytesIncrement());
     appendLong(buffer, data.getUpstreamSubscribeMessagesCountIncrement());
     appendLong(buffer, data.getUpstreamSubscribeMessageBytesIncrement());
-    appendLong(buffer, data.getDownstreamActiveConnections());
-    appendLong(buffer, data.getUpstreamActiveConnections());
-    appendLong(buffer, data.getUpstreamAuthenticatedConnections());
-    appendLong(buffer, data.getDownstreamAuthenticatedConnections());
-    appendLong(
-      buffer,
-      data.getDownstreamAuthenticationFailuresCountIncrement()
-    );
-    appendLong(buffer, data.getUpstreamAuthenticationFailuresCountIncrement());
-    appendLong(
-      buffer,
-      data.getDownstreamAuthenticationSuccessesCountIncrement()
-    );
-    appendLong(buffer, data.getUpstreamAuthenticationSuccessesCountIncrement());
 
     return buffer;
   }

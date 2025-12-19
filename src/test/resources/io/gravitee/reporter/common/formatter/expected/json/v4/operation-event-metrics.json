@@ -7,11 +7,11 @@
   "planId": "test_plan",
   "applicationId": "test_app",
   "operation": "PRODUCE",
-  "requestDurationsMillis": 11111,
-  "responseDurationsMillis": 22222,
+  "upstreamDurationsMillis": 11111,
+  "downstreamDurationsMillis": 22222,
   "endpointDurationsMillis": 33333,
-  "requestsTotal": 10,
-  "responsesTotal": 20,
-  "endpointRequestsTotal": 30,
-  "endpointResponsesTotal": 40
+  "upstreamCountIncrement": 10,
+  "downstreamCountIncrement": 20,
+  "endpointUpstreamCountIncrement": 30,
+  "endpointDownstreamCountIncrement": 40
 }

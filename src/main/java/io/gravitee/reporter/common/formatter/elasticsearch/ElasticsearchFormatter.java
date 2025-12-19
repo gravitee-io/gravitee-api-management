@@ -26,7 +26,10 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
+import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
 import io.gravitee.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.vertx.core.buffer.Buffer;
@@ -439,11 +442,55 @@ public class ElasticsearchFormatter<T extends Reportable>
     OperationEventMetrics metrics,
     Map<String, Object> esOptions
   ) {
+    return getSourceForEventMetrics(
+      metrics,
+      esOptions,
+      "operation-event-metrics.ftl"
+    );
+  }
+
+  private Buffer getSource(
+    TopicEventMetrics metrics,
+    Map<String, Object> esOptions
+  ) {
+    return getSourceForEventMetrics(
+      metrics,
+      esOptions,
+      "topic-event-metrics.ftl"
+    );
+  }
+
+  private Buffer getSource(
+    ApplicationEventMetrics metrics,
+    Map<String, Object> esOptions
+  ) {
+    return getSourceForEventMetrics(
+      metrics,
+      esOptions,
+      "application-event-metrics.ftl"
+    );
+  }
+
+  private Buffer getSource(
+    ApiEventMetrics metrics,
+    Map<String, Object> esOptions
+  ) {
+    return getSourceForEventMetrics(
+      metrics,
+      esOptions,
+      "api-event-metrics.ftl"
+    );
+  }
+
+  private Buffer getSourceForEventMetrics(
+    Reportable metrics,
+    Map<String, Object> esOptions,
+    String template
+  ) {
     final Map<String, Object> data = new HashMap<>(5);
     addCommonFields(data, metrics, esOptions);
     data.put("metrics", metrics);
-
-    return generateData("operation-event-metrics.ftl", data);
+    return generateData(template, data);
   }
 
   private Buffer generateData(String template, Map<String, Object> data) {
@@ -553,6 +600,15 @@ public class ElasticsearchFormatter<T extends Reportable>
     );
     formatters.put(OperationEventMetrics.class, (r, o) ->
       getSource((OperationEventMetrics) r, o)
+    );
+    formatters.put(TopicEventMetrics.class, (r, o) ->
+      getSource((TopicEventMetrics) r, o)
+    );
+    formatters.put(ApplicationEventMetrics.class, (r, o) ->
+      getSource((ApplicationEventMetrics) r, o)
+    );
+    formatters.put(ApiEventMetrics.class, (r, o) ->
+      getSource((ApiEventMetrics) r, o)
     );
   }
 }

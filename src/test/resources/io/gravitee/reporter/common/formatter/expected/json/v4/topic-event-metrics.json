@@ -14,13 +14,5 @@
   "downstreamSubscribeMessagesCountIncrement": 40593,
   "downstreamSubscribeMessageBytesIncrement": 432421,
   "upstreamSubscribeMessagesCountIncrement": 34413,
-  "upstreamSubscribeMessageBytesIncrement": 2132131,
-  "downstreamActiveConnections": 4,
-  "upstreamActiveConnections": 3,
-  "upstreamAuthenticatedConnections": 10,
-  "downstreamAuthenticatedConnections": 10,
-  "downstreamAuthenticationFailuresCountIncrement": 12,
-  "upstreamAuthenticationFailuresCountIncrement": 12,
-  "downstreamAuthenticationSuccessesCountIncrement": 15,
-  "upstreamAuthenticationSuccessesCountIncrement": 15
+  "upstreamSubscribeMessageBytesIncrement": 2132131
 }

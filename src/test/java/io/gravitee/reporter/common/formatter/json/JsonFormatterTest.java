@@ -49,6 +49,9 @@ class JsonFormatterTest extends AbstractFormatterTest {
       "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, json/v4/message-metrics-with-additional.json",
       "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
       "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, json/v4/event-metrics.json",
+      "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, json/v4/api-event-metrics.json",
+      "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, json/v4/application-event-metrics.json",
+      "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, json/v4/topic-event-metrics.json",
       "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",
     }
   )

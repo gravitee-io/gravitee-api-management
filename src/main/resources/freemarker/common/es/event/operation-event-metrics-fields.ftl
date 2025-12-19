@@ -2,24 +2,24 @@
 <#if metrics.getOperation()??>
 ,"operation": "${metrics.getOperation()}"
 </#if>
-<#if metrics.getRequestDurationsMillis()??>
-,"request-durations-millis": ${metrics.getRequestDurationsMillis()}
+<#if metrics.getUpstreamDurationsMillis()??>
+,"request-durations-millis": ${metrics.getUpstreamDurationsMillis()}
 </#if>
 <#if metrics.getEndpointDurationsMillis()??>
 ,"endpoint-durations-millis": ${metrics.getEndpointDurationsMillis()}
 </#if>
-<#if metrics.getResponseDurationsMillis()??>
-,"response-durations-millis": ${metrics.getResponseDurationsMillis()}
+<#if metrics.getDownstreamDurationsMillis()??>
+,"response-durations-millis": ${metrics.getDownstreamDurationsMillis()}
 </#if>
-<#if metrics.getRequestsTotal()??>
-,"requests-total": ${metrics.getRequestsTotal()}
+<#if metrics.getUpstreamCountIncrement()??>
+,"requests-count-increment": ${metrics.getUpstreamCountIncrement()}
 </#if>
-<#if metrics.getEndpointRequestsTotal()??>
-,"endpoint-requests-total": ${metrics.getEndpointRequestsTotal()}
+<#if metrics.getEndpointUpstreamCountIncrement()??>
+,"endpoint-requests-count-increment": ${metrics.getEndpointUpstreamCountIncrement()}
 </#if>
-<#if metrics.getEndpointResponsesTotal()??>
-,"endpoint-responses-total": ${metrics.getEndpointResponsesTotal()}
+<#if metrics.getEndpointDownstreamCountIncrement()??>
+,"endpoint-responses-count-increment": ${metrics.getEndpointDownstreamCountIncrement()}
 </#if>
-<#if metrics.getResponsesTotal()??>
-,"responses-total": ${metrics.getResponsesTotal()}
+<#if metrics.getDownstreamCountIncrement()??>
+,"responses-count-increment": ${metrics.getDownstreamCountIncrement()}
 </#if>

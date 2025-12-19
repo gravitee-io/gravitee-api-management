@@ -7,13 +7,13 @@
   "gw-id": "test_gateway",
   "env-id": "test_env",
   "org-id": "test_org",
-  "doc-type": "operation-event-metrics",
+  "doc-type": "operation",
   "operation": "PRODUCE",
   "request-durations-millis": 11111,
-  "response-durations-millis": 22222,
   "endpoint-durations-millis": 33333,
-  "requests-total": 10,
-  "responses-total": 20,
-  "endpoint-requests-total": 30,
-  "endpoint-responses-total": 40
+  "response-durations-millis": 22222,
+  "requests-count-increment": 10,
+  "endpoint-requests-count-increment": 30,
+  "endpoint-responses-count-increment": 40,
+  "responses-count-increment": 20
 }

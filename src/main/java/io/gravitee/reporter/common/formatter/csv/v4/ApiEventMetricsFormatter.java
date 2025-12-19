@@ -15,31 +15,28 @@
  */
 package io.gravitee.reporter.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.vertx.core.buffer.Buffer;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Anthony CALLAERT (anthony.callaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Slf4j
-public class OperationEventMetricsFormatter
-  extends BaseEventMetricsFormatter<OperationEventMetrics> {
+public class ApiEventMetricsFormatter
+  extends BaseEventMetricsFormatter<ApiEventMetrics> {
 
   @Override
-  protected Buffer format0(OperationEventMetrics data) {
+  protected Buffer format0(ApiEventMetrics data) {
     final Buffer buffer = super.format0(data);
-    appendString(buffer, data.getOperation());
 
-    //Append operation event metrics
-    appendLong(buffer, data.getUpstreamDurationsMillis());
-    appendLong(buffer, data.getEndpointDurationsMillis());
-    appendLong(buffer, data.getDownstreamDurationsMillis());
-    appendInt(buffer, data.getUpstreamCountIncrement());
-    appendInt(buffer, data.getEndpointUpstreamCountIncrement());
-    appendInt(buffer, data.getEndpointDownstreamCountIncrement());
-    appendInt(buffer, data.getDownstreamCountIncrement());
+    //Append api event metrics
+    appendLong(buffer, data.getDownstreamActiveConnections());
+    appendLong(buffer, data.getUpstreamActiveConnections());
+    appendLong(
+      buffer,
+      data.getDownstreamAuthenticationFailuresCountIncrement()
+    );
 
     return buffer;
   }

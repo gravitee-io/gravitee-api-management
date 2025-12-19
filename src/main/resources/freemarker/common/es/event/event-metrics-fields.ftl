@@ -2,29 +2,29 @@
 <#if metrics.getTopic()??>
 ,"topic": "${metrics.getTopic()}"
 </#if>
-<#if metrics.getDownstreamPublishMessagesTotal()??>
-,"downstream-publish-messages-total": ${metrics.getDownstreamPublishMessagesTotal()}
+<#if metrics.getDownstreamPublishMessagesCountIncrement()??>
+,"downstream-publish-messages-count-increment": ${metrics.getDownstreamPublishMessagesCountIncrement()}
 </#if>
-<#if metrics.getDownstreamPublishMessageBytes()??>
-,"downstream-publish-message-bytes": ${metrics.getDownstreamPublishMessageBytes()}
+<#if metrics.getDownstreamPublishMessageBytesIncrement()??>
+,"downstream-publish-message-bytes-increment": ${metrics.getDownstreamPublishMessageBytesIncrement()}
 </#if>
-<#if metrics.getUpstreamPublishMessagesTotal()??>
-,"upstream-publish-messages-total": ${metrics.getUpstreamPublishMessagesTotal()}
+<#if metrics.getUpstreamPublishMessagesCountIncrement()??>
+,"upstream-publish-messages-count-increment": ${metrics.getUpstreamPublishMessagesCountIncrement()}
 </#if>
-<#if metrics.getUpstreamPublishMessageBytes()??>
-,"upstream-publish-message-bytes": ${metrics.getUpstreamPublishMessageBytes()}
+<#if metrics.getUpstreamPublishMessageBytesIncrement()??>
+,"upstream-publish-message-bytes-increment": ${metrics.getUpstreamPublishMessageBytesIncrement()}
 </#if>
-<#if metrics.getDownstreamSubscribeMessagesTotal()??>
-,"downstream-subscribe-messages-total": ${metrics.getDownstreamSubscribeMessagesTotal()}
+<#if metrics.getDownstreamSubscribeMessagesCountIncrement()??>
+,"downstream-subscribe-messages-count-increment": ${metrics.getDownstreamSubscribeMessagesCountIncrement()}
 </#if>
-<#if metrics.getDownstreamSubscribeMessageBytes()??>
-,"downstream-subscribe-message-bytes": ${metrics.getDownstreamSubscribeMessageBytes()}
+<#if metrics.getDownstreamSubscribeMessageBytesIncrement()??>
+,"downstream-subscribe-message-bytes-increment": ${metrics.getDownstreamSubscribeMessageBytesIncrement()}
 </#if>
-<#if metrics.getUpstreamSubscribeMessagesTotal()??>
-,"upstream-subscribe-messages-total": ${metrics.getUpstreamSubscribeMessagesTotal()}
+<#if metrics.getUpstreamSubscribeMessagesCountIncrement()??>
+,"upstream-subscribe-messages-count-increment": ${metrics.getUpstreamSubscribeMessagesCountIncrement()}
 </#if>
-<#if metrics.getUpstreamSubscribeMessageBytes()??>
-,"upstream-subscribe-message-bytes": ${metrics.getUpstreamSubscribeMessageBytes()}
+<#if metrics.getUpstreamSubscribeMessageBytesIncrement()??>
+,"upstream-subscribe-message-bytes-increment": ${metrics.getUpstreamSubscribeMessageBytesIncrement()}
 </#if>
 <#if metrics.getDownstreamActiveConnections()??>
 ,"downstream-active-connections": ${metrics.getDownstreamActiveConnections()}
@@ -38,15 +38,15 @@
 <#if metrics.getDownstreamAuthenticatedConnections()??>
 ,"downstream-authenticated-connections": ${metrics.getDownstreamAuthenticatedConnections()}
 </#if>
-<#if metrics.getDownstreamAuthenticationFailuresTotal()??>
-,"downstream-authentication-failures-total": ${metrics.getDownstreamAuthenticationFailuresTotal()}
+<#if metrics.getDownstreamAuthenticationFailuresCountIncrement()??>
+,"downstream-authentication-failures-count-increment": ${metrics.getDownstreamAuthenticationFailuresCountIncrement()}
 </#if>
-<#if metrics.getUpstreamAuthenticationFailuresTotal()??>
-,"upstream-authentication-failures-total": ${metrics.getUpstreamAuthenticationFailuresTotal()}
+<#if metrics.getUpstreamAuthenticationFailuresCountIncrement()??>
+,"upstream-authentication-failures-count-increment": ${metrics.getUpstreamAuthenticationFailuresCountIncrement()}
 </#if>
-<#if metrics.getDownstreamAuthorizationSuccessesTotal()??>
-,"downstream-authentication-successes-total": ${metrics.getDownstreamAuthorizationSuccessesTotal()}
+<#if metrics.getDownstreamAuthenticationSuccessesCountIncrement()??>
+,"downstream-authentication-successes-count-increment": ${metrics.getDownstreamAuthenticationSuccessesCountIncrement()}
 </#if>
-<#if metrics.getUpstreamAuthorizationSuccessesTotal()??>
-,"upstream-authentication-successes-total": ${metrics.getUpstreamAuthorizationSuccessesTotal()}
+<#if metrics.getUpstreamAuthenticationSuccessesCountIncrement()??>
+,"upstream-authentication-successes-count-increment": ${metrics.getUpstreamAuthenticationSuccessesCountIncrement()}
 </#if>
