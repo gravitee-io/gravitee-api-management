@@ -481,7 +481,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     (HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket(
                         "avg_gateway-response-time-ms",
                         "gateway-response-time-ms",
-                        List.of(120L, 110L)
+                        List.of(120D, 110D)
                     )
                 );
                 fakeAnalyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
@@ -512,7 +512,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(bucket.getBuckets()).hasSize(1);
                         var avgBucket = bucket.getBuckets().getFirst();
                         assertThat(avgBucket.getName()).isEqualTo("avg_gateway-response-time-ms");
-                        assertThat(avgBucket.getData()).containsExactly(120L, 110L);
+                        assertThat(avgBucket.getData()).containsExactly(120D, 110D);
                     });
             }
 

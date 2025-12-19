@@ -115,7 +115,7 @@ public interface ApiAnalyticsMapper {
                             .map(countEntry -> {
                                 var mappedCategory = new HistogramAnalyticsAllOfBuckets();
                                 mappedCategory.setName(countEntry.getKey());
-                                mappedCategory.setData(countEntry.getValue());
+                                mappedCategory.setData(countEntry.getValue().stream().map(Long::doubleValue).toList());
                                 return mappedCategory;
                             })
                             .toList()

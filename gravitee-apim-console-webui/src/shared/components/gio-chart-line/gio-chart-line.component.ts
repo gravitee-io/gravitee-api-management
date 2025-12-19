@@ -16,6 +16,7 @@
 
 import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
+import { round } from 'lodash';
 
 import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
 
@@ -111,7 +112,7 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
       series: this.data?.map((item) => ({
         name: item.name,
-        data: item.values,
+        data: item.values?.map((value) => round(value, 2)),
         type: this.options?.useSharpCorners ? 'line' : 'spline',
         color: defineLineColors(item.name),
         marker: {

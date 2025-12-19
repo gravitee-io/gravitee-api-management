@@ -18,4 +18,4 @@ package io.gravitee.apim.core.analytics.model;
 import java.util.List;
 import java.util.Map;
 
-public record EventAnalytics(Map<String, List<Long>> values) {}
+public record EventAnalytics(Map<String, List<Double>> values) {}
