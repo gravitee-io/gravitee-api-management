@@ -52,7 +52,11 @@
 
   <ng-template #sentToDlqTemplate let-log>
     @if (log.status === 0 || log.status >= 400) {
-      {{ log.additionalMetrics['bool_webhook_dlq'] != null ? (log.additionalMetrics['bool_webhook_dlq'] ? 'Yes' : 'No') : '—' }}
+      @if (log.additionalMetrics['bool_webhook_dlq'] !== undefined) {
+        {{ log.additionalMetrics['bool_webhook_dlq'] ? 'Yes' : 'No' }}
+      } @else {
+        —
+      }
     } @else {
       —
     }
