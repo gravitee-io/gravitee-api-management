@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { isNumber } from 'angular';
+
 import { ConnectionLog } from '../../../../../entities/management-api-v2';
 import { WebhookAdditionalMetrics, WebhookLog } from '../models/webhook-logs.models';
 
@@ -26,44 +28,58 @@ function parseNumberOrZero(raw?: string): number {
 }
 
 /**
- * Safely parses a numeric string, returning undefined if the value is not a valid number.
- */
-function parseNumberOrUndefined(raw?: string): number | undefined {
-  const num = Number(raw);
-  return Number.isNaN(num) ? undefined : num;
-}
-
-/**
  * Extracts and transforms additionalMetrics from the backend format
  * to the typed WebhookAdditionalMetrics format.
  * Since we filter for documents with additional-metrics (requiresAdditional=true),
  * we're guaranteed that additionalMetrics exists when this function is called.
  * Only transforms fields that need type conversion (numbers, booleans).
  */
-export function extractWebhookAdditionalMetrics(additionalMetrics: { [key: string]: string }): Partial<WebhookAdditionalMetrics> {
-  const metrics: Partial<WebhookAdditionalMetrics> = {
-    // String fields - assign directly
-    'string_webhook_req-method': additionalMetrics['string_webhook_req-method'],
-    string_webhook_url: additionalMetrics['string_webhook_url'],
-    'keyword_webhook_app-id': additionalMetrics['keyword_webhook_app-id'],
-    'keyword_webhook_sub-id': additionalMetrics['keyword_webhook_sub-id'],
-    'json_webhook_retry-timeline': additionalMetrics['json_webhook_retry-timeline'],
-    'string_webhook_last-error': additionalMetrics['string_webhook_last-error'],
-    'json_webhook_req-headers': additionalMetrics['json_webhook_req-headers'],
-    'string_webhook_req-body': additionalMetrics['string_webhook_req-body'],
-    'json_webhook_resp-headers': additionalMetrics['json_webhook_resp-headers'],
-    'string_webhook_resp-body': additionalMetrics['string_webhook_resp-body'],
-
-    // Numeric fields - transform from string to number
-    'long_webhook_req-timestamp': parseNumberOrZero(additionalMetrics['long_webhook_req-timestamp']),
-    'int_webhook_resp-status': parseNumberOrZero(additionalMetrics['int_webhook_resp-status']),
-    'int_webhook_retry-count': parseNumberOrZero(additionalMetrics['int_webhook_retry-count']),
-    'long_webhook_resp-time': parseNumberOrUndefined(additionalMetrics['long_webhook_resp-time']),
-    'int_webhook_resp-body-size': parseNumberOrUndefined(additionalMetrics['int_webhook_resp-body-size']),
-
-    // Boolean field - transform from string to boolean
-    bool_webhook_dlq: additionalMetrics['bool_webhook_dlq'] === 'true',
+export function extractWebhookAdditionalMetrics(additionalMetrics: {
+  [key: string]: string | boolean | number;
+}): Partial<WebhookAdditionalMetrics> {
+  const getString = (key: string): string | undefined => {
+    const value = additionalMetrics[key];
+    return typeof value === 'string' ? value : undefined;
   };
+
+  const getStringOrNumber = (key: string): string | number | undefined => {
+    const value = additionalMetrics[key];
+    return typeof value === 'string' || isNumber(value) ? value : undefined;
+  };
+
+  const parseOptionalNumber = (key: string): number | undefined => {
+    const value = getStringOrNumber(key);
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+    const num = isNumber(value) ? value : Number(value);
+    return Number.isNaN(num) ? undefined : num;
+  };
+
+  const metrics: Partial<WebhookAdditionalMetrics> = {
+    'string_webhook_req-method': getString('string_webhook_req-method'),
+    string_webhook_url: getString('string_webhook_url'),
+    'keyword_webhook_app-id': getString('keyword_webhook_app-id'),
+    'keyword_webhook_sub-id': getString('keyword_webhook_sub-id'),
+    'json_webhook_retry-timeline': getString('json_webhook_retry-timeline'),
+    'string_webhook_last-error': getString('string_webhook_last-error'),
+    'json_webhook_req-headers': getString('json_webhook_req-headers'),
+    'string_webhook_req-body': getString('string_webhook_req-body'),
+    'json_webhook_resp-headers': getString('json_webhook_resp-headers'),
+    'string_webhook_resp-body': getString('string_webhook_resp-body'),
+
+    'long_webhook_req-timestamp': parseNumberOrZero(getStringOrNumber('long_webhook_req-timestamp')?.toString()),
+    'int_webhook_resp-status': parseNumberOrZero(getStringOrNumber('int_webhook_resp-status')?.toString()),
+    'int_webhook_retry-count': parseNumberOrZero(getStringOrNumber('int_webhook_retry-count')?.toString()),
+    'long_webhook_resp-time': parseOptionalNumber('long_webhook_resp-time'),
+    'int_webhook_resp-body-size': parseOptionalNumber('int_webhook_resp-body-size'),
+  };
+
+  // Boolean field - only set if present in the backend response
+  const boolWebhookDlq = additionalMetrics['bool_webhook_dlq'];
+  if (typeof boolWebhookDlq === 'boolean') {
+    metrics.bool_webhook_dlq = boolWebhookDlq;
+  }
 
   return metrics;
 }
