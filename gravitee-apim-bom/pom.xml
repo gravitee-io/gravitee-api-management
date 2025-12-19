@@ -549,6 +549,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>fluent-hc</artifactId>
                 <version>${httpclient.version}</version>
@@ -612,6 +618,18 @@
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>batik-transcoder</artifactId>
                 <version>${batik-transcoder.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${pdfbox.version}</version>
             </dependency>
 
             <dependency>
