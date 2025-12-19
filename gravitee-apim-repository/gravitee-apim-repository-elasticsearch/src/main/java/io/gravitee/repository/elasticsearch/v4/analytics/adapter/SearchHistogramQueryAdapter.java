@@ -212,14 +212,14 @@ public class SearchHistogramQueryAdapter {
         String fieldName,
         int histogramSize
     ) {
-        List<Long> values = new ArrayList<>(Collections.nCopies(histogramSize, 0L));
+        List<Double> values = new ArrayList<>(Collections.nCopies(histogramSize, 0D));
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
             var bucket = buckets.get(i);
             if (bucket.has(aggName)) {
                 var aggValue = bucket.get(aggName).get("value");
                 if (!aggValue.isNull()) {
-                    values.set(i, aggValue.asLong());
+                    values.set(i, aggValue.asDouble());
                 }
             }
         }

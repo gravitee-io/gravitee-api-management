@@ -130,9 +130,9 @@ class EventMetricsResponseAdapterTest {
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
             assertTrue(result.isPresent());
-            Map<String, List<Long>> values = result.get().values();
-            assertEquals(List.of(7L), values.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
-            assertEquals(List.of(3L), values.get(FIELD_UPSTREAM_ACTIVE_CONNECTIONS));
+            Map<String, List<Double>> values = result.get().values();
+            assertEquals(List.of(7D), values.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
+            assertEquals(List.of(3D), values.get(FIELD_UPSTREAM_ACTIVE_CONNECTIONS));
         }
     }
 
@@ -219,9 +219,9 @@ class EventMetricsResponseAdapterTest {
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
             assertTrue(result.isPresent());
-            Map<String, List<Long>> values = result.get().values();
-            assertEquals(List.of(20L), values.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
-            assertEquals(List.of(0L), values.get(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL));
+            Map<String, List<Double>> values = result.get().values();
+            assertEquals(List.of(20D), values.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
+            assertEquals(List.of(0D), values.get(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL));
         }
     }
 
@@ -234,14 +234,14 @@ class EventMetricsResponseAdapterTest {
             long timestamp2 = 2000L;
             // Dimension A intervals:
             ArrayNode downstreamIntervalsA = MAPPER.createArrayNode();
-            downstreamIntervalsA.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 10L)));
-            downstreamIntervalsA.add(intervalBucket(timestamp2, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 3L)));
+            downstreamIntervalsA.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 10D)));
+            downstreamIntervalsA.add(intervalBucket(timestamp2, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 3D)));
             ObjectNode dimensionABucket = MAPPER.createObjectNode();
             dimensionABucket.put(DOC_COUNT, 1);
             dimensionABucket.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, downstreamIntervalsA));
             // Dimension B intervals:
             ArrayNode downstreamIntervalsB = MAPPER.createArrayNode();
-            downstreamIntervalsB.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 7L)));
+            downstreamIntervalsB.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 7D)));
             ObjectNode dimensionBBucket = MAPPER.createObjectNode();
             dimensionBBucket.put(DOC_COUNT, 1);
             dimensionBBucket.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, downstreamIntervalsB));
@@ -258,8 +258,8 @@ class EventMetricsResponseAdapterTest {
             Optional<EventAnalyticsAggregate> aggregate = EventMetricsResponseAdapter.adapt(response, query);
 
             assertTrue(aggregate.isPresent());
-            Map<String, List<Long>> valuesByField = aggregate.get().values();
-            assertEquals(List.of(0L, 0L), valuesByField.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
+            Map<String, List<Double>> valuesByField = aggregate.get().values();
+            assertEquals(List.of(0D, 0.3D), valuesByField.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
         }
     }
 
@@ -305,10 +305,10 @@ class EventMetricsResponseAdapterTest {
         return metrics;
     }
 
-    private static ObjectNode intervalBucket(long ts, Map<String, Long> series) {
+    private static ObjectNode intervalBucket(long ts, Map<String, Double> series) {
         ObjectNode bucket = MAPPER.createObjectNode();
         bucket.put(KEY, ts);
-        bucket.put(DOC_COUNT, (long) 1);
+        bucket.put(DOC_COUNT, (double) 1);
 
         series.forEach((name, v) -> {
             ObjectNode node = MAPPER.createObjectNode();

@@ -8230,8 +8230,8 @@ components:
                             data:
                               type: array
                               items:
-                                type: integer
-                                format: int64
+                                type: number
+                                format: double
                       field:
                         type: string
                       name:

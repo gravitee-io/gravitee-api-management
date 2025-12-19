@@ -1126,11 +1126,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
+                Map<String, List<Double>> data = aggregate.values();
                 assertThat(data).containsKey("downstream-active-connections");
                 assertThat(data).containsKey("upstream-active-connections");
-                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(6L);
-                assertThat(data.get("upstream-active-connections").getFirst()).isEqualTo(6L);
+                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(6D);
+                assertThat(data.get("upstream-active-connections").getFirst()).isEqualTo(6D);
             });
         }
 
@@ -1145,9 +1145,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
+                Map<String, List<Double>> data = aggregate.values();
                 assertThat(data).containsKey("downstream-active-connections");
-                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(2L);
+                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(2D);
             });
         }
 
@@ -1184,9 +1184,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(40L);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(40L);
+                Map<String, List<Double>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(30D);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(30D);
             });
         }
 
@@ -1203,9 +1203,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(100L);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(100L);
+                Map<String, List<Double>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(100D);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(100D);
             });
         }
 
@@ -1220,11 +1220,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
+                Map<String, List<Double>> data = aggregate.values();
                 assertThat(data).containsKey("downstream-publish-messages-total");
                 assertThat(data).containsKey("upstream-publish-messages-total");
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(80L);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(80L);
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(60D);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(60D);
             });
         }
 
@@ -1242,9 +1242,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(5L);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(5L);
+                Map<String, List<Double>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(5D);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(5D);
             });
         }
 
@@ -1264,8 +1264,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
-                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 0L, 0L, null));
+                Map<String, List<Double>> data = aggregate.values();
+                List<Double> trend = new ArrayList<>(Arrays.asList(null, 0D, 0D, null, null, null, null, null, null, null, 0.5, 0.5, null));
                 assertThat(data).containsKey("downstream-publish-messages-total");
                 assertThat(data).containsKey("upstream-publish-messages-total");
                 assertThat(data.get("downstream-publish-messages-total")).isEqualTo(trend);
@@ -1289,8 +1289,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
-                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 66L, 66L, null));
+                Map<String, List<Double>> data = aggregate.values();
+                List<Double> trend = new ArrayList<>(Arrays.asList(null, 0D, 0D, null, null, null, null, null, null, null, 50D, 50D, null));
                 assertThat(data).containsKey("downstream-publish-message-bytes");
                 assertThat(data).containsKey("upstream-publish-message-bytes");
                 assertThat(data.get("downstream-publish-message-bytes")).isEqualTo(trend);
@@ -1316,11 +1316,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Long>> data = aggregate.values();
+                Map<String, List<Double>> data = aggregate.values();
                 assertThat(data).containsKey("downstream-publish-messages-total");
                 assertThat(data).containsKey("upstream-publish-messages-total");
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(10L);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(10L);
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(20D);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(20D);
             });
         }
 

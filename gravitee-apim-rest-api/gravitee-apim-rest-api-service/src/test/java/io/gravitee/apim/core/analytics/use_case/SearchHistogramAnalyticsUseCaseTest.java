@@ -137,11 +137,11 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopValueHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, List<Long>> analytics = Map.of(
+        Map<String, List<Double>> analytics = Map.of(
             "downstream-active-connections",
-            List.of(2L),
+            List.of(2D),
             "upstream-active-connections",
-            List.of(2L)
+            List.of(2D)
         );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
@@ -184,11 +184,11 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopDeltaHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, List<Long>> analytics = Map.of(
+        Map<String, List<Double>> analytics = Map.of(
             "downstream-publish-messages-total",
-            List.of(200L),
+            List.of(200D),
             "upstream-publish-messages-total",
-            List.of(200L)
+            List.of(200D)
         );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
@@ -230,11 +230,11 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnMetricsTrendForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, List<Long>> analytics = Map.of(
+        Map<String, List<Double>> analytics = Map.of(
             "downstream-publish-messages-total",
-            List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L),
+            List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D),
             "upstream-publish-messages-total",
-            List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L)
+            List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D)
         );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
@@ -265,10 +265,10 @@ class SearchHistogramAnalyticsUseCaseTest {
             .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
         assertEquals("downstream-publish-messages-total", downstream.getField());
         assertEquals("downstream-publish-messages-total", downstream.getName());
-        assertEquals(List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L), downstream.getValues());
+        assertEquals(List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D), downstream.getValues());
         assertEquals("upstream-publish-messages-total", upstream.getField());
         assertEquals("upstream-publish-messages-total", upstream.getName());
-        assertEquals(List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L), upstream.getValues());
+        assertEquals(List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D), upstream.getValues());
     }
 
     @Test

@@ -43,9 +43,9 @@ public record HistogramAnalytics(Timestamp timestamp, List<Bucket> buckets) {
     @Getter
     public static class MetricBucket extends Bucket {
 
-        private final List<Long> values;
+        private final List<Double> values;
 
-        public MetricBucket(String name, String field, List<Long> values) {
+        public MetricBucket(String name, String field, List<Double> values) {
             super(name, field);
             this.values = values;
         }

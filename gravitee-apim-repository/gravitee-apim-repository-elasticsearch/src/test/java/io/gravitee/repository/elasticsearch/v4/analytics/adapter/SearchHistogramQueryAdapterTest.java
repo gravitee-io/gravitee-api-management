@@ -247,7 +247,7 @@ class SearchHistogramQueryAdapterTest {
             assertThat(agg).isInstanceOf(HistogramAggregate.Metric.class);
 
             var metric = (HistogramAggregate.Metric) agg;
-            assertThat(metric.values()).containsExactly(120L, 110L);
+            assertThat(metric.values()).containsExactly(120.5D, 110D);
         }
     }
 }

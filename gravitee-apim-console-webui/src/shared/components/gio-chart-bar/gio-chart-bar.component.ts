@@ -17,6 +17,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { HighchartsChartModule } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
+import { round } from 'lodash';
 
 import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
 
@@ -111,7 +112,7 @@ export class GioChartBarComponent extends GioChartAbstractComponent implements O
 
       series: (this.options?.reverseStack ? [...this.data].reverse() : this.data)?.map((item) => ({
         name: item.name,
-        data: item.values,
+        data: item.values?.map((value) => round(value, 2)),
         type: 'column',
         color: item.color || defineBarColors(item.name),
       })),

@@ -1,7 +1,7 @@
 { "create" : { ${index} } }
-{ "@timestamp": "${nowMinus5}", "gw-id": "2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "2", "downstream-publish-messages-total": 10, "downstream-publish-message-bytes": 1000, "upstream-publish-messages-total": 10, "upstream-publish-message-bytes": 1000 }
+{ "@timestamp": "${nowMinus5}", "gw-id": "2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "2", "downstream-publish-messages-total": 20, "downstream-publish-message-bytes": 2000, "upstream-publish-messages-total": 20, "upstream-publish-message-bytes": 2000 }
 { "create" : { ${index} } }
-{ "@timestamp": "${nowMinus4}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "1", "downstream-publish-messages-total": 10, "downstream-publish-message-bytes": 1000, "upstream-publish-messages-total": 10, "upstream-publish-message-bytes": 1000 }
+{ "@timestamp": "${nowMinus4}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "1", "downstream-publish-messages-total": 20, "downstream-publish-message-bytes": 2000, "upstream-publish-messages-total": 20, "upstream-publish-message-bytes": 2000 }
 { "create" : { ${index} } }
 { "@timestamp": "${nowMinus3}", "gw-id": "1", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "1", "app-id": "1", "topic": "1", "downstream-subscribe-messages-total": 10, "downstream-subscribe-message-bytes": 1000, "upstream-subscribe-messages-total": 10, "upstream-subscribe-message-bytes": 1000 }
 { "create" : { ${index} } }
