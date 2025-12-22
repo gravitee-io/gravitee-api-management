@@ -80,7 +80,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
-                - $ref: "#/components/parameters/apisSearchExpandsParam"
+                - $ref: "#/components/parameters/apisGetExpandsParam"
             tags:
                 - APIs
             summary: List APIs
@@ -188,7 +188,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/apiSortByParam"
-                - $ref: "#/components/parameters/apisGetExpandsParam"
+                - $ref: "#/components/parameters/apisSearchExpandsParam"
                 - $ref: "#/components/parameters/apiManageOnlyParam"
             tags:
                 - APIs
@@ -2868,7 +2868,11 @@ components:
                           type: boolean
                           description: Disable membership notifications.
                           default: false
-                      # metadata ==> dedicated resource
+                      metadata:
+                          type: array
+                          description: API's metadata. Optional list that can be included with the expands=metadata query parameter.
+                          items:
+                              $ref: "#/components/schemas/Metadata"
                       groups:
                           type: array
                           description: API's groups. Used to add team in your API.
@@ -7711,20 +7715,10 @@ components:
         ###############################
         # Other Query Parameters      #
         ###############################
-        apisSearchExpandsParam:
-            name: expands
-            in: query
-            description: Expansion of data to return in APIs.
-            schema:
-                type: array
-                items:
-                    type: string
-                    enum:
-                        - deploymentState
         apisGetExpandsParam:
             name: expands
             in: query
-            description: Expansion of data to return in APIs.
+            description: Expansion of data to return in APIs for GET operation.
             schema:
                 type: array
                 items:
@@ -7732,6 +7726,17 @@ components:
                     enum:
                         - deploymentState
                         - primaryOwner
+                        - metadata
+        apisSearchExpandsParam:
+            name: expands
+            in: query
+            description: Expansion of data to return in APIs for SEARCH operation.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - deploymentState
         apiManageOnlyParam:
             name: manageOnly
             in: query

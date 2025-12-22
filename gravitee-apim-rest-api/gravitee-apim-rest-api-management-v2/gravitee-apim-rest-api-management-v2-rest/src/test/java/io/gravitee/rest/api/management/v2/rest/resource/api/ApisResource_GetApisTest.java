@@ -15,16 +15,20 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static fixtures.MetadataFixtures.aApiMetadata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.when;
 
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiMetadataQueryServiceInMemory;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
@@ -58,10 +62,17 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApisResource_GetApisTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+
+    @Autowired
+    private ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Autowired
+    private ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -458,5 +469,70 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         ApiV2 api2 = apis.get(1).getApiV2();
         Assertions.assertEquals("api-2", api2.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
+    }
+
+    @Test
+    public void should_include_metadata_when_requested() {
+        ApiEntity api = new ApiEntity();
+        api.setId("test-api");
+        api.setName("Test API");
+        api.setState(Lifecycle.State.STARTED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        apiCrudServiceInMemory.initWith(
+            List.of(io.gravitee.apim.core.api.model.Api.builder().id("test-api").environmentId(ENVIRONMENT).build())
+        );
+
+        var metadata1 = aApiMetadata(
+            "test-api",
+            "key1",
+            "Metadata 1",
+            "value1",
+            io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING
+        );
+        var metadata2 = aApiMetadata(
+            "test-api",
+            "key2",
+            "Metadata 2",
+            "value2",
+            io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING
+        );
+        apiMetadataQueryServiceInMemory.initWith(List.of(metadata1, metadata2));
+
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                argThat(expands -> expands != null && expands.contains("metadata")),
+                eq(new SortableImpl("name", true)),
+                eq(new PageableImpl(1, 10))
+            )
+        ).thenReturn(new Page<>(List.of(api), 1, 1, 1));
+
+        Response response = rootTarget().queryParam("expands", "metadata").request().get();
+
+        Assertions.assertEquals(HttpStatusCode.OK_200, response.getStatus(), "Response should be 200 OK");
+        ApisResponse result = response.readEntity(ApisResponse.class);
+        Assertions.assertNotNull(result, "Response body should not be null");
+        Assertions.assertNotNull(result.getData(), "Response data should not be null");
+        Assertions.assertEquals(1, result.getData().size(), "Should return exactly 1 API");
+
+        ApiV4 returnedApi = result.getData().get(0).getApiV4();
+        Assertions.assertNotNull(returnedApi, "Returned API should not be null");
+        Assertions.assertEquals("test-api", returnedApi.getId(), "API ID should match");
+        Assertions.assertEquals("Test API", returnedApi.getName(), "API Name should match");
+
+        List<io.gravitee.rest.api.management.v2.rest.model.Metadata> metadata = returnedApi.getMetadata();
+        Assertions.assertNotNull(metadata, "Metadata should not be null");
+        Assertions.assertEquals(2, metadata.size(), "Should return 2 metadata entries");
+
+        Assertions.assertEquals("key1", metadata.get(0).getKey(), "First metadata key should match");
+        Assertions.assertEquals("Metadata 1", metadata.get(0).getName(), "First metadata name should match");
+        Assertions.assertEquals("value1", metadata.get(0).getValue(), "First metadata value should match");
+
+        Assertions.assertEquals("key2", metadata.get(1).getKey(), "Second metadata key should match");
+        Assertions.assertEquals("Metadata 2", metadata.get(1).getName(), "Second metadata name should match");
+        Assertions.assertEquals("value2", metadata.get(1).getValue(), "Second metadata value should match");
     }
 }
