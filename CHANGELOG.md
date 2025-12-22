@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.7.1...4.0.0) (2025-12-22)
+
+
+### chore
+
+* bump gravitee-reporter-common to 2.x ([047eafa](https://github.com/gravitee-io/gravitee-reporter-file/commit/047eafab87955a39a25d2f2379cfbd9e08f1bf8e))
+
+
+### BREAKING CHANGES
+
+* require reporter common version 2.x
+
 ## [3.7.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.7.0...3.7.1) (2025-12-16)
 
 
