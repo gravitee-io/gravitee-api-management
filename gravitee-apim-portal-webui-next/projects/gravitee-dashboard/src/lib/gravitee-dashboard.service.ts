@@ -15,7 +15,7 @@
  */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { GlobalRequest } from './components/widget/model/request/request';
@@ -23,13 +23,18 @@ import { FacetsResponse } from './components/widget/model/response/facets-respon
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { TimeSeriesResponse } from './components/widget/model/response/time-series-response';
 import { RequestType, Widget } from './components/widget/model/widget/widget';
+import { GRAVITEE_DASHBOARD_CONFIG, GraviteeDashboardConfig } from './gravitee-dashboard.token';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GraviteeDashboardService {
   analyticsPath = 'analytics';
-  constructor(private readonly http: HttpClient) {}
+
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(GRAVITEE_DASHBOARD_CONFIG) private readonly config: GraviteeDashboardConfig,
+  ) {}
 
   public getWidgets(): Widget[] {
     return [
@@ -169,7 +174,7 @@ export class GraviteeDashboardService {
         id: '7',
         title: 'Response Statuses',
         description: 'Number of response statuses over time',
-        type: 'line',
+        type: 'bar',
         layout: {
           cols: 3,
           rows: 2,
@@ -214,18 +219,19 @@ export class GraviteeDashboardService {
   }
 
   public getMetrics(
-    basePath: string,
     endpoint: RequestType,
     request: GlobalRequest<RequestType>,
   ): Observable<MeasuresResponse | FacetsResponse | TimeSeriesResponse> {
+    const url = `${this.config.baseUrl}/${this.analyticsPath}/${endpoint}`;
+
     if (endpoint === 'measures') {
-      return this.http.post<MeasuresResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
+      return this.http.post<MeasuresResponse>(url, request);
     }
     if (endpoint === 'facets') {
-      return this.http.post<FacetsResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
+      return this.http.post<FacetsResponse>(url, request);
     }
     if (endpoint === 'time-series') {
-      return this.http.post<TimeSeriesResponse>(`${basePath}/${this.analyticsPath}/${endpoint}`, request);
+      return this.http.post<TimeSeriesResponse>(url, request);
     }
 
     throw new Error(`Endpoint ${endpoint} not supported`);

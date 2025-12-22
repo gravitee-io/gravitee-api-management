@@ -23,32 +23,31 @@ import { TimeSeriesResponse } from '../../widget/model/response/time-series-resp
 import { assignChartColors } from '../shared/chart-colors';
 import { TimeSeriesConverterService } from '../shared/time-series-converter.service';
 
-export type LineType = 'line';
+export type BarType = 'bar';
 
 @Component({
-  selector: 'gd-line-chart',
+  selector: 'gd-bar-chart',
   imports: [BaseChartDirective],
-  templateUrl: './line-chart.component.html',
-  styleUrl: './line-chart.component.scss',
+  templateUrl: './bar-chart.component.html',
+  styleUrl: './bar-chart.component.scss',
 })
-export class LineChartComponent {
-  type = input<LineType>('line');
+export class BarChartComponent {
+  type = input<BarType>('bar');
   data = input.required<TimeSeriesResponse>();
 
   public readonly dataFormatted = computed(() => {
-    const chartData = this.converter.convert<'line'>(this.data(), 'line');
+    const chartData = this.converter.convert<'bar'>(this.data(), 'bar');
 
     assignChartColors(chartData.datasets);
 
     chartData.datasets.forEach(dataset => {
-      dataset.tension = 0.4;
-      dataset.fill = 'start';
+      dataset.borderWidth = 1;
     });
 
     return chartData;
   });
 
-  public readonly chartOptions: ChartConfiguration<LineType>['options'] = {
+  public readonly chartOptions: ChartConfiguration<BarType>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -61,21 +60,15 @@ export class LineChartComponent {
         },
       },
       tooltip: {
-        mode: 'nearest',
+        mode: 'index',
         intersect: false,
-      },
-    },
-    elements: {
-      point: {
-        radius: 0,
-        hitRadius: 15,
-        hoverRadius: 8,
       },
     },
     scales: {
       x: {
         type: 'time',
         display: true,
+        stacked: true,
         time: {
           tooltipFormat: 'PPpp',
           displayFormats: {

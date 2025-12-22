@@ -50,7 +50,6 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
   `,
 })
 export class GraviteeDashboardComponent {
-  baseURL = input.required<string>();
   filters = input.required<Filter[]>();
   widgetConfigs = input.required<Widget[]>();
 
@@ -116,7 +115,7 @@ export class GraviteeDashboardComponent {
     if (!widget.request) return of(widget);
 
     return this.dashboardService
-      .getMetrics(this.baseURL(), widget.request.type, widget.request)
+      .getMetrics(widget.request.type, widget.request)
       .pipe(map(response => ({ ...widget, response }) satisfies Widget));
   }
 

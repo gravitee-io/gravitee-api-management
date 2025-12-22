@@ -15,15 +15,13 @@
  */
 import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-// eslint-disable-next-line import/no-unresolved
-import 'chartjs-adapter-date-fns';
 
-import { LineChartComponent, LineType } from './line-chart.component';
+import { BarChartComponent, BarType } from './bar-chart.component';
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 
-interface LineChartStoryArgs {
+interface BarChartStoryArgs {
   storyId?: string;
-  type: LineType;
+  type: BarType;
   dataPoints: {
     timestamp: string;
     value: number;
@@ -31,15 +29,15 @@ interface LineChartStoryArgs {
 }
 
 export default {
-  title: 'Gravitee Dashboard/Components/Chart/Line Chart',
-  component: LineChartComponent,
+  title: 'Gravitee Dashboard/Components/Chart/Bar Chart',
+  component: BarChartComponent,
   decorators: [
     moduleMetadata({
-      imports: [LineChartComponent],
+      imports: [BarChartComponent],
     }),
     applicationConfig({
       providers: [
-        // Register Chart.js controllers for line charts
+        // Register Chart.js controllers for bar charts
         provideCharts(withDefaultRegisterables()),
       ],
     }),
@@ -47,7 +45,7 @@ export default {
   parameters: {
     docs: {
       description: {
-        component: 'A line chart component built with Chart.js that displays time series data in a line chart format.',
+        component: 'A bar chart component built with Chart.js that displays time series data in a bar chart format.',
       },
     },
   },
@@ -57,8 +55,8 @@ export default {
     },
     type: {
       control: { type: 'select' },
-      options: ['line'],
-      description: 'Type of line chart to display',
+      options: ['bar'],
+      description: 'Type of bar chart to display',
     },
     dataPoints: {
       control: { type: 'object' },
@@ -92,7 +90,7 @@ export default {
     return {
       template: `
         <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
-          <gd-line-chart [type]="type" [data]="timeSeriesData" />
+          <gd-bar-chart [type]="type" [data]="timeSeriesData" />
         </div>
       `,
       props: {
@@ -101,12 +99,12 @@ export default {
       },
     };
   },
-} satisfies Meta<LineChartStoryArgs>;
+} satisfies Meta<BarChartStoryArgs>;
 
-export const Default: StoryObj<LineChartStoryArgs> = {
+export const Default: StoryObj<BarChartStoryArgs> = {
   args: {
     storyId: 'default',
-    type: 'line' as LineType,
+    type: 'bar',
     dataPoints: [
       { timestamp: '2025-01-01T00:00:00Z', value: 120 },
       { timestamp: '2025-01-01T01:00:00Z', value: 145 },
@@ -120,26 +118,14 @@ export const Default: StoryObj<LineChartStoryArgs> = {
       { timestamp: '2025-01-01T09:00:00Z', value: 267 },
       { timestamp: '2025-01-01T10:00:00Z', value: 289 },
       { timestamp: '2025-01-01T11:00:00Z', value: 312 },
-      { timestamp: '2025-01-01T12:00:00Z', value: 298 },
-      { timestamp: '2025-01-01T13:00:00Z', value: 345 },
-      { timestamp: '2025-01-01T14:00:00Z', value: 378 },
-      { timestamp: '2025-01-01T15:00:00Z', value: 401 },
-      { timestamp: '2025-01-01T16:00:00Z', value: 423 },
-      { timestamp: '2025-01-01T17:00:00Z', value: 445 },
-      { timestamp: '2025-01-01T18:00:00Z', value: 467 },
-      { timestamp: '2025-01-01T19:00:00Z', value: 489 },
-      { timestamp: '2025-01-01T20:00:00Z', value: 456 },
-      { timestamp: '2025-01-01T21:00:00Z', value: 423 },
-      { timestamp: '2025-01-01T22:00:00Z', value: 390 },
-      { timestamp: '2025-01-01T23:00:00Z', value: 357 },
     ],
   },
 };
 
-export const SparseData: StoryObj<LineChartStoryArgs> = {
+export const SparseData: StoryObj<BarChartStoryArgs> = {
   args: {
     storyId: 'sparse-data',
-    type: 'line' as LineType,
+    type: 'bar',
     dataPoints: [
       { timestamp: '2025-01-01T00:00:00Z', value: 120 },
       { timestamp: '2025-01-01T06:00:00Z', value: 156 },
@@ -150,12 +136,12 @@ export const SparseData: StoryObj<LineChartStoryArgs> = {
   },
 };
 
-export const HighVolume: StoryObj<LineChartStoryArgs> = {
+export const HighVolume: StoryObj<BarChartStoryArgs> = {
   args: {
     storyId: 'high-volume',
-    type: 'line' as LineType,
-    dataPoints: Array.from({ length: 48 }, (_, i) => ({
-      timestamp: new Date(Date.now() - (47 - i) * 60 * 60 * 1000).toISOString(),
+    type: 'bar',
+    dataPoints: Array.from({ length: 24 }, (_, i) => ({
+      timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
       value: Math.floor(Math.random() * 1000) + 500,
     })),
   },

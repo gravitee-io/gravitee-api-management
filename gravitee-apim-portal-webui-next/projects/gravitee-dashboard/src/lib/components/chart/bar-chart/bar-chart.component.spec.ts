@@ -16,12 +16,12 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LineChartComponent } from './line-chart.component';
+import { BarChartComponent } from './bar-chart.component';
 import { TimeSeriesBucket, TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 
-describe('LineChartComponent', () => {
-  let component: LineChartComponent;
-  let fixture: ComponentFixture<LineChartComponent>;
+describe('BarChartComponent', () => {
+  let component: BarChartComponent;
+  let fixture: ComponentFixture<BarChartComponent>;
 
   const createBaseBucket = (key: string, overrides: Partial<TimeSeriesBucket> = {}): TimeSeriesBucket => ({
     key,
@@ -71,10 +71,10 @@ describe('LineChartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LineChartComponent],
+      imports: [BarChartComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(LineChartComponent);
+    fixture = TestBed.createComponent(BarChartComponent);
     component = fixture.componentInstance;
   });
 
@@ -134,22 +134,16 @@ describe('LineChartComponent', () => {
     expect(result.datasets[1].label).toContain('200-299');
   });
 
-  it('should have chart options with time scale and display formats for all units', () => {
+  it('should have stacked bar chart options', () => {
     const data = createTimeSeriesResponse([createMeasureBucket('2025-10-07T06:00:00Z', 100)]);
     setChartData(data);
 
     const options = component.chartOptions;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Chart.js scale types are complex unions; any needed for nested property access in tests
-    const xScale = options?.scales?.['x'] as any;
+    const xScale = options?.scales?.['x'];
+    const yScale = options?.scales?.['y'];
 
-    expect(xScale.type).toBe('time');
-    // Chart.js auto-detects unit, so we don't specify it
-    expect(xScale.time.unit).toBeUndefined();
-    // But we provide display formats for all possible units
-    expect(xScale.time.displayFormats.second).toBe('HH:mm:ss');
-    expect(xScale.time.displayFormats.minute).toBe('HH:mm');
-    expect(xScale.time.displayFormats.hour).toBe('HH:mm');
-    expect(xScale.time.displayFormats.day).toBe('EEE d');
-    expect(xScale.time.displayFormats.month).toBe('LLL yyyy');
+    expect(xScale?.stacked).toBe(true);
+    expect(yScale?.stacked).toBe(true);
+    expect((yScale as { beginAtZero?: boolean })?.beginAtZero).toBe(true);
   });
 });
