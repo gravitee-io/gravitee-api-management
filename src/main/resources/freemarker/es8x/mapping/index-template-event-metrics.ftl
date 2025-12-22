@@ -4,11 +4,10 @@
     "data_stream": {},
     "template": {
         "settings": {
-            "index.mode": "time_series",
             "index.lifecycle.name": "event-metrics-ilm-policy"
         },
         "mappings": {
-           <#include "../../common/mapping/event-metrics-mapping.ftl">
+            <#include "../../common/mapping/event-metrics-mapping.ftl">
         }
     },
     "priority": 9344593,

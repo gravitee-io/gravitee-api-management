@@ -4,7 +4,6 @@
     "data_stream": {},
     "template": {
         "settings": {
-            "index.mode": "time_series",
             "index.lifecycle.name": "event-metrics-ilm-policy"
         },
         "mappings": {

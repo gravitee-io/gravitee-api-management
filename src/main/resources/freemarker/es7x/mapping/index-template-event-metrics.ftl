@@ -1,6 +1,7 @@
 <#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}*"],
+    "data_stream": {},
     "settings": {
         "index.lifecycle.name": "event-metrics-ilm-policy"
     },

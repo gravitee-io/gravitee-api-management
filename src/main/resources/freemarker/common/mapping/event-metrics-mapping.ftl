@@ -1,133 +1,101 @@
 "properties": {
     "gw-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "org-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "env-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "api-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "plan-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "app-id": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "topic": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "doc-type": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
     "operation": {
-        "type": "keyword",
-        "time_series_dimension": true
+        "type": "keyword"
     },
-    "downstream-publish-messages-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "downstream-publish-messages-count-increment": {
+        "type": "integer"
     },
-    "downstream-publish-message-bytes": {
-        "type": "long",
-        "time_series_metric": "counter"
+    "downstream-publish-message-bytes-increment": {
+        "type": "long"
     },
-    "upstream-publish-messages-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "upstream-publish-messages-count-increment": {
+        "type": "integer"
     },
-    "upstream-publish-message-bytes": {
-        "type": "long",
-        "time_series_metric": "counter"
+    "upstream-publish-message-bytes-increment": {
+        "type": "long"
     },
-    "downstream-subscribe-messages-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "downstream-subscribe-messages-count-increment": {
+        "type": "integer"
     },
-    "downstream-subscribe-message-bytes": {
-        "type": "long",
-        "time_series_metric": "counter"
+    "downstream-subscribe-message-bytes-increment": {
+        "type": "long"
     },
-    "upstream-subscribe-messages-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "upstream-subscribe-messages-count-increment": {
+        "type": "integer"
     },
-    "upstream-subscribe-message-bytes": {
-        "type": "long",
-        "time_series_metric": "counter"
+    "upstream-subscribe-message-bytes-increment": {
+        "type": "long"
     },
     "downstream-active-connections": {
-        "type": "integer",
-        "time_series_metric": "gauge"
+        "type": "integer"
     },
     "upstream-active-connections": {
-        "type": "integer",
-        "time_series_metric": "gauge"
+        "type": "integer"
     },
     "upstream-authenticated-connections": {
-        "type": "integer",
-        "time_series_metric": "gauge"
+        "type": "integer"
     },
     "downstream-authenticated-connections": {
-        "type": "integer",
-        "time_series_metric": "gauge"
+        "type": "integer"
     },
-    "downstream-authentication-failures-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "downstream-authentication-failures-count-increment": {
+        "type": "integer"
     },
-    "upstream-authentication-failures-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "upstream-authentication-failures-count-increment": {
+        "type": "integer"
     },
-    "downstream-authentication-successes-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "downstream-authentication-successes-count-increment": {
+        "type": "integer"
     },
-    "upstream-authentication-successes-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "upstream-authentication-successes-count-increment": {
+        "type": "integer"
     },
     "@timestamp": {
         "type": "date"
     },
     "request-durations-millis": {
-        "type": "long",
-        "time_series_metric": "gauge"
+        "type": "long"
     },
     "endpoint-durations-millis": {
-        "type": "long",
-        "time_series_metric": "gauge"
+        "type": "long"
     },
     "response-durations-millis": {
-        "type": "long",
-        "time_series_metric": "gauge"
+        "type": "long"
     },
-    "requests-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "requests-count-increment": {
+        "type": "integer"
     },
-    "endpoint-requests-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "endpoint-requests-count-increment": {
+        "type": "integer"
     },
-    "endpoint-responses-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "endpoint-responses-count-increment": {
+        "type": "integer"
     },
-    "responses-total": {
-        "type": "integer",
-        "time_series_metric": "counter"
+    "responses-count-increment": {
+        "type": "integer"
     }
 }
