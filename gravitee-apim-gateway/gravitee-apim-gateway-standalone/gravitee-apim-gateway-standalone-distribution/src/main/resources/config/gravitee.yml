@@ -537,6 +537,7 @@ reporters:
 #        request: my_policy # ILM policy for the gravitee-request-* indexes
 #        health: my_policy # ILM policy for the gravitee-health-* indexes
 #        log: my_policy # ILM policy for the gravitee-log-* indexes
+#        event_metrics: my_policy # ILM policy for the gravitee-event-metrics-* data streams
 #    index: gravitee
 #    index_per_type: true
 #    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date

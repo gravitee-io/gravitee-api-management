@@ -186,7 +186,10 @@ describe('ApiAnalyticsNativeComponent', () => {
       });
 
       const trendRequests = requests.filter((req) => req.request.url.includes('TREND:'));
-      expect(trendRequests.length).toBe(5);
+      expect(trendRequests.length).toBe(1);
+
+      const trendRateRequests = requests.filter((req) => req.request.url.includes('TREND_RATE:'));
+      expect(trendRateRequests.length).toBe(4);
 
       const valueRequests = requests.filter((req) => req.request.url.includes('VALUE:'));
       expect(valueRequests.length).toBe(1);

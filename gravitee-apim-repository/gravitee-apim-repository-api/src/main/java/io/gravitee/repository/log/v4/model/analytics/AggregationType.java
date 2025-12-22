@@ -29,6 +29,10 @@ public enum AggregationType {
      */
     DELTA,
     /**
+     * Returns multiple buckets to hold the rate aggregations in a given time range considering one bucket per interval specified in milliseconds.
+     */
+    TREND_RATE,
+    /**
      * Returns multiple buckets to hold the delta aggregations in a given time range considering one bucket per interval specified in milliseconds.
      */
     TREND,
