@@ -1,3 +1,19 @@
+# [7.4.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.3.1...7.4.0) (2025-12-22)
+
+
+### Bug Fixes
+
+* add missing event mapping for opensearch ([dbf2239](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/dbf22398e72b2307f67c47a5c854533abaa1568a))
+* change millis to nanos for operationEventMetrics duration ([6053c46](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/6053c46e56a6fff7395b3db85af4e5f1aa91df2b))
+* create/use right index for any EventMetrics ([b576372](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b576372cb658cd97bf118ab21554b2066a1b806c))
+* update dependencies version ([216f926](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/216f926838738ad66fea6fea8621a61a630652eb))
+
+
+### Features
+
+* enable opensearch 3 ([4ef1a6f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/4ef1a6f7bb889be92c0fe37cb2536babcb5cc996))
+* remove usage of time_series ES feature ([b7b24ef](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b7b24efe7892bcb563ef511a5e8b2aae65c4049a))
+
 ## [7.3.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.3.0...7.3.1) (2025-12-10)
 
 
