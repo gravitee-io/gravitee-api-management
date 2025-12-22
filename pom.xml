@@ -36,7 +36,7 @@
         <gravitee-reporter-common.version>2.0.0</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
         <commons-validator.version>1.10.0</commons-validator.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
 
         <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
 
