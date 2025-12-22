@@ -744,6 +744,7 @@ describe('ApiAnalyticsWidgetService', () => {
               expect(result.widgetData.options).toEqual({
                 pointStart: 1000,
                 pointInterval: 100,
+                enableMarkers: false,
               });
             }
             done();
@@ -822,6 +823,7 @@ describe('ApiAnalyticsWidgetService', () => {
               expect(result.widgetData.options).toEqual({
                 pointStart: 1000,
                 pointInterval: 100,
+                enableMarkers: false,
               });
             }
             done();
@@ -919,6 +921,7 @@ describe('ApiAnalyticsWidgetService', () => {
             expect(result.widgetData.options).toEqual({
               pointStart: 1000,
               pointInterval: 100,
+              enableMarkers: false,
             });
           }
           done();
@@ -937,22 +940,22 @@ describe('ApiAnalyticsWidgetService', () => {
           aggregations: [
             {
               type: AggregationTypes.TREND,
-              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_COUNT_INCREMENT,
               label: 'Downstream Success',
             },
             {
               type: AggregationTypes.TREND,
-              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_COUNT_INCREMENT,
               label: 'Downstream Failure',
             },
             {
               type: AggregationTypes.TREND,
-              field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+              field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_COUNT_INCREMENT,
               label: 'Upstream Success',
             },
             {
               type: AggregationTypes.TREND,
-              field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+              field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_COUNT_INCREMENT,
               label: 'Upstream Failure',
             },
           ],
@@ -963,23 +966,23 @@ describe('ApiAnalyticsWidgetService', () => {
           timestamp: { from: 1000, to: 2000, interval: 100 },
           values: [
             {
-              field: 'downstream-authentication-failures-total',
-              name: 'downstream-authentication-failures-total',
+              field: 'downstream-authentication-failures-count-increment',
+              name: 'downstream-authentication-failures-count-increment',
               buckets: [{ name: 'all', data: [2, 4, 3] }],
             },
             {
-              field: 'upstream-authentication-failures-total',
-              name: 'upstream-authentication-failures-total',
+              field: 'upstream-authentication-failures-count-increment',
+              name: 'upstream-authentication-failures-count-increment',
               buckets: [{ name: 'all', data: [1, 2, 1] }],
             },
             {
-              field: 'upstream-authentication-successes-total',
-              name: 'upstream-authentication-successes-total',
+              field: 'upstream-authentication-successes-count-increment',
+              name: 'upstream-authentication-successes-count-increment',
               buckets: [{ name: 'all', data: [5, 8, 6] }],
             },
             {
-              field: 'downstream-authentication-successes-total',
-              name: 'downstream-authentication-successes-total',
+              field: 'downstream-authentication-successes-count-increment',
+              name: 'downstream-authentication-successes-count-increment',
               buckets: [{ name: 'all', data: [10, 20, 15] }],
             },
           ],
@@ -1016,7 +1019,7 @@ describe('ApiAnalyticsWidgetService', () => {
         });
 
         expectHistogramRequest(
-          'TREND:downstream-authentication-successes-total,TREND:downstream-authentication-failures-total,TREND:upstream-authentication-successes-total,TREND:upstream-authentication-failures-total',
+          'TREND:downstream-authentication-successes-count-increment,TREND:downstream-authentication-failures-count-increment,TREND:upstream-authentication-successes-count-increment,TREND:upstream-authentication-failures-count-increment',
           mockHistogramResponse,
         );
       });

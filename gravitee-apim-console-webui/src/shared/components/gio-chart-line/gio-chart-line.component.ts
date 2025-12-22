@@ -85,7 +85,6 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
       plotOptions: {
         series: {
-          connectNulls: true,
           marker: {
             enabled: markersEnabled,
             radius: markersEnabled ? 4 : 0,
@@ -112,7 +111,7 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
       series: this.data?.map((item) => ({
         name: item.name,
-        data: item.values?.map((value) => round(value, 2)),
+        data: item.values?.map((value) => (value === null ? null : round(value, 2))),
         type: this.options?.useSharpCorners ? 'line' : 'spline',
         color: defineLineColors(item.name),
         marker: {

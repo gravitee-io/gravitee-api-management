@@ -59,6 +59,7 @@ type WidgetDisplayConfig = {
   isClickable?: boolean;
   relativePath?: string;
   minHeight?: 'small' | 'medium' | 'large';
+  lineEnableMarkers?: boolean;
 };
 
 interface Range {

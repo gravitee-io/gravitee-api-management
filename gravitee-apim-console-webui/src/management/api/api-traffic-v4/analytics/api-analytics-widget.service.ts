@@ -454,6 +454,7 @@ export class ApiAnalyticsWidgetService {
       const options: GioChartLineOptions = {
         pointStart: histogramResponse.timestamp.from,
         pointInterval: histogramResponse.timestamp.interval,
+        enableMarkers: widgetConfig.lineEnableMarkers ?? false,
       };
 
       if (lineData.length === 0 || lineData.every((bucket) => bucket.values.every((value) => value === 0))) {
@@ -482,13 +483,13 @@ export class ApiAnalyticsWidgetService {
 
       if (isAuthenticationChart && widgetConfig.aggregations?.length === 4) {
         const downstreamFailure =
-          histogramResponse.values.find((v) => v.field === 'downstream-authentication-failures-total')?.buckets[0]?.data || [];
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
         const upstreamFailure =
-          histogramResponse.values.find((v) => v.field === 'upstream-authentication-failures-total')?.buckets[0]?.data || [];
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
         const upstreamSuccess =
-          histogramResponse.values.find((v) => v.field === 'upstream-authentication-successes-total')?.buckets[0]?.data || [];
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
         const downstreamSuccess =
-          histogramResponse.values.find((v) => v.field === 'downstream-authentication-successes-total')?.buckets[0]?.data || [];
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
 
         // Sum downstream + upstream for success and failure for each time point
         const totalSuccess = downstreamSuccess.map((value, index) => value + (upstreamSuccess[index] || 0));

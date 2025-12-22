@@ -90,9 +90,6 @@ public class DatabaseHydrator {
                     return client.putIndexTemplate(entry.getKey(), entry.getValue());
                 } else {
                     //OpenSearch
-                    if (!entry.getKey().endsWith("event-metrics")) {
-                        return client.putTemplate(entry.getKey(), entry.getValue());
-                    }
                     return client.putIndexTemplate(entry.getKey(), entry.getValue());
                 }
             });

@@ -105,12 +105,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       aggregations: [
         {
           type: AggregationTypes.DELTA,
-          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
           label: 'From Clients',
         },
         {
           type: AggregationTypes.DELTA,
-          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
           label: 'To Broker',
         },
       ],
@@ -125,12 +125,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       aggregations: [
         {
           type: AggregationTypes.DELTA,
-          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_COUNT_INCREMENT,
           label: 'From Broker',
         },
         {
           type: AggregationTypes.DELTA,
-          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_COUNT_INCREMENT,
           label: 'To Clients',
         },
       ],
@@ -147,17 +147,18 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       mapQueryParams: mapQueryParams,
       aggregations: [
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
           label: 'From Clients',
         },
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
           label: 'To Broker',
         },
       ],
       minHeight: 'large',
+      lineEnableMarkers: true,
     },
     {
       type: 'line',
@@ -168,17 +169,18 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       mapQueryParams: mapQueryParams,
       aggregations: [
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGE_BYTES,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGE_BYTES_INCREMENT,
           label: 'From Clients',
         },
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGE_BYTES,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGE_BYTES_INCREMENT,
           label: 'To Broker',
         },
       ],
       minHeight: 'large',
+      lineEnableMarkers: true,
     },
   ];
 
@@ -192,17 +194,18 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       mapQueryParams: mapQueryParams,
       aggregations: [
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_COUNT_INCREMENT,
           label: 'From Broker',
         },
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_COUNT_INCREMENT,
           label: 'To Clients',
         },
       ],
       minHeight: 'large',
+      lineEnableMarkers: true,
     },
     {
       type: 'line',
@@ -213,17 +216,18 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       mapQueryParams: mapQueryParams,
       aggregations: [
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGE_BYTES,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGE_BYTES_INCREMENT,
           label: 'From Broker',
         },
         {
-          type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES,
+          type: AggregationTypes.TREND_RATE,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES_INCREMENT,
           label: 'To Clients',
         },
       ],
       minHeight: 'large',
+      lineEnableMarkers: true,
     },
   ];
 
@@ -238,22 +242,22 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       aggregations: [
         {
           type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_COUNT_INCREMENT,
           label: 'Downstream Success',
         },
         {
           type: AggregationTypes.TREND,
-          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_COUNT_INCREMENT,
           label: 'Downstream Failure',
         },
         {
           type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+          field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_COUNT_INCREMENT,
           label: 'Upstream Success',
         },
         {
           type: AggregationTypes.TREND,
-          field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+          field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_COUNT_INCREMENT,
           label: 'Upstream Failure',
         },
       ],
