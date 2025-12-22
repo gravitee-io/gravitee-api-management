@@ -93,6 +93,7 @@ export class PortalNavigationItemsComponent {
     value: '',
     disabled: this.isReadOnly,
   });
+  readonly actionsDisabled = computed(() => this.contentLoadError() || !this.selectedNavigationItem());
 
   // Route State
   private readonly navId$ = this.activatedRoute.queryParams.pipe(map((params) => params['navId'] ?? null));
@@ -348,6 +349,15 @@ export class PortalNavigationItemsComponent {
         )
         .subscribe((content) => this.contentControl.reset(content));
     }
+  }
+
+  onEdit() {
+    const selectedItem = this.selectedNavigationItem();
+    if (!selectedItem) {
+      return;
+    }
+    const navItem = selectedItem.data;
+    this.manageSection(navItem.type, 'edit', navItem.area, navItem);
   }
 
   onPublishToggle() {
