@@ -21,7 +21,6 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
-import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
@@ -41,7 +40,6 @@ public enum MetricsType {
   V4_METRICS("v4-metrics", io.gravitee.reporter.api.v4.metric.Metrics.class),
   V4_MESSAGE_METRICS("v4-message-metrics", MessageMetrics.class),
   V4_MESSAGE_LOG("v4-message-log", MessageLog.class),
-  EVENT_METRICS("event-metrics", EventMetrics.class),
   OPERATION_EVENT_METRICS(
     "operation-event-metrics",
     OperationEventMetrics.class

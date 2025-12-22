@@ -44,7 +44,6 @@ class CsvFormatterTest extends AbstractFormatterTest {
       "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, csv/v4/message-metrics.csv",
       "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
       "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
-      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, csv/v4/event-metrics.csv",
       "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, csv/v4/api-event-metrics.csv",
       "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, csv/v4/application-event-metrics.csv",
       "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, csv/v4/topic-event-metrics.csv",

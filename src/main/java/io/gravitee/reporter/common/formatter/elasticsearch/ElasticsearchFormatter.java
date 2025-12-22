@@ -24,7 +24,6 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
-import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
@@ -428,17 +427,6 @@ public class ElasticsearchFormatter<T extends Reportable>
   }
 
   private Buffer getSource(
-    EventMetrics metrics,
-    Map<String, Object> esOptions
-  ) {
-    final Map<String, Object> data = new HashMap<>(5);
-    addCommonFields(data, metrics, esOptions);
-    data.put("metrics", metrics);
-
-    return generateData("event-metrics.ftl", data);
-  }
-
-  private Buffer getSource(
     OperationEventMetrics metrics,
     Map<String, Object> esOptions
   ) {
@@ -595,9 +583,6 @@ public class ElasticsearchFormatter<T extends Reportable>
       getSource((io.gravitee.reporter.api.v4.log.Log) r, o)
     );
     formatters.put(MessageLog.class, (r, o) -> getSource((MessageLog) r, o));
-    formatters.put(EventMetrics.class, (r, o) ->
-      getSource((EventMetrics) r, o)
-    );
     formatters.put(OperationEventMetrics.class, (r, o) ->
       getSource((OperationEventMetrics) r, o)
     );

@@ -19,7 +19,6 @@ import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
-import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
@@ -64,7 +63,6 @@ public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
       new MetricsFormatter()
     );
     FORMATTERS.put(MessageMetrics.class, new MessageMetricsFormatter());
-    FORMATTERS.put(EventMetrics.class, new EventMetricsFormatter());
     FORMATTERS.put(
       OperationEventMetrics.class,
       new OperationEventMetricsFormatter()
