@@ -23,7 +23,7 @@ import {
   PathOperatorOperatorEnum,
   PlanStatus,
 } from '../../../../../lib/management-webclient-sdk/src/lib/models';
-import { created, describeIfV3, describeIfV4EmulationEngine, succeed } from '@lib/jest-utils';
+import { created, describeIfV3, describeIfV4EmulationEngine, describeIfClientGatewayCompatible, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import {
@@ -47,7 +47,7 @@ const apisResource = new APIsApiV1(forManagementAsApiUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2ApiEventsResourceAsApiPublisher = new APIEventsApi(forManagementV2AsApiUser());
 
-describe('Debug my API (incl. query params, Headers and body) and view debug session with proper info', () => {
+describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and body) and view debug session with proper info', () => {
   beforeAll(async () => {
     // Create Global Flow
     const organization = await organizationApi.get({ orgId });
