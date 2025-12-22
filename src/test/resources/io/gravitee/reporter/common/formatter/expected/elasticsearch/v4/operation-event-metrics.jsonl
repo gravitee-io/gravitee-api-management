@@ -9,11 +9,11 @@
   "org-id": "test_org",
   "doc-type": "operation",
   "operation": "PRODUCE",
-  "request-durations-millis": 11111,
-  "endpoint-durations-millis": 33333,
-  "response-durations-millis": 22222,
-  "requests-count-increment": 10,
-  "endpoint-requests-count-increment": 30,
-  "endpoint-responses-count-increment": 40,
-  "responses-count-increment": 20
+  "upstream-durations-nanos": 11111,
+  "endpoint-durations-nanos": 33333,
+  "downstream-durations-nanos": 22222,
+  "upstream-count-increment": 10,
+  "endpoint-upstream-count-increment": 30,
+  "endpoint-downstream-count-increment": 40,
+  "downstream-count-increment": 20
 }

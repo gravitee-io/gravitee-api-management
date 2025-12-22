@@ -33,9 +33,9 @@ public class OperationEventMetricsFormatter
     appendString(buffer, data.getOperation());
 
     //Append operation event metrics
-    appendLong(buffer, data.getUpstreamDurationsMillis());
-    appendLong(buffer, data.getEndpointDurationsMillis());
-    appendLong(buffer, data.getDownstreamDurationsMillis());
+    appendLong(buffer, data.getUpstreamDurationsNanos());
+    appendLong(buffer, data.getEndpointDurationsNanos());
+    appendLong(buffer, data.getDownstreamDurationsNanos());
     appendInt(buffer, data.getUpstreamCountIncrement());
     appendInt(buffer, data.getEndpointUpstreamCountIncrement());
     appendInt(buffer, data.getEndpointDownstreamCountIncrement());
