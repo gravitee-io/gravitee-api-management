@@ -125,4 +125,36 @@ export const describeIf = (condition) => (condition ? describe : describe.skip);
 export const describeIfV3 = describeIf(process.env.V4_EMULATION_ENGINE_DEFAULT == 'no');
 export const describeIfV4EmulationEngine = describeIf(process.env.V4_EMULATION_ENGINE_DEFAULT == 'yes');
 
+/**
+ * Check if V4 API Debug feature is supported by the client gateway (in bridge compatibility tests).
+ * This feature has been introduced in 4.8.0
+ */
+function isClientGatewaySupportingV4APIDebugFeature(): boolean {
+  const clientTag = process.env.APIM_CLIENT_TAG;
+  if (!clientTag) {
+    return true;
+  }
+
+  // Extract version from tag (e.g., "4.7.x-latest", "graviteeio@4.7.0")
+  let versionStr = clientTag;
+  if (clientTag.includes('@')) {
+    versionStr = clientTag.split('@')[1];
+  }
+  versionStr = versionStr.replace('-latest', '');
+
+  // Parse major.minor version
+  const match = versionStr.match(/^(\d+)\.(\d+)/);
+  if (!match) {
+    return true;
+  }
+
+  const major = parseInt(match[1], 10);
+  const minor = parseInt(match[2], 10);
+
+  // V4 API Debug feature is supported if version >= 4.8.0
+  return major > 4 || (major === 4 && minor >= 8);
+}
+
+export const describeIfClientGatewayCompatible = describeIf(isClientGatewaySupportingV4APIDebugFeature());
+
 export * from './jest-retry';
