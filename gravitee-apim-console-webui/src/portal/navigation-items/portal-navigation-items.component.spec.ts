@@ -335,6 +335,38 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('editing a section', () => {
+    it('opens edit dialog for page and prefills title', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      // Select the item by title
+      await harness.selectNavigationItemByTitle('Nav Item 1');
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      component.onEdit();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getDialogTitle()).toBe('Edit "Nav Item 1" page');
+
+      const titleInput = await dialog.getTitleInput();
+      expect(await titleInput.getValue()).toBe('Nav Item 1');
+    });
+  });
+
   describe('creating a page under a folder from tree node "More actions" menu', () => {
     it('opens create dialog and does not call API when cancelled', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({

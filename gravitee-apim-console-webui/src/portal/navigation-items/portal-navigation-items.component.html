@@ -79,7 +79,8 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        <button [disabled]="contentLoadError()" mat-stroked-button (click)="onPublishToggle()">
+        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
+        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
           {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
         </button>
         <button mat-flat-button color="primary" [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
