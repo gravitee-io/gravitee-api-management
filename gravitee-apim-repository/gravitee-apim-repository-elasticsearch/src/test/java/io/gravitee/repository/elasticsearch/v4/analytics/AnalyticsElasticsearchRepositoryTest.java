@@ -17,14 +17,12 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.definition.model.DefinitionVersion.V4;
-import static io.gravitee.repository.elasticsearch.TestConfiguration.DEFAULT_SEARCH_TYPE;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
@@ -82,13 +80,11 @@ import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -1106,15 +1102,6 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         private final TimeProvider timeProvider = new TimeProvider();
         private final Instant now = timeProvider.getNow();
 
-        @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
-        private String searchType;
-
-        @BeforeEach
-        void beforeEach() {
-            // Event Analytics can only be executed on Elasticsearch.
-            assumeTrue(searchType.equals(DEFAULT_SEARCH_TYPE));
-        }
-
         @Test
         void should_return_latest_value_summed_per_key() {
             Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
@@ -1122,52 +1109,22 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(360), now.plusSeconds(360), null)
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(10), now.plusSeconds(360), null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
                 assertThat(data).containsKey("downstream-active-connections");
                 assertThat(data).containsKey("upstream-active-connections");
-                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(6D);
-                assertThat(data.get("upstream-active-connections").getFirst()).isEqualTo(6D);
+                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(4D);
+                assertThat(data.get("upstream-active-connections").getFirst()).isEqualTo(4D);
             });
         }
 
         @Test
-        void should_return_latest_value_ignoring_keys_with_no_snapshot_at_end_time() {
-            var from = now.minus(Duration.ofMinutes(6));
-            Aggregation valueAgg = new Aggregation("downstream-active-connections", AggregationType.VALUE);
-
-            var result = cut.searchEventAnalytics(
-                new QueryContext("DEFAULT", "DEFAULT"),
-                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, now, null)
-            );
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Double>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-active-connections");
-                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(2D);
-            });
-        }
-
-        @Test
-        void should_return_empty_as_delta_when_no_documents_before_end_time() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(
-                QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(600), now.minusSeconds(540), null)
-            );
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        void should_compute_monotonic_increase_happy_path_for_single_key_both_directions() {
-            Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+        void should_return_delta_for_given_time_range() {
+            Aggregation deltaDown = new Aggregation("downstream-publish-messages-count-increment", AggregationType.DELTA);
+            Aggregation deltaUp = new Aggregation("upstream-publish-messages-count-increment", AggregationType.DELTA);
             Instant from = now.minusSeconds(4 * 60 - 1); // 1s after nowMinus4
             Instant to = now.plusSeconds(4 * 60 + 1); // just after nowPlus4, still before nowPlus5
 
@@ -1185,73 +1142,15 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(30D);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(30D);
-            });
-        }
-
-        @Test
-        void should_return_end_value_when_no_documents_before_start_time() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-            var start = now.minusSeconds(360);
-            var end = now.plusSeconds(360);
-
-            var result = cut.searchEventAnalytics(
-                QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, start, end, null)
-            );
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Double>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(100D);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(100D);
-            });
-        }
-
-        @Test
-        void should_return_delta_when_documents_present_before_start_time() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(
-                QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, now.minusSeconds(180), now.plusSeconds(360), null)
-            );
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Double>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total");
-                assertThat(data).containsKey("upstream-publish-messages-total");
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(60D);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(60D);
-            });
-        }
-
-        @Test
-        void should_handle_counter_reset_with_reset_aware_end_value() {
-            Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            Instant from = now.minusSeconds(13 * 60);
-            Instant to = now.minusSeconds(10 * 60);
-
-            var result = cut.searchEventAnalytics(
-                new QueryContext("DEFAULT", "DEFAULT"),
-                buildHistogramQuery(List.of(deltaDown, deltaUp), List.of(new Term("topic", "reset-key")), NATIVE_API_ID, from, to, null)
-            );
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, List<Double>> data = aggregate.values();
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(5D);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(5D);
+                assertThat(data.get("downstream-publish-messages-count-increment").getFirst()).isEqualTo(50D);
+                assertThat(data.get("upstream-publish-messages-count-increment").getFirst()).isEqualTo(50D);
             });
         }
 
         @Test
         void should_build_trend_series_aligned_to_interval() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.TREND);
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-count-increment", AggregationType.TREND);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-count-increment", AggregationType.TREND);
             HistogramQuery query = buildHistogramQuery(
                 List.of(agg1, agg2),
                 null,
@@ -1265,18 +1164,18 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                List<Double> trend = new ArrayList<>(Arrays.asList(null, 0D, 0D, null, null, null, null, null, null, null, 0.5, 0.5, null));
-                assertThat(data).containsKey("downstream-publish-messages-total");
-                assertThat(data).containsKey("upstream-publish-messages-total");
-                assertThat(data.get("downstream-publish-messages-total")).isEqualTo(trend);
-                assertThat(data.get("upstream-publish-messages-total")).isEqualTo(trend);
+                List<Double> trend = new ArrayList<>(Arrays.asList(null, 20D, 20D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, null));
+                assertThat(data).containsKey("downstream-publish-messages-count-increment");
+                assertThat(data).containsKey("upstream-publish-messages-count-increment");
+                assertThat(data.get("downstream-publish-messages-count-increment")).isEqualTo(trend);
+                assertThat(data.get("upstream-publish-messages-count-increment")).isEqualTo(trend);
             });
         }
 
         @Test
-        void should_build_trend_series_aligned_to_interval_in_number_per_second() {
-            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.TREND);
+        void should_build_trend_rate_series_aligned_to_interval_in_number_per_second() {
+            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes-increment", AggregationType.TREND_RATE);
+            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes-increment", AggregationType.TREND_RATE);
             HistogramQuery query = buildHistogramQuery(
                 List.of(agg1, agg2),
                 null,
@@ -1290,18 +1189,20 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                List<Double> trend = new ArrayList<>(Arrays.asList(null, 0D, 0D, null, null, null, null, null, null, null, 50D, 50D, null));
-                assertThat(data).containsKey("downstream-publish-message-bytes");
-                assertThat(data).containsKey("upstream-publish-message-bytes");
-                assertThat(data.get("downstream-publish-message-bytes")).isEqualTo(trend);
-                assertThat(data.get("upstream-publish-message-bytes")).isEqualTo(trend);
+                List<Double> trend = new ArrayList<>(
+                    Arrays.asList(null, 33.333D, 33.333D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 83.333D, 83.333D, null)
+                );
+                assertThat(data).containsKey("downstream-publish-message-bytes-increment");
+                assertThat(data).containsKey("upstream-publish-message-bytes-increment");
+                assertThat(data.get("downstream-publish-message-bytes-increment")).isEqualTo(trend);
+                assertThat(data.get("upstream-publish-message-bytes-increment")).isEqualTo(trend);
             });
         }
 
         @Test
         void should_apply_optional_terms_filters_with_or_semantics() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-count-increment", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-count-increment", AggregationType.DELTA);
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
@@ -1317,10 +1218,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total");
-                assertThat(data).containsKey("upstream-publish-messages-total");
-                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(20D);
-                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(20D);
+                assertThat(data).containsKey("downstream-publish-messages-count-increment");
+                assertThat(data).containsKey("upstream-publish-messages-count-increment");
+                assertThat(data.get("downstream-publish-messages-count-increment").getFirst()).isEqualTo(20D);
+                assertThat(data.get("upstream-publish-messages-count-increment").getFirst()).isEqualTo(20D);
             });
         }
 

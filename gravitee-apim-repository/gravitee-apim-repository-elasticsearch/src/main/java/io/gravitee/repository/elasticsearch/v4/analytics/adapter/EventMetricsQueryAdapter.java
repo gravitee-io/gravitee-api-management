@@ -15,42 +15,34 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.COMPOSITE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DATE_HISTOGRAM;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.EXTENDED_BOUNDS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.FIXED_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MINIMUM_SHOULD_MATCH;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN_DOC_COUNT;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MISSING_BUCKET;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.ORDER;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SUM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_HITS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.AGGS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SHOULD;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SOURCE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.FILTERED_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MILLISECONDS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOTAL_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.FIELD;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.TERMS;
 
@@ -62,26 +54,16 @@ import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Builds Elasticsearch JSON queries for event-metrics analytics:
- * - VALUE: latest value per composite bucket (top_metrics), summed during response parsing.
- * - DELTA: end - start per composite bucket using two time windows; negatives are clamped during response parsing.
- * - TREND: per-interval derivative (based on max per interval) with non-negative clamping; summed and aligned during response parsing.
- * Rules:
- * - No pagination (composite size is capped to 1000).
- * - Exists filters use OR semantics (at least one requested metric must exist).
- * - Root time range is applied for VALUE and TREND; DELTA uses per-window filters instead.
- * - Composite keys:
- *   - VALUE: gw-id, api-id, org-id, env-id
- *   - DELTA/TREND: gw-id, api-id, org-id, env-id, app-id, plan-id, topic (with missing buckets for app-id/plan-id/topic)
+ * Utility class for constructing Elasticsearch queries based on provided histogram queries.
+ * This adapter is designed to convert a {@link HistogramQuery} into a JSON Elasticsearch query string.
+ * It supports various aggregation types such as VALUE, DELTA, TREND, and TREND_RATE.
  */
 public final class EventMetricsQueryAdapter {
 
@@ -104,115 +86,83 @@ public final class EventMetricsQueryAdapter {
         ObjectNode aggregationsNode = root.putObject(AGGS);
 
         switch (type) {
-            case VALUE -> applyLatestValueAggregations(query, aggregationsNode);
+            case VALUE -> applyValueAggregations(query, aggregationsNode);
             case DELTA -> applyDeltaAggregations(query, aggregationsNode);
-            case TREND -> applyTrendAggregations(query, aggregationsNode);
+            case TREND, TREND_RATE -> applyTrendAggregations(query, aggregationsNode);
         }
 
         ArrayNode filters = MAPPER.createArrayNode();
-        applyDefaultFilters(query, filters, type);
-        applyExistsFilters(query, filters);
         applyOptionalFilters(query, filters);
+        applySearchTermId(query, filters);
+        applyTimeRangeFilter(query.timeRange(), filters);
+
         finalizeQuery(filters, root);
 
         return root.toString();
     }
 
-    private static void applyLatestValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
-        ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
-        compositeNode.put(SIZE, 1000);
-        ArrayNode sourcesNode = compositeNode.putArray(SOURCES);
-        addDefaultCompositeKeys(sourcesNode);
+    public static String getDocType(String field) {
+        Map<String, String> docTypes = new LinkedHashMap<>();
+        docTypes.put("downstream-active-connections", "api");
+        docTypes.put("upstream-active-connections", "api");
+        docTypes.put("downstream-authentication-failures-count-increment", "api");
 
-        ObjectNode bucketAggregationNode = dimensionsNode.putObject(AGGS);
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                ObjectNode latestValueNode = bucketAggregationNode.putObject(LATEST_PREFIX + field);
-                applyTopMetricsAggregation(latestValueNode, field);
-            });
+        docTypes.put("upstream-authenticated-connections", "application");
+        docTypes.put("downstream-authenticated-connections", "application");
+        docTypes.put("downstream-authentication-successes-count-increment", "application");
+        docTypes.put("upstream-authentication-successes-count-increment", "application");
+        docTypes.put("upstream-authentication-failures-count-increment", "application");
+
+        docTypes.put("downstream-publish-messages-count-increment", "topic");
+        docTypes.put("upstream-publish-messages-count-increment", "topic");
+        docTypes.put("downstream-publish-message-bytes-increment", "topic");
+        docTypes.put("upstream-publish-message-bytes-increment", "topic");
+        docTypes.put("upstream-subscribe-messages-count-increment", "topic");
+        docTypes.put("downstream-subscribe-messages-count-increment", "topic");
+        docTypes.put("upstream-subscribe-message-bytes-increment", "topic");
+        docTypes.put("downstream-subscribe-message-bytes-increment", "topic");
+
+        return docTypes.get(field);
     }
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        ObjectNode bucketAggregations = applyCompositeKeys(aggregationsNode, "app-id", "plan-id", "topic");
-        long start = query.timeRange().from().toEpochMilli();
-        long end = query.timeRange().to().toEpochMilli();
-        // before_start_time: gets the lastest doc strictly before 'start'
-        ObjectNode startValueNode = bucketAggregations.putObject(BEFORE_START);
-        ObjectNode startValueTimeRangeNode = startValueNode.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
-        startValueTimeRangeNode.put(LT, start);
-        ObjectNode startValueAggregations = startValueNode.putObject(AGGS);
-        // end_in_range: gets the lastest doc in [start, end)
-        ObjectNode endValueNode = bucketAggregations.putObject(END_IN_RANGE);
-        ObjectNode endValueTimeRangeNode = endValueNode.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
-        endValueTimeRangeNode.put(GTE, start);
-        endValueTimeRangeNode.put(LT, end);
-        ObjectNode endValueAggregations = endValueNode.putObject(AGGS);
-
         query
             .aggregations()
             .forEach(agg -> {
                 String field = agg.getField();
-                ObjectNode startAgg = startValueAggregations.putObject(START_PREFIX + field);
-                applyTopMetricsAggregation(startAgg, field);
-                ObjectNode endAgg = endValueAggregations.putObject(END_PREFIX + field);
-                applyTopMetricsAggregation(endAgg, field);
+                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+                var filteredAgg = filteredNode.putObject(AGGS);
+                filteredAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
+            });
+    }
+
+    private static void applyValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
+        query
+            .aggregations()
+            .forEach(agg -> {
+                String field = agg.getField();
+                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+                var filteredAgg = filteredNode.putObject(AGGS);
+
+                var latestTopHitts = filteredAgg.putObject(LATEST_PREFIX + field).putObject(TOP_HITS);
+                var sort = latestTopHitts.putArray(SORT);
+                sort.addObject().putObject(TIMESTAMP).put(ORDER, DESC);
+
+                latestTopHitts.put(SIZE, 1);
+                latestTopHitts.putObject(SOURCE).putArray("includes").add(field);
             });
     }
 
     private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        ObjectNode bucketAggregations = applyCompositeKeys(aggregationsNode, "app-id", "plan-id", "topic");
-        ObjectNode intervalAggregations = applyFixedIntervalAggregations(query, bucketAggregations);
-        query.aggregations().forEach(agg -> applyMaxAggregations(intervalAggregations, agg.getField()));
-    }
-
-    private static void applyMaxAggregations(ObjectNode aggregationsNode, String field) {
-        String max = MAX_PREFIX + field;
-        aggregationsNode.putObject(max).putObject(MAX).put(FIELD, field);
-    }
-
-    private static ObjectNode applyCompositeKeys(ObjectNode aggregationsNode, String... additionalKeys) {
-        ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
-        ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
-        compositeNode.put(SIZE, 1000);
-        ArrayNode sourcesNode = compositeNode.putArray(SOURCES);
-        addDefaultCompositeKeys(sourcesNode);
-
-        if (additionalKeys != null) {
-            Arrays.stream(additionalKeys).forEach(field -> addCompositeKey(sourcesNode, field));
-        }
-
-        return dimensionsNode.putObject(AGGS);
-    }
-
-    private static void addDefaultCompositeKeys(ArrayNode node) {
-        addCompositeKey(node, "gw-id");
-        addCompositeKey(node, "api-id");
-        addCompositeKey(node, "org-id");
-        addCompositeKey(node, "env-id");
-    }
-
-    private static void addCompositeKey(ArrayNode node, String fieldName) {
-        ObjectNode sourceNode = MAPPER.createObjectNode();
-        ObjectNode termsNode = MAPPER.createObjectNode();
-        ObjectNode fieldNode = MAPPER.createObjectNode();
-        fieldNode.put(FIELD, fieldName);
-
-        if (fieldName.equals("topic") || fieldName.equals("plan-id") || fieldName.equals("app-id")) {
-            fieldNode.put(MISSING_BUCKET, true);
-        }
-
-        termsNode.set(TERMS, fieldNode);
-        sourceNode.set(fieldName, termsNode);
-        node.add(sourceNode);
-    }
-
-    private static void applyTopMetricsAggregation(ObjectNode container, String field) {
-        ObjectNode tm = container.putObject(TOP_METRICS);
-        tm.putObject(METRICS).put(FIELD, field);
-        tm.putObject(SORT).put(TIMESTAMP, io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC);
+        var histogramAgg = applyFixedIntervalAggregations(query, aggregationsNode);
+        query
+            .aggregations()
+            .forEach(agg -> {
+                String field = agg.getField();
+                histogramAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
+            });
     }
 
     private static ObjectNode applyFixedIntervalAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
@@ -236,42 +186,6 @@ public final class EventMetricsQueryAdapter {
         return intervalNode.putObject(AGGS);
     }
 
-    private static void applyDefaultFilters(HistogramQuery query, ArrayNode filters, AggregationType type) {
-        if (query.searchTermId() != null && query.searchTermId().id() != null) {
-            applyTermFilter("api-id", query.searchTermId().id(), filters);
-        }
-
-        if (type != AggregationType.DELTA) {
-            applyTimeRangeFilter(query.timeRange(), filters);
-        }
-    }
-
-    private static void applyExistsFilters(HistogramQuery query, ArrayNode filters) {
-        // OR semantics: group all exists clauses under a bool.should with minimum_should_match=1
-        List<String> fields = query.aggregations().stream().map(Aggregation::getField).toList();
-
-        if (fields.isEmpty()) {
-            return;
-        }
-
-        ArrayNode shouldNode = MAPPER.createArrayNode();
-
-        for (String field : fields) {
-            ObjectNode existsNode = MAPPER.createObjectNode();
-            existsNode.putObject(EXISTS).put(FIELD, field);
-            shouldNode.add(existsNode);
-        }
-
-        ObjectNode boolNode = MAPPER.createObjectNode();
-        boolNode.set(SHOULD, shouldNode);
-        boolNode.put(MINIMUM_SHOULD_MATCH, 1);
-
-        ObjectNode wrapper = MAPPER.createObjectNode();
-        wrapper.set(BOOL, boolNode);
-
-        filters.add(wrapper);
-    }
-
     private static void applyOptionalFilters(HistogramQuery query, ArrayNode filters) {
         if (query.terms() == null || query.terms().isEmpty()) {
             return;
@@ -288,6 +202,12 @@ public final class EventMetricsQueryAdapter {
         ObjectNode node = MAPPER.createObjectNode();
         node.set(TERMS, MAPPER.createObjectNode().set(field, MAPPER.valueToTree(values)));
         filters.add(node);
+    }
+
+    private static void applySearchTermId(HistogramQuery query, ArrayNode filters) {
+        if (query.searchTermId() != null && query.searchTermId().id() != null) {
+            applyTermFilter("api-id", query.searchTermId().id(), filters);
+        }
     }
 
     private static void applyTermFilter(String field, String value, ArrayNode filters) {

@@ -293,10 +293,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search native stats query: {}", esQuery);
 
-        return client
+        var result = client
             .search(index, null, esQuery)
             .map(response -> EventMetricsResponseAdapter.adapt(response, query))
             .blockingGet();
+        return result;
     }
 
     @Override
