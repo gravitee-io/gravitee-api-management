@@ -77,25 +77,25 @@
     "@timestamp": {
         "type": "date"
     },
-    "request-durations-millis": {
+    "upstream-durations-nanos": {
         "type": "long"
     },
-    "endpoint-durations-millis": {
+    "endpoint-durations-nanos": {
         "type": "long"
     },
-    "response-durations-millis": {
+    "downstream-durations-nanos": {
         "type": "long"
     },
-    "requests-count-increment": {
+    "upstream-count-increment": {
         "type": "integer"
     },
-    "endpoint-requests-count-increment": {
+    "endpoint-upstream-count-increment": {
         "type": "integer"
     },
-    "endpoint-responses-count-increment": {
+    "endpoint-downstream-count-increment": {
         "type": "integer"
     },
-    "responses-count-increment": {
+    "downstream-count-increment": {
         "type": "integer"
     }
 }
