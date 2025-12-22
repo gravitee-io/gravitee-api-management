@@ -32,6 +32,7 @@ public class Aggregation {
         VALUE,
         DELTA,
         TREND,
+        TREND_RATE,
     }
 
     private String field;

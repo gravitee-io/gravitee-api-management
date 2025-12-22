@@ -16,16 +16,10 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.BUCKETS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.DOC_COUNT;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.FILTERED_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOTAL_PREFIX;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
@@ -36,12 +30,9 @@ import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class EventMetricsResponseAdapter {
 
@@ -69,13 +60,16 @@ public class EventMetricsResponseAdapter {
         aggregations.forEach((key, value) -> {
             switch (aggregationType) {
                 case VALUE:
-                    parseLatestValueBuckets(value, result);
+                    parseTopHitValues(key, value, result);
                     break;
                 case DELTA:
-                    parseStartAndEndValueBuckets(value, result);
+                    parseTotalValues(key, value, result);
                     break;
                 case TREND:
-                    parseTrendQueryResponse(value, result, query);
+                    parseTrendQueryResponse(value, result);
+                    break;
+                case TREND_RATE:
+                    parseTrendRateQueryResponse(value, result, query);
                     break;
             }
         });
@@ -83,275 +77,97 @@ public class EventMetricsResponseAdapter {
         return result.isEmpty() ? Optional.empty() : Optional.of(new EventAnalyticsAggregate(result));
     }
 
-    private static void parseLatestValueBuckets(Aggregation agg, Map<String, List<Double>> result) {
-        List<JsonNode> buckets = agg.getBuckets();
+    private static void parseTotalValues(String key, Aggregation agg, Map<String, List<Double>> result) {
+        if (!key.startsWith(FILTERED_PREFIX)) return;
 
-        if (buckets == null || buckets.isEmpty()) {
+        String metricKey = key.substring(FILTERED_PREFIX.length());
+
+        var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
+
+        var metricAgg = agg.getAggregations().get(TOTAL_PREFIX + metricKey);
+
+        resultMetric.add((metricAgg == null || metricAgg.getValue() == null) ? null : metricAgg.getValue().doubleValue());
+    }
+
+    private static void parseTopHitValues(String key, Aggregation agg, Map<String, List<Double>> result) {
+        if (!key.startsWith(FILTERED_PREFIX)) return;
+
+        String metricKey = key.substring(FILTERED_PREFIX.length());
+
+        var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
+
+        var metricAgg = agg.getAggregations().get(LATEST_PREFIX + metricKey);
+
+        if (metricAgg.getHits() == null || metricAgg.getHits().getHits() == null || metricAgg.getHits().getHits().isEmpty()) {
+            resultMetric.add(null);
             return;
         }
+        var hit = metricAgg.getHits().getHits().getFirst();
 
-        Map<String, Double> metricValueMap = new HashMap<>();
+        if (hit == null || hit.getSource() == null || hit.getSource().get(metricKey) == null) {
+            resultMetric.add(null);
+            return;
+        }
+        var metricHit = hit.getSource().get(metricKey);
 
-        buckets
-            .stream()
-            .filter(bucket -> bucket != null && bucket.fieldNames().hasNext())
-            .forEach(bucket ->
-                bucket
-                    .fieldNames()
-                    .forEachRemaining(fieldName -> {
-                        // Ignore non-top_metrics fields
-                        if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
-
-                        if (!fieldName.startsWith(LATEST_PREFIX)) return;
-
-                        // Derive the original metric field from "latest_<field>"
-                        String metric = fieldName.substring(LATEST_PREFIX.length());
-                        JsonNode topMetricsNode = bucket.get(fieldName);
-                        // Require a top hit AND the metric value to be present and numeric
-                        Double value = parseTopMetricsNode(topMetricsNode, metric);
-
-                        if (value == null) return;
-
-                        // Sum across composite buckets
-                        metricValueMap.merge(metric, value, Double::sum);
-                    })
-            );
-
-        metricValueMap.forEach((metric, total) -> result.put(metric, List.of(total)));
+        resultMetric.add((metricHit == null) ? null : metricHit.doubleValue());
     }
 
-    private static Double parseTopMetricsNode(JsonNode topMetricsNode, String metric) {
-        if (isTopHitMissing(topMetricsNode)) {
-            return null;
-        }
-
-        JsonNode topArray = topMetricsNode.get(TOP);
-        JsonNode first = (topArray != null && topArray.isArray() && !topArray.isEmpty()) ? topArray.get(0) : null;
-
-        if (first == null || !first.has(METRICS)) {
-            return null;
-        }
-
-        JsonNode metricsNode = first.get(METRICS);
-
-        if (metricsNode == null) {
-            return null;
-        }
-
-        JsonNode valueNode = metricsNode.get(metric);
-
-        if (valueNode == null || !valueNode.isNumber()) {
-            return null;
-        }
-
-        return valueNode.asDouble();
-    }
-
-    private static void parseStartAndEndValueBuckets(Aggregation agg, Map<String, List<Double>> result) {
-        List<JsonNode> buckets = agg.getBuckets();
-
+    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Double>> result) {
+        List<JsonNode> buckets = aggregation.getBuckets();
         if (buckets == null || buckets.isEmpty()) return;
-
-        Map<String, Double> metricValueMap = new HashMap<>();
 
         for (JsonNode bucket : buckets) {
-            JsonNode startValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START);
-            JsonNode endValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE);
+            var docCount = bucket.get(DOC_COUNT).asLong();
+            bucket
+                .fieldNames()
+                .forEachRemaining(fieldName -> {
+                    if (!fieldName.startsWith(TOTAL_PREFIX)) return;
 
-            Map<String, Double> startValuesMap = collectTopMetrics(startValueNode, START_PREFIX);
-            Map<String, Double> endValuesMap = collectTopMetrics(endValueNode, END_PREFIX);
+                    String metricKey = fieldName.substring(TOTAL_PREFIX.length());
+                    var value = parseValueNode(bucket.get(fieldName));
+                    var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
 
-            Set<String> fields = new HashSet<>(startValuesMap.keySet());
-            fields.addAll(endValuesMap.keySet());
-
-            for (String metric : fields) {
-                Double endVal = endValuesMap.get(metric);
-
-                if (endVal == null) continue;
-
-                Double startVal = startValuesMap.get(metric);
-
-                if (startVal == null) {
-                    startVal = 0D; // baseline 0 when no start value
-                }
-
-                double delta = endVal - startVal;
-
-                if (delta < 0) {
-                    delta = 0D;
-                }
-
-                metricValueMap.merge(metric, delta, Double::sum);
-            }
+                    if (docCount == 0L || value == null) {
+                        resultMetric.add(null);
+                    } else {
+                        resultMetric.add(value);
+                    }
+                });
         }
-
-        metricValueMap.forEach((metric, delta) -> result.put(metric, List.of(delta)));
     }
 
-    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Double>> result, HistogramQuery query) {
+    private static void parseTrendRateQueryResponse(Aggregation aggregation, Map<String, List<Double>> result, HistogramQuery query) {
         List<JsonNode> buckets = aggregation.getBuckets();
-
         if (buckets == null || buckets.isEmpty()) return;
 
-        JsonNode first = buckets.getFirst();
+        Optional<Duration> interval = query.timeRange().interval();
+        if (interval.isEmpty()) return;
+        long trendIntervalMs = interval.get().toMillis();
 
-        if (first == null || !first.has(PER_INTERVAL)) return;
+        for (JsonNode bucket : buckets) {
+            var docCount = bucket.get(DOC_COUNT).asLong();
+            bucket
+                .fieldNames()
+                .forEachRemaining(fieldName -> {
+                    if (!fieldName.startsWith(TOTAL_PREFIX)) return;
 
-        Set<Long> timeline = new HashSet<>();
-        Map<SeriesKey, Double> valuesByKey = new HashMap<>();
-        Map<String, Set<String>> metricToIds = new HashMap<>();
+                    String metricKey = fieldName.substring(TOTAL_PREFIX.length());
+                    var value = parseValueNode(bucket.get(fieldName));
+                    var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
 
-        parseCompositeIdBuckets(buckets, timeline, valuesByKey, metricToIds);
-
-        if (timeline.isEmpty() || metricToIds.isEmpty()) return;
-
-        List<Long> sortedTimeline = sortedTimeline(timeline);
-
-        metricToIds.forEach((metric, ids) -> {
-            List<List<Double>> deltaSeriesList = buildDeltaSeriesPerId(metric, ids, sortedTimeline, valuesByKey);
-            result.put(metric, buildTrendFromDeltaSeries(deltaSeriesList));
-        });
-
-        convertToRate(query, result);
-    }
-
-    private static void parseCompositeIdBuckets(
-        List<JsonNode> buckets,
-        Set<Long> timeline,
-        Map<SeriesKey, Double> valuesByKey,
-        Map<String, Set<String>> metricToIds
-    ) {
-        for (JsonNode perIdBucket : buckets) {
-            JsonNode perInterval = perIdBucket.get(PER_INTERVAL);
-            JsonNode intervals = (perInterval == null) ? null : perInterval.get(BUCKETS);
-
-            if (intervals == null || !intervals.isArray()) continue;
-
-            String id = (perIdBucket.get(KEY) != null) ? perIdBucket.get(KEY).toString() : perIdBucket.toString();
-
-            for (JsonNode interval : intervals) {
-                Long timestamp = parseTimestamp(interval);
-
-                if (timestamp == null) continue;
-
-                timeline.add(timestamp);
-
-                interval
-                    .fieldNames()
-                    .forEachRemaining(fieldName -> {
-                        if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) return;
-
-                        String metric = fieldName.substring(MAX_PREFIX.length());
-                        Double maxValue = parseMaxValueNode(interval.get(fieldName));
-
-                        if (maxValue == null) return;
-
-                        valuesByKey.put(new SeriesKey(metric, id, timestamp), maxValue);
-                        metricToIds.computeIfAbsent(metric, k -> new HashSet<>()).add(id);
-                    });
-            }
+                    if (docCount == 0L || value == null) {
+                        resultMetric.add(null);
+                    } else {
+                        double factor = 1000d;
+                        double perSecond = (value * 1000d) / trendIntervalMs;
+                        resultMetric.add(Math.round((perSecond) * factor) / factor);
+                    }
+                });
         }
     }
 
-    private static List<Long> sortedTimeline(Set<Long> timeline) {
-        List<Long> sorted = new ArrayList<>(timeline);
-        sorted.sort(Long::compare);
-
-        return sorted;
-    }
-
-    private static List<List<Double>> buildDeltaSeriesPerId(
-        String metric,
-        Set<String> ids,
-        List<Long> timeline,
-        Map<SeriesKey, Double> valuesByKey
-    ) {
-        List<List<Double>> deltaSeriesList = new ArrayList<>(ids.size());
-
-        for (String id : ids) {
-            List<Double> deltaSeries = new ArrayList<>(timeline.size());
-            Double previous = null;
-
-            for (Long ts : timeline) {
-                Double current = valuesByKey.get(new SeriesKey(metric, id, ts));
-
-                if (current == null) {
-                    deltaSeries.add(null); // data gap
-                } else if (previous == null) {
-                    deltaSeries.add(0D); // first observation baseline
-                    previous = current;
-                } else {
-                    // reset-aware delta
-                    deltaSeries.add(current >= previous ? current - previous : current);
-                    previous = current;
-                }
-            }
-
-            deltaSeriesList.add(deltaSeries);
-        }
-
-        return deltaSeriesList;
-    }
-
-    private static List<Double> buildTrendFromDeltaSeries(List<List<Double>> deltaSeriesList) {
-        if (deltaSeriesList.isEmpty()) return List.of();
-
-        int dataPoints = deltaSeriesList.getFirst().size();
-        List<Double> trend = new ArrayList<>(dataPoints);
-
-        for (int i = 0; i < dataPoints; i++) {
-            double sum = 0D;
-            boolean hasValue = false;
-
-            for (List<Double> series : deltaSeriesList) {
-                Double delta = series.get(i);
-
-                if (delta != null) {
-                    sum += delta;
-                    hasValue = true;
-                }
-            }
-
-            trend.add(hasValue ? sum : null);
-        }
-
-        return trend;
-    }
-
-    private static void convertToRate(HistogramQuery query, Map<String, List<Double>> result) {
-        Duration interval = query
-            .timeRange()
-            .interval()
-            .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
-        long seconds = interval.toSeconds();
-
-        if (seconds <= 0) {
-            return;
-        }
-
-        result.replaceAll((k, values) ->
-            values
-                .stream()
-                .map(v -> v == null ? null : v / seconds)
-                .collect(Collectors.toCollection(() -> new ArrayList<>(values.size())))
-        );
-    }
-
-    private static boolean isMetaField(final String name) {
-        return KEY.equals(name) || DOC_COUNT.equals(name);
-    }
-
-    private static Long parseTimestamp(JsonNode node) {
-        if (node == null) {
-            return null;
-        }
-
-        JsonNode keyNode = node.get(KEY);
-
-        return (keyNode != null && keyNode.isNumber()) ? keyNode.asLong() : null;
-    }
-
-    private static Double parseMaxValueNode(final JsonNode node) {
+    private static Double parseValueNode(final JsonNode node) {
         if (node == null) {
             return null;
         }
@@ -359,37 +175,6 @@ public class EventMetricsResponseAdapter {
         JsonNode valueNode = node.get("value");
 
         return (valueNode == null || !valueNode.isNumber()) ? null : valueNode.asDouble();
-    }
-
-    private static Map<String, Double> collectTopMetrics(JsonNode parent, String prefix) {
-        Map<String, Double> values = new HashMap<>();
-
-        if (parent == null) return values;
-
-        parent
-            .fieldNames()
-            .forEachRemaining(fieldName -> {
-                if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
-
-                if (!fieldName.startsWith(prefix)) return;
-
-                String metric = fieldName.substring(prefix.length());
-                Double value = parseTopMetricsNode(parent.get(fieldName), metric);
-
-                if (value != null) {
-                    values.put(metric, value);
-                }
-            });
-
-        return values;
-    }
-
-    private static boolean isTopHitMissing(JsonNode topMetricsNode) {
-        if (topMetricsNode == null) return true;
-
-        JsonNode topArray = topMetricsNode.get(TOP);
-
-        return topArray == null || !topArray.isArray() || topArray.isEmpty();
     }
 
     private static AggregationType getAggregationType(HistogramQuery query) {
@@ -405,25 +190,5 @@ public class EventMetricsResponseAdapter {
             .toList();
 
         return (types.size() == 1) ? types.getFirst() : null;
-    }
-
-    private record SeriesKey(String metric, String id, long ts) {
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-
-            if (!(o instanceof SeriesKey(String metric1, String id1, long ts1))) return false;
-
-            return ts == ts1 && metric.equals(metric1) && id.equals(id1);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = metric.hashCode();
-            result = 31 * result + id.hashCode();
-            result = 31 * result + Long.hashCode(ts);
-
-            return result;
-        }
     }
 }

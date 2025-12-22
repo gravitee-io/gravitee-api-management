@@ -24,7 +24,6 @@ public final class ElasticsearchDsl {
 
         public static final String QUERY = "query";
         public static final String BOOL = "bool";
-        public static final String SHOULD = "should";
         public static final String FILTER = "filter";
         public static final String AGGS = "aggs";
         public static final String SIZE = "size";
@@ -32,6 +31,7 @@ public final class ElasticsearchDsl {
         public static final String TIMESTAMP = "@timestamp";
         public static final String KEY = "key";
         public static final String DOC_COUNT = "doc_count";
+        public static final String SOURCE = "_source";
 
         private Keys() {}
     }
@@ -50,7 +50,6 @@ public final class ElasticsearchDsl {
 
         public static final String TERM = "term";
         public static final String RANGE = "range";
-        public static final String EXISTS = "exists";
         public static final String GTE = "gte";
         public static final String LTE = "lte";
         public static final String LT = "lt";
@@ -61,20 +60,16 @@ public final class ElasticsearchDsl {
     // Aggregation keywords (only unique to aggs)
     public static final class Aggs {
 
-        public static final String COMPOSITE = "composite";
-        public static final String SOURCES = "sources";
-        public static final String TOP_METRICS = "top_metrics";
-        public static final String METRICS = "metrics";
         public static final String SORT = "sort";
         public static final String DATE_HISTOGRAM = "date_histogram";
         public static final String FIXED_INTERVAL = "fixed_interval";
         public static final String MIN_DOC_COUNT = "min_doc_count";
-        public static final String MINIMUM_SHOULD_MATCH = "minimum_should_match";
         public static final String EXTENDED_BOUNDS = "extended_bounds";
         public static final String MIN = "min";
         public static final String MAX = "max";
-        public static final String BUCKETS = "buckets";
-        public static final String MISSING_BUCKET = "missing_bucket";
+        public static final String SUM = "sum";
+        public static final String TOP_HITS = "top_hits";
+        public static final String ORDER = "order";
 
         private Aggs() {}
     }
@@ -91,15 +86,10 @@ public final class ElasticsearchDsl {
     public static final class Names {
 
         public static final String LATEST_PREFIX = "latest_";
-        public static final String BY_DIMENSIONS = "by_dimensions";
         public static final String PER_INTERVAL = "per_interval";
-        public static final String START_PREFIX = "start_";
-        public static final String END_PREFIX = "end_";
         public static final String MILLISECONDS = "ms";
-        public static final String TOP = "top";
-        public static final String BEFORE_START = "before_start_time";
-        public static final String END_IN_RANGE = "end_in_range";
-        public static final String MAX_PREFIX = "max_";
+        public static final String TOTAL_PREFIX = "total_";
+        public static final String FILTERED_PREFIX = "filtered_";
 
         private Names() {}
     }
