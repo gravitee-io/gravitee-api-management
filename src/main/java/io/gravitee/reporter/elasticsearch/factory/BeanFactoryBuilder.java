@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BeanFactoryBuilder {
 
-    private static final Set<Integer> SUPPORTED_OPENSEARCH_MAJOR_VERSIONS = Set.of(1, 2);
+    private static final Set<Integer> SUPPORTED_OPENSEARCH_MAJOR_VERSIONS = Set.of(1, 2, 3);
 
     public static BeanFactory buildFactory(final Client client) {
         ElasticsearchInfo info = retrieveElasticSearchInfo(client);
