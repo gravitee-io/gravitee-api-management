@@ -67,7 +67,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public PortalNavigationItemsResponse getPortalNavigationItems(
-        @QueryParam("area") PortalArea area,
+        @NotNull @QueryParam("area") PortalArea area,
         @QueryParam("parentId") String parentId,
         @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren
     ) {

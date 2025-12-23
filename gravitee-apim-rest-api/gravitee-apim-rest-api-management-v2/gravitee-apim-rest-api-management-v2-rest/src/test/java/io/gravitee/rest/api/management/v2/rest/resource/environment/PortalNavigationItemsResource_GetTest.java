@@ -218,4 +218,42 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         // Then
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
+
+    @Test
+    void should_return_400_when_No_PortalArea_in_QueryParam() {
+        // Given
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response).hasStatus(400);
+    }
+
+    @Test
+    void should_return_500_when_Invalid_PortalArea_in_QueryParam() {
+        // Given
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("area", "invalidArea").queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response).hasStatus(500);
+    }
 }
