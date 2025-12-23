@@ -337,6 +337,7 @@ workflows:
               engineVersion:
                 - "1"
                 - "2"
+                - "3"
       - job-redis-test-container:
           name: Rate Limit repository tests - Redis << matrix.redisVersion >>
           context:
