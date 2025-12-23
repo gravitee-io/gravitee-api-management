@@ -22,6 +22,7 @@ import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.model.ChannelSelector;
 import io.gravitee.apim.rest.api.automation.model.ConditionSelector;
+import io.gravitee.apim.rest.api.automation.model.Cors;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.HttpListener;
@@ -100,6 +101,20 @@ public interface ApiMapper {
     Map<String, ResponseTemplate> mapToAutomationResponseTemplate(Map<String, io.gravitee.definition.model.ResponseTemplate> value);
 
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener listener);
+
+    default Cors.AllowMethodsEnum map(String value) {
+        if ("*".equals(value)) {
+            return Cors.AllowMethodsEnum.STAR;
+        }
+        return Cors.AllowMethodsEnum.fromValue(value);
+    }
+
+    default String map(Cors.AllowMethodsEnum value) {
+        if (value == Cors.AllowMethodsEnum.STAR) {
+            return "*";
+        }
+        return value.getValue();
+    }
 
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener listener);
 
