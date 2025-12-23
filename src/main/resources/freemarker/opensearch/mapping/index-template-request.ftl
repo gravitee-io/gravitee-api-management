@@ -1,15 +1,16 @@
 <#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}*"],
-    "settings": {
-        <#if indexLifecyclePolicyRequest??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
-        <#if indexLifecyclePolicyRequest??>"${indexLifecycleRolloverAliasPropertyName}": "${indexName}",</#if>
-        "index.number_of_shards":${numberOfShards},
-        "index.number_of_replicas":${numberOfReplicas},
-        "index.refresh_interval": "${refreshInterval}"
-        <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
-    },
-    "mappings": {
+    "template": {
+        "settings": {
+            <#if indexLifecyclePolicyRequest??>"index.plugins.index_state_management.policy_id": "${indexLifecyclePolicyRequest}",</#if>
+            <#if indexLifecyclePolicyRequest??>"index.plugins.index_state_management.rollover_alias": "${indexName}",</#if>
+            "index.number_of_shards":${numberOfShards},
+            "index.number_of_replicas":${numberOfReplicas},
+            "index.refresh_interval": "${refreshInterval}"
+            <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
+        },
+        "mappings": {
             "properties": {
                 "@timestamp": {
                     "type": "date"
@@ -81,11 +82,11 @@
                     }
                 },
                 "request-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "response-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "response-time": {
@@ -207,73 +208,74 @@
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             },
             "dynamic_templates": [
-            {
-                "strings_as_keywords": {
-                    "path_match": "custom.*",
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "keyword"
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
+                        }
                     }
                 }
-            },
-            {
-                "additional_long_metrics": {
-                    "path_match": "additional-metrics.long_*",
-                    "match_mapping_type": "long",
-                    "mapping": {
-                        "type": "long"
-                    }
-                }
-            },
-            {
-                "additional_keyword_metrics": {
-                    "path_match": "additional-metrics.keyword_*",
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "keyword"
-                    }
-                }
-            },
-            {
-                "additional_boolean_metrics": {
-                    "path_match": "additional-metrics.bool_*",
-                    "mapping": {
-                        "type": "boolean"
-                    }
-                }
-            },
-            {
-                "additional_double_metrics": {
-                    "path_match": "additional-metrics.double_*",
-                    "mapping": {
-                        "type": "double"
-                    }
-                }
-            },
-            {
-                "additional_int_metrics": {
-                    "path_match": "additional-metrics.int_*",
-                    "mapping": {
-                        "type": "integer"
-                    }
-                }
-            },
-            {
-                "additional_string_metrics": {
-                    "path_match": "additional-metrics.string_*",
-                    "mapping": {
-                        "type": "text"
-                    }
-                }
-            },
-            {
-                "additional_json_metrics": {
-                    "path_match": "additional-metrics.json_*",
-                    "mapping": {
-                        "type": "text"
-                    }
-                }
-            }
-        ]
+            ]
+        }
     }
 }

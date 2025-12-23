@@ -4,7 +4,11 @@
     "data_stream": {},
     "template": {
         "settings": {
-            "index.lifecycle.name": "event-metrics-ilm-policy"
+            <#if indexLifecyclePolicyEventMetrics??>"index.lifecycle.name": "${indexLifecyclePolicyEventMetrics}",</#if>
+            <#if indexLifecyclePolicyEventMetrics??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+            "index.number_of_shards":${numberOfShards},
+            "index.number_of_replicas":${numberOfReplicas},
+            "index.refresh_interval": "${refreshInterval}"
         },
         "mappings": {
             <#include "../../common/mapping/event-metrics-mapping.ftl">

@@ -37,4 +37,9 @@ public class ES7IndexPreparer extends AbstractIndexPreparer {
     ) {
         super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/es7x");
     }
+
+    @Override
+    protected boolean useOldClient(boolean dataStream) {
+        return !dataStream;
+    }
 }

@@ -37,9 +37,4 @@ public class OpenSearchIndexPreparer extends AbstractIndexPreparer {
     ) {
         super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/opensearch");
     }
-
-    @Override
-    protected boolean useOldClient(boolean dataStream) {
-        return !dataStream;
-    }
 }
