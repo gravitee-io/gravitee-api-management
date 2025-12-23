@@ -107,7 +107,10 @@ public interface ApiCRDAdapter {
             .filter(plan -> !plan.isClosed())
             .toList();
         for (var plan : nonClosedPlans) {
-            var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
+            var key = plan.getName().trim().replace(" ", "-");
+            if (plansMap.containsKey(key)) {
+                key = randomize(key);
+            }
             plansMap.put(key, toCRDPlan(plan));
         }
         return plansMap;
