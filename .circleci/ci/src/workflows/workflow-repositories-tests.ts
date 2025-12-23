@@ -91,7 +91,7 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           engineType: ['opensearch'],
-          engineVersion: ['1', '2'],
+          engineVersion: ['1', '2', '3'],
         },
       }),
       new workflow.WorkflowJob(redisTestContainerJob, {
