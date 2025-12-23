@@ -32,7 +32,9 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -217,5 +219,86 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
 
         // Then
         assertThat(response).hasStatus(FORBIDDEN_403);
+    }
+
+    @Test
+    void should_use_TOP_NAVBAR_when_area_is_not_provided() {
+        // Given
+        var items = PortalNavigationItemFixtures.sampleNavigationItems();
+        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(items);
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
+    }
+
+    @Test
+    void should_return_200_when_valid_area_is_provided() {
+        // Given
+        var items = PortalNavigationItemFixtures.sampleNavigationItems();
+        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        portalNavigationItemsQueryService.initWith(items);
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("area", "TOP_NAVBAR").queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
+    }
+
+    @Test
+    void should_return_400_when_invalid_area_is_provided() {
+        // Given
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("area", "invalidArea").queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response).hasStatus(400);
+
+        Map<String, Object> body = response.readEntity(new GenericType<>() {});
+
+        assertThat(body)
+            .containsKey("message")
+            .extractingByKey("message")
+            .asString()
+            .contains("Invalid value")
+            .contains("invalidArea")
+            .contains("area");
     }
 }
