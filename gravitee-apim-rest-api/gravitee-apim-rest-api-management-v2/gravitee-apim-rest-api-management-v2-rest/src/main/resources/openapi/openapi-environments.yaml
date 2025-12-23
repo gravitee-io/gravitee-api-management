@@ -1792,6 +1792,7 @@ components:
       description: The portal area (used by portal navigation items)
       enum: [ HOMEPAGE, TOP_NAVBAR ]
       example: TOP_NAVBAR
+      default: TOP_NAVBAR
     PortalVisibility:
       type: string
       description: The portal visibility (used by portal navigation items)
@@ -2246,7 +2247,7 @@ components:
       name: area
       in: query
       description: The portal area (eg. "homepage", "top_navbar")
-      required: true
+      required: false
       schema:
         $ref: "#/components/schemas/PortalArea"
 
