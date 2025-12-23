@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { CustomUserFields } from '../entities/user/custom-user-fields';
+import { CustomUserField } from '../entities/user/custom-user-field';
 import { User } from '../entities/user/user';
 
 export interface RegisterUserInput {
@@ -72,8 +72,8 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  listCustomUserFields(): Observable<Array<CustomUserFields>> {
-    return this.http.get<Array<CustomUserFields>>(`${this.configService.baseURL}/configuration/users/custom-fields`);
+  listCustomUserFields(): Observable<Array<CustomUserField>> {
+    return this.http.get<Array<CustomUserField>>(`${this.configService.baseURL}/configuration/users/custom-fields`);
   }
 
   registerNewUser(user: RegisterUserInput) {

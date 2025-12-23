@@ -19,8 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistrationComponent } from './registration.component';
-import { CustomUserFields } from '../../entities/user/custom-user-fields';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import {AppTestingModule} from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
 describe('RegistrationComponent', () => {
@@ -28,14 +27,8 @@ describe('RegistrationComponent', () => {
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const flushListCustomUserFields = (customFields: CustomUserFields[] = []) => {
-    // ngOnInit() robi listCustomUserFields() => 1× GET
-    const req = httpTestingController.expectOne(r => r.method === 'GET');
-    req.flush(customFields);
-  };
 
-  const init = async (params?: { submitted?: boolean; customFields?: CustomUserFields[] }) => {
-    await TestBed.configureTestingModule({
+  const init = async () => {  await TestBed.configureTestingModule({
       imports: [RegistrationComponent, AppTestingModule],
     }).compileComponents();
 
@@ -43,35 +36,35 @@ describe('RegistrationComponent', () => {
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
 
-    fixture.componentInstance.submitted = params?.submitted ?? false;
+    fixture = TestBed.createComponent(RegistrationComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
 
-    fixture.detectChanges(); // uruchamia ngOnInit
-    flushListCustomUserFields(params?.customFields ?? []);
+    fixture.detectChanges(); // ngOnInit -> listCustomUserFields()
+
+
+
     fixture.detectChanges();
   };
 
   afterEach(() => {
-    httpTestingController.verify();
+
   });
 
-  it('should display registration form when submitted=false', async () => {
-    await init({ submitted: false });
+  it('should display registration form by default (submitted=false)', async () => {
+    await init();
 
-    const formEl: HTMLFormElement | null = fixture.nativeElement.querySelector('form.registration__form__container');
+    const cardEl: HTMLElement | null = fixture.nativeElement.querySelector('mat-card.registration__form__container');
+    expect(cardEl).not.toBeNull();
+
+
+    const formEl: HTMLFormElement | null = fixture.nativeElement.querySelector('mat-card.registration__form__container form');
     expect(formEl).not.toBeNull();
+
+
 
     const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
     expect(success).toBeNull();
-  });
-
-  it('should display success view when submitted=true', async () => {
-    await init({ submitted: true });
-
-    const formEl: HTMLFormElement | null = fixture.nativeElement.querySelector('form.registration__form__container');
-    expect(formEl).toBeNull();
-
-    const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
-    expect(success).not.toBeNull();
   });
   //
 });

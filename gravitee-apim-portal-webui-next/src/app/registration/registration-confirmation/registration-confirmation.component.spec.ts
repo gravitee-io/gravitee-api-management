@@ -17,14 +17,12 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs/internal/observable/of';
 
 import { RegistrationConfirmationComponent } from './registration-confirmation.component';
 import { TokenService } from '../../../services/token.service';
 import { AppTestingModule } from '../../../testing/app-testing.module';
-import { DivHarness } from '../../../testing/div.harness';
 
 describe('RegistrationConfirmationComponent', () => {
   let fixture: ComponentFixture<RegistrationConfirmationComponent>;
@@ -33,26 +31,24 @@ describe('RegistrationConfirmationComponent', () => {
 
   const init = async (params?: {
     token?: string;
-    submitted?: boolean;
-    parsedToken?: { firstname: string; lastname: string; email: string };
+    parsedToken?: { firstname: string; lastname: string; email: string } | null;
   }) => {
     const token = params?.token ?? 'token-123';
-    const parsedToken = params?.parsedToken ?? { firstname: 'John', lastname: 'Doe', email: 'john@doe.com' };
+
+    const defaultParsed = { firstname: 'John', lastname: 'Doe', email: 'john@doe.com' };
+    const parsedToken =
+      params && 'parsedToken' in params ? params.parsedToken : defaultParsed;
 
     await TestBed.configureTestingModule({
       imports: [RegistrationConfirmationComponent, AppTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: {
-            paramMap: of(convertToParamMap({ token })),
-          },
+          useValue: { paramMap: of(convertToParamMap({ token })) },
         },
         {
           provide: TokenService,
-          useValue: {
-            parseToken: jest.fn().mockReturnValue(parsedToken),
-          } as Partial<TokenService>,
+          useValue: { parseToken: jest.fn().mockReturnValue(parsedToken) } as Partial<TokenService>,
         },
       ],
     }).compileComponents();
@@ -69,25 +65,18 @@ describe('RegistrationConfirmationComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should display confirmation form when submitted=false and form is built', async () => {
-    await init({ submitted: false });
+  it('should display invalid token view when token cannot be parsed', async () => {
+    await init({ parsedToken: null });
 
-    const formEl: HTMLFormElement | null = fixture.nativeElement.querySelector('form.registration-confirmation__form__container');
-    expect(formEl).not.toBeNull();
+    // error() === 401 -> "Invalid token" + "Bad request. Invalid token value"
+    const titleEl: HTMLElement | null = fixture.nativeElement.querySelector('.registration-confirmation__form__title');
+    expect(titleEl).not.toBeNull();
+    expect(titleEl!.textContent).toContain('Invalid token');
 
-    const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration-confirmation__success__container' }));
-    expect(success).toBeNull();
+    const errorEl: HTMLElement | null = fixture.nativeElement.querySelector('mat-error');
+    expect(errorEl).not.toBeNull();
+    expect(errorEl!.textContent).toContain('Bad request. Invalid token value');
 
-    const firstname = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
-    expect(await firstname.isDisabled()).toEqual(true);
-    expect(await firstname.getValue()).toEqual('John');
 
-    const lastname = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
-    expect(await lastname.isDisabled()).toEqual(true);
-    expect(await lastname.getValue()).toEqual('Doe');
-
-    const email = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
-    expect(await email.isDisabled()).toEqual(true);
-    expect(await email.getValue()).toEqual('john@doe.com');
   });
 });

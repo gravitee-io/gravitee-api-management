@@ -16,7 +16,7 @@
 /**
  * Definition of addition user registration fields
  */
-export interface CustomUserFields {
+export interface CustomUserField {
   /**
    * The field identifier.
    */

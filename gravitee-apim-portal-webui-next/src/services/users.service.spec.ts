@@ -17,8 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
-import { UsersService } from './users.service';
-import { CustomUserFields } from '../entities/user/custom-user-fields';
+import {FinalizeRegistrationInput, RegisterUserInput, UsersService} from './users.service';
+import { CustomUserField } from '../entities/user/custom-user-field';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('UsersService', () => {
@@ -46,7 +46,7 @@ describe('UsersService', () => {
   });
 
   it('should list custom user fields', () => {
-    const apiResponse: CustomUserFields[] = [
+    const apiResponse: CustomUserField[] = [
       { key: 'company', label: 'Company', required: true, values: [] },
       { key: 'country', label: 'Country', required: false, values: ['PL', 'DE'] },
     ];
@@ -57,6 +57,49 @@ describe('UsersService', () => {
 
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/users/custom-fields`);
     expect(req.request.method).toBe('GET');
+
+    req.flush(apiResponse);
+  });
+
+  it('should register new user', () => {
+    const input: RegisterUserInput = {
+      email: 'john@doe.com',
+      firstname: 'John',
+      lastname: 'Doe',
+      confirmation_page_url: 'http://example.local/confirm',
+      customFields: { company: 'Acme Inc' },
+    };
+
+    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as any;
+
+    service.registerNewUser(input).subscribe(res => {
+      expect(res).toEqual(apiResponse);
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/registration`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(input);
+
+    req.flush(apiResponse);
+  });
+
+  it('should finalize registration', () => {
+    const input: FinalizeRegistrationInput = {
+      token: 'token-123',
+      password: 'Secret123!',
+      firstname: 'John',
+      lastname: 'Doe',
+    };
+
+    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as any;
+
+    service.finalizeRegistration(input).subscribe(res => {
+      expect(res).toEqual(apiResponse);
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/registration/_finalize`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(input);
 
     req.flush(apiResponse);
   });

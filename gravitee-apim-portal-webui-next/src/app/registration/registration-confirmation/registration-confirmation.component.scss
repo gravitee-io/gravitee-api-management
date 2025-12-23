@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 @use '../../../scss/theme';
+@use '../../../scss/layout' as layout;
 
 :host {
   display: flex;
   justify-content: center;
+  @include layout.small-container-legacy();
 }
 
 .registration-confirmation {
@@ -26,15 +28,23 @@
   gap: 20px;
 
   &__success {
-    &__container {
+    &__content {
       display: flex;
       flex-flow: column;
       align-items: center;
       gap: 16px;
+      text-align: center;
 
       &__icon {
-        font-size: 3em;
-        transform: scale(4);
+        font-size: 64px;
+
+        mat-icon {
+          width: 64px;
+          height: 64px;
+          font-size: 64px;
+          line-height: 64px;
+          text-align: center;
+        }
       }
     }
   }

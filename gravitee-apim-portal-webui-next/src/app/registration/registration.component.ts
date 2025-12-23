@@ -22,10 +22,10 @@ import { MatIcon } from '@angular/material/icon';
 import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
-import { tap } from 'rxjs';
+import { catchError, EMPTY, tap } from 'rxjs';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
-import { CustomUserFields } from '../../entities/user/custom-user-fields';
+import { CustomUserField } from '../../entities/user/custom-user-field';
 import { UsersService } from '../../services/users.service';
 
 interface UserRegistrationFormValue {
@@ -50,8 +50,6 @@ interface UserRegistrationFormValue {
     ReactiveFormsModule,
     RouterLink,
     MobileClassDirective,
-    MatError,
-    MatFormField,
     MatOption,
     MatSelect,
     MatIcon,
@@ -60,10 +58,10 @@ interface UserRegistrationFormValue {
   styleUrl: './registration.component.scss',
 })
 export class RegistrationComponent implements OnInit {
-  submitted: boolean = false;
-  sentToEmail = '';
+  submitted = signal(false);
+  sentToEmail = signal('');
 
-  customUserFields: CustomUserFields[] = [];
+  customUserFields = signal<CustomUserField[]>([]);
 
   registrationForm: FormGroup<{
     firstname: FormControl;
@@ -88,7 +86,7 @@ export class RegistrationComponent implements OnInit {
       .listCustomUserFields()
       .pipe(
         tap(customUserFields => {
-          this.customUserFields = customUserFields;
+          this.customUserFields.set(customUserFields);
           if ((customUserFields || []).length > 0) {
             const customFields = new FormGroup({});
             for (const customUserField of customUserFields) {
@@ -108,9 +106,18 @@ export class RegistrationComponent implements OnInit {
 
     this.usersService
       .registerNewUser({ ...userRegistrationFormValue, confirmation_page_url: confirmationPageUrl })
-
-      .pipe(tap(() => (this.sentToEmail = userRegistrationFormValue.email)))
-      .pipe(tap(() => (this.submitted = true)))
+      .pipe(
+        catchError(err => {
+          this.error.set(err.status);
+          return EMPTY;
+        }),
+      )
+      .pipe(
+        tap(() => {
+          this.sentToEmail.set(userRegistrationFormValue.email);
+          this.submitted.set(true);
+        }),
+      )
       .subscribe();
   }
 }

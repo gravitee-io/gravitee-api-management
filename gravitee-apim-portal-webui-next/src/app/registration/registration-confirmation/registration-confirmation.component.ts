@@ -22,7 +22,7 @@ import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, tap } from 'rxjs';
+import { catchError, EMPTY, filter, map, tap } from 'rxjs';
 
 import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { TokenService } from '../../../services/token.service';
@@ -70,11 +70,24 @@ interface RegistrationConfirmationFormValue {
   styleUrl: './registration-confirmation.component.scss',
 })
 export class RegistrationConfirmationComponent implements OnInit {
-  registrationConfirmationForm?: RegistrationConfirmationFormType;
+  registrationConfirmationForm: RegistrationConfirmationFormType = new FormGroup<{
+    firstname: FormControl<string | null>;
+    lastname: FormControl<string | null>;
+    email: FormControl<string | null>;
+    password: FormControl<string | null>;
+    confirmedPassword: FormControl<string | null>;
+  }>({
+    firstname: new FormControl({ value: '', disabled: true }),
+    lastname: new FormControl({ value: '', disabled: true }),
+    email: new FormControl({ value: '', disabled: true }),
+    password: new FormControl('', Validators.required),
+    confirmedPassword: new FormControl('', Validators.required),
+  });
+
   token: string | null = null;
   userFromToken?: RegistrationToken;
 
-  submitted: boolean = false;
+  submitted = signal(false);
 
   error = signal(200);
 
@@ -93,50 +106,31 @@ export class RegistrationConfirmationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.registrationConfirmationForm
+      .get('confirmedPassword')!
+      .setValidators([
+        Validators.required,
+        RegistrationConfirmationComponent.sameValueValidator(this.registrationConfirmationForm.get('password')!),
+      ]);
     this.route.paramMap
-      .pipe(map(params => params.get('token')))
-      .pipe(tap(token => (this.token = token)))
-      .pipe(map(token => this.tokenService.parseToken(token)))
       .pipe(
-        map(userFromToken => {
-          if (userFromToken) {
-            return userFromToken;
-          } else {
-            throw Error('Bad Request');
+        map(params => params.get('token')),
+        tap(token => (this.token = token)),
+        map(token => this.tokenService.parseToken(token)),
+        tap(userFromToken => {
+          if (!userFromToken) {
+            this.error.set(401);
           }
         }),
-        catchError((msg, err) => {
-          this.error.set(400);
-          return err;
-        }),
-      )
-      .pipe(
+        filter(userFromToken => !!userFromToken),
         tap(userFromToken => {
           this.userFromToken = userFromToken;
-          this.registrationConfirmationForm = new FormGroup<{
-            firstname: FormControl<string | null>;
-            lastname: FormControl<string | null>;
-            email: FormControl<string | null>;
-            password: FormControl<string | null>;
-            confirmedPassword: FormControl<string | null>;
-          }>({
-            firstname: new FormControl({ value: this.userFromToken!.firstname || '', disabled: true }),
-            lastname: new FormControl({ value: this.userFromToken!.lastname, disabled: true }),
-            email: new FormControl({ value: this.userFromToken!.email, disabled: true }),
-            password: new FormControl('', Validators.required),
-            confirmedPassword: new FormControl('', Validators.required),
-          });
-
-          this.registrationConfirmationForm
-            .get('confirmedPassword')!
-            .setValidators([
-              Validators.required,
-              RegistrationConfirmationComponent.sameValueValidator(this.registrationConfirmationForm.get('password')!),
-            ]);
+          this.registrationConfirmationForm.get('firstname')?.patchValue(this.userFromToken?.firstname || '');
+          this.registrationConfirmationForm.get('lastname')?.patchValue(this.userFromToken?.lastname || '');
+          this.registrationConfirmationForm.get('email')?.patchValue(this.userFromToken?.email || '');
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
-
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
@@ -153,10 +147,10 @@ export class RegistrationConfirmationComponent implements OnInit {
       .pipe(
         catchError(_ => {
           this.error.set(400);
-          throw Error('Invalid user password');
+          return EMPTY;
         }),
       )
-      .pipe(tap(_ => (this.submitted = true)))
+      .pipe(tap(_ => this.submitted.set(true)))
       .subscribe();
   }
 }

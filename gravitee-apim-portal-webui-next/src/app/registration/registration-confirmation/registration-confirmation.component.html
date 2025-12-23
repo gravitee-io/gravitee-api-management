@@ -15,23 +15,28 @@
     limitations under the License.
 
 -->
-@if (error() === 400 && !registrationConfirmationForm) {
-  <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value </mat-error>
-}
 
-@if (registrationConfirmationForm && !submitted) {
-  <form
-    [formGroup]="registrationConfirmationForm"
-    (ngSubmit)="confirmRegistration()"
-    class="registration-confirmation__form__container"
-    [appIsMobile]="'registrationConfirmation__form__container--mobile'">
-    <mat-card appearance="outlined" class="log-in">
-      <mat-card-header class="registration-confirmation__form__header">
-        <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
-          >CONFIRM THE REGISTRATION</mat-card-title
-        >
-      </mat-card-header>
+<mat-card appearance="outlined" class="registration-confirmation registration-confirmation__form__container content">
+  @if (error() === 401) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTokenErrorTitle">
+        Invalid token
+      </mat-card-title>
       <mat-card-content class="registration-confirmation__form__content">
+        <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value</mat-error>
+      </mat-card-content>
+    </mat-card-header>
+  } @else if (!submitted()) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
+        >Confirm registration
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="registration-confirmation__form__content">
+      <form
+        [formGroup]="registrationConfirmationForm"
+        (ngSubmit)="confirmRegistration()"
+        [appIsMobile]="'registrationConfirmation__form__container--mobile'">
         <div class="registration-confirmation__form">
           <div class="registration-confirmation__form__fields">
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
@@ -45,17 +50,17 @@
               <mat-label i18n="@@registrationConfirmationUsername">Lastname</mat-label>
               <input matInput formControlName="lastname" />
               @if (registrationConfirmationForm.controls.lastname.hasError('required')) {
-                <mat-error i18n="@@registrationConfirmationUsernameErrorRequired">Lastname is required</mat-error>
+                <mat-error i18n="@@registrationConfirmationLastnameErrorRequired">Lastname is required</mat-error>
               }
             </mat-form-field>
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
-              <mat-label i18n="@@registrationConfirmationPassword">Email</mat-label>
+              <mat-label i18n="@@registrationConfirmationEmail">Email</mat-label>
               <input type="text" matInput formControlName="email" />
               @if (registrationConfirmationForm.controls.email.hasError('required')) {
-                <mat-error i18n="@@registrationConfirmationPasswordErrorRequired">Email is required</mat-error>
+                <mat-error i18n="@@registrationConfirmationEmailErrorRequired">Email is required</mat-error>
               }
               @if (registrationConfirmationForm.controls.email.hasError('email')) {
-                <mat-error i18n="@@registrationConfirmationPasswordErrorRequired">Email format error</mat-error>
+                <mat-error i18n="@@registrationConfirmationEmailErrorFormat">Email format error</mat-error>
               }
             </mat-form-field>
 
@@ -75,7 +80,7 @@
             </mat-form-field>
           </div>
           @if (error() === 400) {
-            <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid password </mat-error>
+            <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid password</mat-error>
           }
           <div class="registration-confirmation__form__buttons">
             <button
@@ -88,27 +93,27 @@
             </button>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </form>
-}
-
-@if (submitted) {
-  <div class="registration-confirmation__success__container">
-    <div class="registration-confirmation__success__container__icon">
-      <mat-icon>how_to_reg</mat-icon>
-    </div>
-
-    <h2 i18n="@@resetPasswordAction">Registration confirmed</h2>
-    <div>An email has been confirmed</div>
-
-    <button
-      type="submit"
-      mat-flat-button
-      i18n="@@registrationConfirmationAction"
-      class="registration-confirmation__form__submit"
-      routerLink="/">
-      Back to portal
-    </button>
-  </div>
-}
+      </form>
+    </mat-card-content>
+  } @else if (submitted()) {
+    <mat-card-header class="registration-confirmation__form__header">
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
+        >Registration confirmed
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="registration-confirmation__success__content">
+      <div class="registration-confirmation__success__content__icon">
+        <mat-icon>how_to_reg</mat-icon>
+      </div>
+      <div i18n="@@registrationConfirmationSuccessMessage">An email has been confirmed</div>
+      <button
+        type="submit"
+        mat-flat-button
+        i18n="@@registrationConfirmationAction"
+        class="registration-confirmation__form__submit"
+        routerLink="/">
+        Back to portal
+      </button>
+    </mat-card-content>
+  }
+</mat-card>
