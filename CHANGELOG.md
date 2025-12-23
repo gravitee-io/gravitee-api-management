@@ -1,3 +1,10 @@
+## [7.4.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.4.0...7.4.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* rework index template management ([c85613e](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/c85613e3f65a3f706c24590fa420785a6d4a8a39))
+
 # [7.4.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.3.1...7.4.0) (2025-12-22)
 
 
