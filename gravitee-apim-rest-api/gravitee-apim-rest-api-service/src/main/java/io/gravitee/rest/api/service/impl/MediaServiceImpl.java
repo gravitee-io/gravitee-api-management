@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MediaValidationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
@@ -53,12 +54,20 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
     private final MediaRepository mediaRepository;
 
+    private final MediaValidationService mediaValidationService;
+
     private final ConfigService configService;
 
     private final ObjectMapper objectMapper;
 
-    public MediaServiceImpl(@Lazy MediaRepository mediaRepository, ConfigService configService, ObjectMapper objectMapper) {
+    public MediaServiceImpl(
+        @Lazy MediaRepository mediaRepository,
+        MediaValidationService mediaValidationService,
+        ConfigService configService,
+        ObjectMapper objectMapper
+    ) {
         this.mediaRepository = mediaRepository;
+        this.mediaValidationService = mediaValidationService;
         this.configService = configService;
         this.objectMapper = objectMapper;
     }
@@ -70,6 +79,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
     @Override
     public String saveApiMedia(ExecutionContext context, String api, MediaEntity mediaEntity) {
+        this.mediaValidationService.validate(mediaEntity);
         try {
             // disable sonar as md5 is not used for security purpose here,
             // and we don't want to slow down the startup process

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MediaValidationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -64,6 +65,9 @@ public class MediaServiceTest extends TestCase {
     private MediaRepository mediaRepository;
 
     @Mock
+    private MediaValidationService mediaValidationService;
+
+    @Mock
     private ConfigService configService;
 
     private MediaService mediaService;
@@ -71,7 +75,7 @@ public class MediaServiceTest extends TestCase {
     @Override
     @Before
     public void setUp() throws Exception {
-        mediaService = new MediaServiceImpl(mediaRepository, configService, MAPPER);
+        mediaService = new MediaServiceImpl(mediaRepository, mediaValidationService, configService, MAPPER);
     }
 
     @Test
