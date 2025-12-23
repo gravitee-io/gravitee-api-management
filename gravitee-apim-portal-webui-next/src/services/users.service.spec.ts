@@ -17,8 +17,9 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
-import {FinalizeRegistrationInput, RegisterUserInput, UsersService} from './users.service';
+import { FinalizeRegistrationInput, RegisterUserInput, UsersService } from './users.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
+import { User } from '../entities/user/user';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('UsersService', () => {
@@ -70,7 +71,7 @@ describe('UsersService', () => {
       customFields: { company: 'Acme Inc' },
     };
 
-    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as any;
+    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as User;
 
     service.registerNewUser(input).subscribe(res => {
       expect(res).toEqual(apiResponse);
@@ -91,7 +92,7 @@ describe('UsersService', () => {
       lastname: 'Doe',
     };
 
-    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as any;
+    const apiResponse = { id: 'user-1', email: 'john@doe.com' } as User;
 
     service.finalizeRegistration(input).subscribe(res => {
       expect(res).toEqual(apiResponse);

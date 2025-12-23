@@ -15,41 +15,30 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistrationComponent } from './registration.component';
-import {AppTestingModule} from '../../testing/app-testing.module';
+import { AppTestingModule } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
 describe('RegistrationComponent', () => {
   let fixture: ComponentFixture<RegistrationComponent>;
   let harnessLoader: HarnessLoader;
-  let httpTestingController: HttpTestingController;
 
-
-  const init = async () => {  await TestBed.configureTestingModule({
+  const init = async () => {
+    await TestBed.configureTestingModule({
       imports: [RegistrationComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegistrationComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    httpTestingController = TestBed.inject(HttpTestingController);
-
-    fixture = TestBed.createComponent(RegistrationComponent);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges(); // ngOnInit -> listCustomUserFields()
-
-
 
     fixture.detectChanges();
   };
 
-  afterEach(() => {
-
-  });
+  afterEach(() => {});
 
   it('should display registration form by default (submitted=false)', async () => {
     await init();
@@ -57,11 +46,8 @@ describe('RegistrationComponent', () => {
     const cardEl: HTMLElement | null = fixture.nativeElement.querySelector('mat-card.registration__form__container');
     expect(cardEl).not.toBeNull();
 
-
     const formEl: HTMLFormElement | null = fixture.nativeElement.querySelector('mat-card.registration__form__container form');
     expect(formEl).not.toBeNull();
-
-
 
     const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
     expect(success).toBeNull();

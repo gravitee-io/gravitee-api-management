@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -26,18 +24,14 @@ import { AppTestingModule } from '../../../testing/app-testing.module';
 
 describe('RegistrationConfirmationComponent', () => {
   let fixture: ComponentFixture<RegistrationConfirmationComponent>;
-  let harnessLoader: HarnessLoader;
+
   let httpTestingController: HttpTestingController;
 
-  const init = async (params?: {
-    token?: string;
-    parsedToken?: { firstname: string; lastname: string; email: string } | null;
-  }) => {
+  const init = async (params?: { token?: string; parsedToken?: { firstname: string; lastname: string; email: string } | null }) => {
     const token = params?.token ?? 'token-123';
 
     const defaultParsed = { firstname: 'John', lastname: 'Doe', email: 'john@doe.com' };
-    const parsedToken =
-      params && 'parsedToken' in params ? params.parsedToken : defaultParsed;
+    const parsedToken = params && 'parsedToken' in params ? params.parsedToken : defaultParsed;
 
     await TestBed.configureTestingModule({
       imports: [RegistrationConfirmationComponent, AppTestingModule],
@@ -54,7 +48,7 @@ describe('RegistrationConfirmationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegistrationConfirmationComponent);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
@@ -76,7 +70,5 @@ describe('RegistrationConfirmationComponent', () => {
     const errorEl: HTMLElement | null = fixture.nativeElement.querySelector('mat-error');
     expect(errorEl).not.toBeNull();
     expect(errorEl!.textContent).toContain('Bad request. Invalid token value');
-
-
   });
 });
