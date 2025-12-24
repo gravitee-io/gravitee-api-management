@@ -141,6 +141,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.reporter</groupId>
+            <artifactId>gravitee-apim-reporter-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-alert</artifactId>
         </dependency>
