@@ -1164,11 +1164,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                List<Double> trend = new ArrayList<>(Arrays.asList(null, 20D, 20D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, null));
+                List<Double> expectedSequence = new ArrayList<>(Arrays.asList(20D, 20D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D));
                 assertThat(data).containsKey("downstream-publish-messages-count-increment");
                 assertThat(data).containsKey("upstream-publish-messages-count-increment");
-                assertThat(data.get("downstream-publish-messages-count-increment")).isEqualTo(trend);
-                assertThat(data.get("upstream-publish-messages-count-increment")).isEqualTo(trend);
+                // Expect a sequence because it can be captured in a histogram that starts more or less early. This avoids flaky
+                assertThat(data.get("downstream-publish-messages-count-increment")).containsSequence(expectedSequence);
+                assertThat(data.get("upstream-publish-messages-count-increment")).containsSequence(expectedSequence);
             });
         }
 
@@ -1189,13 +1190,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Double>> data = aggregate.values();
-                List<Double> trend = new ArrayList<>(
-                    Arrays.asList(null, 33.333D, 33.333D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 83.333D, 83.333D, null)
+                List<Double> expectedSequence = new ArrayList<>(
+                    Arrays.asList(33.333D, 33.333D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 83.333D, 83.333D)
                 );
                 assertThat(data).containsKey("downstream-publish-message-bytes-increment");
                 assertThat(data).containsKey("upstream-publish-message-bytes-increment");
-                assertThat(data.get("downstream-publish-message-bytes-increment")).isEqualTo(trend);
-                assertThat(data.get("upstream-publish-message-bytes-increment")).isEqualTo(trend);
+                // Expect a sequence because it can be captured in a histogram that starts more or less early. This avoids flaky
+                assertThat(data.get("downstream-publish-message-bytes-increment")).containsSequence(expectedSequence);
+                assertThat(data.get("upstream-publish-message-bytes-increment")).containsSequence(expectedSequence);
             });
         }
 
