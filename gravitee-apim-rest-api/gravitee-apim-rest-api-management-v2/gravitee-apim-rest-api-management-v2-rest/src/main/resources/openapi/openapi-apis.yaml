@@ -3042,6 +3042,31 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/api-products:
+      get:
+        tags:
+          - API Product
+        summary: Get API Products for a an API
+        description: Returns the list of API Products that include the specified API.
+        operationId: getApiProductsForApi
+        parameters:
+          - $ref: "#/components/parameters/envIdParam"
+          - $ref: "#/components/parameters/apiIdParam"
+        responses:
+          '200':
+            description: List of API Products for the API
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ApiProduct'
+          default:
+            $ref: "#/components/responses/Error"
+
 components:
     schemas:
         Analytics:
@@ -8382,6 +8407,42 @@ components:
               type: string
             agentMessageId:
               type: string
+
+        ApiProduct:
+          type: object
+          title: "ApiProduct"
+          description: API Product representation
+          properties:
+            id:
+              type: string
+              description: The API Product ID
+              example: "api-product-123"
+            environmentId:
+              type: string
+              description: The environment ID
+              example: "DEFAULT"
+            name:
+              type: string
+              description: The API Product name
+              example: "My API Product"
+            description:
+              type: string
+              description: The API Product description
+              example: "A bundle of public APIs"
+            version:
+              type: string
+              description: The API Product version
+              example: "1.0.0"
+            createdAt:
+              type: string
+              format: date-time
+              description: API Product creation date
+              example: "2025-01-01T10:15:30Z"
+            updatedAt:
+              type: string
+              format: date-time
+              description: API Product last update date
+              example: "2025-01-01T10:15:30Z"
 
     parameters:
         #############

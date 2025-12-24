@@ -512,4 +512,14 @@ public class InMemoryConfiguration {
     public PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService() {
         return new PortalNavigationItemsCrudServiceInMemory();
     }
+
+    @Bean
+    public ApiProductCrudServiceInMemory apiProductCrudService() {
+        return new ApiProductCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApiProductQueryServiceInMemory apiProductQueryService(ApiProductCrudServiceInMemory apiProductCrudServiceInMemory) {
+        return new ApiProductQueryServiceInMemory();
+    }
 }

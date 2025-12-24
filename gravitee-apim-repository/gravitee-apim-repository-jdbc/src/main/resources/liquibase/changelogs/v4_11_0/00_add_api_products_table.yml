@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_00_add_api_products_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: {name: description, type: clob, constraints: { nullable: true } }
+              - column: {name: version, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}api_products
+            columnNames: id
+            tableName: ${gravitee_prefix}api_products
+        - createIndex:
+            indexName: idx_${gravitee_prefix}api_products_env_name
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column:
+                  name: environment_id
+              - column:
+                  name: name

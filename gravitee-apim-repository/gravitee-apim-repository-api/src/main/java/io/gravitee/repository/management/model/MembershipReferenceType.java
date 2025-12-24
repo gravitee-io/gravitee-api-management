@@ -28,4 +28,5 @@ public enum MembershipReferenceType {
     PLATFORM,
     INTEGRATION,
     CLUSTER,
+    API_PRODUCT,
 }

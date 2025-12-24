@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api_product.ApiProductsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource;
@@ -134,5 +135,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/proxy-kafka-console")
     public ProxyKafkaConsoleResource getProxyKafkaConsoleResource() {
         return resourceContext.getResource(ProxyKafkaConsoleResource.class);
+    }
+
+    @Path("/api-products")
+    public ApiProductsResource getApiProductsResource() {
+        return resourceContext.getResource(ApiProductsResource.class);
     }
 }
