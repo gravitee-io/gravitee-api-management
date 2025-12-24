@@ -84,7 +84,10 @@ public class DatabaseHydrator {
             })
             .flatMapCompletable(entry -> {
                 if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
-                    if (this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7")) {
+                    if (
+                        this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7") &&
+                        !entry.getKey().contains(Type.EVENT_METRICS.getType())
+                    ) {
                         return client.putTemplate(entry.getKey(), entry.getValue());
                     }
                     return client.putIndexTemplate(entry.getKey(), entry.getValue());
