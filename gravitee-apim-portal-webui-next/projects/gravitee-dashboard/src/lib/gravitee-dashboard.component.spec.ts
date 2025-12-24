@@ -26,6 +26,7 @@ import { FacetsResponse } from './components/widget/model/response/facets-respon
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { Widget } from './components/widget/model/widget/widget';
 import { GraviteeDashboardComponent } from './gravitee-dashboard.component';
+import { GRAVITEE_DASHBOARD_CONFIG } from './gravitee-dashboard.token';
 
 describe('GraviteeDashboardComponent', () => {
   let component: GraviteeDashboardComponent;
@@ -55,6 +56,10 @@ describe('GraviteeDashboardComponent', () => {
             navigate: jest.fn().mockResolvedValue(true),
           },
         },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
+        },
       ],
     }).compileComponents();
 
@@ -64,7 +69,6 @@ describe('GraviteeDashboardComponent', () => {
     router = TestBed.inject(Router);
     activatedRoute = TestBed.inject(ActivatedRoute);
 
-    fixture.componentRef.setInput('baseURL', mockBaseURL);
     fixture.componentRef.setInput('filters', mockFilters);
     fixture.componentRef.setInput('widgetConfigs', []);
     fixture.detectChanges();
@@ -416,11 +420,15 @@ describe('GraviteeDashboardComponent', () => {
             navigate: jest.fn().mockResolvedValue(true),
           },
         },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
+        },
       ],
     });
 
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
+
     newFixture.componentRef.setInput('filters', mockFilters);
     newFixture.componentRef.setInput('widgetConfigs', []);
     newFixture.detectChanges();
@@ -456,11 +464,14 @@ describe('GraviteeDashboardComponent', () => {
             navigate: jest.fn().mockResolvedValue(true),
           },
         },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
+        },
       ],
     });
 
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
     newFixture.componentRef.setInput('widgetConfigs', []);
     newFixture.detectChanges();
@@ -496,12 +507,15 @@ describe('GraviteeDashboardComponent', () => {
             navigate: jest.fn().mockResolvedValue(true),
           },
         },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
+        },
       ],
     });
 
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
     const newHttpTestingController = TestBed.inject(HttpTestingController);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
     newFixture.componentRef.setInput('filters', mockFilters);
     newFixture.componentRef.setInput('widgetConfigs', [
       {
@@ -569,11 +583,15 @@ describe('GraviteeDashboardComponent', () => {
             navigate: jest.fn().mockResolvedValue(true),
           },
         },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
+        },
       ],
     });
 
     const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
-    newFixture.componentRef.setInput('baseURL', mockBaseURL);
+
     newFixture.componentRef.setInput('filters', mockFilters);
     newFixture.componentRef.setInput('widgetConfigs', []);
     newFixture.detectChanges();
@@ -610,6 +628,10 @@ describe('GraviteeDashboardComponent', () => {
           useValue: {
             navigate: jest.fn().mockResolvedValue(true),
           },
+        },
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: mockBaseURL },
         },
       ],
     });

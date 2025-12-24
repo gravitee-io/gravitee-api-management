@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChartData } from 'chart.js';
+import { InjectionToken, Provider } from '@angular/core';
 
-import { PieType } from './chart/pie-chart/pie-chart.component';
-import { Metric, MetricsResponse } from './widget/model/response/response';
+export interface GraviteeDashboardConfig {
+  baseUrl: string;
+}
 
-export interface Converter {
-  convert(data: MetricsResponse<Metric>): ChartData<PieType | 'line' | 'bar', number[], string> | number[] | string[];
+export const GRAVITEE_DASHBOARD_CONFIG = new InjectionToken<GraviteeDashboardConfig>('GRAVITEE_DASHBOARD_CONFIG');
+
+export function provideGraviteeDashboard(config: GraviteeDashboardConfig): Provider {
+  return {
+    provide: GRAVITEE_DASHBOARD_CONFIG,
+    useValue: config,
+  };
 }

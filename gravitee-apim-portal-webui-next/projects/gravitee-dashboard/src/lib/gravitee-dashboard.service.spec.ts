@@ -23,14 +23,23 @@ import { FacetsResponse } from './components/widget/model/response/facets-respon
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { RequestType } from './components/widget/model/widget/widget';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
+import { GRAVITEE_DASHBOARD_CONFIG } from './gravitee-dashboard.token';
 
 describe('GraviteeDashboardService', () => {
   let service: GraviteeDashboardService;
   let httpTestingController: HttpTestingController;
+  const basePath = 'http://test.api';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: GRAVITEE_DASHBOARD_CONFIG,
+          useValue: { baseUrl: basePath },
+        },
+      ],
     });
     service = TestBed.inject(GraviteeDashboardService);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -73,7 +82,6 @@ describe('GraviteeDashboardService', () => {
 
   describe('getMetrics', () => {
     it('should make POST request for measures endpoint', done => {
-      const basePath = 'http://test.api';
       const endpoint = 'measures';
       const request: MeasuresRequest = {
         type: 'measures',
@@ -92,7 +100,7 @@ describe('GraviteeDashboardService', () => {
         ],
       };
 
-      service.getMetrics(basePath, endpoint, request).subscribe(response => {
+      service.getMetrics(endpoint, request).subscribe(response => {
         expect(response).toEqual(mockResponse);
         done();
       });
@@ -104,7 +112,6 @@ describe('GraviteeDashboardService', () => {
     });
 
     it('should make POST request for facets endpoint', done => {
-      const basePath = 'http://test.api';
       const endpoint = 'facets';
       const request: FacetsRequest = {
         type: 'facets',
@@ -140,7 +147,7 @@ describe('GraviteeDashboardService', () => {
         ],
       };
 
-      service.getMetrics(basePath, endpoint, request).subscribe(response => {
+      service.getMetrics(endpoint, request).subscribe(response => {
         expect(response).toEqual(mockResponse);
         done();
       });
@@ -152,7 +159,6 @@ describe('GraviteeDashboardService', () => {
     });
 
     it('should handle HTTP error responses', done => {
-      const basePath = 'http://test.api';
       const endpoint = 'measures';
       const request: MeasuresRequest = {
         type: 'measures',
@@ -165,7 +171,7 @@ describe('GraviteeDashboardService', () => {
       const errorStatus = 500;
       const errorMessage = 'Internal Server Error';
 
-      service.getMetrics(basePath, endpoint, request).subscribe({
+      service.getMetrics(endpoint, request).subscribe({
         next: () => fail('should have failed with 500 error'),
         error: (error: Error) => {
           expect(error).toBeDefined();
@@ -179,7 +185,6 @@ describe('GraviteeDashboardService', () => {
     });
 
     it('should throw error for unsupported endpoint', () => {
-      const basePath = 'http://test.api';
       const endpoint = 'unsupported' as unknown as RequestType;
       const request: MeasuresRequest = {
         type: 'measures',
@@ -191,7 +196,7 @@ describe('GraviteeDashboardService', () => {
       };
 
       expect(() => {
-        service.getMetrics(basePath, endpoint, request);
+        service.getMetrics(endpoint, request);
       }).toThrow('Endpoint unsupported not supported');
     });
   });

@@ -17,6 +17,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
+import { CHART_COLORS } from '../shared/chart-colors';
 import { PieConverterService } from './converter/pie-converter.service';
 import { FacetsResponse } from '../../widget/model/response/facets-response';
 
@@ -36,7 +37,13 @@ export class PieChartComponent {
   converter = inject(PieConverterService);
 
   public dataFormatted = computed(() => {
-    return this.converter.convert(this.data());
+    const chartData = this.converter.convert(this.data());
+
+    chartData.datasets.forEach(dataset => {
+      dataset.backgroundColor = CHART_COLORS;
+    });
+
+    return chartData;
   });
 
   private getDefaultOptions(): ChartConfiguration<PieType>['options'] {

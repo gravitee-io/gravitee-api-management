@@ -15,11 +15,11 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { LineConverterService } from './line-converter.service';
-import { TimeSeriesBucket, TimeSeriesResponse } from '../../../widget/model/response/time-series-response';
+import { TimeSeriesConverterService } from './time-series-converter.service';
+import { TimeSeriesBucket, TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 
-describe('LineConverterService', () => {
-  let service: LineConverterService;
+describe('TimeSeriesConverterService', () => {
+  let service: TimeSeriesConverterService;
   const makeBaseBucket = (key: string, overrides: Partial<TimeSeriesBucket> = {}): TimeSeriesBucket => ({
     key,
     name: key,
@@ -57,9 +57,9 @@ describe('LineConverterService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [LineConverterService],
+      providers: [TimeSeriesConverterService],
     });
-    service = TestBed.inject(LineConverterService);
+    service = TestBed.inject(TimeSeriesConverterService);
   });
 
   it('should be created', () => {
@@ -75,7 +75,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'line');
 
       expect(result.labels?.length).toBe(2);
       expect(result.datasets.length).toBe(1);
@@ -89,7 +89,7 @@ describe('LineConverterService', () => {
         buckets: [],
       };
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'line');
 
       expect(result.labels).toEqual([]);
       expect(result.datasets).toEqual([]);
@@ -112,7 +112,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'bar');
 
       expect(result.labels?.length).toBe(2);
       expect(result.datasets.length).toBe(2);
@@ -134,7 +134,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'line');
 
       expect(result.labels?.length).toBe(3);
       expect(result.datasets[0].data).toEqual([100, 0, 300]);
@@ -157,7 +157,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'line');
 
       expect(result.labels?.length).toBe(2);
       expect(result.labels?.[0]).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -176,7 +176,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'line');
 
       expect(result.labels?.length).toBe(1);
       expect(result.datasets.length).toBe(2);
@@ -209,7 +209,7 @@ describe('LineConverterService', () => {
         },
       ]);
 
-      const result = service.convert(data);
+      const result = service.convert(data, 'bar');
 
       expect(result.labels?.length).toBe(1);
       expect(result.datasets.length).toBe(2);

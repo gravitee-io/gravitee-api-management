@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ChartData } from 'chart.js';
+import { ChartData, ChartDataset } from 'chart.js';
 
-import { Converter } from '../../../converter';
-import { TimeSeries, TimeSeriesBucket, TimeSeriesResponse } from '../../../widget/model/response/time-series-response';
+import { TimeSeries, TimeSeriesBucket, TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 
 @Injectable({
   providedIn: 'root',
 })
-export class LineConverterService implements Converter {
-  public convert(data: TimeSeriesResponse): ChartData<'line', number[], string> {
+export class TimeSeriesConverterService {
+  public convert<T extends 'line' | 'bar'>(data: TimeSeriesResponse, type: T): ChartData<T, number[], string> {
     const labels: string[] = [];
-    const datasets: ChartData<'line', number[], string>['datasets'] = [];
+    const datasets: ChartDataset[] = [];
 
     if (!data?.metrics?.length) {
-      return { labels, datasets };
+      return { labels, datasets: [] };
     }
 
     this.extractTimeLabelsFromFirstMetric(data, labels);
-    this.processAllMetrics(data, datasets);
+    this.processAllMetrics(data, datasets, type);
 
-    return { labels, datasets };
+    // Casting to specific ChartDataset<T> is required because we built it generically
+    return { labels, datasets: datasets as ChartDataset<T, number[]>[] };
   }
 
   private extractTimeLabelsFromFirstMetric(data: TimeSeriesResponse, labels: string[]): void {
-    // Assuming all metrics share the same time buckets (same timestamps & order),
-    // build labels from the first metric only.
     const firstMetric = data.metrics?.[0];
 
     if (firstMetric?.buckets?.length) {
@@ -49,13 +47,13 @@ export class LineConverterService implements Converter {
     }
   }
 
-  private processAllMetrics(data: TimeSeriesResponse, datasets: ChartData<'line', number[], string>['datasets']): void {
+  private processAllMetrics<T extends 'line' | 'bar'>(data: TimeSeriesResponse, datasets: ChartDataset[], type: T): void {
     data.metrics?.forEach((metric, metricIndex) => {
-      this.processMetric(metric, metricIndex, datasets);
+      this.processMetric(metric, metricIndex, datasets, type);
     });
   }
 
-  private processMetric(metric: TimeSeries, metricIndex: number, datasets: ChartData<'line', number[], string>['datasets']): void {
+  private processMetric<T extends 'line' | 'bar'>(metric: TimeSeries, metricIndex: number, datasets: ChartDataset[], type: T): void {
     const metricBuckets = metric.buckets ?? [];
     const bucketCount = metricBuckets.length;
 
@@ -67,9 +65,9 @@ export class LineConverterService implements Converter {
     const baseMetricLabel = this.getBaseMetricLabel(metric, metricIndex);
 
     if (hasNestedBuckets) {
-      this.buildGroupedDatasetsFromNestedBuckets(metricBuckets, bucketCount, datasets);
+      this.buildGroupedDatasetsFromNestedBuckets(metricBuckets, bucketCount, datasets, type);
     } else {
-      this.buildSimpleDatasetFromMetric(metricBuckets, baseMetricLabel, datasets);
+      this.buildSimpleDatasetFromMetric(metricBuckets, baseMetricLabel, datasets, type);
     }
   }
 
@@ -81,15 +79,17 @@ export class LineConverterService implements Converter {
     return metric.name || `Metric ${metricIndex + 1}`;
   }
 
-  private buildGroupedDatasetsFromNestedBuckets(
+  private buildGroupedDatasetsFromNestedBuckets<T extends 'line' | 'bar'>(
     metricBuckets: TimeSeriesBucket[],
     bucketCount: number,
-    datasets: ChartData<'line', number[], string>['datasets'],
+    datasets: ChartDataset[],
+    type: T,
   ): void {
     const groupMap = this.aggregateNestedBucketValuesByGroup(metricBuckets, bucketCount);
 
     groupMap.forEach((values, groupName) => {
       datasets.push({
+        type,
         label: `${groupName}`,
         data: values,
       });
@@ -119,14 +119,16 @@ export class LineConverterService implements Converter {
     return groupMap;
   }
 
-  private buildSimpleDatasetFromMetric(
+  private buildSimpleDatasetFromMetric<T extends 'line' | 'bar'>(
     metricBuckets: TimeSeriesBucket[],
     baseMetricLabel: string,
-    datasets: ChartData<'line', number[], string>['datasets'],
+    datasets: ChartDataset[],
+    type: T,
   ): void {
     const dataValues: number[] = metricBuckets.map(bucket => this.getBucketValue(bucket));
 
     datasets.push({
+      type,
       label: baseMetricLabel,
       data: dataValues,
     });
@@ -152,7 +154,6 @@ export class LineConverterService implements Converter {
       }
     }
 
-    // Fallback to key when timestamp is not available or cannot be parsed as a valid date.
     return bucket.key ?? '';
   }
 }

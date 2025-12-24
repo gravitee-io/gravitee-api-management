@@ -73,7 +73,7 @@ export default {
             name: bucket.key,
             measures: [
               {
-                name: 'COUNT',
+                name: 'COUNT' as const,
                 value: bucket.value,
               },
             ],
