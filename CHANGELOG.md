@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/4.0.0...4.0.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* remove snapshot dependency ([5a85e73](https://github.com/gravitee-io/gravitee-reporter-file/commit/5a85e73bc84c951c53735a5df41e0c4d3d8105f9))
+
 # [4.0.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.7.1...4.0.0) (2025-12-22)
 
 
