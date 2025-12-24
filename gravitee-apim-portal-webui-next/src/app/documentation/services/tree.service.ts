@@ -33,29 +33,46 @@ type ProcessingNode = TreeNode & {
 };
 
 @Injectable({ providedIn: 'root' })
-export class DocumentationTreeService {
+export class TreeService {
   private parentItemBreadcrumb?: Breadcrumb;
-  private nodesById = new Map<string, ProcessingNode>();
+  private treeNodesById = new Map<string, ProcessingNode>();
+  private treeNodes: TreeNode[] = [];
 
-  setParentItem(item: PortalNavigationItem) {
-    this.parentItemBreadcrumb = { id: item.id, label: item.title };
+  init(parentItem: PortalNavigationItem, children: PortalNavigationItem[]) {
+    this.parentItemBreadcrumb = { id: parentItem.id, label: parentItem.title };
+    this.treeNodesById = this.createNodesMap(children);
+    const roots = this.connectNodes(this.treeNodesById);
+    const rootsWithBreadcrumbs = this.attachBreadcrumbs(roots);
+    this.treeNodes = this.sortAndCleanTree(rootsWithBreadcrumbs);
   }
 
-  getParentItemBreadcrumb(): Breadcrumb | null {
-    return this.parentItemBreadcrumb ?? null;
-  }
-
-  mapItemsToNodes(items: PortalNavigationItem[]) {
-    this.nodesById = this.createNodesMap(items);
-    const roots = this.connectNodes(this.nodesById);
-    return this.sortAndCleanTree(this.attachBreadcrumbs(roots));
+  getTree() {
+    return this.treeNodes;
   }
 
   getBreadcrumbsByNodeId(id: string): Breadcrumb[] {
-    if (!this.parentItemBreadcrumb) {
-      return [];
+    const breadcrumbsById = this.treeNodesById.get(id)?.breadcrumbs ?? [];
+    return [...this.getBreadcrumbsByDefault(), ...breadcrumbsById];
+  }
+
+  getBreadcrumbsByDefault(): Breadcrumb[] {
+    return this.parentItemBreadcrumb ? [this.parentItemBreadcrumb] : [];
+  }
+
+  findFirstPageId(): string | null {
+    return this.findFirstPageIdRecursively(this.treeNodes);
+  }
+
+  private findFirstPageIdRecursively(nodes: TreeNode[]): string | null {
+    for (const node of nodes) {
+      if (node.type === 'PAGE') {
+        return node.id;
+      } else {
+        const id = this.findFirstPageIdRecursively(node.children ?? []);
+        if (id) return id;
+      }
     }
-    return [this.parentItemBreadcrumb, ...(this.nodesById.get(id)?.breadcrumbs ?? [])];
+    return null;
   }
 
   private createNodesMap(items: PortalNavigationItem[]): Map<string, ProcessingNode> {

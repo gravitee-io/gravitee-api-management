@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, effect, input, model, output, untracked } from '@angular/core';
+import { AfterViewInit, Component, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
-import { TreeNode } from '../../../services/documentation-tree.service';
+import { TreeNode } from '../../../services/tree.service';
 
 @Component({
   selector: 'app-tree-component',
@@ -27,40 +27,15 @@ import { TreeNode } from '../../../services/documentation-tree.service';
 })
 export class TreeComponent implements AfterViewInit {
   tree = input.required<TreeNode[]>();
-  selectedId = model<string | null>(null);
-  selectNode = output<string | null>();
-
-  constructor() {
-    effect(() => this.selectFirstPage());
-  }
+  selectedId = input<string | null>(null);
+  selectNode = output<string>();
 
   ngAfterViewInit() {
     this.scrollIntoView();
   }
 
   onNodeSelected(id: string) {
-    this.selectedId.set(id);
     this.selectNode.emit(id);
-  }
-
-  private selectFirstPage() {
-    const tree = this.tree();
-    const firstPageId = untracked(this.selectedId) ?? this.findFirstPageId(tree);
-    if (firstPageId) {
-      this.onNodeSelected(firstPageId);
-    }
-  }
-
-  private findFirstPageId(nodes: TreeNode[]): string | null {
-    for (const node of nodes) {
-      if (node.type === 'PAGE') {
-        return node.id;
-      } else {
-        const id = this.findFirstPageId(node.children ?? []);
-        if (id) return id;
-      }
-    }
-    return null;
   }
 
   private scrollIntoView() {

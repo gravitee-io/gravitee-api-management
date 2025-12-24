@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Component, computed, effect, input, signal } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
+import { debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -30,7 +30,17 @@ import { MobileClassDirective } from '../../../../directives/mobile-class.direct
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
-import { DocumentationTreeService } from '../../services/documentation-tree.service';
+import { TreeNode, TreeService } from '../../services/tree.service';
+
+interface FolderData {
+  children: PortalNavigationItem[];
+  selectedPageContent: PortalPageContent | null;
+}
+
+enum NavParamsChange {
+  NAV_ID,
+  PAGE_ID,
+}
 
 @Component({
   selector: 'app-documentation-folder',
@@ -41,47 +51,31 @@ import { DocumentationTreeService } from '../../services/documentation-tree.serv
     NavigationItemContentViewerComponent,
     BreadcrumbsComponent,
     SidenavToggleButtonComponent,
+    AsyncPipe,
   ],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
 })
 export class DocumentationFolderComponent {
-  navItem = input.required<PortalNavigationItem | null>();
-  children = toSignal(toObservable(this.navItem).pipe(switchMap(this.loadChildren.bind(this))), { initialValue: null });
-  tree = computed(() => {
-    const items = this.children();
-    return items && Array.isArray(items) ? this.documentationTreeService.mapItemsToNodes(items) : [];
-  });
+  navItem = input.required<PortalNavigationItem>();
+  navId$ = toObservable(this.navItem).pipe(map(({ id }) => id));
+  pageId$ = this.activatedRoute.queryParams.pipe(map(({ pageId }) => pageId));
 
-  sidenavCollapsed = signal(false);
+  folderData = toSignal<FolderData | undefined>(this.loadFolderData());
+  tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
-
-  pageIdEmitter$ = new Subject<string>();
-  pageId = toSignal(this.pageIdEmitter$, { initialValue: null });
-  selectedPageContent = toSignal(this.pageIdEmitter$.pipe(switchMap(this.loadPageContent.bind(this))), { initialValue: null });
+  sidenavCollapsed = signal(false);
 
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly itemsService: PortalNavigationItemsService,
-    private readonly documentationTreeService: DocumentationTreeService,
-  ) {
-    effect(() => {
-      documentationTreeService.setParentItem(this.navItem()!);
-    });
-  }
+    private readonly treeService: TreeService,
+  ) {}
 
-  onSelect(selectedPageId: string | null) {
-    if (selectedPageId) {
-      this.router.navigate([], {
-        relativeTo: this.activatedRoute,
-        queryParams: { pageId: selectedPageId },
-      });
-      this.pageIdEmitter$.next(selectedPageId);
-      const breadcrumbs = this.documentationTreeService.getBreadcrumbsByNodeId(selectedPageId);
-      this.breadcrumbs.set(breadcrumbs);
-    }
+  onSelect(selectedPageId: string) {
+    this.navigateToPage(selectedPageId);
   }
 
   onToggleSidenav() {
@@ -94,38 +88,64 @@ export class DocumentationFolderComponent {
     }
   }
 
-  private loadChildren(navItem: PortalNavigationItem | null) {
-    if (!navItem) {
-      return of(null);
-    }
-
-    return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navItem.id).pipe(
-      tap(() => this.pageIdEmitter$.next(this.activatedRoute.snapshot.queryParams['pageId'])),
-      tap(() => {
-        const topLevelBreadcrumbs = this.documentationTreeService.getParentItemBreadcrumb()
-          ? [this.documentationTreeService.getParentItemBreadcrumb()!]
-          : [];
-        this.breadcrumbs.set(topLevelBreadcrumbs);
+  private loadFolderData(): Observable<FolderData | undefined> {
+    return merge(this.navId$.pipe(map(() => NavParamsChange.NAV_ID)), this.pageId$.pipe(map(() => NavParamsChange.PAGE_ID))).pipe(
+      debounceTime(0), // merge simultaneous change of navId and pageId
+      withLatestFrom(this.navId$, this.pageId$),
+      switchMap(([changedData, navId, pageId]) => {
+        switch (changedData) {
+          case NavParamsChange.NAV_ID:
+            return this.loadChildrenAndContent(navId, pageId);
+          case NavParamsChange.PAGE_ID:
+            return this.loadContentOrRedirect(pageId);
+          default:
+            return of(this.folderData());
+        }
       }),
     );
   }
 
-  private loadPageContent(pageId: string | null): Observable<PortalPageContent | null> {
-    const children = this.children();
-    if (!children) {
-      return of(null);
-    }
+  private loadChildrenAndContent(navId: string, pageId: string): Observable<FolderData> {
+    return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navId).pipe(
+      tap(children => this.treeService.init(this.navItem()!, children)),
+      tap(() => this.tree.set(this.treeService.getTree())),
+      switchMap(children => this.loadContentOrRedirect(pageId, children)),
+    );
+  }
 
+  private loadContentOrRedirect(pageId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
     if (!pageId) {
-      return of(null);
+      return of({ children, selectedPageContent: null }).pipe(
+        tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
+        tap(() => this.navigateToFirstPage()),
+      );
     }
 
-    const pageExistsInChildren = children.find(item => item.id === pageId);
-    if (!pageExistsInChildren) {
-      setTimeout(() => this.router.navigate(['/404']));
-      return of(null);
+    if (!children.find(item => item.id === pageId)) {
+      return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    return this.itemsService.getNavigationItemContent(pageId).pipe(catchError(() => of(null)));
+    return this.itemsService.getNavigationItemContent(pageId).pipe(
+      tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(pageId))),
+      map(selectedPageContent => ({ children, selectedPageContent })),
+    );
+  }
+
+  private navigateToFirstPage() {
+    const firstPageId = this.treeService.findFirstPageId();
+    if (firstPageId) {
+      this.navigateToPage(firstPageId);
+    }
+  }
+
+  private navigateToPage(pageId: string) {
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { pageId },
+    });
+  }
+
+  private navigateToNotFound() {
+    this.router.navigate(['/404']);
   }
 }

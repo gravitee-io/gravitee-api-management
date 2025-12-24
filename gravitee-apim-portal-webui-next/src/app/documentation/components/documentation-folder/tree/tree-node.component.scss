@@ -24,10 +24,11 @@ $indent-step: 26px;
   &__row {
     position: relative;
     display: flex;
+    overflow: hidden;
     align-items: center;
     padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
+    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 
     &.folder {
       padding-left: calc(#{$indent-base} + (var(--level) * #{$indent-step}));
@@ -45,6 +46,10 @@ $indent-step: 26px;
         visibility: visible;
       }
     }
+
+    &:hover {
+      background-color: #{theme.$primary-highlight-color};
+    }
   }
 
   &__button {
@@ -56,9 +61,14 @@ $indent-step: 26px;
 
   &__icon {
     min-width: 26px;
+    transition: transform 200ms ease-in-out;
 
     &__type {
       margin: 0 6px 0 0;
+    }
+
+    &:not(.expanded) {
+      transform: rotate(-90deg) translateX(2px);
     }
   }
 
@@ -70,12 +80,9 @@ $indent-step: 26px;
   &__link {
     display: inline-flex;
     align-items: center;
+    color: unset;
     gap: 6px;
     text-decoration: none;
-
-    &:visited {
-      color: unset;
-    }
 
     &__icon {
       width: 14px;
@@ -83,5 +90,9 @@ $indent-step: 26px;
       color: #{theme.$nav-bar-link-external-icon-color};
       font-size: 14px;
     }
+  }
+
+  &__children {
+    overflow: hidden;
   }
 }
