@@ -22,7 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { GioConfirmDialogHarness, GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -52,6 +52,7 @@ describe('PortalNavigationItemsComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let routerSpy: SpyInstance;
+  let component: PortalNavigationItemsComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -67,6 +68,7 @@ describe('PortalNavigationItemsComponent', () => {
     ConfigureTestingGraviteeMarkdownEditor();
 
     fixture = TestBed.createComponent(PortalNavigationItemsComponent);
+    component = fixture.componentInstance;
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PortalNavigationItemsHarness);
 
@@ -286,8 +288,17 @@ describe('PortalNavigationItemsComponent', () => {
     it('calls backend update when dialog is submitted (link)', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
-          fakePortalNavigationLink({ id: 'nav-item-2', title: 'Nav Item 2', url: 'https://old.com', area: 'TOP_NAVBAR' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationLink({
+            id: 'nav-item-2',
+            title: 'Nav Item 2',
+            url: 'https://old.com',
+            area: 'TOP_NAVBAR',
+          }),
         ],
       });
 
@@ -371,7 +382,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('opens create dialog and does not call API when cancelled', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
         ],
       });
@@ -396,7 +411,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('calls backend create with parentId when dialog is submitted', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
         ],
       });
@@ -441,7 +460,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('calls backend create with parentId when dialog is submitted', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
         ],
       });
@@ -489,7 +512,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('calls backend create with parentId when dialog is submitted', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' }),
         ],
       });
@@ -534,7 +561,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('calls backend update when dialog is submitted (folder)', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', area: 'TOP_NAVBAR' }),
         ],
       });
@@ -564,7 +595,12 @@ describe('PortalNavigationItemsComponent', () => {
           published: folderData.published,
           visibility: folderData.visibility,
         },
-        fakePortalNavigationFolder({ id: folderData.id, title: 'Updated Folder', area: folderData.area, type: 'FOLDER' }),
+        fakePortalNavigationFolder({
+          id: folderData.id,
+          title: 'Updated Folder',
+          area: folderData.area,
+          type: 'FOLDER',
+        }),
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: fakeResponse.items }));
@@ -575,7 +611,11 @@ describe('PortalNavigationItemsComponent', () => {
     it('should call DELETE and refresh list when deleting a non-selected item', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
-          fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'nav-item-1-content' }),
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
           fakePortalNavigationFolder({ id: 'nav-item-2', title: 'Nav Item 2' }),
         ],
       });
@@ -699,6 +739,10 @@ describe('PortalNavigationItemsComponent', () => {
       expect(await harness.isSaveButtonDisabled()).toBe(false);
 
       await harness.selectNavigationItemByTitle('Nav Item 3');
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
       expectGetPageContent('nav-item-3-content', 'This is the content of Nav Item 3');
       expect(await harness.isSaveButtonDisabled()).toBe(true);
     });
@@ -1259,8 +1303,18 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('item reordering', () => {
-    const page1 = fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', order: 0, portalPageContentId: 'content-1' });
-    const page2 = fakePortalNavigationPage({ id: 'page-2', title: 'Page 2', order: 1, portalPageContentId: 'content-2' });
+    const page1 = fakePortalNavigationPage({
+      id: 'page-1',
+      title: 'Page 1',
+      order: 0,
+      portalPageContentId: 'content-1',
+    });
+    const page2 = fakePortalNavigationPage({
+      id: 'page-2',
+      title: 'Page 2',
+      order: 1,
+      portalPageContentId: 'content-2',
+    });
     const fakeResponse = fakePortalNavigationItemsResponse({
       items: [page1, page2],
     });
@@ -1455,4 +1509,51 @@ describe('PortalNavigationItemsComponent', () => {
     expect(req.request.body).toEqual(expectedBody);
     req.flush(response);
   }
+
+  it('should have unsaved changes when content is modified', async () => {
+    await expectGetNavigationItems({
+      items: [fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', portalPageContentId: 'content-1' })],
+    });
+    expectGetPageContent('content-1', 'Initial content');
+
+    expect(component.hasUnsavedChanges()).toBeFalsy();
+
+    component.contentControl.setValue('Modified content');
+    component.contentControl.markAsDirty();
+    expect(component.hasUnsavedChanges()).toBeTruthy();
+
+    component.contentControl.markAsPristine();
+    expect(component.hasUnsavedChanges()).toBeTruthy();
+  });
+
+  it('should not have unsaved changes when content is modified and then reverted to initial value', async () => {
+    await expectGetNavigationItems({
+      items: [fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', portalPageContentId: 'content-1' })],
+    });
+    expectGetPageContent('content-1', 'Initial content');
+
+    expect(component.hasUnsavedChanges()).toBeFalsy();
+
+    component.contentControl.setValue('Modified content');
+    component.contentControl.markAsDirty();
+    expect(component.hasUnsavedChanges()).toBeTruthy();
+
+    component.contentControl.setValue('Initial content');
+    expect(component.hasUnsavedChanges()).toBeFalsy();
+  });
+
+  it('should not have unsaved changes after opening and closing the edit dialog without changes', async () => {
+    await expectGetNavigationItems({
+      items: [fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', portalPageContentId: 'content-1' })],
+    });
+    expectGetPageContent('content-1', 'Initial content');
+
+    expect(component.hasUnsavedChanges()).toBeFalsy();
+
+    await harness.clickEditButton();
+    const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+    await dialog.clickCancelButton();
+
+    expect(component.hasUnsavedChanges()).toBeFalsy();
+  });
 });
