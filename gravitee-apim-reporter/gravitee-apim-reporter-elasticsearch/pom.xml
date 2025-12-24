@@ -30,7 +30,6 @@
 
     <properties>
         <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
-        <commons-validator.version>1.10.0</commons-validator.version>
 
         <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
 
@@ -43,32 +42,6 @@
             <groupId>io.gravitee.elasticsearch</groupId>
             <artifactId>gravitee-common-elasticsearch</artifactId>
             <version>${gravitee-common-elasticsearch.version}</version>
-        </dependency>
-
-        <!-- Gravitee internal dependencies -->
-        <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-api</artifactId>
-            <!-- don’t override the version, MUST be provided by APIM -->
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -87,19 +60,8 @@
         <!-- Used to consume JSON REST services -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>${commons-validator.version}</version>
         </dependency>
 
         <dependency>
@@ -111,12 +73,6 @@
         <!-- Vert.x dependencies -->
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.vertx</groupId>
             <artifactId>vertx-rx-java3</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -126,6 +82,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
@@ -166,22 +123,8 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-plugin-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
