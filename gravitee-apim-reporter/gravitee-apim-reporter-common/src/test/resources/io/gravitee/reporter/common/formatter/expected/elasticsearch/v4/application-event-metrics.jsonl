@@ -1,0 +1,16 @@
+{ "create" : { "_index" : "gravitee-v4.metric.event.ApplicationEventMetrics-2023.08.28" } }
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "plan-id": "test_plan",
+  "api-id": "test_api",
+  "app-id": "test_app",
+  "gw-id": "test_gateway",
+  "env-id": "test_env",
+  "org-id": "test_org",
+  "doc-type": "application",
+  "upstream-authenticated-connections": 10,
+  "downstream-authenticated-connections": 10,
+  "upstream-authentication-failures-count-increment": 12,
+  "downstream-authentication-successes-count-increment": 15,
+  "upstream-authentication-successes-count-increment": 15
+}

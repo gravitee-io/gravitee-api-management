@@ -1,0 +1,86 @@
+{
+  "timestamp": 1692357618550,
+  "jvm": {
+    "timestamp": 1692357618550,
+    "uptime": 604500,
+    "mem": {
+      "heapCommitted": 209715200,
+      "heapUsed": 75249824,
+      "heapMax": 8589934592,
+      "nonHeapCommitted": 126484480,
+      "nonHeapUsed": 123611376,
+      "pools": [
+        {
+          "name": "young",
+          "used": 16777216,
+          "max": 0,
+          "peakUsed": 130023424,
+          "peakMax": 0
+        },
+        {
+          "name": "old",
+          "used": 50743808,
+          "max": 8589934592,
+          "peakUsed": 50743808,
+          "peakMax": 8589934592
+        },
+        {
+          "name": "survivor",
+          "used": 7728800,
+          "max": 0,
+          "peakUsed": 13753744,
+          "peakMax": 0
+        }
+      ],
+      "heapUsedPercent": 0
+    },
+    "threads": {
+      "count": 114,
+      "peakCount": 116
+    },
+    "gc": {
+      "collectors": [
+        {
+          "name": "young",
+          "collectionCount": 19,
+          "collectionTime": 69
+        },
+        {
+          "name": "old",
+          "collectionCount": 0,
+          "collectionTime": 0
+        }
+      ]
+    }
+  },
+  "os": {
+    "timestamp": 1692357618550,
+    "cpu": {
+      "percent": 35,
+      "loadAverage": [4.77197265625, -1.0, -1.0]
+    },
+    "mem": {
+      "total": 34359738368,
+      "free": 49741824,
+      "usedPercent": 100,
+      "freePercent": 0,
+      "used": 34309996544
+    },
+    "swap": {
+      "total": 2147483648,
+      "free": 744095744
+    }
+  },
+  "process": {
+    "timestamp": 1692357618550,
+    "openFileDescriptors": 377,
+    "maxFileDescriptors": 10240,
+    "cpu": {
+      "percent": 0,
+      "total": 20503
+    },
+    "mem": {
+      "totalVirtual": 430565965824
+    }
+  }
+}
