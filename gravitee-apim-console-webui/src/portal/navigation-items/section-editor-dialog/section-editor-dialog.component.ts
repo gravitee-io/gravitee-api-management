@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -105,6 +105,15 @@ export class SectionEditorDialogComponent implements OnInit {
     }
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: BeforeUnloadEvent) {
+    if (!this.formIsUnchanged()) {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    }
+  }
+
   ngOnInit(): void {
     this.addTypeSpecificControls();
     this.prefillExistingItem();
@@ -114,7 +123,13 @@ export class SectionEditorDialogComponent implements OnInit {
 
   private addTypeSpecificControls(): void {
     if (this.type === 'LINK') {
-      this.form.addControl('url', new FormControl<string>('', { validators: [Validators.required, urlValidator()], nonNullable: true }));
+      this.form.addControl(
+        'url',
+        new FormControl<string>('', {
+          validators: [Validators.required, urlValidator()],
+          nonNullable: true,
+        }),
+      );
     }
   }
 

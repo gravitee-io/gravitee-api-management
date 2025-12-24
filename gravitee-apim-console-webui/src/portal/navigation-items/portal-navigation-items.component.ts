@@ -23,7 +23,7 @@ import {
   GioConfirmDialogComponent,
   GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
-import { Component, computed, DestroyRef, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -44,7 +44,7 @@ import {
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { NodeMenuActionEvent, SectionNode, FlatTreeComponent, NodeMovedEvent } from '../components/flat-tree/flat-tree.component';
+import { FlatTreeComponent, NodeMenuActionEvent, NodeMovedEvent, SectionNode } from '../components/flat-tree/flat-tree.component';
 import {
   NewPortalNavigationItem,
   PortalArea,
@@ -59,6 +59,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -83,7 +84,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
     TitleCasePipe,
   ],
 })
-export class PortalNavigationItemsComponent {
+export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private destroyRef = inject(DestroyRef);
 
   // UI State & Forms
@@ -139,8 +140,31 @@ export class PortalNavigationItemsComponent {
   private readonly MIN_PANEL_WIDTH = 280;
   private readonly MAX_PANEL_WIDTH = 600;
   panelWidth = signal(350);
+  initialContent = signal('');
 
   readonly contentLoadError = signal(false);
+
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges() || this.matDialog.openDialogs.length > 0) {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    }
+  }
+
+  hasUnsavedChanges() {
+    if (this.isLoadingPageContent()) {
+      return false;
+    }
+    const currentValue = this.normalizeContent(this.contentControl.value);
+    const initialValue = this.normalizeContent(this.initialContent());
+    return currentValue !== initialValue;
+  }
+
+  private normalizeContent(content: string | null | undefined): string {
+    return (content || '').replace(/\r\n/g, '\n').trim();
+  }
 
   constructor(
     private readonly snackBarService: SnackBarService,
@@ -154,18 +178,34 @@ export class PortalNavigationItemsComponent {
   }
 
   onSelect($event: SectionNode) {
-    this.navigateToItemByNavId($event.id);
+    this.runActionWithUnsavedChangesCheck(() => this.navigateToItemByNavId($event.id));
   }
 
   onAddSection(sectionType: PortalNavigationItemType) {
-    this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
+    this.runActionWithUnsavedChangesCheck(() => this.manageSection(sectionType, 'create', 'TOP_NAVBAR'));
   }
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
-    if (event.action === 'delete') {
-      this.confirmDeleteAction(event);
+    this.runActionWithUnsavedChangesCheck(() => {
+      if (event.action === 'delete') {
+        this.confirmDeleteAction(event);
+      } else {
+        this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+      }
+    });
+  }
+
+  private runActionWithUnsavedChangesCheck(action: () => void) {
+    if (!this.hasUnsavedChanges()) {
+      action();
     } else {
-      this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+      this.openDiscardChangesDialog()
+        .pipe(
+          filter((confirmed) => !!confirmed),
+          tap(() => action()),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
     }
   }
 
@@ -220,6 +260,7 @@ export class PortalNavigationItemsComponent {
 
         if (result.success) {
           this.contentControl.reset(result.content);
+          this.initialContent.set(result.content);
         }
       });
   }
@@ -347,46 +388,54 @@ export class PortalNavigationItemsComponent {
           }),
           takeUntilDestroyed(this.destroyRef),
         )
-        .subscribe((content) => this.contentControl.reset(content));
+        .subscribe((content) => {
+          this.contentControl.reset(content);
+          this.initialContent.set(content);
+          this.contentControl.markAsPristine();
+        });
     }
   }
 
   onEdit() {
-    const selectedItem = this.selectedNavigationItem();
-    if (!selectedItem) {
-      return;
-    }
-    const navItem = selectedItem.data;
-    this.manageSection(navItem.type, 'edit', navItem.area, navItem);
+    this.runActionWithUnsavedChangesCheck(() => {
+      const selectedItem = this.selectedNavigationItem();
+      if (!selectedItem) {
+        return;
+      }
+      const navItem = selectedItem.data;
+      this.manageSection(navItem.type, 'edit', navItem.area, navItem);
+    });
   }
 
   onPublishToggle() {
-    const navItem = this.selectedNavigationItem().data;
+    this.runActionWithUnsavedChangesCheck(() => {
+      const navItem = this.selectedNavigationItem().data;
 
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
-        data: this.getPublishDialogData(navItem),
-        role: 'alertdialog',
-        id: 'managePublishNavigationItemConfirmDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap(() =>
-          this.update(navItem.id, {
-            ...navItem,
-            published: !navItem.published,
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+          width: GIO_DIALOG_WIDTH.SMALL,
+          data: this.getPublishDialogData(navItem),
+          role: 'alertdialog',
+          id: 'managePublishNavigationItemConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirmed) => !!confirmed),
+          switchMap(() =>
+            this.update(navItem.id, {
+              ...navItem,
+              published: !navItem.published,
+            }),
+          ),
+          tap(() => this.refreshMenuList.next(1)),
+          catchError(() => {
+            this.snackBarService.error('Failed to update publication status');
+            return EMPTY;
           }),
-        ),
-        tap(() => this.refreshMenuList.next(1)),
-        catchError(() => {
-          this.snackBarService.error('Failed to update publication status');
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    });
   }
 
   onDeleteSection(node: SectionNode): Observable<void> {
@@ -462,7 +511,7 @@ export class PortalNavigationItemsComponent {
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
 
-    if (this.contentControl.pristine) {
+    if (!this.hasUnsavedChanges()) {
       this.updateItemOrderAndRefreshList(newParentId, newOrder, node.data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     } else {
       this.openDiscardChangesDialog()

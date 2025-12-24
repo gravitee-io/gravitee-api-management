@@ -30,6 +30,7 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { EnvironmentGuard } from '../management/environment.guard';
+import { HasUnsavedChangesGuard } from '../shared/guards/has-unsaved-changes.guard';
 
 const portalRoutes: Routes = [
   {
@@ -41,6 +42,7 @@ const portalRoutes: Routes = [
       {
         path: 'navigation',
         component: PortalNavigationItemsComponent,
+        canDeactivate: [HasUnsavedChangesGuard],
         data: {
           permissions: {
             anyOf: ['environment-settings-r', 'environment-settings-u'],
@@ -116,6 +118,7 @@ const portalRoutes: Routes = [
       {
         path: 'homepage',
         component: HomepageComponent,
+        canDeactivate: [HasUnsavedChangesGuard],
         data: {
           permissions: {
             anyOf: ['environment-documentation-r', 'environment-documentation-u'],
