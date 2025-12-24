@@ -40,6 +40,7 @@ public class Audit {
         APPLICATION,
         ENVIRONMENT,
         ORGANIZATION,
+        API_PRODUCT,
     }
 
     public interface AuditEvent {
@@ -77,6 +78,7 @@ public class Audit {
         NOTIFICATION_TEMPLATE,
         SHARED_POLICY_GROUP,
         CLUSTER,
+        API_PRODUCT,
     }
 
     private String id;

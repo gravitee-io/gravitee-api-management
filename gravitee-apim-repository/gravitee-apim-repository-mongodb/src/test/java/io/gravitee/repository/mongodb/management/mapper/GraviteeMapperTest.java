@@ -271,4 +271,36 @@ public class GraviteeMapperTest {
         assertEquals(source.getResponse(), sourceBack.getResponse());
         assertEquals(source.getSubscribe(), sourceBack.getSubscribe());
     }
+
+    @Test
+    public void should_map_api_product_with_proper_fields() {
+        final ApiProduct source = new ApiProduct();
+        source.setId("api-product-id");
+        source.setName("My API Product");
+        source.setDescription("Product description");
+        source.setVersion("1.0.0");
+        source.setApiIds(List.of("api-1", "api-2"));
+        Date now = new Date();
+        source.setCreatedAt(now);
+        source.setUpdatedAt(now);
+
+        final ApiProductMongo target = mapper.map(source);
+
+        assertEquals(source.getId(), target.getId());
+        assertEquals(source.getName(), target.getName());
+        assertEquals(source.getDescription(), target.getDescription());
+        assertEquals(source.getVersion(), target.getVersion());
+        assertEquals(new HashSet<>(source.getApiIds()), new HashSet<>(target.getApiIds()));
+        assertEquals(source.getCreatedAt(), target.getCreatedAt());
+        assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
+
+        final ApiProduct sourceBack = mapper.map(target);
+        assertEquals(source.getId(), sourceBack.getId());
+        assertEquals(source.getName(), sourceBack.getName());
+        assertEquals(source.getDescription(), sourceBack.getDescription());
+        assertEquals(source.getVersion(), sourceBack.getVersion());
+        assertEquals(new HashSet<>(source.getApiIds()), new HashSet<>(sourceBack.getApiIds()));
+        assertEquals(source.getCreatedAt(), sourceBack.getCreatedAt());
+        assertEquals(source.getUpdatedAt(), sourceBack.getUpdatedAt());
+    }
 }

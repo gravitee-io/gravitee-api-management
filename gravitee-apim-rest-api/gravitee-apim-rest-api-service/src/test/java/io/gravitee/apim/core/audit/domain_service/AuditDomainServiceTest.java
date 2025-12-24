@@ -18,12 +18,15 @@ package io.gravitee.apim.core.audit.domain_service;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -34,6 +37,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -274,6 +278,116 @@ public class AuditDomainServiceTest {
                 .referenceType(AuditEntity.AuditReferenceType.APPLICATION)
                 .referenceId("application-id")
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name())
+                .patch("[]")
+                .build();
+
+            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+        }
+    }
+
+    @Nested
+    class CreateApiProductAuditLog {
+
+        @Test
+        void should_create_an_api_product_audit_log() {
+            var audit = ApiProductAuditLogEntity.builder()
+                .apiProductId("api-product-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .actor(AuditActor.builder().userId("system").build())
+                .event(ApiProductAuditEvent.API_PRODUCT_CREATED)
+                .properties(Map.of(AuditProperties.API_PRODUCT, "api-product-id"))
+                .oldValue(null)
+                .newValue(null)
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .build();
+
+            service.createApiProductAuditLog(audit);
+
+            var expectedAudit = AuditEntity.builder()
+                .id("audit-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .user("system")
+                .properties(Map.of("API_PRODUCT", "api-product-id"))
+                .referenceType(AuditEntity.AuditReferenceType.API_PRODUCT)
+                .referenceId("api-product-id")
+                .event(ApiProductAuditEvent.API_PRODUCT_CREATED.name())
+                .patch("[]")
+                .build();
+
+            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+        }
+
+        @Test
+        void should_calculate_json_patch() {
+            ApiProduct originalApiProduct = ApiProduct.builder()
+                .id("api-product-id")
+                .environmentId("environment-id")
+                .name("Original Product")
+                .description("Original description")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .build();
+
+            var audit = ApiProductAuditLogEntity.builder()
+                .apiProductId("api-product-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .actor(AuditActor.builder().userId("system").build())
+                .event(ApiProductAuditEvent.API_PRODUCT_UPDATED)
+                .properties(Map.of(AuditProperties.API_PRODUCT, "api-product-id"))
+                .oldValue(originalApiProduct)
+                .newValue(originalApiProduct.toBuilder().name("Updated Product").apiIds(Set.of("api-1", "api-2")).build())
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .build();
+
+            service.createApiProductAuditLog(audit);
+
+            var audits = auditCrudService.storage();
+            Assertions.assertThat(audits).hasSize(1);
+
+            var actualAudit = audits.iterator().next();
+            Assertions.assertThat(actualAudit.getId()).isEqualTo("audit-id");
+            Assertions.assertThat(actualAudit.getOrganizationId()).isEqualTo("organization-id");
+            Assertions.assertThat(actualAudit.getEnvironmentId()).isEqualTo("environment-id");
+            Assertions.assertThat(actualAudit.getUser()).isEqualTo("system");
+            Assertions.assertThat(actualAudit.getProperties()).isEqualTo(Map.of("API_PRODUCT", "api-product-id"));
+            Assertions.assertThat(actualAudit.getReferenceType()).isEqualTo(AuditEntity.AuditReferenceType.API_PRODUCT);
+            Assertions.assertThat(actualAudit.getReferenceId()).isEqualTo("api-product-id");
+            Assertions.assertThat(actualAudit.getEvent()).isEqualTo(ApiProductAuditEvent.API_PRODUCT_UPDATED.name());
+
+            Assertions.assertThat(actualAudit.getPatch()).contains("\"path\":\"/name\"", "\"value\":\"Updated Product\"");
+            Assertions.assertThat(actualAudit.getPatch()).contains("api-2");
+        }
+
+        @Test
+        void should_fetch_user_display_name_when_using_a_token() {
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
+
+            var audit = ApiProductAuditLogEntity.builder()
+                .apiProductId("api-product-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .actor(AuditActor.builder().userId("user-id").userSource("token").userSourceId("source-id").build())
+                .event(ApiProductAuditEvent.API_PRODUCT_UPDATED)
+                .properties(Map.of(AuditProperties.API_PRODUCT, "api-product-id"))
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .build();
+
+            service.createApiProductAuditLog(audit);
+
+            var expectedAudit = AuditEntity.builder()
+                .id("audit-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .user("Jane Doe - (using token \"source-id\")")
+                .properties(Map.of("API_PRODUCT", "api-product-id"))
+                .referenceType(AuditEntity.AuditReferenceType.API_PRODUCT)
+                .referenceId("api-product-id")
+                .event(ApiProductAuditEvent.API_PRODUCT_UPDATED.name())
                 .patch("[]")
                 .build();
 
