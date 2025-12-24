@@ -22,6 +22,7 @@ import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.media.api.MediaRepository;
@@ -235,6 +236,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected PortalPageContentRepository portalPageContentRepository;
 
+    @Inject
+    protected ApiProductsRepository apiProductsRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -317,6 +321,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case io.gravitee.repository.management.model.PortalPageContent portalPageContent -> portalPageContentRepository.create(
                 portalPageContent
             );
+            case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
             case null, default -> {}
         }
     }

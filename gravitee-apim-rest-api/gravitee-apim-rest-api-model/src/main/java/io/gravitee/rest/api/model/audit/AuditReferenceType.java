@@ -26,4 +26,5 @@ public enum AuditReferenceType {
     ENVIRONMENT,
     APPLICATION,
     API,
+    API_PRODUCT,
 }

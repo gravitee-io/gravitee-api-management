@@ -32,6 +32,7 @@ import org.junit.runners.Suite;
         AlertRepositoryTest.class,
         ApiHeaderRepositoryTest.class,
         ApiKeyRepositoryTest.class,
+        ApiProductRepositoryTest.class,
         ApiQualityRuleRepositoryTest.class,
         ApiRepositoryTest.class,
         ApplicationRepositoryTest.class,

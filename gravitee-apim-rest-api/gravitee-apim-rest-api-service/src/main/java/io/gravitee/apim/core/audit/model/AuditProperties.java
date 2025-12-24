@@ -44,4 +44,5 @@ public enum AuditProperties {
     NOTIFICATION_TEMPLATE,
     SHARED_POLICY_GROUP,
     CLUSTER,
+    API_PRODUCT,
 }
