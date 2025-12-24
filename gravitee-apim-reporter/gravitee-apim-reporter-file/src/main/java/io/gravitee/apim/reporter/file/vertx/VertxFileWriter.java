@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.file.vertx;
+package io.gravitee.apim.reporter.file.vertx;
 
+import io.gravitee.apim.reporter.common.MetricsType;
+import io.gravitee.apim.reporter.common.formatter.Formatter;
+import io.gravitee.apim.reporter.file.config.FileReporterConfiguration;
 import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.common.MetricsType;
-import io.gravitee.reporter.common.formatter.Formatter;
-import io.gravitee.reporter.file.config.FileReporterConfiguration;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;

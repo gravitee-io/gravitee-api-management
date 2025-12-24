@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.file.config;
+package io.gravitee.apim.reporter.file.config;
 
+import io.gravitee.apim.reporter.common.MetricsType;
+import io.gravitee.apim.reporter.common.formatter.Type;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.reporter.api.configuration.Rules;
-import io.gravitee.reporter.common.MetricsType;
-import io.gravitee.reporter.common.formatter.Type;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;

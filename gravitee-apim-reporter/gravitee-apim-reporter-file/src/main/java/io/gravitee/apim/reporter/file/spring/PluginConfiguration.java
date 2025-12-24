@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.file.spring;
+package io.gravitee.apim.reporter.file.spring;
 
+import io.gravitee.apim.reporter.common.MetricsType;
+import io.gravitee.apim.reporter.common.formatter.FormatterFactory;
+import io.gravitee.apim.reporter.common.formatter.FormatterFactoryConfiguration;
+import io.gravitee.apim.reporter.file.config.FileReporterConfiguration;
 import io.gravitee.node.api.Node;
-import io.gravitee.reporter.common.MetricsType;
-import io.gravitee.reporter.common.formatter.FormatterFactory;
-import io.gravitee.reporter.common.formatter.FormatterFactoryConfiguration;
-import io.gravitee.reporter.file.config.FileReporterConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
