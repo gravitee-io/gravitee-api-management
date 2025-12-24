@@ -467,6 +467,7 @@
                 <module>gravitee-apim-parent</module>
                 <module>gravitee-apim-plugin</module>
                 <module>gravitee-apim-repository</module>
+                <module>gravitee-apim-reporter</module>
                 <module>gravitee-apim-rest-api</module>
             </modules>
         </profile>
@@ -531,6 +532,18 @@
             </activation>
             <modules>
                 <module>gravitee-apim-plugin</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>reporter-modules</id>
+            <activation>
+                <property>
+                    <name>reporter-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-reporter</module>
             </modules>
         </profile>
         <profile>

@@ -32,6 +32,7 @@ describe('Pull requests workflow tests', () => {
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-gateway']}           | ${'pull-requests-custom-branch-backend-gateway-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-integration-tests']} | ${'pull-requests-custom-branch-backend-integration-tests-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-plugin']}            | ${'pull-requests-custom-branch-backend-plugin-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-reporter']}          | ${'pull-requests-custom-branch-backend-reporter-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-repository']}        | ${'pull-requests-custom-branch-backend-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-rest-api']}          | ${'pull-requests-custom-branch-backend-rest-api-only.yml'}
   `(
