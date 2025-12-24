@@ -304,6 +304,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiDebugResource.class);
     }
 
+    @Path("/api-products")
+    public ApiProductsResource getApiProductsResource() {
+        return resourceContext.getResource(ApiProductsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {

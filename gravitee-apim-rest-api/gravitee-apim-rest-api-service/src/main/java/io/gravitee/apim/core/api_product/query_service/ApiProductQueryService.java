@@ -13,36 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model;
+package io.gravitee.apim.core.api_product.query_service;
 
-public enum AuditProperties {
-    PLAN,
-    PAGE,
-    API_KEY,
-    METADATA,
-    GROUP,
-    USER,
-    ROLE,
-    API,
-    APPLICATION,
-    TAG,
-    TENANT,
-    CATEGORY,
-    PARAMETER,
-    DICTIONARY,
-    API_HEADER,
-    IDENTITY_PROVIDER,
-    ENTRYPOINT,
-    REQUEST_ID,
-    CLIENT_REGISTRATION_PROVIDER,
-    QUALITY_RULE,
-    API_QUALITY_RULE,
-    DASHBOARD,
-    THEME,
-    TOKEN,
-    USER_FIELD,
-    NOTIFICATION_TEMPLATE,
-    SHARED_POLICY_GROUP,
-    CLUSTER,
-    API_PRODUCT,
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import java.util.Optional;
+import java.util.Set;
+
+public interface ApiProductQueryService {
+    Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name);
+    Set<ApiProduct> findByEnvironmentId(String environmentId);
+    Optional<ApiProduct> findById(String apiProductId);
+    Set<ApiProduct> findByApiId(String apiId);
 }

@@ -15,18 +15,30 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
+ * Repository model for API Product.
+ * Represents an API Product stored in the database.
  */
-public enum MembershipReferenceType {
-    APPLICATION,
-    API,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
-    CLUSTER,
-    API_PRODUCT,
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Data
+public class ApiProduct {
+
+    private String id;
+    private String environmentId;
+    private String name;
+    private String description;
+    private String version;
+    private List<String> apiIds;
+    private Date createdAt;
+    private Date updatedAt;
 }

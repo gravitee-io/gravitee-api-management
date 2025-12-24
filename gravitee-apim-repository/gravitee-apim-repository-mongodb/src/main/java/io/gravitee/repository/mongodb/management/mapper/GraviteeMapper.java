@@ -355,4 +355,8 @@ public interface GraviteeMapper {
     // PortalPageContent mapping
     PortalPageContent map(PortalPageContentMongo toMap);
     PortalPageContentMongo map(PortalPageContent toMap);
+
+    // ApiProduct mapping
+    ApiProduct map(ApiProductMongo toMap);
+    ApiProductMongo map(ApiProduct toMap);
 }
