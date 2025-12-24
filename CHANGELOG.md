@@ -1,3 +1,10 @@
+## [7.4.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.4.1...7.4.2) (2025-12-24)
+
+
+### Bug Fixes
+
+* **deps:** update io.gravitee.apim:gravitee-apim-bom to v4.10.0-alpha.4 ([8a56f05](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/8a56f0512e0ba46dd480079f35022a7159457b62))
+
 ## [7.4.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/7.4.0...7.4.1) (2025-12-23)
 
 
