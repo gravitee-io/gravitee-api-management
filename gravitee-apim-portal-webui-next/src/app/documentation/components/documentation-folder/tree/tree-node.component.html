@@ -38,16 +38,16 @@
     >
   } @else {
     @if (node().type === 'FOLDER') {
-      <span class="material-icons tree__icon" [attr.data-test-icon]="'toggle'" aria-hidden="true">{{
-        isExpanded() ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+      <span class="material-icons tree__icon" [class.expanded]="isExpanded()" [attr.data-test-icon]="'toggle'" aria-hidden="true">{{
+        'keyboard_arrow_down'
       }}</span>
     }
     <span class="tree__label">{{ node().label }}</span>
   }
 </div>
 
-@if (node().children?.length && isExpanded()) {
-  <div class="tree__children">
+@if (node().children?.length) {
+  <div class="tree__children" [@expandAnimation]="isExpanded()">
     @for (child of node().children; track child) {
       <app-tree-node
         [attr.id]="'node-' + child.id"
