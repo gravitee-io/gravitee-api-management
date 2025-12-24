@@ -19,7 +19,7 @@ $sidenav-min-width: 330px;
 $sidenav-horizontal-padding: 40px;
 $sidenav-vertical-padding: 25px;
 $sidenav-content-width: calc($sidenav-min-width - $sidenav-horizontal-padding * 2);
-$transition-base: 300ms ease-in-out;
+$transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
 :host {
   position: relative;
@@ -50,7 +50,8 @@ $transition-base: 300ms ease-in-out;
       transition: padding $transition-base;
     }
 
-    &__tree {
+    &__tree,
+    &__empty-state {
       min-width: $sidenav-content-width;
       height: 100%;
     }

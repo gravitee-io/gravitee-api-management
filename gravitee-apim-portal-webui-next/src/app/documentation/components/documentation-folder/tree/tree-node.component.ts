@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { PortalNavigationLink } from '../../../../../entities/portal-navigation/portal-navigation-item';
-import { TreeNode } from '../../../services/documentation-tree.service';
+import { TreeNode } from '../../../services/tree.service';
 
 @Component({
   selector: 'app-tree-node',
@@ -28,6 +29,13 @@ import { TreeNode } from '../../../services/documentation-tree.service';
   templateUrl: './tree-node.component.html',
   styleUrls: ['./tree-node.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('expandAnimation', [
+      state('false', style({ height: 0, opacity: 0 })),
+      state('true', style({ height: '*', opacity: 1 })),
+      transition('false <=> true', [animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')]),
+    ]),
+  ],
 })
 export class TreeNodeComponent {
   node = input.required<TreeNode>();

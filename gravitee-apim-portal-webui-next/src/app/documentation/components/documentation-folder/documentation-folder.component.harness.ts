@@ -50,7 +50,7 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getSidenavEmptyState(): Promise<DivHarness | null> {
     return this.getSidenavHarness().then(sidenav =>
-      sidenav ? sidenav.childLocatorForOptional(DivHarness.with({ selector: '.empty-state' }))() : null,
+      sidenav ? sidenav.childLocatorForOptional(DivHarness.with({ selector: '.documentation-folder__sidenav__empty-state' }))() : null,
     );
   }
 

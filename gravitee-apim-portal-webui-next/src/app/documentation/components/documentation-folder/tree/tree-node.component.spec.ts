@@ -15,9 +15,10 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TreeNodeComponent } from './tree-node.component';
-import { TreeNode } from '../../../services/documentation-tree.service';
+import { TreeNode } from '../../../services/tree.service';
 
 describe('TreeNodeComponent', () => {
   let fixture: ComponentFixture<TreeNodeComponent>;
@@ -25,7 +26,7 @@ describe('TreeNodeComponent', () => {
 
   const init = async (params: Partial<{ node: TreeNode }> = {}) => {
     await TestBed.configureTestingModule({
-      imports: [TreeNodeComponent],
+      imports: [TreeNodeComponent, BrowserAnimationsModule],
       providers: [],
     }).compileComponents();
 
@@ -157,10 +158,7 @@ describe('TreeNodeComponent', () => {
       expect(toggleNode).toHaveBeenCalled();
 
       const icon = fixture.debugElement.query(By.css('.tree__icon'));
-      expect(icon.nativeElement.textContent.trim()).toEqual('keyboard_arrow_right');
-
-      const children = fixture.debugElement.queryAll(By.css('app-tree-node'));
-      expect(children.length).toEqual(0);
+      expect(icon.nativeElement.classList).not.toContain('expanded');
     });
   });
 
