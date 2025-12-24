@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: Gravitee.io APIM - Management API - API Products
+  description: |-
+    This is the OpenAPI specification for API Products in APIM Management API v2.
+    API Products allow you to bundle multiple APIs together into a single product offering.
+  contact:
+    name: GraviteeSource Team
+    url: https://gravitee.io
+    email: team-apim@graviteesource.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 2.0.0
+
+security:
+  - BasicAuth: []
+  - CookieAuth: []
+
+servers:
+  - url: "/management/v2"
+    description: APIM Management API v2 - Default base URL
+  - url: "/management/v2/organizations/{orgId}"
+    description: APIM Management API v2 - Base URL to target specific organizations
+    variables:
+      orgId:
+        description: The unique ID of your organization
+        default: DEFAULT
+
+tags:
+  - name: API Products
+    description: Everything about API Products - collections of bundled APIs
+
+paths:
+  /environments/{envId}/api-products/_verify:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      tags:
+        - API Products
+      summary: Verify API Product name uniqueness
+      description: |-
+        Verify that the API Product name is unique before creating or updating an API Product.<br>
+        This will check that the name is not already used by other API Products in the environment.<br>
+        The result will indicate if the name is OK, and give the reason of the failure if it is not (name already exists, etc.)
+      operationId: verifyApiProductName
+      requestBody:
+        description: API Product verification request containing the name to verify and optional apiProductId for update scenarios
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyApiProduct"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/VerifyApiProductResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /environments/{envId}/api-products:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+    get:
+      tags:
+        - API Products
+      summary: List all API Products in the environment
+      description: |-
+        Retrieve a paginated list of all API Products in the specified environment.
+      operationId: getApiProducts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (starting from 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: perPage
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: List of API Products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiProduct'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      perPage:
+                        type: integer
+                        example: 10
+                      pageCount:
+                        type: integer
+                        example: 1
+                      totalCount:
+                        type: integer
+                        example: 1
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/management/v2/environments/DEFAULT/api-products?page=1&perPage=10"
+                      next:
+                        type: string
+                        nullable: true
+                        example: null
+                      prev:
+                        type: string
+                        nullable: true
+                        example: null
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - API Products
+      summary: Create an API Product
+      description: |-
+        Create a new API Product in the given environment.
+        The API Product name must be unique within the environment.
+      operationId: createApiProduct
+      requestBody:
+        required: true
+        description: API Product creation payload
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiProduct"
+      responses:
+        "201":
+          description: API Product successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiProduct"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          description: Conflict - API Product name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                httpStatus: 409
+                message: "API Product name already exists"
+                technicalCode: "api.product.name.exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /environments/{envId}/api-products/{apiProductId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Products
+      summary: Get an API Product by ID
+      parameters:
+        - name: envId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: apiProductId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The API Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProduct'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - API Products
+      summary: Update an API Product by ID
+      description: Update an existing API Product in the environment.
+      operationId: updateApiProduct
+      requestBody:
+        required: true
+        description: API Product update payload
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateApiProduct"
+      responses:
+        '200':
+          description: API Product successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProduct'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - API Products
+      summary: Delete an API Product by ID
+      description: Delete an existing API Product in the environment.
+      operationId: deleteApiProduct
+      responses:
+        '204':
+          description: API Product successfully deleted
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/apis:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    delete:
+      tags:
+        - API Products
+      summary: Delete all APIs from an API Product
+      description: Remove all APIs from the specified API Product in the environment.
+      operationId: deleteAllApisFromApiProduct
+      responses:
+        '204':
+          description: All APIs successfully deleted from the API Product
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/apis/{apiId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: apiId
+        in: path
+        description: The ID of the API to remove from the product
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - API Products
+      summary: Delete a specific API from an API Product
+      description: Remove a single API from the specified API Product in the environment.
+      operationId: deleteApiFromApiProduct
+      responses:
+        '204':
+          description: API successfully deleted from the API Product
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    envIdParam:
+      name: envId
+      in: path
+      description: The ID of the environment
+      required: true
+      schema:
+        type: string
+        example: DEFAULT
+    apiProductIdParam:
+      name: apiProductId
+      in: path
+      description: The ID of the API Product
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    VerifyApiProduct:
+      type: object
+      title: "VerifyApiProduct"
+      description: Request body for verifying API Product name uniqueness
+      properties:
+        name:
+          type: string
+          description: The API Product name to verify
+          example: "My API Product"
+          minLength: 1
+          maxLength: 255
+        apiProductId:
+          type: string
+          description: Optional API Product ID for update scenarios. When provided, the verification will exclude this API Product from the uniqueness check.
+          example: "api-product-123"
+      required:
+        - name
+
+    VerifyApiProductResponse:
+      type: object
+      title: "VerifyApiProductResponse"
+      description: Response indicating whether the API Product name is valid and unique
+      properties:
+        ok:
+          type: boolean
+          description: Indicates whether the API Product name is valid and unique
+          example: true
+        reason:
+          type: string
+          description: An optional reason giving details about the result. Present when ok is false.
+          example: "API Product name already exists"
+
+    CreateApiProduct:
+      type: object
+      title: "CreateApiProduct"
+      description: Request body to create an API Product
+      properties:
+        name:
+          type: string
+          description: The API Product name
+          minLength: 1
+          maxLength: 255
+          example: "My API Product"
+        description:
+          type: string
+          description: The API Product description
+          example: "A bundle of public APIs"
+        version:
+          type: string
+          description: The API Product version
+          example: "1.0.0"
+        apiIds:
+          type: array
+          description: List of API IDs included in the product
+          items:
+            type: string
+          example:
+            - "api-1"
+            - "api-2"
+      required:
+        - name
+        - version
+
+    UpdateApiProduct:
+      type: object
+      title: "UpdateApiProduct"
+      description: Request body to update an API Product
+      properties:
+        name:
+          type: string
+          description: The API Product name
+          minLength: 1
+          maxLength: 255
+          example: "My Updated API Product"
+        description:
+          type: string
+          description: The API Product description
+          example: "An updated bundle of public APIs"
+        version:
+          type: string
+          description: The API Product version
+          example: "1.0.1"
+        apiIds:
+          type: array
+          description: List of API IDs included in the product
+          items:
+            type: string
+          example:
+            - "api-1"
+            - "api-2"
+      required:
+        - name
+        - version
+
+    ApiProduct:
+      type: object
+      title: "ApiProduct"
+      description: API Product representation
+      properties:
+        id:
+          type: string
+          description: The API Product ID
+          example: "api-product-123"
+        environmentId:
+          type: string
+          description: The environment ID
+          example: "DEFAULT"
+        name:
+          type: string
+          description: The API Product name
+          example: "My API Product"
+        description:
+          type: string
+          description: The API Product description
+          example: "A bundle of public APIs"
+        version:
+          type: string
+          description: The API Product version
+          example: "1.0.0"
+        apiIds:
+          type: array
+          description: List of API IDs included in the product
+          items:
+            type: string
+          example:
+            - "api-1"
+            - "api-2"
+        createdAt:
+          type: string
+          format: date-time
+          description: API Product creation date
+          example: "2025-01-01T10:15:30Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: API Product last update date
+          example: "2025-01-01T10:15:30Z"
+        primaryOwner:
+          $ref: '#/components/schemas/PrimaryOwner'
+
+    PrimaryOwner:
+      type: object
+      description: The primary owner of the API Product
+      properties:
+        id:
+          type: string
+          description: Owner's uuid.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        email:
+          type: string
+          description: Owner's email. Can be null if owner is a group.
+        displayName:
+          type: string
+          description: Owner's name.
+          example: John Doe
+          minLength: 1
+        type:
+          $ref: "#/components/schemas/MembershipMemberType"
+
+    MembershipMemberType:
+      type: string
+      description: The type of the member (USER or GROUP)
+      enum:
+        - USER
+        - GROUP
+
+    Error:
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: The error code
+          example: 400
+        message:
+          type: string
+          description: The error message
+          example: Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          example: invalid.api.product.name
+        parameters:
+          type: object
+          description: A map of parameters to be used in the error message
+          additionalProperties:
+            type: string
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+                example: Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                example: verifyApiProduct.name
+              invalidValue:
+                description: The invalid value.
+
+  responses:
+    VerifyApiProductResponse:
+      description: Result of the API Product name verification
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/VerifyApiProductResponse"
+          examples:
+            success:
+              summary: Name is available
+              value:
+                ok: true
+            nameExists:
+              summary: Name already exists
+              value:
+                ok: false
+                reason: "An API Product with this name already exists"
+
+    BadRequestError:
+      description: Bad Request - Invalid request body or parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            httpStatus: 400
+            message: "Invalid request body"
+            technicalCode: "invalid.request"
+            details: []
+
+    UnauthorizedError:
+      description: Unauthorized - Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            httpStatus: 401
+            message: "Unauthorized"
+            technicalCode: "unauthorized"
+            details: []
+
+    ForbiddenError:
+      description: Forbidden - User lacks required permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            httpStatus: 403
+            message: "Forbidden"
+            technicalCode: "forbidden"
+            details: []
+
+    InternalServerError:
+      description: Internal Server Error - Server error during verification
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            httpStatus: 500
+            message: "Internal server error"
+            technicalCode: "internal.error"
+            details: []
+
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: Auth-Graviteeio-APIM

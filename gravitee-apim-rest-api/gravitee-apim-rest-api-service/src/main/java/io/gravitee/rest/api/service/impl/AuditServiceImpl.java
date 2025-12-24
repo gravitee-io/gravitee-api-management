@@ -64,7 +64,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
         entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
         entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
-        entry(Audit.AuditReferenceType.API, AuditReferenceType.API)
+        entry(Audit.AuditReferenceType.API, AuditReferenceType.API),
+        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT)
     );
 
     @Lazy
@@ -228,7 +229,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                     }
                 }
             } else if (
-                auditEntity.getReferenceId() != null && Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())
+                auditEntity.getReferenceId() != null &&
+                (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name()) ||
+                    Audit.AuditReferenceType.API_PRODUCT.name().equals(auditEntity.getReferenceType().name()))
             ) {
                 metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
