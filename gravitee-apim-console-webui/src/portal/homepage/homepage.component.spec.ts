@@ -284,6 +284,31 @@ describe('HomepageComponent', () => {
     });
   });
 
+  it('should have unsaved changes when content is modified', async () => {
+    await init(true, fakePortalPageWithDetails({ content: 'Initial content' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
+
+    fixture.componentInstance.contentControl.setValue('Modified content');
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
+  });
+
+  it('should not have unsaved changes when content is modified and then reverted to initial value', async () => {
+    await init(true, fakePortalPageWithDetails({ content: 'Initial content' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
+
+    fixture.componentInstance.contentControl.setValue('Modified content');
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
+
+    fixture.componentInstance.contentControl.setValue('Initial content');
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
+  });
+
   async function getToggleButton() {
     return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=toggle-publish-button]' }));
   }

@@ -27,6 +27,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
+  private getEditButton = this.locatorFor(MatButtonHarness.with({ text: /Edit/i }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
   private getPublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Publish$/ }));
   private getUnpublishButton = this.locatorForOptional(MatButtonHarness.with({ text: /^Unpublish$/ }));
@@ -34,7 +35,10 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getTree = this.locatorFor(FlatTreeComponentHarness);
   private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
   private getEmptyEditor = this.locatorForOptional(
-    EmptyStateComponentHarness.with({ title: 'Editor', message: 'Use GMD code to customize and edit your page content.' }),
+    EmptyStateComponentHarness.with({
+      title: 'Editor',
+      message: 'Use GMD code to customize and edit your page content.',
+    }),
   );
   private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
   private getPageNotFoundEmptyState = this.locatorForOptional(
@@ -50,6 +54,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
 
   async clickAddButton(): Promise<void> {
     const button = await this.getAddButton();
+    return button.click();
+  }
+
+  async clickEditButton(): Promise<void> {
+    const button = await this.getEditButton();
     return button.click();
   }
 

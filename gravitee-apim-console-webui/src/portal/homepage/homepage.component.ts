@@ -15,7 +15,7 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { Component, computed, DestroyRef, effect, inject, signal, WritableSignal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, signal, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
@@ -31,6 +31,8 @@ import { PortalNavigationItemService } from '../../services-ngx/portal-navigatio
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalNavigationPage, PortalPageContent } from '../../entities/management-api-v2';
+import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
+import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 
 export interface PortalHomepage {
   navigationItem: PortalNavigationPage;
@@ -43,7 +45,7 @@ export interface PortalHomepage {
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
-export class HomepageComponent {
+export class HomepageComponent implements HasUnsavedChanges {
   contentControl = new FormControl({
     value: '',
     disabled: true,
@@ -77,6 +79,21 @@ export class HomepageComponent {
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    }
+  }
+
+  hasUnsavedChanges() {
+    const currentValue = normalizeContent(this.contentControl.value);
+    const initialValue = normalizeContent(this.portalHomepage()?.content?.content);
+    return currentValue !== initialValue;
+  }
+
   constructor() {
     this.getPortalHomepage()
       .pipe(
@@ -97,6 +114,20 @@ export class HomepageComponent {
   }
 
   public togglePublish(): void {
+    if (this.hasUnsavedChanges()) {
+      confirmDiscardChanges(this.matDialog)
+        .pipe(
+          filter((confirmed) => confirmed),
+          tap(() => this.executeTogglePublish()),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    } else {
+      this.executeTogglePublish();
+    }
+  }
+
+  private executeTogglePublish(): void {
     const isCurrentlyPublished = this.portalHomepagePublished();
     const nav = this.portalHomepage().navigationItem as PortalNavigationPage;
     const pageId = nav.id;
