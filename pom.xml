@@ -255,8 +255,6 @@
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>7.4.2</gravitee-reporter-elasticsearch.version>
-        <gravitee-reporter-file.version>4.0.1</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>3.1.3</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>2.0.1</gravitee-reporter-cloud.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
@@ -467,6 +465,7 @@
                 <module>gravitee-apim-parent</module>
                 <module>gravitee-apim-plugin</module>
                 <module>gravitee-apim-repository</module>
+                <module>gravitee-apim-reporter</module>
                 <module>gravitee-apim-rest-api</module>
             </modules>
         </profile>
@@ -531,6 +530,18 @@
             </activation>
             <modules>
                 <module>gravitee-apim-plugin</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>reporter-modules</id>
+            <activation>
+                <property>
+                    <name>reporter-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-reporter</module>
             </modules>
         </profile>
         <profile>

@@ -1,0 +1,10 @@
+{
+  "timestamp": 1751015211866,
+  "gatewayId": "test_gateway",
+  "organizationId": "test_org",
+  "environmentId": "test_env",
+  "apiId": "test_api",
+  "downstreamActiveConnections": 4,
+  "upstreamActiveConnections": 3,
+  "downstreamAuthenticationFailuresCountIncrement": 12
+}

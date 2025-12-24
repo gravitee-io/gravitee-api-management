@@ -1,0 +1,17 @@
+{
+  "timestamp": 1751015211866,
+  "planId": "test_plan",
+  "apiId": "test_api",
+  "applicationId": "test_app",
+  "gatewayId": "test_gateway",
+  "environmentId": "test_env",
+  "organizationId": "test_org",
+  "operation": "PRODUCE",
+  "upstreamDurationsNanos": 11111,
+  "downstreamDurationsNanos": 22222,
+  "endpointDurationsNanos": 33333,
+  "upstreamCountIncrement": 10,
+  "downstreamCountIncrement": 20,
+  "endpointUpstreamCountIncrement": 30,
+  "endpointDownstreamCountIncrement": 40
+}

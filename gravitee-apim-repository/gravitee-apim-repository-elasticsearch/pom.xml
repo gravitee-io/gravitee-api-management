@@ -218,17 +218,17 @@
 
         <!-- Needed to format the payload when seeding the tests data  -->
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-common</artifactId>
-            <version>${gravitee-reporter-common.version}</version>
+            <groupId>io.gravitee.apim.reporter</groupId>
+            <artifactId>gravitee-apim-reporter-common</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <!-- Needed to define the mapping when seeding the tests data  -->
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-elasticsearch</artifactId>
-            <version>${gravitee-reporter-elasticsearch.version}</version>
+            <groupId>io.gravitee.apim.reporter</groupId>
+            <artifactId>gravitee-apim-reporter-elasticsearch</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

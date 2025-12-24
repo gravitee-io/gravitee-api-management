@@ -1,0 +1,13 @@
+{
+  "type": "event-metrics",
+  "date": "2025.06.27",
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "api-id": "test_api",
+  "gw-id": "test_gateway",
+  "env-id": "test_env",
+  "org-id": "test_org",
+  "doc-type": "api",
+  "downstream-active-connections": 4,
+  "upstream-active-connections": 3,
+  "downstream-authentication-failures-count-increment": 12
+}

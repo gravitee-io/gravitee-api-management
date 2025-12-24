@@ -17,13 +17,13 @@ package io.gravitee.apim.distribution.elasticsearch;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.reporter.elasticsearch.ElasticsearchReporter;
+import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
+import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
+import io.gravitee.apim.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.utils.Type;
-import io.gravitee.reporter.elasticsearch.ElasticsearchReporter;
-import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
-import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -63,7 +63,7 @@ public class ESIndexMappingsDistributionBuilder {
         ReporterConfiguration configuration = new ReporterConfiguration();
         PipelineConfiguration pipelineConfiguration = new PipelineConfiguration(freeMarkerComponent);
 
-        Reflections reflections = new Reflections("io.gravitee.reporter.elasticsearch");
+        Reflections reflections = new Reflections("io.gravitee.apim.reporter.elasticsearch");
         Set<Class<? extends AbstractIndexPreparer>> classes = reflections.getSubTypesOf(AbstractIndexPreparer.class);
 
         for (Class<? extends AbstractIndexPreparer> clazz : classes) {

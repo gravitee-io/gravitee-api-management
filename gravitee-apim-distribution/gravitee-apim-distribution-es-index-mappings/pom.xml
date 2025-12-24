@@ -47,13 +47,17 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.reactivex.rxjava3</groupId>
             <artifactId>rxjava</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.reporter</groupId>
-            <artifactId>gravitee-reporter-elasticsearch</artifactId>
-            <version>${gravitee-reporter-elasticsearch.version}</version>
+            <groupId>io.gravitee.apim.reporter</groupId>
+            <artifactId>gravitee-apim-reporter-elasticsearch</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
