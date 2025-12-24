@@ -21,20 +21,21 @@ import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.I
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
-import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.security.Principal;
-import java.util.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -46,11 +47,16 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
-    private final ApiSearchService apiSearchService;
+    private final ApiAuthorizationService apiAuthorizationService;
+    private final ApiRepository apiRepository;
 
     @Override
     public MetricsContext buildFilters(MetricsContext context) {
-        var userApis = findUserApis();
+        var userApis = findUserApis(
+            context.auditInfo().organizationId(),
+            context.auditInfo().environmentId(),
+            context.auditInfo().actor().userId()
+        );
 
         var userApisIds = userApis.keySet();
 
@@ -59,15 +65,11 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
         return context.withFilters(List.of(permissionsFilter)).withApiNamesById(userApis);
     }
 
-    private static Map<String, String> mapApiIdsToNames(Collection<GenericApiEntity> apis) {
-        return apis.stream().collect(Collectors.toMap(GenericApiEntity::getId, GenericApiEntity::getName));
+    private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
+        return apis.stream().collect(Collectors.toMap(Api::getId, Api::getName));
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(ORGANIZATION_ADMIN);
-    }
-
-    protected boolean isUserInRole(final String role) {
         return SecurityContextHolder.getContext()
             .getAuthentication()
             .getAuthorities()
@@ -75,28 +77,24 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
             .anyMatch(
                 (Predicate<GrantedAuthority>) grantedAuthority -> {
                     var authority = grantedAuthority.getAuthority();
-                    return authority.equalsIgnoreCase(role);
+                    return authority.equalsIgnoreCase(ORGANIZATION_ADMIN);
                 }
             );
     }
 
-    protected Principal getUserPrincipal() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
-    }
+    private Map<String, String> findUserApis(String organizationId, String environmentId, String userId) {
+        ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
 
-    private Map<String, String> findUserApis() {
-        QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
+        ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder().environmentId(environmentId);
 
-        var admin = isAdmin();
-        var userPrincipal = getUserPrincipal();
-        var userName = userPrincipal.getName();
-        var executionContext = GraviteeContext.getExecutionContext();
+        if (!isAdmin()) {
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
 
-        var content = apiSearchService
-            .search(executionContext, userName, admin, queryBuilder, new PageableImpl(0, Integer.MAX_VALUE), false, true)
-            .getContent();
+            apiCriteriaBuilder.ids(userApiIds);
+        }
 
-        return mapApiIdsToNames(content);
+        List<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields());
+
+        return mapApiIdsToNames(apis);
     }
 }
