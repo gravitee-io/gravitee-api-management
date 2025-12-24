@@ -21,14 +21,14 @@
   appIsMobile="documentation-folder__sidenav__mobile"
   (triggerBreakpoint)="onTriggerResponsiveBreakpoint($event)">
   <div class="documentation-folder__sidenav__content">
-    @if (children() && children()!.length > 0) {
+    @if (tree() && tree()!.length > 0) {
       <app-tree-component
         class="documentation-folder__sidenav__tree"
         [tree]="tree()"
-        [selectedId]="pageId()"
+        [selectedId]="pageId$ | async"
         (selectNode)="onSelect($event)" />
     } @else {
-      <div class="empty-state" i18n="@@emptyItemsLabel">No items to show</div>
+      <div class="documentation-folder__sidenav__empty-state" i18n="@@emptyItemsLabel">No items to show</div>
     }
   </div>
   <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
@@ -39,6 +39,6 @@
     <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
   </div>
   <div class="documentation-folder__container__content">
-    <app-navigation-item-content-viewer [pageContent]="selectedPageContent()" />
+    <app-navigation-item-content-viewer [pageContent]="folderData()?.selectedPageContent ?? null" />
   </div>
 </div>
