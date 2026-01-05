@@ -141,7 +141,7 @@ export const HighVolume: StoryObj<BarChartStoryArgs> = {
     storyId: 'high-volume',
     type: 'bar',
     dataPoints: Array.from({ length: 24 }, (_, i) => ({
-      timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+      timestamp: new Date(new Date('2025-01-10T23:00:00Z').getTime() - (23 - i) * 60 * 60 * 1000).toISOString(),
       value: Math.floor(Math.random() * 1000) + 500,
     })),
   },

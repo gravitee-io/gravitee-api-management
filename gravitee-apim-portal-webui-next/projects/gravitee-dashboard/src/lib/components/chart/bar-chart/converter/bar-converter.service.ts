@@ -31,17 +31,17 @@ export class BarConverterService implements Converter {
       return { labels, datasets };
     }
 
-    this.extractTimeLabelsFromFirstMetric(data, labels);
+    this.extractTimeLabels(data, labels);
     this.processAllMetrics(data, datasets);
 
     return { labels, datasets };
   }
 
-  private extractTimeLabelsFromFirstMetric(data: TimeSeriesResponse, labels: string[]): void {
-    const firstMetric = data.metrics?.[0];
+  private extractTimeLabels(data: TimeSeriesResponse, labels: string[]): void {
+    const bucketsForLabels = data.buckets?.length ? data.buckets : data.metrics?.[0]?.buckets;
 
-    if (firstMetric?.buckets?.length) {
-      firstMetric.buckets.forEach(timeBucket => {
+    if (bucketsForLabels) {
+      bucketsForLabels.forEach(timeBucket => {
         labels.push(this.toTimeLabel(timeBucket));
       });
     }
