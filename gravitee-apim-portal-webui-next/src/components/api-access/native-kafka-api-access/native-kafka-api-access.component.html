@@ -68,9 +68,9 @@
     Use the following commands as examples for calling the API.
   </div>
 
-  @if (entrypointUrls()?.length === 1) {
-    <app-copy-code id="host-url" title="Host" [text]="(entrypointUrls() ?? [''])[0]" />
-  } @else if (entrypointUrls() && entrypointUrls().length > 1) {
+  @if (entrypointUrls().length === 1) {
+    <app-copy-code id="host-url" title="Host" [text]="entrypointUrls()[0]" />
+  } @else if (entrypointUrls().length > 1) {
     <mat-form-field class="native-kafka-api-access__section__selectEntrypointHost" appearance="outline" subscriptSizing="dynamic">
       <mat-label i18n="@@nativeKafkaApiAccessEntrypointsHost">Entrypoints Host</mat-label>
       <mat-select [(value)]="selectedEntrypointHost" id="select-entrypoints">
