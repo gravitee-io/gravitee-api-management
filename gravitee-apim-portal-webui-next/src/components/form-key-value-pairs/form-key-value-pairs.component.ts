@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgIf } from '@angular/common';
+
 import { Component, DestroyRef, forwardRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormArray, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
@@ -42,7 +42,7 @@ export interface KeyValuePair {
     },
   ],
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule, MobileClassDirective, NgIf],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule, MobileClassDirective],
 })
 export class FormKeyValuePairsComponent implements OnInit, ControlValueAccessor {
   public metadataFormArray = new FormArray([
