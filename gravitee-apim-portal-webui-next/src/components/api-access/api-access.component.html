@@ -49,7 +49,7 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
               <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
-                @for (entrypointUrl of entrypointUrls ?? []; track entrypointUrl) {
+                @for (entrypointUrl of entrypointUrls; track entrypointUrl) {
                   <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
                 }
               </mat-select>
