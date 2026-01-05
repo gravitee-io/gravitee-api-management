@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgTemplateOutlet } from '@angular/common';
+
 import { Component, computed, effect, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, Observable, Subject, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { GmdButtonComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
 import { SidenavToggleButtonComponent } from './sidenav-toggle-button/sidenav-toggle-button.component';
@@ -41,9 +40,6 @@ import { DocumentationTreeService } from '../../services/documentation-tree.serv
     GraviteeMarkdownViewerModule,
     NavigationItemContentViewerComponent,
     BreadcrumbsComponent,
-    GmdButtonComponent,
-    MatButton,
-    NgTemplateOutlet,
     SidenavToggleButtonComponent,
   ],
   standalone: true,
