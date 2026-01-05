@@ -26,7 +26,7 @@
 
         <gd-widget-body>
           @if (item.response) {
-            @if (item.response?.metrics?.length) {
+            @if (item.response.metrics?.length) {
               @switch (item.type) {
                 @case ('pie') {
                   @if (isFacetsWidget(item)) {
