@@ -3,7 +3,9 @@
   "ignorePatterns": ["projects/**/*"],
   "settings": {
     "import/resolver": {
-      "typescript": {}
+      "typescript": {
+        "project": ["tsconfig.json", "projects/*/tsconfig.json", "projects/*/tsconfig.lib.json"]
+      }
     }
   },
   "plugins": ["unused-imports"],

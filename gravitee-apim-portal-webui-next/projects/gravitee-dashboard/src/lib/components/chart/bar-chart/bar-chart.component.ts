@@ -18,38 +18,37 @@ import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import 'chartjs-adapter-date-fns';
 
-import { LineConverterService } from './converter/line-converter.service';
+import { BarConverterService } from './converter/bar-converter.service';
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 
-export type LineType = 'line';
+export type BarType = 'bar';
 
 @Component({
-  selector: 'gd-line-chart',
+  selector: 'gd-bar-chart',
   imports: [BaseChartDirective],
-  templateUrl: './line-chart.component.html',
-  styleUrl: './line-chart.component.scss',
+  templateUrl: './bar-chart.component.html',
+  styleUrl: './bar-chart.component.scss',
 })
-export class LineChartComponent {
-  type = input<LineType>('line');
-  option = input<ChartConfiguration<LineType>['options']>(this.getDefaultOptions());
+export class BarChartComponent {
+  type = input<BarType>('bar');
+  option = input<ChartConfiguration<BarType>['options']>(this.getDefaultOptions());
   data = input.required<TimeSeriesResponse>();
 
   public readonly dataFormatted = computed(() => {
-    const chartData = this.converter.convert(this.data());
-
-    chartData.datasets.forEach(dataset => {
-      dataset.tension = 0.4;
-      dataset.fill = 'start';
-    });
-
-    return chartData;
+    return this.converter.convert(this.data());
   });
-  private readonly converter = inject(LineConverterService);
+  private readonly converter = inject(BarConverterService);
 
-  private getDefaultOptions(): ChartConfiguration<LineType>['options'] {
+  private getDefaultOptions(): ChartConfiguration<BarType>['options'] {
     return {
       responsive: true,
       maintainAspectRatio: false,
+      datasets: {
+        bar: {
+          borderWidth: 1,
+          borderRadius: 15,
+        },
+      },
       plugins: {
         legend: {
           display: true,
@@ -60,26 +59,25 @@ export class LineChartComponent {
           },
         },
         tooltip: {
-          mode: 'nearest',
+          mode: 'index',
           intersect: false,
-        },
-      },
-      elements: {
-        point: {
-          radius: 0,
-          hitRadius: 15,
-          hoverRadius: 8,
         },
       },
       scales: {
         x: {
           type: 'time',
           display: true,
+          stacked: true,
           time: {
-            unit: 'day',
             tooltipFormat: 'PPpp',
             displayFormats: {
-              day: 'd LLL',
+              second: 'HH:mm:ss',
+              minute: 'HH:mm',
+              hour: 'HH:mm',
+              day: 'EEE d',
+              week: 'd LLL',
+              month: 'LLL yyyy',
+              year: 'yyyy',
             },
           },
         },
@@ -89,6 +87,6 @@ export class LineChartComponent {
           stacked: true,
         },
       },
-    } satisfies ChartConfiguration<LineType>['options'];
+    };
   }
 }
