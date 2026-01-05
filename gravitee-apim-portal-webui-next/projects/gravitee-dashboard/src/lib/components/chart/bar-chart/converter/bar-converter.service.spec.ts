@@ -216,5 +216,23 @@ describe('BarConverterService', () => {
       expect(result.datasets[0].label).toBe('100-199');
       expect(result.datasets[1].label).toBe('200-299');
     });
+    it('should prioritize data.buckets over metric buckets for labels', () => {
+      // Use keys and undefined timestamps to test logic without date parsing interference
+      const metricBuckets = [makeMeasureBucket('metric-key-1', 100)];
+      metricBuckets[0].timestamp = undefined;
+
+      const globalBuckets = [makeBaseBucket('global-key-1'), makeBaseBucket('global-key-2')];
+      globalBuckets.forEach(b => (b.timestamp = undefined));
+
+      const data: TimeSeriesResponse = {
+        metrics: [{ name: 'HTTP_REQUESTS', buckets: metricBuckets }],
+        buckets: globalBuckets,
+      };
+
+      const result = service.convert(data);
+
+      expect(result.labels).toEqual(['global-key-1', 'global-key-2']);
+      expect(result.datasets[0].data).toEqual([100]);
+    });
   });
 });

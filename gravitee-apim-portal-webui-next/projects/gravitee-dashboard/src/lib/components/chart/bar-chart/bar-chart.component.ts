@@ -16,7 +16,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-// eslint-disable-next-line import/no-unresolved
 import 'chartjs-adapter-date-fns';
 
 import { BarConverterService } from './converter/bar-converter.service';
