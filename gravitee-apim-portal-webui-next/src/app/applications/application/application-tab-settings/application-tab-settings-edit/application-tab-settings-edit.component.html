@@ -78,11 +78,11 @@
             <span class="m3-body-medium" data-testId="typeDescription">{{ applicationTypeConfiguration.description }}</span>
           </div>
           <div class="settings__form__content__integration__copy-code">
-            <app-copy-code id="client-id" title="Client ID" [text]="application.settings.oauth?.client_id ?? ''" data-testId="clientId" />
+            <app-copy-code id="client-id" title="Client ID" [text]="application.settings.oauth.client_id ?? ''" data-testId="clientId" />
             <app-copy-code
               id="client-secret"
               title="Client Secret"
-              [text]="application.settings.oauth?.client_secret ?? ''"
+              [text]="application.settings.oauth.client_secret ?? ''"
               [mode]="'PASSWORD'"
               data-testId="clientSecret" />
           </div>
