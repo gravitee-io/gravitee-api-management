@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2025 The Gravitee team
- */
 import { Component, input } from '@angular/core';
 
-import { NavigationItemContentViewerComponent } from '../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { NavigationItemContentViewerComponent } from '../navigation-item-content-viewer/navigation-item-content-viewer.component';
 
 @Component({
-  selector: 'app-homepage',
+  selector: 'app-navigation-page-full-width',
   imports: [NavigationItemContentViewerComponent],
   template: `<div class="content"><app-navigation-item-content-viewer [pageContent]="pageContent()" /></div>`,
-  styleUrls: ['./homepage.component.scss'],
+  styleUrl: './navigation-page-full-width.component.scss',
 })
-export class HomepageComponent {
-  pageContent = input.required<PortalPageContent>();
+export class NavigationPageFullWidthComponent {
+  pageContent = input.required<PortalPageContent | null>();
 }

@@ -21,32 +21,26 @@ import { catchError, filter, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder/documentation-folder.component';
-import { NavigationItemContentViewerComponent } from '../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
+import { NavigationPageFullWidthComponent } from '../../../components/navigation-page-full-width/navigation-page-full-width.component';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
 
 @Component({
   selector: 'app-documentation',
-  imports: [DocumentationFolderComponent, NavigationItemContentViewerComponent, AsyncPipe],
+  imports: [DocumentationFolderComponent, AsyncPipe, NavigationPageFullWidthComponent],
   standalone: true,
   template: `
     @if (isItemFolder()) {
       <app-documentation-folder [navItem]="navItem()!" />
     } @else if (isItemPage()) {
-      @if (pageContent$ | async; as pageContent) {
-        <app-navigation-item-content-viewer [pageContent]="pageContent" />
-      }
+      <app-navigation-page-full-width [pageContent]="pageContent$ | async" />
     }
   `,
   styles: `
     :host {
       display: flex;
       flex: 1 1 100%;
-    }
-
-    app-navigation-item-content-viewer {
-      margin: 0 auto;
     }
   `,
 })
