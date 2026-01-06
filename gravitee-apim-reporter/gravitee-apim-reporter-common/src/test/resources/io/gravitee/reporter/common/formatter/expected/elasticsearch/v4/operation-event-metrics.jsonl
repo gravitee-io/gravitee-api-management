@@ -1,0 +1,19 @@
+{ "create" : { "_index" : "gravitee-v4.metric.event.OperationEventMetrics-2023.08.28" } }
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "plan-id": "test_plan",
+  "api-id": "test_api",
+  "app-id": "test_app",
+  "gw-id": "test_gateway",
+  "env-id": "test_env",
+  "org-id": "test_org",
+  "doc-type": "operation",
+  "operation": "PRODUCE",
+  "upstream-durations-nanos": 11111,
+  "endpoint-durations-nanos": 33333,
+  "downstream-durations-nanos": 22222,
+  "upstream-count-increment": 10,
+  "endpoint-upstream-count-increment": 30,
+  "endpoint-downstream-count-increment": 40,
+  "downstream-count-increment": 20
+}

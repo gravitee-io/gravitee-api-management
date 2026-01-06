@@ -350,6 +350,38 @@ jobs:
           root: .
           paths:
             - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
+  job-test-reporter:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-reporter
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run reporter tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -T 2C
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-reporter
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-reporter/gravitee-apim-reporter-coverage/target/site/jacoco-aggregate/
   job-test-repository:
     machine:
       image: ubuntu-2204:current
@@ -488,6 +520,20 @@ workflows:
             - Test plugins
           working_directory: gravitee-apim-plugin
           cache_type: backend
+      - job-test-reporter:
+          name: Test reporters
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-reporter
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test reporters
+          working_directory: gravitee-apim-reporter
+          cache_type: backend
       - job-test-repository:
           name: Test repository
           context:
@@ -510,6 +556,7 @@ workflows:
             - Test rest-api
             - Integration tests
             - Test plugins
+            - Test reporters
             - Test repository
 orbs:
   keeper: gravitee-io/keeper@0.7.0

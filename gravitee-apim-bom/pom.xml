@@ -788,6 +788,19 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- Gravitee APIM modules -->
+            <dependency>
+                <groupId>io.gravitee.apim.reporter</groupId>
+                <artifactId>gravitee-apim-reporter-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.apim.gateway</groupId>
+                <artifactId>gravitee-apim-gateway-tests-sdk</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>
