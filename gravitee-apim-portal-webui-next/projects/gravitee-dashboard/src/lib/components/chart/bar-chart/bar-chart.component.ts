@@ -39,6 +39,7 @@ export class BarChartComponent {
 
     chartData.datasets.forEach(dataset => {
       dataset.borderWidth = 1;
+      dataset.borderRadius = 15;
     });
 
     return chartData;
