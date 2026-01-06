@@ -191,6 +191,16 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return tree.selectDeleteById(id);
   }
 
+  async publishNodeById(id: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectPublishById(id);
+  }
+
+  async unpublishNodeById(id: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectUnpublishById(id);
+  }
+
   async isPageNotFoundDisplayed(): Promise<boolean> {
     const emptyState = await this.getPageNotFoundEmptyState();
     return emptyState !== null;

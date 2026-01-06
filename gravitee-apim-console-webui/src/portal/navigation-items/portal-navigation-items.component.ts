@@ -184,10 +184,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
     this.checkUnsavedChangesAndRun(() => {
-      if (event.action === 'delete') {
-        this.confirmDeleteAction(event);
-      } else {
-        this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+      switch (event.action) {
+        case 'delete':
+          this.confirmDeleteAction(event);
+          break;
+        case 'publish':
+        case 'unpublish':
+          this.handlePublishToggle(event.node.data);
+          break;
+        default:
+          this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+          break;
       }
     });
   }
@@ -404,34 +411,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   onPublishToggle() {
-    this.checkUnsavedChangesAndRun(() => {
-      const navItem = this.selectedNavigationItem().data;
-
-      this.matDialog
-        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-          width: GIO_DIALOG_WIDTH.SMALL,
-          data: this.getPublishDialogData(navItem),
-          role: 'alertdialog',
-          id: 'managePublishNavigationItemConfirmDialog',
-        })
-        .afterClosed()
-        .pipe(
-          filter((confirmed) => !!confirmed),
-          switchMap(() =>
-            this.update(navItem.id, {
-              ...navItem,
-              published: !navItem.published,
-            }),
-          ),
-          tap(() => this.refreshMenuList.next(1)),
-          catchError(() => {
-            this.snackBarService.error('Failed to update publication status');
-            return EMPTY;
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
-    });
+    this.handlePublishToggle(this.selectedNavigationItem()!.data);
   }
 
   onDeleteSection(node: SectionNode): Observable<void> {
@@ -457,6 +437,35 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return EMPTY;
       }),
     );
+  }
+
+  private handlePublishToggle(navItem: PortalNavigationItem): void {
+    this.checkUnsavedChangesAndRun(() => {
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+          width: GIO_DIALOG_WIDTH.SMALL,
+          data: this.getPublishDialogData(navItem),
+          role: 'alertdialog',
+          id: 'managePublishNavigationItemConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirmed) => !!confirmed),
+          switchMap(() =>
+            this.update(navItem.id, {
+              ...navItem,
+              published: !navItem.published,
+            }),
+          ),
+          tap(() => this.refreshMenuList.next(1)),
+          catchError(() => {
+            this.snackBarService.error('Failed to update publication status');
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    });
   }
 
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {

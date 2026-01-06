@@ -41,7 +41,7 @@ export interface NodeMovedEvent {
   newOrder: number;
 }
 
-type NodeMenuActionType = 'create' | 'edit' | 'delete';
+type NodeMenuActionType = 'create' | 'edit' | 'delete' | 'publish' | 'unpublish';
 
 export interface NodeMenuActionEvent {
   node: SectionNode;
@@ -140,6 +140,22 @@ export class FlatTreeComponent {
   onDelete(node: FlatTreeNode) {
     this.nodeMenuAction.emit({
       action: 'delete',
+      itemType: node.type,
+      node: this.mapFlatTreeNodeToSectionNode(node),
+    });
+  }
+
+  onPublish(node: FlatTreeNode) {
+    this.nodeMenuAction.emit({
+      action: 'publish',
+      itemType: node.type,
+      node: this.mapFlatTreeNodeToSectionNode(node),
+    });
+  }
+
+  onUnpublish(node: FlatTreeNode) {
+    this.nodeMenuAction.emit({
+      action: 'unpublish',
       itemType: node.type,
       node: this.mapFlatTreeNodeToSectionNode(node),
     });

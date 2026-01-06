@@ -132,4 +132,22 @@ export class FlatTreeComponentHarness extends ComponentHarness {
       .then((_) => deleteButton())
       .then((deleteBtn) => deleteBtn.click());
   }
+
+  async selectPublishById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    await moreActionsButton.click();
+    const publishButton = await this._documentRootLocator.locatorFor(
+      MatMenuItemHarness.with({ selector: `[data-testid="publish-node-button"]` }),
+    )();
+    await publishButton.click();
+  }
+
+  async selectUnpublishById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    await moreActionsButton.click();
+    const unpublishButton = await this._documentRootLocator.locatorFor(
+      MatMenuItemHarness.with({ selector: `[data-testid="unpublish-node-button"]` }),
+    )();
+    await unpublishButton.click();
+  }
 }
