@@ -15,9 +15,9 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TreeNodeComponent } from './tree-node.component';
+import { AppTestingModule } from '../../../../../testing/app-testing.module';
 import { TreeNode } from '../../../services/tree.service';
 
 describe('TreeNodeComponent', () => {
@@ -26,7 +26,7 @@ describe('TreeNodeComponent', () => {
 
   const init = async (params: Partial<{ node: TreeNode }> = {}) => {
     await TestBed.configureTestingModule({
-      imports: [TreeNodeComponent, BrowserAnimationsModule],
+      imports: [TreeNodeComponent, AppTestingModule],
       providers: [],
     }).compileComponents();
 

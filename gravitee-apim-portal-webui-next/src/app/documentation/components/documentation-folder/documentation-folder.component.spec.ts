@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -27,6 +25,7 @@ import { DocumentationFolderComponentHarness } from './documentation-folder.comp
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
+import { AppTestingModule } from '../../../../testing/app-testing.module';
 
 describe('DocumentationFolderComponent', () => {
   let fixture: ComponentFixture<DocumentationFolderComponent>;
@@ -62,9 +61,8 @@ describe('DocumentationFolderComponent', () => {
     } as unknown as PortalNavigationItemsService;
 
     await TestBed.configureTestingModule({
-      imports: [DocumentationFolderComponent, MatIconTestingModule, HttpClientTestingModule, BrowserAnimationsModule],
+      imports: [DocumentationFolderComponent, MatIconTestingModule, AppTestingModule],
       providers: [
-        provideRouter([]),
         { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } },
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
