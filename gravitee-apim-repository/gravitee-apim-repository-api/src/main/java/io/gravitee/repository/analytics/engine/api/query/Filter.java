@@ -22,6 +22,7 @@ package io.gravitee.repository.analytics.engine.api.query;
 public record Filter(Filter.Name name, Operator operator, Object value) {
     public enum Name {
         API,
+        API_NAME,
         APPLICATION,
         PLAN,
         GATEWAY,
