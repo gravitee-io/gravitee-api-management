@@ -22,7 +22,7 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CountWithSumBuilder {
+public class CountWithSumBuilder implements CountBuilder {
 
     public Map<String, JsonObject> build(String aggName, String field) {
         return Map.of(aggName, json().put("sum", json().put("field", field).put("missing", 0)));

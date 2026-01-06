@@ -20,6 +20,7 @@ import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMaxBuilder;
@@ -51,7 +52,7 @@ public class MessageMeasuresQueryAdapter {
     private final SimpleP50Builder p50Builder = new SimpleP50Builder();
     private final SimpleMinBuilder minBuilder = new SimpleMinBuilder();
     private final SimpleMaxBuilder maxBuilder = new SimpleMaxBuilder();
-    private final CountWithSumBuilder countWithSumBuilder = new CountWithSumBuilder();
+    private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
 
     private final FieldResolver fieldResolver = new MessageFieldResolver();
@@ -113,7 +114,7 @@ public class MessageMeasuresQueryAdapter {
         };
     }
 
-    private Optional<CountWithSumBuilder> count() {
+    private Optional<CountBuilder> count() {
         return Optional.of(countWithSumBuilder);
     }
 

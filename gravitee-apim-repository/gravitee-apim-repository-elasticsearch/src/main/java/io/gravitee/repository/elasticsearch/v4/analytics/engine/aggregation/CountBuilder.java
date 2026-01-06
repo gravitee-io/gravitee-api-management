@@ -22,13 +22,6 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SimpleCountBuilder implements CountBuilder {
-
-    public Map<String, JsonObject> build(String aggName, String field) {
-        return Map.of(aggName, json().put("value_count", json().put("field", field)));
-    }
-
-    private JsonObject json() {
-        return new JsonObject();
-    }
+public interface CountBuilder {
+    Map<String, JsonObject> build(String aggName, String field);
 }
