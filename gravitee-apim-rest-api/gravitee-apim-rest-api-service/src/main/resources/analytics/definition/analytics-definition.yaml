@@ -43,6 +43,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -96,6 +97,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -154,6 +156,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -211,6 +214,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -269,6 +273,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -326,6 +331,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -383,6 +389,7 @@ spec:
               - CONSUMER_IP
           filters:
               - API
+              - API_NAME
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -1187,6 +1194,7 @@ spec:
               - APPLICATION
           filters:
               - API
+              - API_NAME
               - APPLICATION
 
         - name: APIS
@@ -1205,6 +1213,7 @@ spec:
               - API_LIFECYCLE_STATE
               - API_VISIBILITY
           filters:
+              - API_NAME
               - API_STATE
               - API_LIFECYCLE_STATE
               - API_VISIBILITY
@@ -1213,6 +1222,19 @@ spec:
         - name: API
           label: API
           type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: API_NAME
+          label: API Name
+          type: ENUM
+          enumValues:
+              - HTTP_PROXY
+              - MESSAGE
+              - KAFKA
+              - LLM
+              - MCP
           operators:
               - EQ
               - IN
