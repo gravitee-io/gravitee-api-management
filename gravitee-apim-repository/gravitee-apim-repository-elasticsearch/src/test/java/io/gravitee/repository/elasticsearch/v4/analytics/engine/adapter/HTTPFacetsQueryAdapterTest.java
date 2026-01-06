@@ -238,9 +238,12 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(mustNot).isNotNull();
         assertThat(mustNot.isArray()).isTrue();
 
-        var entrypointFilter = mustNot.at("/0/term/entrypoint-id");
+        var entrypointFilter = mustNot.at("/0/terms/entrypoint-id");
         assertThat(entrypointFilter).isNotNull();
-        assertThat(entrypointFilter.asText()).isEqualTo("http-proxy");
+        assertThat(entrypointFilter.size()).isEqualTo(3);
+        assertThat(entrypointFilter.at("/0").asText()).isEqualTo("http-proxy");
+        assertThat(entrypointFilter.at("/1").asText()).isEqualTo("llm-proxy");
+        assertThat(entrypointFilter.at("/2").asText()).isEqualTo("mcp-proxy");
 
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
