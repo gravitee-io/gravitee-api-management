@@ -17,12 +17,12 @@
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TreeComponent } from './tree.component';
 import { TreeComponentHarness } from './tree.component.harness';
 import { fakePortalNavigationFolder } from '../../../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem } from '../../../../../mocks/portal-navigation-item.mocks';
+import { AppTestingModule } from '../../../../../testing/app-testing.module';
 import { TreeService, TreeNode } from '../../../services/tree.service';
 
 describe('TreeComponent', () => {
@@ -36,7 +36,7 @@ describe('TreeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TreeComponent, MatIconTestingModule, BrowserAnimationsModule],
+      imports: [TreeComponent, MatIconTestingModule, AppTestingModule],
     }).compileComponents();
 
     /**
