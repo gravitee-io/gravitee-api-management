@@ -20,7 +20,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 export class ApiEndpointGroupGeneralHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group-general';
   private getEndpointGroupNameInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Endpoints group name input"]' }));
-  private getEndpointGroupLoadBalancerSelector = this.locatorFor(
+  private getEndpointGroupLoadBalancerSelector = this.locatorForOptional(
     MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }),
   );
   public async getNameValue(): Promise<string> {

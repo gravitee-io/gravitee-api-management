@@ -63,6 +63,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public configurationSchema: GioJsonSchema;
   public sharedConfigurationSchema: GioJsonSchema;
   public apiType: ApiType;
+  public isNativeKafka: boolean;
   public dlqEntrypointType: string | null;
   public createButtonText: string;
   public requiredQos: Qos[];
@@ -86,12 +87,17 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           const apiV4 = api as ApiV4;
           this.generalForm.get('name').addValidators([isEndpointNameUnique(apiV4)]);
           this.apiType = apiV4.type;
+          this.isNativeKafka = apiV4.type === 'NATIVE' && apiV4.listeners.some((listener) => listener.type === 'KAFKA');
           this.requiredQos = apiV4.listeners.flatMap((listener) => listener.entrypoints).flatMap((entrypoint) => entrypoint.qos);
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
           }
           if (this.apiType === 'LLM_PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('llm-proxy');
+          }
+          if (this.isNativeKafka) {
+            this.endpointGroupTypeForm.get('endpointGroupType').setValue('native-kafka');
+            this.generalForm.get('loadBalancerType').removeValidators(Validators.required);
           }
           this.changeDetectorRef.detectChanges();
         },
@@ -227,7 +233,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
 
     this.generalForm = new UntypedFormGroup({
       name: new UntypedFormControl('', [Validators.required, Validators.pattern(/^[^:]*$/)]),
-      loadBalancerType: new UntypedFormControl('', [Validators.required]),
+      loadBalancerType: new UntypedFormControl(undefined, [Validators.required]),
     });
 
     this.configuration = new UntypedFormControl({}, Validators.required);

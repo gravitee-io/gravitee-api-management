@@ -208,7 +208,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       );
     });
 
-    it('should not allow to create another endpoint group for a NATIVE api', async () => {
+    it('should allow to create another endpoint group for a NATIVE api', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         type: 'NATIVE',
@@ -216,10 +216,10 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       });
       await initComponent(apiV4);
 
-      expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(false);
+      expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(true);
     });
 
-    it('should not allow to add another endpoint to a NATIVE api', async () => {
+    it('should allow to add another endpoint to a NATIVE api', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         type: 'NATIVE',
@@ -227,7 +227,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       });
       await initComponent(apiV4);
 
-      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
+      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(true);
     });
 
     it('should not allow to add another endpoint to a MCP_PROXY api', async () => {

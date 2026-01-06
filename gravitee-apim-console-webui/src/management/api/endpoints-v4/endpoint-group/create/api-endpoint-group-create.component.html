@@ -42,7 +42,7 @@
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           </ng-template>
           <ng-template matStepLabel>General</ng-template>
-          <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
+          <api-endpoint-group-general [generalForm]="generalForm" [isNativeKafka]="isNativeKafka"></api-endpoint-group-general>
           <div class="api-endpoint-group-create__footer">
             <ng-container *ngIf="apiType === 'PROXY' || apiType === 'LLM_PROXY'">
               <ng-container *ngTemplateOutlet="exitButton"></ng-container>

@@ -17,6 +17,9 @@ import { isFunction } from 'lodash';
 
 import { BaseApi, ApiV2, ApiV4, ApiV1, ManagementContext, GenericApi, ApiFederated } from '.';
 
+import { fakeEndpointGroupV4 } from './v4/endpointGroupV4.fixture';
+import { fakeKafkaListener } from './v4/listener.fixture';
+
 export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) => BaseApi)): BaseApi {
   const base: BaseApi = {
     id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
@@ -526,6 +529,26 @@ export function fakeApiFederated(modifier?: Partial<ApiFederated> | ((baseApi: A
       integrationName: 'name of integration',
       provider: 'provider name',
     },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeNativeKafkaApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
+  const base: ApiV4 = {
+    ...fakeGenericApi({ ...modifier }),
+    definitionVersion: 'V4',
+    type: 'NATIVE',
+    listeners: [fakeKafkaListener()],
+    endpointGroups: [fakeEndpointGroupV4({ type: 'native-kafka' })],
+    flows: [],
   };
 
   if (isFunction(modifier)) {

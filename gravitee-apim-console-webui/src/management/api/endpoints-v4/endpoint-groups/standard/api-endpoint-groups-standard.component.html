@@ -26,10 +26,12 @@
               <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
               {{ plugins?.get(group.type)?.name }}
             </span>
-            <span class="gio-badge-accent">
-              <mat-icon svgIcon="gio:share-2"></mat-icon>
-              {{ group.loadBalancerType }}
-            </span>
+            @if (group.type !== 'native-kafka') {
+              <span class="gio-badge-accent">
+                <mat-icon svgIcon="gio:share-2"></mat-icon>
+                {{ group.loadBalancerType }}
+              </span>
+            }
             <span
               class="gio-badge-neutral"
               *ngIf="i === 0"
@@ -103,6 +105,12 @@
             <th mat-header-cell *matHeaderCellDef id="name">Name</th>
             <td mat-cell *matCellDef="let element">
               {{ element.name }}
+
+              @if (element.nameBadge) {
+                <span class="gio-badge-accent" [matTooltip]="element.nameBadge.tooltip">
+                  {{ element.nameBadge.title }}
+                </span>
+              }
             </td>
           </ng-container>
 
@@ -124,11 +132,11 @@
 
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
+            <th mat-header-cell *matHeaderCellDef id="actions"></th>
             <td mat-cell *matCellDef="let element; let j = index">
               <div class="endpoint-group-card__table__actions">
                 <a
-                  mat-icon-button
+                  mat-button
                   [attr.aria-label]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
                   [matTooltip]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
                   [routerLink]="['./', i, j]"
@@ -136,7 +144,7 @@
                   <mat-icon [svgIcon]="isReadOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
                 </a>
                 <button
-                  mat-icon-button
+                  mat-button
                   aria-label="Delete endpoint"
                   *gioPermission="{ anyOf: ['api-definition-u'] }"
                   (click)="deleteEndpoint(group.name, element.name)"
@@ -163,7 +171,7 @@
             <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
-        @if (api?.type !== 'NATIVE' && api?.type !== 'MCP_PROXY') {
+        @if (api?.type !== 'MCP_PROXY') {
           <a
             *gioPermission="{ anyOf: ['api-definition-u'] }"
             mat-stroked-button
@@ -179,7 +187,7 @@
   </ng-container>
 </ng-container>
 
-@if (api?.type !== 'NATIVE' && api?.type !== 'MCP_PROXY' && !isA2ASelcted) {
+@if (api?.type !== 'MCP_PROXY' && !isA2ASelcted) {
   <button
     *gioPermission="{ anyOf: ['api-definition-u'] }"
     mat-flat-button
