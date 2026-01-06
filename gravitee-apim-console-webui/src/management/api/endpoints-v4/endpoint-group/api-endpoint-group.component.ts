@@ -137,7 +137,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
         ],
       ),
       loadBalancerType: new UntypedFormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: this.isReadOnly }, [
-        Validators.required,
+        ...(this.isNativeKafkaApi ? [] : [Validators.required]),
       ]),
     });
 

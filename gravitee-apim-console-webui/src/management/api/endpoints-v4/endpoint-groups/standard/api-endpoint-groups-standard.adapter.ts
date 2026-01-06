@@ -24,6 +24,10 @@ export type EndpointGroup = {
 
 export type Endpoint = {
   name: string;
+  nameBadge?: {
+    title: string;
+    tooltip?: string;
+  };
   options: {
     healthCheck: boolean;
   };
@@ -40,23 +44,35 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
     return [];
   }
 
-  return api.endpointGroups.flatMap((endpointGroup) => {
+  const isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
+
+  return api.endpointGroups.flatMap((endpointGroup, endpointGroupIndex) => {
     const loadBalancerType = endpointGroup?.loadBalancer?.type?.replace(/_/g, ' ');
     return {
       name: endpointGroup.name,
       type: endpointGroup.type,
-      loadBalancerType: loadBalancerType[0].toUpperCase() + loadBalancerType.substring(1).toLowerCase(),
+      loadBalancerType: loadBalancerType ? loadBalancerType.charAt(0).toUpperCase() + loadBalancerType.slice(1).toLowerCase() : '',
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0
-          ? endpointGroup.endpoints.map((endpoint) => ({
-              name: endpoint.name,
-              options: {
-                healthCheck: false, // TODO: check it somewhere in the group configuration
-              },
-              weight: endpoint.weight,
-              configuration: endpoint.configuration,
-            }))
+          ? endpointGroup.endpoints.map((endpoint, endpointIndex) => {
+              let nameBadge: Endpoint['nameBadge'] = undefined;
+              if (isNativeKafkaApi && endpointGroupIndex === 0 && endpointIndex === 0) {
+                nameBadge = {
+                  title: 'Default',
+                  tooltip: 'The default endpoint used by the API is the first one',
+                };
+              }
+              return {
+                name: endpoint.name,
+                nameBadge,
+                options: {
+                  healthCheck: false, // TODO: check it somewhere in the group configuration
+                },
+                weight: endpoint.weight,
+                configuration: endpoint.configuration,
+              } satisfies Endpoint;
+            })
           : [],
-    };
+    } satisfies EndpointGroup;
   });
 };
