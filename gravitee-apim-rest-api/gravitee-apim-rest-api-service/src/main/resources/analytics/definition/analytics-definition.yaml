@@ -412,6 +412,7 @@ spec:
           measures:
               - COUNT
               - RPS
+              - AVG
           facets:
               - API
               - APPLICATION
@@ -462,6 +463,7 @@ spec:
           measures:
               - COUNT
               - RPS
+              - AVG
           facets:
               - API
               - APPLICATION
@@ -1595,4 +1597,3 @@ spec:
         - name: API_VISIBILITY
           label: API Visibility
           type: KEYWORD
-
