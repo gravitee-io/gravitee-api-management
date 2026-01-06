@@ -20,6 +20,7 @@ import java.util.List;
 public record FilterSpec(Name name, String label, Type type, List<String> enumValues, NumberRange range, List<Operator> operators) {
     public enum Name {
         API,
+        API_NAME,
         APPLICATION,
         PLAN,
         GATEWAY,
