@@ -112,6 +112,24 @@ class VertxReactorConfigurationTest {
     }
 
     @Test
+    void should_create_server_manager_from_server_list_with_gravitee_node_default_port() {
+        final VertxServer vertxServer1 = mock(VertxServer.class);
+
+        when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer1);
+
+        var port = VertxServerOptions.DEFAULT_PORT;
+
+        environment.setProperty("servers[0].type", "http");
+        environment.setProperty("servers[0].port", "" + port);
+
+        cut.serverManager(serverFactory, environment);
+
+        verify(serverFactory).create(optionsCaptor.capture());
+
+        assertThat(optionsCaptor.getValue().getPort()).isEqualTo(port);
+    }
+
+    @Test
     void should_create_server_manager_from_single_http_server() {
         final VertxServer vertxServer = mock(VertxServer.class);
 
