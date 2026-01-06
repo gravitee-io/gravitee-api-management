@@ -34,10 +34,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case HTTP_ENDPOINT_RESPONSE_TIME -> "endpoint-response-time-ms";
             case HTTP_GATEWAY_RESPONSE_TIME -> "gateway-response-time-ms";
             case HTTP_GATEWAY_LATENCY -> "gateway-latency-ms";
-            case LLM_PROMPT_TOKEN_SENT -> "additional-metrics.long_ai-prompt-token-sent";
-            case LLM_PROMPT_TOKEN_RECEIVED -> "additional-metrics.long_ai-prompt-token-receive";
-            case LLM_PROMPT_TOKEN_SENT_COST -> "additional-metrics.double_ai-prompt-token-sent-cost";
-            case LLM_PROMPT_TOKEN_RECEIVED_COST -> "additional-metrics.double_ai-prompt-token-receive-cost";
+            case LLM_PROMPT_TOKEN_SENT -> "additional-metrics.long_llm-proxy_tokens-sent";
+            case LLM_PROMPT_TOKEN_RECEIVED -> "additional-metrics.long_llm-proxy_tokens-received";
+            case LLM_PROMPT_TOKEN_SENT_COST -> "additional-metrics.double_llm-proxy_sent-cost";
+            case LLM_PROMPT_TOKEN_RECEIVED_COST -> "additional-metrics.double_llm-proxy_received-cost";
             default -> throw new UnsupportedOperationException("not an HTTP metric");
         };
     }
