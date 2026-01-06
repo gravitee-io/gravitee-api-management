@@ -411,7 +411,6 @@ spec:
           type: COUNTER
           measures:
               - COUNT
-              - RPS
               - AVG
           facets:
               - API
@@ -462,7 +461,6 @@ spec:
           type: COUNTER
           measures:
               - COUNT
-              - RPS
               - AVG
           facets:
               - API
@@ -514,12 +512,7 @@ spec:
           type: GAUGE
           unit: NUMBER
           measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
+              - COUNT
           facets:
               - API
               - APPLICATION
@@ -570,12 +563,7 @@ spec:
           type: GAUGE
           unit: NUMBER
           measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
+              - COUNT
           facets:
               - API
               - APPLICATION
