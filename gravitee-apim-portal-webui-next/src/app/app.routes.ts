@@ -46,6 +46,7 @@ import { ResetPasswordComponent } from './log-in/reset-password/reset-password.c
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
+import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
 import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
@@ -58,7 +59,6 @@ import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
-import { HomepageComponent } from './homepage/homepage.component';
 
 const apiRoutes: Routes = [
   {
@@ -137,7 +137,7 @@ export const routes: Routes = [
     resolve: {
       pageContent: homepageContentResolver,
     },
-    component: HomepageComponent,
+    component: NavigationPageFullWidthComponent,
   },
   {
     path: 'catalog',
