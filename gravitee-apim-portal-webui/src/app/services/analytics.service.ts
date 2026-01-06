@@ -211,20 +211,24 @@ export class AnalyticsService {
   }
 
   static buildQueryParam(queryParam, q: string) {
-    // use 'contains' wildcard for body parameter
-    if (q === 'body') {
-      queryParam = `*${this.escapeReservedCharacters(queryParam)}*`;
+    switch (q) {
+      case 'body':
+        // use 'contains' wildcard for body parameter
+        return `*${this.escapeReservedCharacters(queryParam)}*`;
+      case 'uri':
+        // use 'starts with' wildcard for uri parameter
+        return `${this.escapeReservedCharacters(queryParam)}*`;
+      case 'response-time':
+        // use nothing special for response-time parameter
+        return queryParam;
+      default:
+        // elsewhere, use quotes to match exact string
+        if (queryParam !== '?') {
+          queryParam = '\\"' + queryParam + '\\"';
+          queryParam = queryParam.replace(/\//g, '\\\\/');
+        }
+        return queryParam;
     }
-    // use 'starts with' wildcard for uri parameter
-    else if (q === 'uri') {
-      queryParam = `${this.escapeReservedCharacters(queryParam)}*`;
-    }
-    // elsewhere, use quotes to match exact string
-    else if (queryParam !== '?') {
-      queryParam = '\\"' + queryParam + '\\"';
-      queryParam = queryParam.replace(/\//g, '\\\\/');
-    }
-    return queryParam;
   }
 
   private static escapeReservedCharacters(paramValue: string) {
@@ -239,9 +243,9 @@ export class AnalyticsService {
       .map(q => {
         const queryParam = this.route.snapshot.queryParams[q];
         if (typeof queryParam === 'string') {
-          return q + ':' + AnalyticsService.buildQueryParam(queryParam, q);
+          return `${q}:${AnalyticsService.buildQueryParam(queryParam, q)}`;
         }
-        return '(' + q + ':' + queryParam.map(qp => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
+        return `${q}:(${queryParam.map(qp => AnalyticsService.buildQueryParam(qp, q)).join(' OR ')})`;
       });
     if (params && params.length) {
       return { query: params.join(' AND ') };
