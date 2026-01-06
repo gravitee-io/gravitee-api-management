@@ -826,6 +826,26 @@ describe('PortalNavigationItemsComponent', () => {
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
+
+      it('should unpublish the item from the "More Actions" menu', async () => {
+        await harness.unpublishNodeById('nav-item-1');
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'nav-item-1',
+          {
+            ...publishedNavItem,
+            published: false,
+          },
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
     });
 
     describe('unpublished navigation item', () => {
@@ -852,6 +872,26 @@ describe('PortalNavigationItemsComponent', () => {
       });
       it('should publish the item when "Publish" button is clicked', async () => {
         await harness.clickPublishButton();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'nav-item-1',
+          {
+            ...unpublishedNavItem,
+            published: true,
+          },
+          fakePortalNavigationPage({}),
+        );
+
+        // After update, component refreshes the list — satisfy the subsequent GET
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
+        expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+
+      it('should publish item when publish action is clicked in More Actions dropdown', async () => {
+        await harness.publishNodeById('nav-item-1');
 
         const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
         await confirmDialog.confirm();

@@ -61,15 +61,16 @@ describe('FlatTreeComponent', () => {
     title: string,
     order?: number,
     parentId?: string | null,
+    published: boolean = true,
   ): PortalNavigationItem => {
     switch (type) {
       case 'FOLDER':
-        return fakePortalNavigationFolder({ id, title, order, parentId });
+        return fakePortalNavigationFolder({ id, title, order, parentId, published });
       case 'LINK':
-        return fakePortalNavigationLink({ id, title, order, parentId });
+        return fakePortalNavigationLink({ id, title, order, parentId, published });
       case 'PAGE':
       default:
-        return fakePortalNavigationPage({ id, title, order, parentId });
+        return fakePortalNavigationPage({ id, title, order, parentId, published });
     }
   };
 
@@ -270,6 +271,56 @@ describe('FlatTreeComponent', () => {
     expect(actionSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'delete',
+        itemType: 'PAGE',
+        node: expect.objectContaining({
+          id: 'p1',
+        }),
+      }),
+    );
+  });
+
+  it('should select publish action by id', async () => {
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
+
+    const links = [makeItem('p1', 'PAGE', 'Page 1', 0, 'parent-id', false)];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await harness.selectPublishById('p1');
+    await fixture.whenStable();
+
+    expect(actionSpy).toHaveBeenCalledTimes(1);
+    expect(actionSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'publish',
+        itemType: 'PAGE',
+        node: expect.objectContaining({
+          id: 'p1',
+        }),
+      }),
+    );
+  });
+
+  it('should select unpublish action by id', async () => {
+    const actionSpy = jest.fn();
+    component.nodeMenuAction.subscribe(actionSpy);
+
+    const links = [makeItem('p1', 'PAGE', 'Page 1', 0, 'parent-id', true)];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await harness.selectUnpublishById('p1');
+    await fixture.whenStable();
+
+    expect(actionSpy).toHaveBeenCalledTimes(1);
+    expect(actionSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'unpublish',
         itemType: 'PAGE',
         node: expect.objectContaining({
           id: 'p1',
