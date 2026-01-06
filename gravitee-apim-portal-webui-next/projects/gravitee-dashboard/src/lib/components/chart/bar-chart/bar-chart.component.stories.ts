@@ -146,3 +146,61 @@ export const HighVolume: StoryObj<BarChartStoryArgs> = {
     })),
   },
 };
+
+export const Stacked: StoryObj<BarChartStoryArgs> = {
+  args: {
+    storyId: 'stacked',
+    type: 'bar',
+    dataPoints: [],
+  },
+  render: args => {
+    const timestamps = Array.from({ length: 40 }, (_, i) => {
+      return new Date(new Date('2025-01-01T00:00:00Z').getTime() + i * 30 * 60 * 1000).toISOString();
+    });
+
+    const getRandomValue = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const successBuckets = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: getRandomValue(200, 500) }],
+    }));
+
+    const errorBuckets = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: getRandomValue(10, 50) }],
+    }));
+
+    const otherBuckets = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: getRandomValue(5, 30) }],
+    }));
+
+    const timeSeriesData: TimeSeriesResponse = {
+      interval: '30m',
+      metrics: [
+        { name: 'HTTP_REQUESTS', buckets: successBuckets },
+        { name: 'HTTP_ERRORS', buckets: errorBuckets },
+        { name: 'MESSAGES', buckets: otherBuckets },
+      ],
+      buckets: timestamps.map(ts => ({ key: ts, name: ts, timestamp: new Date(ts) })),
+    };
+
+    return {
+      template: `
+        <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
+          <gd-bar-chart [type]="type" [data]="timeSeriesData" />
+        </div>
+      `,
+      props: {
+        type: args.type,
+        timeSeriesData,
+      },
+    };
+  },
+};
