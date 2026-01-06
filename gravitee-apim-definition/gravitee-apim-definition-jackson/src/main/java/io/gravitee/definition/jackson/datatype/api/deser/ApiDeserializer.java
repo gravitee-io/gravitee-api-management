@@ -32,17 +32,15 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import java.io.IOException;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
-
-    private final Logger logger = LoggerFactory.getLogger(ApiDeserializer.class);
 
     public ApiDeserializer(Class<T> vc) {
         super(vc);
@@ -84,7 +82,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         if (proxyNode != null) {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            logger.error("A proxy property is required for {}", api.getName());
+            log.error("A proxy property is required for {}", api.getName());
             throw JsonMappingException.from(ctxt, "A proxy property is required for " + api.getName());
         }
 
@@ -120,7 +118,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             throw JsonMappingException.from(ctxt, "A resource already exists with name " + resource.getName());
                         }
                     } catch (IOException e) {
-                        logger.error("An error occurred during api deserialization", e);
+                        log.error("An error occurred during api deserialization", e);
                     }
                 });
         }
@@ -143,7 +141,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             List<Rule> rules = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(new TypeReference<List<Rule>>() {});
                             paths.put(jsonNode.getKey(), rules);
                         } catch (IOException e) {
-                            logger.error("Path {} cannot be de-serialized", jsonNode.getKey());
+                            log.error("Path {} cannot be de-serialized", jsonNode.getKey());
                         }
                     });
 
@@ -167,7 +165,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             flow.setStage(FlowStage.API);
                             flows.add(flow);
                         } catch (IOException e) {
-                            logger.error("Flow {} cannot be de-serialized", jsonNode.asText());
+                            log.error("Flow {} cannot be de-serialized", jsonNode.asText());
                         }
                     });
                 api.setFlows(flows);
@@ -187,7 +185,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             }
                             plans.add(plan);
                         } catch (IOException e) {
-                            logger.error("Plan {} cannot be de-serialized", jsonNode.asText());
+                            log.error("Plan {} cannot be de-serialized", jsonNode.asText());
                         }
                     });
                 api.setPlans(plans);
@@ -229,7 +227,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             .readValueAs(new TypeReference<Map<String, ResponseTemplate>>() {});
                         responseTemplates.put(jsonNode.getKey(), templates);
                     } catch (IOException e) {
-                        logger.error("Response templates {} cannot be de-serialized", jsonNode.getKey());
+                        log.error("Response templates {} cannot be de-serialized", jsonNode.getKey());
                     }
                 });
 

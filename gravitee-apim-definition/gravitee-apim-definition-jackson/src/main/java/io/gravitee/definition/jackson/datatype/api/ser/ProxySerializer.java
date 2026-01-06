@@ -22,13 +22,13 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import java.io.IOException;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
     public ProxySerializer(Class<Proxy> t) {
