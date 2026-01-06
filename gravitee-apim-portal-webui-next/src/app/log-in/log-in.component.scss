@@ -16,17 +16,6 @@
 @use '../../scss/theme';
 @use '../../scss/layout' as layout;
 
-%link-style {
-  margin-top: 5px;
-  color: #{theme.$primary-main-color};
-  text-align: center;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 :host {
   @include layout.small-container-legacy();
 }
@@ -47,7 +36,6 @@
     }
 
     &__container {
-      // width: 100%;
       border-radius: 8px;
 
       &--mobile {
@@ -76,7 +64,8 @@
     }
 
     &__forgot-password {
-      @extend %link-style;
+      text-align: center;
+      margin-top: 5px;
     }
 
     &__error {
@@ -87,10 +76,6 @@
   &__registration {
     margin-top: 20px;
     text-align: center;
-
-    a {
-      @extend %link-style;
-    }
   }
 
   &__or-separator {

@@ -40,7 +40,7 @@
         <div class="registration-confirmation__form">
           <div class="registration-confirmation__form__fields">
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
-              <mat-label i18n="@@registrationConfirmationUsername">Firstname</mat-label>
+              <mat-label i18n="@@registrationConfirmationFirstname">Firstname</mat-label>
               <input matInput formControlName="firstname" />
               @if (registrationConfirmationForm.controls.firstname.hasError('required')) {
                 <mat-error i18n="@@registrationConfirmationFirstnameErrorRequired">Firstname is required</mat-error>
@@ -60,7 +60,7 @@
                 <mat-error i18n="@@registrationConfirmationEmailErrorRequired">Email is required</mat-error>
               }
               @if (registrationConfirmationForm.controls.email.hasError('email')) {
-                <mat-error i18n="@@registrationConfirmationEmailErrorFormat">Email format error</mat-error>
+                <mat-error i18n="@@registrationConfirmationEmailErrorFormat">Invalid email format</mat-error>
               }
             </mat-form-field>
 
@@ -80,7 +80,7 @@
             </mat-form-field>
           </div>
           @if (error() === 400) {
-            <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid password</mat-error>
+            <mat-error i18n="@@registrationConfirmationBadPassword">Bad request. Invalid password</mat-error>
           }
           <div class="registration-confirmation__form__buttons">
             <button
@@ -97,19 +97,19 @@
     </mat-card-content>
   } @else if (submitted()) {
     <mat-card-header class="registration-confirmation__form__header">
-      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
-        >Registration confirmed
+      <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationSuccessTitle"
+        >Account created
       </mat-card-title>
     </mat-card-header>
     <mat-card-content class="registration-confirmation__success__content">
       <div class="registration-confirmation__success__content__icon">
         <mat-icon>how_to_reg</mat-icon>
       </div>
-      <div i18n="@@registrationConfirmationSuccessMessage">An email has been confirmed</div>
+      <div i18n="@@registrationConfirmationSuccessMessage">Your account has been successfully created</div>
       <button
         type="submit"
         mat-flat-button
-        i18n="@@registrationConfirmationAction"
+        i18n="@@registrationConfirmationSuccessAction"
         class="registration-confirmation__form__submit"
         routerLink="/">
         Back to portal
