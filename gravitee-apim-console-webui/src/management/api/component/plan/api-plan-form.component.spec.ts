@@ -940,10 +940,6 @@ describe('ApiPlanFormComponent', () => {
       await quotaEnabledInput.toggle();
       planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
 
-      const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
-      await resourceFilteringEnabledInput.toggle();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
-
       expect(testComponent.planControl.touched).toEqual(true);
       expect(testComponent.planControl.dirty).toEqual(true);
       expect(testComponent.planControl.valid).toEqual(true);
@@ -984,12 +980,6 @@ describe('ApiPlanFormComponent', () => {
                 enabled: true,
                 name: 'Quota',
                 policy: 'quota',
-              },
-              {
-                configuration: {},
-                enabled: true,
-                name: 'Resource Filtering',
-                policy: 'resource-filtering',
               },
             ],
           },
@@ -1056,10 +1046,6 @@ describe('ApiPlanFormComponent', () => {
       await quotaEnabledInput.toggle();
       planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
 
-      const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
-      await resourceFilteringEnabledInput.toggle();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
-
       expect(testComponent.planControl.touched).toEqual(true);
       expect(testComponent.planControl.dirty).toEqual(true);
       expect(testComponent.planControl.valid).toEqual(true);
@@ -1101,12 +1087,6 @@ describe('ApiPlanFormComponent', () => {
                 enabled: true,
                 name: 'Quota',
                 policy: 'quota',
-              },
-              {
-                configuration: {},
-                enabled: true,
-                name: 'Resource Filtering',
-                policy: 'resource-filtering',
               },
             ],
           },
