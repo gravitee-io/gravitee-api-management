@@ -35,14 +35,7 @@ export class BarChartComponent {
   data = input.required<TimeSeriesResponse>();
 
   public readonly dataFormatted = computed(() => {
-    const chartData = this.converter.convert(this.data());
-
-    chartData.datasets.forEach(dataset => {
-      dataset.borderWidth = 1;
-      dataset.borderRadius = 15;
-    });
-
-    return chartData;
+    return this.converter.convert(this.data());
   });
   private readonly converter = inject(BarConverterService);
 
@@ -50,6 +43,12 @@ export class BarChartComponent {
     return {
       responsive: true,
       maintainAspectRatio: false,
+      datasets: {
+        bar: {
+          borderWidth: 1,
+          borderRadius: 15,
+        },
+      },
       plugins: {
         legend: {
           display: true,
