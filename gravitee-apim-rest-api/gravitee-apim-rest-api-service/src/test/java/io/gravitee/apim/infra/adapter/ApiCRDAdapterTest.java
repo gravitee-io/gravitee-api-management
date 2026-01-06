@@ -212,10 +212,7 @@ class ApiCRDAdapterTest {
         export.setPlans(plansWithConflictingNames);
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
         assertThat(spec.getPlans()).hasSize(3);
-<<<<<<< HEAD
-=======
         assertThat(spec.getPlans()).containsKey("api-key");
->>>>>>> 581dd3fe94 (fix: sanitize plan name when exporting API as CRD)
     }
 
     private static ExportApiEntity exportEntity() {
