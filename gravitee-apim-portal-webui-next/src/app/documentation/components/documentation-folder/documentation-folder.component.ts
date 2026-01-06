@@ -17,7 +17,7 @@ import { AsyncPipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -102,12 +102,13 @@ export class DocumentationFolderComponent {
             return of(this.folderData());
         }
       }),
+      catchError(() => of({ children: [], selectedPageContent: null })),
     );
   }
 
   private loadChildrenAndContent(navId: string, pageId: string): Observable<FolderData> {
     return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navId).pipe(
-      tap(children => this.treeService.init(this.navItem()!, children)),
+      tap(children => this.treeService.init(this.navItem(), children)),
       tap(() => this.tree.set(this.treeService.getTree())),
       switchMap(children => this.loadContentOrRedirect(pageId, children)),
     );
@@ -121,7 +122,7 @@ export class DocumentationFolderComponent {
       );
     }
 
-    if (!children.find(item => item.id === pageId)) {
+    if (!children.some(item => item.id === pageId)) {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
