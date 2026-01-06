@@ -15,16 +15,35 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { TranslateTestingModule } from '../test/translate-testing-module';
 
 import { AnalyticsService } from './analytics.service';
 
 describe('AnalyticsService', () => {
+  const mockActivatedRouteSnapshotQueryParam = {
+    method: ['7', '3'],
+    'response-time': ['[300 TO 400]', '[400 TO 500]'],
+    from: 1767654000000,
+    to: 1767740400000,
+    status: '200',
+  };
+
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [TranslateTestingModule, RouterTestingModule],
       teardown: { destroyAfterEach: false },
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParams: mockActivatedRouteSnapshotQueryParam,
+            },
+          },
+        },
+      ],
     }),
   );
 
@@ -44,6 +63,11 @@ describe('AnalyticsService', () => {
       expect(resultQueryParam).toBe('*part of body content*');
     });
 
+    it('should not escape response-time values', () => {
+      const resultQueryParam = AnalyticsService.buildQueryParam('[300 to 400]', 'response-time');
+      expect(resultQueryParam).toBe('[300 to 400]');
+    });
+
     it('should use quotes for other parameters', () => {
       const resultQueryParam = AnalyticsService.buildQueryParam('exact = text * search', 'another');
       expect(resultQueryParam).toBe('\\"exact = text * search\\"');
@@ -52,6 +76,15 @@ describe('AnalyticsService', () => {
     it('should not quote the "?" wildcard', () => {
       const resultQueryParam = AnalyticsService.buildQueryParam('?', 'another');
       expect(resultQueryParam).toBe('?');
+    });
+  });
+
+  describe('getQueryFromPath', () => {
+    it('should group multivalued query param with parenthesis', () => {
+      const service: AnalyticsService = TestBed.inject(AnalyticsService);
+
+      const query = service.getQueryFromPath().query;
+      expect(query).toBe('method:(\\"7\\" OR \\"3\\") AND response-time:([300 TO 400] OR [400 TO 500]) AND status:\\"200\\"');
     });
   });
 });
