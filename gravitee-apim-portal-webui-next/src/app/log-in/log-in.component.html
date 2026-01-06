@@ -53,7 +53,7 @@
             <button [disabled]="logInForm.invalid" type="submit" mat-flat-button i18n="@@logInAction" class="log-in__form__submit">
               Log in
             </button>
-            <a class="log-in__form__forgot-password m3-label-large" i18n="@@resetPasswordAction" routerLink="reset-password">
+            <a class="log-in__form__forgot-password m3-label-large internal-link" i18n="@@resetPasswordAction" routerLink="reset-password">
               Forgot password?
             </a>
           </div>
@@ -73,8 +73,8 @@
           </div>
         </button>
       }
-      <div class="log-in__registration">
-        <span i18n="@@logInSignupPrefix">Don’t have an account? </span> <a routerLink="/registration" i18n="@@logInSignupLabel">Sign up</a>
+      <div class="log-in__registration m3-label-large">
+        <span i18n="@@logInSignupPrefix">Don’t have an account? </span> <a class="internal-link" routerLink="/registration" i18n="@@logInSignupLabel">Sign up</a>
       </div>
     </mat-card-content>
   </mat-card>
