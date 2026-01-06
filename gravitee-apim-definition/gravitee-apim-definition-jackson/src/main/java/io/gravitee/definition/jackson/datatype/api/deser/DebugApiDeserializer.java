@@ -30,12 +30,10 @@ import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import java.io.IOException;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
+@CustomLog
 public class DebugApiDeserializer extends StdScalarDeserializer<DebugApiV2> {
-
-    private final Logger logger = LoggerFactory.getLogger(DebugApiDeserializer.class);
 
     private final ApiDeserializer base;
 
@@ -52,7 +50,7 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApiV2> {
         if (requestNode != null) {
             debugApi.setRequest(requestNode.traverse(jp.getCodec()).readValueAs(HttpRequest.class));
         } else {
-            logger.error("A request property is required for {}", debugApi.getName());
+            log.error("A request property is required for {}", debugApi.getName());
             throw JsonMappingException.from(ctxt, "A request property is required for " + debugApi.getName());
         }
 
