@@ -20,6 +20,8 @@ import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HTTPRPSBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
@@ -47,7 +49,8 @@ public class HTTPMeasuresQueryAdapter {
     private final SimpleP50Builder p50Builder = new SimpleP50Builder();
     private final SimpleMinBuilder minBuilder = new SimpleMinBuilder();
     private final SimpleMaxBuilder maxBuilder = new SimpleMaxBuilder();
-    private final SimpleCountBuilder countBuilder = new SimpleCountBuilder();
+    private final SimpleCountBuilder simpleCountBuilder = new SimpleCountBuilder();
+    private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
     private final HTTPRPSBuilder rpsBuilder = new HTTPRPSBuilder();
@@ -87,7 +90,7 @@ public class HTTPMeasuresQueryAdapter {
         }
         return switch (measure) {
             case Measure.AVG -> avg().map(avg -> avg.build(aggName, field));
-            case Measure.COUNT -> count().map(count -> count.build(aggName, field));
+            case Measure.COUNT -> count(metric).map(count -> count.build(aggName, field));
             case Measure.MAX -> max().map(max -> max.build(aggName, field));
             case Measure.MIN -> min().map(min -> min.build(aggName, field));
             case Measure.P50 -> p50().map(p50 -> p50.build(aggName, field));
@@ -99,8 +102,15 @@ public class HTTPMeasuresQueryAdapter {
         };
     }
 
-    private Optional<SimpleCountBuilder> count() {
-        return Optional.of(countBuilder);
+    private Optional<CountBuilder> count(Metric metric) {
+        return switch (metric) {
+            case
+                LLM_PROMPT_TOKEN_SENT,
+                LLM_PROMPT_TOKEN_RECEIVED,
+                LLM_PROMPT_TOKEN_SENT_COST,
+                LLM_PROMPT_TOKEN_RECEIVED_COST -> Optional.of(countWithSumBuilder);
+            default -> Optional.of(simpleCountBuilder);
+        };
     }
 
     private Optional<SimpleMaxBuilder> max() {

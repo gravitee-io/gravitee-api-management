@@ -113,7 +113,10 @@ public class FilterAdapter {
     }
 
     public JsonObject httpFilter() {
-        return JsonObject.of("terms", JsonObject.of(ENTRYPOINT_FIELD, JsonArray.of(HTTP_PROXY_ENTRYPOINT_ID, LLM_PROXY_ENTRYPOINT_ID, MCP_PROXY_ENTRYPOINT_ID)));
+        return JsonObject.of(
+            "terms",
+            JsonObject.of(ENTRYPOINT_FIELD, JsonArray.of(HTTP_PROXY_ENTRYPOINT_ID, LLM_PROXY_ENTRYPOINT_ID, MCP_PROXY_ENTRYPOINT_ID))
+        );
     }
 
     public JsonObject messageFilter() {
