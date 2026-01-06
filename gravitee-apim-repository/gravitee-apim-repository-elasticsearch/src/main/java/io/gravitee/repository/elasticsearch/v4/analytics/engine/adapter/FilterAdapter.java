@@ -33,6 +33,8 @@ public class FilterAdapter {
 
     static final String ENTRYPOINT_FIELD = "entrypoint-id";
     static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
+    static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
+    static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
 
     static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -111,7 +113,7 @@ public class FilterAdapter {
     }
 
     public JsonObject httpFilter() {
-        return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, HTTP_PROXY_ENTRYPOINT_ID));
+        return JsonObject.of("terms", JsonObject.of(ENTRYPOINT_FIELD, JsonArray.of(HTTP_PROXY_ENTRYPOINT_ID, LLM_PROXY_ENTRYPOINT_ID, MCP_PROXY_ENTRYPOINT_ID)));
     }
 
     public JsonObject messageFilter() {
