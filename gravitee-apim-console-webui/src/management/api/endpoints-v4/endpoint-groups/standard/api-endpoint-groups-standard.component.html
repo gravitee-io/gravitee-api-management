@@ -96,10 +96,20 @@
         <table
           mat-table
           [dataSource]="group.endpoints"
-          [attr.id]="'groupsTable-' + i"
+          [attr.data-testid]="'groupsTable-' + i"
           aria-label="Endpoint group table"
+          cdkDropList
+          (cdkDropListDropped)="dropRow($event, group.name)"
           class="gio-table-light"
         >
+          <!-- Drag icon Column -->
+          <ng-container matColumnDef="drag-icon" *ngIf="!isReadOnly">
+            <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
+            <td mat-cell *matCellDef="let element" [class.plans__table__drag-icon]="!isReadOnly">
+              <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>
+            </td>
+          </ng-container>
+
           <!-- Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef id="name">Name</th>
@@ -164,7 +174,7 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="endpointsDisplayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: endpointsDisplayedColumns"></tr>
+          <tr mat-row cdkDrag [cdkDragDisabled]="isReadOnly || isReordering" *matRowDef="let row; columns: endpointsDisplayedColumns"></tr>
 
           <!-- Row shown when there is no data -->
           <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
