@@ -25,16 +25,15 @@ import io.gravitee.repository.management.api.PlanRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@CustomLog
 @Service
 public class PlanQueryServiceImpl implements PlanQueryService {
 
     private final PlanRepository planRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PlanQueryServiceImpl.class);
 
     public PlanQueryServiceImpl(@Lazy final PlanRepository planRepository) {
         this.planRepository = planRepository;
@@ -55,7 +54,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .collect(Collectors.toList());
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding plans by API ID {}", apiId, e);
+            log.error("An error occurred while finding plans by API ID {}", apiId, e);
             throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
         }
     }
@@ -65,7 +64,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         try {
             return planRepository.findByApi(apiId).stream().map(PlanAdapter.INSTANCE::fromRepository).collect(Collectors.toList());
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding plans by API ID {}", apiId, e);
+            log.error("An error occurred while finding plans by API ID {}", apiId, e);
             throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
         }
     }

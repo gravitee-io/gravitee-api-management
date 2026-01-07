@@ -37,14 +37,14 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/environments/{envId}/integrations")
-@Slf4j
+@CustomLog
 public class IntegrationsResource extends AbstractResource {
 
     @Context

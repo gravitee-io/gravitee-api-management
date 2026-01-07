@@ -43,12 +43,12 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class TargetTokenCommandHandler implements CommandHandler<TargetTokenCommand, TargetTokenReply> {
 

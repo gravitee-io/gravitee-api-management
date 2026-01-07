@@ -26,18 +26,16 @@ import io.gravitee.rest.api.service.SubscriptionCommandListener;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SubscriptionFailureCommandListenerImpl implements SubscriptionCommandListener {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionFailureCommandListenerImpl.class);
 
     private final SubscriptionService subscriptionService;
 
@@ -60,7 +58,7 @@ public class SubscriptionFailureCommandListenerImpl implements SubscriptionComma
             event.content() != null &&
             event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE)
         ) {
-            LOGGER.debug("Command event: {}", event.content().getContent());
+            log.debug("Command event: {}", event.content().getContent());
             getSubscriptionCommand(event).ifPresent(command ->
                 subscriptionService.fail(command.getSubscriptionId(), command.getFailureCause())
             );
@@ -74,7 +72,7 @@ public class SubscriptionFailureCommandListenerImpl implements SubscriptionComma
             }
             return Optional.of(objectMapper.readValue(event.content().getContent(), SubscriptionFailureCommand.class));
         } catch (JsonProcessingException e) {
-            LOGGER.error("Error processing SubscriptionCommand", e);
+            log.error("Error processing SubscriptionCommand", e);
             return Optional.empty();
         }
     }

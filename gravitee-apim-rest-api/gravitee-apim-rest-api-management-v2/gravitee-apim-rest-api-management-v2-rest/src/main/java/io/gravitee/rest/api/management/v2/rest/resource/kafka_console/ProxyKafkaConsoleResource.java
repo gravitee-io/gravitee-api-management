@@ -60,7 +60,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.env.Environment;
 
@@ -68,7 +68,7 @@ import org.springframework.core.env.Environment;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ProxyKafkaConsoleResource extends AbstractResource {
 
     @Inject

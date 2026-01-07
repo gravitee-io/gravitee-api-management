@@ -58,8 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -69,13 +68,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class HealthCheckServiceImpl implements HealthCheckService {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(HealthCheckServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -110,7 +105,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             );
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to calculate analytics: ", ae);
+            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
@@ -178,7 +173,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     @Override
     public ApiMetrics getAvailability(ExecutionContext executionContext, String api, String field) {
-        logger.debug("Run health availability query for API '{}'", api);
+        log.debug("Run health availability query for API '{}'", api);
 
         try {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
@@ -190,14 +185,14 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             return response != null ? convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field) : null;
         } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for health data.", ex);
+            log.error("An unexpected error occurs while searching for health data.", ex);
             return null;
         }
     }
 
     @Override
     public ApiMetrics getResponseTime(ExecutionContext executionContext, String api, String field) {
-        logger.debug("Run health response-time query for API '{}'", api);
+        log.debug("Run health response-time query for API '{}'", api);
 
         try {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
@@ -209,14 +204,14 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             return response != null ? convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field) : null;
         } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for health data.", ex);
+            log.error("An unexpected error occurs while searching for health data.", ex);
             return null;
         }
     }
 
     @Override
     public SearchLogResponse findByApi(ExecutionContext executionContext, String api, LogQuery query, Boolean transition) {
-        logger.debug("Run health logs query for API '{}'", api);
+        log.debug("Run health logs query for API '{}'", api);
 
         try {
             LogsResponse response = healthCheckRepository.query(
@@ -234,7 +229,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             return response != null ? convert(executionContext, response) : null;
         } catch (Exception ex) {
-            logger.error("An unexpected error occurs while searching for health data.", ex);
+            log.error("An unexpected error occurs while searching for health data.", ex);
             return null;
         }
     }
@@ -248,7 +243,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             );
             return (log != null && api.equalsIgnoreCase(log.getApi())) ? toLog(log) : null;
         } catch (AnalyticsException ae) {
-            logger.error("An unexpected error occurs while searching for health data.", ae);
+            log.error("An unexpected error occurs while searching for health data.", ae);
             return null;
         }
     }

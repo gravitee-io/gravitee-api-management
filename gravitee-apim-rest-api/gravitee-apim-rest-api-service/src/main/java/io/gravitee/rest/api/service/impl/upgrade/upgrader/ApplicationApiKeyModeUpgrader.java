@@ -32,9 +32,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -47,10 +45,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ApplicationApiKeyModeUpgrader implements Upgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationApiKeyModeUpgrader.class);
 
     @Lazy
     @Autowired
@@ -111,7 +107,7 @@ public class ApplicationApiKeyModeUpgrader implements Upgrader {
         try {
             applicationRepository.update(application);
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to set EXCLUSIVE ApiKeyMode to application {}", application, e);
+            log.error("Failed to set EXCLUSIVE ApiKeyMode to application {}", application, e);
         }
     }
 }

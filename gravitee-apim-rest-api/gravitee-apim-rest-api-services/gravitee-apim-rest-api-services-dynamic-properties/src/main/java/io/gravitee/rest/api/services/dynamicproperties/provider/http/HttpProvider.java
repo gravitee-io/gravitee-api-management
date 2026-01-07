@@ -34,14 +34,14 @@ import io.vertx.core.http.RequestOptions;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class HttpProvider implements Provider {
 
     private static final String HTTPS_SCHEME = "https";

@@ -33,33 +33,50 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.alert.AlertStatusEntity;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
+import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.event.AbstractOrganizationEvent;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+@CustomLog
 @Component
 public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationAlertServiceImpl.class);
     public static final String DEFAULT_EMAIL_NOTIFIER = "default-email";
     public static final String DEFAULT_WEBHOOK_NOTIFIER = "webhook-notifier";
     public static final String STATUS_ALERT = "METRICS_RATE";
@@ -133,7 +150,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             notification.setConfiguration(mapper.writeValueAsString(configuration));
             return singletonList(notification);
         } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to create the Alert notification", e);
+            log.error("An error occurs while trying to create the Alert notification", e);
             throw new TechnicalManagementException("An error occurs while trying to create the Alert notification");
         }
     }
@@ -207,7 +224,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         configuration.put("body", emailNode.path("body").asText());
                         notification.setConfiguration(mapper.writeValueAsString(configuration));
                     } catch (JsonProcessingException e) {
-                        LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
+                        log.error("An error occurs while trying to add a recipient to the Alert notification", e);
                         throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
                     }
                 } else {
@@ -263,7 +280,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
                         }
                         alertService.update(executionContext, convert(trigger));
                     } catch (JsonProcessingException e) {
-                        LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
+                        log.error("An error occurs while trying to add a recipient to the Alert notification", e);
                         throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
                     }
                 }
@@ -445,7 +462,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
                     alertService.update(executionContext, convert(trigger));
                 } catch (JsonProcessingException e) {
-                    LOGGER.error("An error occurs while trying to update Alert notification", e);
+                    log.error("An error occurs while trying to update Alert notification", e);
                     throw new TechnicalManagementException("An error occurs while trying to update Alert notification");
                 }
             });

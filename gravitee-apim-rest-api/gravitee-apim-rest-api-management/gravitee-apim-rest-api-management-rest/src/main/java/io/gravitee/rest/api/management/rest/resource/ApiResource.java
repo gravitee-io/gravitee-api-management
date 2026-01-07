@@ -28,7 +28,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.mapper.DebugApiMapper;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
@@ -110,8 +109,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -122,10 +120,9 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Tag(name = "APIs")
 public class ApiResource extends AbstractResource {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiResource.class);
 
     @Context
     private ResourceContext resourceContext;
@@ -326,7 +323,7 @@ public class ApiResource extends AbstractResource {
             ImageUtils.verify(apiToUpdate.getPicture());
             ImageUtils.verify(apiToUpdate.getBackground());
         } catch (InvalidImageException e) {
-            LOGGER.warn("Invalid image format", e);
+            log.warn("Invalid image format", e);
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
@@ -1083,9 +1080,9 @@ public class ApiResource extends AbstractResource {
                 }
             }
         } catch (JsonProcessingException e) {
-            LOGGER.debug("Skipping inline image sanitization due to malformed JSON input", e);
+            log.debug("Skipping inline image sanitization due to malformed JSON input", e);
         } catch (Exception e) {
-            LOGGER.warn("Unexpected error while sanitizing inline images, returning original payload", e);
+            log.warn("Unexpected error while sanitizing inline images, returning original payload", e);
         }
 
         return apiDefinitionOrUrl;

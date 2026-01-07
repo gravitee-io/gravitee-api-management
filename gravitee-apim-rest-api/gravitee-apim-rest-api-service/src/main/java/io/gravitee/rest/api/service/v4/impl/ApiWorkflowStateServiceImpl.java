@@ -59,14 +59,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
 

@@ -34,7 +34,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
-@Slf4j
+@CustomLog
 public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
     public static final String SENSITIVE_DATA_REPLACEMENT = "********";

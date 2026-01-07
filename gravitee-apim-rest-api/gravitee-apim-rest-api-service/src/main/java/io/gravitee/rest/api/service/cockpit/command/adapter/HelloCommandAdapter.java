@@ -37,8 +37,8 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.api.command.hello.HelloCommand, HelloCommand, HelloReply> {
 
     private static final String PATH_SUFFIX = "/";

@@ -37,11 +37,11 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import java.util.Map;
 import java.util.Objects;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @DomainService
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class GenerateApiKeyDomainService {
 

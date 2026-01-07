@@ -25,12 +25,12 @@ import io.gravitee.repository.management.model.TagReferenceType;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class TagQueryServiceImpl implements TagQueryService {
 
     private final TagRepository tagRepository;

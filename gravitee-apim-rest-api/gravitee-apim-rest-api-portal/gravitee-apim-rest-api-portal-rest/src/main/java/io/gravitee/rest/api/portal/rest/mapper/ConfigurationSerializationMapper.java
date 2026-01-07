@@ -16,24 +16,21 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper
 public interface ConfigurationSerializationMapper {
     ConfigurationSerializationMapper INSTANCE = Mappers.getMapper(ConfigurationSerializationMapper.class);
-    Logger logger = LoggerFactory.getLogger(ConfigurationSerializationMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ConfigurationSerializationMapper.class);
 
     @Named("deserializeConfiguration")
     default Object deserializeConfiguration(String configuration) {
@@ -45,13 +42,13 @@ public interface ConfigurationSerializationMapper {
         try {
             return mapper.readValue(configuration, LinkedHashMap.class);
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
+            log.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
         }
 
         try {
             return mapper.readValue(configuration, List.class);
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as List: " + configuration);
+            log.debug("Cannot parse configuration as List: " + configuration);
         }
 
         return configuration;

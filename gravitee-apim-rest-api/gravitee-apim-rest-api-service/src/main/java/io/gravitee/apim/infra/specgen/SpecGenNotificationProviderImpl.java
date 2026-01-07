@@ -25,7 +25,7 @@ import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-@Slf4j
+@CustomLog
 public class SpecGenNotificationProviderImpl implements SpecGenNotificationProvider {
 
     private final PortalNotificationService portalNotificationService;

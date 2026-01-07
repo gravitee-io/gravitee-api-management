@@ -39,12 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @DomainService
-@Slf4j
+@CustomLog
 public class InitializeSharedPolicyGroupUseCase {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;

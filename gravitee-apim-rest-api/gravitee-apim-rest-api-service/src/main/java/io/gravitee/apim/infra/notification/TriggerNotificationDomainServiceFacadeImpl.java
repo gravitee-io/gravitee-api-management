@@ -25,15 +25,15 @@ import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * Implementation of the TriggerNotificationDomainService interface using APIM "legacy" notification system.
  */
 @Service
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotificationDomainService {
 

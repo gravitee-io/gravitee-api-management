@@ -39,8 +39,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -49,10 +48,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class QualityRuleServiceImpl extends AbstractService implements QualityRuleService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(QualityRuleServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -68,7 +66,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     @Override
     public QualityRuleEntity findByReferenceAndId(QualityRuleReferenceType referenceType, String referenceId, String id) {
         try {
-            LOGGER.debug("Find quality rule by id : {}", id);
+            log.debug("Find quality rule by id : {}", id);
             return qualityRuleRepository
                 .findById(id)
                 .filter(
@@ -80,7 +78,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 .orElseThrow(() -> new QualityRuleNotFoundException(id));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a quality rule using its ID: " + id;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -88,10 +86,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     @Override
     public List<QualityRuleEntity> findAll() {
         try {
-            LOGGER.debug("Find all quality rules");
+            log.debug("Find all quality rules");
             return qualityRuleRepository.findAll().stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all quality rules", ex);
+            log.error("An error occurs while trying to find all quality rules", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all quality rules", ex);
         }
     }
@@ -99,14 +97,14 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     @Override
     public List<QualityRuleEntity> findByReference(QualityRuleReferenceType referenceType, String referenceId) {
         try {
-            LOGGER.debug("Find quality rules for {} [{}]", referenceType, referenceId);
+            log.debug("Find quality rules for {} [{}]", referenceType, referenceId);
             return qualityRuleRepository
                 .findByReference(repoQualityRuleReferenceType(referenceType), referenceId)
                 .stream()
                 .map(this::convert)
                 .toList();
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find quality rules for {} [{}]", referenceType, referenceId, ex);
+            log.error("An error occurs while trying to find quality rules for {} [{}]", referenceType, referenceId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to find quality rules for reference" + referenceType + " " + referenceId,
                 ex
@@ -136,7 +134,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             );
             return convert(createdQualityRule);
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to create a quality rule {}", newEntity, e);
+            log.error("An error occurs while trying to create a quality rule {}", newEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to create a quality rule " + newEntity, e);
         }
     }
@@ -165,7 +163,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             );
             return convert(updatedQualityRule);
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to update quality rule {}", updateEntity, e);
+            log.error("An error occurs while trying to update quality rule {}", updateEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to update quality rule " + updateEntity, e);
         }
     }
@@ -196,7 +194,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 );
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete quality rule {}", qualityRule, ex);
+            log.error("An error occurs while trying to delete quality rule {}", qualityRule, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete quality rule " + qualityRule, ex);
         }
     }

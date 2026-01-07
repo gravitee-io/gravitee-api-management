@@ -35,8 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
  *
  * This class assumes validated and sanitized input and is thus to be used by kubernetes resources use cases only
  */
-@Slf4j
+@CustomLog
 @Service
 @RequiredArgsConstructor
 public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {

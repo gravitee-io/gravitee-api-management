@@ -32,7 +32,11 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -48,9 +52,8 @@ import java.util.Set;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import lombok.CustomLog;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -61,10 +64,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Singleton
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
@@ -137,7 +139,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                         return Response.status(Response.Status.UNAUTHORIZED).entity(introspectPayload).build();
                     }
                 } else {
-                    LOGGER.error(
+                    log.error(
                         "Token exchange failed with status {}: {}\n{}",
                         response.getStatus(),
                         response.getStatusInfo(),
@@ -193,7 +195,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
                 return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payloadInput.getState());
             } else {
-                LOGGER.error(
+                log.error(
                     "Exchange authorization code failed with status {}: {}\n{}",
                     response.getStatus(),
                     response.getStatusInfo(),
@@ -230,7 +232,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
-            LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
+            log.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
         }
 
         return Response.status(response.getStatusInfo()).build();

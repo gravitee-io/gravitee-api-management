@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @DomainService
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ValidatePlanDomainService implements Validator<ValidatePlanDomainService.Input> {
 
     private final PlanValidatorDomainService planValidator;

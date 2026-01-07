@@ -30,13 +30,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class CockpitPromotionServiceImpl implements CockpitPromotionService {
 
     private final BridgeCommandFactory bridgeCommandFactory;

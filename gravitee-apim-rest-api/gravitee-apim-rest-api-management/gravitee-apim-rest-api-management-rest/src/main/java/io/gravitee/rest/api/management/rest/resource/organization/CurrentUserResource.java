@@ -35,7 +35,17 @@ import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.model.wrapper.TaskEntityPagedResult;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.resource.TokensResource;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.TagReferenceType;
+import io.gravitee.rest.api.model.TaskEntity;
+import io.gravitee.rest.api.model.UpdateUserEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -59,18 +69,37 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -81,11 +110,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Tag(name = "Current User")
 public class CurrentUserResource extends AbstractResource {
 
     public static final String IDP_SOURCE_MEMORY = "memory";
-    private static Logger LOG = LoggerFactory.getLogger(CurrentUserResource.class);
 
     @Inject
     private UserService userService;
@@ -134,10 +163,10 @@ public class CurrentUserResource extends AbstractResource {
                 userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), userId);
             } catch (final UserNotFoundException unfe) {
                 final String unfeMessage = "User '{}' does not exist.";
-                if (LOG.isDebugEnabled()) {
-                    LOG.info(unfeMessage, userId, unfe);
+                if (log.isDebugEnabled()) {
+                    log.info(unfeMessage, userId, unfe);
                 } else {
-                    LOG.info(unfeMessage, userId);
+                    log.info(unfeMessage, userId);
                 }
                 response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
                 return status(Response.Status.UNAUTHORIZED).build();
@@ -221,7 +250,7 @@ public class CurrentUserResource extends AbstractResource {
                                 });
                             userDetails.setGroupsByEnvironment(userGroups);
                         } catch (TechnicalException e) {
-                            LOG.error("Error while trying to get groups of the user " + userId, e);
+                            log.error("Error while trying to get groups of the user " + userId, e);
                         }
                     });
             }
@@ -274,7 +303,7 @@ public class CurrentUserResource extends AbstractResource {
                 user.setPicture(userEntity.getPicture());
             }
         } catch (InvalidImageException e) {
-            LOG.warn("Invalid image format", e);
+            log.warn("Invalid image format", e);
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 

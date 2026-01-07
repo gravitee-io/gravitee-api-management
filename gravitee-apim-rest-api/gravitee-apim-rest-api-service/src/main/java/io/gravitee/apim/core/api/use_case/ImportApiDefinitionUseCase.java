@@ -25,10 +25,10 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 @UseCase
-@Slf4j
+@CustomLog
 public class ImportApiDefinitionUseCase {
 
     public record Input(ImportDefinition importDefinition, AuditInfo auditInfo) {}

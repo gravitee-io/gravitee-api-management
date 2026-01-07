@@ -35,9 +35,9 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 @UseCase
 @AllArgsConstructor
 public class SearchEnvironmentRequestResponseTimeUseCase {

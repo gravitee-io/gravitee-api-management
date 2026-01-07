@@ -23,15 +23,15 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 @Service
 public class ValidateResourceDomainServiceLegacyWrapper implements ValidateResourceDomainService {

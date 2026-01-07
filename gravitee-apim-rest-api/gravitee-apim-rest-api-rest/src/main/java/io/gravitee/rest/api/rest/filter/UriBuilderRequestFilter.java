@@ -27,13 +27,13 @@ import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Provider
 @PreMatching
 public class UriBuilderRequestFilter implements ContainerRequestFilter {

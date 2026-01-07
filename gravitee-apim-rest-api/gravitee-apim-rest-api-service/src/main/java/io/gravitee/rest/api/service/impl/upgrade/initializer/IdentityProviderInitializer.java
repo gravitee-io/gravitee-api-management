@@ -19,7 +19,12 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.configuration.identity.*;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
+import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -31,20 +36,23 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderServi
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 public class IdentityProviderInitializer implements Initializer {
 
     private static final String DESCRIPTION =
         "Configuration provided by the system. Every modifications will be overridden at the next startup.";
-    private final Logger logger = LoggerFactory.getLogger(IdentityProviderInitializer.class);
     private final List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
     private final List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
 
@@ -90,7 +98,7 @@ public class IdentityProviderInitializer implements Initializer {
             found = (type != null);
             if (found && !notStorableIDPs.contains(type)) {
                 if (idpTypeNames.contains(type.toUpperCase())) {
-                    logger.info("Upsert identity provider config [{}]", type);
+                    log.info("Upsert identity provider config [{}]", type);
                     String id = environment.getProperty("security.providers[" + idx + "].id");
                     if (id == null) {
                         id = type;
@@ -108,7 +116,7 @@ public class IdentityProviderInitializer implements Initializer {
                     // update idp activations
                     updateIdpActivations(executionContext, formattedId, idx);
                 } else {
-                    logger.info("Unknown identity provider [{}]", type);
+                    log.info("Unknown identity provider [{}]", type);
                 }
             }
             idx++;
@@ -154,7 +162,7 @@ public class IdentityProviderInitializer implements Initializer {
                     this.organizationService.findById(orgEnv[0]);
                     activationTargets.add(new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
                 } catch (OrganizationNotFoundException onfe) {
-                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                    log.warn("Organization {} does not exist", orgEnv[0]);
                 }
             } else if (orgEnv.length == 2) {
                 try {
@@ -163,12 +171,12 @@ public class IdentityProviderInitializer implements Initializer {
                     if (env.getOrganizationId().equals(orgEnv[0])) {
                         activationTargets.add(new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
                     } else {
-                        logger.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
+                        log.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
                     }
                 } catch (OrganizationNotFoundException onfe) {
-                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                    log.warn("Organization {} does not exist", orgEnv[0]);
                 } catch (EnvironmentNotFoundException Enfe) {
-                    logger.warn("Environment {} does not exist", orgEnv[1]);
+                    log.warn("Environment {} does not exist", orgEnv[1]);
                 }
             }
         });

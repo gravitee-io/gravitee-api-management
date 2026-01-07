@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.model.ApiMetricsDetail;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
@@ -45,11 +46,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
 public interface ApiAnalyticsMapper {
-    Logger logger = LoggerFactory.getLogger(ApiAnalyticsMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiAnalyticsMapper.class);
     ApiAnalyticsMapper INSTANCE = Mappers.getMapper(ApiAnalyticsMapper.class);
 
     @Mapping(target = "countsByEntrypoint", source = "countsByEntrypoint")
@@ -129,7 +129,7 @@ public interface ApiAnalyticsMapper {
                     values.data(metricBucket.getValues());
                     mappedBucket.setBuckets(List.of(values));
                 } else {
-                    logger.error("Unsupported bucket type {}", bucket.getClass());
+                    log.error("Unsupported bucket type {}", bucket.getClass());
                 }
                 return mappedBucket;
             })

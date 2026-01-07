@@ -23,8 +23,7 @@ import io.gravitee.repository.management.model.Category;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -34,13 +33,9 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class DefaultCategoryInitializer implements Initializer {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultCategoryInitializer.class);
 
     @Lazy
     @Autowired
@@ -67,10 +62,10 @@ public class DefaultCategoryInitializer implements Initializer {
 
             if (keyLessCategoriesExist || categoriesWithoutCreationDateExist) {
                 if (keyLessCategoriesExist) {
-                    logger.info("Update categories to add field key");
+                    log.info("Update categories to add field key");
                 }
                 if (categoriesWithoutCreationDateExist) {
-                    logger.info("Update categories to add createdAt");
+                    log.info("Update categories to add createdAt");
                 }
                 for (final Category category : categories) {
                     if (keyLessCategoriesExist) {
@@ -87,7 +82,7 @@ public class DefaultCategoryInitializer implements Initializer {
                 }
             }
         } catch (TechnicalException e) {
-            logger.error("Error while upgrading categories", e);
+            log.error("Error while upgrading categories", e);
         }
         return true;
     }

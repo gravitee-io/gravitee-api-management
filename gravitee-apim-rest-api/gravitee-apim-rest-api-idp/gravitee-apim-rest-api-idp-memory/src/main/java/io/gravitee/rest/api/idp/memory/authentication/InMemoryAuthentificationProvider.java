@@ -20,7 +20,7 @@ import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
@@ -38,7 +38,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Import(InMemoryAuthenticationProviderConfiguration.class)
 public class InMemoryAuthentificationProvider
     extends AbstractUserDetailsAuthenticationProvider

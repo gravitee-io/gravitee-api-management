@@ -37,7 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("PlanMapperV4")
-@Slf4j
+@CustomLog
 public class PlanMapper {
 
     public PlanEntity toEntity(Plan plan, List<Flow> flows) {

@@ -25,7 +25,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-@Slf4j
+@CustomLog
 public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
 
     private final ApiRepository apiRepository;

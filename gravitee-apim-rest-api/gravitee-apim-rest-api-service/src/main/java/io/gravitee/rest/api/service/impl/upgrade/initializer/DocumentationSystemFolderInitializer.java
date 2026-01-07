@@ -19,7 +19,12 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.NewPageEntity;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.SystemFolderType;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -27,8 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +40,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class DocumentationSystemFolderInitializer extends EnvironmentInitializer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentationSystemFolderInitializer.class);
 
     private final PageService pageService;
 
@@ -55,7 +58,7 @@ public class DocumentationSystemFolderInitializer extends EnvironmentInitializer
         PageQuery query = new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build();
         // searching for system folders.
         if (pageService.search(executionContext.getEnvironmentId(), query).isEmpty()) {
-            LOGGER.info("No system folders found. Add system folders in documentation, for portal and each API.");
+            log.info("No system folders found. Add system folders in documentation, for portal and each API.");
 
             // Portal documentation
             Map<SystemFolderType, String> systemFolderIds = pageService.initialize(executionContext);

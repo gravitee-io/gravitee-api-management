@@ -43,8 +43,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -52,10 +51,9 @@ import org.springframework.stereotype.Component;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ApiConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiConverter.class);
 
     private final ObjectMapper objectMapper;
     private final PlanService planService;
@@ -132,7 +130,7 @@ public class ApiConverter {
                 }
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating API definition", ioe);
+                log.error("Unexpected error while generating API definition", ioe);
             }
         }
 

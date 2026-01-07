@@ -49,10 +49,10 @@ public class EndpointConnectorPluginServiceImpl
     @Override
     public String getSharedConfigurationSchema(final String connectorId) {
         try {
-            logger.debug("Find endpoint shared configuration configuration schema by ID: {}", connectorId);
+            log.debug("Find endpoint shared configuration configuration schema by ID: {}", connectorId);
             return ((EndpointConnectorPluginManager) pluginManager).getSharedConfigurationSchema(connectorId, true);
         } catch (IOException ioex) {
-            logger.error("An error occurs while trying to get endpoint shared configuration schema for plugin {}", connectorId, ioex);
+            log.error("An error occurs while trying to get endpoint shared configuration schema for plugin {}", connectorId, ioex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get endpoint shared configuration schema for plugin " + connectorId,
                 ioex

@@ -49,9 +49,8 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -60,10 +59,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class RatingServiceImpl extends AbstractService implements RatingService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RatingServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -123,7 +121,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
             return convert(executionContext, rating);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
+            log.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
         }
     }
@@ -163,7 +161,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
             return convert(executionContext, rating);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);
+            log.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);
             throw new TechnicalManagementException(
                 "An error occurred while trying to create a rating answer on rating" + answerEntity.getRatingId(),
                 ex
@@ -184,7 +182,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 .orElseThrow(() -> new RatingAnswerNotFoundException(answerId));
             return convert(executionContext, ratingAnswer);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find rating answer by answer id {}", answerId, ex);
+            log.error("An error occurred while trying to find rating answer by answer id {}", answerId, ex);
             throw new TechnicalManagementException("An error occurred while trying to find rating answer by answer id " + answerId, ex);
         }
     }
@@ -217,7 +215,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 .findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, convert(pageable))
                 .map(rating -> convert(executionContext, rating));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
+            log.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
         }
     }
@@ -234,7 +232,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 .map(rating -> convert(executionContext, rating))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
+            log.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
         }
     }
@@ -256,7 +254,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingSummary.setNumberOfRatingsByRate(ratings.stream().collect(groupingBy(Rating::getRate, counting())));
             return ratingSummary;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find summary rating for api {}", api, ex);
+            log.error("An error occurred while trying to find summary rating for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find summary rating for api " + api, ex);
         }
     }
@@ -269,7 +267,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         try {
             return ratingRepository.findReferenceIdsOrderByRate(new RatingCriteria.Builder().referenceIds(apis).build());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to compute ranking for apis {}", apis, ex);
+            log.error("An error occurred while trying to compute ranking for apis {}", apis, ex);
             throw new TechnicalManagementException("An error occurred while trying to compute ranking for apis " + apis, ex);
         }
     }
@@ -292,7 +290,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         } catch (final TechnicalException ex) {
             final String message =
                 "An error occurred while trying to find rating for api " + api + " and user " + getAuthenticatedUsername();
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -332,7 +330,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             );
             return convert(executionContext, updatedRating);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
+            log.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update rating " + ratingEntity.getId(), ex);
         }
     }
@@ -351,7 +349,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 rating.getReferenceId()
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete rating {}", id, ex);
+            log.error("An error occurs while trying to delete rating {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating " + id, ex);
         }
     }
@@ -375,7 +373,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 rating.getReferenceId()
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete rating answer {}", answerId, ex);
+            log.error("An error occurs while trying to delete rating answer {}", answerId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating answer " + answerId, ex);
         }
     }
@@ -396,7 +394,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             }
             return ratingOptional.get();
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find a rating by id {}", id, ex);
+            log.error("An error occurred while trying to find a rating by id {}", id, ex);
             throw new TechnicalManagementException("An error occurred while trying to find a rating by id " + id, ex);
         }
     }
@@ -429,7 +427,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 );
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find rating answers by rating id {}", rating.getId(), ex);
+            log.error("An error occurred while trying to find rating answers by rating id {}", rating.getId(), ex);
             throw new TechnicalManagementException(
                 "An error occurred while trying to find rating answers by rating id " + rating.getId(),
                 ex

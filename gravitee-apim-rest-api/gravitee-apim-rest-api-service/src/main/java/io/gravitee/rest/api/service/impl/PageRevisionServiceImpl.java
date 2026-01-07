@@ -29,10 +29,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -41,10 +40,9 @@ import org.springframework.stereotype.Component;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PageRevisionServiceImpl extends TransactionalService implements PageRevisionService {
-
-    private static final Logger logger = LoggerFactory.getLogger(PageRevisionServiceImpl.class);
 
     private static final String HASH_ALGO = "sha-256";
 
@@ -54,44 +52,44 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
     @Override
     public io.gravitee.common.data.domain.Page<PageRevisionEntity> findAll(Pageable pageable) {
-        logger.debug("get all page revisions with pageable {}", pageable);
+        log.debug("get all page revisions with pageable {}", pageable);
         try {
             return pageRevisionRepository.findAll(pageable).map(this::convert);
         } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to get the page revisions {}", pageable, e);
+            log.warn("An error occurs while trying to get the page revisions {}", pageable, e);
             throw new TechnicalManagementException("An error occurs while trying to get all page revisions", e);
         }
     }
 
     @Override
     public Optional<PageRevisionEntity> findById(String pageId, int revision) {
-        logger.debug("get page revision {}-{}", pageId, revision);
+        log.debug("get page revision {}-{}", pageId, revision);
         try {
             return pageRevisionRepository.findById(pageId, revision).map(this::convert);
         } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to get the page revision {}-{}", pageId, revision, e);
+            log.warn("An error occurs while trying to get the page revision {}-{}", pageId, revision, e);
             throw new TechnicalManagementException("An error occurs while trying to get a page revision", e);
         }
     }
 
     @Override
     public Optional<PageRevisionEntity> findLastByPageId(String pageId) {
-        logger.debug("get last revision for page {}", pageId);
+        log.debug("get last revision for page {}", pageId);
         try {
             return pageRevisionRepository.findLastByPageId(pageId).map(this::convert);
         } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to get the last revision for page {}", pageId, e);
+            log.warn("An error occurs while trying to get the last revision for page {}", pageId, e);
             throw new TechnicalManagementException("An error occurs while trying to get the last page revision", e);
         }
     }
 
     @Override
     public List<PageRevisionEntity> findAllByPageId(String pageId) {
-        logger.debug("get all revisions for page {}", pageId);
+        log.debug("get all revisions for page {}", pageId);
         try {
             return pageRevisionRepository.findAllByPageId(pageId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to get all the revisions for page {}", pageId, e);
+            log.warn("An error occurs while trying to get all the revisions for page {}", pageId, e);
             throw new TechnicalManagementException("An error occurs while trying to get all revisions", e);
         }
     }
@@ -99,7 +97,7 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
     @Override
     public PageRevisionEntity create(Page page) {
         try {
-            logger.debug("Create page revision for page {}", page.getId());
+            log.debug("Create page revision for page {}", page.getId());
 
             PageType type = PageType.valueOf(page.getType());
             if (!(type == PageType.MARKDOWN || type == PageType.SWAGGER || type == PageType.TRANSLATION)) {
@@ -110,7 +108,7 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
             return convert(revision);
         } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to create a revision for page {}", page.getId(), e);
+            log.warn("An error occurs while trying to create a revision for page {}", page.getId(), e);
             throw new TechnicalManagementException("An error occurs while trying to create a page revision", e);
         }
     }

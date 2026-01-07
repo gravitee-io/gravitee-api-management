@@ -16,11 +16,11 @@
 package io.gravitee.rest.api.security.listener;
 
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 
-@Slf4j
+@CustomLog
 public class AuthenticationFailureListener implements ApplicationListener<AbstractAuthenticationFailureEvent> {
 
     @Override

@@ -42,10 +42,10 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @UseCase
 @RequiredArgsConstructor
 public class DeleteIngestedApisUseCase {

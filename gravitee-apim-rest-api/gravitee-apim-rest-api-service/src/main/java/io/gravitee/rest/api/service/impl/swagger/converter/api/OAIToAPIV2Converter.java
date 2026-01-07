@@ -40,13 +40,13 @@ import io.swagger.v3.oas.models.PathItem;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class OAIToAPIV2Converter extends OAIToAPIConverter {
 
     private final PolicyPluginService policyPluginService;

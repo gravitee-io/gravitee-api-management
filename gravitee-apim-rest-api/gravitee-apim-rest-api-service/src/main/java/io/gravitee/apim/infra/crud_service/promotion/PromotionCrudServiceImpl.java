@@ -22,12 +22,12 @@ import io.gravitee.apim.infra.adapter.PromotionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class PromotionCrudServiceImpl implements PromotionCrudService {
 
     private final PromotionRepository promotionRepository;

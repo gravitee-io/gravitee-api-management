@@ -27,12 +27,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.UUID;
+import lombok.CustomLog;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
@@ -43,9 +40,8 @@ import org.springframework.web.util.WebUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class CookieCsrfSignedTokenRepository implements CsrfTokenRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(CookieCsrfSignedTokenRepository.class);
 
     public static final String TOKEN_CLAIM = "token";
 
@@ -105,7 +101,7 @@ public class CookieCsrfSignedTokenRepository implements CsrfTokenRepository {
             response.addCookie(cookie);
             request.setAttribute(DEFAULT_CSRF_COOKIE_NAME, true);
         } catch (JOSEException ex) {
-            LOGGER.error("Unable to generate CSRF token", ex);
+            log.error("Unable to generate CSRF token", ex);
         }
     }
 
@@ -135,7 +131,7 @@ public class CookieCsrfSignedTokenRepository implements CsrfTokenRepository {
                 return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, token);
             }
         } catch (ParseException | JOSEException ex) {
-            LOGGER.error("Unable to verify CSRF token", ex);
+            log.error("Unable to verify CSRF token", ex);
         }
 
         return null;

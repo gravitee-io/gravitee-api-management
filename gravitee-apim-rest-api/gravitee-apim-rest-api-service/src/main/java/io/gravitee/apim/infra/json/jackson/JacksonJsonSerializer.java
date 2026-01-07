@@ -18,9 +18,9 @@ package io.gravitee.apim.infra.json.jackson;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class JacksonJsonSerializer implements JsonSerializer {
 
     private final JsonMapper mapper;

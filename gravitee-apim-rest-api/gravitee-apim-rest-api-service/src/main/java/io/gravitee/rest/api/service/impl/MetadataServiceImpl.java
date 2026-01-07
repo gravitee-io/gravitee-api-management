@@ -46,8 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -56,10 +55,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MetadataServiceImpl extends TransactionalService implements MetadataService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -78,7 +76,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Override
     public List<MetadataEntity> findByReferenceTypeAndReferenceId(final MetadataReferenceType referenceType, final String referenceId) {
         try {
-            LOGGER.debug("Find metadata by reference {}/{}", referenceType, referenceId);
+            log.debug("Find metadata by reference {}/{}", referenceType, referenceId);
             return metadataRepository
                 .findByReferenceTypeAndReferenceId(referenceType, referenceId)
                 .stream()
@@ -86,7 +84,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find metadata by reference", ex);
+            log.error("An error occurred while trying to find metadata by reference", ex);
             throw new TechnicalManagementException("An error occurred while trying to find metadata by reference", ex);
         }
     }
@@ -172,14 +170,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             );
             return convert(metadata);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
+            log.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
         }
     }
 
     private void checkMetadataValue(String value) {
         if (value == null || isBlank(value)) {
-            LOGGER.error("Error occurred while trying to validate null or empty value");
+            log.error("Error occurred while trying to validate null or empty value");
             throw new TechnicalManagementException("Metadata value is required");
         }
     }
@@ -226,7 +224,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 }
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete metadata {}", key, ex);
+            log.error("An error occurs while trying to delete metadata {}", key, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete metadata " + key, ex);
         }
     }
@@ -238,11 +236,11 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         final String referenceId
     ) {
         try {
-            LOGGER.debug("Find by key and reference {}/{}/{}", key, referenceType, referenceId);
+            log.debug("Find by key and reference {}/{}/{}", key, referenceType, referenceId);
             final Optional<Metadata> optMetadata = metadataRepository.findById(key, referenceId, referenceType);
             return optMetadata.map(this::convert).orElse(null);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find default metadata by key", ex);
+            log.error("An error occurred while trying to find default metadata by key", ex);
             throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
         }
     }
@@ -259,7 +257,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Override
     public List<MetadataEntity> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
         try {
-            LOGGER.debug("Find metadata by reference type ([{}]) and key [{}]", referenceType.name(), key);
+            log.debug("Find metadata by reference type ([{}]) and key [{}]", referenceType.name(), key);
             return metadataRepository
                 .findByKeyAndReferenceType(key, referenceType)
                 .stream()
@@ -322,7 +320,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     break;
             }
         } catch (final Exception e) {
-            LOGGER.error("Error occurred while trying to validate format '{}' of value '{}'", format, value, e);
+            log.error("Error occurred while trying to validate format '{}' of value '{}'", format, value, e);
             throw new TechnicalManagementException("Error occurred while trying to validate format " + format + " of value " + value, e);
         }
     }

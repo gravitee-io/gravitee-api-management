@@ -41,12 +41,18 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.inject.Inject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
@@ -56,13 +62,12 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ParameterServiceImpl extends TransactionalService implements ParameterService {
 
     public static final String SEPARATOR = ";";
     public static final String KV_SEPARATOR = "@";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
     @Lazy
     @Inject
@@ -300,7 +305,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             return splitValue(this.getDefaultParameterValue(key), mapper, filter);
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with key: " + key;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -364,7 +369,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             return result;
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with keys: " + keys;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -465,7 +470,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             }
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }

@@ -25,14 +25,14 @@ import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @UseCase
-@Slf4j
+@CustomLog
 public class ImportGroupCRDUseCase {
 
     public record Input(AuditInfo auditInfo, GroupCRDSpec spec) implements Validator.Input {}

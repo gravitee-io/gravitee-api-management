@@ -15,13 +15,24 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_API;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_APPLICATION;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_OWNER;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_PLAN;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_SUBSCRIPTION;
 
-import io.gravitee.apim.core.notification.model.*;
+import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.BasePlanEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -30,8 +41,7 @@ import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
 import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +49,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class WebhookNotifierServiceImpl implements WebhookNotifierService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(WebhookNotifierServiceImpl.class);
 
     @Autowired
     WebNotifierService webNotifierService;

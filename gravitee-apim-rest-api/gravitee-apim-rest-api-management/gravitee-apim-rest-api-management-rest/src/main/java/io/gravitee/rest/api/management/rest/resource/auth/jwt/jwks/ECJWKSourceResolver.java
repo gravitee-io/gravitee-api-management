@@ -16,25 +16,26 @@
 package io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.*;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidKeyException;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.resolver.PublicKeyResolver;
 import java.security.interfaces.ECPublicKey;
-import java.util.concurrent.CompletableFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ECJWKSourceResolver<C extends SecurityContext> implements JWKSourceResolver<C> {
 
     private final JWK jwk;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ECJWKSourceResolver.class);
 
     private ECJWKSourceResolver(String publicKey) {
         if (publicKey == null) {
@@ -47,7 +48,7 @@ public class ECJWKSourceResolver<C extends SecurityContext> implements JWKSource
             JWK key = JWK.parseFromPEMEncodedObjects(publicKey);
             ecPublicKey = ((ECKey) key).toECPublicKey();
         } catch (JOSEException e) {
-            LOGGER.error("unable to parse public key {}", e.getMessage());
+            log.error("unable to parse public key {}", e.getMessage());
         }
 
         this.jwk = ecPublicKey != null ? new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey).build() : null;

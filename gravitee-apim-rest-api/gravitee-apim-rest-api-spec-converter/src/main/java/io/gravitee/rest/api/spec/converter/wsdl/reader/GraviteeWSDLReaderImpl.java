@@ -22,7 +22,7 @@ import javax.wsdl.WSDLException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
  *
  * see: <a href="https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html">XML External Entity Prevention Cheat Sheet</a>
  */
-@Slf4j
+@CustomLog
 public class GraviteeWSDLReaderImpl extends WSDLReaderImpl {
 
     @Override

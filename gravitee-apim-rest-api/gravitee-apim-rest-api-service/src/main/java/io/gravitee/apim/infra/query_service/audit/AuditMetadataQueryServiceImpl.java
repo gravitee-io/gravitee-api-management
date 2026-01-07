@@ -36,12 +36,12 @@ import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.Plan;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService {
 
     private final ApiRepository apiRepository;

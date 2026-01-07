@@ -26,16 +26,15 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@CustomLog
 @Service
 public class PageQueryServiceImpl implements PageQueryService {
 
     private final PageRepository pageRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PageQueryServiceImpl.class);
 
     public PageQueryServiceImpl(@Lazy final PageRepository pageRepository) {
         this.pageRepository = pageRepository;
@@ -56,7 +55,7 @@ public class PageQueryServiceImpl implements PageQueryService {
         try {
             return pageRepository.search(criteria).stream().findFirst().map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding all homepage pages with apiId {}", apiId, e);
+            log.error("An error occurred while finding all homepage pages with apiId {}", apiId, e);
             throw new TechnicalDomainException("Error during repository search", e);
         }
     }
@@ -105,7 +104,7 @@ public class PageQueryServiceImpl implements PageQueryService {
         try {
             return this.pageRepository.countByParentIdAndIsPublished(parentId);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while counting Pages by parentId {}", parentId, e);
+            log.error("An error occurred while counting Pages by parentId {}", parentId, e);
             throw new TechnicalDomainException("Error during repository search", e);
         }
     }
@@ -116,7 +115,7 @@ public class PageQueryServiceImpl implements PageQueryService {
         try {
             result = pageRepository.search(new PageCriteria.Builder().name(name).referenceId(referenceId).build());
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Page by name {}", name, e);
+            log.error("An error occurred while finding Page by name {}", name, e);
             throw new TechnicalDomainException("Error when updating Page", e);
         }
         return switch (result.size()) {
@@ -130,7 +129,7 @@ public class PageQueryServiceImpl implements PageQueryService {
         try {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));
         } catch (TechnicalException e) {
-            logger.error("An error occurred while searching for Page by apiId {}", apiId, e);
+            log.error("An error occurred while searching for Page by apiId {}", apiId, e);
             throw new TechnicalDomainException("Error during repository search", e);
         }
     }

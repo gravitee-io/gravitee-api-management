@@ -26,9 +26,8 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,10 +37,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PermissionServiceImpl extends AbstractService implements PermissionService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PermissionServiceImpl.class);
 
     public static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
@@ -83,7 +81,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         RolePermissionAction... acls
     ) {
         if (isOrganizationAdmin()) {
-            LOGGER.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
+            log.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
             return true;
         }
 
@@ -102,7 +100,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     @Override
     public boolean hasManagementRights(final ExecutionContext executionContext, String userId) {
         if (isOrganizationAdmin()) {
-            LOGGER.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
+            log.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
             return true;
         }
         UserEntity user = userService.findByIdWithRoles(executionContext, userId);

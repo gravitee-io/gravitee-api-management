@@ -32,12 +32,12 @@ import io.gravitee.scoring.api.model.asset.Format;
 import io.gravitee.scoring.api.model.functions.CustomFunction;
 import io.gravitee.scoring.api.model.ruleset.CustomRuleset;
 import io.reactivex.rxjava3.core.Completable;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class ScoringProviderImpl implements ScoringProvider {
 
     private final CockpitConnector cockpitConnector;

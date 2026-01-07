@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -42,13 +43,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -57,7 +56,7 @@ import org.slf4j.LoggerFactory;
 @Mapper
 public interface ApiCRDAdapter {
     ApiCRDAdapter INSTANCE = Mappers.getMapper(ApiCRDAdapter.class);
-    Logger logger = LoggerFactory.getLogger(ApiCRDAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiCRDAdapter.class);
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -189,7 +188,7 @@ public interface ApiCRDAdapter {
         try {
             return mapper.readValue(configuration, LinkedHashMap.class);
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as LinkedHashMap: {}", configuration);
+            log.debug("Cannot parse configuration as LinkedHashMap: {}", configuration);
         }
 
         return Map.of();

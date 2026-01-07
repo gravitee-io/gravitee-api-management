@@ -37,8 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -46,10 +45,9 @@ import org.springframework.stereotype.Component;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(AlertAnalyticsServiceImpl.class);
 
     private final AlertTriggerRepository alertTriggerRepository;
 
@@ -123,7 +121,7 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurs while trying to list alerts analytics by reference " + referenceType + '/' + referenceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }

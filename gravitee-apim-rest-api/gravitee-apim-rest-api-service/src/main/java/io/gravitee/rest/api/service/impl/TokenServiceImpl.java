@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TOKEN;
-import static io.gravitee.repository.management.model.Token.AuditEvent.*;
+import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_CREATED;
+import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_DELETED;
 import static java.util.Collections.reverseOrder;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsLast;
@@ -35,9 +36,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -48,10 +51,10 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class TokenServiceImpl extends AbstractService implements TokenService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(TokenServiceImpl.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Lazy
@@ -64,11 +67,11 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     @Override
     public List<TokenEntity> findByUser(final String userId) {
         try {
-            LOGGER.debug("Find all tokens for user '{}'", userId);
+            log.debug("Find all tokens for user '{}'", userId);
             return tokenRepository.findByReference(TokenReferenceType.USER.name(), userId).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all tokens";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -98,7 +101,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             return convert(tokenRepository.create(token), decodedToken);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create a token " + newToken;
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }
@@ -128,7 +131,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete token " + tokenId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -136,7 +139,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     @Override
     public Token findByToken(String token) {
         try {
-            LOGGER.debug("Find token entity by token value");
+            log.debug("Find token entity by token value");
 
             Token matchingToken = tokenRepository
                 .findAll()
@@ -150,7 +153,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             return tokenRepository.update(matchingToken);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find token entity for a given token value";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -165,7 +168,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 .isPresent();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to check if token exists";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }

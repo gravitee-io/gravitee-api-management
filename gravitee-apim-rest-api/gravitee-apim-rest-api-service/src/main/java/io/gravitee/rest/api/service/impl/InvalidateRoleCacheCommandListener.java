@@ -25,10 +25,10 @@ import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.event.CommandEvent;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+@CustomLog
 @Component
 public class InvalidateRoleCacheCommandListener implements EventListener<CommandEvent, CommandEntity> {
 

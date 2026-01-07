@@ -17,9 +17,12 @@ package io.gravitee.rest.api.idp.memory.authentication.spring;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import lombok.CustomLog;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,9 +35,8 @@ import org.springframework.util.Assert;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager, UserDetailsPasswordService {
-
-    private static final Logger logger = LoggerFactory.getLogger(InMemoryGraviteeUserDetailsManager.class);
 
     private final Map<String, UserDetails> users = new HashMap<>();
 

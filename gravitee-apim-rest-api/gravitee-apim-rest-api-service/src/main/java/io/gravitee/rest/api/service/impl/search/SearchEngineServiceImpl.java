@@ -52,9 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -66,6 +64,7 @@ import org.springframework.util.Assert;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SearchEngineServiceImpl implements SearchEngineService {
 
@@ -74,7 +73,6 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(SearchEngineServiceImpl.class);
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -162,7 +160,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         try {
             indexer.commit();
         } catch (TechnicalException te) {
-            logger.error("Unexpected error while Lucene commit", te);
+            log.error("Unexpected error while Lucene commit", te);
         }
     }
 
@@ -196,7 +194,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             msg.setContent(mapper.writeValueAsString(content));
             commandService.send(executionContext, msg);
         } catch (JsonProcessingException e) {
-            logger.error("Unexpected error while sending a message", e);
+            log.error("Unexpected error while sending a message", e);
         }
     }
 
@@ -233,7 +231,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 try {
                     indexer.index(transformer.transform(source), commit);
                 } catch (TechnicalException te) {
-                    logger.error("Unexpected error while indexing a document", te);
+                    log.error("Unexpected error while indexing a document", te);
                 }
             });
     }
@@ -247,7 +245,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 try {
                     indexer.remove(transformer.transform(source));
                 } catch (TechnicalException te) {
-                    logger.error("Unexpected error while deleting a document", te);
+                    log.error("Unexpected error while deleting a document", te);
                 }
             });
     }
@@ -258,7 +256,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             Assert.isAssignable(Indexable.class, clazz);
             return (Indexable) clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            logger.error("Unable to instantiate class: {}", className, ex);
+            log.error("Unable to instantiate class: {}", className, ex);
             throw ex;
         }
     }
@@ -285,7 +283,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                     }
                     return Optional.of(searcher.search(executionContext, query));
                 } catch (TechnicalException te) {
-                    logger.error("Unexpected error while searching a document", te);
+                    log.error("Unexpected error while searching a document", te);
                     return Optional.empty();
                 }
             });

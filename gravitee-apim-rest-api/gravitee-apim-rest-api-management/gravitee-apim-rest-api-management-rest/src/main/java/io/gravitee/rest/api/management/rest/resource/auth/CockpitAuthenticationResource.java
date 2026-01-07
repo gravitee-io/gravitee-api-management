@@ -62,7 +62,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
@@ -73,7 +73,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Slf4j
+@CustomLog
 @Singleton
 @Path("/auth/cockpit")
 public class CockpitAuthenticationResource extends AbstractAuthenticationResource {

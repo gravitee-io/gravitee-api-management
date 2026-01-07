@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,22 +27,24 @@ import io.gravitee.repository.management.model.AlertEventRule;
 import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventRuleEntity;
-import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntityWrapper;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AlertTriggerConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertTriggerConverter.class);
 
     private ObjectMapper objectMapper;
 
@@ -154,7 +158,7 @@ public class AlertTriggerConverter {
 
             return alertTriggerEntity;
         } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while transforming the alert trigger from its definition", ex);
+            log.error("An unexpected error occurs while transforming the alert trigger from its definition", ex);
         }
 
         return null;
@@ -174,7 +178,7 @@ public class AlertTriggerConverter {
         try {
             alertTrigger.setDefinition(objectMapper.writeValueAsString(alertEntity));
         } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurred while transforming the alert trigger definition into string", ex);
+            log.error("An unexpected error occurred while transforming the alert trigger definition into string", ex);
         }
     }
 }

@@ -27,17 +27,16 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@CustomLog
 @Service
 public class SharedPolicyGroupQueryServiceImpl implements SharedPolicyGroupQueryService {
 
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
-    private static final Logger logger = LoggerFactory.getLogger(SharedPolicyGroupQueryServiceImpl.class);
 
     public SharedPolicyGroupQueryServiceImpl(
         @Lazy final SharedPolicyGroupRepository sharedPolicyGroupRepository,
@@ -60,7 +59,7 @@ public class SharedPolicyGroupQueryServiceImpl implements SharedPolicyGroupQuery
 
             return result.map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while searching shared policy groups by environment ID {}", environmentId, e);
+            log.error("An error occurred while searching shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
                 "An error occurred while trying to search shared policy groups by environment ID: " + environmentId,
                 e

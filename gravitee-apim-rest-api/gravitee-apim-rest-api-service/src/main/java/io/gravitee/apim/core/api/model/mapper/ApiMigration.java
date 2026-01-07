@@ -59,10 +59,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.jspecify.annotations.Nullable;
 
-@Slf4j
+@CustomLog
 class ApiMigration {
 
     public static final String HTTP_PROXY = "http-proxy";

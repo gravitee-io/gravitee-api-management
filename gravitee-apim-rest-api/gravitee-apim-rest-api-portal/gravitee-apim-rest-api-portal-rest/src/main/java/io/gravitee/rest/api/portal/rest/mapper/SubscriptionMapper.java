@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -24,7 +25,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
-    Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(SubscriptionMapper.class);
 
     @Mapping(target = "keys", ignore = true)
     @Mapping(target = "endAt", source = "endingAt")

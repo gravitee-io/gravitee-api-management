@@ -54,11 +54,11 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @UseCase
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class StartIngestIntegrationApisUseCase {
 

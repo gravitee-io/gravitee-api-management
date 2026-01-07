@@ -17,9 +17,14 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.*;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.InvalidPathException;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
 import io.gravitee.rest.api.model.JsonPatch;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import io.gravitee.rest.api.service.exceptions.JsonPatchUnsafeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -27,17 +32,15 @@ import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class JsonPatchServiceImpl extends AbstractService implements JsonPatchService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JsonPatchServiceImpl.class);
 
     private static final Configuration CONFIGURATION;
 
@@ -63,7 +66,7 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
             Object apiDefinitionToUpdate = transform(jsonPatches, apiDefinitionParsed.json());
             return objectMapper.writeValueAsString(apiDefinitionToUpdate);
         } catch (JsonProcessingException | InvalidPathException ex) {
-            LOGGER.error("An error occurs while trying to execute json patches", ex);
+            log.error("An error occurs while trying to execute json patches", ex);
             throw new TechnicalManagementException("An error occurs while trying to execute json patches", ex);
         }
     }

@@ -18,16 +18,14 @@ package io.gravitee.rest.api.service.impl.swagger.parser;
 import io.gravitee.rest.api.spec.converter.wsdl.WSDLToOpenAPIConverter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.util.RemoteUrl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class WsdlParser extends AbstractDescriptorParser<OpenAPI> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(WsdlParser.class);
 
     @Override
     public OpenAPI parse(String content) {
@@ -38,7 +36,7 @@ public class WsdlParser extends AbstractDescriptorParser<OpenAPI> {
                 return new WSDLToOpenAPIConverter().toOpenAPI(content);
             }
         } catch (Exception e) {
-            LOGGER.info("Wsdl parsing failed : {}", e.getMessage());
+            log.info("Wsdl parsing failed : {}", e.getMessage());
             return null;
         }
     }

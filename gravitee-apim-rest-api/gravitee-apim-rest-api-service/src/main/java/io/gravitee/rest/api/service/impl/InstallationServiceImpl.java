@@ -28,8 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -39,10 +38,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class InstallationServiceImpl implements InstallationService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstallationServiceImpl.class);
 
     @Value("${cockpit.url:${cloud.url:https://cockpit.gravitee.io}}")
     private String cockpitURL;
@@ -59,7 +57,7 @@ public class InstallationServiceImpl implements InstallationService {
                 return convert(optInstallation.get());
             }
         } catch (final Exception ex) {
-            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
         throw new InstallationNotFoundException("");
@@ -74,7 +72,7 @@ public class InstallationServiceImpl implements InstallationService {
             }
             return createInstallation();
         } catch (final Exception ex) {
-            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
@@ -90,7 +88,7 @@ public class InstallationServiceImpl implements InstallationService {
                 return convert(this.installationRepository.update(installation));
             }
         } catch (final Exception ex) {
-            LOGGER.error("Error while updating installation : {}", ex.getMessage());
+            log.error("Error while updating installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while updating installation", ex);
         }
         throw new InstallationNotFoundException("");
@@ -118,7 +116,7 @@ public class InstallationServiceImpl implements InstallationService {
         try {
             return convert(this.installationRepository.create(installation));
         } catch (final Exception ex) {
-            LOGGER.error("Error while creating installation : {}", ex.getMessage());
+            log.error("Error while creating installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while creating installation", ex);
         }
     }

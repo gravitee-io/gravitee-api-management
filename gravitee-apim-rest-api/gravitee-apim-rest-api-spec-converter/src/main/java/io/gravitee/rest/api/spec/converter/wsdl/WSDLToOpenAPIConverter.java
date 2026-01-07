@@ -38,14 +38,14 @@ import java.util.Map.Entry;
 import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class WSDLToOpenAPIConverter implements OpenAPIConverter {
 
     public static final String SOAP_EXTENSION_ENVELOPE = "x-graviteeio-soap-envelope";

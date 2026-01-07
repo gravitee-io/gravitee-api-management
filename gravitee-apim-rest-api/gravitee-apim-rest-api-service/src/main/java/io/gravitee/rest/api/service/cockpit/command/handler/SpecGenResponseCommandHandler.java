@@ -30,12 +30,12 @@ import io.gravitee.cockpit.api.command.v1.specgen.response.SpecGenResponseComman
 import io.gravitee.cockpit.api.command.v1.specgen.response.SpecGenResponseReply;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.reactivex.rxjava3.core.Single;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class SpecGenResponseCommandHandler implements CommandHandler<SpecGenResponseCommand, SpecGenResponseReply> {
 
     private final BuildSpecGenPageResponseUseCase saveSpecGenResponseUseCase;

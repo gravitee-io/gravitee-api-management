@@ -20,7 +20,7 @@ import io.gravitee.rest.api.service.MediaValidationService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import java.io.IOException;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
@@ -33,7 +33,7 @@ import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class MediaValidationServiceImpl implements MediaValidationService {
 
     private static final Tika TIKA = new Tika();

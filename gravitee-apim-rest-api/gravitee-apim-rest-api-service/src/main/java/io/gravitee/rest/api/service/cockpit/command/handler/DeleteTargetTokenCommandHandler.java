@@ -27,12 +27,12 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.rxjava3.core.Single;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class DeleteTargetTokenCommandHandler implements CommandHandler<DeleteTargetTokenCommand, DeleteTargetTokenReply> {
 

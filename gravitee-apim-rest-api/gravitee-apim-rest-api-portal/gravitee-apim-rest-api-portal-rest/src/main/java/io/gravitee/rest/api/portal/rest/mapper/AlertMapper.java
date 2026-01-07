@@ -19,7 +19,12 @@ import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.alert.api.condition.*;
+import io.gravitee.alert.api.condition.AggregationCondition;
+import io.gravitee.alert.api.condition.Condition;
+import io.gravitee.alert.api.condition.Filter;
+import io.gravitee.alert.api.condition.RateCondition;
+import io.gravitee.alert.api.condition.StringCondition;
+import io.gravitee.alert.api.condition.ThresholdRangeCondition;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
@@ -27,27 +32,29 @@ import io.gravitee.notifier.api.Notification;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Alert;
+import io.gravitee.rest.api.portal.rest.model.AlertInput;
+import io.gravitee.rest.api.portal.rest.model.AlertTimeUnit;
+import io.gravitee.rest.api.portal.rest.model.AlertType;
+import io.gravitee.rest.api.portal.rest.model.AlertWebhook;
+import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.service.impl.alert.WebhookNotifierConfiguration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import lombok.CustomLog;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AlertMapper {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertMapper.class);
 
     public static final String STATUS_ALERT = "METRICS_RATE";
     public static final String RESPONSE_TIME_ALERT = "METRICS_AGGREGATION";
@@ -204,7 +211,7 @@ public class AlertMapper {
                 webhookNotification.setConfiguration(objectMapper.writeValueAsString(webhookConfig));
                 return List.of(webhookNotification);
             } catch (JsonProcessingException e) {
-                LOGGER.error("Failed to convert AlertWebhook to List<Notification>", e);
+                log.error("Failed to convert AlertWebhook to List<Notification>", e);
             }
         }
         return Collections.emptyList();
@@ -227,7 +234,7 @@ public class AlertMapper {
                         alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
                         return alertWebhook;
                     } catch (JsonProcessingException e) {
-                        LOGGER.error("Failed to convert List<Notification> to AlertWebhook", e);
+                        log.error("Failed to convert List<Notification> to AlertWebhook", e);
                     }
                     return null;
                 })

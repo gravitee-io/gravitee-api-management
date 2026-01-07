@@ -35,8 +35,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -44,9 +43,8 @@ import org.springframework.context.annotation.Lazy;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public abstract class AbstractReferenceMetadataService extends AbstractService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(io.gravitee.rest.api.service.impl.AbstractReferenceMetadataService.class);
 
     @Lazy
     @Autowired
@@ -68,7 +66,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final Optional<String> environmentId
     ) {
         try {
-            LOGGER.debug("Find all metadata by reference {} / {}", referenceType, referenceId);
+            log.debug("Find all metadata by reference {} / {}", referenceType, referenceId);
 
             final List<Metadata> referenceMetadataList = metadataRepository.findByReferenceTypeAndReferenceId(referenceType, referenceId);
 
@@ -103,7 +101,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
 
             return allMetadata;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find all metadata by REFERENCE", ex);
+            log.error("An error occurred while trying to find all metadata by REFERENCE", ex);
             throw new TechnicalManagementException("An error occurred while trying to find all metadata by REFERENCE", ex);
         }
     }
@@ -114,7 +112,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final String referenceId,
         final Optional<String> environmentId
     ) {
-        LOGGER.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
+        log.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, environmentId);
         final Optional<ReferenceMetadataEntity> optMetadata = allMetadata
             .stream()
@@ -141,7 +139,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final MetadataReferenceType referenceType,
         final String referenceId
     ) {
-        LOGGER.debug("Delete metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
+        log.debug("Delete metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         try {
             // prevent deletion of a metadata not in the given reference
             final Optional<Metadata> optMetadata = metadataRepository.findById(metadataId, referenceId, referenceType);
@@ -160,7 +158,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             }
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to delete metadata " + metadataId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -203,7 +201,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurred while trying to create metadata " + metadataEntity.getName() + " on reference " + referenceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -300,7 +298,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to update metadata {} on REFERENCE {}", metadataEntity.getName(), referenceId, ex);
+            log.error("An error occurred while trying to update metadata {} on REFERENCE {}", metadataEntity.getName(), referenceId, ex);
             throw new TechnicalManagementException(
                 "An error occurred while trying to update metadata " + metadataEntity.getName() + " on REFERENCE " + referenceId,
                 ex

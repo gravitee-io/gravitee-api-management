@@ -70,8 +70,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -81,10 +80,9 @@ import org.springframework.util.StringUtils;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PromotionServiceImpl extends AbstractService implements PromotionService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PromotionServiceImpl.class);
 
     private final ApiSearchService apiSearchService;
     private final ApiDuplicatorService apiDuplicatorService;
@@ -235,16 +233,16 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             Promotion createdOrUpdatedPromotion;
 
             if (existingPromotion.isPresent()) {
-                LOGGER.debug("Updating existing promotion: {}", promotion.getId());
+                log.debug("Updating existing promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = promotionRepository.update(promotion);
             } else {
-                LOGGER.debug("Creating promotion: {}", promotion.getId());
+                log.debug("Creating promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = promotionRepository.create(promotion);
             }
 
             return convert(createdOrUpdatedPromotion);
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to create or update a promotion using its id {}", promotionEntity.getId(), e);
+            log.error("An error occurs while trying to create or update a promotion using its id {}", promotionEntity.getId(), e);
             throw new TechnicalManagementException(
                 "An error occurs while trying to create or update a promotion using its id {}" + promotionEntity.getId(),
                 e
@@ -255,7 +253,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     @Override
     public Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable) {
         try {
-            LOGGER.debug("Searching promotions");
+            log.debug("Searching promotions");
 
             PromotionCriteria criteria = queryToCriteriaBuilder(query).build();
 
@@ -263,11 +261,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 .search(criteria, convert(sortable), convert(pageable))
                 .map(this::convert);
 
-            LOGGER.debug("Searching promotions - Done with {} elements", promotions.getPageElements());
+            log.debug("Searching promotions - Done with {} elements", promotions.getPageElements());
 
             return promotions;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search promotions", ex);
+            log.error("An error occurs while trying to search promotions", ex);
             throw new TechnicalManagementException("An error occurs while trying to search promotions", ex);
         }
     }
@@ -325,7 +323,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             return convert(updated);
         } catch (TechnicalException | IOException ex) {
-            LOGGER.error("An error occurs while trying to process promotion", ex);
+            log.error("An error occurs while trying to process promotion", ex);
             throw new TechnicalManagementException("An error occurs while trying to process promotion", ex);
         }
     }

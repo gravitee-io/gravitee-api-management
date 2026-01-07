@@ -32,18 +32,16 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class TopApiServiceImpl extends TransactionalService implements TopApiService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopApiServiceImpl.class);
 
     @Inject
     private ParameterService parameterService;
@@ -53,7 +51,7 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
 
     @Override
     public List<TopApiEntity> findAll(final ExecutionContext executionContext) {
-        LOGGER.debug("Find all top APIs");
+        log.debug("Find all top APIs");
         final List<GenericApiEntity> apis = parameterService.findAll(
             executionContext,
             PORTAL_TOP_APIS,

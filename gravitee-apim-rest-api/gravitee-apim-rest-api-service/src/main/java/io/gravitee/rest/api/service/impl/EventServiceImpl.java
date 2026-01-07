@@ -67,8 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -76,10 +75,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author Titouan COMPIEGNE
  */
+@CustomLog
 @Component
 public class EventServiceImpl extends TransactionalService implements EventService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(EventServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -122,7 +120,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Override
     public EventEntity findById(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Find event by ID: {}", id);
+            log.debug("Find event by ID: {}", id);
 
             Optional<Event> event = eventRepository.findById(id);
 
@@ -132,7 +130,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             throw new EventNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an event using its ID {}", id, ex);
+            log.error("An error occurs while trying to find an event using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an event using its ID " + id, ex);
         }
     }
@@ -266,7 +264,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         String hostAddress = "";
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
-            LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
+            log.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
             event.setId(UuidString.generateRandom());
@@ -282,10 +280,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             return convert(executionContext, createdEvent);
         } catch (UnknownHostException e) {
-            LOGGER.error("An error occurs while getting the server IP address", e);
+            log.error("An error occurs while getting the server IP address", e);
             throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
+            log.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying create " + newEventEntity + " for server " + hostAddress,
                 ex
@@ -296,16 +294,16 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Override
     public void deleteApiEvents(String apiId) {
         try {
-            LOGGER.debug("Delete Events for API {}", apiId);
+            log.debug("Delete Events for API {}", apiId);
             long deleteApiEvents = eventRepository.deleteApiEvents(apiId);
-            LOGGER.debug("{} events deleted for API {}", deleteApiEvents, apiId);
+            log.debug("{} events deleted for API {}", deleteApiEvents, apiId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete Events for API {}", apiId, ex);
+            log.error("An error occurs while trying to delete Events for API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete Events for API " + apiId, ex);
         }
 
         try {
-            LOGGER.debug("Delete Event Latest {}", apiId);
+            log.debug("Delete Event Latest {}", apiId);
             // Works because the eventLatest id is the API id
             eventLatestRepository.delete(apiId);
         } catch (TechnicalException ex) {
@@ -349,7 +347,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Override
     public Collection<EventEntity> search(ExecutionContext executionContext, final EventQuery query) {
-        LOGGER.debug("Search APIs by {}", query);
+        log.debug("Search APIs by {}", query);
         return convert(executionContext, eventRepository.search(queryToCriteria(query).build()));
     }
 
@@ -566,7 +564,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         }
         latestEvent.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
         try {
-            LOGGER.debug("Create or Update latest event {}.", latestEventId);
+            log.debug("Create or Update latest event {}.", latestEventId);
             eventLatestRepository.createOrUpdate(latestEvent);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying create or patch " + latestEvent, ex);

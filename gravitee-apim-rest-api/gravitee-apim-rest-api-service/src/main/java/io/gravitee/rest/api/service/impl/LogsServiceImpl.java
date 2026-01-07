@@ -50,7 +50,14 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CsvUtils;
+import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -71,9 +78,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -83,6 +89,7 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class LogsServiceImpl implements LogsService {
 
@@ -102,7 +109,6 @@ public class LogsServiceImpl implements LogsService {
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
     private static final CsvUtils csvUtils = new CsvUtils(separator);
-    private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -180,7 +186,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -211,10 +217,10 @@ public class LogsServiceImpl implements LogsService {
             }
             return toApiRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve log: " + id, ae);
+            log.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
         } catch (ApiNotFoundException anfe) {
-            logger.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
+            log.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
             throw new LogNotFoundException(id);
         }
     }
@@ -271,7 +277,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -329,7 +335,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -343,13 +349,13 @@ public class LogsServiceImpl implements LogsService {
             }
 
             if (!applicationId.equalsIgnoreCase(log.getApplication())) {
-                logger.warn("Requested log [" + id + "] is not attached to application [" + applicationId + "]");
+                this.log.warn("Requested log [" + id + "] is not attached to application [" + applicationId + "]");
                 throw new LogNotFoundException(id);
             }
 
             return toApplicationRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve log: " + id, ae);
+            log.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {
                 throw new LogNotFoundException(id);
             }
@@ -449,13 +455,13 @@ public class LogsServiceImpl implements LogsService {
             try {
                 return getApiKeySubscription(executionContext, log);
             } catch (ApiKeyNotFoundException e) {
-                logger.error("Unable to find API Key for log [api={}, application={}]", log.getApi(), log.getApplication());
+                this.log.error("Unable to find API Key for log [api={}, application={}]", log.getApi(), log.getApplication());
             }
         } else if (log.getPlan() != null && log.getApplication() != null) {
             try {
                 return getJwtOrOauth2Subscription(executionContext, log);
             } catch (PlanNotFoundException | SubscriptionNotFoundException | IllegalStateException e) {
-                logger.error(
+                this.log.error(
                     String.format("Unable to find subscription for log [plan=%s, application=%s]", log.getPlan(), log.getApplication()),
                     e
                 );

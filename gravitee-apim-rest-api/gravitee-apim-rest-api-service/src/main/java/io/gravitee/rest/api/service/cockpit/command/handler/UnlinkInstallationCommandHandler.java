@@ -27,12 +27,12 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.core.Single;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class UnlinkInstallationCommandHandler implements CommandHandler<UnlinkInstallationCommand, UnlinkInstallationReply> {
 

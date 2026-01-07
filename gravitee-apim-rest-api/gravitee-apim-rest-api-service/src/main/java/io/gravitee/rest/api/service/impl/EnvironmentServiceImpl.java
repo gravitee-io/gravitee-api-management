@@ -19,8 +19,18 @@ import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicy
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+import io.gravitee.rest.api.service.ApiHeaderService;
+import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
@@ -32,8 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -42,10 +51,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class EnvironmentServiceImpl extends TransactionalService implements EnvironmentService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(EnvironmentServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -75,7 +83,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public EnvironmentEntity findById(String environmentId) {
         try {
-            LOGGER.debug("Find environment by ID: {}", environmentId);
+            log.debug("Find environment by ID: {}", environmentId);
             Optional<Environment> optEnvironment = environmentRepository.findById(environmentId);
 
             if (!optEnvironment.isPresent()) {
@@ -84,7 +92,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             return convert(optEnvironment.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find environment by ID", ex);
+            log.error("An error occurs while trying to find environment by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find environment by ID", ex);
         }
     }
@@ -92,7 +100,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public List<EnvironmentEntity> findByUser(final String organizationId, String userId) {
         try {
-            LOGGER.debug("Find all environments by user");
+            log.debug("Find all environments by user");
 
             Stream<Environment> envStream = environmentRepository.findByOrganization(organizationId).stream();
 
@@ -107,7 +115,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             }
             return envStream.map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all environments", ex);
+            log.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
         }
     }
@@ -115,7 +123,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public EnvironmentEntity findByOrgAndIdOrHrid(final String organizationId, String idOrHrid) {
         try {
-            LOGGER.debug("Find all environments by org and environment id or hrid");
+            log.debug("Find all environments by org and environment id or hrid");
 
             Set<Environment> byOrgAndIdOrHrid = environmentRepository
                 .findByOrganization(organizationId)
@@ -134,7 +142,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             return convert(byOrgAndIdOrHrid.iterator().next());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all environments", ex);
+            log.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
         }
     }
@@ -142,7 +150,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public Set<String> findOrganizationIdsByEnvironments(final Set<String> environmentIds) {
         try {
-            LOGGER.debug("Find organization id from environment ids");
+            log.debug("Find organization id from environment ids");
 
             return environmentRepository
                 .findOrganizationIdsByEnvironments(environmentIds)
@@ -182,7 +190,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update environment {}", environmentEntity.getName(), ex);
+            log.error("An error occurs while trying to update environment {}", environmentEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update environment " + environmentEntity.getName(), ex);
         }
     }
@@ -197,7 +205,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 throw new EnvironmentNotFoundException(environmentId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete environment {}", environmentId, ex);
+            log.error("An error occurs while trying to delete environment {}", environmentId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete environment " + environmentId, ex);
         }
     }
@@ -214,7 +222,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             environmentRepository.create(defaultEnvironment);
             return convert(defaultEnvironment);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create default environment", ex);
+            log.error("An error occurs while trying to create default environment", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default environment", ex);
         }
     }
@@ -222,13 +230,13 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public EnvironmentEntity findByCockpitId(String cockpitId) {
         try {
-            LOGGER.debug("Find environment by cockpit id");
+            log.debug("Find environment by cockpit id");
             return environmentRepository
                 .findByCockpitId(cockpitId)
                 .map(this::convert)
                 .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find environment by cockpit id {}", cockpitId, ex);
+            log.error("An error occurs while trying to find environment by cockpit id {}", cockpitId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find environment by cockpit id " + cockpitId, ex);
         }
     }
@@ -236,10 +244,10 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public List<EnvironmentEntity> findByOrganization(String organizationId) {
         try {
-            LOGGER.debug("Find all environments by organization");
+            log.debug("Find all environments by organization");
             return environmentRepository.findByOrganization(organizationId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
+            log.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to find all environments by organization " + organizationId,
                 ex
@@ -252,7 +260,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             return environmentRepository.findById(GraviteeContext.getDefaultEnvironment()).map(this::convert).orElseGet(this::initialize);
         } catch (final Exception ex) {
-            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
@@ -266,7 +274,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             }
             return environments;
         } catch (final Exception ex) {
-            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            log.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }

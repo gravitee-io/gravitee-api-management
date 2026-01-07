@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

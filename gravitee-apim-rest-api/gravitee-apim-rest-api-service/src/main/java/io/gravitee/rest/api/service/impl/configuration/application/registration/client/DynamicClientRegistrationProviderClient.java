@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.common.SecureHttpClientUtils;
@@ -39,7 +40,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,7 +50,7 @@ public abstract class DynamicClientRegistrationProviderClient {
     /**
      * Logger.
      */
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
@@ -92,16 +92,12 @@ public abstract class DynamicClientRegistrationProviderClient {
                             JsonNode node = mapper.readTree(responsePayload);
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
-                            logger.error(
-                                "Unexpected response from OIDC Registration endpoint: error[{}] description[{}]",
-                                error,
-                                description
-                            );
+                            log.error("Unexpected response from OIDC Registration endpoint: error[{}] description[{}]", error, description);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Registration endpoint: error[" + error + "] description[" + description + "]"
                             );
                         } catch (JsonProcessingException ex) {
-                            logger.error(
+                            log.error(
                                 "Unexpected response from OIDC Registration endpoint: status[{}] message[{}]",
                                 status,
                                 responsePayload
@@ -115,7 +111,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                             );
                         }
                     } else {
-                        logger.error("Unexpected response from OIDC Registration endpoint: status[{}]", status);
+                        log.error("Unexpected response from OIDC Registration endpoint: status[{}]", status);
                         throw new DynamicClientRegistrationException(
                             "Unexpected response from OIDC Registration endpoint: status[" + status + "]"
                         );
@@ -123,7 +119,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                 }
             });
         } catch (Exception ex) {
-            logger.error("Unexpected error while registering client: " + ex.getMessage(), ex);
+            log.error("Unexpected error while registering client: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while registering client: " + ex.getMessage(), ex);
         }
     }
@@ -171,16 +167,12 @@ public abstract class DynamicClientRegistrationProviderClient {
                             JsonNode node = mapper.readTree(responsePayload);
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
-                            logger.error(
-                                "Unexpected response from OIDC Registration endpoint: error[{}] description[{}]",
-                                error,
-                                description
-                            );
+                            log.error("Unexpected response from OIDC Registration endpoint: error[{}] description[{}]", error, description);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Registration endpoint: error[" + error + "] description[" + description + "]"
                             );
                         } catch (JsonProcessingException ex) {
-                            logger.error(
+                            log.error(
                                 "Unexpected response from OIDC Registration endpoint: status[{}] message[{}]",
                                 status,
                                 responsePayload
@@ -194,7 +186,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                             );
                         }
                     } else {
-                        logger.error("Unexpected response from OIDC Registration endpoint: status[{}]", status);
+                        log.error("Unexpected response from OIDC Registration endpoint: status[{}]", status);
                         throw new DynamicClientRegistrationException(
                             "Unexpected response from OIDC Registration endpoint: status[" + status + "]"
                         );
@@ -202,7 +194,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                 }
             });
         } catch (Exception ex) {
-            logger.error("Unexpected error while registering client: " + ex.getMessage(), ex);
+            log.error("Unexpected error while registering client: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while registering client: " + ex.getMessage(), ex);
         }
     }
@@ -242,7 +234,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                             JsonNode node = mapper.readTree(responsePayload);
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
-                            logger.error(
+                            log.error(
                                 "Unexpected response from renew client secret endpoint: error[{}] description[{}]",
                                 error,
                                 description
@@ -255,7 +247,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                                     "]"
                             );
                         } catch (JsonProcessingException ex) {
-                            logger.error(
+                            log.error(
                                 "Unexpected response from renew client secret endpoint: status[{}] message[{}]",
                                 status,
                                 responsePayload
@@ -269,7 +261,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                             );
                         }
                     } else {
-                        logger.error("Unexpected response from renew client secret endpoint: status[{}]", status);
+                        log.error("Unexpected response from renew client secret endpoint: status[{}]", status);
                         throw new DynamicClientRegistrationException(
                             "Unexpected response from renew client secret endpoint: status[" + status + "]"
                         );
@@ -277,7 +269,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                 }
             });
         } catch (Exception ex) {
-            logger.error("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
+            log.error("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
         }
     }

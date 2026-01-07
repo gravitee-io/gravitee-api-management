@@ -17,10 +17,10 @@ package io.gravitee.apim.infra.sanitizer;
 
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+@CustomLog
 @Service
 public class HtmlSanitizerImpl implements HtmlSanitizer {
 

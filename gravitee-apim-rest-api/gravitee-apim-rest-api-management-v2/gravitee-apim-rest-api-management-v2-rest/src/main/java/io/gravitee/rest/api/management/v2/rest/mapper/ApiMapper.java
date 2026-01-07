@@ -21,7 +21,6 @@ import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -32,6 +31,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederatedAgent;
@@ -78,7 +78,6 @@ import org.mapstruct.Named;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(
     uses = {
@@ -101,7 +100,7 @@ import org.slf4j.LoggerFactory;
     }
 )
 public interface ApiMapper {
-    Logger logger = LoggerFactory.getLogger(ApiMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
@@ -151,7 +150,7 @@ public interface ApiMapper {
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
-                logger.error("Unable to convert API {}", api.getId(), e);
+                log.error("Unable to convert API {}", api.getId(), e);
             }
         });
         return result;

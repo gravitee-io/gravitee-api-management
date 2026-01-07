@@ -27,7 +27,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  *  - All data in the api_quality_rule table/collection should reference a quality rule scoped to the same environment as the API it refers to
  */
 @Component
-@Slf4j
+@CustomLog
 public class QualityRulesScopingUpgrader implements Upgrader {
 
     private final QualityRuleRepository qualityRuleRepository;

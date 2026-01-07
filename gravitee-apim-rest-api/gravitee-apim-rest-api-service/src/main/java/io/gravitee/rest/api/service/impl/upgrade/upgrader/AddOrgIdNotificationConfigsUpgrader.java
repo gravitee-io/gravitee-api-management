@@ -35,12 +35,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
 
     private final EnvironmentRepository environmentRepository;

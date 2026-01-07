@@ -34,10 +34,10 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @UseCase
 @RequiredArgsConstructor
 public class DiscoveryUseCase {

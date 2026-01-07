@@ -50,10 +50,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 @UseCase
-@Slf4j
+@CustomLog
 public class CreatePromotionUseCase {
 
     private final ApiExportDomainService apiExportDomainService;

@@ -25,17 +25,16 @@ import com.nimbusds.jose.proc.SecurityContext;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidKeyException;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.resolver.PublicKeyResolver;
 import java.security.interfaces.RSAPublicKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class RSAJWKSourceResolver<C extends SecurityContext> implements JWKSourceResolver<C> {
 
     private final JWK jwk;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RSAJWKSourceResolver.class);
 
     private RSAJWKSourceResolver(String publicKey) {
         if (publicKey == null) {
@@ -48,7 +47,7 @@ public class RSAJWKSourceResolver<C extends SecurityContext> implements JWKSourc
             JWK key = JWK.parseFromPEMEncodedObjects(publicKey);
             rsaPublicKey = ((RSAKey) key).toRSAPublicKey();
         } catch (JOSEException e) {
-            LOGGER.error("unable to parse public key {}", e.getMessage());
+            log.error("unable to parse public key {}", e.getMessage());
         }
 
         this.jwk = rsaPublicKey != null ? new RSAKey.Builder(rsaPublicKey).build() : null;

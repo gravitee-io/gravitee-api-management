@@ -23,6 +23,7 @@ import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
@@ -42,12 +43,11 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { PlanAdapter.class })
 @DecoratedWith(ApiAdapterDecorator.class)
 public interface ApiAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
     @Mapping(target = "apiDefinitionValue", expression = "java(toApiDefinition(source))")
@@ -180,7 +180,7 @@ public interface ApiAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), clazz);
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while deserializing V4 API definition", ioe);
+            log.error("Unexpected error while deserializing V4 API definition", ioe);
             return null;
         }
     }

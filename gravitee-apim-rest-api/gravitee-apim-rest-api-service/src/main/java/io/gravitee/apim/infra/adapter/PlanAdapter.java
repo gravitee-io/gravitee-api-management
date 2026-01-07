@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
@@ -40,7 +41,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper
 public interface PlanAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(PlanAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(PlanAdapter.class);
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
 
     @Mapping(source = "api", target = "apiId")
@@ -144,7 +144,7 @@ public interface PlanAdapter {
                 io.gravitee.definition.model.federation.FederatedPlan.class
             );
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while deserializing Federated Plan definition", ioe);
+            log.error("Unexpected error while deserializing Federated Plan definition", ioe);
             return null;
         }
     }
@@ -208,7 +208,7 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<>() {});
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating policy definition", ioe);
+                log.error("Unexpected error while generating policy definition", ioe);
                 return null;
             }
         } else {
@@ -228,7 +228,7 @@ public interface PlanAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(source);
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while serializing federated plan definition", ioe);
+            log.error("Unexpected error while serializing federated plan definition", ioe);
             return null;
         }
     }
@@ -238,7 +238,7 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().writeValueAsString(plan.getPaths());
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while serializing v2 plan paths", ioe);
+                log.error("Unexpected error while serializing v2 plan paths", ioe);
                 return null;
             }
         } else {

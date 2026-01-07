@@ -25,7 +25,11 @@ import io.gravitee.rest.api.service.notifiers.WebNotifierService;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
@@ -33,8 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,10 +45,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class WebNotifierServiceImpl implements WebNotifierService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(WebNotifierServiceImpl.class);
 
     private static final String HTTPS_SCHEME = "https";
 
@@ -60,7 +62,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
     public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy) {
         if (uri == null || uri.isEmpty()) {
-            LOGGER.error("Webhook Notifier configuration is empty");
+            log.error("Webhook Notifier configuration is empty");
             return;
         }
 
@@ -129,7 +131,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                             httpClient.close();
                         } else {
                             HttpClientResponse response = asyncResponse.result();
-                            LOGGER.debug("Web response status code : {}", response.statusCode());
+                            log.debug("Web response status code : {}", response.statusCode());
 
                             if (isStatus2xx(response)) {
                                 response.bodyHandler(buffer -> {
@@ -166,10 +168,10 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         try {
             future.get();
         } catch (ExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         } catch (InterruptedException e) {
-            LOGGER.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
             throw new TechnicalManagementException(e.getMessage(), e);
         }

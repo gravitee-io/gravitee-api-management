@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { DateMapper.class })
 public interface AsyncJobMapper {
-    Logger logger = LoggerFactory.getLogger(AsyncJobMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(AsyncJobMapper.class);
     AsyncJobMapper INSTANCE = Mappers.getMapper(AsyncJobMapper.class);
 
     AsyncJob map(io.gravitee.apim.core.async_job.model.AsyncJob source);

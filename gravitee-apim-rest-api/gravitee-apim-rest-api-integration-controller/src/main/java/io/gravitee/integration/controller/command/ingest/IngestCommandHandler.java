@@ -23,11 +23,11 @@ import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.reactivex.rxjava3.core.Single;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class IngestCommandHandler implements CommandHandler<IngestCommand, IngestReply> {
 
     private final IngestFederatedApisUseCase ingestFederatedApisUseCase;

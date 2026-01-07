@@ -21,8 +21,8 @@ import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionCo
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @UseCase
-@Slf4j
+@CustomLog
 public class NotifySpecGenResponseUseCase {
 
     private final ApiSpecGenQueryService apiSpecGenQueryService;

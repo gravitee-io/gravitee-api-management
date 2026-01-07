@@ -24,9 +24,9 @@ import io.gravitee.apim.core.integration.exception.AssociatedApisFoundException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.membership.domain_service.DeleteMembershipDomainService;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 @UseCase
 public class DeleteIntegrationUseCase {
 

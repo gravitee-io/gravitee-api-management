@@ -55,17 +55,15 @@ import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Tag(name = "Categories")
 public class CategoryResource extends AbstractCategoryResource {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CategoryResource.class);
 
     @Inject
     private CategoryService categoryService;
@@ -192,7 +190,7 @@ public class CategoryResource extends AbstractCategoryResource {
             ImageUtils.verify(category.getPicture());
             ImageUtils.verify(category.getBackground());
         } catch (InvalidImageException e) {
-            LOGGER.warn("Invalid image format", e);
+            log.warn("Invalid image format", e);
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 

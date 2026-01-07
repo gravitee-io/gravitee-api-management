@@ -66,11 +66,11 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @UseCase
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class IngestFederatedApisUseCase {
 

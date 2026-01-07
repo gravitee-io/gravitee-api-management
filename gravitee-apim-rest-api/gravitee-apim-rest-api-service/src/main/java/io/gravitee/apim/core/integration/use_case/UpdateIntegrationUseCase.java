@@ -29,10 +29,10 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import java.util.Collection;
 import java.util.Set;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 @UseCase
 public class UpdateIntegrationUseCase {

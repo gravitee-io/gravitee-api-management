@@ -21,7 +21,7 @@ import io.gravitee.apim.rest.api.common.apiservices.events.ManagementApiServiceE
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ManagementApiServiceListener implements EventListener<ManagementApiServiceEvent, Object> {
 
     private final UpdateDynamicPropertiesUseCase updateDynamicPropertiesUsecase;

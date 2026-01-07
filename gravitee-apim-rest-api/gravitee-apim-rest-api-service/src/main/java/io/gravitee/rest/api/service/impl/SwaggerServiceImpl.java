@@ -41,8 +41,7 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -52,10 +51,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SwaggerServiceImpl implements SwaggerService {
-
-    private final Logger logger = LoggerFactory.getLogger(SwaggerServiceImpl.class);
 
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
@@ -129,7 +127,7 @@ public class SwaggerServiceImpl implements SwaggerService {
             swaggerDescriptor.setPayload(descriptor.toYaml());
             swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.INLINE);
         } catch (JsonProcessingException e) {
-            logger.debug("JSON serialization failed, unable to override payload attribute", e);
+            log.debug("JSON serialization failed, unable to override payload attribute", e);
         }
     }
 
@@ -172,7 +170,7 @@ public class SwaggerServiceImpl implements SwaggerService {
 
         if (wsdl) {
             // try to read wsdl
-            logger.debug("Trying to load a Wsdl descriptor");
+            log.debug("Trying to load a Wsdl descriptor");
 
             descriptor = new WsdlParser().parse(content);
 

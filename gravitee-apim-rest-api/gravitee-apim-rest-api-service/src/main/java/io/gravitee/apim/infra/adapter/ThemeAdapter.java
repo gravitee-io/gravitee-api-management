@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
@@ -29,7 +30,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper
 public interface ThemeAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(ThemeAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(ThemeAdapter.class);
     ThemeAdapter INSTANCE = Mappers.getMapper(ThemeAdapter.class);
 
     @Mapping(target = "definition", expression = "java(serializeDefinition(theme))")
@@ -58,7 +58,7 @@ public interface ThemeAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(theme.getDefinition(), ThemeDefinition.class);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while deserializing PORTAL theme definition", ioe);
+                log.error("Unexpected error while deserializing PORTAL theme definition", ioe);
             }
         }
 
@@ -75,7 +75,7 @@ public interface ThemeAdapter {
                     io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class
                 );
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while deserializing PORTAL_NEXT theme definition", ioe);
+                log.error("Unexpected error while deserializing PORTAL_NEXT theme definition", ioe);
             }
         }
 
@@ -92,7 +92,7 @@ public interface ThemeAdapter {
                 try {
                     return GraviteeJacksonMapper.getInstance().writeValueAsString(def);
                 } catch (JsonProcessingException e) {
-                    LOGGER.error("Unable to serialize definition: {}", definition);
+                    log.error("Unable to serialize definition: {}", definition);
                     return "";
                 }
             })

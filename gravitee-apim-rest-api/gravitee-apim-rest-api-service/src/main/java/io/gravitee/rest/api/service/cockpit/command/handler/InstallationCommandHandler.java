@@ -23,8 +23,8 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.service.InstallationService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class InstallationCommandHandler implements CommandHandler<InstallationCommand, InstallationReply> {
 

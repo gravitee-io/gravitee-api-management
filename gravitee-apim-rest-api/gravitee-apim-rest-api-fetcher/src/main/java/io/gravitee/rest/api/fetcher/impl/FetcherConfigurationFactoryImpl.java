@@ -20,13 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class FetcherConfigurationFactoryImpl implements FetcherConfigurationFactory {
 
     private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

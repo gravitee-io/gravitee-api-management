@@ -80,7 +80,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +95,7 @@ import org.yaml.snakeyaml.Yaml;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class NotificationTemplateServiceImpl extends AbstractService implements NotificationTemplateService, InitializingBean {
 
     private static final String HTML_TEMPLATE_EXTENSION = "html";

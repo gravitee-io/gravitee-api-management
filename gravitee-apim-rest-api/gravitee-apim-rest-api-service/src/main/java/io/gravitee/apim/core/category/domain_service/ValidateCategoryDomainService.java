@@ -21,9 +21,9 @@ import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.category.query_service.CategoryQueryService;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 @DomainService
 @AllArgsConstructor
 public class ValidateCategoryDomainService {

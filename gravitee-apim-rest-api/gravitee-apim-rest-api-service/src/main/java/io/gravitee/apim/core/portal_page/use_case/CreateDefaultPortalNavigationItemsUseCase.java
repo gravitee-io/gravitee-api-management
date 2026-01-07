@@ -26,15 +26,13 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @UseCase
 @RequiredArgsConstructor
+@CustomLog
 public class CreateDefaultPortalNavigationItemsUseCase {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateDefaultPortalNavigationItemsUseCase.class);
 
     private static final String GETTING_STARTED_PATH = "portal-getting-started-page-content.md";
     private static final String AUTHENTICATION_PATH = "portal-authentication-page-content.md";

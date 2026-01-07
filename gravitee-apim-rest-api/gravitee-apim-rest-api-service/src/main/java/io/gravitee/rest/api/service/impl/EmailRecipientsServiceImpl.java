@@ -33,13 +33,13 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-@Slf4j
+@CustomLog
 public class EmailRecipientsServiceImpl implements EmailRecipientsService {
 
     public static final Pattern SPLIT_PATTERN = Pattern.compile("[,;\\s]");

@@ -19,14 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties({ "empty", "values" })
-@Slf4j
+@CustomLog
 public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */ {
 
     private List<T> values;

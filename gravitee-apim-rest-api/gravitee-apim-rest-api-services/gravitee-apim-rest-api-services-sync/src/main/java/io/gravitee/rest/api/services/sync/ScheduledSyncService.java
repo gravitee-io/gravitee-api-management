@@ -18,8 +18,7 @@ package io.gravitee.rest.api.services.sync;
 import io.gravitee.common.service.AbstractService;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,12 +29,8 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ScheduledSyncService extends AbstractService implements Runnable {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ScheduledSyncService.class);
 
     @Autowired
     @Qualifier("syncTaskScheduler")
@@ -60,15 +55,15 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
         if (!localRegistryEnabled) {
             if (enabled) {
                 super.doStart();
-                logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
+                log.info("Sync service has been initialized with cron [{}]", cronTrigger);
                 // Sync must start only when doStart() is invoked, that's the reason why we are not
                 // using @Scheduled annotation on doSync() method.
                 scheduler.schedule(this, new CronTrigger(cronTrigger));
             } else {
-                logger.warn("Sync service has been disabled");
+                log.warn("Sync service has been disabled");
             }
         } else {
-            logger.warn("Sync service is disabled because local registry mode is enabled");
+            log.warn("Sync service is disabled because local registry mode is enabled");
         }
     }
 
@@ -82,11 +77,11 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        log.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         syncStateManager.refresh();
 
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        log.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
     @Override

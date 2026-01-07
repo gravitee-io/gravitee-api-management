@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
-import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_CREATED;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_DELETED;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_UPDATED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -38,9 +40,13 @@ import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiTagService;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -49,10 +55,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class TagServiceImpl extends AbstractService implements TagService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(TagServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -71,14 +76,14 @@ public class TagServiceImpl extends AbstractService implements TagService {
     @Override
     public List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType) {
         try {
-            LOGGER.debug("Find all tags");
+            log.debug("Find all tags");
             return tagRepository
                 .findByReference(referenceId, repoTagReferenceType(referenceType))
                 .stream()
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all tags", ex);
+            log.error("An error occurs while trying to find all tags", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tags", ex);
         }
     }
@@ -86,7 +91,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
     @Override
     public TagEntity findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) {
         try {
-            LOGGER.debug("Find tag by ID: {}", tagId);
+            log.debug("Find tag by ID: {}", tagId);
             Optional<Tag> optTag = tagRepository.findByIdAndReference(tagId, referenceId, repoTagReferenceType(referenceType));
 
             if (!optTag.isPresent()) {
@@ -95,7 +100,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
             return convert(optTag.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find tag by ID", ex);
+            log.error("An error occurs while trying to find tag by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find tag by ID", ex);
         }
     }
@@ -160,7 +165,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                         .build()
                 );
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
+                log.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
             }
         });
@@ -200,7 +205,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     );
                 }
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
+                log.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
             }
         });
@@ -227,7 +232,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 );
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete tag {}", tagId, ex);
+            log.error("An error occurs while trying to delete tag {}", tagId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tag " + tagId, ex);
         }
     }

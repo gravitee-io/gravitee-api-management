@@ -54,7 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,7 +62,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ListenerValidationServiceImpl extends TransactionalService implements ListenerValidationService {
 
     private final VerifyApiPathDomainService verifyApiPathDomainService;

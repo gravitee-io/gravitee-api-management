@@ -24,11 +24,11 @@ import io.gravitee.repository.management.api.CategoryRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+@CustomLog
 @Service
 public class ApiCategoryQueryServiceImpl implements ApiCategoryQueryService {
 
