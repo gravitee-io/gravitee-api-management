@@ -22,10 +22,10 @@
       <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTokenErrorTitle">
         Invalid token
       </mat-card-title>
-      <mat-card-content class="registration-confirmation__form__content">
-        <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value</mat-error>
-      </mat-card-content>
     </mat-card-header>
+    <mat-card-content class="registration-confirmation__form__content">
+      <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value</mat-error>
+    </mat-card-content>
   } @else if (!submitted()) {
     <mat-card-header class="registration-confirmation__form__header">
       <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
@@ -40,17 +40,17 @@
         <div class="registration-confirmation__form">
           <div class="registration-confirmation__form__fields">
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
-              <mat-label i18n="@@registrationConfirmationFirstname">Firstname</mat-label>
+              <mat-label i18n="@@registrationConfirmationFirstname">First name</mat-label>
               <input matInput formControlName="firstname" />
               @if (registrationConfirmationForm.controls.firstname.hasError('required')) {
-                <mat-error i18n="@@registrationConfirmationFirstnameErrorRequired">Firstname is required</mat-error>
+                <mat-error i18n="@@registrationConfirmationFirstnameErrorRequired">First name is required</mat-error>
               }
             </mat-form-field>
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
-              <mat-label i18n="@@registrationConfirmationLastname">Lastname</mat-label>
+              <mat-label i18n="@@registrationConfirmationLastname">Last name</mat-label>
               <input matInput formControlName="lastname" />
               @if (registrationConfirmationForm.controls.lastname.hasError('required')) {
-                <mat-error i18n="@@registrationConfirmationLastnameErrorRequired">Lastname is required</mat-error>
+                <mat-error i18n="@@registrationConfirmationLastnameErrorRequired">Last name is required</mat-error>
               }
             </mat-form-field>
             <mat-form-field appearance="outline" class="registration-confirmation__form__input">
@@ -89,7 +89,7 @@
               mat-flat-button
               i18n="@@registrationConfirmationAction"
               class="registration-confirmation__form__submit">
-              CONFIRM
+              Confirm
             </button>
           </div>
         </div>
