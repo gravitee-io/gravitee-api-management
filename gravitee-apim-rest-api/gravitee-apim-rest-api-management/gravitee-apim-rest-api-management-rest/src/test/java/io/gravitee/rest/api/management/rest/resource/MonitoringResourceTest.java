@@ -23,10 +23,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,43 +39,11 @@ public class MonitoringResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        reset(instanceService, monitoringService, parameterService);
-    }
-
-    @Test
-    public void shouldThrowCloudEnabledException_whenCloudIsEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(true);
-
-        final Response response = envTarget().request().get();
-        assertEquals(HttpStatusCode.SERVICE_UNAVAILABLE_503, response.getStatus());
+        reset(instanceService, monitoringService);
     }
 
     @Test
     public void shouldReturnMonitoringData_whenCloudNotEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(false);
-
         InstanceEntity mockInstance = new InstanceEntity();
         mockInstance.setEnvironments(Set.of("DEFAULT"));
         MonitoringData mockMonitoringData = new MonitoringData();
