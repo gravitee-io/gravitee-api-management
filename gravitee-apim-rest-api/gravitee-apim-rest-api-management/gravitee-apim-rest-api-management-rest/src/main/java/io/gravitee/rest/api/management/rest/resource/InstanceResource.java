@@ -17,16 +17,12 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.CloudEnabledException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,9 +49,6 @@ public class InstanceResource {
     @Inject
     private InstanceService instanceService;
 
-    @Inject
-    private ParameterService parameterService;
-
     @PathParam("instance")
     private String instance;
 
@@ -64,10 +57,6 @@ public class InstanceResource {
     @Operation(summary = "Get a gateway instance")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public InstanceEntity getInstance() {
-        if (cloudEnabled()) {
-            throw new CloudEnabledException();
-        }
-
         InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
         if (isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment())) {
             return instanceEntity;
@@ -82,14 +71,5 @@ public class InstanceResource {
 
     private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {
         return environments == null || environments.isEmpty() || environments.contains(currentEnvironment);
-    }
-
-    private Boolean cloudEnabled() {
-        return parameterService.findAsBoolean(
-            GraviteeContext.getExecutionContext(),
-            Key.CLOUD_HOSTED_ENABLED,
-            GraviteeContext.getCurrentOrganization(),
-            ParameterReferenceType.ORGANIZATION
-        );
     }
 }
