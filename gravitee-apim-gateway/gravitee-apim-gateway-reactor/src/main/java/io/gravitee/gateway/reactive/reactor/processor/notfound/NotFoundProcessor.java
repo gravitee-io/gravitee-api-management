@@ -20,10 +20,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.reporter.api.common.Request;
+import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.grpc.Status;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -34,6 +38,7 @@ public class NotFoundProcessor implements Processor {
 
     private static final String ID = "processor-not-found";
     protected static final String UNKNOWN_SERVICE = "1";
+    protected static final String HTTP_PROXY = "http-proxy";
     private final Environment environment;
 
     @Override
@@ -49,7 +54,13 @@ public class NotFoundProcessor implements Processor {
             // Init not found metrics
             Metrics metrics = ctx.metrics();
             metrics.setApiId(UNKNOWN_SERVICE);
+            metrics.setApiName(UNKNOWN_SERVICE);
             metrics.setApplicationId(UNKNOWN_SERVICE);
+            metrics.setEntrypointId(HTTP_PROXY);
+            String loggingEnabled = environment.getProperty("handlers.notfound.log.enabled", "false");
+            if (loggingEnabled.equals("true")) {
+                initLogEntity(ctx);
+            }
 
             // Send a NOT_FOUND HTTP status code (404)
             ctx.response().status(HttpStatusCode.NOT_FOUND_404);
@@ -71,5 +82,27 @@ public class NotFoundProcessor implements Processor {
             ctx.response().body(Buffer.buffer(message));
             return ctx.response().end(ctx);
         });
+    }
+
+    private void initLogEntity(final HttpExecutionContextInternal ctx) {
+        HttpRequestInternal request = ctx.request();
+
+        Request entryPointRequest = new Request();
+        entryPointRequest.setUri(request.uri());
+
+        request.body().map(Buffer::toString).doOnSuccess(entryPointRequest::setBody).subscribe();
+        entryPointRequest.setMethod(request.method());
+        entryPointRequest.setHeaders(request.headers());
+
+        Log log = Log.builder()
+            .timestamp(request.timestamp())
+            .requestId(request.id())
+            .clientIdentifier(request.clientIdentifier())
+            .apiId(UNKNOWN_SERVICE)
+            .apiName(UNKNOWN_SERVICE)
+            .entrypointRequest(entryPointRequest)
+            .build();
+
+        ctx.metrics().setLog(log);
     }
 }
