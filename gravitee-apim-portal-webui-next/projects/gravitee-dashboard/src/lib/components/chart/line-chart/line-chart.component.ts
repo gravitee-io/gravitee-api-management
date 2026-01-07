@@ -40,6 +40,7 @@ export class LineChartComponent {
     chartData.datasets.forEach(dataset => {
       dataset.tension = 0.4;
       dataset.fill = 'start';
+      dataset.borderWidth = 1;
     });
 
     return chartData;

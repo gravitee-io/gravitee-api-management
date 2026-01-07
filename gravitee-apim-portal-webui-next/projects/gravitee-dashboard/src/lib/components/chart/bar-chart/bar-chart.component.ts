@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, computed, inject, input } from '@angular/core';
-import { ChartConfiguration } from 'chart.js';
+import { Chart, ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import 'chartjs-adapter-date-fns';
 
@@ -43,10 +43,9 @@ export class BarChartComponent {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      datasets: {
+      elements: {
         bar: {
           borderWidth: 1,
-          borderRadius: 15,
         },
       },
       plugins: {
@@ -56,6 +55,13 @@ export class BarChartComponent {
           labels: {
             usePointStyle: true,
             pointStyle: 'rectRounded',
+            generateLabels: chart => {
+              const defaults = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+              return defaults.map(label => ({
+                ...label,
+                lineWidth: 1,
+              }));
+            },
           },
         },
         tooltip: {
