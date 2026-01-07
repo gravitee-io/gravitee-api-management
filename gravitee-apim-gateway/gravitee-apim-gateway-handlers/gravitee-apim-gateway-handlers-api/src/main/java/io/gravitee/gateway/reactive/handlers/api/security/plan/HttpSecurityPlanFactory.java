@@ -21,16 +21,14 @@ import io.gravitee.gateway.reactive.handlers.api.security.policy.SecurityPolicyF
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class HttpSecurityPlanFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(HttpSecurityPlanFactory.class);
 
     private HttpSecurityPlanFactory() {}
 

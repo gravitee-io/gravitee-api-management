@@ -19,16 +19,14 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class MultiEnvironmentDictionaryManager implements DictionaryManager {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MultiEnvironmentDictionaryManager.class);
 
     private final Map<String, Map<String, Dictionary>> dictionaries = new HashMap<>();
     private final Map<String, Map<String, Map<String, String>>> values = new HashMap<>();
@@ -48,7 +46,7 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
                 dictionary.setProperties(Collections.emptyMap());
             }
 
-            LOGGER.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
+            log.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
             dictionaries.get(environmentId).put(key, dictionary);
             values.get(environmentId).put(key, dictionary.getProperties());
         }
@@ -76,7 +74,7 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
                     }
                 }
 
-                LOGGER.info("A dictionary has been undeployed: {}", removed);
+                log.info("A dictionary has been undeployed: {}", removed);
             }
         }
     }

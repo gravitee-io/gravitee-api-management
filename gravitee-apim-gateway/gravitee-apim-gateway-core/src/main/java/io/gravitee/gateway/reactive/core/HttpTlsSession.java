@@ -23,15 +23,15 @@ import java.security.cert.Certificate;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of {@link TlsSession} which acts as a wrapper for {@link SSLSession} and provides a mechanism to extract peer certificate from {@link HttpHeaders}
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class HttpTlsSession implements TlsSession {
 
     private final SSLSession delegate;

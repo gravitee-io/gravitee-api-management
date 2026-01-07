@@ -65,8 +65,7 @@ import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.vertx.core.Vertx;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -77,10 +76,9 @@ import org.springframework.core.env.Environment;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Configuration
 public class ReactorConfiguration {
-
-    public static final Logger log = LoggerFactory.getLogger(ReactorConfiguration.class);
 
     private static final String HEX_FORMAT = "hex";
 

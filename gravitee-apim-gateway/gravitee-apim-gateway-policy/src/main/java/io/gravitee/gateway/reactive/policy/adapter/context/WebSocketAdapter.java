@@ -17,21 +17,18 @@ package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.ws.WebSocketFrame;
-import io.gravitee.gateway.policy.impl.PolicyConfigurationFactoryImpl;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import java.util.concurrent.CompletableFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class WebSocketAdapter implements io.gravitee.gateway.api.ws.WebSocket {
-
-    private static final Logger log = LoggerFactory.getLogger(WebSocketAdapter.class);
 
     private final WebSocket webSocket;
 

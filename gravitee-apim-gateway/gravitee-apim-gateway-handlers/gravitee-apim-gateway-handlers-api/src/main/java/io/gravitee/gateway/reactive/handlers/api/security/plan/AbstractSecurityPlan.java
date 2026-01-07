@@ -38,7 +38,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.Nonnull;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * {@link AbstractSecurityPlan} allows to wrap a {@link BaseSecurityPolicy} and make it working in a security chain.
@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C extends BaseExecutionContext> {
 
     protected static final Maybe<Boolean> TRUE = Maybe.just(true);

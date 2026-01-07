@@ -24,11 +24,11 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.grpc.Status;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class NotFoundProcessor implements Processor {
 

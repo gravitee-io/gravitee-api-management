@@ -28,13 +28,13 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class DistributedOrganizationSynchronizer extends AbstractDistributedSynchronizer<OrganizationDeployable, OrganizationDeployer> {
 
     private final DeployerFactory deployerFactory;

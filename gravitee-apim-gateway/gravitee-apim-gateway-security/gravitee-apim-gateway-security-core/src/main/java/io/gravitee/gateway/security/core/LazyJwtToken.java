@@ -19,16 +19,14 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import java.text.ParseException;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class LazyJwtToken {
-
-    private final Logger logger = LoggerFactory.getLogger(LazyJwtToken.class);
 
     private final String token;
 
@@ -66,7 +64,7 @@ public class LazyJwtToken {
                 }
             } catch (ParseException ex) {
                 // Nothing to do in case of a bad JWT token
-                logger.debug("Error while parsing JWT token", ex);
+                log.debug("Error while parsing JWT token", ex);
             }
         }
     }

@@ -29,17 +29,15 @@ import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ReporterProcessor implements Processor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReporterProcessor.class);
 
     private final ReporterService reporterService;
 
@@ -97,7 +95,7 @@ public class ReporterProcessor implements Processor {
                 }
             }
         })
-            .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics", throwable))
+            .doOnError(throwable -> log.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
     }
 

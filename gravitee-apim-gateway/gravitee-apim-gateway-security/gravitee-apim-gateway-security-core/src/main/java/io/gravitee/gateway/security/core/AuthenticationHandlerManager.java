@@ -20,8 +20,7 @@ import io.gravitee.gateway.core.component.ComponentResolver;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * This class is used to load multiple implementations of {@link AuthenticationHandler}.
@@ -31,9 +30,8 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AuthenticationHandlerManager {
-
-    private final Logger logger = LoggerFactory.getLogger(AuthenticationHandlerManager.class);
 
     private final SecurityProviderLoader securityProviderLoader;
 
@@ -49,7 +47,7 @@ public class AuthenticationHandlerManager {
     private List<AuthenticationHandler> authenticationHandlers;
 
     public void afterPropertiesSet() {
-        logger.debug("Loading security providers...");
+        log.debug("Loading security providers...");
         List<AuthenticationHandler> availableSecurityProviders = securityProviderLoader.getSecurityProviders();
 
         availableSecurityProviders.forEach(authenticationHandler -> {
@@ -57,7 +55,7 @@ public class AuthenticationHandlerManager {
                 try {
                     ((ComponentResolver) authenticationHandler).resolve(componentProvider);
                 } catch (Exception e) {
-                    logger.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
+                    log.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
                 }
             }
         });

@@ -22,16 +22,14 @@ import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHandlerEnhancer {
-
-    private final Logger logger = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
     protected SubscriptionService subscriptionService;
 
@@ -44,7 +42,7 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
     @Override
     public List<AuthenticationHandler> filter(List<AuthenticationHandler> authenticationHandlers) {
-        logger.debug("Filtering authentication handlers according to published API's plans");
+        log.debug("Filtering authentication handlers according to published API's plans");
 
         List<AuthenticationHandler> providers = new ArrayList<>();
 
@@ -58,11 +56,7 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
                     .findFirst();
                 if (optionalProvider.isPresent()) {
                     AuthenticationHandler provider = optionalProvider.get();
-                    logger.debug(
-                        "Authentication handler [{}] is required by the plan [{}]. Installing...",
-                        provider.name(),
-                        plan.getName()
-                    );
+                    log.debug("Authentication handler [{}] is required by the plan [{}]. Installing...", provider.name(), plan.getName());
 
                     if ("api_key".equals(provider.name())) {
                         providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan, subscriptionService));
@@ -75,10 +69,10 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
             });
 
         if (!providers.isEmpty()) {
-            logger.debug("{} requires the following authentication handlers:", api);
-            providers.forEach(authenticationProvider -> logger.debug("\t* {}", authenticationProvider.name()));
+            log.debug("{} requires the following authentication handlers:", api);
+            providers.forEach(authenticationProvider -> log.debug("\t* {}", authenticationProvider.name()));
         } else {
-            logger.warn("No authentication handler is provided for {}", api);
+            log.warn("No authentication handler is provided for {}", api);
         }
 
         return providers;

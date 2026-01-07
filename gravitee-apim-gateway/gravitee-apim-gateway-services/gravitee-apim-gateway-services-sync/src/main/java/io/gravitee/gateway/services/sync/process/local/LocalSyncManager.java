@@ -31,14 +31,14 @@ import java.nio.file.WatchService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 /*
  * INTERNAL USE ONLY: this synchronizer has been introduced to facilitate the tests of the gateway. It's not production ready.
  */

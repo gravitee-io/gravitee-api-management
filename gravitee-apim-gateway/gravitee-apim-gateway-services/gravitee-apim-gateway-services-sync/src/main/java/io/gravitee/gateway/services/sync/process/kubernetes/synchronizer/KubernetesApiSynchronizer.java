@@ -27,13 +27,13 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Sub
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implements KubernetesSynchronizer {
 
     private final ConfigMapEventFetcher configMapEventFetcher;

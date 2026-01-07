@@ -22,22 +22,17 @@ import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @RequiredArgsConstructor
 public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbeddedContainer> {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(VertxEmbeddedContainer.class);
 
     @Value("${http.instances:0}")
     private int httpInstances;
@@ -71,14 +66,14 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     }
 
     private void startHttpInstances() {
-        logger.info("Starting Vertx container and deploy Gateway HTTP Verticles [{} instance(s)]", httpInstances);
+        log.info("Starting Vertx container and deploy Gateway HTTP Verticles [{} instance(s)]", httpInstances);
 
         final var options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
         vertx.deployVerticle(verticleName, options, event -> {
             if (event.failed()) {
-                logger.error("Unable to start HTTP server", event.cause());
+                log.error("Unable to start HTTP server", event.cause());
 
                 // HTTP Server is a required component. Shutdown if not available
                 Runtime.getRuntime().exit(1);
@@ -96,14 +91,14 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     }
 
     private void startTcpInstances() {
-        logger.info("Starting Vertx container and deploy Gateway TCP Verticles [{} instance(s)]", tcpInstances);
+        log.info("Starting Vertx container and deploy Gateway TCP Verticles [{} instance(s)]", tcpInstances);
 
         final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
 
         vertx.deployVerticle(verticleName, options, event -> {
             if (event.failed()) {
-                logger.error("Unable to start TCP server", event.cause());
+                log.error("Unable to start TCP server", event.cause());
             }
 
             tcpDeploymentId = event.result();

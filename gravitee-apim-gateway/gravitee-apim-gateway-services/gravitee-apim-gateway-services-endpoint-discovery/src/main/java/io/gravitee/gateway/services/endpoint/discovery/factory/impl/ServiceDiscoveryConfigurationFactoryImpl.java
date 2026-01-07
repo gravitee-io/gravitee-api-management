@@ -20,30 +20,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.discovery.api.ServiceDiscoveryConfiguration;
 import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryConfigurationFactory;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ServiceDiscoveryConfigurationFactoryImpl implements ServiceDiscoveryConfigurationFactory {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ServiceDiscoveryConfigurationFactoryImpl.class);
 
     private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends ServiceDiscoveryConfiguration> T create(Class<T> serviceDiscoveryConfigurationClass, String configuration) {
         if (configuration == null || configuration.isEmpty()) {
-            LOGGER.debug("Unable to create a service discovery configuration from a null or empty configuration data");
+            log.debug("Unable to create a service discovery configuration from a null or empty configuration data");
             return null;
         }
 
         try {
             return mapper.readValue(configuration, serviceDiscoveryConfigurationClass);
         } catch (IOException ex) {
-            LOGGER.error("Unable to instance service discovery configuration for {}", serviceDiscoveryConfigurationClass.getName(), ex);
+            log.error("Unable to instance service discovery configuration for {}", serviceDiscoveryConfigurationClass.getName(), ex);
         }
 
         return null;

@@ -25,13 +25,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class MessageFlow<T extends Message> implements OnMessagesInterceptor<T> {
 
     private Map<String, MessagesInterceptor<T>> onMessagesInterceptorsMapping;

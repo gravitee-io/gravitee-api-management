@@ -27,8 +27,7 @@ import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
@@ -39,13 +38,13 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public abstract class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
     private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     private static final String EXPRESSION_REGEX = "\\{([^#|T|(])";
     private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
     protected final AuthenticationHandler handler;
     protected final Plan plan;
@@ -102,7 +101,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                 authenticationContext.setInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
                 return Boolean.TRUE.equals(value);
             } catch (ParseException | EvaluationException e) {
-                LOGGER.error("Plan selection rule execution failed", e);
+                log.error("Plan selection rule execution failed", e);
                 return false;
             }
         }

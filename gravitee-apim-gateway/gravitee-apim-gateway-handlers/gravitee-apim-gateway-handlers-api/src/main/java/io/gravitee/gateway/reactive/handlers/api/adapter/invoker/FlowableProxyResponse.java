@@ -23,14 +23,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.internal.subscriptions.EmptySubscription;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.CustomLog;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@CustomLog
 public class FlowableProxyResponse extends Flowable<Buffer> {
-
-    private final Logger log = LoggerFactory.getLogger(FlowableProxyResponse.class);
 
     private final AtomicLong demand = new AtomicLong(0);
     private final AtomicBoolean cancelled = new AtomicBoolean(false);

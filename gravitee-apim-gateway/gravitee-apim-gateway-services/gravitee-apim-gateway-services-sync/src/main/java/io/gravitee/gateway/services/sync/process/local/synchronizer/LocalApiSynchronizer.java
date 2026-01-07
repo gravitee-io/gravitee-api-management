@@ -45,12 +45,12 @@ import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class LocalApiSynchronizer implements LocalSynchronizer {
 
     private final Map<Path, ReactableApi> definitions = new HashMap<>();

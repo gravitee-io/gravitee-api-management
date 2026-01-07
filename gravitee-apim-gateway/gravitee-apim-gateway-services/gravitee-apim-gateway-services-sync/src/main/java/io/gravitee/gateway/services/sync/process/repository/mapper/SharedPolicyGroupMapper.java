@@ -23,11 +23,11 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupMapper {
 
     private final ObjectMapper objectMapper;

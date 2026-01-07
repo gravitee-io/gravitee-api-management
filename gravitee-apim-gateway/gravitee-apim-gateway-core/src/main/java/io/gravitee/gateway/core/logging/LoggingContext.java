@@ -19,16 +19,14 @@ import io.gravitee.common.utils.SizeUtils;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.gateway.api.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class LoggingContext implements ConditionSupplier {
-
-    private final Logger logger = LoggerFactory.getLogger(LoggingContext.class);
 
     public static final String LOGGING_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "logging";
 

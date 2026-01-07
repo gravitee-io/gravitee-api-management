@@ -20,30 +20,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PolicyConfigurationFactoryImpl implements PolicyConfigurationFactory {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyConfigurationFactoryImpl.class);
 
     private static final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {
         if (configuration == null || configuration.isEmpty()) {
-            LOGGER.debug("Unable to create a Policy configuration from a null or empty configuration data");
+            log.debug("Unable to create a Policy configuration from a null or empty configuration data");
             return null;
         }
 
         try {
             return mapper.readValue(configuration, policyConfigurationClass);
         } catch (IOException ex) {
-            LOGGER.error("Unable to instance Policy configuration for {}", policyConfigurationClass.getName(), ex);
+            log.error("Unable to instance Policy configuration for {}", policyConfigurationClass.getName(), ex);
         }
 
         return null;

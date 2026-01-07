@@ -17,15 +17,15 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import lombok.CustomLog;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Getter
-@Slf4j
+@CustomLog
 public class AnalyticsContext {
 
     protected Analytics analytics;

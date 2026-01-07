@@ -44,16 +44,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionContext> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(DebugEventCompletionProcessor.class);
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
 
@@ -77,7 +76,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                 event.setPayload(objectMapper.writeValueAsString(debugApi));
                 updateEvent(event, ApiDebugStatus.SUCCESS);
             } catch (JsonProcessingException | TechnicalException e) {
-                LOGGER.error("Error occurs while saving debug event", e);
+                log.error("Error occurs while saving debug event", e);
                 failEvent(event);
             }
             promise.complete();
@@ -163,7 +162,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                 updateEvent(debugEvent, ApiDebugStatus.ERROR);
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Error when updating event {} with ERROR status", debugEvent.getId());
+            log.error("Error when updating event {} with ERROR status", debugEvent.getId());
         }
     }
 

@@ -21,16 +21,16 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.gateway.core.logging.LoggableContentType;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.report.guard.LogGuardService;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class LoggingContext implements ConditionSupplier {
 

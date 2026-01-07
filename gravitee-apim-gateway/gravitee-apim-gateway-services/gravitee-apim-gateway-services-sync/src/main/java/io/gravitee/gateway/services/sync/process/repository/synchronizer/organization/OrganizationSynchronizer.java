@@ -32,15 +32,15 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class OrganizationSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> EVENT_TYPES = Set.of(EventType.PUBLISH_ORGANIZATION);

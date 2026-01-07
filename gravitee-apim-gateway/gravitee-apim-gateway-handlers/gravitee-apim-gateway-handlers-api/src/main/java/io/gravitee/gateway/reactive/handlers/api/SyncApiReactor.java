@@ -87,17 +87,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
 
-    private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
     protected final List<InvokerHook> invokerHooks;

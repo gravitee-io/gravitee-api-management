@@ -25,16 +25,15 @@ import io.gravitee.gateway.reactive.handlers.api.v4.deployer.AbstractApiDeployer
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApiDeployer extends AbstractApiDeployer<Api> {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiDeployer.class);
     private final DataEncryptor dataEncryptor;
 
     public ApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
@@ -82,7 +81,7 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
                     property.setEncrypted(false);
                     properties.getValues().put(property.getKey(), property.getValue());
                 } catch (GeneralSecurityException e) {
-                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                    log.error("Error decrypting API property value for key {}", property.getKey(), e);
                 }
             }
         }

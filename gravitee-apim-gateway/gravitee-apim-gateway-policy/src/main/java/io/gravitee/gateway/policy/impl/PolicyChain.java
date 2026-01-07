@@ -25,11 +25,11 @@ import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.impl.processor.PolicyChainProcessorFailure;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.policy.api.PolicyResult;
 import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,7 +39,7 @@ public abstract class PolicyChain
     extends BufferedReadWriteStream
     implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger = NodeLoggerFactory.getLogger(this.getClass());
 
     static final String GATEWAY_POLICY_INTERNAL_ERROR_KEY = "GATEWAY_POLICY_INTERNAL_ERROR";
 

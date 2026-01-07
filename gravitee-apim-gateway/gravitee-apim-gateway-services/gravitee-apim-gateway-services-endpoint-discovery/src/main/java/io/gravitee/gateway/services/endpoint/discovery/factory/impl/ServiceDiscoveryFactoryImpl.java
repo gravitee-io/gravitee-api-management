@@ -21,8 +21,7 @@ import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryF
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ApplicationContext;
@@ -31,9 +30,8 @@ import org.springframework.context.ApplicationContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ServiceDiscoveryFactoryImpl implements ServiceDiscoveryFactory {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ServiceDiscoveryFactoryImpl.class);
 
     @Autowired
     private ServiceDiscoveryConfigurationFactory serviceDiscoveryConfigurationFactory;
@@ -43,7 +41,7 @@ public class ServiceDiscoveryFactoryImpl implements ServiceDiscoveryFactory {
 
     @Override
     public <T extends ServiceDiscovery> T create(ServiceDiscoveryPlugin sdPlugin, String sdConfiguration) {
-        LOGGER.debug("Create a new service discovery instance for {}", sdPlugin.serviceDiscovery().getName());
+        log.debug("Create a new service discovery instance for {}", sdPlugin.serviceDiscovery().getName());
 
         ApplicationContext sdContext = pluginContextFactory.create(
             new AnnotationBasedPluginContextConfigurer(sdPlugin) {
@@ -69,7 +67,7 @@ public class ServiceDiscoveryFactoryImpl implements ServiceDiscoveryFactory {
         try {
             return (T) sdContext.getBean(sdPlugin.clazz());
         } catch (Exception ex) {
-            LOGGER.error("Unable to get service discovery {}", sdPlugin.serviceDiscovery().getName(), ex);
+            log.error("Unable to get service discovery {}", sdPlugin.serviceDiscovery().getName(), ex);
             return null;
         }
     }

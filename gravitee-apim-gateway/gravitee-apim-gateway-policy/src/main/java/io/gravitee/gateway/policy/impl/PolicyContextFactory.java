@@ -16,17 +16,15 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.policy.api.PolicyContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PolicyContextFactory {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyContextFactory.class);
 
     public PolicyContext create(Class<? extends PolicyContext> policyContextClass) throws Exception {
         if (policyContextClass == null) {
@@ -34,10 +32,10 @@ public class PolicyContextFactory {
         }
 
         try {
-            LOGGER.debug("Creating a new instance of policy context of type {}", policyContextClass.getName());
+            log.debug("Creating a new instance of policy context of type {}", policyContextClass.getName());
             return policyContextClass.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
-            LOGGER.error("Unable to create a policy context", ex);
+            log.error("Unable to create a policy context", ex);
             throw ex;
         }
     }

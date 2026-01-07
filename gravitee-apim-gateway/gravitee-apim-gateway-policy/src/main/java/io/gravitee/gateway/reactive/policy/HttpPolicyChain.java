@@ -32,7 +32,7 @@ import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * PolicyChain is responsible for executing a given list of policies respecting the original order.
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements Hookable<HttpHook> {
 
     private List<PolicyHook> policyHooks;

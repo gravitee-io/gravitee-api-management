@@ -26,17 +26,15 @@ import java.lang.reflect.*;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import lombok.CustomLog;
 import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyPluginFactoryImpl.class);
 
     /**
      * Cache of constructor by policy
@@ -45,7 +43,7 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
 
     @Override
     public <T> T create(Class<T> policyClass, PolicyConfiguration policyConfiguration) {
-        LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
+        log.debug("Create a new policy instance for {}", policyClass.getName());
 
         //TODO: could we reuse policy instance ?
         return createInstance(policyClass, policyConfiguration);
@@ -76,7 +74,7 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
                     policyInst = constr.newInstance();
                 }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-                LOGGER.error("Unable to instantiate policy {}", policyClass.getName(), ex);
+                log.error("Unable to instantiate policy {}", policyClass.getName(), ex);
             }
         }
 
@@ -85,7 +83,7 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
 
     private <T> Constructor<T> lookingForConstructor(Class<T> policyClass) {
         return (Constructor<T>) constructors.computeIfAbsent(policyClass, aClass -> {
-            LOGGER.debug("Looking for a constructor to inject policy configuration");
+            log.debug("Looking for a constructor to inject policy configuration");
 
             Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
                 policyClass,
@@ -95,19 +93,19 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
             );
 
             if (policyConstructors.isEmpty()) {
-                LOGGER.debug(
+                log.debug(
                     "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
                     policyClass.getName()
                 );
                 try {
                     return policyClass.getConstructor();
                 } catch (NoSuchMethodException nsme) {
-                    LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
+                    log.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
                 }
             } else if (policyConstructors.size() == 1) {
                 return policyConstructors.iterator().next();
             } else {
-                LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
+                log.info("Too much constructors to instantiate policy {}", policyClass.getName());
             }
 
             return null;

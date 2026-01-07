@@ -104,8 +104,7 @@ import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -113,6 +112,7 @@ import org.springframework.core.ResolvableType;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
 
     public static final String CLASSLOADER_LEGACY_ENABLED_PROPERTY = "classloader.legacy.enabled";
@@ -124,7 +124,6 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
     protected final Node node;
 
-    private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
     private final Configuration configuration;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final io.gravitee.gateway.reactive.policy.PolicyFactoryManager policyFactoryManager;
@@ -337,10 +336,10 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                     );
                 }
             } else {
-                logger.warn("Api is disabled !");
+                log.warn("Api is disabled !");
             }
         } catch (Exception ex) {
-            logger.error("Unexpected error while creating API handler", ex);
+            log.error("Unexpected error while creating API handler", ex);
         }
 
         return null;

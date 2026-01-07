@@ -22,11 +22,11 @@ import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.license.DefaultLicenseManager;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class LicenseDeployer implements Deployer<LicenseDeployable> {
 
     private final LicenseManager licenseManager;

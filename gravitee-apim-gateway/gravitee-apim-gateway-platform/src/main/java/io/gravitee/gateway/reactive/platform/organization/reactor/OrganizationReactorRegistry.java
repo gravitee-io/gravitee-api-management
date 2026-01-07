@@ -18,15 +18,15 @@ package io.gravitee.gateway.reactive.platform.organization.reactor;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class OrganizationReactorRegistry {
 
     private final OrganizationReactorFactory organizationReactorFactory;

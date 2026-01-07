@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.flow;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
@@ -32,8 +31,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * A flow chain basically allows to execute all the policies configured on a list of flows.
@@ -43,9 +41,8 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class FlowChain implements Hookable<ChainHook> {
-
-    private static final Logger log = LoggerFactory.getLogger(FlowChain.class);
 
     private final String id;
     private final FlowResolver flowResolver;

@@ -35,7 +35,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * {@link AbstractSecurityChain} is a special chain dedicated to execute policy associated with plans.
@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class AbstractSecurityChain<
     P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>,
     C extends BaseExecutionContext

@@ -22,9 +22,9 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPo
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class DefaultSharedPolicyGroupReactor
     extends AbstractLifecycleComponent<SharedPolicyGroupReactor>
     implements SharedPolicyGroupReactor {

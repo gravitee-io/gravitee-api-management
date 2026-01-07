@@ -19,16 +19,14 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReporterProcessor.class);
 
     private final ReporterService reporterService;
 
@@ -49,7 +47,7 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
                 reporterService.report(context.request().metrics().getLog());
             }
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while reporting metrics", ex);
+            log.error("An error occurs while reporting metrics", ex);
         }
 
         next.handle(context);

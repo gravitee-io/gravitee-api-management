@@ -28,15 +28,15 @@ import io.gravitee.gateway.reactive.tcp.VertxTcpResponse;
 import io.gravitee.gateway.reactor.handler.TcpAcceptor;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.net.NetSocket;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
 
     private final TcpAcceptorResolver tcpAcceptorResolver;

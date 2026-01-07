@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.*;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -49,7 +49,7 @@ import org.springframework.util.ClassUtils;
  */
 public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     protected final PolicyFactory policyFactory;
 
@@ -132,13 +132,13 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
         dependencies().forEach(policy -> {
             final PolicyPlugin<?> policyPlugin = policyPluginManager.get(policy.getName());
             if (policyPlugin == null) {
-                logger.error("Policy [{}] cannot be found in policy registry", policy.getName());
+                log.error("Policy [{}] cannot be found in policy registry", policy.getName());
                 throw new IllegalStateException("Policy [" + policy.getName() + "] cannot be found in policy registry");
             }
 
             PluginClassLoader policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, parentClassLoader);
 
-            logger.debug("Loading policy {}", policy.getName());
+            log.debug("Loading policy {}", policy.getName());
 
             PolicyManifestBuilder builder = new PolicyManifestBuilder();
             builder.setId(policyPlugin.id());
@@ -178,17 +178,17 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
 
                 policies.put(policy.getName(), builder.build());
             } catch (Exception ex) {
-                logger.error("Unable to load policy metadata", ex);
+                log.error("Unable to load policy metadata", ex);
 
                 if (policyClassLoader != null) {
                     try {
                         policyClassLoader.close();
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for policy", ioe);
+                        log.error("Unable to close classloader for policy", ioe);
                     }
                 }
             } catch (Error error) {
-                logger.error(
+                log.error(
                     "Unable to load policy id[" +
                         policyPlugin.id() +
                         "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
@@ -199,7 +199,7 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
                     try {
                         policyClassLoader.close();
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for policy", ioe);
+                        log.error("Unable to close classloader for policy", ioe);
                     }
                 }
             }

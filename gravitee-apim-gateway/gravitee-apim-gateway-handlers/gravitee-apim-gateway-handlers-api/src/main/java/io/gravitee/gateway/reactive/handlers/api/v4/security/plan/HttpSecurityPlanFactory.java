@@ -24,13 +24,13 @@ import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPoli
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class HttpSecurityPlanFactory {
 
     private HttpSecurityPlanFactory() {}

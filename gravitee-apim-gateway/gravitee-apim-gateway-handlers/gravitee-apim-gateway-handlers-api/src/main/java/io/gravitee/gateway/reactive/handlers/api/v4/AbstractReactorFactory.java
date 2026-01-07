@@ -49,13 +49,13 @@ import io.gravitee.resource.api.ResourceManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 
-@Slf4j
+@CustomLog
 public abstract class AbstractReactorFactory<T extends ReactableApi<? extends AbstractApi>> implements ReactorFactory<T> {
 
     protected final ApplicationContext applicationContext;

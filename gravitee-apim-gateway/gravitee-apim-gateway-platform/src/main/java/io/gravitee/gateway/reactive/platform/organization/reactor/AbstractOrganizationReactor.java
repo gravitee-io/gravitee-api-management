@@ -17,9 +17,9 @@ package io.gravitee.gateway.reactive.platform.organization.reactor;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

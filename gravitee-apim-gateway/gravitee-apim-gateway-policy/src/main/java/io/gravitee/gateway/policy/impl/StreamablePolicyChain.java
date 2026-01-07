@@ -24,9 +24,9 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class StreamablePolicyChain extends PolicyChain {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = NodeLoggerFactory.getLogger(this.getClass());
 
     private ReadWriteStream<Buffer> streamablePolicyHandlerChain;
     private boolean initialized;

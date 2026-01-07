@@ -27,17 +27,15 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DefaultReactor implements Reactor {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
     private final GatewayConfiguration gatewayConfiguration;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
@@ -61,7 +59,7 @@ public class DefaultReactor implements Reactor {
 
     @Override
     public void route(Request serverRequest, Response serverResponse, String serverId, Handler<ExecutionContext> handler) {
-        LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
+        log.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
         // Prepare invocation execution context
         ExecutionContext context = new SimpleExecutionContext(serverRequest, serverResponse);

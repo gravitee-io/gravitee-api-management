@@ -22,13 +22,11 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.core.env.Environment;
 
+@CustomLog
 public class NotFoundProcessor extends AbstractProcessor<ExecutionContext> {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(NotFoundProcessor.class);
 
     private final Environment environment;
 
@@ -38,7 +36,7 @@ public class NotFoundProcessor extends AbstractProcessor<ExecutionContext> {
 
     @Override
     public void handle(ExecutionContext context) {
-        LOGGER.warn("No handler can be found for request {}, returning NOT_FOUND (404)", context.request().path());
+        log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", context.request().path());
         // Send a NOT_FOUND HTTP status code (404)
         context.response().status(HttpStatusCode.NOT_FOUND_404);
 

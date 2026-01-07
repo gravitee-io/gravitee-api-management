@@ -23,16 +23,14 @@ import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DebugService extends AbstractService {
-
-    private static final Logger logger = LoggerFactory.getLogger(DebugService.class);
 
     @Override
     protected void doStart() throws Exception {
@@ -42,13 +40,13 @@ public class DebugService extends AbstractService {
 
         for (Class<? extends LifecycleComponent> component : components) {
             Class<? extends LifecycleComponent> componentClass = component;
-            logger.info("Starting component: {}", componentClass.getSimpleName());
+            log.info("Starting component: {}", componentClass.getSimpleName());
 
             try {
                 LifecycleComponent lifecyclecomponent = this.applicationContext.getBean(componentClass);
                 lifecyclecomponent.start();
             } catch (Exception exception) {
-                logger.error("An error occurs while starting component {}", componentClass.getSimpleName(), exception);
+                log.error("An error occurs while starting component {}", componentClass.getSimpleName(), exception);
                 throw exception;
             }
         }
@@ -64,7 +62,7 @@ public class DebugService extends AbstractService {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        logger.info("{} is stopping", this.name());
+        log.info("{} is stopping", this.name());
         ListReverser<Class<? extends LifecycleComponent>> components = new ListReverser(this.components());
 
         for (Class<? extends LifecycleComponent> component : components) {
@@ -73,15 +71,15 @@ public class DebugService extends AbstractService {
             try {
                 LifecycleComponent lifecyclecomponent = (LifecycleComponent) this.applicationContext.getBean(componentClass);
                 if (lifecyclecomponent.lifecycleState() == Lifecycle.State.STARTED) {
-                    logger.info("Stopping component: {}", componentClass.getSimpleName());
+                    log.info("Stopping component: {}", componentClass.getSimpleName());
                     lifecyclecomponent.stop();
                 }
             } catch (Exception exception) {
-                logger.error("An error occurs while stopping component {}", componentClass.getSimpleName(), exception);
+                log.error("An error occurs while stopping component {}", componentClass.getSimpleName(), exception);
             }
         }
 
-        logger.info("{} stopped", this.name());
+        log.info("{} stopped", this.name());
     }
 
     @Override

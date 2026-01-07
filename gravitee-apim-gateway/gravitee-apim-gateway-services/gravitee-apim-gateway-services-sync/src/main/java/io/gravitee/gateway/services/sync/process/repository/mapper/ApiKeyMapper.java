@@ -18,9 +18,9 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class ApiKeyMapper {
 
     public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Subscription subscription) {

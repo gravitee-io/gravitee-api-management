@@ -321,7 +321,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     protected void doStart() throws Exception {
-        logger.debug("API handler is now starting, preparing API context...");
+        log.debug("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
 
@@ -333,17 +333,17 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         dumpVirtualHosts();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        logger.debug("API handler started in {} ms", (endTime - startTime));
+        log.debug("API handler started in {} ms", (endTime - startTime));
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
         if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
-            logger.debug("Current node is not started, API handler will be stopped immediately");
+            log.debug("Current node is not started, API handler will be stopped immediately");
             stopNow();
         } else {
-            logger.debug("Current node is started, API handler will wait for pending requests before stopping");
+            log.debug("Current node is started, API handler will wait for pending requests before stopping");
             long timeout = System.currentTimeMillis() + pendingRequestsTimeout;
             stopUntil(timeout);
         }
@@ -357,12 +357,12 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     }
 
     private void stopNow() throws Exception {
-        logger.debug("API handler is now stopping, closing context for {} ...", this);
+        log.debug("API handler is now stopping, closing context for {} ...", this);
         policyManager.stop();
         resourceLifecycleManager.stop();
         groupLifecycleManager.stop();
         super.doStop();
-        logger.debug("API handler is now stopped: {}", this);
+        log.debug("API handler is now stopped: {}", this);
     }
 
     @Override
