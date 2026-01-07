@@ -21,14 +21,14 @@ import io.vertx.core.http.RequestOptions;
 import java.net.URL;
 import java.util.StringJoiner;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UriHelper {
 

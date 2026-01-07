@@ -18,13 +18,13 @@ package io.gravitee.plugin.apiservice.internal;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import io.gravitee.plugin.core.api.AbstractSingleSubTypesFinder;
 import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ApiServiceConfigurationClassFinder extends AbstractSingleSubTypesFinder<ApiServiceConfiguration> {
 
     public ApiServiceConfigurationClassFinder() {

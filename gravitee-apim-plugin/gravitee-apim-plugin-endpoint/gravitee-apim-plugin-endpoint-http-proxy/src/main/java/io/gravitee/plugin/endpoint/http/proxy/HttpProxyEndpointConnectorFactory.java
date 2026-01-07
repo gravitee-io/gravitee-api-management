@@ -25,13 +25,13 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @AllArgsConstructor
 public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnectorFactory {
 

@@ -18,12 +18,12 @@ package io.gravitee.plugin.endpoint.internal;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.plugin.core.api.AbstractSingleSubTypesFinder;
 import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class EndpointConnectorConfigurationClassFinder extends AbstractSingleSubTypesFinder<EndpointConnectorConfiguration> {
 
     public EndpointConnectorConfigurationClassFinder() {

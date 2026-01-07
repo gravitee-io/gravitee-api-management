@@ -26,14 +26,14 @@ import io.gravitee.plugin.entrypoint.tcp.proxy.configuration.TcpProxyEntrypointC
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
-@Slf4j
+@CustomLog
 public class TcpProxyEntrypointConnector extends AbstractService<Connector> implements TcpEntrypointConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SOCKET);

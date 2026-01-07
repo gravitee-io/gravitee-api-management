@@ -20,6 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
@@ -52,7 +56,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author GraviteeSource Team
@@ -63,9 +67,6 @@ class MockEndpointConnectorTest {
     protected static final String MESSAGE_CONTENT = "test mock endpoint";
     private static final String MESSAGE_TO_LOG = "message to log";
     private MockEndpointConnectorConfiguration configuration;
-
-    @Mock(name = "io.gravitee.plugin.endpoint.mock.MockEndpointConnector")
-    Logger log;
 
     @InjectMocks
     private MockEndpointConnector cut;
@@ -82,6 +83,8 @@ class MockEndpointConnectorTest {
     @Mock
     private EntrypointConnector entrypointConnector;
 
+    private ListAppender<ILoggingEvent> listAppender;
+
     @BeforeEach
     public void setup() {
         configuration = new MockEndpointConnectorConfiguration();
@@ -94,6 +97,17 @@ class MockEndpointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+
+        // get Logback Logger
+        Logger logger = (Logger) LoggerFactory.getLogger(MockEndpointConnector.class);
+
+        // create and start a ListAppender
+        listAppender = new ListAppender<>();
+        listAppender.start();
+
+        // add the appender to the logger
+        // addAppender is outdated now
+        logger.addAppender(listAppender);
     }
 
     @Test
@@ -120,7 +134,12 @@ class MockEndpointConnectorTest {
 
         verify(request).onMessage(messagesCaptor.capture());
         messagesCaptor.getValue().apply(DefaultMessage.builder().content(MESSAGE_TO_LOG).build()).test().assertComplete();
-        verify(log).info("Received message: {}", MESSAGE_TO_LOG);
+        final List<ILoggingEvent> logList = listAppender.list;
+        assertThat(logList)
+            .hasSize(1)
+            .element(0)
+            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
+            .containsExactly("Received message: " + MESSAGE_TO_LOG, Level.INFO);
     }
 
     @Test

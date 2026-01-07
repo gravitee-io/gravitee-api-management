@@ -24,15 +24,15 @@ import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.entrypoint.tcp.proxy.configuration.TcpProxyEntrypointConnectorConfiguration;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class TcpProxyEntrypointConnectorFactory implements EntrypointConnectorFactory<TcpProxyEntrypointConnector> {
 
     private final PluginConfigurationHelper connectorFactoryHelper;

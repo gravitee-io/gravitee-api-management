@@ -29,14 +29,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @SuppressWarnings("unchecked")
-@Slf4j
+@CustomLog
 public class DefaultApiServicePluginManager
     extends AbstractConfigurablePluginManager<ApiServicePlugin<?, ?>>
     implements ApiServicePluginManager {

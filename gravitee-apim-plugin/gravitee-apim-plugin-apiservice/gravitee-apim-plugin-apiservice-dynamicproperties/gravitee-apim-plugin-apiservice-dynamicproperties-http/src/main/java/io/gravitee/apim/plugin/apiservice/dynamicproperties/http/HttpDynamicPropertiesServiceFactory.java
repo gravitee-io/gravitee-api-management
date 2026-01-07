@@ -21,14 +21,14 @@ import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
-@Slf4j
+@CustomLog
 public class HttpDynamicPropertiesServiceFactory implements ManagementApiServiceFactory<HttpDynamicPropertiesService> {
 
     @Override

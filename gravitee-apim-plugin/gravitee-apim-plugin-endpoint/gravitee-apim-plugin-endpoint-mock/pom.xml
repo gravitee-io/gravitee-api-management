@@ -49,12 +49,6 @@
             <artifactId>gravitee-common</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Tests -->
-        <dependency>
-            <groupId>org.simplify4u</groupId>
-            <artifactId>slf4j2-mock</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

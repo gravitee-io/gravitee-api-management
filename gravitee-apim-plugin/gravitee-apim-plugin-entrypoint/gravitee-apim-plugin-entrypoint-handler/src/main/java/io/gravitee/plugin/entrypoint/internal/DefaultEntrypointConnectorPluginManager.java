@@ -27,19 +27,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
     extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>>
     implements EntrypointConnectorPluginManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
     private final PluginConfigurationHelper pluginConfigurationHelper;
     private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
@@ -70,7 +69,7 @@ public class DefaultEntrypointConnectorPluginManager
                 notDeployedPluginFactories.put(plugin.id(), factory);
             }
         } catch (Exception ex) {
-            logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
+            log.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
         }
     }
 
