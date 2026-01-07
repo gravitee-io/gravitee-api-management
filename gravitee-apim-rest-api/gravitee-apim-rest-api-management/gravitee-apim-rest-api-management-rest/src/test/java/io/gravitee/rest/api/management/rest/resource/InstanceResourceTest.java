@@ -20,9 +20,6 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
@@ -42,39 +39,7 @@ public class InstanceResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldThrowCloudEnabledException_whenCloudIsEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(true);
-
-        final Response response = envTarget().request().get();
-        assertEquals(HttpStatusCode.SERVICE_UNAVAILABLE_503, response.getStatus());
-    }
-
-    @Test
-    public void shouldReturnInstance_whenCloudNotEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(false);
-
+    public void shouldReturnInstance() {
         InstanceEntity mockInstance = new InstanceEntity();
         mockInstance.setEnvironments(Set.of(GraviteeContext.getCurrentEnvironment()));
         when(instanceService.findByEvent(any(), any())).thenReturn(mockInstance);
