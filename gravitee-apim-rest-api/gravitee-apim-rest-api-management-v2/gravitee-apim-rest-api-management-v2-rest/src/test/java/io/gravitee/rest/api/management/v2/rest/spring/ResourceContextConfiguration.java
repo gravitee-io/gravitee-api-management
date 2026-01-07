@@ -193,6 +193,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -980,9 +981,10 @@ public class ResourceContextConfiguration {
     public ComputeMeasuresUseCase computeMeasuresUseCase(
         AnalyticsQueryContextProvider analyticsQueryContextProvider,
         AnalyticsQueryValidator analyticsQueryValidator,
-        FilterPreProcessor filterPreprocessor
+        FilterPreProcessor filterPreprocessor,
+        SearchEngineService searchEngineService
     ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
+        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor, searchEngineService);
     }
 
     @Bean
@@ -1013,6 +1015,11 @@ public class ResourceContextConfiguration {
     @Bean
     public FilterPreProcessor filterPreProcessor() {
         return mock(FilterPreProcessor.class);
+    }
+
+    @Bean
+    public SearchEngineService searchEngineService() {
+        return mock(SearchEngineService.class);
     }
 
     @Bean

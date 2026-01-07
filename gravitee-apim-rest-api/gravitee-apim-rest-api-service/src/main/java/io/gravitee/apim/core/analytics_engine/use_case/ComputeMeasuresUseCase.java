@@ -25,6 +25,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 @UseCase
-public class ComputeMeasuresUseCase {
+public class ComputeMeasuresUseCase extends AbstractComputeUseCase {
 
     private final AnalyticsQueryContextProvider queryContextProvider;
 
@@ -43,11 +44,13 @@ public class ComputeMeasuresUseCase {
     private final FilterPreProcessor filterPreprocessor;
 
     public ComputeMeasuresUseCase(
-        AnalyticsQueryContextProvider queryContextResolver,
+        AnalyticsQueryContextProvider analyticsQueryContextProvider,
         AnalyticsQueryValidator validator,
-        FilterPreProcessor filterPreprocessor
+        FilterPreProcessor filterPreprocessor,
+        SearchEngineService searchEngineService
     ) {
-        this.queryContextProvider = queryContextResolver;
+        super(searchEngineService);
+        this.queryContextProvider = analyticsQueryContextProvider;
         this.validator = validator;
         this.filterPreprocessor = filterPreprocessor;
     }
@@ -80,6 +83,10 @@ public class ComputeMeasuresUseCase {
         queryExecutions.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
             filters.addAll(metricsContext.filters());
+
+            //TODO: cache filters to reduce the number of searches
+            var filter = getFilterByApiName(request.filters());
+            filter.ifPresent(filters::add);
 
             responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });
