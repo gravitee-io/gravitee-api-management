@@ -20,6 +20,7 @@ import 'chartjs-adapter-date-fns';
 
 import { BarConverterService } from './converter/bar-converter.service';
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
+import { assignChartColors } from '../shared/chart-colors';
 
 export type BarType = 'bar';
 
@@ -35,7 +36,9 @@ export class BarChartComponent {
   data = input.required<TimeSeriesResponse>();
 
   public readonly dataFormatted = computed(() => {
-    return this.converter.convert(this.data());
+    const chartData = this.converter.convert(this.data());
+    assignChartColors(chartData.datasets);
+    return chartData;
   });
   private readonly converter = inject(BarConverterService);
 

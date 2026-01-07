@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BarChartComponent } from './bar-chart.component';
 import { TimeSeriesBucket, TimeSeriesResponse } from '../../widget/model/response/time-series-response';
+import { CHART_COLORS } from '../shared/chart-colors';
 
 describe('BarChartComponent', () => {
   let component: BarChartComponent;
@@ -145,5 +146,27 @@ describe('BarChartComponent', () => {
     expect(xScale?.stacked).toBe(true);
     expect(yScale?.stacked).toBe(true);
     expect((yScale as { beginAtZero?: boolean })?.beginAtZero).toBe(true);
+  });
+
+  it('should assign shared colors to datasets', () => {
+    const data: TimeSeriesResponse = {
+      metrics: [
+        {
+          name: 'HTTP_REQUESTS',
+          buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 100)],
+        },
+        {
+          name: 'HTTP_ERRORS',
+          buckets: [createMeasureBucket('2025-10-07T06:00:00Z', 200)],
+        },
+      ],
+      buckets: [createBaseBucket('2025-10-07T06:00:00Z')],
+    };
+
+    setChartData(data);
+
+    const result = component.dataFormatted();
+    expect(result.datasets[0].backgroundColor).toBe(CHART_COLORS[0]);
+    expect(result.datasets[1].backgroundColor).toBe(CHART_COLORS[1]);
   });
 });
