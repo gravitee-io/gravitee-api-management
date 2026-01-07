@@ -169,7 +169,7 @@ export class GraviteeDashboardService {
         id: '7',
         title: 'Response Statuses',
         description: 'Number of response statuses over time',
-        type: 'line',
+        type: 'bar',
         layout: {
           cols: 3,
           rows: 2,
@@ -191,7 +191,7 @@ export class GraviteeDashboardService {
         id: '8',
         title: 'Top 5 Applications',
         description: 'Top 5 applications by number of HTTP requests',
-        type: 'doughnut',
+        type: 'pie',
         layout: {
           cols: 1,
           rows: 2,
