@@ -24,10 +24,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InstanceQuery;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,43 +37,11 @@ public class InstancesResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        reset(instanceService, parameterService);
-    }
-
-    @Test
-    public void shouldThrowCloudEnabledException_whenCloudIsEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(true);
-
-        final Response response = envTarget().request().get();
-        assertEquals(HttpStatusCode.SERVICE_UNAVAILABLE_503, response.getStatus());
+        reset(instanceService);
     }
 
     @Test
     public void shouldReturnInstances_whenCloudIsNotEnabled() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.CLOUD_HOSTED_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(false);
-
         when(instanceService.search(any(), any(InstanceQuery.class))).thenReturn(mock(Page.class));
 
         final Response response = envTarget().request().get();

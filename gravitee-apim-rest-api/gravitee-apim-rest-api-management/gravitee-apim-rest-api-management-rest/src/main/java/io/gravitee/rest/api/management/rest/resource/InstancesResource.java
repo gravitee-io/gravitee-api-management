@@ -20,16 +20,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.InstanceSearchParam;
 import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.InstanceQuery;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.CloudEnabledException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
@@ -54,18 +50,11 @@ public class InstancesResource {
     @Inject
     private InstanceService instanceService;
 
-    @Inject
-    private ParameterService parameterService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List gateway instances")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public Page<InstanceListItem> getInstances(@BeanParam InstanceSearchParam param) {
-        if (cloudEnabled()) {
-            throw new CloudEnabledException();
-        }
-
         InstanceQuery query = new InstanceQuery();
         query.setIncludeStopped(param.isIncludeStopped());
         query.setFrom(param.getFrom());
@@ -79,14 +68,5 @@ public class InstancesResource {
     @Path("{instance}")
     public InstanceResource getInstanceResource() {
         return resourceContext.getResource(InstanceResource.class);
-    }
-
-    private Boolean cloudEnabled() {
-        return parameterService.findAsBoolean(
-            GraviteeContext.getExecutionContext(),
-            Key.CLOUD_HOSTED_ENABLED,
-            GraviteeContext.getCurrentOrganization(),
-            ParameterReferenceType.ORGANIZATION
-        );
     }
 }
