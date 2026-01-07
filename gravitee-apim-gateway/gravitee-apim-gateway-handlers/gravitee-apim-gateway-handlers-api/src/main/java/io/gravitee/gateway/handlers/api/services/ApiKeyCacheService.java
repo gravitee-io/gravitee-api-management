@@ -22,10 +22,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.util.DigestUtils;
 
-@Slf4j
+@CustomLog
 public class ApiKeyCacheService implements ApiKeyService {
 
     private final Map<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();

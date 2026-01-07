@@ -30,14 +30,14 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.reactivestreams.Subscription;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class VertxHttpServerResponse extends AbstractResponse {
 
     private static final Set<String> CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES = Set.of("Connection reset by peer", "Broken pipe");

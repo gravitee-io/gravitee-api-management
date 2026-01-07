@@ -24,14 +24,14 @@ import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ResourceManagerImpl extends LegacyResourceManagerImpl {
 
     private final boolean legacyMode;

@@ -22,17 +22,15 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.reactivex.rxjava3.core.Completable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AlertProcessor implements Processor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertProcessor.class);
 
     private static final String REQUEST_TYPE = "REQUEST";
 
@@ -120,7 +118,7 @@ public class AlertProcessor implements Processor {
                     .build()
             )
         )
-            .doOnError(throwable -> LOGGER.error("An error occurs while sending alert", throwable))
+            .doOnError(throwable -> log.error("An error occurs while sending alert", throwable))
             .onErrorComplete();
     }
 }

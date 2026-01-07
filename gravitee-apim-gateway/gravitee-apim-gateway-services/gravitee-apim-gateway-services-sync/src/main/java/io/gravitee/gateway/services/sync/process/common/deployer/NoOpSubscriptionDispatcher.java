@@ -19,14 +19,14 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.reactivex.rxjava3.core.Completable;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * No-op subscription dispatcher used when no implementation has been found in spring context.
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class NoOpSubscriptionDispatcher implements SubscriptionDispatcher {
 
     @Override

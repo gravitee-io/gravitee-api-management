@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupReactorFactoryManager {
 
     private final List<SharedPolicyGroupReactorFactory> sharedPolicyGroupReactorFactories;

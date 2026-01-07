@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,5 +24,5 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractPolicyChainProvider implements PolicyChainProvider {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger = NodeLoggerFactory.getLogger(this.getClass());
 }

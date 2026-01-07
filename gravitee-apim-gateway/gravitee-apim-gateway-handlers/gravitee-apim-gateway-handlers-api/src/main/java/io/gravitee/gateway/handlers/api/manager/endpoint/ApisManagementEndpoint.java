@@ -31,18 +31,15 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Collection;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApisManagementEndpoint implements Handler<RoutingContext>, ManagementEndpoint {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApisManagementEndpoint.class);
 
     @Autowired
     private ApiManager apiManager;
@@ -82,7 +79,7 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
             response.write(objectMapper.writeValueAsString(apis));
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
+            log.error("Unable to transform data object to JSON", jpe);
         }
 
         response.end();

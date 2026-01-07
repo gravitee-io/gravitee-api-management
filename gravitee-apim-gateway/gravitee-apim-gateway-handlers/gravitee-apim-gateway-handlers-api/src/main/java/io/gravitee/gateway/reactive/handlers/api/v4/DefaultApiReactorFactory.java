@@ -68,8 +68,6 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**

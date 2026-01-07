@@ -27,15 +27,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class KubernetesSyncManager extends AbstractService<SyncManager> implements SyncManager {
 
     private static final int EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS = 1_000;

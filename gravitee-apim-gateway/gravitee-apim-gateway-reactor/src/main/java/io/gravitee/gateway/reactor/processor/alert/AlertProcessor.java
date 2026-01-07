@@ -19,18 +19,15 @@ import io.gravitee.alert.api.event.Event;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.plugin.alert.AlertEventProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertProcessor.class);
 
     private static final String REQUEST_TYPE = "REQUEST";
 
@@ -115,7 +112,7 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .build()
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while sending alert", ex);
+            log.error("An error occurs while sending alert", ex);
         } finally {
             next.handle(context);
         }

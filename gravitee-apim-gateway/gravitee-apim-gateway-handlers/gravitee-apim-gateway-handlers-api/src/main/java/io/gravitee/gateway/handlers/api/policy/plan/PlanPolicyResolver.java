@@ -25,8 +25,7 @@ import io.gravitee.gateway.policy.StreamType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * A policy resolver based on the plan subscribed by the consumer.
@@ -34,9 +33,8 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PlanPolicyResolver extends RuleBasedPolicyResolver {
-
-    private final Logger logger = LoggerFactory.getLogger(PlanPolicyResolver.class);
 
     private static final String DEFAULT_PLAN_PATH = "/";
 
@@ -63,7 +61,7 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
                 return resolve(context, rootPath);
             }
         } else {
-            logger.warn(
+            log.warn(
                 "No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)",
                 context.request().id()
             );

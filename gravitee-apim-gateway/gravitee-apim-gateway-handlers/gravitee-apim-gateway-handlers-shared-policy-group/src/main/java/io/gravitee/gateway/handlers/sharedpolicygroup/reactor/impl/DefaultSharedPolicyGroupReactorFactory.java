@@ -29,8 +29,8 @@ import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -39,7 +39,7 @@ import org.springframework.core.ResolvableType;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroupReactorFactory {
 
     private final DefaultClassLoader defaultClassLoader;

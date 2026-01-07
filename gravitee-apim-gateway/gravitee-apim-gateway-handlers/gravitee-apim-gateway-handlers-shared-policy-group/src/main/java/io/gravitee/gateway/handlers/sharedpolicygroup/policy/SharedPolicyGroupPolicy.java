@@ -25,13 +25,13 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
 import java.util.function.Supplier;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupPolicy implements HttpPolicy {
 
     public static final String POLICY_ID = "shared-policy-group-policy";

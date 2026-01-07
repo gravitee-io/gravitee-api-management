@@ -20,13 +20,13 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class LicenseMapper {
 
     public Maybe<LicenseDeployable> to(final DistributedEvent event) {

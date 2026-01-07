@@ -38,7 +38,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -47,7 +47,7 @@ import org.springframework.core.env.Environment;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
     private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();

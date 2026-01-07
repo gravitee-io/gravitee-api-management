@@ -21,7 +21,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupM
 import io.gravitee.gateway.services.sync.healthcheck.SyncProcessProbe;
 import io.gravitee.node.api.healthcheck.ProbeManager;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class SyncService extends AbstractService {
 
     @Value("${services.sync.enabled:true}")

@@ -34,7 +34,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * A flow chain basically allows to execute all the policies configured on a list of flows.
@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
-@Slf4j
+@CustomLog
 public class FlowChain implements Hookable<ChainHook> {
 
     protected static final String INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED = "flowExecution.flowsMatched";

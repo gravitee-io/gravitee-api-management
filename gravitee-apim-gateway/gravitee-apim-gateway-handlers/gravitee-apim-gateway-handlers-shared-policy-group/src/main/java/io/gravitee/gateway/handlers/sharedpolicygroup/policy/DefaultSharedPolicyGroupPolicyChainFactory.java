@@ -32,9 +32,9 @@ import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyGroupPolicyChainFactory {
 
     public static final long CACHE_MAX_SIZE = 15;

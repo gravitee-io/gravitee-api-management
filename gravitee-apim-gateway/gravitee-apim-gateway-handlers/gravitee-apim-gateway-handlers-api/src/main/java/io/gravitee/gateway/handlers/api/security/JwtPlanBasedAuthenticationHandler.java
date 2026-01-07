@@ -27,18 +27,16 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.LazyJwtToken;
-import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtPlanBasedAuthenticationHandler.class);
     private static final String CLIENT_ID_CLAIM_PARAMETER = "clientIdClaim";
 
     private static final String CONTEXT_ATTRIBUTE_JWT = "jwt";
@@ -179,7 +177,7 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
                     customClientIdClaimRef.set(clientIdClaimNode.textValue());
                 }
             } catch (JsonProcessingException e) {
-                LOGGER.error("Failed to read plan security definition", e);
+                log.error("Failed to read plan security definition", e);
             }
         }
         return customClientIdClaimRef.get();

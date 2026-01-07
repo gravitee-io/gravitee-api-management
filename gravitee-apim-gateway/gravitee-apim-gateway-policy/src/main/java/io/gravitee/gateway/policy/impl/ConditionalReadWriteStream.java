@@ -25,13 +25,12 @@ import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
+@CustomLog
 public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
 
     private static final String GATEWAY_POLICY_INTERNAL_ERROR_KEY = "GATEWAY_POLICY_INTERNAL_ERROR";
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalReadWriteStream.class);
 
     private final String policyId;
     private final ReadWriteStream<Buffer> delegate;
@@ -164,7 +163,7 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
             try {
                 isConditionTruthy = evaluationFunction.apply(context);
             } catch (RuntimeException e) {
-                LOGGER.error("Condition evaluation fails for policy {}", policyId, e);
+                log.error("Condition evaluation fails for policy {}", policyId, e);
                 chain.streamFailWith(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, "Request failed unintentionally"));
                 isConditionTruthy = false;
             }

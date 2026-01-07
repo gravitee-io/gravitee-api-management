@@ -24,15 +24,15 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupMapper {
 
     private final ObjectMapper objectMapper;

@@ -36,8 +36,7 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
@@ -47,9 +46,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class HttpProtocolVerticle extends AbstractVerticle {
-
-    private final Logger log = LoggerFactory.getLogger(HttpProtocolVerticle.class);
 
     private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;

@@ -20,11 +20,11 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class OrganizationMapper {
 
     private final ObjectMapper objectMapper;

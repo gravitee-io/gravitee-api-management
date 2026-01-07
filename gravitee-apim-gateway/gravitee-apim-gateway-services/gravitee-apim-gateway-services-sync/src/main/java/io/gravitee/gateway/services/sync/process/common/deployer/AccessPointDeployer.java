@@ -20,11 +20,11 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class AccessPointDeployer implements Deployer<AccessPointDeployable> {
 
     private final AccessPointManager accessPointManager;

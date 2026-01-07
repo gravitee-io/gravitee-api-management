@@ -41,18 +41,16 @@ import io.gravitee.node.api.configuration.Configuration;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class EndpointGroupLifecycleManager
     extends AbstractLifecycleComponent<EndpointLifecycleManager>
     implements EndpointLifecycleManager, ChangeListener<Endpoint> {
-
-    private final Logger logger = LoggerFactory.getLogger(EndpointGroupLifecycleManager.class);
 
     private final Api api;
 
@@ -148,7 +146,7 @@ public class EndpointGroupLifecycleManager
             // Evaluate endpoint target to be sure SpEL expressions are resolved
             model.setTarget(evaluateTarget(model.getTarget(), api.getProperties()));
 
-            logger.debug(
+            log.debug(
                 "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
                 model.getName(),
                 model.getType(),
@@ -180,7 +178,7 @@ public class EndpointGroupLifecycleManager
                     referenceRegister.add(new EndpointReference(endpoint));
                 }
             } catch (EndpointException ee) {
-                logger.error(
+                log.error(
                     "An endpoint error occurs while configuring or starting endpoint " +
                         model.getName() +
                         ". Endpoint will not be available to forward requests.",
@@ -188,7 +186,7 @@ public class EndpointGroupLifecycleManager
                 );
             }
         } catch (Exception ex) {
-            logger.error("Unexpected error while creating endpoint connector", ex);
+            log.error("Unexpected error while creating endpoint connector", ex);
         }
     }
 
@@ -201,7 +199,7 @@ public class EndpointGroupLifecycleManager
     }
 
     public void stop(String endpointName) {
-        logger.debug("Closing endpoint: name[{}]", endpointName);
+        log.debug("Closing endpoint: name[{}]", endpointName);
 
         io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointsByName.remove(endpointName);
         stop(endpoint);
@@ -214,10 +212,10 @@ public class EndpointGroupLifecycleManager
                 referenceRegister.remove(endpoint.name());
                 endpoint.connector().stop();
             } catch (Exception ex) {
-                logger.error("Unexpected error while closing endpoint connector", ex);
+                log.error("Unexpected error while closing endpoint connector", ex);
             }
         } else {
-            logger.error("Unknown endpoint. You should never reach this point!");
+            log.error("Unknown endpoint. You should never reach this point!");
         }
     }
 

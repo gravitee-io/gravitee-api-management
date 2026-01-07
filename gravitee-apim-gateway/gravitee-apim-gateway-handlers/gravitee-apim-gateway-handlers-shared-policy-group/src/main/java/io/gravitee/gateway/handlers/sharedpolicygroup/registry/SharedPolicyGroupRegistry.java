@@ -22,11 +22,11 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupR
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactoryManager;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupRegistry {
 
     private final SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager;

@@ -26,20 +26,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.CustomLog;
 import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ResourceFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceFactory.class);
-
     public Resource create(Class<? extends Resource> resourceClass, Map<Class<?>, Object> injectables) throws Exception {
-        LOGGER.debug("Create a new resource instance for {}", resourceClass.getName());
+        log.debug("Create a new resource instance for {}", resourceClass.getName());
 
         return createResource(resourceClass, injectables);
     }
@@ -57,7 +55,7 @@ public class ResourceFactory {
                 resourceInst = constr.newInstance();
                 //    }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-                LOGGER.error("Unable to instantiate resource {}", resourceClass, ex);
+                log.error("Unable to instantiate resource {}", resourceClass, ex);
             }
         }
 
@@ -74,12 +72,12 @@ public class ResourceFactory {
                     .findFirst();
 
                 if (value.isPresent()) {
-                    LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
+                    log.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
                     try {
                         field.setAccessible(true);
                         field.set(resourceInst, value.get());
                     } catch (IllegalAccessException iae) {
-                        LOGGER.error("Unable to set field value for {} in {}", field.getName(), resourceClass, iae);
+                        log.error("Unable to set field value for {} in {}", field.getName(), resourceClass, iae);
                     } finally {
                         field.setAccessible(accessible);
                     }
@@ -91,7 +89,7 @@ public class ResourceFactory {
     }
 
     private Constructor<? extends Resource> lookingForConstructor(Class<? extends Resource> resourceClass) {
-        LOGGER.debug("Looking for a constructor to inject resource configuration");
+        log.debug("Looking for a constructor to inject resource configuration");
         Constructor<? extends Resource> constructor = null;
 
         Set<Constructor> resourceConstructors = ReflectionUtils.getConstructors(
@@ -102,19 +100,19 @@ public class ResourceFactory {
         );
 
         if (resourceConstructors.isEmpty()) {
-            LOGGER.debug(
+            log.debug(
                 "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
                 resourceClass.getName()
             );
             try {
                 constructor = resourceClass.getConstructor();
             } catch (NoSuchMethodException nsme) {
-                LOGGER.error("Unable to find default empty constructor for {}", resourceClass.getName(), nsme);
+                log.error("Unable to find default empty constructor for {}", resourceClass.getName(), nsme);
             }
         } else if (resourceConstructors.size() == 1) {
             constructor = resourceConstructors.iterator().next();
         } else {
-            LOGGER.info("Too much constructors to instantiate resource {}", resourceClass.getName());
+            log.info("Too much constructors to instantiate resource {}", resourceClass.getName());
         }
 
         return constructor;

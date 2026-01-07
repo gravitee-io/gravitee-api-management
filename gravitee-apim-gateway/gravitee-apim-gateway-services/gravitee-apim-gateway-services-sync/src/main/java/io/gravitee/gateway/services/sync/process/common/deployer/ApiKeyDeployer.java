@@ -21,15 +21,15 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ApiKeyDeployer implements Deployer<ApiKeyDeployable> {
 
     private final ApiKeyService apiKeyService;

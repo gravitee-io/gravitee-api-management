@@ -18,11 +18,11 @@ package io.gravitee.gateway.services.sync.process.common.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionConfiguration;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class SubscriptionMapper {
 
     private final ObjectMapper objectMapper;

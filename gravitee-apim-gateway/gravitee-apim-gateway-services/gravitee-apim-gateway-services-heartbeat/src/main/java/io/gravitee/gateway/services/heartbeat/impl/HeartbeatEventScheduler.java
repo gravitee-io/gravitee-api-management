@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.CustomLog;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventScheduler> {
 
     public static final String HEARTBEATS = "heartbeats";

@@ -28,11 +28,11 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ApiMapper {
 
     private final ObjectMapper objectMapper;

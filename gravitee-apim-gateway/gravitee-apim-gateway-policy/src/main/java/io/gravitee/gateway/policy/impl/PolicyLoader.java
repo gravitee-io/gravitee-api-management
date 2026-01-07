@@ -34,17 +34,16 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.util.ClassUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PolicyLoader {
 
-    private final Logger logger = LoggerFactory.getLogger(PolicyLoader.class);
     private final ConfigurablePluginManager<PolicyPlugin<? extends PolicyConfiguration>> policyPluginManager;
     private final PolicyClassLoaderFactory policyClassLoaderFactory;
     private final ComponentProvider componentProvider;
@@ -68,7 +67,7 @@ public class PolicyLoader {
             .map(policy -> {
                 final PolicyPlugin<?> policyPlugin = policyPluginManager.get(policy.getName());
                 if (policyPlugin == null) {
-                    logger.error("Policy [{}] cannot be found in policy registry", policy.getName());
+                    log.error("Policy [{}] cannot be found in policy registry", policy.getName());
                     throw new IllegalStateException("Policy [" + policy.getName() + "] cannot be found in policy registry");
                 }
 
@@ -76,7 +75,7 @@ public class PolicyLoader {
                     policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, classLoader)
                 );
 
-                logger.debug("Loading policy {}", policy.getName());
+                log.debug("Loading policy {}", policy.getName());
 
                 PolicyManifestBuilder builder = new PolicyManifestBuilder();
                 builder.setId(policyPlugin.id());
@@ -112,14 +111,14 @@ public class PolicyLoader {
                     }
                     return builder.build();
                 } catch (Exception ex) {
-                    logger.error("Unable to load policy metadata", ex);
+                    log.error("Unable to load policy metadata", ex);
                     try {
                         classLoader.removeClassLoader(policyPlugin.policy().getCanonicalName());
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for policy", ioe);
+                        log.error("Unable to close classloader for policy", ioe);
                     }
                 } catch (Error error) {
-                    logger.error(
+                    log.error(
                         "Unable to load policy id[" +
                             policyPlugin.id() +
                             "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
@@ -128,7 +127,7 @@ public class PolicyLoader {
                     try {
                         classLoader.removeClassLoader(policyPlugin.policy().getCanonicalName());
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for policy", ioe);
+                        log.error("Unable to close classloader for policy", ioe);
                     }
                 }
                 return null;
@@ -145,11 +144,11 @@ public class PolicyLoader {
             .filter(registeredPolicy -> registeredPolicy.context() != null)
             .forEach(registeredPolicy -> {
                 try {
-                    logger.info("Activating context for {} [{}]", registeredPolicy.id(), registeredPolicy.context().getClass().getName());
+                    log.info("Activating context for {} [{}]", registeredPolicy.id(), registeredPolicy.context().getClass().getName());
 
                     registeredPolicy.context().onActivation();
                 } catch (Exception ex) {
-                    logger.error("Unable to activate policy context", ex);
+                    log.error("Unable to activate policy context", ex);
                 }
             });
     }
@@ -162,14 +161,10 @@ public class PolicyLoader {
             .filter(registeredPolicy -> registeredPolicy.context() != null)
             .forEach(registeredPolicy -> {
                 try {
-                    logger.info(
-                        "De-activating context for {} [{}]",
-                        registeredPolicy.id(),
-                        registeredPolicy.context().getClass().getName()
-                    );
+                    log.info("De-activating context for {} [{}]", registeredPolicy.id(), registeredPolicy.context().getClass().getName());
                     registeredPolicy.context().onDeactivation();
                 } catch (Exception ex) {
-                    logger.error("Unable to deactivate policy context", ex);
+                    log.error("Unable to deactivate policy context", ex);
                 }
             });
 
@@ -185,7 +180,7 @@ public class PolicyLoader {
                     try {
                         ((PluginClassLoader) policyClassLoader).close();
                     } catch (IOException e) {
-                        logger.error("Unable to close policy classloader for policy {}", policy.id());
+                        log.error("Unable to close policy classloader for policy {}", policy.id());
                     }
                 }
             });

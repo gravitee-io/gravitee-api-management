@@ -27,14 +27,14 @@ import io.vertx.rxjava3.core.net.NetSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class TcpProtocolVerticle extends AbstractVerticle {
 
     private final ServerManager serverManager;

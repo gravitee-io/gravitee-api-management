@@ -22,15 +22,15 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ApiDeployer implements Deployer<ApiReactorDeployable> {
 
     private final ApiManager apiManager;

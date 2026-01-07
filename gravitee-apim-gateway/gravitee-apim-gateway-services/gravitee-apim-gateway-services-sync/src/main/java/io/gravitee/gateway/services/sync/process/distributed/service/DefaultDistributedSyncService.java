@@ -47,14 +47,14 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class DefaultDistributedSyncService implements DistributedSyncService {
 

@@ -24,16 +24,14 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Completable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(HttpConditionalPolicy.class);
 
     protected final HttpPolicy policy;
     protected final String condition;

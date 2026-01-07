@@ -24,16 +24,14 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements Deployer<T> {
-
-    private final Logger logger = LoggerFactory.getLogger(AbstractApiDeployer.class);
 
     private final GatewayConfiguration gatewayConfiguration;
     private final DataEncryptor dataEncryptor;
@@ -53,7 +51,7 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
         if (tags != null && !tags.isEmpty()) {
             boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(tags);
             if (!hasMatchingTags) {
-                logger.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags", planName, apiName);
+                log.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags", planName, apiName);
             }
             return hasMatchingTags;
         }
@@ -67,7 +65,7 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
                     property.setValue(dataEncryptor.decrypt(property.getValue()));
                     property.setEncrypted(false);
                 } catch (GeneralSecurityException e) {
-                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                    log.error("Error decrypting API property value for key {}", property.getKey(), e);
                 }
             }
         }

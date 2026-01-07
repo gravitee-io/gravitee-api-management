@@ -31,15 +31,15 @@ import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class OrganizationFlowProvider implements FlowProvider {
 
     private final StreamType streamType;

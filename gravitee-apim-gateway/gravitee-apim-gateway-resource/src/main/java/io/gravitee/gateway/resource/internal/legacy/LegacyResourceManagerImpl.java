@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceFactory;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
@@ -30,7 +31,6 @@ import io.gravitee.resource.api.ResourceManager;
 import java.io.IOException;
 import java.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ClassUtils;
@@ -41,7 +41,7 @@ import org.springframework.util.ClassUtils;
  */
 public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     protected final Map<String, io.gravitee.resource.api.Resource> resources = new HashMap<>();
     private final Map<String, PluginClassLoader> classloaders = new HashMap<>();
@@ -77,10 +77,10 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
             .stream()
             .forEach(resource -> {
                 try {
-                    logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                    log.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                     resource.getValue().start();
                 } catch (Exception ex) {
-                    logger.error("Unable to start resource", ex);
+                    log.error("Unable to start resource", ex);
                 }
             });
     }
@@ -93,10 +93,10 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
             .stream()
             .forEach(resource -> {
                 try {
-                    logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                    log.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                     resource.getValue().stop();
                 } catch (Exception ex) {
-                    logger.error("Unable to stop resource", ex);
+                    log.error("Unable to stop resource", ex);
                 }
             });
 
@@ -109,7 +109,7 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
                     try {
                         ((PluginClassLoader) resourceClassLoader).close();
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
+                        log.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
                     }
                 }
             });
@@ -124,7 +124,7 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
         resourceDeps.forEach(resource -> {
             final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
             if (resourcePlugin == null) {
-                logger.error("Resource [{}] cannot be found in plugin registry", resource.getType());
+                log.error("Resource [{}] cannot be found in plugin registry", resource.getType());
                 throw new IllegalStateException("Resource [" + resource.getType() + "] cannot be found in plugin registry");
             }
 
@@ -132,7 +132,7 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
                 resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
             );
 
-            logger.debug("Loading resource {} for {}", resource.getName(), reactable);
+            log.debug("Loading resource {} for {}", resource.getName(), reactable);
 
             try {
                 Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<
@@ -158,12 +158,12 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
 
                 resources.put(resource.getName(), resourceInstance);
             } catch (Exception ex) {
-                logger.error("Unable to create resource", ex);
+                log.error("Unable to create resource", ex);
                 if (resourceClassLoader != null) {
                     try {
                         resourceClassLoader.close();
                     } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for resource", ioe);
+                        log.error("Unable to close classloader for resource", ioe);
                     }
                 }
             }

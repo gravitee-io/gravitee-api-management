@@ -33,15 +33,15 @@ import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.CommandRepository;
 import java.util.function.Supplier;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class DeployerFactory {
 
     private final ApiKeyService apiKeyService;

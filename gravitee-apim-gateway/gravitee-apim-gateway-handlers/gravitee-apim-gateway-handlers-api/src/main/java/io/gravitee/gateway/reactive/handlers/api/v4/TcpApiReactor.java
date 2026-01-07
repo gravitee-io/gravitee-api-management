@@ -43,14 +43,14 @@ import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 
-@Slf4j
+@CustomLog
 public class TcpApiReactor extends AbstractApiReactor {
 
     private final Node node;

@@ -21,14 +21,14 @@ import io.gravitee.gateway.platform.organization.policy.OrganizationPolicyManage
 import io.gravitee.gateway.reactive.platform.organization.reactor.AbstractOrganizationReactor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class V3OrganizationReactor extends AbstractOrganizationReactor {
 
     private final PolicyChainFactory policyChainFactory;

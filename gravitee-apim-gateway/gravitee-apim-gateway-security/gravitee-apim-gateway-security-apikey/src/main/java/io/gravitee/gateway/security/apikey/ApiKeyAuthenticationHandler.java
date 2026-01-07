@@ -40,8 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -51,9 +50,8 @@ import org.springframework.util.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ApiKeyAuthenticationHandler implements AuthenticationHandler, ComponentResolver {
-
-    private final Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticationHandler.class);
 
     static final String API_KEY_POLICY = "api-key";
 
@@ -128,14 +126,14 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
             .filter(Objects::nonNull)
             .findFirst();
         if (apiKeyFromCustomHeader.isPresent()) {
-            logger.debug("Found API Key from custom header for API {}", api.getId());
+            log.debug("Found API Key from custom header for API {}", api.getId());
             return apiKeyFromCustomHeader.get();
         } else if (!customApiKeyHeaders.isEmpty() && customApiKeyHeaders.stream().noneMatch(request.headers()::contains)) {
             // Header is present but empty so init apiKey with empty string
             return "";
         }
 
-        logger.debug("Looking for an API Key from request header: {}", apiKeyHeader);
+        log.debug("Looking for an API Key from request header: {}", apiKeyHeader);
 
         // 1_ First, search in HTTP headers
         if (request.headers().contains(apiKeyHeader)) {
@@ -148,7 +146,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
 
         // 2_ If not found, search in query parameters
         if (apiKey == null) {
-            logger.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
+            log.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
             if (request.parameters().containsKey(apiKeyQueryParameter)) {
                 apiKey = request.parameters().getFirst(apiKeyQueryParameter);
                 if (apiKey == null) {
@@ -177,7 +175,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
                             }
                         }
                     } catch (JsonProcessingException e) {
-                        logger.warn("Unable to parse security definition for plan {}", plan.getId(), e);
+                        log.warn("Unable to parse security definition for plan {}", plan.getId(), e);
                     }
                     return null;
                 })

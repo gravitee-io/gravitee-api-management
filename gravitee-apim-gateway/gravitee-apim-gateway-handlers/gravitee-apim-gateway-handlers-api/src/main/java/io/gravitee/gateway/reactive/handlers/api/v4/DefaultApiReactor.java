@@ -89,22 +89,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DefaultApiReactor extends AbstractApiReactor {
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
     private static final String ATTR_INTERNAL_TRACING_REQUEST_SPAN = "analytics.tracing.request.span";
     private static final String ATTR_INTERNAL_TRACING_RESPONSE_SPAN = "analytics.tracing.response.span";
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultApiReactor.class);
     protected final List<ChainHook> processorChainHooks;
 
     @Getter

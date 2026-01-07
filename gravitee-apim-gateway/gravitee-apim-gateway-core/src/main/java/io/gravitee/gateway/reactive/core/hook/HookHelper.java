@@ -27,14 +27,14 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HookHelper {
 

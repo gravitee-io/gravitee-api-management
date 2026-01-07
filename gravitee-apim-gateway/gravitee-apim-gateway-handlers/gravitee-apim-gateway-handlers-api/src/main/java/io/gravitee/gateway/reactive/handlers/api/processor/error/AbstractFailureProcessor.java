@@ -30,14 +30,14 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class AbstractFailureProcessor implements Processor {
 
     public static final String ID = "processor-simple-failure";

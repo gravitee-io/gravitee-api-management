@@ -27,13 +27,13 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.DigestUtils;
 
-@Slf4j
+@CustomLog
 public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<SubscriptionTrustStoreLoader.SubscriptionTrustStoreLoaderOption> {
 
     private final String id;

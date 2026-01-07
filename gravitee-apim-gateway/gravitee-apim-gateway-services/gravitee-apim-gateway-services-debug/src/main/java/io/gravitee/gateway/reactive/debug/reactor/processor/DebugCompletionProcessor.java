@@ -45,17 +45,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DebugCompletionProcessor implements Processor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DebugCompletionProcessor.class);
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
 
@@ -85,7 +84,7 @@ public class DebugCompletionProcessor implements Processor {
                         })
                         .ignoreElement()
                         .onErrorResumeNext(throwable -> {
-                            LOGGER.error("Error occurs while saving debug event", throwable);
+                            log.error("Error occurs while saving debug event", throwable);
                             failEvent(event);
                             return Completable.complete();
                         });
@@ -166,7 +165,7 @@ public class DebugCompletionProcessor implements Processor {
         try {
             updateEvent(debugEvent, ApiDebugStatus.ERROR);
         } catch (TechnicalException e) {
-            LOGGER.error("Error when updating event {} with ERROR status", debugEvent.getId());
+            log.error("Error when updating event {} with ERROR status", debugEvent.getId());
         }
     }
 

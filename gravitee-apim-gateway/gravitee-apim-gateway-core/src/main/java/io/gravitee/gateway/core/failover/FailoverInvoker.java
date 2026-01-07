@@ -32,16 +32,15 @@ import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class FailoverInvoker extends EndpointInvoker {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FailoverInvoker.class);
     private static final String errorMessageFormat = "[%s] %s";
 
     private final Vertx vertx;
@@ -75,7 +74,7 @@ public class FailoverInvoker extends EndpointInvoker {
                                 } catch (IllegalStateException e) {
                                     final Future<ProxyConnection> future = event.future();
                                     if (future.failed()) {
-                                        LOGGER.error(
+                                        log.error(
                                             String.format(
                                                 errorMessageFormat,
                                                 apiId,
@@ -84,7 +83,7 @@ public class FailoverInvoker extends EndpointInvoker {
                                             future.cause()
                                         );
                                     } else {
-                                        LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
+                                        log.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
                                     }
                                     throw e; // rethrow the exception to let vertx handle this case
                                 }
@@ -95,7 +94,7 @@ public class FailoverInvoker extends EndpointInvoker {
                                 } catch (IllegalStateException e) {
                                     final Future<ProxyConnection> future = event.future();
                                     if (future.failed()) {
-                                        LOGGER.error(
+                                        log.error(
                                             String.format(
                                                 errorMessageFormat,
                                                 apiId,
@@ -104,7 +103,7 @@ public class FailoverInvoker extends EndpointInvoker {
                                             future.cause()
                                         );
                                     } else {
-                                        LOGGER.error(
+                                        log.error(
                                             String.format(
                                                 errorMessageFormat,
                                                 apiId,

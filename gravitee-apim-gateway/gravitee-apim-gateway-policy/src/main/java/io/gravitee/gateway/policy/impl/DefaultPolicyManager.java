@@ -21,11 +21,11 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.legacy.LegacyPolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class DefaultPolicyManager extends LegacyPolicyManager {
 
-    private final Logger logger = LoggerFactory.getLogger(DefaultPolicyManager.class);
+    private final Logger log = NodeLoggerFactory.getLogger(DefaultPolicyManager.class);
 
     private final boolean legacyMode;
     private final PolicyLoader policyLoader;

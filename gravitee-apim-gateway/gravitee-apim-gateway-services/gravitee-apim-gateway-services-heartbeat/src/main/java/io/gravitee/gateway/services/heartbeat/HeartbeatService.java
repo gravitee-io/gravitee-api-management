@@ -39,14 +39,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class HeartbeatService extends AbstractService<HeartbeatService> {
 
     public static final String EVENT_LAST_HEARTBEAT_PROPERTY = "last_heartbeat_at";

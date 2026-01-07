@@ -21,8 +21,8 @@ import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Basic strategy that check the memory pressure and activate the guard for
@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class CoolDownLogGuardStrategy implements LogGuardStrategy {
 

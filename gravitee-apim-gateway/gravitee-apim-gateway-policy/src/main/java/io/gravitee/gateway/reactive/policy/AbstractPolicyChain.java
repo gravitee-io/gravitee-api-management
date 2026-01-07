@@ -24,7 +24,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * AbstractPolicyChain is responsible for executing a given list of policies respecting the original order.
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class AbstractPolicyChain<T extends BasePolicy> implements PolicyChain<BaseExecutionContext> {
 
     protected final String id;

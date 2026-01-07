@@ -32,10 +32,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class SubscriptionCacheService implements SubscriptionService {
 

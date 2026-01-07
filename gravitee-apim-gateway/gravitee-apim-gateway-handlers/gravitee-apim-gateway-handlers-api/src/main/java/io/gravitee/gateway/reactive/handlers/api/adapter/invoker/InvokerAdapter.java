@@ -30,8 +30,7 @@ import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapt
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Locale;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * Specific implementation of {@link Invoker} that adapt the behavior of an existing {@link io.gravitee.gateway.api.Invoker}
@@ -42,9 +41,9 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway.api.Invoker {
 
-    private static final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE =

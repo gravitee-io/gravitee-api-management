@@ -30,13 +30,13 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ApiSynchronizer extends AbstractApiSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_API, EventType.START_API);

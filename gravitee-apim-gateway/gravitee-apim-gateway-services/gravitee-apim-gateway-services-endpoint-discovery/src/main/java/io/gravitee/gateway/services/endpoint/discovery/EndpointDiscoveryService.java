@@ -18,17 +18,15 @@ package io.gravitee.gateway.services.endpoint.discovery;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.services.endpoint.discovery.verticle.EndpointDiscoveryVerticle;
 import io.vertx.core.Vertx;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class EndpointDiscoveryService extends AbstractService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryService.class);
 
     @Autowired
     private Vertx vertx;
@@ -44,7 +42,7 @@ public class EndpointDiscoveryService extends AbstractService {
 
         vertx.deployVerticle(discoveryVerticle, event -> {
             if (event.failed()) {
-                LOGGER.error("Endpoints Discovery service cannot be started", event.cause());
+                log.error("Endpoints Discovery service cannot be started", event.cause());
             }
 
             deploymentId = event.result();

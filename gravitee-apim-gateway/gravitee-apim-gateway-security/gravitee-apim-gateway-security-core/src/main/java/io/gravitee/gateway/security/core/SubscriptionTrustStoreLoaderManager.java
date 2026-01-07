@@ -24,13 +24,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class SubscriptionTrustStoreLoaderManager {
 
     private final Map<String, SubscriptionTrustStoreLoader> subscriptionTrustStoreLoaders = new ConcurrentHashMap<>();

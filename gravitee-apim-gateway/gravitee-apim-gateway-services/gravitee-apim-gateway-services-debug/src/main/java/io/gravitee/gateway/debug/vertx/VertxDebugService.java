@@ -18,8 +18,7 @@ package io.gravitee.gateway.debug.vertx;
 import io.gravitee.common.service.AbstractService;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -27,12 +26,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class VertxDebugService extends AbstractService {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(VertxDebugService.class);
 
     @Autowired
     @Qualifier("debugVerticle")
@@ -57,11 +52,11 @@ public class VertxDebugService extends AbstractService {
 
     @Override
     protected void doStart() {
-        logger.info("Starting Vertx DEBUG container and deploy only 1 Verticle");
+        log.info("Starting Vertx DEBUG container and deploy only 1 Verticle");
 
         vertx.deployVerticle(debugVerticle, event -> {
             if (event.failed()) {
-                logger.warn("Unable to start debug verticle", event.cause());
+                log.warn("Unable to start debug verticle", event.cause());
             } else {
                 deploymentId = event.result();
             }

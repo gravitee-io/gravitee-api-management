@@ -20,17 +20,14 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.tracing.TracingPolicyPluginFactory;
-import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
-
-    private final Logger logger = LoggerFactory.getLogger(PolicyFactoryCreatorImpl.class);
 
     private final PolicyPluginFactory policyPluginFactory;
     private final ConditionEvaluator<String> conditionEvaluator;
@@ -49,7 +46,7 @@ public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
     @Override
     public PolicyFactory create() {
         if (tracingEnabled) {
-            logger.debug("Tracing is enabled, looking to decorate all policies...");
+            log.debug("Tracing is enabled, looking to decorate all policies...");
         }
 
         final PolicyFactory policyFactory = tracingEnabled

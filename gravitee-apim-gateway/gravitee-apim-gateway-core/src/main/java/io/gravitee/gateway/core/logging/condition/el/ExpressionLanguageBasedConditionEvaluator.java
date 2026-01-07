@@ -19,16 +19,14 @@ import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator<Request> {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(ExpressionLanguageBasedConditionEvaluator.class);
 
     private final String condition;
 
@@ -42,7 +40,7 @@ public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvalu
             try {
                 return executionContext.getTemplateEngine().getValue(condition, Boolean.class);
             } catch (ExpressionEvaluationException e) {
-                LOGGER.warn("Error parsing condition {}", condition, e);
+                log.warn("Error parsing condition {}", condition, e);
                 return false;
             }
         }

@@ -19,13 +19,13 @@ import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class DefaultOrganizationReactor extends AbstractOrganizationReactor {
 
     private final PolicyChainFactory<HttpPolicyChain> policyChainFactory;

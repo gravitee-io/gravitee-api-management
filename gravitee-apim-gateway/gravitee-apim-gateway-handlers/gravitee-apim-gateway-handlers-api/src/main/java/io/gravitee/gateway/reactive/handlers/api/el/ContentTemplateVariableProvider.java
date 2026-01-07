@@ -42,7 +42,7 @@ import java.util.Map;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
@@ -52,7 +52,7 @@ import org.apache.commons.lang3.RandomStringUtils;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ContentTemplateVariableProvider implements ExecutionContextTemplateVariableProvider {
 
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT = TEMPLATE_ATTRIBUTE_REQUEST + ".content";

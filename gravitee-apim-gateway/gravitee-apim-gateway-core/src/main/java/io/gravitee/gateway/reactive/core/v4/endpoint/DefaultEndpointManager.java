@@ -34,16 +34,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DefaultEndpointManager extends AbstractService<EndpointManager> implements EndpointManager, TemplateVariableProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultEndpointManager.class);
     public static final String TEMPLATE_VARIABLE_ENDPOINTS = "endpoints";
 
     private final Api api;

@@ -24,15 +24,15 @@ import io.gravitee.repository.management.model.Event;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class HeartbeatEventPublisher implements Runnable {
 
     private final ClusterManager clusterManager;
