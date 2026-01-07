@@ -22,8 +22,7 @@ import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.service.ApiDefinitionContextService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -31,10 +30,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ApiDefinitionContextServiceImpl implements ApiDefinitionContextService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ApiDefinitionContextServiceImpl.class);
 
     private final ApiRepository apiRepository;
 
@@ -52,7 +50,7 @@ public class ApiDefinitionContextServiceImpl implements ApiDefinitionContextServ
             api.setSyncFrom(definitionContext.getSyncFrom());
             apiRepository.update(api);
         } catch (TechnicalException e) {
-            LOG.error("An error has occurred while trying to set definition context on API " + apiId, e);
+            log.error("An error has occurred while trying to set definition context on API " + apiId, e);
             throw new TechnicalManagementException(e);
         }
     }

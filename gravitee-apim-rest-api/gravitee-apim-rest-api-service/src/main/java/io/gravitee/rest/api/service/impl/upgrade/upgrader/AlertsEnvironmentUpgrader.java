@@ -31,7 +31,7 @@ import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class AlertsEnvironmentUpgrader implements Upgrader {
 
     private final AlertTriggerRepository alertTriggerRepository;

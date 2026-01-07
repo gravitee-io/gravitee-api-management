@@ -27,11 +27,11 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class PermissionDomainServiceLegacyWrapper implements PermissionDomainService {
 
     private final MembershipService membershipService;

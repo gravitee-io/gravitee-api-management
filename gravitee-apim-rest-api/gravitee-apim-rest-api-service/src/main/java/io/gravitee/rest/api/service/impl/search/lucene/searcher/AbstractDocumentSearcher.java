@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -22,16 +23,28 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopScoreDocCollectorManager;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,7 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     protected static final String FIELD_ID = "id";
     protected static final String FIELD_TYPE = "type";
@@ -76,7 +89,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     }
 
     protected SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference) throws TechnicalException {
-        logger.debug("Searching for: {}", query.toString());
+        log.debug("Searching for: {}", query.toString());
 
         try {
             IndexSearcher searcher = getIndexSearcher();
@@ -98,7 +111,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
             final Set<String> results = new LinkedHashSet<>();
 
-            logger.debug("Found {} total matching documents", topDocs.totalHits);
+            log.debug("Found {} total matching documents", topDocs.totalHits);
             for (ScoreDoc doc : topDocs.scoreDocs) {
                 String reference = searcher.storedFields().document(doc.doc).get(fieldReference);
                 results.add(reference);
@@ -106,7 +119,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
             return new SearchResult(results, topDocs.totalHits.value());
         } catch (IOException ioe) {
-            logger.error("An error occurs while getting documents from search result", ioe);
+            log.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
     }

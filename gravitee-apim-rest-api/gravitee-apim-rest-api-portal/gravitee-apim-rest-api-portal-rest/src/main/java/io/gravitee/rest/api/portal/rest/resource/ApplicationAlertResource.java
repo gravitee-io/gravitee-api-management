@@ -33,7 +33,11 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -57,7 +61,7 @@ public class ApplicationAlertResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationAlert(@PathParam("applicationId") String applicationId, @PathParam("alertId") String alertId) {
-        LOGGER.info("Deleting alert {}", alertId);
+        log.info("Deleting alert {}", alertId);
 
         checkPlugins(GraviteeContext.getExecutionContext());
         applicationAlertService.delete(alertId, applicationId);
@@ -73,7 +77,7 @@ public class ApplicationAlertResource extends AbstractResource {
         @PathParam("alertId") String alertId,
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
     ) {
-        LOGGER.info("Updating alert {}", alertId);
+        log.info("Updating alert {}", alertId);
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         alertInput.setApplication(applicationId);

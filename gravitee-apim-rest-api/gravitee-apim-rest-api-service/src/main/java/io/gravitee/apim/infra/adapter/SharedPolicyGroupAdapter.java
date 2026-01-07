@@ -20,7 +20,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupDefinition;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
@@ -30,7 +30,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 
-@Slf4j
+@CustomLog
 @Mapper(
     componentModel = MappingConstants.ComponentModel.SPRING,
     uses = { JsonDeserializer.class, JsonDeserializer.class },

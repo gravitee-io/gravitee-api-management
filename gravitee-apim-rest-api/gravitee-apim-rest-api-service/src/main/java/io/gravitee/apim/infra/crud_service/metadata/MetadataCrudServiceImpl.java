@@ -29,12 +29,12 @@ import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import java.util.Collection;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class MetadataCrudServiceImpl implements MetadataCrudService {
 
     private final MetadataRepository metadataRepository;

@@ -37,10 +37,13 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -49,10 +52,9 @@ import org.springframework.util.CollectionUtils;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component("PlanSearchServiceImplV4")
 public class PlanSearchServiceImpl extends TransactionalService implements PlanSearchService {
-
-    private final Logger logger = LoggerFactory.getLogger(PlanSearchServiceImpl.class);
 
     private final PlanRepository planRepository;
     private final ApiRepository apiRepository;
@@ -80,7 +82,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     @Override
     public GenericPlanEntity findById(final ExecutionContext executionContext, final String plan) {
         try {
-            logger.debug("Find plan by id : {}", plan);
+            log.debug("Find plan by id : {}", plan);
             return planRepository
                 .findById(plan)
                 .map(this::mapToGeneric)
@@ -102,7 +104,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     @Override
     public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId) {
         try {
-            logger.debug("Find plan by api : {}", apiId);
+            log.debug("Find plan by api : {}", apiId);
             Optional<Api> apiOptional = apiRepository.findById(apiId);
             if (apiOptional.isPresent()) {
                 final Api api = apiOptional.get();

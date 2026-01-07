@@ -59,8 +59,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -69,13 +68,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ClientRegistrationServiceImpl extends AbstractService implements ClientRegistrationService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClientRegistrationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -99,7 +94,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to retrieve client registration providers", ex);
+            log.error("An error occurs while trying to retrieve client registration providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve client registration providers", ex);
         }
     }
@@ -110,7 +105,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         NewClientRegistrationProviderEntity newClientRegistrationProvider
     ) {
         try {
-            LOGGER.debug("Create client registration provider {}", newClientRegistrationProvider);
+            log.debug("Create client registration provider {}", newClientRegistrationProvider);
 
             Set<ClientRegistrationProviderEntity> clientRegistrationProviders = this.findAll(executionContext);
             // For now, we are supporting only a single client registration provider.
@@ -143,7 +138,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             // Ensure that the client credentials are valid
             registrationProviderClient.getInitialAccessToken();
 
-            LOGGER.debug("Found a DCR Client for provider: {}", clientRegistrationProvider.getName(), registrationProviderClient);
+            log.debug("Found a DCR Client for provider: {}", clientRegistrationProvider.getName(), registrationProviderClient);
 
             // Set date fields
             clientRegistrationProvider.setCreatedAt(new Date());
@@ -167,7 +162,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             return convert(createdClientRegistrationProvider);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create client registration provider {}", newClientRegistrationProvider, ex);
+            log.error("An error occurs while trying to create client registration provider {}", newClientRegistrationProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newClientRegistrationProvider, ex);
         }
     }
@@ -179,7 +174,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         UpdateClientRegistrationProviderEntity updateClientRegistrationProvider
     ) {
         try {
-            LOGGER.debug("Update client registration provider {}", updateClientRegistrationProvider);
+            log.debug("Update client registration provider {}", updateClientRegistrationProvider);
 
             Optional<ClientRegistrationProvider> optClientRegistrationProvider = clientRegistrationProviderRepository
                 .findById(id)
@@ -210,7 +205,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             // Ensure that the client credentials are valid
             registrationProviderClient.getInitialAccessToken();
 
-            LOGGER.debug("Found a DCR Client for provider: {}", clientRegistrationProvider.getName(), registrationProviderClient);
+            log.debug("Found a DCR Client for provider: {}", clientRegistrationProvider.getName(), registrationProviderClient);
 
             final ClientRegistrationProvider clientProviderToUpdate = optClientRegistrationProvider.get();
             clientRegistrationProvider.setId(id);
@@ -235,7 +230,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             return convert(updatedClientRegistrationProvider);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update client registration provider {}", updateClientRegistrationProvider, ex);
+            log.error("An error occurs while trying to update client registration provider {}", updateClientRegistrationProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateClientRegistrationProvider, ex);
         }
     }
@@ -260,7 +255,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     @Override
     public ClientRegistrationProviderEntity findById(String environmentId, String id) {
         try {
-            LOGGER.debug("Find client registration provider by ID: {}", id);
+            log.debug("Find client registration provider by ID: {}", id);
 
             Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository
                 .findById(id)
@@ -272,7 +267,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             throw new ClientRegistrationProviderNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a client registration provider using its ID {}", id, ex);
+            log.error("An error occurs while trying to find a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete a client registration provider using its ID " + id,
                 ex
@@ -283,7 +278,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     @Override
     public void delete(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Delete client registration provider: {}", id);
+            log.debug("Delete client registration provider: {}", id);
 
             Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository
                 .findById(id)
@@ -306,7 +301,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                     .build()
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete a client registration provider using its ID {}", id, ex);
+            log.error("An error occurs while trying to delete a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete a client registration provider using its ID " + id,
                 ex
@@ -391,7 +386,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 );
             }
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error while getting a dynamic client registration client", ex);
+            log.error("Unexpected error while getting a dynamic client registration client", ex);
             throw new InvalidClientRegistrationProviderException();
         }
     }
@@ -439,7 +434,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 application.getSettings().getOauth().getClientId()
             );
         } catch (JsonProcessingException ex) {
-            LOGGER.error("Unexpected error while updating a client", ex);
+            log.error("Unexpected error while updating a client", ex);
             throw new RegisteredClientNotUpdatableException();
         }
     }
@@ -490,7 +485,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 registrationResponse.getApplicationType()
             );
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while updating a client", ioe);
+            log.error("Unexpected error while updating a client", ioe);
             return null;
         }
     }

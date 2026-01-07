@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.PolicyService;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -44,19 +43,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyEntity> implements PolicyService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
     private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
 
     private PolicyClassLoaderFactory policyClassLoaderFactory;
@@ -122,14 +120,14 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
     public String getSchema(String pluginId, SchemaDisplayFormat schemaDisplayFormat) {
         if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
             try {
-                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, pluginId);
+                log.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, pluginId);
                 String schema = pluginManager.getSchema(pluginId, "display-gv-schema-form", true);
                 if (schema != null) {
                     return schema;
                 }
-                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+                log.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
             } catch (IOException ioex) {
-                logger.debug("Error while getting specific schema-form for this display format. Fall back on default schema-form.");
+                log.debug("Error while getting specific schema-form for this display format. Fall back on default schema-form.");
             }
         }
         return getSchema(pluginId);
@@ -211,14 +209,14 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                                 developmentEntity.setOnResponseMethod(filter.get(0).getName());
                             }
                         } catch (Throwable ex) {
-                            logger.error("An unexpected error occurs while loading policy", ex);
+                            log.error("An unexpected error occurs while loading policy", ex);
                             return null;
                         } finally {
                             if (policyClassLoader != null) {
                                 try {
                                     policyClassLoader.close();
                                 } catch (IOException e) {
-                                    LOGGER.error("An error has occurred while trying to close policy class loader", e);
+                                    log.error("An error has occurred while trying to close policy class loader", e);
                                 }
                             }
 

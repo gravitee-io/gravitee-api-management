@@ -32,8 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -42,10 +41,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PortalNotificationServiceImpl extends AbstractService implements PortalNotificationService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PortalNotificationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -59,7 +57,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         try {
             return portalNotificationRepository.findByUser(user).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find notifications by user {}", user, ex);
+            log.error("An error occurs while trying to find notifications by user {}", user, ex);
             throw new TechnicalManagementException("An error occurs while trying to find notifications by username " + user, ex);
         }
     }
@@ -73,7 +71,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
             }
             throw new PortalNotificationNotFoundException(notificationId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find notification with id {}", notificationId, ex);
+            log.error("An error occurs while trying to find notification with id {}", notificationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find notification with id " + notificationId, ex);
         }
     }
@@ -103,7 +101,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
 
             create(notifications);
         } catch (final Exception ex) {
-            LOGGER.error("Error while sending notification", ex);
+            log.error("Error while sending notification", ex);
             throw new TechnicalManagementException("Error while sending notification", ex);
         }
     }
@@ -113,7 +111,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         try {
             portalNotificationRepository.deleteAll(user);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete all notifications for user  {}", user, ex);
+            log.error("An error occurs while trying to delete all notifications for user  {}", user, ex);
             throw new TechnicalManagementException("An error occurs while trying delete all notifications for user " + user, ex);
         }
     }
@@ -123,7 +121,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         try {
             portalNotificationRepository.delete(notificationId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete {}", notificationId, ex);
+            log.error("An error occurs while trying to delete {}", notificationId, ex);
             throw new TechnicalManagementException("An error occurs while trying delete " + notificationId, ex);
         }
     }
@@ -138,7 +136,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         try {
             portalNotificationRepository.create(notifications);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {}", notifications, ex);
+            log.error("An error occurs while trying to create {}", notifications, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + notifications, ex);
         }
     }

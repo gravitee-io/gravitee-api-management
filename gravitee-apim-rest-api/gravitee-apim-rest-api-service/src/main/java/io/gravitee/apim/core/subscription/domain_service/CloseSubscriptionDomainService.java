@@ -36,9 +36,9 @@ import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 @DomainService
 public class CloseSubscriptionDomainService {
 

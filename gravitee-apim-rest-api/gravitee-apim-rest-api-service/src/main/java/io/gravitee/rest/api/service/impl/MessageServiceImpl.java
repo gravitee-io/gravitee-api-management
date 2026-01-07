@@ -26,27 +26,58 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.MessageChannel;
+import io.gravitee.rest.api.model.MessageEntity;
+import io.gravitee.rest.api.model.MessageRecipientEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.MessageEmptyException;
+import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
+import io.gravitee.rest.api.service.exceptions.MessageUrlForbiddenException;
+import io.gravitee.rest.api.service.exceptions.NotifierDisabledException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,11 +90,11 @@ import org.springframework.util.StringUtils;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MessageServiceImpl extends AbstractService implements MessageService, InitializingBean {
 
     private static final String API_SUBSCRIBERS = "API_SUBSCRIBERS";
-    private final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -158,7 +189,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             );
             return msgSize;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get create a message", ex);
+            log.error("An error occurs while trying to get create a message", ex);
             throw new TechnicalManagementException("An error occurs while trying to create a message", ex);
         }
     }
@@ -335,7 +366,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             }
             return recipientIds;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get recipients", ex);
+            log.error("An error occurs while trying to get recipients", ex);
             throw new TechnicalManagementException("An error occurs while trying to get recipients", ex);
         }
     }

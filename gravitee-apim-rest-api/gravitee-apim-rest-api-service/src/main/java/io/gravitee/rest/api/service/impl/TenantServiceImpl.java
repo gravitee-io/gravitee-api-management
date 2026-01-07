@@ -34,10 +34,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -46,10 +49,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class TenantServiceImpl extends TransactionalService implements TenantService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(TenantServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -61,7 +63,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     @Override
     public TenantEntity findByIdAndReference(String tenantId, String referenceId, TenantReferenceType tenantReferenceType) {
         try {
-            LOGGER.debug("Find tenant by ID: {}", tenantId);
+            log.debug("Find tenant by ID: {}", tenantId);
             Optional<Tenant> optTenant = tenantRepository.findByIdAndReference(
                 tenantId,
                 referenceId,
@@ -74,7 +76,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
 
             return convert(optTenant.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find tenant by ID", ex);
+            log.error("An error occurs while trying to find tenant by ID", ex);
             throw new TechnicalManagementException("An error occurs while trying to find tenant by ID", ex);
         }
     }
@@ -82,14 +84,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     @Override
     public List<TenantEntity> findByReference(String referenceId, TenantReferenceType referenceType) {
         try {
-            LOGGER.debug("Find all tenants");
+            log.debug("Find all tenants");
             return tenantRepository
                 .findByReference(referenceId, repoTenantReferenceType(referenceType))
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all tenants", ex);
+            log.error("An error occurs while trying to find all tenants", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tenants", ex);
         }
     }
@@ -129,7 +131,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                         .build()
                 );
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
+                log.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
             }
         });
@@ -169,7 +171,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     );
                 }
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
+                log.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
             }
         });
@@ -199,7 +201,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 tenantRepository.delete(tenantId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete tenant {}", tenantId, ex);
+            log.error("An error occurs while trying to delete tenant {}", tenantId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tenant " + tenantId, ex);
         }
     }

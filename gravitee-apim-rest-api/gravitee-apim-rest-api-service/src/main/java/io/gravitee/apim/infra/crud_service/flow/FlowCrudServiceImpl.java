@@ -37,13 +37,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class FlowCrudServiceImpl extends TransactionalService implements FlowCrudService {
 
     private final FlowRepository flowRepository;

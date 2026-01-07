@@ -26,11 +26,11 @@ import io.gravitee.rest.api.service.NotificationTemplateCommandListener;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.mapper.NotificationTemplateMapper;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class NotificationTemplateCommandListenerImpl implements NotificationTemplateCommandListener {
 
     private final ObjectMapper objectMapper;

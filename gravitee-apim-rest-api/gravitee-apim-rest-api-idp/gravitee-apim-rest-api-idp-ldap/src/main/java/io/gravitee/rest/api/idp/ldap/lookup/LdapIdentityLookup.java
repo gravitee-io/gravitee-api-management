@@ -24,7 +24,7 @@ import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 import java.util.Collection;
 import java.util.Collections;
 import javax.naming.ldap.LdapName;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -47,7 +47,7 @@ import org.springframework.ldap.support.LdapNameBuilder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Import(LdapIdentityLookupConfiguration.class)
 public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 

@@ -29,8 +29,7 @@ import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -39,9 +38,8 @@ import org.slf4j.LoggerFactory;
 @Provider
 @PreMatching
 @Priority(90)
+@CustomLog
 public class MaintenanceFilter implements ContainerRequestFilter {
-
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Inject
     ParameterService parameterService;

@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import joptsimple.internal.Strings;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Service
 public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApplicationSettingsDomainService {
 

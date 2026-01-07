@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
-import io.gravitee.repository.management.model.flow.*;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
@@ -36,13 +36,18 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.CustomLog;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -51,10 +56,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class FlowServiceImpl extends AbstractService implements FlowService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(FlowServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -87,11 +91,11 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
 
     @Override
     public String getPlatformFlowSchemaForm(ExecutionContext executionContext) {
-        LOGGER.debug("Get platform schema form");
+        log.debug("Get platform schema form");
         String fileContent = getFileContent("/flow/platform-flow-schema-form.json");
         List<TagEntity> tags = tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
         if (tags.size() > 0) {
-            LOGGER.debug("Append {} tag(s) to platform schema form", tags.size());
+            log.debug("Append {} tag(s) to platform schema form", tags.size());
             try {
                 final ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonSchema = mapper.readTree(fileContent);
@@ -112,7 +116,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 return jsonSchema.toPrettyString();
             } catch (JsonProcessingException ex) {
                 final String error = "An error occurs while append tags to platform flow schema form";
-                LOGGER.error(error, ex);
+                log.error(error, ex);
                 throw new TechnicalManagementException(error, ex);
             }
         }
@@ -123,7 +127,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     @Override
     public List<Flow> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
-            LOGGER.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
+            log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
             return flowRepository
                 .findByReference(flowReferenceType, referenceId)
                 .stream()
@@ -132,7 +136,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -140,7 +144,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     @Override
     public List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
         try {
-            LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
+            log.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
             if (flows == null || flows.isEmpty()) {
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
@@ -185,7 +189,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }

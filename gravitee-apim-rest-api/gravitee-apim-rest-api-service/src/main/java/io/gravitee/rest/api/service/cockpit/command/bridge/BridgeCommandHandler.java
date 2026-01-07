@@ -22,8 +22,8 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperationHandler;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class BridgeCommandHandler implements CommandHandler<BridgeCommand, BridgeReply> {
 
     private final List<BridgeOperationHandler> operationHandlers;

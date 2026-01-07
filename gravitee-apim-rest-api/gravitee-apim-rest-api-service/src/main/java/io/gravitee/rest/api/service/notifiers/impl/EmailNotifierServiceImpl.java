@@ -15,27 +15,15 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
-import io.gravitee.apim.core.template.TemplateProcessor;
-import io.gravitee.apim.core.template.TemplateProcessorException;
-import io.gravitee.repository.management.model.UserStatus;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,10 +31,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class EmailNotifierServiceImpl implements EmailNotifierService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(EmailNotifierServiceImpl.class);
 
     private final EmailService emailService;
 
@@ -62,12 +49,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     ) {
         var emailTemplate = getEmailTemplateOptional(hook);
         if (emailTemplate.isEmpty()) {
-            LOGGER.error("Email template not found for hook {}", hook);
+            log.error("Email template not found for hook {}", hook);
             return;
         }
 
         if (recipients.isEmpty()) {
-            LOGGER.error("No emails extracted from {}", recipients);
+            log.error("No emails extracted from {}", recipients);
             return;
         }
 

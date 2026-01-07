@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.apim.core.api_health.model.HealthCheckLog;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiHealthAverageResponseTimeResponse;
@@ -25,11 +26,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = DateMapper.class)
 public interface ApiHealthMapper {
-    Logger logger = LoggerFactory.getLogger(ApiHealthMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiHealthMapper.class);
     ApiHealthMapper INSTANCE = Mappers.getMapper(ApiHealthMapper.class);
 
     @Mapping(source = "globalResponseTimeMs", target = "global")

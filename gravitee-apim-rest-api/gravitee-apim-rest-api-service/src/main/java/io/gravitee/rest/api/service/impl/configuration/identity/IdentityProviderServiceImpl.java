@@ -26,7 +26,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
-import io.gravitee.rest.api.model.configuration.identity.*;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.RoleService;
@@ -36,10 +41,17 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -48,12 +60,12 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class IdentityProviderServiceImpl extends AbstractService implements IdentityProviderService {
 
     private static final String CLIENT_ID = "clientId";
     private static final String CLIENT_SECRET = "clientSecret";
-    private final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -71,7 +83,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     @Override
     public IdentityProviderEntity create(ExecutionContext executionContext, NewIdentityProviderEntity newIdentityProviderEntity) {
         try {
-            LOGGER.debug("Create identity provider {}", newIdentityProviderEntity);
+            log.debug("Create identity provider {}", newIdentityProviderEntity);
 
             Optional<IdentityProvider> optIdentityProvider = identityProviderRepository.findById(
                 IdGenerator.generate(newIdentityProviderEntity.getName())
@@ -116,7 +128,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             return convert(createdIdentityProvider);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create identity provider {}", newIdentityProviderEntity, ex);
+            log.error("An error occurs while trying to create identity provider {}", newIdentityProviderEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newIdentityProviderEntity, ex);
         }
     }
@@ -128,7 +140,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         UpdateIdentityProviderEntity updateIdentityProvider
     ) {
         try {
-            LOGGER.debug("Update identity provider {}", updateIdentityProvider);
+            log.debug("Update identity provider {}", updateIdentityProvider);
 
             IdentityProvider identityProviderToUpdate = identityProviderRepository
                 .findById(id)
@@ -159,7 +171,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             return convert(updatedIdentityProvider);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update identity provider {}", updateIdentityProvider, ex);
+            log.error("An error occurs while trying to update identity provider {}", updateIdentityProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateIdentityProvider, ex);
         }
     }
@@ -167,7 +179,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     @Override
     public IdentityProviderEntity findById(String id) {
         try {
-            LOGGER.debug("Find identity provider by ID: {}", id);
+            log.debug("Find identity provider by ID: {}", id);
 
             Optional<IdentityProvider> identityProvider = identityProviderRepository.findById(id);
 
@@ -177,7 +189,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             throw new IdentityProviderNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
+            log.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
@@ -185,7 +197,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     @Override
     public void delete(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Delete identity provider: {}", id);
+            log.debug("Delete identity provider: {}", id);
 
             IdentityProvider identityProvider = identityProviderRepository
                 .findById(id)
@@ -207,7 +219,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete an identity provider using its ID {}", id, ex);
+            log.error("An error occurs while trying to delete an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
@@ -236,7 +248,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to retrieve identity providers", ex);
+            log.error("An error occurs while trying to retrieve identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }

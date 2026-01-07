@@ -32,7 +32,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
@@ -46,7 +46,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 @Tag(name = "Bootstrap Portal UI")
 @Path("/ui/bootstrap")
-@Slf4j
+@CustomLog
 public class PortalUIBootstrapResource {
 
     private static final String PROPERTY_HTTP_API_PORTAL_PROXY_PATH = "installation.api.proxyPath.portal";

@@ -18,13 +18,13 @@ package io.gravitee.rest.api.service.impl.swagger.transformer.page;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class AbstractPageConfigurationSwaggerTransformer<T extends SwaggerDescriptor> implements SwaggerTransformer<T> {
 
     protected final PageEntity page;

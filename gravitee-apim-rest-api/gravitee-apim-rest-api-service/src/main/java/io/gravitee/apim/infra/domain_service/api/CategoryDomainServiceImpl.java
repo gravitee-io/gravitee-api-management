@@ -26,7 +26,7 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Service
 public class CategoryDomainServiceImpl implements CategoryDomainService {
 

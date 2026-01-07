@@ -26,11 +26,11 @@ import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 @AllArgsConstructor
 public class ApiImportDomainServiceLegacyWrapper implements ApiImportDomainService {
 

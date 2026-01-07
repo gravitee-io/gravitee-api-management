@@ -33,11 +33,11 @@ import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+@CustomLog
 @Component
 public class DisableEnvironmentCommandHandler implements CommandHandler<DisableEnvironmentCommand, DisableEnvironmentReply> {
 

@@ -48,8 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -58,10 +57,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class DictionaryServiceImpl extends AbstractService implements DictionaryService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(DictionaryServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -85,7 +83,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to retrieve dictionaries", ex);
+            log.error("An error occurs while trying to retrieve dictionaries", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve dictionaries", ex);
         }
     }
@@ -93,7 +91,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity deploy(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Deploy dictionary {}", id);
+            log.debug("Deploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
                 .findById(id)
@@ -116,7 +114,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to deploy dictionary {}", id, ex);
+            log.error("An error occurs while trying to deploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
         }
     }
@@ -124,7 +122,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity undeploy(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Undeploy dictionary {}", id);
+            log.debug("Undeploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
                 .findById(id)
@@ -147,7 +145,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
+            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -155,7 +153,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity start(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Start dictionary {}", id);
+            log.debug("Start dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
                 .findById(id)
@@ -188,7 +186,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
+            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -196,7 +194,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity stop(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Stop dictionary {}", id);
+            log.debug("Stop dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
                 .findById(id)
@@ -229,7 +227,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
+            log.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
     }
@@ -237,7 +235,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity) {
         try {
-            LOGGER.debug("Create dictionary {}", newDictionaryEntity);
+            log.debug("Create dictionary {}", newDictionaryEntity);
 
             String key = IdGenerator.generate(newDictionaryEntity.getName());
             Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
@@ -264,7 +262,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_CREATED, dictionary.getCreatedAt(), null, dictionary);
             return convert(createdDictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create dictionary {}", newDictionaryEntity, ex);
+            log.error("An error occurs while trying to create dictionary {}", newDictionaryEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newDictionaryEntity, ex);
         }
     }
@@ -272,7 +270,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
         try {
-            LOGGER.debug("Update dictionary {}", updateDictionaryEntity);
+            log.debug("Update dictionary {}", updateDictionaryEntity);
 
             Dictionary dictionaryToUpdate = dictionaryRepository
                 .findById(id)
@@ -312,7 +310,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update dictionary {}", updateDictionaryEntity, ex);
+            log.error("An error occurs while trying to update dictionary {}", updateDictionaryEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateDictionaryEntity, ex);
         }
     }
@@ -320,7 +318,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity updateProperties(ExecutionContext executionContext, final String id, final Map<String, String> properties) {
         try {
-            LOGGER.debug("Update dictionary properties {}", id);
+            log.debug("Update dictionary properties {}", id);
 
             Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
             if (optDictionary.isEmpty()) {
@@ -358,7 +356,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity findById(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Find dictionary by ID: {}", id);
+            log.debug("Find dictionary by ID: {}", id);
             Optional<Dictionary> byId = dictionaryRepository.findById(id);
             //FIXME filter should be always applied but DictionaryManager (sync service) does not handle environments for dictionaries
             if (executionContext.hasEnvironmentId()) {
@@ -366,7 +364,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
             return byId.map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
+            log.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
@@ -374,7 +372,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public void delete(ExecutionContext executionContext, String id) {
         try {
-            LOGGER.debug("Delete dictionary: {}", id);
+            log.debug("Delete dictionary: {}", id);
 
             Dictionary dictionary = dictionaryRepository
                 .findById(id)
@@ -396,7 +394,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 dictionary
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
+            log.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
@@ -505,7 +503,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             try {
                 entity.setConfiguration(mapper.readTree(provider.getConfiguration()));
             } catch (IOException e) {
-                LOGGER.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
 

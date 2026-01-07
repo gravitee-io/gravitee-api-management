@@ -25,14 +25,14 @@ import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.core.authentication.IdentityManager;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class CompositeIdentityManager implements IdentityManager {
 
     @Autowired

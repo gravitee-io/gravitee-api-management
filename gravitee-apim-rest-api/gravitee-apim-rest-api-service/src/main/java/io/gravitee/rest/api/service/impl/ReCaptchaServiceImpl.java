@@ -26,8 +26,7 @@ import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ReCaptchaServiceImpl implements ReCaptchaService {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(ReCaptchaServiceImpl.class);
 
     @Autowired
     private Configuration configuration;
@@ -52,15 +50,15 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
     @Override
     public boolean isValid(String token) {
         if (!this.isEnabled()) {
-            LOGGER.debug("ReCaptchaService is disabled");
+            log.debug("ReCaptchaService is disabled");
             return true;
         }
 
-        LOGGER.debug("ReCaptchaService is enabled");
+        log.debug("ReCaptchaService is enabled");
 
         try {
             if (token == null || "".equals(token.trim())) {
-                LOGGER.info("Recaptcha token is empty");
+                log.info("Recaptcha token is empty");
                 return false;
             }
 
@@ -76,12 +74,12 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
             Boolean success = (Boolean) res.getOrDefault("success", false);
             Double score = (Double) res.getOrDefault("score", 0.0d);
 
-            LOGGER.debug(String.format("ReCaptchaService success: %s score: %s", success, score));
+            log.debug(String.format("ReCaptchaService success: %s score: %s", success, score));
 
             // Result should be successful and score above 0.5.
             return (success && score >= minScore());
         } catch (IOException e) {
-            LOGGER.error("An error occurred when trying to validate ReCaptcha token.", e);
+            log.error("An error occurred when trying to validate ReCaptcha token.", e);
             return false;
         }
     }

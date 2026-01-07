@@ -19,18 +19,26 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.service.Service;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.node.logging.NodeLoggerFactory;
+import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
+import io.gravitee.rest.api.management.v2.rest.model.ApiServicesV2;
+import io.gravitee.rest.api.management.v2.rest.model.DynamicPropertyService;
+import io.gravitee.rest.api.management.v2.rest.model.DynamicPropertyServiceConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointDiscoveryService;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServicesV2;
+import io.gravitee.rest.api.management.v2.rest.model.HealthCheckService;
+import io.gravitee.rest.api.management.v2.rest.model.HttpDynamicPropertyProviderConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.ServiceV4;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class })
 public interface ServiceMapper {
-    Logger logger = LoggerFactory.getLogger(io.gravitee.rest.api.management.v2.rest.mapper.ServiceMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(io.gravitee.rest.api.management.v2.rest.mapper.ServiceMapper.class);
     ServiceMapper INSTANCE = Mappers.getMapper(ServiceMapper.class);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")

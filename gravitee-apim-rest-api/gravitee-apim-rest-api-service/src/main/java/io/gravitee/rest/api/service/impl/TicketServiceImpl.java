@@ -27,7 +27,11 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Ticket;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MetadataEntity;
+import io.gravitee.rest.api.model.NewTicketEntity;
+import io.gravitee.rest.api.model.TicketEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -35,11 +39,22 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
+import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -50,11 +65,10 @@ import jakarta.inject.Inject;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -62,10 +76,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class TicketServiceImpl extends AbstractService implements TicketService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TicketServiceImpl.class);
 
     private static final String UNKNOWN_REFERENCE = "Unknown";
 
@@ -118,7 +131,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
             if (!isEnabled(executionContext, referenceId, referenceType)) {
                 throw new SupportUnavailableException();
             }
-            LOGGER.info("Creating a support ticket: {}", ticketEntity);
+            log.info("Creating a support ticket: {}", ticketEntity);
 
             final Map<String, Object> parameters = new HashMap<>();
 
@@ -189,7 +202,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
 
             return convert(createdTicket);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create a ticket {}", ticketEntity, ex);
+            log.error("An error occurs while trying to create a ticket {}", ticketEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create a ticket " + ticketEntity, ex);
         }
     }
@@ -197,7 +210,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
     @Override
     public Page<TicketEntity> search(final ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable) {
         try {
-            LOGGER.debug("search tickets");
+            log.debug("search tickets");
 
             TicketCriteria criteria = queryToCriteriaBuilder(query).build();
 
@@ -210,7 +223,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
                 .map(this::convert);
 
-            LOGGER.debug("search tickets - Done with {} elements", tickets.getContent().size());
+            log.debug("search tickets - Done with {} elements", tickets.getContent().size());
 
             return new Page<>(
                 tickets.getContent(),
@@ -219,7 +232,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 tickets.getTotalElements()
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search tickets", ex);
+            log.error("An error occurs while trying to search tickets", ex);
             throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);
         }
     }
@@ -234,7 +247,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 .map(this::convert)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search ticket {}", ticketId, ex);
+            log.error("An error occurs while trying to search ticket {}", ticketId, ex);
             throw new TechnicalManagementException("An error occurs while trying to search ticket " + ticketId, ex);
         }
     }

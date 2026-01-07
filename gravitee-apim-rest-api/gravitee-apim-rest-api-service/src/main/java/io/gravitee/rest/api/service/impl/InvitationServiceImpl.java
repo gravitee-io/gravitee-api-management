@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static java.util.Comparator.comparing;
@@ -25,11 +27,26 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InvitationEntity;
+import io.gravitee.rest.api.model.InvitationReferenceType;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.NewInvitationEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateInvitationEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.MembershipService.MembershipReference;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -42,8 +59,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,10 +68,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class InvitationServiceImpl extends TransactionalService implements InvitationService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(InvitationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -133,7 +148,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             }
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create invitation for email " + invitation.getEmail();
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -157,7 +172,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             }
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to update invitation with email " + invitation.getEmail();
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -225,7 +240,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             return invitations.stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list all invitations";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -240,7 +255,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             return invitations.stream().map(this::convert).sorted(comparing(InvitationEntity::getEmail)).collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list invitations by reference " + referenceType + '/' + referenceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -255,7 +270,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             invitationRepository.delete(invitationId);
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to delete the invitation " + invitationId;
-            LOGGER.error(msg, te);
+            log.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
     }

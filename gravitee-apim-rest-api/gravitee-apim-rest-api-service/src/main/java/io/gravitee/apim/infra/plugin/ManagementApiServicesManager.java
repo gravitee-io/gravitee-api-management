@@ -34,7 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ManagementApiServicesManager extends AbstractService {
 
     private final ApiServicePluginManager apiServicePluginManager;

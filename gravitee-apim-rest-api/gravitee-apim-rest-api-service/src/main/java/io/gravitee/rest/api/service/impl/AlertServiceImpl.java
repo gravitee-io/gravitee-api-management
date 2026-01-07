@@ -51,24 +51,50 @@ import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.alert.AlertEventEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.alert.AlertStatusEntity;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
+import io.gravitee.rest.api.service.exceptions.AlertTemplateInvalidException;
+import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -78,10 +104,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AlertServiceImpl extends TransactionalService implements AlertService, InitializingBean {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(AlertServiceImpl.class);
 
     private static final String UNKNOWN_SERVICE = "1";
     private static final String FIELD_API = "api";
@@ -171,7 +196,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return create(executionContext, alertTrigger);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert " + newAlertTrigger;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -235,7 +260,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return alertTriggerEntity;
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to update an alert " + updateAlertTrigger;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -248,7 +273,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .map(alertTriggerConverter::toAlertTriggerEntity)
                 .orElseThrow(() -> new AlertNotFoundException(alertId));
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to find alert by id {}", alertId, e);
+            log.error("An error occurs while trying to find alert by id {}", alertId, e);
             throw new TechnicalManagementException("An error occurs while trying to find alert with id", e);
         }
     }
@@ -259,7 +284,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             return alertTriggerConverter.toAlertTriggerEntities(new ArrayList<>(alertTriggerRepository.findAll()));
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list all alerts";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -272,7 +297,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -285,7 +310,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by references " + referenceType + '/' + referenceIds;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -334,7 +359,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -356,7 +381,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             disableTrigger(alert);
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to delete the alert " + alertId;
-            LOGGER.error(msg, te);
+            log.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
     }
@@ -382,7 +407,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private Set<AlertTriggerEntity> findByEvent(ExecutionContext executionContext, AlertEventType event) {
         try {
-            LOGGER.debug("findByEvent: {}", event);
+            log.debug("findByEvent: {}", event);
             Set<AlertTriggerEntity> set = alertTriggerRepository
                 .findAll()
                 .stream()
@@ -397,10 +422,10 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .map(alertTriggerConverter::toAlertTriggerEntity)
                 .sorted(Comparator.comparing(AlertTriggerEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-            LOGGER.debug("findByEvent : {} - DONE", set);
+            log.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find alert triggers by event", ex);
+            log.error("An error occurs while trying to find alert triggers by event", ex);
             throw new TechnicalManagementException("An error occurs while trying to find alert triggers by event", ex);
         }
     }
@@ -426,7 +451,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 try {
                     create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
                 } catch (TechnicalException te) {
-                    LOGGER.error("Unable to create default alert", te);
+                    log.error("Unable to create default alert", te);
                 }
             }
         }
@@ -476,14 +501,14 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                                 create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
                             }
                         } catch (TechnicalException te) {
-                            LOGGER.error("Unable to create default alert for API {}", apiId, te);
+                            log.error("Unable to create default alert for API {}", apiId, te);
                         }
                     });
                 }
             }
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to apply template alert " + alertId;
-            LOGGER.error(msg, te);
+            log.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
     }
@@ -562,7 +587,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             notification.setConfiguration(mapper.writeValueAsString(configuration));
             notification.setType("email-notifier");
         } catch (IOException e) {
-            LOGGER.error("Unexpected error while converting system email configuration to email notifier");
+            log.error("Unexpected error while converting system email configuration to email notifier");
         }
     }
 
@@ -603,7 +628,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public void afterPropertiesSet() throws Exception {
         triggerProvider.addListener(
             (TriggerProvider.OnConnectionListener) () -> {
-                LOGGER.info("Connected to alerting system. Sync alert triggers...");
+                log.info("Connected to alerting system. Sync alert triggers...");
                 // On reconnect, ensure to push all the triggers again
                 findAll()
                     .stream()
@@ -621,12 +646,12 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                         );
                         triggerOrCancelAlert(alertTriggerEntity);
                     });
-                LOGGER.info("Alert triggers synchronized with the alerting system.");
+                log.info("Alert triggers synchronized with the alerting system.");
             }
         );
 
         triggerProvider.addListener(
-            (TriggerProvider.OnDisconnectionListener) () -> LOGGER.error("Connection with the alerting system has been loose.")
+            (TriggerProvider.OnDisconnectionListener) () -> log.error("Connection with the alerting system has been loose.")
         );
 
         triggerProvider.addListener(
@@ -634,7 +659,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 if (command instanceof AlertNotificationCommand) {
                     handleAlertNotificationCommand((AlertNotificationCommand) command);
                 } else {
-                    LOGGER.warn("Unknown alert command: {}", command);
+                    log.warn("Unknown alert command: {}", command);
                 }
             }
         );
@@ -648,7 +673,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     if (command instanceof ResolvePropertyCommand) {
                         supplier = (Supplier<T>) new ResolvePropertyCommandHandler((ResolvePropertyCommand) command);
                     } else {
-                        LOGGER.warn("Unknown alert command: {}", command);
+                        log.warn("Unknown alert command: {}", command);
                     }
 
                     if (supplier != null) {
@@ -674,7 +699,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             alertEventRepository.create(alertEvent);
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert event from command {}" + command;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -725,7 +750,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
             } catch (TechnicalException e) {
-                LOGGER.error("Failed to retrieve API {} metadata", api, e);
+                log.error("Failed to retrieve API {} metadata", api, e);
             }
 
             return metadata;
@@ -745,7 +770,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
             } catch (TechnicalException e) {
-                LOGGER.error("Failed to retrieve application {} metadata", application, e);
+                log.error("Failed to retrieve application {} metadata", application, e);
             }
 
             return metadata;
@@ -760,7 +785,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
             } catch (TechnicalException e) {
-                LOGGER.error("Failed to retrieve plan {} metadata", plan, e);
+                log.error("Failed to retrieve plan {} metadata", plan, e);
             }
 
             return metadata;

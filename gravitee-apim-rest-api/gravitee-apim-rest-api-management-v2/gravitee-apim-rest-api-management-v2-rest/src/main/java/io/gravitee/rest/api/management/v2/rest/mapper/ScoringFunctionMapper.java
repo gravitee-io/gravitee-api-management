@@ -15,15 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringFunction;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface ScoringFunctionMapper {
-    Logger logger = LoggerFactory.getLogger(ScoringFunctionMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ScoringFunctionMapper.class);
     ScoringFunctionMapper INSTANCE = Mappers.getMapper(ScoringFunctionMapper.class);
 
     ScoringFunction map(io.gravitee.apim.core.scoring.model.ScoringFunction source);

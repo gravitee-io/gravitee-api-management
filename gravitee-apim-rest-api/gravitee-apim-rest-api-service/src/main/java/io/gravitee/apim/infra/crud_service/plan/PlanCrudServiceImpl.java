@@ -27,12 +27,12 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class PlanCrudServiceImpl implements PlanCrudService {
 
     private final PlanRepository planRepository;

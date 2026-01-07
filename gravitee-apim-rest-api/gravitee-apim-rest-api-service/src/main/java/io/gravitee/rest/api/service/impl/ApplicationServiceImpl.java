@@ -153,10 +153,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -166,10 +165,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ApplicationServiceImpl extends AbstractService implements ApplicationService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -235,7 +233,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public ApplicationEntity findById(final ExecutionContext executionContext, String applicationId) {
         try {
-            LOGGER.debug("Find application by ID: {}", applicationId);
+            log.debug("Find application by ID: {}", applicationId);
 
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
@@ -251,7 +249,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             throw new ApplicationNotFoundException(applicationId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
+            log.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
         }
     }
@@ -268,7 +266,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ApplicationStatus applicationStatus
     ) {
         try {
-            LOGGER.debug("Find application by IDs: {}", applicationIds);
+            log.debug("Find application by IDs: {}", applicationIds);
 
             if (applicationIds.isEmpty()) {
                 return Collections.emptySet();
@@ -293,14 +291,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return this.convertToList(executionContext, applications.getContent());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
+            log.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
         }
     }
 
     @Override
     public Set<String> findIdsByUser(ExecutionContext executionContext, String username, Sortable sortable) {
-        LOGGER.debug("Find applications for user {}", username);
+        log.debug("Find applications for user {}", username);
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setUser(username);
@@ -318,7 +316,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         RolePermission rolePermission,
         RolePermissionAction... acl
     ) {
-        LOGGER.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
+        log.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
         ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
         applicationQuery.setExcludeFilters(Arrays.asList(ApplicationExcludeFilter.OWNER));
         return searchIds(executionContext, applicationQuery, sortable);
@@ -354,7 +352,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
-        LOGGER.debug("Find applications for user {}", username);
+        log.debug("Find applications for user {}", username);
         ApplicationQuery applicationQuery = ApplicationQuery.builder().user(username).status(ApplicationStatus.ACTIVE.name()).build();
         Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
         return new LinkedHashSet<>(applications.getContent());
@@ -362,7 +360,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<String> findIdsByOrganization(String organizationId) {
-        LOGGER.debug("Find applications by organization {} ", organizationId);
+        log.debug("Find applications by organization {} ", organizationId);
         if (organizationId == null || organizationId.trim().isEmpty()) {
             return emptySet();
         }
@@ -372,7 +370,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<String> findIdsByEnvironment(final ExecutionContext executionContext) {
-        LOGGER.debug("Find applications by environment {} ", executionContext.getEnvironmentId());
+        log.debug("Find applications by environment {} ", executionContext.getEnvironmentId());
         if (isBlank(executionContext.getEnvironmentId())) {
             return Set.of();
         }
@@ -387,7 +385,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByGroupsAndStatus(final ExecutionContext executionContext, List<String> groupIds, String status) {
-        LOGGER.debug("Find applications by groups {}", groupIds);
+        log.debug("Find applications by groups {}", groupIds);
         try {
             ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
             Set<Application> applications = applicationRepository.findByGroups(groupIds, ApplicationStatus.valueOf(status.toUpperCase()));
@@ -396,14 +394,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ? convertToList(executionContext, applications)
                 : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
+            log.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
         }
     }
 
     @Override
     public ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity newApplicationEntity, String userId) {
-        LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
+        log.debug("Create {} for user {}", newApplicationEntity, userId);
 
         // Check that only one settings is defined
         if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getOauth() != null) {
@@ -464,7 +462,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     mapper.writeValueAsString(newApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
                 );
             } catch (JsonProcessingException e) {
-                LOGGER.error("An error has occurred while serializing registration response", e);
+                log.error("An error has occurred while serializing registration response", e);
             }
         }
 
@@ -529,7 +527,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             X509Certificate certificate;
             if (certificates.length > 1) {
-                LOGGER.debug("Certificate chain contains multiple certificates, using the first one");
+                log.debug("Certificate chain contains multiple certificates, using the first one");
             }
             certificate = (X509Certificate) certificates[0];
 
@@ -604,7 +602,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return convert(executionContext, createdApplication, userEntity);
         } catch (TechnicalException ex) {
-            LOGGER.error(
+            log.error(
                 "An error occurs while trying to create {} for user {} in environment {}",
                 application,
                 userId,
@@ -668,7 +666,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         UpdateApplicationEntity updateApplicationEntity
     ) {
         try {
-            LOGGER.debug("Update application {}", applicationId);
+            log.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
             Set<String> groups = updateApplicationEntity.getGroups();
@@ -727,7 +725,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 String clientId = updateApplicationEntity.getSettings().getApp().getClientId();
 
                 if (clientId != null && !clientId.trim().isEmpty()) {
-                    LOGGER.debug("Check that client_id is unique among all applications");
+                    log.debug("Check that client_id is unique among all applications");
                     final Set<Application> applications = applicationRepository.findAllByEnvironment(
                         executionContext.getEnvironmentId(),
                         ApplicationStatus.ACTIVE
@@ -737,7 +735,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         .filter(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)))
                         .findAny();
                     if (byClientId.isPresent() && !byClientId.get().getId().equals(applicationToUpdate.getId())) {
-                        LOGGER.error("An application already exists with the same client_id");
+                        log.error("An application already exists with the same client_id");
                         throw new ClientIdAlreadyExistsException(clientId);
                     }
                 }
@@ -766,7 +764,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                             mapper.writeValueAsString(updateApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
                         );
                     } catch (Exception e) {
-                        LOGGER.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
+                        log.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
                         metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
                         metadata.put(METADATA_REGISTRATION_PAYLOAD, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
                     }
@@ -843,7 +841,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 });
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
+            log.error("An error occurs while trying to update application {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update application %s", applicationId),
                 ex
@@ -874,7 +872,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode) {
         try {
-            LOGGER.debug("Update application {} with apiKeyMode {}", applicationId, apiKeyMode);
+            log.debug("Update application {} with apiKeyMode {}", applicationId, apiKeyMode);
 
             Application applicationToUpdate = applicationRepository
                 .findById(applicationId)
@@ -910,7 +908,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 applicationId,
                 apiKeyMode
             );
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -958,7 +956,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public ApplicationEntity renewClientSecret(final ExecutionContext executionContext, String applicationId) {
         try {
-            LOGGER.debug("Renew client secret for application {}", applicationId);
+            log.debug("Renew client secret for application {}", applicationId);
 
             Application applicationToUpdate = applicationRepository
                 .findById(applicationId)
@@ -990,7 +988,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                     metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
                 } catch (JsonProcessingException e) {
-                    LOGGER.error("An error has occurred while writing registration response", e);
+                    log.error("An error has occurred while writing registration response", e);
                 }
 
                 applicationToUpdate.setUpdatedAt(new Date());
@@ -1017,7 +1015,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             throw new ApplicationRenewClientSecretException(applicationToUpdate.getName());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to renew client secret {}", applicationId, ex);
+            log.error("An error occurs while trying to renew client secret {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to renew client secret %s", applicationId),
                 ex
@@ -1028,7 +1026,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public ApplicationEntity restore(final ExecutionContext executionContext, String applicationId) {
         try {
-            LOGGER.debug("Restore application {}", applicationId);
+            log.debug("Restore application {}", applicationId);
 
             Application application = applicationRepository
                 .findById(applicationId)
@@ -1072,7 +1070,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     subscriptionService.restore(executionContext, subscription.getId());
                 } catch (SubscriptionNotPausedException snce) {
                     // Subscription cannot be closed because it is already closed or not yet accepted
-                    LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());
+                    log.debug("The subscription cannot be closed: {}", snce.getMessage());
                 }
             });
 
@@ -1093,7 +1091,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             return convert(executionContext, restoredApplication, userEntity);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to restore {}", applicationId, ex);
+            log.error("An error occurs while trying to restore {}", applicationId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
         }
     }
@@ -1121,7 +1119,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public void archive(final ExecutionContext executionContext, String applicationId) {
         try {
-            LOGGER.debug("Delete application {}", applicationId);
+            log.debug("Delete application {}", applicationId);
 
             Application application = applicationRepository
                 .findById(applicationId)
@@ -1139,7 +1137,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     try {
                         apiKeyService.delete(apiKey.getKey());
                     } catch (TechnicalManagementException tme) {
-                        LOGGER.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
+                        log.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
                     }
                 });
 
@@ -1154,7 +1152,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     );
                 } catch (SubscriptionNotClosableException snce) {
                     // Subscription cannot be closed because it is already closed or not yet accepted
-                    LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());
+                    log.debug("The subscription cannot be closed: {}", snce.getMessage());
                 }
             });
 
@@ -1181,7 +1179,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 application.getId()
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
+            log.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to delete application %s", applicationId),
                 ex
@@ -1223,7 +1221,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             String applicationsAsString = "?";
             if (optionalApplicationsAsString.isPresent()) applicationsAsString = optionalApplicationsAsString.get();
-            LOGGER.error("{} applications has no identified primary owners in this list {}.", poMissing, applicationsAsString);
+            log.error("{} applications has no identified primary owners in this list {}.", poMissing, applicationsAsString);
             throw new TechnicalManagementException(
                 poMissing + " applications has no identified primary owners in this list " + applicationsAsString + "."
             );
@@ -1409,7 +1407,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         clientSettings.setRenewClientSecretSupported(clientRegistrationProviderIte.next().isRenewClientSecretSupport());
                     }
                 } catch (IOException e) {
-                    LOGGER.error("An error occurred while reading client settings");
+                    log.error("An error occurred while reading client settings");
                 }
             }
             settings.setOauth(clientSettings);
@@ -1474,7 +1472,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             return applicationRepository.searchIds(searchCriteria, convert(sortable));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
+            log.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }
@@ -1501,7 +1499,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return this.convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
+            log.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }
@@ -1631,7 +1629,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
         if (primaryOwnerMemberEntity == null) {
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
-                LOGGER.error("The Application {} doesn't have any primary owner.", application.getId());
+                log.error("The Application {} doesn't have any primary owner.", application.getId());
             }
             return convert(executionContext, application, null);
         }

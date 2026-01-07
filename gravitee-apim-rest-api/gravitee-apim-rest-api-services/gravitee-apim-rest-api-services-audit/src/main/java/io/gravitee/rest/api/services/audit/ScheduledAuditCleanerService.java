@@ -23,13 +23,13 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
-@Slf4j
+@CustomLog
 public class ScheduledAuditCleanerService extends AbstractService implements Runnable {
 
     private final TaskScheduler scheduler;

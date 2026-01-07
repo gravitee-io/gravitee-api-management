@@ -23,7 +23,6 @@ import io.gravitee.apim.infra.repository.PageUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
-import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -31,18 +30,17 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+@CustomLog
 @Service
 public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGroupHistoryQueryService {
 
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
-    private static final Logger logger = LoggerFactory.getLogger(SharedPolicyGroupHistoryQueryServiceImpl.class);
 
     public SharedPolicyGroupHistoryQueryServiceImpl(
         @Lazy final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
@@ -59,7 +57,7 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
                 sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(environmentId, repositoryPageable)
             ).map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
+            log.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
                 "An error occurred while trying to stream all last shared policy groups by environment ID: " + environmentId,
                 e
@@ -85,7 +83,7 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
 
             return result.map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
-            logger.error(
+            log.error(
                 "An error occurred while searching shared policy group histories by environment ID {} and sharedPolicyGroupId {}",
                 environmentId,
                 sharedPolicyGroupId,
@@ -111,7 +109,7 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
                 .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
                 .map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
-            logger.error(
+            log.error(
                 "An error occurred while getting the latest shared policy group by environment ID {} and sharedPolicyGroupId {}",
                 environmentId,
                 sharedPolicyGroupId,

@@ -26,8 +26,8 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class GoodByeCommandHandler implements CommandHandler<GoodByeCommand, GoodByeReply> {
 
     static final String DELETED_STATUS = "DELETED";

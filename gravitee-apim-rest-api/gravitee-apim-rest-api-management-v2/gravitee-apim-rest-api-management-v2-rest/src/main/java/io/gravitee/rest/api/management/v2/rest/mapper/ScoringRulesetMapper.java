@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringAssetFormat;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateScoringRuleset;
 import org.mapstruct.Mapper;
-import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface ScoringRulesetMapper {
-    Logger logger = LoggerFactory.getLogger(ScoringRulesetMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ScoringRulesetMapper.class);
     ScoringRulesetMapper INSTANCE = Mappers.getMapper(ScoringRulesetMapper.class);
 
     io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset map(ScoringRuleset source);

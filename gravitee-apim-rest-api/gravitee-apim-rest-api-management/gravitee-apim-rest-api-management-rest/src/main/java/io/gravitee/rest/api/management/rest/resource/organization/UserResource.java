@@ -19,7 +19,19 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.ResetPasswordUserEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.UserGroupEntity;
+import io.gravitee.rest.api.model.UserMembership;
+import io.gravitee.rest.api.model.UserMembershipList;
+import io.gravitee.rest.api.model.UserReferenceRoleEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -38,17 +50,28 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * Defines the REST resources to manage Users.
@@ -59,10 +82,9 @@ import org.slf4j.LoggerFactory;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Tag(name = "Users")
 public class UserResource extends AbstractResource {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
 
     @Context
     private ResourceContext resourceContext;
@@ -127,7 +149,7 @@ public class UserResource extends AbstractResource {
     public List<UserGroupEntity> getUserGroups(@QueryParam("environmentId") String environmentId) {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
-        LOGGER.debug("Search groups for user: {} with query: {}", userId, environmentId);
+        log.debug("Search groups for user: {} with query: {}", userId, environmentId);
         Set<GroupEntity> groups = groupService.findByUserAndEnvironment(userId, environmentId);
         List<UserGroupEntity> result = new ArrayList<>();
         groups.forEach(groupEntity -> {

@@ -28,10 +28,10 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @UseCase
 @RequiredArgsConstructor
 public class ExportApiUseCase {

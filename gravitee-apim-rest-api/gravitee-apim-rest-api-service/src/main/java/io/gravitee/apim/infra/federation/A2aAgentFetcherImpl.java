@@ -27,12 +27,12 @@ import io.vertx.rxjava3.ext.web.client.HttpResponse;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class A2aAgentFetcherImpl implements A2aAgentFetcher {
 

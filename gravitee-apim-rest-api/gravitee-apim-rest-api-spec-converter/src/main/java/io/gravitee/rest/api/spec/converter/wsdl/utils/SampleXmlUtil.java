@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import javax.xml.namespace.QName;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.xmlbeans.GDate;
 import org.apache.xmlbeans.GDateBuilder;
 import org.apache.xmlbeans.GDuration;
@@ -59,7 +59,7 @@ import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
  * fork of https://raw.githubusercontent.com/apache/xmlbeans/trunk/src/main/java/org/apache/xmlbeans/impl/xsd2inst/SampleXmlUtil.java
  * We want to create sample using existing XmlCursor
  */
-@Slf4j
+@CustomLog
 public class SampleXmlUtil {
 
     private boolean _soapEnc;

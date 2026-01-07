@@ -58,7 +58,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -68,7 +68,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     private final ApiRepository apiRepository;

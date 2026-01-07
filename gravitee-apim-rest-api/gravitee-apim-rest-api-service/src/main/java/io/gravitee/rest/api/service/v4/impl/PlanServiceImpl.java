@@ -98,8 +98,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -108,6 +107,7 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component("PlanServiceImplV4")
 public class PlanServiceImpl extends AbstractService implements PlanService {
 
@@ -120,7 +120,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             new PlanSecurityEntity("key_less", "Keyless (public)", "")
         )
     );
-    private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -198,7 +197,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
         try {
-            logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
+            log.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
 
             if (Optional.ofNullable(newPlan.getMode()).orElse(PlanMode.STANDARD) == PlanMode.STANDARD) {
                 if (newPlan.getSecurity() == null) {
@@ -250,7 +249,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 newPlan.getName(),
                 newPlan.getApiId()
             );
-            logger.error(errorMsg, ex);
+            log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
     }
@@ -293,7 +292,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
         try {
-            logger.debug("Update plan {}", updatePlan.getName());
+            log.debug("Update plan {}", updatePlan.getName());
 
             Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
             if (Optional.ofNullable(oldPlan.getMode()).orElse(Plan.PlanMode.STANDARD) == Plan.PlanMode.STANDARD) {
@@ -401,7 +400,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 return mapToEntity(newPlan);
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
+            log.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update plan %s", updatePlan.getName()),
                 ex
@@ -457,7 +456,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public GenericPlanEntity close(final ExecutionContext executionContext, String planId) {
         try {
-            logger.debug("Close plan {}", planId);
+            log.debug("Close plan {}", planId);
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
 
@@ -516,7 +515,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return genericPlanMapper.toGenericPlan(api, plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to close plan: {}", planId, ex);
+            log.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);
         }
     }
@@ -524,7 +523,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public void delete(ExecutionContext executionContext, String planId) {
         try {
-            logger.debug("Delete plan {}", planId);
+            log.debug("Delete plan {}", planId);
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
 
@@ -559,7 +558,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete plan: {}", planId, ex);
+            log.error("An error occurs while trying to delete plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", planId), ex);
         }
     }
@@ -567,7 +566,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public GenericPlanEntity publish(final ExecutionContext executionContext, String planId) {
         try {
-            logger.debug("Publish plan {}", planId);
+            log.debug("Publish plan {}", planId);
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
             Plan previousPlan = new Plan(plan);
@@ -633,7 +632,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to publish plan: {}", planId, ex);
+            log.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
         }
     }
@@ -646,7 +645,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public GenericPlanEntity deprecate(final ExecutionContext executionContext, String planId, boolean allowStaging) {
         try {
-            logger.debug("Deprecate plan {}", planId);
+            log.debug("Deprecate plan {}", planId);
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
             Plan previousPlan = new Plan(plan);
@@ -680,7 +679,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             return mapToGenericEntity(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to deprecate plan: {}", planId, ex);
+            log.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
         }
     }
@@ -721,7 +720,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // update the modified plan
             planRepository.update(planToReorder);
         } catch (final TechnicalException ex) {
-            logger.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
+            log.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);
         }
     }
@@ -738,7 +737,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                         planRepository.updateOrder(plan.getId(), plan.getOrder() - 1);
                     }
                 } catch (final TechnicalException ex) {
-                    logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
+                    log.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
                     throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
             });

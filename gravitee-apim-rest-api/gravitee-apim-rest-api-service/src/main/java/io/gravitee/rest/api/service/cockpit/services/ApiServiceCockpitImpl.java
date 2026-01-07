@@ -56,8 +56,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,9 +64,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@CustomLog
 public class ApiServiceCockpitImpl implements ApiServiceCockpit {
-
-    private final Logger logger = LoggerFactory.getLogger(ApiServiceCockpitImpl.class);
 
     private final ObjectMapper objectMapper;
     private final ApiService apiService;
@@ -112,16 +110,16 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         List<String> labels
     ) {
         if (mode == DeploymentMode.API_MOCKED) {
-            logger.debug("Create Mocked Api [{}].", apiId);
+            log.debug("Create Mocked Api [{}].", apiId);
             return createMockedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
         if (mode == DeploymentMode.API_PUBLISHED) {
-            logger.debug("Create Published Api [{}].", apiId);
+            log.debug("Create Published Api [{}].", apiId);
             return createPublishedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
-        logger.debug("Create Documented Api [{}].", apiId);
+        log.debug("Create Documented Api [{}].", apiId);
         return createDocumentedApi(executionContext, apiId, userId, swaggerDefinition, labels);
     }
 
@@ -136,16 +134,16 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         List<String> labels
     ) {
         if (mode == DeploymentMode.API_DOCUMENTED) {
-            logger.debug("Update Documented Api [{}].", apiId);
+            log.debug("Update Documented Api [{}].", apiId);
             return updateDocumentedApi(executionContext, apiId, swaggerDefinition, labels);
         }
 
         if (mode == DeploymentMode.API_MOCKED) {
-            logger.debug("Update Mocked Api [{}].", apiId);
+            log.debug("Update Mocked Api [{}].", apiId);
             return updateMockedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
         }
 
-        logger.debug("Update Published Api [{}].", apiId);
+        log.debug("Update Published Api [{}].", apiId);
         return updatePublishedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
     }
 
@@ -378,13 +376,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         if (apiDocs.isEmpty()) {
             // This should not happen since we have created the documentation in previous step
-            logger.error("No swagger documentation to publish");
+            log.error("No swagger documentation to publish");
             return;
         }
 
         if (apiDocs.size() > 1) {
             // This should not happen since we have created the documentation in previous step
-            logger.error("More than one swagger documentation, this should not happen");
+            log.error("More than one swagger documentation, this should not happen");
         }
 
         PageEntity page = apiDocs.get(0);

@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -25,11 +26,10 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper
 public interface ApiHealthAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(ApiHealthAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiHealthAdapter.class);
     ApiHealthAdapter INSTANCE = Mappers.getMapper(ApiHealthAdapter.class);
 
     ApiFieldPeriod map(ApiHealthQueryService.ApiFieldPeriodQuery source);

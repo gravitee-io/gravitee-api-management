@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.idp.ldap.authentication;
 
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.SecurityConfigurer;
@@ -28,7 +28,7 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class LdapAuthenticationProvider implements AuthenticationProvider<SecurityConfigurer> {
 
     @Autowired

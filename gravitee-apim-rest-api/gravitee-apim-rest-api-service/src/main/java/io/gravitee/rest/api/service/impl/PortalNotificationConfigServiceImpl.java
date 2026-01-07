@@ -34,8 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -43,10 +42,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PortalNotificationConfigServiceImpl extends AbstractService implements PortalNotificationConfigService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(PortalNotificationConfigServiceImpl.class);
 
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
     private final MembershipService membershipService;
@@ -95,7 +93,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
                 }
             }
         } catch (TechnicalException te) {
-            LOGGER.error("An error occurs while trying to save the notification settings {}", notificationEntity, te);
+            log.error("An error occurs while trying to save the notification settings {}", notificationEntity, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to save the notification settings " + notificationEntity,
                 te
@@ -123,7 +121,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             notif.setGroupHooks(findGroupHooks(GraviteeContext.getExecutionContext(), user, referenceType, referenceId));
             return notif;
         } catch (TechnicalException te) {
-            LOGGER.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
+            log.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/" + referenceId,
                 te
@@ -136,7 +134,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteByUser(user);
         } catch (TechnicalException te) {
-            LOGGER.error("An error occurs while trying to delete notification settings for user {}", user, te);
+            log.error("An error occurs while trying to delete notification settings for user {}", user, te);
             throw new TechnicalManagementException("An error occurs while trying to delete notification settings for user " + user, te);
         }
     }
@@ -146,12 +144,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
         } catch (TechnicalException te) {
-            LOGGER.error(
-                "An error occurs while trying to delete notification settings for reference {} / {}",
-                referenceType,
-                referenceId,
-                te
-            );
+            log.error("An error occurs while trying to delete notification settings for reference {} / {}", referenceType, referenceId, te);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId,
                 te

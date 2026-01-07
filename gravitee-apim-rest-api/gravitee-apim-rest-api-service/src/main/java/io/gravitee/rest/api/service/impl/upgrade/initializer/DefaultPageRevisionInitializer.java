@@ -23,8 +23,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,13 +31,9 @@ import org.springframework.stereotype.Component;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class DefaultPageRevisionInitializer implements Initializer {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultPageRevisionInitializer.class);
 
     @Autowired
     private PageService pageService;
@@ -49,7 +44,7 @@ public class DefaultPageRevisionInitializer implements Initializer {
     @Override
     public boolean initialize() {
         if (hasNoRevisions()) {
-            logger.info("No page revisions found. Create a default revision based on pages.");
+            log.info("No page revisions found. Create a default revision based on pages.");
             final int pageSize = 100;
             int pageNumber = 0;
             Page<PageEntity> pagesSubSet = null;

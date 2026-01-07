@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.CATEGORY;
-import static io.gravitee.repository.management.model.Category.AuditEvent.*;
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_DELETED;
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -36,10 +38,14 @@ import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.xml.bind.DatatypeConverter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -49,10 +55,9 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class CategoryServiceImpl extends TransactionalService implements CategoryService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -70,10 +75,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public List<CategoryEntity> findAll(final String environmentId) {
         try {
-            LOGGER.debug("Find all categories");
+            log.debug("Find all categories");
             return categoryRepository.findAllByEnvironment(environmentId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all categories", ex);
+            log.error("An error occurs while trying to find all categories", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories", ex);
         }
     }
@@ -87,7 +92,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to find categories by ids", e);
+            log.error("An error occurs while trying to find categories by ids", e);
             throw new TechnicalManagementException("An error occurs while trying to find categories by ids", e);
         }
     }
@@ -95,10 +100,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public List<CategoryEntity> findByPage(String page) {
         try {
-            LOGGER.debug("Find all categories by page");
+            log.debug("Find all categories by page");
             return categoryRepository.findByPage(page).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all categories by page", ex);
+            log.error("An error occurs while trying to find all categories by page", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories by page", ex);
         }
     }
@@ -106,7 +111,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public CategoryEntity findById(final String id, final String environmentId) {
         try {
-            LOGGER.debug("Find category by id : {}", id);
+            log.debug("Find category by id : {}", id);
             Optional<Category> category = categoryRepository.findById(id).filter(c -> c.getEnvironmentId().equalsIgnoreCase(environmentId));
             if (category.isEmpty()) {
                 category = categoryRepository.findByKey(id, environmentId);
@@ -117,7 +122,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             throw new CategoryNotFoundException(id);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a category using its id: " + id;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -169,7 +174,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return createdCategory;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create category {}", newCategory.getName(), ex);
+            log.error("An error occurs while trying to create category {}", newCategory.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to create category " + newCategory.getName(), ex);
         }
     }
@@ -177,7 +182,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity categoryEntity) {
         try {
-            LOGGER.debug("Update Category {}", categoryId);
+            log.debug("Update Category {}", categoryId);
 
             final Category categoryToUpdate = categoryRepository
                 .findById(categoryId)
@@ -211,7 +216,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return updatedCategory;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
+            log.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
         }
     }
@@ -253,7 +258,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     );
                 }
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
+                log.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
             }
         });
@@ -284,7 +289,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 apiCategoryService.deleteCategoryFromAPIs(executionContext, categoryId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete category {}", categoryId, ex);
+            log.error("An error occurs while trying to delete category {}", categoryId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete category " + categoryId, ex);
         }
     }

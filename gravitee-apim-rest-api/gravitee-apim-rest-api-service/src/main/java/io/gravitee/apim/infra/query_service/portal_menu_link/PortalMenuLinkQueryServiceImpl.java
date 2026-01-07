@@ -23,17 +23,16 @@ import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@CustomLog
 @Service
 public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryService {
 
     private final PortalMenuLinkRepository portalMenuLinkRepository;
     private final PortalMenuLinkAdapter portalMenuLinkAdapter = PortalMenuLinkAdapter.INSTANCE;
-    private static final Logger logger = LoggerFactory.getLogger(PortalMenuLinkQueryServiceImpl.class);
 
     public PortalMenuLinkQueryServiceImpl(@Lazy final PortalMenuLinkRepository portalMenuLinkRepository) {
         this.portalMenuLinkRepository = portalMenuLinkRepository;
@@ -47,7 +46,7 @@ public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryServic
             return result.stream().map(portalMenuLinkAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             String errorMessage = String.format("An error occurred while searching portal menu links by environment ID %s", environmentId);
-            logger.error(errorMessage, e);
+            log.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -67,7 +66,7 @@ public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryServic
                 environmentId,
                 visibility
             );
-            logger.error(errorMessage, e);
+            log.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }

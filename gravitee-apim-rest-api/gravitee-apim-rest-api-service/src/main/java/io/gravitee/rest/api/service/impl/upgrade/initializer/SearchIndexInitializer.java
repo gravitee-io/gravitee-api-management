@@ -63,10 +63,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -77,10 +75,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class SearchIndexInitializer implements Initializer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SearchIndexInitializer.class);
 
     private final ApiRepository apiRepository;
 
@@ -150,14 +146,14 @@ public class SearchIndexInitializer implements Initializer {
         try {
             futures.addAll(runApisIndexationAsync(executorService));
         } catch (TechnicalException e) {
-            LOGGER.error("failed to index APIs", e);
+            log.error("failed to index APIs", e);
         }
 
         // index users
         try {
             futures.addAll(runUsersIndexationAsync(executorService));
         } catch (TechnicalException e) {
-            LOGGER.error("failed to index users", e);
+            log.error("failed to index users", e);
         }
 
         CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -188,7 +184,7 @@ public class SearchIndexInitializer implements Initializer {
             try {
                 return environmentRepository.findById(environmentId).get().getOrganizationId();
             } catch (Exception e) {
-                LOGGER.error("failed to find organization for environment {}", environmentId, e);
+                log.error("failed to find organization for environment {}", environmentId, e);
                 return null;
             }
         });
@@ -199,7 +195,7 @@ public class SearchIndexInitializer implements Initializer {
         try {
             primaryOwner = primaryOwnerService.getPrimaryOwner(organizationId, api.getId());
         } catch (PrimaryOwnerNotFoundException e) {
-            LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
+            log.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }
         try {
             // V2 APIs have a null definitionVersion attribute in the Repository
@@ -214,7 +210,7 @@ public class SearchIndexInitializer implements Initializer {
             );
             return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
         } catch (Exception e) {
-            LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);
+            log.error("Failed to convert API {} to indexable", api.getId(), e);
             return CompletableFuture.failedFuture(e);
         }
     }

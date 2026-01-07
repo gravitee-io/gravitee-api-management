@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@CustomLog
 public class GroupQueryServiceImpl extends AbstractService implements GroupQueryService {
 
     private final GroupRepository groupRepository;

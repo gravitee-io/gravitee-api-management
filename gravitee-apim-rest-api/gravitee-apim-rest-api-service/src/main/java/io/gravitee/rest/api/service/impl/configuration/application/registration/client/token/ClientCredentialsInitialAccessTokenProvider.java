@@ -29,6 +29,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
@@ -38,19 +39,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ClientCredentialsInitialAccessTokenProvider implements InitialAccessTokenProvider {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ClientCredentialsInitialAccessTokenProvider.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -114,18 +109,18 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
                             JsonNode node = mapper.readTree(responsePayload);
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
-                            logger.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
+                            log.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Token endpoint: error[" + error + "] description[" + description + "]"
                             );
                         } catch (JsonProcessingException ex) {
-                            logger.error("Unexpected response from OIDC Token endpoint: status[{}] message[{}]", status, responsePayload);
+                            log.error("Unexpected response from OIDC Token endpoint: status[{}] message[{}]", status, responsePayload);
                             throw new DynamicClientRegistrationException(
                                 "Unexpected response from OIDC Token endpoint: status[" + status + "] message[" + responsePayload + "]"
                             );
                         }
                     } else {
-                        logger.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
+                        log.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
                         throw new DynamicClientRegistrationException(
                             "Unexpected response from OIDC Token endpoint: status[" + status + "]"
                         );
@@ -133,13 +128,13 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
                 }
             });
         } catch (Exception ex) {
-            logger.error("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
+            log.error("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
         } finally {
             try {
                 httpClient.close();
             } catch (IOException e) {
-                logger.error("Unable to close HTTP client", e);
+                log.error("Unable to close HTTP client", e);
             }
         }
     }

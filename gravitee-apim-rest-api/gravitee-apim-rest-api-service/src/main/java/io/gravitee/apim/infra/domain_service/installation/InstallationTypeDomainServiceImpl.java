@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.installation;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.model.InstallationType;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-@Slf4j
+@CustomLog
 public class InstallationTypeDomainServiceImpl implements InstallationTypeDomainService {
 
     @Value("${installation.type:" + InstallationType.Labels.STANDALONE + "}")

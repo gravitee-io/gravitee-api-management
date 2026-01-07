@@ -26,15 +26,13 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.context.OriginContext;
+import lombok.CustomLog;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(
@@ -43,9 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
     injectionStrategy = InjectionStrategy.FIELD,
     nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL
 )
+@CustomLog
 public abstract class SubscriptionAdapter {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(SubscriptionAdapter.class);
 
     protected JsonDeserializer jsonDeserializer;
 
@@ -148,7 +145,7 @@ public abstract class SubscriptionAdapter {
         try {
             return jsonDeserializer.deserialize(configuration, JacksonSubscriptionConfiguration.class);
         } catch (JsonProcessingException e) {
-            LOGGER.error("Unexpected error while deserializing Subscription configuration", e);
+            log.error("Unexpected error while deserializing Subscription configuration", e);
             return null;
         }
     }
@@ -162,7 +159,7 @@ public abstract class SubscriptionAdapter {
         try {
             return jsonSerializer.serialize(new JacksonSubscriptionConfiguration(configuration));
         } catch (JsonProcessingException e) {
-            LOGGER.error("Unexpected error while serializing Subscription configuration", e);
+            log.error("Unexpected error while serializing Subscription configuration", e);
             return null;
         }
     }

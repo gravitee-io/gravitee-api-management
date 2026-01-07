@@ -63,7 +63,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +72,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("ApiMapperV4")
-@Slf4j
+@CustomLog
 public class ApiMapper {
 
     public static final String API_DEFINITION_UNEXPECTED_ERROR_MESSAGE = "Unexpected error while generating API definition";

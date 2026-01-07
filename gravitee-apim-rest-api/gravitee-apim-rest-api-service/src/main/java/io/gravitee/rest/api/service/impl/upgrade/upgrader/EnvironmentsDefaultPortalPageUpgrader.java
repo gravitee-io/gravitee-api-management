@@ -22,12 +22,12 @@ import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.rest.api.service.PortalPageService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class EnvironmentsDefaultPortalPageUpgrader implements Upgrader {
 
     private final EnvironmentRepository environmentRepository;

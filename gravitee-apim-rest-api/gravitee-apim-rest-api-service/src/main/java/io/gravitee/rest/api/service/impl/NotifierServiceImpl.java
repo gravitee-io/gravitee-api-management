@@ -62,8 +62,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -73,6 +72,7 @@ import org.springframework.util.CollectionUtils;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class NotifierServiceImpl extends AbstractService implements NotifierService {
 
@@ -81,8 +81,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
      */
     public static final String DEFAULT_EMAIL_NOTIFIER_ID = "default-email";
     private static final String DEFAULT_WEBHOOK_NOTIFIER_ID = "default-webhook";
-
-    private final Logger LOGGER = LoggerFactory.getLogger(NotifierServiceImpl.class);
 
     private static final io.gravitee.rest.api.model.NotifierEntity DEFAULT_EMAIL_NOTIFIER;
 
@@ -227,7 +225,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 portalNotificationService.create(executionContext, data.hook, userIds, data.params);
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Error looking for PortalNotificationConfig with {}", data, e);
+            log.error("Error looking for PortalNotificationConfig with {}", data, e);
         }
     }
 
@@ -302,12 +300,12 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                                 .getOrDefault(notifier.getId(), Collections.emptyList())
                                 .forEach(config -> webhookNotifierService.trigger(data.hook, config, data.params));
                         }
-                        default -> LOGGER.error("Unknown notifier {}", notifier.getType());
+                        default -> log.error("Unknown notifier {}", notifier.getType());
                     }
                 });
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Error looking for GenericNotificationConfig with {}", data, e);
+            log.error("Error looking for GenericNotificationConfig with {}", data, e);
         }
     }
 
@@ -322,7 +320,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     public Set<io.gravitee.rest.api.model.NotifierEntity> findAll() {
         try {
-            LOGGER.debug("List all notifiers");
+            log.debug("List all notifiers");
             final Collection<NotifierPlugin> plugins = notifierManager.findAll();
 
             Set<io.gravitee.rest.api.model.NotifierEntity> notifiers = plugins
@@ -333,14 +331,14 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
             return notifiers;
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to list all notifiers", ex);
+            log.error("An error occurs while trying to list all notifiers", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all notifiers", ex);
         }
     }
 
     @Override
     public io.gravitee.rest.api.model.NotifierEntity findById(String notifier) {
-        LOGGER.debug("Find policy by ID: {}", notifier);
+        log.debug("Find policy by ID: {}", notifier);
 
         if (DEFAULT_EMAIL_NOTIFIER_ID.equals(notifier)) {
             return DEFAULT_EMAIL_NOTIFIER;
@@ -358,7 +356,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     public String getSchema(String notifier) {
         try {
-            LOGGER.debug("Find notifier schema by ID: {}", notifier);
+            log.debug("Find notifier schema by ID: {}", notifier);
             if (DEFAULT_EMAIL_NOTIFIER_ID.equals(notifier)) {
                 final URL url = getClass().getResource("/notifiers/" + DEFAULT_EMAIL_NOTIFIER_ID + ".json");
 
@@ -376,7 +374,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 return notifierManager.getSchema(notifier);
             }
         } catch (IOException ioex) {
-            LOGGER.error("An error occurs while trying to get notifier schema for notifier {}", notifier, ioex);
+            log.error("An error occurs while trying to get notifier schema for notifier {}", notifier, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get notifier schema for notifier " + notifier, ioex);
         }
     }

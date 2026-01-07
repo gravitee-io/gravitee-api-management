@@ -18,10 +18,10 @@ package io.gravitee.apim.core.event.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import java.time.Duration;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @UseCase
 @RequiredArgsConstructor
 public class CleanupEventsUseCase {

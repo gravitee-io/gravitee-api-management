@@ -23,7 +23,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 @UseCase
 public class SearchGroupsUseCase {

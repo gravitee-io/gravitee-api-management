@@ -29,15 +29,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@CustomLog
 @Service
 public class EventCrudServiceLegacyWrapper implements EventCrudService {
-
-    private static final Logger logger = LoggerFactory.getLogger(EventCrudServiceLegacyWrapper.class);
 
     private final EventService eventService;
     private final EventRepository eventRepository;
@@ -77,7 +75,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
     public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
         var counters = AtomicLongMap.<EventRepository.EventToCleanGroup>create();
 
-        logger.info(
+        log.info(
             "Starting cleanup for environment: {} (keep {} events per type, max duration: {}s)",
             environmentId,
             nbEventsToKeep,
@@ -95,7 +93,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
                     long currentProcessed = processedCount.incrementAndGet();
 
                     if (currentProcessed % 1000 == 0) {
-                        logger.info(
+                        log.info(
                             "Processed {} events, deleted {} events, skipped {} events",
                             currentProcessed,
                             deletedCount.get(),
@@ -130,7 +128,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
                 .blockingForEach(eventRepository::delete);
 
             long duration = System.currentTimeMillis() - startTime;
-            logger.info(
+            log.info(
                 "Cleanup completed for environment: {}. Processed: {} events, Deleted: {} events, Skipped: {} events, Duration: {}ms",
                 environmentId,
                 processedCount.get(),
@@ -140,7 +138,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
             );
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
-            logger.error(
+            log.error(
                 "Cleanup failed for environment: {} after {}ms. Processed: {} events, Deleted: {} events, Skipped: {} events",
                 environmentId,
                 duration,

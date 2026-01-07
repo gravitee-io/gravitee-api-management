@@ -17,23 +17,18 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.common.http.HttpMethod.GET;
 import static io.gravitee.common.http.HttpMethod.POST;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.EmailValidator;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.vertx.core.buffer.Buffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -43,10 +38,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class NewsletterServiceImpl extends TransactionalService implements NewsletterService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NewsletterServiceImpl.class);
 
     @Autowired
     private HttpClientService httpClientService;
@@ -73,7 +67,7 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
                 httpClientService.request(POST, newsletterUrl, emptyMap(), mapper.writeValueAsString(newsletterInfo), null);
             }
         } catch (final Exception e) {
-            LOGGER.error("Error while subscribing to newsletters cause: {}", e.getMessage());
+            log.error("Error while subscribing to newsletters cause: {}", e.getMessage());
         }
     }
 
@@ -89,7 +83,7 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
                 return mapper.readValue(buffer.toString(), List.class);
             }
         } catch (Exception e) {
-            LOGGER.debug("Error while reading the taglines response: {}", e.getMessage());
+            log.debug("Error while reading the taglines response: {}", e.getMessage());
         }
         return null;
     }

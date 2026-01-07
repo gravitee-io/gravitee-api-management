@@ -22,9 +22,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -33,10 +31,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class ApiKeySubscriptionsUpgrader implements Upgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeySubscriptionsUpgrader.class);
 
     private final ApiKeyRepository apiKeyRepository;
 
@@ -63,7 +59,7 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     @SuppressWarnings("removal")
     private void updateApiKeySubscriptions(ApiKey apiKey) throws TechnicalException {
         try {
-            LOGGER.debug("Updating subscriptions for API Key [{}]", apiKey);
+            log.debug("Updating subscriptions for API Key [{}]", apiKey);
             List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
             if (apiKey.getSubscription() != null && !allSubscriptions.contains(apiKey.getSubscription())) {
                 allSubscriptions.add(apiKey.getSubscription());

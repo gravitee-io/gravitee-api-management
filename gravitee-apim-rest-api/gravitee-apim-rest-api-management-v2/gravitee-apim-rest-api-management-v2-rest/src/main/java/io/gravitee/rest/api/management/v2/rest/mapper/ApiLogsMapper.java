@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogDiagnostic;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
@@ -28,11 +29,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
 public interface ApiLogsMapper {
-    Logger logger = LoggerFactory.getLogger(ApiLogsMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiLogsMapper.class);
     ApiLogsMapper INSTANCE = Mappers.getMapper(ApiLogsMapper.class);
 
     @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")

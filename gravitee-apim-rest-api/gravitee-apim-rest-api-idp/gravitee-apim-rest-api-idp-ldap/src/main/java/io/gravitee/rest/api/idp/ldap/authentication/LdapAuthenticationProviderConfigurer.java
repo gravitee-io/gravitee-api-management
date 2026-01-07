@@ -17,7 +17,7 @@ package io.gravitee.rest.api.idp.ldap.authentication;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  * @author Rob Winch
  * @since 3.2
  */
-@Slf4j
+@CustomLog
 public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>>
     extends SecurityConfigurerAdapter<AuthenticationManager, B> {
 

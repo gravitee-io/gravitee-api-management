@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
-import io.gravitee.rest.api.model.configuration.identity.*;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
+import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
@@ -31,8 +35,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,10 +44,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SocialIdentityProviderImpl extends AbstractService implements SocialIdentityProviderService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(SocialIdentityProviderImpl.class);
 
     // Pattern reuse for duplicate slash removal
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -86,7 +88,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to retrieve identity providers", ex);
+            log.error("An error occurs while trying to retrieve identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
@@ -94,7 +96,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     @Override
     public SocialIdentityProviderEntity findById(String id, IdentityProviderActivationService.ActivationTarget target) {
         try {
-            LOGGER.debug("Find identity provider by ID: {}", id);
+            log.debug("Find identity provider by ID: {}", id);
 
             Set<String> allIdpByTarget = identityProviderActivationService
                 .findAllByTarget(target)
@@ -116,7 +118,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         } catch (IdentityProviderNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
+            log.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }

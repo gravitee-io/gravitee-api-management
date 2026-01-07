@@ -87,8 +87,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
@@ -108,7 +108,7 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 @Component
-@Slf4j
+@CustomLog
 public class PageServiceImpl extends AbstractService implements PageService, ApplicationContextAware {
 
     public static final String SYSTEM_CONTRIBUTOR = "system";

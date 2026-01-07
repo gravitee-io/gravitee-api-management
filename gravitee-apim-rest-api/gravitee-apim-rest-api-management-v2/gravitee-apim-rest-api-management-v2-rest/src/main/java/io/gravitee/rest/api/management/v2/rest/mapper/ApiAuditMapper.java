@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService.nameMetadataKey;
 
 import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.Audit;
 import io.gravitee.rest.api.management.v2.rest.model.AuditPropertiesInner;
 import io.gravitee.rest.api.management.v2.rest.model.AuditReference;
@@ -28,11 +29,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
 public interface ApiAuditMapper {
-    Logger logger = LoggerFactory.getLogger(ApiAuditMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiAuditMapper.class);
     ApiAuditMapper INSTANCE = Mappers.getMapper(ApiAuditMapper.class);
 
     @Named("mapToAudit")

@@ -21,9 +21,9 @@ import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class V2toV4MigrationOperator {
 
     private final ApiMigration apiMigration;

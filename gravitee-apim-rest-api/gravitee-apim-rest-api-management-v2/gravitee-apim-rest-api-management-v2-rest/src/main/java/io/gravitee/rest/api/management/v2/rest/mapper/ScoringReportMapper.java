@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
@@ -28,11 +29,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface ScoringReportMapper {
-    Logger logger = LoggerFactory.getLogger(ScoringReportMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ScoringReportMapper.class);
     ScoringReportMapper INSTANCE = Mappers.getMapper(ScoringReportMapper.class);
 
     ApiScoring map(ScoringReportView source);

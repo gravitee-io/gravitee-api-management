@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -43,7 +43,7 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
     public static String METADATA_EXPORT_VERSION = "exportVersion";

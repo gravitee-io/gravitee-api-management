@@ -32,6 +32,7 @@ import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
@@ -46,12 +47,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ApiAdapter.class, PlanAdapter.class, MemberAdapter.class, MetadataAdapter.class, PageAdapter.class })
 public interface GraviteeDefinitionAdapter {
     GraviteeDefinitionAdapter INSTANCE = Mappers.getMapper(GraviteeDefinitionAdapter.class);
-    Logger logger = LoggerFactory.getLogger(GraviteeDefinitionAdapter.class);
+    Logger log = NodeLoggerFactory.getLogger(GraviteeDefinitionAdapter.class);
 
     List<PageExport> mapPage(Collection<Page> source);
 

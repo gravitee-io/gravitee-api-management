@@ -26,7 +26,7 @@ import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-@Slf4j
+@CustomLog
 public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainService {
 
     private final ApiMetadataService metadataService;

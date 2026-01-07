@@ -53,11 +53,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @DomainService
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class AcceptSubscriptionDomainService {
 

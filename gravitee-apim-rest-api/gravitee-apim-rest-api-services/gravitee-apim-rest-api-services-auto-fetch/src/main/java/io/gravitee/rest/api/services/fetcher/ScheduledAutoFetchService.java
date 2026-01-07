@@ -21,7 +21,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.services.fetcher.spring.AutoFetchConfiguration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
@@ -31,7 +31,7 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ScheduledAutoFetchService extends AbstractService implements Runnable {
 
     @Autowired

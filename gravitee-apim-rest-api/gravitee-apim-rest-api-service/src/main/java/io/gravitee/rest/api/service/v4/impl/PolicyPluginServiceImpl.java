@@ -153,17 +153,17 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
 
         for (String schemaKey : schemaKeys) {
             try {
-                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
+                log.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
                 String schema = pluginManager.getSchema(policyPluginId, schemaKey, false, true);
                 if (schema != null) {
                     return schema;
                 }
             } catch (IOException ioex) {
-                logger.debug("Error while getting specific schema for this display format. Fall back on default schema.");
+                log.debug("Error while getting specific schema for this display format. Fall back on default schema.");
             }
         }
 
-        logger.debug("No specific schema exists for this display format. Fall back on default schema.");
+        log.debug("No specific schema exists for this display format. Fall back on default schema.");
         return this.getSchema(policyPluginId);
     }
 

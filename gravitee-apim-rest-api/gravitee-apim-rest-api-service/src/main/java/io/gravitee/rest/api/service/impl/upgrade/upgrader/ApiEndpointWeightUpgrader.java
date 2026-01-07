@@ -28,13 +28,13 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class ApiEndpointWeightUpgrader implements Upgrader {
 
     @Lazy

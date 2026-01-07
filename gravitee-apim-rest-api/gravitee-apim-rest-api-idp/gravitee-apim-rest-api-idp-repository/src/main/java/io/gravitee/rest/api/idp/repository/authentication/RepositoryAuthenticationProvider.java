@@ -25,7 +25,7 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,7 +44,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Import(RepositoryAuthenticationProviderConfiguration.class)
 public class RepositoryAuthenticationProvider
     extends AbstractUserDetailsAuthenticationProvider

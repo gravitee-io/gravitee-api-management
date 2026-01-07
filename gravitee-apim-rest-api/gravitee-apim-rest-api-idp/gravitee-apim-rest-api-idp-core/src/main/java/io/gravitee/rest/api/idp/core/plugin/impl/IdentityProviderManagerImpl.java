@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -51,7 +51,7 @@ import org.springframework.core.env.StandardEnvironment;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
     private final Map<String, IdentityProvider> identityProviders = new HashMap<>();

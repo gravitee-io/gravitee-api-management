@@ -18,9 +18,9 @@ package io.gravitee.apim.infra.json.jackson;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.infra.json.jackson.module.GraviteeDefinitionJacksonModule;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class GraviteeDefinitionJacksonJsonSerializer extends JacksonJsonSerializer implements GraviteeDefinitionSerializer {
 
     public GraviteeDefinitionJacksonJsonSerializer() {

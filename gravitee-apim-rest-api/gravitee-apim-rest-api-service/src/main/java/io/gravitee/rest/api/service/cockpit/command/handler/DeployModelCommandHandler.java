@@ -41,10 +41,9 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,9 +52,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@CustomLog
 public class DeployModelCommandHandler implements CommandHandler<DeployModelCommand, DeployModelReply> {
-
-    private final Logger logger = LoggerFactory.getLogger(DeployModelCommandHandler.class);
 
     private final ApiSearchService apiSearchService;
     private final ApiServiceCockpit cockpitApiService;
@@ -142,10 +140,10 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     });
             }
         } catch (InvalidPathsException ipe) {
-            logger.error("Context path already used, API [crossId: {}] can be imported", apiCrossId, ipe);
+            log.error("Context path already used, API [crossId: {}] can be imported", apiCrossId, ipe);
             return Single.just(new DeployModelReply(command.getId(), "Failed to import API [context path not available]."));
         } catch (Exception e) {
-            logger.error("Error occurred when importing API [crossId: {}]", apiCrossId, e);
+            log.error("Error occurred when importing API [crossId: {}]", apiCrossId, e);
             return Single.just(new DeployModelReply(command.getId(), "Error occurred when importing API"));
         }
     }
@@ -177,7 +175,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             labels
         );
 
-        logger.info("API [id: {} / crossId: {}] v2 updated.", result.getApi().getId(), result.getApi().getCrossId());
+        log.info("API [id: {} / crossId: {}] v2 updated.", result.getApi().getId(), result.getApi().getCrossId());
         return Single.just(new DeployModelReply(command.getId()));
     }
 

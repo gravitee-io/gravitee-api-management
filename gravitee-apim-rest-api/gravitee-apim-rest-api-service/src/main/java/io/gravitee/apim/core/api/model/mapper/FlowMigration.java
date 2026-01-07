@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class FlowMigration {
 

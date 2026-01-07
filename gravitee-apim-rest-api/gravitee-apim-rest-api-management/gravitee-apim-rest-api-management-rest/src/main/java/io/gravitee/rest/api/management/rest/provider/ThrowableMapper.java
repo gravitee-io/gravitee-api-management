@@ -18,12 +18,12 @@ package io.gravitee.rest.api.management.rest.provider;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@Slf4j
+@CustomLog
 @Provider
 public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
 

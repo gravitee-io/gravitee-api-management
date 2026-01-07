@@ -21,7 +21,7 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 @DomainService
 class ImportDefinitionMetadataDomainService {

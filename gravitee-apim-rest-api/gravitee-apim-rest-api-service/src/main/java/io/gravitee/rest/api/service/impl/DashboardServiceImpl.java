@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DASHBOARD;
-import static io.gravitee.repository.management.model.Dashboard.AuditEvent.*;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_CREATED;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_DELETED;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_UPDATED;
 import static io.gravitee.repository.management.model.DashboardType.API;
 import static io.gravitee.repository.management.model.DashboardType.APPLICATION;
 import static io.gravitee.repository.management.model.DashboardType.PLATFORM;
@@ -44,10 +46,14 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import lombok.CustomLog;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -57,10 +63,10 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class DashboardServiceImpl extends AbstractService implements DashboardService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(DashboardServiceImpl.class);
     private static final String DEFAULT_HOME_DASHBOARD_PATH = "/home.json";
 
     @Value("${console.dashboards.path:${gravitee.home}/dashboards}")
@@ -76,7 +82,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     @Override
     public List<DashboardEntity> findAll() {
         try {
-            LOGGER.debug("Find all dashboards");
+            log.debug("Find all dashboards");
             return dashboardRepository
                 .findAll()
                 .stream()
@@ -86,7 +92,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .toList();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -94,7 +100,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     @Override
     public List<DashboardEntity> findAllByReference(DashboardReferenceType referenceType, String referenceId) {
         try {
-            LOGGER.debug("Find all dashboards for {} - {}", referenceType, referenceId);
+            log.debug("Find all dashboards for {} - {}", referenceType, referenceId);
             return dashboardRepository
                 .findByReference(referenceType.name(), referenceId)
                 .stream()
@@ -104,7 +110,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .toList();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -115,7 +121,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         final DashboardType type
     ) {
         try {
-            LOGGER.debug("Find all dashboards by reference type");
+            log.debug("Find all dashboards by reference type");
             if (DashboardType.HOME.equals(type)) {
                 DashboardEntity dashboard = new DashboardEntity();
                 dashboard.setDefinition(this.getHomeDashboardDefinition());
@@ -133,7 +139,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards by reference type";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -141,14 +147,14 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     @Override
     public DashboardEntity findByReferenceAndId(DashboardReferenceType referenceType, String referenceId, String dashboardId) {
         try {
-            LOGGER.debug("Find dashboard by ID: {}", dashboardId);
+            log.debug("Find dashboard by ID: {}", dashboardId);
             return dashboardRepository
                 .findByReferenceAndId(referenceType.name(), referenceId, dashboardId)
                 .map(this::convert)
                 .orElseThrow(() -> new DashboardNotFoundException(dashboardId));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find dashboard by ID";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -175,7 +181,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             return convert(dashboard);
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to create dashboard " + dashboardEntity;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -188,7 +194,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     private void createDashboardsOfType(ExecutionContext executionContext, final DashboardType referenceType) {
-        LOGGER.info(
+        log.info(
             "    No default {}'s dashboards for environment {}, creating default ones...",
             referenceType,
             executionContext.getEnvironmentId()
@@ -196,11 +202,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         createDashboard(executionContext, referenceType, "Global");
         createDashboard(executionContext, referenceType, "Geo");
         createDashboard(executionContext, referenceType, "User");
-        LOGGER.info(
-            "    Added default {}'s dashboards with success for environment {}",
-            referenceType,
-            executionContext.getEnvironmentId()
-        );
+        log.info("    Added default {}'s dashboards with success for environment {}", referenceType, executionContext.getEnvironmentId());
     }
 
     private void createDashboard(ExecutionContext executionContext, DashboardType type, String prefixName) {
@@ -215,7 +217,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         try {
             dashboard.setDefinition(IOUtils.toString(this.getClass().getResourceAsStream(filePath), defaultCharset()));
         } catch (final Exception e) {
-            LOGGER.error("Error while trying to create a dashboard from the definition path: " + filePath, e);
+            log.error("Error while trying to create a dashboard from the definition path: " + filePath, e);
         }
         this.create(executionContext, dashboard);
     }
@@ -256,7 +258,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             return savedDashboard;
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to update dashboard " + dashboardEntity;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -274,7 +276,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             return jsonNode.toString();
         } catch (IOException ex) {
             final String error = "Error while trying to load a dashboard from the definition path: " + path;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -320,7 +322,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             return convert(dashboardRepository.update(dashboardToReorder));
         } catch (final TechnicalException ex) {
             final String error = "An error occurs while trying to update dashboard " + dashboardToReorder.getId();
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -354,7 +356,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete dashboard " + dashboardId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }

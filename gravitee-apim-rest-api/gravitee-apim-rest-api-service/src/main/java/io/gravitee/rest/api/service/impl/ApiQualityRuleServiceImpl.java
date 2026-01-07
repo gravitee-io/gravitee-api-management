@@ -24,16 +24,19 @@ import static java.util.stream.Collectors.toList;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import io.gravitee.rest.api.model.quality.*;
+import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
+import io.gravitee.rest.api.model.quality.NewApiQualityRuleEntity;
+import io.gravitee.rest.api.model.quality.UpdateApiQualityRuleEntity;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiQualityRuleAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.ApiQualityRuleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -42,10 +45,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQualityRuleService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiQualityRuleServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -57,11 +59,11 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public List<ApiQualityRuleEntity> findByApi(final String api) {
         try {
-            LOGGER.debug("Find quality rules by API");
+            log.debug("Find quality rules by API");
             return apiQualityRuleRepository.findByApi(api).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find quality rules by API";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -90,7 +92,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create an API quality rule " + newEntity;
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }
@@ -119,7 +121,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             return convert(apiQualityRule);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to update API quality rule " + updateEntity;
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalManagementException(error, e);
         }
     }

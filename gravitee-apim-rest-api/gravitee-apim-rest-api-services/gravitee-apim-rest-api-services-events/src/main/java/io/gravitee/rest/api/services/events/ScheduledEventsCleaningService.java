@@ -23,17 +23,15 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+@CustomLog
 public class ScheduledEventsCleaningService extends AbstractService implements Runnable {
-
-    private final Logger logger = LoggerFactory.getLogger(ScheduledEventsCleaningService.class);
 
     private final CleanupEventsUseCase cleanupEventsUseCase;
     private final OrganizationService organizationService;
@@ -74,10 +72,10 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
         if (clusterManager.self().primary()) {
             if (enabled) {
                 super.doStart();
-                logger.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
+                log.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
                 scheduler.schedule(this, new CronTrigger(cronTrigger));
             } else {
-                logger.warn("Event cleaner Refresher service has been disabled");
+                log.warn("Event cleaner Refresher service has been disabled");
             }
         }
     }
@@ -88,7 +86,7 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
             .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
             .toList();
         for (var environment : environments) {
-            logger.info(
+            log.info(
                 "Start cleanup environment: {} ({}) from organisation {}",
                 environment.getName(),
                 environment.getId(),

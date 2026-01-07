@@ -17,26 +17,21 @@ package io.gravitee.rest.api.service.impl.search.lucene;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import java.io.IOException;
+import lombok.CustomLog;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class SearchEngineIndexer {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(SearchEngineIndexer.class);
 
     private static final String ID_FIELD = "id";
     private static final String TYPE_FIELD = "type";
@@ -45,7 +40,7 @@ public class SearchEngineIndexer {
     private IndexWriter writer;
 
     public long index(Document document, boolean commit) throws TechnicalException {
-        logger.debug("Updating a document into the Lucene index");
+        log.debug("Updating a document into the Lucene index");
         String id = document.get(ID_FIELD);
         try {
             long seq = writer.updateDocument(new Term(ID_FIELD, id), document);
@@ -54,7 +49,7 @@ public class SearchEngineIndexer {
             }
             return seq;
         } catch (IOException ioe) {
-            logger.error("Fail to index document with ID: {}", id, ioe);
+            log.error("Fail to index document with ID: {}", id, ioe);
             throw new TechnicalException("Fail to index document with ID: " + id, ioe);
         }
     }
@@ -63,7 +58,7 @@ public class SearchEngineIndexer {
         String type = document.get(TYPE_FIELD);
         String id = document.get(ID_FIELD);
 
-        logger.debug("Removing document type[{}] ID[{}]", type, id);
+        log.debug("Removing document type[{}] ID[{}]", type, id);
 
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         bq.add(new TermQuery(new Term(ID_FIELD, id)), BooleanClause.Occur.MUST);
@@ -72,7 +67,7 @@ public class SearchEngineIndexer {
         try {
             writer.deleteDocuments(bq.build());
         } catch (IOException ioe) {
-            logger.error("Fail to index document with ID: {}", id, ioe);
+            log.error("Fail to index document with ID: {}", id, ioe);
             throw new TechnicalException("Fail to index document with ID: " + id, ioe);
         }
     }
@@ -81,7 +76,7 @@ public class SearchEngineIndexer {
         try {
             writer.commit();
         } catch (IOException ioe) {
-            logger.error("Unexpected IO errors while committing Lucene index", ioe);
+            log.error("Unexpected IO errors while committing Lucene index", ioe);
             throw new TechnicalException("Unexpected IO errors while committing Lucene index", ioe);
         }
     }

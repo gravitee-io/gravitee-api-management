@@ -23,26 +23,32 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class HttpClientServiceImpl extends AbstractService implements HttpClientService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(HttpClientServiceImpl.class);
 
     private static final String HTTPS_SCHEME = "https";
 
@@ -90,7 +96,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     @Override
     public Buffer request(HttpMethod method, String uri, Map<String, String> headers, String body, Boolean useSystemProxy) {
         if (uri == null || uri.isEmpty()) {
-            LOGGER.error("HttpClient configuration is empty");
+            log.error("HttpClient configuration is empty");
             return null;
         }
 
@@ -153,7 +159,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                                             httpClient.close();
                                         } else {
                                             HttpClientResponse response = asyncResponse.result();
-                                            LOGGER.debug("Web response status code : {}", response.statusCode());
+                                            log.debug("Web response status code : {}", response.statusCode());
 
                                             if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
                                                 response.bodyHandler(buffer -> {

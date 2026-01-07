@@ -39,10 +39,10 @@ import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvide
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Slf4j
+@CustomLog
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
 
     final Map<ApiEntity, DynamicPropertyScheduler> schedulers = new HashMap<>();

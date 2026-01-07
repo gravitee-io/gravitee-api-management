@@ -98,7 +98,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -109,7 +109,7 @@ import org.springframework.stereotype.Component;
  * @author Gaëtan MAISSE (gaetan.maisse at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDuplicatorService {
 

@@ -22,13 +22,13 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class PageConfigurationOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor> implements OAITransformer {
 
     public PageConfigurationOAITransformer(PageEntity page) {

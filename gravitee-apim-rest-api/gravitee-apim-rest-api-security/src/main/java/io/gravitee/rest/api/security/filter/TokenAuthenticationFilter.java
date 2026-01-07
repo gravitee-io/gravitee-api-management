@@ -46,7 +46,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,7 +56,7 @@ import org.springframework.web.filter.GenericFilterBean;
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class TokenAuthenticationFilter extends GenericFilterBean {
 
     public static final String AUTH_COOKIE_NAME = "Auth-Graviteeio-APIM";

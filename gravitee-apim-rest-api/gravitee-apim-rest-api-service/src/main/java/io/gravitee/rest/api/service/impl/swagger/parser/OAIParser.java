@@ -22,7 +22,11 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
@@ -31,17 +35,15 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
-
-    private final Logger logger = LoggerFactory.getLogger(OAIParser.class);
 
     static {
         System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
@@ -60,7 +62,7 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
                 tmp = createTempFile(content);
                 path = tmp.toAbsolutePath().toString();
             } catch (RuntimeException e) {
-                logger.warn("Unable to create temporary file, raw content will be passed to OAI parser: {}", e.getMessage());
+                log.warn("Unable to create temporary file, raw content will be passed to OAI parser: {}", e.getMessage());
             }
         }
 
@@ -146,7 +148,7 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
 
     private void setNonPosixPermissions(File file) {
         if (!file.setReadable(true, true) || !file.setWritable(true, true) || !file.setExecutable(false)) {
-            logger.warn("Unable to set permissions on file {}, using default permissions", file.getAbsolutePath());
+            log.warn("Unable to set permissions on file {}, using default permissions", file.getAbsolutePath());
         }
     }
 
@@ -154,7 +156,7 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
         try {
             Files.delete(path);
         } catch (IOException e) {
-            logger.warn("Unable to delete temporary file {}", path);
+            log.warn("Unable to delete temporary file {}", path);
         }
     }
 }

@@ -21,8 +21,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,10 +29,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SynchronizationService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(SynchronizationService.class);
 
     private final ObjectMapper objectMapper;
 
@@ -62,7 +60,7 @@ public class SynchronizationService {
                 .readTree(requiredFieldsDeployedApiDefinition)
                 .equals(objectMapper.readTree(requiredFieldsApiToDeployDefinition));
         } catch (Exception e) {
-            LOGGER.error("Unexpected error while generating API deployment required fields definition", e);
+            log.error("Unexpected error while generating API deployment required fields definition", e);
             return false;
         }
     }
@@ -102,7 +100,7 @@ public class SynchronizationService {
             try {
                 requiredEntityFields.add(entityField.get(entity));
             } catch (Exception e) {
-                LOGGER.error("Error access entity required deployment fields", e);
+                log.error("Error access entity required deployment fields", e);
             } finally {
                 entityField.setAccessible(previousAccessibleState);
             }

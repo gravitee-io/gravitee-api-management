@@ -16,17 +16,17 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.event.model.EventWithInitiator;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.Event;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { DateMapper.class, UserMapper.class })
 public interface ApiEventMapper {
-    Logger logger = LoggerFactory.getLogger(ApiEventMapper.class);
+    Logger log = NodeLoggerFactory.getLogger(ApiEventMapper.class);
     ApiEventMapper INSTANCE = Mappers.getMapper(ApiEventMapper.class);
 
     @Mapping(source = "environments", target = "environmentIds")

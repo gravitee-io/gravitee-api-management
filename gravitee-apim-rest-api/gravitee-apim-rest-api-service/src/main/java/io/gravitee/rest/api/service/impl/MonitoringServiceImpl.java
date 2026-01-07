@@ -21,7 +21,7 @@ import io.gravitee.rest.api.model.monitoring.*;
 import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
-@Slf4j
+@CustomLog
 public class MonitoringServiceImpl implements MonitoringService {
 
     @Lazy

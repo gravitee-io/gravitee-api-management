@@ -21,12 +21,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import java.io.IOException;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.web.filter.GenericFilterBean;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class ContextualLoggingFilter extends GenericFilterBean {
 

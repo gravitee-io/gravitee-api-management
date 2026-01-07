@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -39,15 +38,17 @@ import jakarta.mail.internet.InternetAddress;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
@@ -61,10 +62,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class EmailServiceImpl extends TransactionalService implements EmailService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private static final Duration REGEX_TIMEOUT = Duration.ofSeconds(2);
 
@@ -175,7 +175,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
-                LOGGER.debug(
+                log.debug(
                     "Sending an email to {} recipient(s)\nSubject: {}\nMessage: {}",
                     emailNotification.recipientsCount(),
                     emailSubject,
@@ -184,7 +184,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
-                LOGGER.error("Error while sending email notification", ex);
+                log.error("Error while sending email notification", ex);
                 throw new TechnicalManagementException("Error while sending email notification", ex);
             }
         }
@@ -219,7 +219,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     final FileSystemResource templateResource = new FileSystemResource(file);
                     mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
                 } else {
-                    LOGGER.warn("Resource path invalid : {}", file.getPath());
+                    log.warn("Resource path invalid : {}", file.getPath());
                 }
             }
         }

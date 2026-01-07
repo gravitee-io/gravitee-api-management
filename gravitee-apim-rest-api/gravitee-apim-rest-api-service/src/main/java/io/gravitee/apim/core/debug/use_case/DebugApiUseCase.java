@@ -53,10 +53,10 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 @UseCase
 public class DebugApiUseCase {

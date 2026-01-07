@@ -29,13 +29,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class UserTokenPermissionUpgrader implements Upgrader {
 
     private final RoleService roleService;

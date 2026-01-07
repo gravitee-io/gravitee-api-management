@@ -68,14 +68,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @UseCase
-@Slf4j
+@CustomLog
 public class ImportApiCRDUseCase {
 
     private final ApiQueryService apiQueryService;

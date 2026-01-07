@@ -22,11 +22,11 @@ import io.gravitee.apim.infra.adapter.WorkflowAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+@CustomLog
 @Service
 public class WorkflowQueryServiceImpl implements WorkflowQueryService {
 

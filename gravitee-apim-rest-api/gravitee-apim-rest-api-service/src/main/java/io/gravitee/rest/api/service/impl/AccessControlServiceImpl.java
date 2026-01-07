@@ -39,8 +39,7 @@ import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Iterator;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,10 +47,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AccessControlServiceImpl extends AbstractService implements AccessControlService {
-
-    private final Logger logger = LoggerFactory.getLogger(AccessControlServiceImpl.class);
 
     @Autowired
     private MembershipService membershipService;
@@ -122,7 +120,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
                         boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
                         return pageEntity.isExcludedAccessControls() != groupMatched;
                     } else {
-                        logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
+                        log.warn("ACL reference type [{}] not found", acl.getReferenceType());
                     }
                     return false;
                 });

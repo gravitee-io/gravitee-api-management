@@ -33,18 +33,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class SpelServiceImpl implements SpelService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpelServiceImpl.class);
 
     // Generate with EvaluableExtractor
     // TODO: replace this file by direct call
@@ -85,7 +83,7 @@ public class SpelServiceImpl implements SpelService {
 
             return actualObj;
         } catch (IOException e) {
-            LOGGER.error("Error while getting the Expression Language grammar", e);
+            log.error("Error while getting the Expression Language grammar", e);
         }
         return null;
     }

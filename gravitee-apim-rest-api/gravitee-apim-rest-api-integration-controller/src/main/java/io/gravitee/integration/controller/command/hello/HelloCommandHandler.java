@@ -23,11 +23,11 @@ import io.gravitee.integration.api.command.IntegrationCommandType;
 import io.gravitee.integration.api.command.hello.HelloCommand;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.reactivex.rxjava3.core.Single;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloReply> {
 
     private final CheckIntegrationUseCase checkIntegrationUseCase;

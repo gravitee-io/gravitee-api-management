@@ -44,18 +44,17 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
 
@@ -201,7 +200,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
     private void validateAndSetHealthCheckConfiguration(Service healthCheck) {
         if (isBlank(healthCheck.getType())) {
-            logger.debug("HealthCheck requires a type");
+            log.debug("HealthCheck requires a type");
             throw new HealthcheckInvalidException(healthCheck.getType());
         }
 
@@ -272,12 +271,12 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     groupServices.getHealthCheck() == null ||
                     isBlank(groupServices.getHealthCheck().getConfiguration()));
                 if (!serviceHealthCheck.isOverrideConfiguration() && hcGroupWithoutConfig) {
-                    logger.debug("HealthCheck inherit from a missing configuration");
+                    log.debug("HealthCheck inherit from a missing configuration");
                     throw new HealthcheckInheritanceException();
                 }
 
                 if (serviceHealthCheck.isOverrideConfiguration() && isBlank(serviceHealthCheck.getConfiguration())) {
-                    logger.debug("HealthCheck requires a configuration when overrideConfiguration is enabled");
+                    log.debug("HealthCheck requires a configuration when overrideConfiguration is enabled");
                     throw new HealthcheckInheritanceException();
                 }
 
@@ -286,7 +285,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     groupServices.getHealthCheck() != null &&
                     !serviceHealthCheck.getType().equals(groupServices.getHealthCheck().getType())
                 ) {
-                    logger.debug(
+                    log.debug(
                         "HealthCheck with type [{}] inherit configuration from another HealthCheck type [{}]",
                         serviceHealthCheck.getType(),
                         groupServices.getHealthCheck().getType()

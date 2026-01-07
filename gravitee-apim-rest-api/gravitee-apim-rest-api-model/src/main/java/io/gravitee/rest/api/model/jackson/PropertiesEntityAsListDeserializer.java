@@ -23,12 +23,12 @@ import io.gravitee.rest.api.model.PropertyEntity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class PropertiesEntityAsListDeserializer extends StdScalarDeserializer<List<PropertyEntity>> {
 
     public PropertiesEntityAsListDeserializer() {

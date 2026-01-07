@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
@@ -37,8 +38,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.AttributeFactory;
 import org.apache.lucene.util.BytesRef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +45,7 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
@@ -60,8 +60,6 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     public static final String FIELD_REFERENCE = "reference";
     public static final String FIELD_CUSTOM = "custom";
     public static final String FIELD_CUSTOM_SPLIT = "custom_split";
-
-    private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
     @Autowired
     private Analyzer defaultAnalyzer;
@@ -129,7 +127,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
 
         if (user.getEmail() != null && user.getEmail().length() > 0) {
             if (user.getEmail().indexOf('@') < 0) {
-                logger.warn("Email of the user {} is not valid", user.getId());
+                log.warn("Email of the user {} is not valid", user.getId());
             } else {
                 // For security reasons, we remove the domain part of the email
                 doc.add(

@@ -20,7 +20,7 @@ import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseC
 import io.gravitee.common.service.AbstractService;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ScheduledSubscriptionsService extends AbstractService implements Runnable {
 
     @Autowired

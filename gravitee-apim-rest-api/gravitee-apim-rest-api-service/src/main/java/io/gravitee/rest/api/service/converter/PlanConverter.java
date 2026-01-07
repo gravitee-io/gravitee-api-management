@@ -35,18 +35,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class PlanConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlanConverter.class);
 
     private final ObjectMapper objectMapper;
 
@@ -75,7 +73,7 @@ public class PlanConverter {
                 HashMap<String, List<Rule>> rules = objectMapper.readValue(plan.getDefinition(), new TypeReference<>() {});
                 entity.setPaths(rules);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating policy definition", ioe);
+                log.error("Unexpected error while generating policy definition", ioe);
             }
         }
 

@@ -66,8 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -78,6 +77,7 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class AnalyticsServiceImpl implements AnalyticsService {
 
@@ -100,10 +100,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static final String FIELD_PLAN = "plan";
     private static final String FIELD_GEOIP_COUNTRY_ISO_CODE = "geoip.country_iso_code";
     private static final String CUSTOM_FIELD_NAME = "custom.";
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -137,7 +133,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             return response != null ? convert(response, query) : null;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to calculate analytics: ", ae);
+            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
@@ -157,7 +153,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to calculate analytics: ", ae);
+            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
@@ -183,7 +179,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             DateHistogramResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to calculate analytics: ", ae);
+            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
@@ -216,7 +212,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             GroupByResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to calculate analytics: ", ae);
+            log.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }

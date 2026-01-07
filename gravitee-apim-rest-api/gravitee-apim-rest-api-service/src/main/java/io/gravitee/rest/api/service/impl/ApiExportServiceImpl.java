@@ -50,18 +50,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class ApiExportServiceImpl extends AbstractService implements ApiExportService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiExportServiceImpl.class);
 
     private final ObjectMapper objectMapper;
     private final PageService pageService;
@@ -103,7 +101,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+            log.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }
         return "";
     }
@@ -157,7 +155,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
             return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
         } catch (final Exception e) {
-            LOGGER.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
+            log.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
             throw new TechnicalManagementException(e);
         }
     }
