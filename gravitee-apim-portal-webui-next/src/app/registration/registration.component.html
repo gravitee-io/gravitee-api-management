@@ -93,26 +93,24 @@
               class="registration__form__submit">
               Sign up
             </button>
-            <a mat-stroked-button class="m3-label-large" i18n="@@registrationBackToPortalAction" routerLink="/log-in"> Back to log in </a>
+            <a mat-stroked-button class="m3-label-large" i18n="@@registrationBackToPortalAction" routerLink="/log-in"> Back to Login </a>
           </div>
         </div>
       </form>
     </mat-card-content>
   } @else {
-    <div class="registration__success__container">
-      <mat-card-header class="registration__form__header">
-        <mat-card-title class="registration__form__title" i18n="@@registrationSuccessHeader">Registration success</mat-card-title>
-      </mat-card-header>
-      <mat-card-content class="registration__form__content">
+    <mat-card-header class="registration__form__header">
+      <mat-card-title class="registration__form__title" i18n="@@registrationSuccessHeader">Registration success </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="registration__form__content">
+      <div class="registration__success__container">
         <div class="registration__success__container__icon">
           <mat-icon>outgoing_mail</mat-icon>
         </div>
         <div i18n="@@registrationSuccessLabel">An email has been sent to:</div>
         <div>{{ sentToEmail() }}</div>
-        <button type="submit" mat-flat-button i18n="@@registrationBackAction" class="registration__form__submit" routerLink="/">
-          Back to portal
-        </button>
-      </mat-card-content>
-    </div>
+        <button mat-flat-button i18n="@@registrationBackAction" class="registration__form__submit" routerLink="/">Back to portal</button>
+      </div>
+    </mat-card-content>
   }
 </mat-card>

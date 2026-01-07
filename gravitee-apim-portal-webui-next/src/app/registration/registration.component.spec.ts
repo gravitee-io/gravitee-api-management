@@ -38,8 +38,6 @@ describe('RegistrationComponent', () => {
     fixture.detectChanges();
   };
 
-  afterEach(() => {});
-
   it('should display registration form by default (submitted=false)', async () => {
     await init();
 
@@ -52,5 +50,4 @@ describe('RegistrationComponent', () => {
     const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
     expect(success).toBeNull();
   });
-  //
 });
