@@ -23,6 +23,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
+import { cloneDeep } from 'lodash';
 
 import { ApiEndpointGroupsStandardComponent } from './api-endpoint-groups-standard.component';
 import { ApiEndpointGroupsStandardHarness } from './api-endpoint-groups-standard.harness';
@@ -182,8 +183,8 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.getTableRows(0)).toEqual([
-        ['an endpoint', '', '1', ''],
-        ['another endpoint', '', '5', ''],
+        ['', 'an endpoint', '', '1', ''],
+        ['', 'another endpoint', '', '5', ''],
       ]);
     });
     it('should a warning in kafka endpoint group if failover is enabled', async () => {
@@ -197,8 +198,8 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.getTableRows(0)).toEqual([
-        ['an endpoint', '', '1', ''],
-        ['another endpoint', '', '5', ''],
+        ['', 'an endpoint', '', '1', ''],
+        ['', 'another endpoint', '', '5', ''],
       ]);
 
       const warningFailoverBanner = await componentHarness.getWarningFailoverBanner();
@@ -252,6 +253,25 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       fixture.componentInstance.isA2ASelcted = true;
       fixture.detectChanges();
       expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(false);
+    });
+
+    it('should allow to drop endpoint and update his order in a group', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'NATIVE',
+        endpointGroups: [cloneDeep(group1)],
+      });
+      await initComponent(apiV4);
+
+      fixture.componentInstance.dropRow({ previousIndex: 1, currentIndex: 0 } as any, group1.name);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({
+        ...apiV4,
+        endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[1] }, { ...group1.endpoints[0] }] }],
+      });
+      expectApiGetRequest(apiV4);
+      expectEndpointsGetRequest();
     });
   });
 

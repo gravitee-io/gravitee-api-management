@@ -25,6 +25,7 @@ import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular'
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 import { ApiEndpointGroupsLlmComponent } from './llm/api-endpoint-groups-llm.component';
@@ -51,6 +52,7 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
     GioPermissionModule,
     GioBannerModule,
     GioLicenseBannerModule,
+    DragDropModule,
   ],
 })
 export class ApiEndpointGroupsModule {}

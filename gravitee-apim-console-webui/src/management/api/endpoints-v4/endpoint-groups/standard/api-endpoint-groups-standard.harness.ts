@@ -32,7 +32,7 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   public getWarningFailoverBanner = this.locatorForAll(DivHarness.with({ selector: '.banner__wrapper__title' }));
 
   public async getTableRows(index: number) {
-    const table = this.locatorFor(MatTableHarness.with({ selector: `#groupsTable-${index}` }));
+    const table = this.locatorFor(MatTableHarness.with({ selector: `[data-testid=groupsTable-${index}]` }));
     return await table().then((t) => t.getCellTextByIndex());
   }
 

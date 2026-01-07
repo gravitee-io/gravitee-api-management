@@ -20,6 +20,7 @@ import { find, remove } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 import { EndpointGroup, toEndpoints } from './api-endpoint-groups-standard.adapter';
 
@@ -63,7 +64,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
   };
 
-  public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
+  public endpointsDisplayedColumns = ['drag-icon', 'name', 'options', 'weight', 'actions'];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
@@ -212,6 +213,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Endpoint group reordered successfully');
           this.isReordering = false;
         },
         error: ({ error }) => {
@@ -229,5 +231,43 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
           ? this.llmProxyLicenseOptions
           : this.messageLicenseOptions,
     );
+  }
+
+  dropRow(event: CdkDragDrop<string[]>, groupName: string) {
+    this.isReordering = true;
+
+    this.apiService
+      .get(this.activatedRoute.snapshot.params.apiId)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          const groupToUpdate = api.endpointGroups.find((g) => g.name === groupName);
+          if (!groupToUpdate) {
+            // Normally not happen. to help debugging if needed
+            throw new Error('Group not found!');
+          }
+          if (event.previousIndex === event.currentIndex) {
+            // No change, do nothing. Juste complete observable
+            return EMPTY;
+          }
+
+          groupToUpdate.endpoints.splice(event.currentIndex, 0, groupToUpdate.endpoints.splice(event.previousIndex, 1)[0]);
+
+          return this.apiService.update(api.id, { ...api } as UpdateApi);
+        }),
+        tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Endpoint reordered successfully');
+        },
+        error: ({ error }) => {
+          this.isReordering = false;
+          this.snackBarService.error(error.message);
+        },
+        complete: () => {
+          this.isReordering = false;
+        },
+      });
   }
 }
