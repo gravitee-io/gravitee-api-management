@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper;
 
-import static io.reactivex.rxjava3.core.Observable.interval;
-
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.ConsulServiceDiscoveryServiceConfiguration;
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory.EndpointFactory;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -28,9 +26,9 @@ import io.vertx.ext.consul.ServiceEntryList;
 import io.vertx.ext.consul.WatchResult;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class ConsulEventHandler {
 
     private final EndpointManager endpointManager;

@@ -17,7 +17,6 @@ package io.gravitee.apim.plugin.apiservice.servicediscovery.consul;
 
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper.ConsulEventHandler;
 import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper.ConsulOptionsBuilder;
-import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper.ConsulServiceDiscoveryChecker;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -33,10 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.core.env.Environment;
 
-@Slf4j
+@CustomLog
 public class ConsulServiceDiscoveryService implements ApiService {
 
     public static final String CONSUL_SERVICE_DISCOVERY_ID = "consul-service-discovery";

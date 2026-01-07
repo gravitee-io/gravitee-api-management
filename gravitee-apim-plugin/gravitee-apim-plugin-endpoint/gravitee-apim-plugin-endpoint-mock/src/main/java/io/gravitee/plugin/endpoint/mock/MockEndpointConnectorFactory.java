@@ -26,12 +26,12 @@ import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @AllArgsConstructor
 public class MockEndpointConnectorFactory implements HttpEndpointAsyncConnectorFactory<MockEndpointConnector> {
 

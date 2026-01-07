@@ -17,22 +17,20 @@ package io.gravitee.plugin.entrypoint.http.proxy;
 
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.ListenerType;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.EntrypointSyncConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.HttpEntrypointSyncConnector;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.plugin.entrypoint.http.proxy.configuration.HttpProxyEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
-@Slf4j
+@CustomLog
 public class HttpProxyEntrypointConnector extends HttpEntrypointSyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);

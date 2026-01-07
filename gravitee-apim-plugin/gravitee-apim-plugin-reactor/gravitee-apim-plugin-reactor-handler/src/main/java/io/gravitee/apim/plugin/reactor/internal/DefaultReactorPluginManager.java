@@ -27,7 +27,7 @@ import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import java.io.IOException;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,7 +36,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPlugin<?>> implements ReactorPluginManager {
 
     private final ApplicationContext applicationContext;

@@ -24,15 +24,15 @@ import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConne
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfigurationEvaluator;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class TcpProxyEndpointConnectorFactory implements BaseEndpointConnectorFactory<TcpProxyEndpointConnector> {
 
     private final PluginConfigurationHelper connectorFactoryHelper;

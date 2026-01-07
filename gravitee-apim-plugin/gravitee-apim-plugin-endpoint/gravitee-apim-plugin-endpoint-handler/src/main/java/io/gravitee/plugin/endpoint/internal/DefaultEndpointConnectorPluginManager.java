@@ -16,7 +16,6 @@
 package io.gravitee.plugin.endpoint.internal;
 
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -28,18 +27,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
 @SuppressWarnings("unchecked")
+@CustomLog
 public class DefaultEndpointConnectorPluginManager
     extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?, ?>>
     implements EndpointConnectorPluginManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, BaseEndpointConnectorFactory<?>> factories = new HashMap<>();
 
@@ -71,7 +69,7 @@ public class DefaultEndpointConnectorPluginManager
                 notDeployedPluginFactories.put(plugin.id(), factory);
             }
         } catch (Exception ex) {
-            logger.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
+            log.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
         }
     }
 
