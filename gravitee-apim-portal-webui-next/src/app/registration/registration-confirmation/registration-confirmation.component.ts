@@ -70,13 +70,7 @@ interface RegistrationConfirmationFormValue {
   styleUrl: './registration-confirmation.component.scss',
 })
 export class RegistrationConfirmationComponent implements OnInit {
-  registrationConfirmationForm: RegistrationConfirmationFormType = new FormGroup<{
-    firstname: FormControl<string | null>;
-    lastname: FormControl<string | null>;
-    email: FormControl<string | null>;
-    password: FormControl<string | null>;
-    confirmedPassword: FormControl<string | null>;
-  }>({
+  registrationConfirmationForm: RegistrationConfirmationFormType = new FormGroup({
     firstname: new FormControl({ value: '', disabled: true }),
     lastname: new FormControl({ value: '', disabled: true }),
     email: new FormControl({ value: '', disabled: true }),
@@ -145,12 +139,12 @@ export class RegistrationConfirmationComponent implements OnInit {
         password: val.password,
       })
       .pipe(
+        tap(_ => this.submitted.set(true)),
         catchError(_ => {
           this.error.set(400);
           return EMPTY;
         }),
       )
-      .pipe(tap(_ => this.submitted.set(true)))
       .subscribe();
   }
 }

@@ -95,8 +95,9 @@ export class RegistrationComponent implements OnInit {
             this.registrationForm.addControl('customFields', customFields);
           }
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .pipe(takeUntilDestroyed(this.destroyRef))
+
       .subscribe();
   }
 
@@ -107,15 +108,13 @@ export class RegistrationComponent implements OnInit {
     this.usersService
       .registerNewUser({ ...userRegistrationFormValue, confirmation_page_url: confirmationPageUrl })
       .pipe(
-        catchError(err => {
-          this.error.set(err.status);
-          return EMPTY;
-        }),
-      )
-      .pipe(
         tap(() => {
           this.sentToEmail.set(userRegistrationFormValue.email);
           this.submitted.set(true);
+        }),
+        catchError(err => {
+          this.error.set(err.status);
+          return EMPTY;
         }),
       )
       .subscribe();
