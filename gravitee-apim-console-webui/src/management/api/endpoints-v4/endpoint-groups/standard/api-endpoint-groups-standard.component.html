@@ -150,7 +150,7 @@
           <ng-container matColumnDef="tenants">
             <th mat-header-cell *matHeaderCellDef id="tenants">Tenants</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.tenants.join(', ') }}
+              {{ element.tenants?.join(', ') }}
             </td>
           </ng-container>
 
