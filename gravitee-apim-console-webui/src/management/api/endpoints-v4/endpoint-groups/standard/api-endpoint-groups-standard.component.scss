@@ -71,6 +71,8 @@
   }
 
   &__table {
+    table-layout: fixed;
+
     &__actions {
       display: flex;
       justify-content: center;
@@ -78,20 +80,23 @@
   }
 
   .mat-column-drag-icon {
-    width: 0%;
+    width: 48px;
     vertical-align: bottom;
     cursor: move;
   }
 
-  .mat-column-actions {
-    width: 0%;
-    text-align: end;
+  .mat-column-general {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mat-column-weight {
+    width: 80px;
   }
 
-  .mat-column-name,
-  .mat-column-options,
-  .mat-column-weight {
-    width: 30%;
+  .mat-column-actions {
+    width: 96px;
+    text-align: end;
   }
 }
 

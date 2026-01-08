@@ -100,14 +100,14 @@
           aria-label="Endpoint group table"
           cdkDropList
           (cdkDropListDropped)="dropRow($event, group.name)"
-          class="gio-table-light"
+          class="gio-table-light endpoint-group-card__table"
         >
           <!-- Drag icon Column -->
           <ng-container matColumnDef="drag-icon">
             <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
             <td mat-cell *matCellDef="let element">
               @if (!isReadOnly) {
-                <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>
+                <mat-icon svgIcon="gio:drag-indicator"></mat-icon>
               }
             </td>
           </ng-container>
@@ -123,6 +123,14 @@
                   {{ element.nameBadge.title }}
                 </span>
               }
+            </td>
+          </ng-container>
+
+          <!-- General Column -->
+          <ng-container matColumnDef="general">
+            <th mat-header-cell *matHeaderCellDef id="general">{{ group.generalColumnName }}</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.general }}
             </td>
           </ng-container>
 
@@ -192,7 +200,6 @@
             <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="group.endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
-        {{ group.endpointsDisplayedColumns }}
         @if (api?.type !== 'MCP_PROXY') {
           <a
             *gioPermission="{ anyOf: ['api-definition-u'] }"
