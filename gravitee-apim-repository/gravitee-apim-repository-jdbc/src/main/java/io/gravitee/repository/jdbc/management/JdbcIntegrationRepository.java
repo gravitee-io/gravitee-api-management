@@ -32,17 +32,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
+@CustomLog
 @Repository
 public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIntegration, String> implements IntegrationRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIntegrationRepository.class);
     private final String INTEGRATION_GROUPS;
 
     JdbcIntegrationRepository(@Value("${management.jdbc.prefix:}") String prefix) {
@@ -52,7 +49,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
 
     @Override
     public Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {})", environmentId, pageable);
+        log.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {})", environmentId, pageable);
         final List<Integration> integrations;
         try {
             integrations = jdbcTemplate
@@ -68,7 +65,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
             final String message = "Failed to find integrations of environment: " + environmentId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
         return getResultAsPage(pageable, integrations);
@@ -81,7 +78,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         Collection<String> groups,
         Pageable pageable
     ) throws TechnicalException {
-        LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {}, {})", environmentId, groups, pageable);
+        log.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {}, {})", environmentId, groups, pageable);
         List<Integration> integrations;
         try {
             String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
@@ -102,7 +99,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         } catch (final Exception ex) {
             final String message =
                 "Failed to find integrations of environment: " + environmentId + " and groups: " + groups + ": " + ex.getMessage();
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
         return getResultAsPage(pageable, integrations);
@@ -110,7 +107,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcIntegrationRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcIntegrationRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -129,7 +126,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
             return rows;
         } catch (final Exception ex) {
             final String message = "Failed to find integrations of environment: " + environmentId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }

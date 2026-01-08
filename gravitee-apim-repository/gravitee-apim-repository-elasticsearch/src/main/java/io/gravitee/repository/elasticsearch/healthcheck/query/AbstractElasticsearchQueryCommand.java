@@ -24,8 +24,7 @@ import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,12 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
  */
+@CustomLog
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchQueryCommand.class);
 
     /**
      * Elasticsearch component to perform search request.
@@ -97,7 +92,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
         final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 
-        logger.debug("ES request {}", request);
+        log.debug("ES request {}", request);
 
         return request;
     }

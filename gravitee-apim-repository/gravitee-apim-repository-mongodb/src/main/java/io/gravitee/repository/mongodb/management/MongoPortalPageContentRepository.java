@@ -25,15 +25,13 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 public class MongoPortalPageContentRepository implements PortalPageContentRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(MongoPortalPageContentRepository.class);
 
     @Autowired
     private PortalPageContentMongoRepository internalRepo;
@@ -47,7 +45,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
             Set<PortalPageContentMongo> results = internalRepo.findAllByType(type);
             return results.stream().map(mapper::map).collect(Collectors.toList());
         } catch (Exception ex) {
-            logger.error("Failed to find portal page contents by type", ex);
+            log.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
         }
     }
@@ -57,7 +55,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
         try {
             return internalRepo.findById(id).map(mapper::map);
         } catch (Exception ex) {
-            logger.error("Failed to find portal page content by id", ex);
+            log.error("Failed to find portal page content by id", ex);
             throw new TechnicalException("Failed to find portal page content by id", ex);
         }
     }
@@ -68,7 +66,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
             PortalPageContentMongo created = internalRepo.insert(mapper.map(item));
             return mapper.map(created);
         } catch (Exception ex) {
-            logger.error("Failed to create portal page content", ex);
+            log.error("Failed to create portal page content", ex);
             throw new TechnicalException("Failed to create portal page content", ex);
         }
     }
@@ -79,7 +77,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
             PortalPageContentMongo saved = internalRepo.save(mapper.map(item));
             return mapper.map(saved);
         } catch (Exception ex) {
-            logger.error("Failed to update portal page content", ex);
+            log.error("Failed to update portal page content", ex);
             throw new TechnicalException("Failed to update portal page content", ex);
         }
     }
@@ -89,7 +87,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
         try {
             internalRepo.deleteById(id);
         } catch (Exception ex) {
-            logger.error("Failed to delete portal page content [{}]", id, ex);
+            log.error("Failed to delete portal page content [{}]", id, ex);
             throw new TechnicalException("Failed to delete portal page content", ex);
         }
     }
@@ -100,7 +98,7 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
             java.util.List<PortalPageContentMongo> results = internalRepo.findAll();
             return results.stream().map(mapper::map).collect(Collectors.toSet());
         } catch (Exception ex) {
-            logger.error("Failed to find all portal page contents", ex);
+            log.error("Failed to find all portal page contents", ex);
             throw new TechnicalException("Failed to find all portal page contents", ex);
         }
     }

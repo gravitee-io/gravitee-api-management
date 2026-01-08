@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -42,10 +41,9 @@ import org.springframework.stereotype.Repository;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepository<CustomUserField> implements CustomUserFieldsRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCustomUserFieldsRepository.class);
 
     private final String CUSTOM_USER_FIELDS_VALUES;
 
@@ -142,7 +140,7 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
 
     @Override
     public Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.findById({}, {})", key, refId);
+        log.debug("JdbcCustomUserFieldsRepository.findById({}, {})", key, refId);
         try {
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -169,10 +167,10 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
                 refId,
                 refType.name()
             );
-            LOGGER.debug("JdbcCustomUserFieldsRepository.findById({}, {}, {})", key, refId, refType, rowMapper.getRows());
+            log.debug("JdbcCustomUserFieldsRepository.findById({}, {}, {})", key, refId, refType, rowMapper.getRows());
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find custom user fields for key and refId: {}, {}/{})", key, refId, refType, ex);
+            log.error("Failed to find custom user fields for key and refId: {}, {}/{})", key, refId, refType, ex);
             throw new TechnicalException("Failed to find custom user fields by key and refId", ex);
         }
     }
@@ -180,7 +178,7 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
     @Override
     public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType)
         throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.findByReferenceIdAndReferenceType({}, {})", refId, refType);
+        log.debug("JdbcCustomUserFieldsRepository.findByReferenceIdAndReferenceType({}, {})", refId, refType);
         try {
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -204,15 +202,10 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
                 refId,
                 refType.name()
             );
-            LOGGER.debug(
-                "JdbcCustomUserFieldsRepository.findByReferenceIdAndReferenceType({}, {}) = {}",
-                refId,
-                refType,
-                rowMapper.getRows()
-            );
+            log.debug("JdbcCustomUserFieldsRepository.findByReferenceIdAndReferenceType({}, {}) = {}", refId, refType, rowMapper.getRows());
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find custom user fields for refId: {}/{}", refId, refType, ex);
+            log.error("Failed to find custom user fields for refId: {}/{}", refId, refType, ex);
             throw new TechnicalException("Failed to find custom user fields by reference", ex);
         }
     }
@@ -220,7 +213,7 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, CustomUserFieldReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        log.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             final var keys = jdbcTemplate.queryForList(
                 "select " + escapeReservedWord("key") + " from " + tableName + " where reference_id = ? and  reference_type = ? ",
@@ -242,17 +235,17 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
                 );
             }
 
-            LOGGER.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
             return keys;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete custom user fields for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete custom user fields for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete custom user fields by reference", ex);
         }
     }
 
     @Override
     public void delete(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
+        log.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
         try {
             deleteValues(key, refId, refType);
             jdbcTemplate.update(
@@ -265,29 +258,29 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
                 refId,
                 refType.name()
             );
-            LOGGER.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
+            log.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete custom user fields for key and refId: {}, {}, {})", key, refId, refType, ex);
+            log.error("Failed to delete custom user fields for key and refId: {}, {}, {})", key, refId, refType, ex);
             throw new TechnicalException("Failed to delete custom user fields by key and refId", ex);
         }
     }
 
     @Override
     public CustomUserField create(CustomUserField field) throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.create({})", field);
+        log.debug("JdbcCustomUserFieldsRepository.create({})", field);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(field));
             storeValues(field, true);
             return findById(field.getKey(), field.getReferenceId(), field.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create custom user field", ex);
+            log.error("Failed to create custom user field", ex);
             throw new TechnicalException("Failed to create custom user field", ex);
         }
     }
 
     @Override
     public CustomUserField update(CustomUserField field) throws TechnicalException {
-        LOGGER.debug("JdbcCustomUserFieldsRepository.update({})", field);
+        log.debug("JdbcCustomUserFieldsRepository.update({})", field);
         try {
             jdbcTemplate.update(
                 getOrm().buildUpdatePreparedStatementCreator(field, field.getKey(), field.getReferenceId(), field.getReferenceType().name())
@@ -306,7 +299,7 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create custom user field", ex);
+            log.error("Failed to create custom user field", ex);
             throw new TechnicalException("Failed to create custom user field", ex);
         }
     }

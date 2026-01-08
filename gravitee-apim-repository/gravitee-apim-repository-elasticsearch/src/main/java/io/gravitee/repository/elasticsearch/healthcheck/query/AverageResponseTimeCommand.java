@@ -36,8 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -47,12 +46,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AverageResponseTimeCommand extends AbstractElasticsearchQueryCommand<AverageResponseTimeResponse> {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(AverageResponseTimeCommand.class);
 
     private static final String TEMPLATE = "healthcheck/avg-response-time.ftl";
 
@@ -86,7 +81,7 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
             );
             return this.toAverageResponseTimeResponse(result.blockingGet());
         } catch (Exception eex) {
-            logger.error("Impossible to perform AverageResponseTimeQuery", eex);
+            log.error("Impossible to perform AverageResponseTimeQuery", eex);
             throw new AnalyticsException("Impossible to perform AverageResponseTimeQuery", eex);
         }
     }

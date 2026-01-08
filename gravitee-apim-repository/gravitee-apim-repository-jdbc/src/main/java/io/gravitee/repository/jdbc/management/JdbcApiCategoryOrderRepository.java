@@ -25,9 +25,13 @@ import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -35,10 +39,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepository<ApiCategoryOrder> implements ApiCategoryOrderRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiCategoryOrderRepository.class);
 
     JdbcApiCategoryOrderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_category_orders");
@@ -68,20 +71,20 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
     @Override
     public ApiCategoryOrder create(ApiCategoryOrder apiCategoryOrder) throws TechnicalException {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.create({}, {})", apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId());
+        log.debug("JdbcApiCategoryOrderRepository.create({}, {})", apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId());
 
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiCategoryOrder));
             return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElse(null);
         } catch (Exception e) {
-            LOGGER.error("Failed to create api category order", e);
+            log.error("Failed to create api category order", e);
             throw new TechnicalException("Failed to create api category order", e);
         }
     }
 
     @Override
     public ApiCategoryOrder update(ApiCategoryOrder apiCategoryOrder) throws TechnicalException {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.update({})", apiCategoryOrder);
+        log.debug("JdbcApiCategoryOrderRepository.update({})", apiCategoryOrder);
 
         if (Objects.isNull(apiCategoryOrder)) {
             throw new IllegalStateException("ApiCategoryOrder must not be null for update");
@@ -105,17 +108,17 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
                 )
             );
         } catch (IllegalStateException e) {
-            LOGGER.error("Failed to update api category order", e);
+            log.error("Failed to update api category order", e);
             throw new IllegalStateException("Failed to update api category order", e);
         } catch (Exception e) {
-            LOGGER.error("Failed to update api category order", e);
+            log.error("Failed to update api category order", e);
             throw new TechnicalException("Failed to update api category order", e);
         }
     }
 
     @Override
     public void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException {
-        LOGGER.debug("JdbcApiCategoryRepository.delete({}, {})", apiId, categoriesIds);
+        log.debug("JdbcApiCategoryRepository.delete({}, {})", apiId, categoriesIds);
         try {
             if (!categoriesIds.isEmpty()) {
                 jdbcTemplate.update(
@@ -131,14 +134,14 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
                 );
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to delete api category order", e);
+            log.error("Failed to delete api category order", e);
             throw new TechnicalException("Failed to delete api category order", e);
         }
     }
 
     @Override
     public Set<ApiCategoryOrder> findAllByCategoryId(String categoryId) {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.findAllByCategoryId({})", categoryId);
+        log.debug("JdbcApiCategoryOrderRepository.findAllByCategoryId({})", categoryId);
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
@@ -156,14 +159,14 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
             );
             return new HashSet<>(apiCategories);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ApiCategoryOrder by category id [{}]", categoryId, ex);
+            log.error("Failed to find ApiCategoryOrder by category id [{}]", categoryId, ex);
             return Set.of();
         }
     }
 
     @Override
     public Set<ApiCategoryOrder> findAllByApiId(String apiId) {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.findAllByApiId({})", apiId);
+        log.debug("JdbcApiCategoryOrderRepository.findAllByApiId({})", apiId);
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
@@ -181,14 +184,14 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
             );
             return new HashSet<>(apiCategories);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ApiCategoryOrder by api id [{}]", apiId, ex);
+            log.error("Failed to find ApiCategoryOrder by api id [{}]", apiId, ex);
             return Set.of();
         }
     }
 
     @Override
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.deleteByApiId({})", apiId);
+        log.debug("JdbcApiCategoryOrderRepository.deleteByApiId({})", apiId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select category_id from " + this.tableName + " where api_id = ?",
@@ -200,17 +203,17 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
                 jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);
             }
 
-            LOGGER.debug("JdbcApiCategoryOrderRepository.deleteByApiId({}) - Done", apiId);
+            log.debug("JdbcApiCategoryOrderRepository.deleteByApiId({}) - Done", apiId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete ApiCategoryOrder by apiId: {}", apiId, ex);
+            log.error("Failed to delete ApiCategoryOrder by apiId: {}", apiId, ex);
             throw new TechnicalException("Failed to delete ApiCategoryOrder by apiId", ex);
         }
     }
 
     @Override
     public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
-        LOGGER.debug("JdbcApiCategoryOrderRepository.findById({}, {})", apiId, categoryId);
+        log.debug("JdbcApiCategoryOrderRepository.findById({}, {})", apiId, categoryId);
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
@@ -229,7 +232,7 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
             );
             return apiCategories.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ApiCategoryOrder by id", ex);
+            log.error("Failed to find ApiCategoryOrder by id", ex);
             return Optional.empty();
         }
     }

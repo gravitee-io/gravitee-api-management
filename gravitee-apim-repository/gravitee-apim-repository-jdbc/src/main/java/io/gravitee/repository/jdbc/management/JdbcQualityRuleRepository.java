@@ -22,8 +22,7 @@ import io.gravitee.repository.management.model.QualityRule;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -31,10 +30,9 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<QualityRule, String> implements QualityRuleRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcQualityRuleRepository.class);
 
     JdbcQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "quality_rules");
@@ -61,7 +59,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
 
     @Override
     public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcQualityRuleRepository.findByReference({}, {})", referenceType, referenceId);
+        log.debug("JdbcQualityRuleRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
@@ -72,7 +70,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
         } catch (final Exception ex) {
             final String error =
                 "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }

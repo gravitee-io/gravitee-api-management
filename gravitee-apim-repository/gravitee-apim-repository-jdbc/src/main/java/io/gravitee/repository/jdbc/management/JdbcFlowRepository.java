@@ -47,8 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -58,10 +57,10 @@ import org.springframework.stereotype.Repository;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String> implements FlowRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcFlowRepository.class);
     private final String FLOWS;
     private final String FLOW_STEPS;
     private final String FLOW_METHODS;
@@ -196,7 +195,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.findByReference({}, {})", referenceType, referenceId);
+        log.debug("JdbcFlowRepository.findByReference({}, {})", referenceType, referenceId);
 
         try {
             StringBuilder selectQueryBuilder = new StringBuilder("select");
@@ -266,7 +265,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
             SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(selectQueryBuilder.toString(), referenceId, referenceType.name());
             return computeFlowList(sqlRowSet);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find flows by reference:", ex);
+            log.error("Failed to find flows by reference:", ex);
             throw new TechnicalException("Failed to find flows by reference", ex);
         }
     }
@@ -463,7 +462,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+        log.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             final var flows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_id = ? and reference_type = ?",
@@ -472,10 +471,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 referenceType.name()
             );
             this.deleteAllById(flows);
-            LOGGER.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
             return flows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete flows for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete flows for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete flows by reference", ex);
         }
     }
@@ -500,7 +499,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public void deleteAllById(Collection<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.deleteByIds({})", ids);
+        log.debug("JdbcFlowRepository.deleteByIds({})", ids);
         try {
             if (!ids.isEmpty()) {
                 String buildInClause = getOrm().buildInClause(ids);
@@ -524,7 +523,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 jdbcTemplate.update("delete from " + FLOW_CONSUMERS + " where flow_id in (" + buildInClause + ")", flowIds);
             }
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete flows by reference:", ex);
+            log.error("Failed to delete flows by reference:", ex);
             throw new TechnicalException("Failed to delete flows by reference", ex);
         }
     }

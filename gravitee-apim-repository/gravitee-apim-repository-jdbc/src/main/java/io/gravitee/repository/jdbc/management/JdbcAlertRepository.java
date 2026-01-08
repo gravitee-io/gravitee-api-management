@@ -28,10 +28,14 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -39,10 +43,10 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger, String> implements AlertTriggerRepository {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertRepository.class);
     private final String ALERT_EVENT_RULES;
 
     JdbcAlertRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -77,7 +81,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     @Override
     public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds)
         throws TechnicalException {
-        LOGGER.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
+        log.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
         if (isEmpty(referenceIds)) {
             return emptyList();
         }
@@ -97,14 +101,14 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             return rows.stream().peek(this::addEvents).collect(Collectors.toList());
         } catch (final Exception ex) {
             final String message = "Failed to find alerts by reference and referenceIds";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public Optional<AlertTrigger> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcAlertRepository.findById({})", id);
+        log.debug("JdbcAlertRepository.findById({})", id);
         try {
             Optional<AlertTrigger> alert = jdbcTemplate
                 .query(getOrm().getSelectAllSql() + " a where id = ?", getOrm().getRowMapper(), id)
@@ -115,7 +119,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             }
             return alert;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find alert by id", ex);
+            log.error("Failed to find alert by id", ex);
             throw new TechnicalException("Failed to find alert by id", ex);
         }
     }
@@ -127,7 +131,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             storeEvents(alert, false);
             return findById(alert.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create alert", ex);
+            log.error("Failed to create alert", ex);
             throw new TechnicalException("Failed to create alert", ex);
         }
     }
@@ -146,7 +150,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update alert:", ex);
+            log.error("Failed to update alert:", ex);
             throw new TechnicalException("Failed to update alert", ex);
         }
     }
@@ -170,7 +174,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
                 try {
                     return AlertEventType.valueOf(value);
                 } catch (IllegalArgumentException ex) {
-                    LOGGER.error("Failed to parse {} as alert_event:", value, ex);
+                    log.error("Failed to parse {} as alert_event:", value, ex);
                     return null;
                 }
             },
@@ -207,7 +211,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 
     @Override
     public Set<AlertTrigger> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcAlertTriggerRepository.findAll()");
+        log.debug("JdbcAlertTriggerRepository.findAll()");
         try {
             List<AlertTrigger> rows = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
             Set<AlertTrigger> alertTriggers = new HashSet<>();
@@ -217,7 +221,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             }
             return alertTriggers;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all alertTriggers:", ex);
+            log.error("Failed to find all alertTriggers:", ex);
             throw new TechnicalException("Failed to find all alertTriggers", ex);
         }
     }

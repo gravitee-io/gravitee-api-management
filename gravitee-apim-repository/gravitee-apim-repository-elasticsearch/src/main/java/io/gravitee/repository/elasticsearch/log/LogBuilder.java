@@ -33,8 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * Builder for log request.
@@ -43,12 +42,8 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
  */
+@CustomLog
 final class LogBuilder {
-
-    /**
-     * Logger.
-     */
-    private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
 
     /** Document simple date format **/
     private static SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -122,7 +117,7 @@ final class LogBuilder {
         try {
             log.setTimestamp(dtf.parse((source.get(FIELD_TIMESTAMP).asText())).getTime());
         } catch (final ParseException e) {
-            logger.error("Impossible to parse date", e);
+            LogBuilder.log.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
         }
 

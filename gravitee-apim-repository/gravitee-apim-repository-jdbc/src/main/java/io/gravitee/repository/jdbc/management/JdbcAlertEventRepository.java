@@ -31,8 +31,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -40,10 +39,9 @@ import org.springframework.stereotype.Repository;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEvent, String> implements AlertEventRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertEventRepository.class);
 
     JdbcAlertEventRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "alert_events");
@@ -67,8 +65,8 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
     @Override
     public Page<AlertEvent> search(AlertEventCriteria criteria, Pageable pageable) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("JdbcAlertEventRepository.search({})", criteriaToString(criteria));
+        if (log.isDebugEnabled()) {
+            log.debug("JdbcAlertEventRepository.search({})", criteriaToString(criteria));
         }
 
         final List<Object> args = new ArrayList<>();
@@ -96,8 +94,8 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
         builder.append(" order by created_at desc ");
         String sql = builder.toString();
-        LOGGER.debug("SQL: {}", sql);
-        LOGGER.debug("Args: {}", args);
+        log.debug("SQL: {}", sql);
+        log.debug("Args: {}", args);
 
         List<AlertEvent> events = jdbcTemplate.query(
             (Connection cnctn) -> {
@@ -116,7 +114,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
             getOrm().getRowMapper()
         );
 
-        LOGGER.debug("Alert events found: {}", events);
+        log.debug("Alert events found: {}", events);
 
         return getResultAsPage(pageable, events);
     }
@@ -147,8 +145,8 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
         }
 
         String sql = builder.toString();
-        LOGGER.debug("SQL: {}", sql);
-        LOGGER.debug("Args: {}", args);
+        log.debug("SQL: {}", sql);
+        log.debug("Args: {}", args);
         return jdbcTemplate.queryForObject(sql, args.toArray(), Long.class);
     }
 

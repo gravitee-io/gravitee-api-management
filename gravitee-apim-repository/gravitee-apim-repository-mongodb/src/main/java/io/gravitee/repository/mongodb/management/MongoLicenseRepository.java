@@ -29,15 +29,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 public class MongoLicenseRepository implements LicenseRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoLicenseRepository.class);
 
     @Autowired
     private LicenseMongoRepository internalLicenseRepo;
@@ -47,24 +45,24 @@ public class MongoLicenseRepository implements LicenseRepository {
 
     @Override
     public Optional<License> findById(String referenceId, License.ReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Find license by ID [{} {}]", referenceId, referenceType);
+        log.debug("Find license by ID [{} {}]", referenceId, referenceType);
 
         final LicenseMongo license = internalLicenseRepo.findById(new LicensePkMongo(referenceId, referenceType.name())).orElse(null);
 
-        LOGGER.debug("Find license by ID [{}] - Done", license);
+        log.debug("Find license by ID [{}] - Done", license);
         return Optional.ofNullable(mapper.map(license));
     }
 
     @Override
     public License create(License license) throws TechnicalException {
-        LOGGER.debug("Create license with id [{} {}]", license.getReferenceId(), license.getReferenceType());
+        log.debug("Create license with id [{} {}]", license.getReferenceId(), license.getReferenceType());
 
         LicenseMongo licenseMongo = mapper.map(license);
         LicenseMongo createdOrganizationMongo = internalLicenseRepo.insert(licenseMongo);
 
         License res = mapper.map(createdOrganizationMongo);
 
-        LOGGER.debug("Create license [{} {}] - Done", res.getReferenceId(), res.getReferenceType());
+        log.debug("Create license [{} {}] - Done", res.getReferenceId(), res.getReferenceType());
 
         return res;
     }
@@ -89,7 +87,7 @@ public class MongoLicenseRepository implements LicenseRepository {
             LicenseMongo licenseMongoUpdated = internalLicenseRepo.save(organizationMongo);
             return mapper.map(licenseMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating license", e);
+            log.error("An error occurred when updating license", e);
             throw new TechnicalException("An error occurred when updating license");
         }
     }
@@ -99,7 +97,7 @@ public class MongoLicenseRepository implements LicenseRepository {
         try {
             internalLicenseRepo.deleteById(new LicensePkMongo(referenceId, referenceType.name()));
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting license [{} {}]", referenceId, referenceType, e);
+            log.error("An error occurred when deleting license [{} {}]", referenceId, referenceType, e);
             throw new TechnicalException("An error occurred when deleting license");
         }
     }
@@ -126,7 +124,7 @@ public class MongoLicenseRepository implements LicenseRepository {
                 .map(organization -> mapper.map(organization))
                 .collect(Collectors.toSet());
         } catch (Exception e) {
-            LOGGER.error("An error occurred when finding all licenses", e);
+            log.error("An error occurred when finding all licenses", e);
             throw new TechnicalException("An error occurred when finding all licenses");
         }
     }

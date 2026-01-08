@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -25,10 +26,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
-    Logger LOGGER = LoggerFactory.getLogger(AsyncJobRepository.class);
+    Logger log = NodeLoggerFactory.getLogger(AsyncJobRepository.class);
     Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException;
 
     Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException;
@@ -56,7 +56,7 @@ public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
             try {
                 return update(job);
             } catch (TechnicalException e) {
-                LOGGER.error("An error occurs while updating job {} to timeout", job.getId(), e);
+                log.error("An error occurs while updating job {} to timeout", job.getId(), e);
                 return job;
             }
         } else {

@@ -23,8 +23,7 @@ import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -32,10 +31,9 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitation, String> implements InvitationRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(JdbcInvitationRepository.class);
 
     JdbcInvitationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "invitations");
@@ -63,7 +61,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     @Override
     public List<Invitation> findByReferenceIdAndReferenceType(final String referenceId, final InvitationReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcInvitationRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        log.debug("JdbcInvitationRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
@@ -72,7 +70,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
                 referenceId
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find invitation for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to find invitation for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to find invitation by reference", ex);
         }
     }
@@ -80,7 +78,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
+        log.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
         try {
             final var invitationIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_id = ? and reference_type = ?",
@@ -97,10 +95,10 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
                 );
             }
 
-            LOGGER.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            log.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
             return invitationIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete invitation for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete invitation for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete invitation by reference", ex);
         }
     }

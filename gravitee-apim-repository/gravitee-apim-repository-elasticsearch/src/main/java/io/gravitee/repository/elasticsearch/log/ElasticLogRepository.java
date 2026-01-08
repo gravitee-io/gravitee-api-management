@@ -22,7 +22,9 @@ import static java.util.stream.Collectors.joining;
 import static org.springframework.util.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.elasticsearch.model.*;
+import io.gravitee.elasticsearch.model.SearchHit;
+import io.gravitee.elasticsearch.model.SearchHits;
+import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.QueryFilter;
@@ -38,9 +40,11 @@ import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Instant;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -51,12 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ElasticLogRepository extends AbstractElasticsearchRepository implements LogRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ElasticLogRepository.class);
 
     /**
      * Freemarker template name.
@@ -134,7 +134,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 return this.toTabularResponse(searchResponseRequest, searchResponseRequest.getSearchHits().getTotal().getValue());
             }
         } catch (final Exception eex) {
-            logger.error("Impossible to perform log request", eex);
+            log.error("Impossible to perform log request", eex);
             throw new AnalyticsException("Impossible to perform log request", eex);
         }
     }
@@ -229,7 +229,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
             return LogBuilder.createExtendedLog(searchHit, log);
         } catch (Exception e) {
-            logger.error("Request [{}] does not exist", requestId, e);
+            log.error("Request [{}] does not exist", requestId, e);
             throw new AnalyticsException("Request [" + requestId + "] does not exist");
         }
     }

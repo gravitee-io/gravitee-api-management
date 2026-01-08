@@ -24,8 +24,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +32,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoOrganizationRepository implements OrganizationRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoOrganizationRepository.class);
 
     @Autowired
     private OrganizationMongoRepository internalOrganizationRepo;
@@ -46,24 +44,24 @@ public class MongoOrganizationRepository implements OrganizationRepository {
 
     @Override
     public Optional<Organization> findById(String organizationId) throws TechnicalException {
-        LOGGER.debug("Find organization by ID [{}]", organizationId);
+        log.debug("Find organization by ID [{}]", organizationId);
 
         final OrganizationMongo organization = internalOrganizationRepo.findById(organizationId).orElse(null);
 
-        LOGGER.debug("Find organization by ID [{}] - Done", organization);
+        log.debug("Find organization by ID [{}] - Done", organization);
         return Optional.ofNullable(mapper.map(organization));
     }
 
     @Override
     public Organization create(Organization organization) throws TechnicalException {
-        LOGGER.debug("Create organization [{}]", organization.getName());
+        log.debug("Create organization [{}]", organization.getName());
 
         OrganizationMongo organizationMongo = mapper.map(organization);
         OrganizationMongo createdOrganizationMongo = internalOrganizationRepo.insert(organizationMongo);
 
         Organization res = mapper.map(createdOrganizationMongo);
 
-        LOGGER.debug("Create organization [{}] - Done", organization.getName());
+        log.debug("Create organization [{}] - Done", organization.getName());
 
         return res;
     }
@@ -91,7 +89,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
             return mapper.map(organizationMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating organization", e);
+            log.error("An error occurred when updating organization", e);
             throw new TechnicalException("An error occurred when updating organization");
         }
     }
@@ -101,7 +99,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         try {
             internalOrganizationRepo.deleteById(organizationId);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting organization [{}]", organizationId, e);
+            log.error("An error occurred when deleting organization [{}]", organizationId, e);
             throw new TechnicalException("An error occurred when deleting organization");
         }
     }
@@ -111,7 +109,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         try {
             return internalOrganizationRepo.count();
         } catch (Exception e) {
-            LOGGER.error("An error occurred when counting organizations", e);
+            log.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
         }
     }
@@ -125,7 +123,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
                 .map(organization -> mapper.map(organization))
                 .collect(Collectors.toSet());
         } catch (Exception e) {
-            LOGGER.error("An error occurred when counting organizations", e);
+            log.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
         }
     }
@@ -141,11 +139,11 @@ public class MongoOrganizationRepository implements OrganizationRepository {
 
     @Override
     public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
-        LOGGER.debug("Find organization by cockpit ID [{}]", cockpitId);
+        log.debug("Find organization by cockpit ID [{}]", cockpitId);
 
         final OrganizationMongo organization = internalOrganizationRepo.findByCockpitId(cockpitId).orElse(null);
 
-        LOGGER.debug("Find organization by cockpit ID [{}] - Done", organization);
+        log.debug("Find organization by cockpit ID [{}] - Done", organization);
         return Optional.ofNullable(mapper.map(organization));
     }
 }

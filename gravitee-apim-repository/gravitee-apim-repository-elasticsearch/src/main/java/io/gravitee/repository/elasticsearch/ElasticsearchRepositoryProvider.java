@@ -18,16 +18,14 @@ package io.gravitee.repository.elasticsearch;
 import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ElasticsearchRepositoryProvider implements RepositoryProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -44,7 +42,7 @@ public class ElasticsearchRepositoryProvider implements RepositoryProvider {
         if (scope == Scope.ANALYTICS) {
             return ElasticsearchRepositoryConfiguration.class;
         }
-        LOGGER.debug("Skipping unhandled repository scope {}", scope);
+        log.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }

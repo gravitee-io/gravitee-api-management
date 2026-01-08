@@ -25,8 +25,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoDashboardRepository implements DashboardRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoDashboardRepository.class);
 
     @Autowired
     private DashboardMongoRepository internalDashboardRepo;
@@ -47,33 +45,33 @@ public class MongoDashboardRepository implements DashboardRepository {
 
     @Override
     public Set<Dashboard> findAll() {
-        LOGGER.debug("Find all dashboards");
+        log.debug("Find all dashboards");
         final List<DashboardMongo> dictionaries = internalDashboardRepo.findAll();
         final Set<Dashboard> res = mapper.mapDashboards(dictionaries);
-        LOGGER.debug("Find all dashboards - Done");
+        log.debug("Find all dashboards - Done");
         return res;
     }
 
     @Override
     public Optional<Dashboard> findById(String dashboardId) throws TechnicalException {
-        LOGGER.debug("Find dashboard by ID [{}]", dashboardId);
+        log.debug("Find dashboard by ID [{}]", dashboardId);
 
         final DashboardMongo dashboard = internalDashboardRepo.findById(dashboardId).orElse(null);
 
-        LOGGER.debug("Find dashboard by ID [{}] - Done", dashboardId);
+        log.debug("Find dashboard by ID [{}] - Done", dashboardId);
         return Optional.ofNullable(mapper.map(dashboard));
     }
 
     @Override
     public Dashboard create(Dashboard dashboard) throws TechnicalException {
-        LOGGER.debug("Create dashboard [{}]", dashboard.getName());
+        log.debug("Create dashboard [{}]", dashboard.getName());
 
         DashboardMongo dashboardMongo = mapper.map(dashboard);
         DashboardMongo createdDashboardMongo = internalDashboardRepo.insert(dashboardMongo);
 
         Dashboard res = mapper.map(createdDashboardMongo);
 
-        LOGGER.debug("Create dashboard [{}] - Done", dashboard.getName());
+        log.debug("Create dashboard [{}] - Done", dashboard.getName());
 
         return res;
     }
@@ -105,7 +103,7 @@ public class MongoDashboardRepository implements DashboardRepository {
             return mapper.map(dashboardMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating dashboard";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -116,7 +114,7 @@ public class MongoDashboardRepository implements DashboardRepository {
             internalDashboardRepo.deleteById(dashboardId);
         } catch (Exception e) {
             final String error = "An error occurred when deleting dashboard " + dashboardId;
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -145,20 +143,20 @@ public class MongoDashboardRepository implements DashboardRepository {
 
     @Override
     public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException {
-        LOGGER.debug("Find dashboard by ID [{}-{}-{}]", referenceType, referenceId, id);
+        log.debug("Find dashboard by ID [{}-{}-{}]", referenceType, referenceId, id);
 
         final DashboardMongo dashboard = internalDashboardRepo
             .findByReferenceTypeAndReferenceIdAndId(referenceType, referenceId, id)
             .orElse(null);
 
-        LOGGER.debug("Find dashboard by ID [{}-{}-{}] - Done", referenceType, referenceId, id);
+        log.debug("Find dashboard by ID [{}-{}-{}] - Done", referenceType, referenceId, id);
         return Optional.ofNullable(mapper.map(dashboard));
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete dashboard by ref [{}/{}]", referenceId, referenceType);
+        log.debug("Delete dashboard by ref [{}/{}]", referenceId, referenceType);
 
         try {
             final var dashboardIds = internalDashboardRepo
@@ -167,10 +165,10 @@ public class MongoDashboardRepository implements DashboardRepository {
                 .map(DashboardMongo::getId)
                 .toList();
 
-            LOGGER.debug("Delete dashboard by ref [{}/{}] - Done", referenceId, referenceType);
+            log.debug("Delete dashboard by ref [{}/{}] - Done", referenceId, referenceType);
             return dashboardIds;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete dashboards by ref: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete dashboards by ref: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete dashboards by reference");
         }
     }

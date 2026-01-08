@@ -24,9 +24,9 @@ import io.gravitee.repository.healthcheck.v4.model.AvailabilityResponse;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPeriod, AvailabilityResponse> {
 
     private static final String BY_FIELD_AGGS = "by_field";

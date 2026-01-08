@@ -47,8 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -57,10 +56,10 @@ import org.springframework.stereotype.Repository;
 /**
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSubscriptionRepository.class);
     private static final JdbcHelper.ChildAdder<Subscription> METADATA_ADDER = (Subscription parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
         if (metadata == null) {
@@ -117,7 +116,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public Subscription create(Subscription subscription) throws TechnicalException {
-        LOGGER.debug("JdbcSubscriptionRepository.create({})", subscription);
+        log.debug("JdbcSubscriptionRepository.create({})", subscription);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(subscription));
             storeMetadata(subscription, false);
@@ -129,7 +128,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public Subscription update(final Subscription subscription) throws TechnicalException {
-        LOGGER.debug("JdbcSubscriptionRepository.update({})", subscription);
+        log.debug("JdbcSubscriptionRepository.update({})", subscription);
         if (subscription == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -164,7 +163,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
+        log.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -180,7 +179,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
+            log.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
             return rows;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete subscription by environment", ex);
@@ -347,7 +346,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public Optional<Subscription> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcSubscriptionRepository.findById({})", id);
+        log.debug("JdbcSubscriptionRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -364,7 +363,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 id
             );
             Optional<Subscription> result = rowMapper.getRows().stream().findFirst();
-            LOGGER.debug("JdbcSubscriptionRepository.findById({}) = {}", id, result);
+            log.debug("JdbcSubscriptionRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find subscription by id", ex);
@@ -372,7 +371,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     public Set<Subscription> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcSubscriptionRepository.findAll()", getOrm().getTableName());
+        log.debug("JdbcSubscriptionRepository.findAll()", getOrm().getTableName());
         try {
             JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -388,7 +387,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                     " sm on s.id = sm.subscription_id",
                 rowMapper
             );
-            LOGGER.debug("Found {} subscriptions: {}", rowMapper.getRows().size(), rowMapper.getRows());
+            log.debug("Found {} subscriptions: {}", rowMapper.getRows().size(), rowMapper.getRows());
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find subscriptions", ex);

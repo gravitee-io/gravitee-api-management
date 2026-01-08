@@ -19,16 +19,14 @@ import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.mongodb.management.ManagementRepositoryConfiguration;
 import io.gravitee.repository.mongodb.ratelimit.RateLimitRepositoryConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class MongoRepositoryProvider implements RepositoryProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -48,7 +46,7 @@ public class MongoRepositoryProvider implements RepositoryProvider {
             case RATE_LIMIT:
                 return RateLimitRepositoryConfiguration.class;
             default:
-                LOGGER.debug("Skipping unhandled repository scope {}", scope);
+                log.debug("Skipping unhandled repository scope {}", scope);
                 break;
         }
         return null;

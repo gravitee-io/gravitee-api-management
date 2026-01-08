@@ -21,10 +21,14 @@ import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,10 +36,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoIdentityProviderRepository implements IdentityProviderRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoIdentityProviderRepository.class);
 
     @Autowired
     private IdentityProviderMongoRepository internalIdentityProviderRepository;
@@ -45,22 +48,22 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
 
     @Override
     public Optional<IdentityProvider> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find identity provider by ID [{}]", id);
+        log.debug("Find identity provider by ID [{}]", id);
 
         IdentityProviderMongo identityProvider = internalIdentityProviderRepository.findById(id).orElse(null);
 
-        LOGGER.debug("Find identity provider by ID [{}] - Done", id);
+        log.debug("Find identity provider by ID [{}] - Done", id);
         return Optional.ofNullable(map(identityProvider));
     }
 
     @Override
     public IdentityProvider create(IdentityProvider identityProvider) throws TechnicalException {
-        LOGGER.debug("Create identity provider [{}]", identityProvider.getName());
+        log.debug("Create identity provider [{}]", identityProvider.getName());
 
         IdentityProviderMongo identityProviderMongo = map(identityProvider);
         IdentityProviderMongo createdIdentityProviderMongo = internalIdentityProviderRepository.insert(identityProviderMongo);
 
-        LOGGER.debug("Create identity provider [{}] - Done", identityProvider.getName());
+        log.debug("Create identity provider [{}] - Done", identityProvider.getName());
 
         return map(createdIdentityProviderMongo);
     }
@@ -92,7 +95,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             IdentityProviderMongo identityProviderMongoUpdated = internalIdentityProviderRepository.save(identityProviderMongo);
             return map(identityProviderMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when updating identity provider", e);
+            log.error("An error occurs when updating identity provider", e);
             throw new TechnicalException("An error occurs when updating identity provider");
         }
     }
@@ -102,18 +105,18 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         try {
             internalIdentityProviderRepository.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when deleting identity provider [{}]", id, e);
+            log.error("An error occurs when deleting identity provider [{}]", id, e);
             throw new TechnicalException("An error occurs when deleting identity provider");
         }
     }
 
     @Override
     public Set<IdentityProvider> findAll() throws TechnicalException {
-        LOGGER.debug("Find all identity providers");
+        log.debug("Find all identity providers");
 
         Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
 
-        LOGGER.debug("Find all identity providers - Done");
+        log.debug("Find all identity providers - Done");
         return res;
     }
 
@@ -177,7 +180,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
 
     @Override
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("Find all identity providers by organization {}", organizationId);
+        log.debug("Find all identity providers by organization {}", organizationId);
 
         Set<IdentityProvider> res = internalIdentityProviderRepository
             .findByOrganizationId(organizationId)
@@ -185,23 +188,23 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             .map(this::map)
             .collect(Collectors.toSet());
 
-        LOGGER.debug("Find all identity providers by organization {} - Done", organizationId);
+        log.debug("Find all identity providers by organization {} - Done", organizationId);
         return res;
     }
 
     @Override
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("Delete all identity providers by organizationId: {}", organizationId);
+        log.debug("Delete all identity providers by organizationId: {}", organizationId);
         try {
             final var res = internalIdentityProviderRepository
                 .deleteByOrganizationId(organizationId)
                 .stream()
                 .map(IdentityProviderMongo::getId)
                 .toList();
-            LOGGER.debug("Delete all identity providers by organizationId: {} - Done", organizationId);
+            log.debug("Delete all identity providers by organizationId: {} - Done", organizationId);
             return res;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete identity providers by organizationId: {}", organizationId, ex);
+            log.error("Failed to delete identity providers by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete identity providers by organizationId");
         }
     }

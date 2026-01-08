@@ -21,12 +21,12 @@ import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.model.PortalPageContent;
 import java.sql.Types;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Slf4j
+@CustomLog
 public class JdbcPortalPageContentRepository
     extends JdbcAbstractCrudRepository<PortalPageContent, String>
     implements PortalPageContentRepository {

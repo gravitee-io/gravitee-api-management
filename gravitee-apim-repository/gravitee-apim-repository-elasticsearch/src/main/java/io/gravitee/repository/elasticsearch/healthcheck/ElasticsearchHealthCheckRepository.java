@@ -34,8 +34,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -45,12 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Sebastien Devaux (Zenika)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRepository implements HealthCheckRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ElasticsearchHealthCheckRepository.class);
 
     /**
      * List of all supported command
@@ -82,7 +77,7 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
         if (handler == null) {
-            logger.error("No command found to handle query of type {}", query.getClass());
+            log.error("No command found to handle query of type {}", query.getClass());
             throw new AnalyticsException("No command found to handle query of type " + query.getClass());
         }
 
@@ -113,7 +108,7 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
 
             return LogBuilder.createExtendedLog(searchHit);
         } catch (TechnicalException e) {
-            logger.error("Health [{}] does not exist", id, e);
+            log.error("Health [{}] does not exist", id, e);
             throw new AnalyticsException("Health [" + id + "] does not exist");
         }
     }

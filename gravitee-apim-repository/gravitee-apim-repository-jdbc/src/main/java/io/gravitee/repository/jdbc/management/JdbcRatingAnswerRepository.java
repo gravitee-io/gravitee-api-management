@@ -22,8 +22,7 @@ import io.gravitee.repository.management.model.RatingAnswer;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -31,10 +30,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<RatingAnswer, String> implements RatingAnswerRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingAnswerRepository.class);
 
     JdbcRatingAnswerRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "rating_answers");
@@ -59,30 +57,30 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
 
     @Override
     public RatingAnswer create(RatingAnswer item) throws TechnicalException {
-        LOGGER.debug("JdbcRatingAnswerRepository.create({})", item);
+        log.debug("JdbcRatingAnswerRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create ratingAnswer:", ex);
+            log.error("Failed to create ratingAnswer:", ex);
             throw new TechnicalException("Failed to create ratingAnswer", ex);
         }
     }
 
     @Override
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
-        LOGGER.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
+        log.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
         try {
             return jdbcTemplate.query("select ra.* from " + this.tableName + " ra where rating = ?", getOrm().getRowMapper(), rating);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find rating answers by rating:", ex);
+            log.error("Failed to find rating answers by rating:", ex);
             throw new TechnicalException("Failed to find rating answers by rating", ex);
         }
     }
 
     @Override
     public List<String> deleteByRating(String ratingId) throws TechnicalException {
-        LOGGER.debug("JdbcRatingAnswerRepository.deleteByRatingId({})", ratingId);
+        log.debug("JdbcRatingAnswerRepository.deleteByRatingId({})", ratingId);
         try {
             final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where rating = ?", String.class, ratingId);
 
@@ -92,7 +90,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
 
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete rating answers by ratingId: {}", ratingId, ex);
+            log.error("Failed to delete rating answers by ratingId: {}", ratingId, ex);
             throw new TechnicalException("Failed to delete rating answers by ratingId", ex);
         }
     }

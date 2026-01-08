@@ -20,7 +20,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchHit;
-import io.gravitee.repository.healthcheck.query.log.*;
+import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
+import io.gravitee.repository.healthcheck.query.log.Log;
+import io.gravitee.repository.healthcheck.query.log.Request;
+import io.gravitee.repository.healthcheck.query.log.Response;
+import io.gravitee.repository.healthcheck.query.log.Step;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -28,19 +32,14 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public final class LogBuilder {
-
-    /**
-     * Logger.
-     */
-    private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
 
     /** Document simple date format **/
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -78,7 +77,7 @@ public final class LogBuilder {
                 LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             );
         } catch (final DateTimeParseException e) {
-            logger.error("Impossible to parse date", e);
+            LogBuilder.log.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
         }
 
@@ -121,7 +120,7 @@ public final class LogBuilder {
                 LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             );
         } catch (final DateTimeParseException e) {
-            logger.error("Impossible to parse date", e);
+            LogBuilder.log.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
         }
 

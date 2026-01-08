@@ -25,8 +25,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,12 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guillaume WAIGNIER (Zenika)
  * @author Sebastien DEVAUX (Zenika)
  */
+@CustomLog
 public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ElasticsearchAnalyticsRepository.class);
 
     /**
      * List of all supported command
@@ -65,7 +60,7 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
         final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
         if (handler == null) {
-            logger.error("No command found to handle query of type {}", query.getClass());
+            log.error("No command found to handle query of type {}", query.getClass());
             throw new AnalyticsException("No command found to handle query of type " + query.getClass());
         }
         return handler.executeQuery(queryContext, handler.prepareQuery(query));

@@ -29,8 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,10 +37,9 @@ import org.springframework.stereotype.Component;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoTicketRepository implements TicketRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private TicketMongoRepository internalTicketRepo;
@@ -51,36 +49,36 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public Ticket create(Ticket ticket) throws TechnicalException {
-        LOGGER.debug("Create ticket [{}]", ticket.getId());
+        log.debug("Create ticket [{}]", ticket.getId());
 
         TicketMongo ticketMongo = mapper.map(ticket);
         TicketMongo createdTicketMongo = internalTicketRepo.insert(ticketMongo);
 
         Ticket res = mapper.map(createdTicketMongo);
 
-        LOGGER.debug("Create ticket [{}] - Done", ticket.getId());
+        log.debug("Create ticket [{}] - Done", ticket.getId());
 
         return res;
     }
 
     @Override
     public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("Search tickets");
+        log.debug("Search tickets");
 
         var tickets = internalTicketRepo.search(criteria, sortable, pageable).map(mapper::map);
 
-        LOGGER.debug("Search tickets - Done");
+        log.debug("Search tickets - Done");
 
         return tickets;
     }
 
     @Override
     public Optional<Ticket> findById(String ticketId) throws TechnicalException {
-        LOGGER.debug("Search ticket {}", ticketId);
+        log.debug("Search ticket {}", ticketId);
 
         TicketMongo ticket = internalTicketRepo.findById(ticketId).orElse(null);
 
-        LOGGER.debug("Search ticket {} - Done", ticketId);
+        log.debug("Search ticket {} - Done", ticketId);
 
         return Optional.ofNullable(mapper.map(ticket));
     }
@@ -96,26 +94,26 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
-        LOGGER.debug("Delete by apiId [{}]", apiId);
+        log.debug("Delete by apiId [{}]", apiId);
         try {
             final var tickets = internalTicketRepo.deleteByApi(apiId).stream().map(TicketMongo::getId).toList();
-            LOGGER.debug("Delete by apiId [{}] - Done", apiId);
+            log.debug("Delete by apiId [{}] - Done", apiId);
             return tickets;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete tickets by apiId: {}", apiId, ex);
+            log.error("Failed to delete tickets by apiId: {}", apiId, ex);
             throw new TechnicalException("Failed to delete tickets by apiId");
         }
     }
 
     @Override
     public List<String> deleteByApplicationId(String applicationId) throws TechnicalException {
-        LOGGER.debug("Delete by applicationId [{}]", applicationId);
+        log.debug("Delete by applicationId [{}]", applicationId);
         try {
             final var tickets = internalTicketRepo.deleteByApplication(applicationId).stream().map(TicketMongo::getId).toList();
-            LOGGER.debug("Delete by applicationId [{}] - Done", applicationId);
+            log.debug("Delete by applicationId [{}] - Done", applicationId);
             return tickets;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete tickets by applicationId: {}", applicationId, ex);
+            log.error("Failed to delete tickets by applicationId: {}", applicationId, ex);
             throw new TechnicalException("Failed to delete tickets by applicationId");
         }
     }

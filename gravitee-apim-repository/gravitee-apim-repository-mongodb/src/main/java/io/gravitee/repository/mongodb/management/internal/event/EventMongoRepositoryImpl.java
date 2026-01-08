@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -48,7 +48,7 @@ import org.springframework.data.mongodb.core.query.Update;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
     public static final String BACKUP_COLLECTION = "events_history";

@@ -18,19 +18,14 @@ package io.gravitee.repository.noop.monitor;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class NoOpMonitoringRepository implements MonitoringRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(NoOpMonitoringRepository.class);
 
     @Override
     public MonitoringResponse query(final QueryContext queryContext, final String gatewayId) {

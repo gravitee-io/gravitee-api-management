@@ -27,8 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoPlanRepository implements PlanRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoPlanRepository.class);
 
     @Autowired
     private GraviteeMapper mapper;
@@ -117,43 +115,43 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete plan by environment [{}]", environmentId);
+        log.debug("Delete plan by environment [{}]", environmentId);
         try {
             final var plans = internalPlanRepository.deleteByEnvironmentId(environmentId).stream().map(PlanMongo::getId).toList();
-            LOGGER.debug("Delete plan by environment [{}] - Done", environmentId);
+            log.debug("Delete plan by environment [{}] - Done", environmentId);
             return plans;
         } catch (Exception e) {
-            LOGGER.error("Failed to delete plan by environment [{}]", environmentId, e);
+            log.error("Failed to delete plan by environment [{}]", environmentId, e);
             throw new TechnicalException("Failed to delete plan by environment", e);
         }
     }
 
     @Override
     public boolean exists(String id) throws TechnicalException {
-        LOGGER.debug("Checking if plan exists by id [{}]", id);
+        log.debug("Checking if plan exists by id [{}]", id);
 
         try {
             return internalPlanRepository.existsById(id);
         } catch (Exception e) {
-            LOGGER.error("Failed to check if plan exists by id [{}]", id, e);
+            log.error("Failed to check if plan exists by id [{}]", id, e);
             throw new TechnicalException("Failed to determine if plan exists by id", e);
         }
     }
 
     @Override
     public void updateOrder(String planId, int order) throws TechnicalException {
-        LOGGER.debug("Update plan order for id [{}] to [{}]", planId, order);
+        log.debug("Update plan order for id [{}] to [{}]", planId, order);
         try {
             internalPlanRepository.updateOrder(planId, order);
         } catch (Exception e) {
-            LOGGER.error("Failed to update plan order for id [{}]", planId, e);
+            log.error("Failed to update plan order for id [{}]", planId, e);
             throw new TechnicalException("Failed to update plan order", e);
         }
     }
 
     @Override
     public void updateCrossIds(List<Plan> plans) throws TechnicalException {
-        LOGGER.debug("Update plans  cross Ids [{}]", plans);
+        log.debug("Update plans  cross Ids [{}]", plans);
         try {
             internalPlanRepository.updateCrossIds(plans);
         } catch (Exception e) {

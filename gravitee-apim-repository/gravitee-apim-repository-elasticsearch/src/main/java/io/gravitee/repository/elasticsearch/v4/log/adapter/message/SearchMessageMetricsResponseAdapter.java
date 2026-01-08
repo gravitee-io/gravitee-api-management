@@ -24,9 +24,9 @@ import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class SearchMessageMetricsResponseAdapter {
 
     private SearchMessageMetricsResponseAdapter() {}

@@ -94,9 +94,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
 
     public static final String ENTRYPOINT_ID_FIELD = "entrypoint-id";

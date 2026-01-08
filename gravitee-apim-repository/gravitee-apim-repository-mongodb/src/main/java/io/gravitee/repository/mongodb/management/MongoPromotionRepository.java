@@ -29,15 +29,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 public class MongoPromotionRepository implements PromotionRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private PromotionMongoRepository internalRepository;
@@ -47,21 +45,21 @@ public class MongoPromotionRepository implements PromotionRepository {
 
     @Override
     public Optional<Promotion> findById(String id) throws TechnicalException {
-        logger.debug("Find promotion by ID [{}]", id);
+        log.debug("Find promotion by ID [{}]", id);
 
         return internalRepository
             .findById(id)
             .map(promotionMongo -> {
-                logger.debug("Find promotion by ID [{}] - Done", id);
+                log.debug("Find promotion by ID [{}] - Done", id);
                 return map(promotionMongo);
             });
     }
 
     @Override
     public Promotion create(Promotion promotion) throws TechnicalException {
-        logger.debug("Create promotion [{}]", promotion.getId());
+        log.debug("Create promotion [{}]", promotion.getId());
         Promotion createdPromotion = map(internalRepository.insert(map(promotion)));
-        logger.debug("Create promotion [{}] - Done", createdPromotion.getId());
+        log.debug("Create promotion [{}] - Done", createdPromotion.getId());
         return createdPromotion;
     }
 
@@ -74,7 +72,7 @@ public class MongoPromotionRepository implements PromotionRepository {
         return internalRepository
             .findById(promotion.getId())
             .map(existingPromotion -> {
-                logger.debug("Update promotion [{}]", promotion.getId());
+                log.debug("Update promotion [{}]", promotion.getId());
                 return internalRepository.save(map(promotion));
             })
             .map(this::map)
@@ -83,9 +81,9 @@ public class MongoPromotionRepository implements PromotionRepository {
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete promotion [{}]", id);
+        log.debug("Delete promotion [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete promotion [{}] - Done", id);
+        log.debug("Delete promotion [{}] - Done", id);
     }
 
     private PromotionMongo map(Promotion promotion) {
@@ -98,23 +96,23 @@ public class MongoPromotionRepository implements PromotionRepository {
 
     @Override
     public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) {
-        logger.debug("Searching promotions");
+        log.debug("Searching promotions");
 
         var promotions = internalRepository.search(criteria, sortable, pageable).map(mapper::map);
 
-        logger.debug("Searching promotions - Done");
+        log.debug("Searching promotions - Done");
         return promotions;
     }
 
     @Override
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
-        logger.debug("Delete all by api id [{}]", apiId);
+        log.debug("Delete all by api id [{}]", apiId);
         try {
             final var allByApiId = internalRepository.deleteByApiId(apiId).stream().map(PromotionMongo::getId).toList();
-            logger.debug("Delete all by api id [{}] -- Done", apiId);
+            log.debug("Delete all by api id [{}] -- Done", apiId);
             return allByApiId;
         } catch (Exception ex) {
-            logger.error("Failed to delete promotion order by apiId: {}", apiId, ex);
+            log.error("Failed to delete promotion order by apiId: {}", apiId, ex);
             throw new TechnicalException("Failed to delete promotion by apiId");
         }
     }

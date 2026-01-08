@@ -28,7 +28,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.bson.BsonBinary;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
@@ -64,7 +64,7 @@ import org.springframework.data.mongodb.core.encryption.MongoClientEncryption;
  *  </pre>
  */
 @Configuration
-@Slf4j
+@CustomLog
 public class EncryptionConfiguration {
 
     private static final String KEY_MANAGEMENT_SYSTEM_PROPERTY = "management.mongodb.encryption.kms";

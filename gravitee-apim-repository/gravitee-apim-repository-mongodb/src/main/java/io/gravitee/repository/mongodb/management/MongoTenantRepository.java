@@ -20,15 +20,13 @@ import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TenantMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoTenantRepository implements TenantRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoTenantRepository.class);
 
     @Autowired
     private TenantMongoRepository internalTenantRepo;
@@ -49,54 +46,54 @@ public class MongoTenantRepository implements TenantRepository {
 
     @Override
     public Optional<Tenant> findById(String tenantId) throws TechnicalException {
-        LOGGER.debug("Find tenant by ID [{}]", tenantId);
+        log.debug("Find tenant by ID [{}]", tenantId);
 
         final TenantMongo tenant = internalTenantRepo.findById(tenantId).orElse(null);
 
-        LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
+        log.debug("Find tenant by ID [{}] - Done", tenantId);
         return Optional.ofNullable(mapper.map(tenant));
     }
 
     @Override
     public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) {
-        LOGGER.debug("Find tenant by ID [{}]", tenantId);
+        log.debug("Find tenant by ID [{}]", tenantId);
 
         final TenantMongo tenant = internalTenantRepo
             .findByIdAndReferenceIdAndReferenceType(tenantId, referenceId, referenceType)
             .orElse(null);
 
-        LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
+        log.debug("Find tenant by ID [{}] - Done", tenantId);
         return Optional.ofNullable(mapper.map(tenant));
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
         try {
             final List<String> tenants = internalTenantRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
                 .map(TenantMongo::getId)
                 .toList();
-            LOGGER.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
+            log.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
             return tenants;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete tenants by refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete tenants by refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tenants by reference");
         }
     }
 
     @Override
     public Tenant create(Tenant tenant) throws TechnicalException {
-        LOGGER.debug("Create tenant [{}]", tenant.getName());
+        log.debug("Create tenant [{}]", tenant.getName());
 
         TenantMongo tenantMongo = mapper.map(tenant);
         TenantMongo createdTenantMongo = internalTenantRepo.insert(tenantMongo);
 
         Tenant res = mapper.map(createdTenantMongo);
 
-        LOGGER.debug("Create tenant [{}] - Done", tenant.getName());
+        log.debug("Create tenant [{}] - Done", tenant.getName());
 
         return res;
     }
@@ -123,7 +120,7 @@ public class MongoTenantRepository implements TenantRepository {
             TenantMongo tenantMongoUpdated = internalTenantRepo.save(tenantMongo);
             return mapper.map(tenantMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating tenant", e);
+            log.error("An error occurred when updating tenant", e);
             throw new TechnicalException("An error occurred when updating tenant");
         }
     }
@@ -133,7 +130,7 @@ public class MongoTenantRepository implements TenantRepository {
         try {
             internalTenantRepo.deleteById(tenantId);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting tenant [{}]", tenantId, e);
+            log.error("An error occurred when deleting tenant [{}]", tenantId, e);
             throw new TechnicalException("An error occurred when deleting tenant");
         }
     }

@@ -27,19 +27,21 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-/**
- */
+@CustomLog
 @Repository
 public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String> implements UserRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcUserRepository.class);
 
     private static final String STATUS_FIELD = "status";
 
@@ -76,7 +78,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
+        log.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
             List<User> users = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?",
@@ -87,14 +89,14 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find user by source", ex);
+            log.error("Failed to find user by source", ex);
             throw new TechnicalException("Failed to find user by source", ex);
         }
     }
 
     @Override
     public List<User> findByEmail(String email, String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcUserRepository.findByEmail({})", email);
+        log.debug("JdbcUserRepository.findByEmail({})", email);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?",
@@ -103,7 +105,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                 organizationId
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find user by email", ex);
+            log.error("Failed to find user by email", ex);
             throw new TechnicalException("Failed to find user by email", ex);
         }
     }
@@ -122,7 +124,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                 }
             })
             .collect(Collectors.toList());
-        LOGGER.debug("JdbcUserRepository.findByIds({})", uniqueIds);
+        log.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {
             final List<User> users = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " u where u.id in ( " + getOrm().buildInClause(uniqueIds) + " )",
@@ -132,14 +134,14 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             return new HashSet<>(users);
         } catch (final Exception ex) {
             final String msg = "Failed to find users by ids";
-            LOGGER.error(msg, ex);
+            log.error(msg, ex);
             throw new TechnicalException(msg, ex);
         }
     }
 
     @Override
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
+        log.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
 
         /*
             Encryption has been introduced in mongo repository plugin.
@@ -189,14 +191,14 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
+            log.error("Failed to find all {} items:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
         }
     }
 
     @Override
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcUserRepository.deleteByOrganizationId({})", organizationId);
+        log.debug("JdbcUserRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where organization_id = ?",
@@ -208,10 +210,10 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                 jdbcTemplate.update("delete from " + tableName + " where organization_id = ?", organizationId);
             }
 
-            LOGGER.debug("JdbcUserRepository.deleteByOrganizationId({}) - Done", organizationId);
+            log.debug("JdbcUserRepository.deleteByOrganizationId({}) - Done", organizationId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete user by organization", ex);
+            log.error("Failed to delete user by organization", ex);
             throw new TechnicalException("Failed to delete user by organization", ex);
         }
     }

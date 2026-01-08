@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoWorkflowRepository implements WorkflowRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoWorkflowRepository.class);
 
     @Autowired
     private WorkflowMongoRepository internalWorkflowRepo;
@@ -49,24 +47,24 @@ public class MongoWorkflowRepository implements WorkflowRepository {
 
     @Override
     public Optional<Workflow> findById(String workflowId) throws TechnicalException {
-        LOGGER.debug("Find workflow by ID [{}]", workflowId);
+        log.debug("Find workflow by ID [{}]", workflowId);
 
         final WorkflowMongo workflow = internalWorkflowRepo.findById(workflowId).orElse(null);
 
-        LOGGER.debug("Find workflow by ID [{}] - Done", workflowId);
+        log.debug("Find workflow by ID [{}] - Done", workflowId);
         return Optional.ofNullable(mapper.map(workflow));
     }
 
     @Override
     public Workflow create(Workflow workflow) throws TechnicalException {
-        LOGGER.debug("Create workflow [{}]", workflow.getId());
+        log.debug("Create workflow [{}]", workflow.getId());
 
         WorkflowMongo workflowMongo = mapper.map(workflow);
         WorkflowMongo createdWorkflowMongo = internalWorkflowRepo.insert(workflowMongo);
 
         Workflow res = mapper.map(createdWorkflowMongo);
 
-        LOGGER.debug("Create workflow [{}] - Done", workflow.getId());
+        log.debug("Create workflow [{}] - Done", workflow.getId());
 
         return res;
     }
@@ -95,7 +93,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
             WorkflowMongo workflowMongoUpdated = internalWorkflowRepo.save(workflowMongo);
             return mapper.map(workflowMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating workflow", e);
+            log.error("An error occured when updating workflow", e);
             throw new TechnicalException("An error occured when updating workflow");
         }
     }
@@ -105,7 +103,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
         try {
             internalWorkflowRepo.deleteById(workflowId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting workflow [{}]", workflowId, e);
+            log.error("An error occured when deleting workflow [{}]", workflowId, e);
             throw new TechnicalException("An error occured when deleting workflow");
         }
     }
@@ -118,7 +116,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
 
     @Override
     public List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) {
-        LOGGER.debug("Find workflow by reference and type '{}' / '{}' / '{}'", referenceType, referenceId, type);
+        log.debug("Find workflow by reference and type '{}' / '{}' / '{}'", referenceType, referenceId, type);
 
         final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(
             referenceType,
@@ -126,13 +124,13 @@ public class MongoWorkflowRepository implements WorkflowRepository {
             type
         );
 
-        LOGGER.debug("Find workflow by reference and type '{}' / '{}' / '{}' done", referenceType, referenceId, type);
+        log.debug("Find workflow by reference and type '{}' / '{}' / '{}' done", referenceType, referenceId, type);
         return workflows.stream().map(this::map).collect(toList());
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
-        LOGGER.debug("Delete workflow by reference {}/{}", referenceId, referenceType);
+        log.debug("Delete workflow by reference {}/{}", referenceId, referenceType);
 
         final var workflows = internalWorkflowRepo
             .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
@@ -140,7 +138,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
             .map(WorkflowMongo::getId)
             .toList();
 
-        LOGGER.debug("Delete workflow by reference and type {}/{} - Done", referenceType, referenceId);
+        log.debug("Delete workflow by reference and type {}/{} - Done", referenceType, referenceId);
         return workflows;
     }
 

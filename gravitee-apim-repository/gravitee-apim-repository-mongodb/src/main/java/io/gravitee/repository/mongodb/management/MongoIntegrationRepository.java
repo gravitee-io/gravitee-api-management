@@ -26,40 +26,38 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 @RequiredArgsConstructor
 public class MongoIntegrationRepository implements IntegrationRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final IntegrationMongoRepository internalRepository;
     private final GraviteeMapper mapper;
 
     @Override
     public Optional<Integration> findByIntegrationId(String s) {
-        logger.debug("Find integration by id [{}]", s);
+        log.debug("Find integration by id [{}]", s);
         Optional<Integration> result = internalRepository.findById(s).map(this::map);
-        logger.debug("Find integration by id [{}] - DONE", s);
+        log.debug("Find integration by id [{}] - DONE", s);
         return result;
     }
 
     @Override
     public Integration create(Integration integration) throws TechnicalException {
-        logger.debug("Create integration [{}]", integration.getId());
+        log.debug("Create integration [{}]", integration.getId());
         Integration createdIntegration = map(internalRepository.insert(map(integration)));
         if (createdIntegration.getWellKnownUrls() != null && createdIntegration.getWellKnownUrls().isEmpty()) {
             createdIntegration.setWellKnownUrls(null);
         }
-        logger.debug("Create integration [{}] - Done", createdIntegration.getId());
+        log.debug("Create integration [{}] - Done", createdIntegration.getId());
         return createdIntegration;
     }
 
@@ -72,9 +70,9 @@ public class MongoIntegrationRepository implements IntegrationRepository {
         return internalRepository
             .findById(integration.getId())
             .map(found -> {
-                logger.debug("Update integration [{}]", integration.getId());
+                log.debug("Update integration [{}]", integration.getId());
                 Integration updatedIntegration = map(internalRepository.save(map(integration)));
-                logger.debug("Update integration [{}] - Done", updatedIntegration.getId());
+                log.debug("Update integration [{}] - Done", updatedIntegration.getId());
                 return updatedIntegration;
             })
             .orElseThrow(() -> new IllegalStateException(String.format("No integration found with id [%s]", integration.getId())));
@@ -82,18 +80,18 @@ public class MongoIntegrationRepository implements IntegrationRepository {
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete integration [{}]", id);
+        log.debug("Delete integration [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete integration [{}] - Done", id);
+        log.debug("Delete integration [{}] - Done", id);
     }
 
     @Override
     public Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) {
-        logger.debug("Search by environment ID [{}]", environmentId);
+        log.debug("Search by environment ID [{}]", environmentId);
 
         Page<Integration> integrations = internalRepository.findAllByEnvironmentId(environmentId, pageable).map(mapper::map);
 
-        logger.debug("Search by environment ID [{}] - Done", environmentId);
+        log.debug("Search by environment ID [{}] - Done", environmentId);
         return integrations;
     }
 
@@ -104,25 +102,25 @@ public class MongoIntegrationRepository implements IntegrationRepository {
         Collection<String> groups,
         Pageable pageable
     ) {
-        logger.debug("Search by environment ID [{}] and groups [{}]", environmentId, groups);
+        log.debug("Search by environment ID [{}] and groups [{}]", environmentId, groups);
 
         Page<Integration> integrations = internalRepository
             .findAllByEnvironmentIdAndGroups(environmentId, pageable, integrationIds, groups)
             .map(mapper::map);
 
-        logger.debug("Search by environment ID [{}] and groups [{}] - Done", environmentId, groups);
+        log.debug("Search by environment ID [{}] and groups [{}] - Done", environmentId, groups);
         return integrations;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        logger.debug("Delete integration by environmentId: {}", environmentId);
+        log.debug("Delete integration by environmentId: {}", environmentId);
         try {
             List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(IntegrationMongo::getId).toList();
-            logger.debug("Delete integration by environment - Done {}", all);
+            log.debug("Delete integration by environment - Done {}", all);
             return all;
         } catch (Exception ex) {
-            logger.error("Failed to delete integration by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete integration by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete integration by environmentId");
         }
     }

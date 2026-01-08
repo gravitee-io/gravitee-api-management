@@ -28,15 +28,13 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 public class MongoScoringReportRepository implements ScoringReportRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private ScoringReportMongoRepository internalRepository;
@@ -46,48 +44,48 @@ public class MongoScoringReportRepository implements ScoringReportRepository {
 
     @Override
     public ScoringReport create(ScoringReport report) throws TechnicalException {
-        logger.debug("Create scoring report [{}]", report.getId());
+        log.debug("Create scoring report [{}]", report.getId());
         var created = map(internalRepository.insert(map(report)));
-        logger.debug("Create scoring report [{}] - Done", created.getId());
+        log.debug("Create scoring report [{}] - Done", created.getId());
         return created;
     }
 
     @Override
     public Optional<ScoringReport> findLatestFor(String apiId) {
-        logger.debug("Find scoring report by api [{}]", apiId);
+        log.debug("Find scoring report by api [{}]", apiId);
         var result = internalRepository.findLatestByApiId(apiId);
-        logger.debug("Find scoring report by api [{}] - DONE", apiId);
+        log.debug("Find scoring report by api [{}] - DONE", apiId);
         return result.map(mapper::map);
     }
 
     @Override
     public Stream<ScoringReport> findLatestReports(Collection<String> apiIds) {
-        logger.debug("Find latest scoring reports of {}", apiIds);
+        log.debug("Find latest scoring reports of {}", apiIds);
         var result = internalRepository.findLatestReports(apiIds);
-        logger.debug("Find latest scoring reports of {} - DONE", apiIds);
+        log.debug("Find latest scoring reports of {} - DONE", apiIds);
         return result.stream().map(mapper::map);
     }
 
     @Override
     public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
-        logger.debug("Find all latest scoring reports of environment {}", environmentId);
+        log.debug("Find all latest scoring reports of environment {}", environmentId);
         var result = internalRepository.findEnvironmentLatestReports(environmentId, pageable);
-        logger.debug("Find all latest scoring reports of environment {} - DONE", environmentId);
+        log.debug("Find all latest scoring reports of environment {} - DONE", environmentId);
         return result;
     }
 
     @Override
     public void deleteByApi(String apiId) {
-        logger.debug("Delete scoring reports of API [{}]", apiId);
+        log.debug("Delete scoring reports of API [{}]", apiId);
         internalRepository.deleteByApiId(apiId);
-        logger.debug("Delete scoring reports of API [{}] - Done", apiId);
+        log.debug("Delete scoring reports of API [{}] - Done", apiId);
     }
 
     @Override
     public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException {
-        logger.debug("Get Environment Scoring Summary of {}", environmentId);
+        log.debug("Get Environment Scoring Summary of {}", environmentId);
         var result = internalRepository.getScoringEnvironmentSummary(environmentId);
-        logger.debug("Get Environment Scoring Summary of {} - DONE", environmentId);
+        log.debug("Get Environment Scoring Summary of {} - DONE", environmentId);
         return result;
     }
 

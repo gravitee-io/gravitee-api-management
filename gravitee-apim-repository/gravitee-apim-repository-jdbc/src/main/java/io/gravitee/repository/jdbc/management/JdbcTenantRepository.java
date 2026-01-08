@@ -15,13 +15,9 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static java.util.stream.Collectors.toSet;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TenantRepository;
-import io.gravitee.repository.management.model.Tag;
-import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
 import java.sql.Types;
@@ -29,8 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -38,10 +33,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, String> implements TenantRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(JdbcTenantRepository.class);
 
     JdbcTenantRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "tenants");
@@ -78,7 +72,7 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
                 .stream()
                 .findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} tenant by id, referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} tenant by id, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tenant by id, referenceId and referenceType", ex);
         }
     }
@@ -87,7 +81,7 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType)
         throws TechnicalException {
         try {
-            LOGGER.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+            log.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_id = ? and reference_type = ? ",
                 String.class,
@@ -103,10 +97,10 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
                 );
             }
 
-            LOGGER.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete tenants for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete tenants for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tenants by reference", ex);
         }
     }
@@ -123,7 +117,7 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
                 )
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} tenants referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} tenants referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tenants by referenceId and referenceType", ex);
         }
     }

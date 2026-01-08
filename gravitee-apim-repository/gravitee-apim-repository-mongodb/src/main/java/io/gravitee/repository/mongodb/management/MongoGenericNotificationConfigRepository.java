@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,50 +33,39 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoGenericNotificationConfigRepository implements GenericNotificationConfigRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoGenericNotificationConfigRepository.class);
 
     @Autowired
     private GenericNotificationConfigMongoRepository internalRepo;
 
     @Override
     public GenericNotificationConfig create(GenericNotificationConfig pnc) throws TechnicalException {
-        LOGGER.debug("Create GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug("Create GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
         GenericNotificationConfig cfg = map(internalRepo.insert(map(pnc)));
-        LOGGER.debug(
-            "Create GenericNotificationConfig [{}, {}, {}] - Done",
-            cfg.getNotifier(),
-            cfg.getReferenceType(),
-            cfg.getReferenceId()
-        );
+        log.debug("Create GenericNotificationConfig [{}, {}, {}] - Done", cfg.getNotifier(), cfg.getReferenceType(), cfg.getReferenceId());
         return cfg;
     }
 
     @Override
     public GenericNotificationConfig update(GenericNotificationConfig pnc) throws TechnicalException {
-        LOGGER.debug("Update GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug("Update GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
         GenericNotificationConfig cfg = map(internalRepo.save(map(pnc)));
-        LOGGER.debug(
-            "Update GenericNotificationConfig [{}, {}, {}] - Done",
-            cfg.getNotifier(),
-            cfg.getReferenceType(),
-            cfg.getReferenceId()
-        );
+        log.debug("Update GenericNotificationConfig [{}, {}, {}] - Done", cfg.getNotifier(), cfg.getReferenceType(), cfg.getReferenceId());
         return cfg;
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("Delete GenericNotificationConfig [{}]", id);
+        log.debug("Delete GenericNotificationConfig [{}]", id);
         internalRepo.deleteById(id);
-        LOGGER.debug("Delete GenericNotificationConfig [{}] - Done", id);
+        log.debug("Delete GenericNotificationConfig [{}] - Done", id);
     }
 
     @Override
     public Optional<GenericNotificationConfig> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find GenericNotificationConfig [{}]", id);
+        log.debug("Find GenericNotificationConfig [{}]", id);
         GenericNotificationConfigMongo one = internalRepo.findById(id).orElse(null);
         if (one == null) {
             return Optional.empty();
@@ -87,7 +75,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
 
     @Override
     public List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
-        LOGGER.debug("Find GenericNotificationConfig by hook and organizationId [{}, {}]", hook, orgId);
+        log.debug("Find GenericNotificationConfig by hook and organizationId [{}, {}]", hook, orgId);
         return internalRepo.findByHookAndOrganizationId(hook, orgId).stream().map(this::map).collect(Collectors.toList());
     }
 
@@ -97,7 +85,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         NotificationReferenceType referenceType,
         String referenceId
     ) {
-        LOGGER.debug("Find GenericNotificationConfig [{}, {}, {}]", hook, referenceType, referenceId);
+        log.debug("Find GenericNotificationConfig [{}, {}, {}]", hook, referenceType, referenceId);
         return internalRepo
             .findByReferenceAndHook(hook, referenceType.name(), referenceId)
             .stream()
@@ -108,20 +96,20 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     @Override
     public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException {
-        LOGGER.debug("Find GenericNotificationConfig [{}, {}]", referenceType, referenceId);
+        log.debug("Find GenericNotificationConfig [{}, {}]", referenceType, referenceId);
         return internalRepo.findByReference(referenceType.name(), referenceId).stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public void deleteByConfig(String config) {
-        LOGGER.debug("Delete GenericNotificationConfig by config [{}]", config);
+        log.debug("Delete GenericNotificationConfig by config [{}]", config);
         internalRepo.deleteByConfig(config);
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete GenericNotificationConfig by refId: [{}/{}]", referenceId, referenceType);
+        log.debug("Delete GenericNotificationConfig by refId: [{}/{}]", referenceId, referenceType);
 
         try {
             final var notificationConfigIds = internalRepo
@@ -129,10 +117,10 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
                 .stream()
                 .map(GenericNotificationConfigMongo::getId)
                 .toList();
-            LOGGER.debug("Delete GenericNotificationConfig by refId: [{}/{}] - Done", referenceId, referenceType);
+            log.debug("Delete GenericNotificationConfig by refId: [{}/{}] - Done", referenceId, referenceType);
             return notificationConfigIds;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete GenericNotificationConfig by refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete GenericNotificationConfig by refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete GenericNotificationConfig by reference");
         }
     }

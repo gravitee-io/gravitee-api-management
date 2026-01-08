@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,34 +34,33 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoRoleRepository implements RoleRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoRoleRepository.class);
 
     @Autowired
     private RoleMongoRepository internalRoleRepo;
 
     @Override
     public Optional<Role> findById(String roleId) throws TechnicalException {
-        LOGGER.debug("Find role by ID [{}]", roleId);
+        log.debug("Find role by ID [{}]", roleId);
 
         final RoleMongo role = internalRoleRepo.findById(roleId).orElse(null);
 
-        LOGGER.debug("Find role by ID [{}] - Done", roleId);
+        log.debug("Find role by ID [{}] - Done", roleId);
         return Optional.ofNullable(map(role));
     }
 
     @Override
     public Role create(Role role) throws TechnicalException {
-        LOGGER.debug("Create role [{}]", role.getName());
+        log.debug("Create role [{}]", role.getName());
 
         RoleMongo roleMongo = map(role);
         RoleMongo createdRoleMongo = internalRoleRepo.insert(roleMongo);
 
         Role res = map(createdRoleMongo);
 
-        LOGGER.debug("Create role [{}] - Done", role.getName());
+        log.debug("Create role [{}] - Done", role.getName());
 
         return res;
     }
@@ -87,7 +85,7 @@ public class MongoRoleRepository implements RoleRepository {
             RoleMongo roleMongoUpdated = internalRoleRepo.save(roleMongo);
             return map(roleMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating role", e);
+            log.error("An error occured when updating role", e);
             throw new TechnicalException("An error occured when updating role");
         }
     }
@@ -97,7 +95,7 @@ public class MongoRoleRepository implements RoleRepository {
         try {
             internalRoleRepo.deleteById(roleId);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting role [{}]", roleId, e);
+            log.error("An error occurred when deleting role [{}]", roleId, e);
             throw new TechnicalException("An error occurred when deleting role");
         }
     }
@@ -109,7 +107,7 @@ public class MongoRoleRepository implements RoleRepository {
         String referenceId,
         RoleReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug("Find role by scope and name [{}, {}, {}, {}]", scope, name, referenceId, referenceType);
+        log.debug("Find role by scope and name [{}, {}, {}, {}]", scope, name, referenceId, referenceType);
 
         final Optional<Role> role = internalRoleRepo
             .findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name())
@@ -117,7 +115,7 @@ public class MongoRoleRepository implements RoleRepository {
             .map(this::map)
             .findFirst();
 
-        LOGGER.debug("Find role by scope and name [{}, {}, {}, {}] - Done", scope, name, referenceId, referenceType);
+        log.debug("Find role by scope and name [{}, {}, {}, {}] - Done", scope, name, referenceId, referenceType);
         return role;
     }
 
@@ -175,17 +173,17 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Delete roles by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete roles by refId: {}/{}", referenceId, referenceType);
         try {
             final var roles = internalRoleRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
                 .map(RoleMongo::getId)
                 .toList();
-            LOGGER.debug("Delete roles by refId: {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete roles by refId: {}/{} - Done", referenceId, referenceType);
             return roles;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete roles by refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete roles by refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete role by reference");
         }
     }
@@ -203,7 +201,7 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType) {
-        LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
+        log.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
 
         final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(
             scope.name(),
@@ -211,7 +209,7 @@ public class MongoRoleRepository implements RoleRepository {
             referenceType.name()
         );
 
-        LOGGER.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
+        log.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
         return roles.stream().map(this::map).collect(Collectors.toSet());
     }
 }

@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
@@ -36,7 +36,7 @@ import org.springframework.util.CollectionUtils;
  * @author njt
  */
 @Repository
-@Slf4j
+@CustomLog
 public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String> implements EnvironmentRepository {
 
     private final String ENVIRONMENT_HRIDS;

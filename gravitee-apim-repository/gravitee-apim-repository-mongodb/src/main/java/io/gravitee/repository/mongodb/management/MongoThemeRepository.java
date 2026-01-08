@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +38,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoThemeRepository implements ThemeRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoThemeRepository.class);
 
     @Autowired
     private ThemeMongoRepository internalThemeRepo;
@@ -52,24 +50,24 @@ public class MongoThemeRepository implements ThemeRepository {
 
     @Override
     public Optional<Theme> findById(String themeId) throws TechnicalException {
-        LOGGER.debug("Find theme by ID [{}]", themeId);
+        log.debug("Find theme by ID [{}]", themeId);
 
         final ThemeMongo theme = internalThemeRepo.findById(themeId).orElse(null);
 
-        LOGGER.debug("Find theme by ID [{}] - Done", themeId);
+        log.debug("Find theme by ID [{}] - Done", themeId);
         return Optional.ofNullable(mapper.map(theme));
     }
 
     @Override
     public Theme create(Theme theme) throws TechnicalException {
-        LOGGER.debug("Create theme [{}]", theme.getName());
+        log.debug("Create theme [{}]", theme.getName());
 
         ThemeMongo themeMongo = mapper.map(theme);
         ThemeMongo createdThemeMongo = internalThemeRepo.insert(themeMongo);
 
         Theme res = mapper.map(createdThemeMongo);
 
-        LOGGER.debug("Create theme [{}] - Done", theme.getName());
+        log.debug("Create theme [{}] - Done", theme.getName());
 
         return res;
     }
@@ -104,7 +102,7 @@ public class MongoThemeRepository implements ThemeRepository {
             ThemeMongo themeMongoUpdated = internalThemeRepo.save(themeMongo);
             return mapper.map(themeMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating theme", e);
+            log.error("An error occurred when updating theme", e);
             throw new TechnicalException("An error occurred when updating theme");
         }
     }
@@ -114,7 +112,7 @@ public class MongoThemeRepository implements ThemeRepository {
         try {
             internalThemeRepo.deleteById(themeId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting theme [{}]", themeId, e);
+            log.error("An error occured when deleting theme [{}]", themeId, e);
             throw new TechnicalException("An error occured when deleting theme");
         }
     }
@@ -146,7 +144,7 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete themes by reference {}/{}", referenceId, referenceType);
+        log.debug("Delete themes by reference {}/{}", referenceId, referenceType);
         try {
             final var res = internalThemeRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
@@ -154,10 +152,10 @@ public class MongoThemeRepository implements ThemeRepository {
                 .map(ThemeMongo::getId)
                 .toList();
 
-            LOGGER.debug("Delete themes by reference {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete themes by reference {}/{} - Done", referenceId, referenceType);
             return res;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete themes by reference {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete themes by reference {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete themes by reference");
         }
     }

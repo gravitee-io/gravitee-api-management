@@ -28,10 +28,13 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -41,10 +44,9 @@ import org.springframework.util.CollectionUtils;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Membership, String> implements MembershipRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMembershipRepository.class);
 
     JdbcMembershipRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "memberships");
@@ -73,7 +75,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        log.debug("JdbcMembershipRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             List<String> rows = jdbcTemplate.queryForList(
                 "select id from " + this.tableName + " where reference_type = ? and reference_id = ?",
@@ -92,7 +94,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete memberships for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete memberships for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete memberships by reference", ex);
         }
     }
@@ -100,7 +102,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        log.debug("JdbcMembershipRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
                 """
@@ -110,14 +112,14 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 getOrm().getRowMapper()
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find memberships for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to find memberships for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to find memberships by reference", ex);
         }
     }
 
     @Override
     public Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.findByIds({})", membershipIds);
+        log.debug("JdbcMembershipRepository.findByIds({})", membershipIds);
         try {
             if (isEmpty(membershipIds)) {
                 return emptySet();
@@ -129,7 +131,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             );
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by ids", ex);
+            log.error("Failed to find membership by ids", ex);
             throw new TechnicalException("Failed to find membership by ids", ex);
         }
     }
@@ -137,7 +139,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId)
         throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.findByReferenceAndRoleId({}, {}, {}})", referenceType, referenceId, roleId);
+        log.debug("JdbcMembershipRepository.findByReferenceAndRoleId({}, {}, {}})", referenceType, referenceId, roleId);
         final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
         initializeWhereClause(referenceId, referenceType, roleId, query);
         return query(null, null, referenceId, referenceType, roleId, query.toString());
@@ -145,7 +147,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
     @Override
     public Set<Membership> findByRoleId(String roleId) {
-        LOGGER.debug("JdbcMembershipRepository.findByRoleId({})", roleId);
+        log.debug("JdbcMembershipRepository.findByRoleId({})", roleId);
         final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
         initializeWhereClause(null, null, roleId, query);
         return query(null, null, null, null, roleId, query.toString());
@@ -177,7 +179,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId)
         throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.findByReferencesAndRoleId({}, {}, {})", referenceType, referenceIds, roleId);
+        log.debug("JdbcMembershipRepository.findByReferencesAndRoleId({}, {}, {})", referenceType, referenceIds, roleId);
         try {
             if (CollectionUtils.isEmpty(referenceIds)) {
                 return Set.of();
@@ -211,7 +213,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             );
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by references and membership role_id", ex);
+            log.error("Failed to find membership by references and membership role_id", ex);
             throw new TechnicalException("Failed to find membership by references and membership role_id", ex);
         }
     }
@@ -223,7 +225,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         String roleId
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId({}, {}, {}, {})",
             memberId,
             memberType,
@@ -254,7 +256,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             }
             return query(memberId, memberType, null, referenceType, roleId, query.toString());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by references and membership type", ex);
+            log.error("Failed to find membership by references and membership type", ex);
             throw new TechnicalException("Failed to find membership by references and membership type", ex);
         }
     }
@@ -266,7 +268,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         Collection<String> roleIds
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn({}, {}, {}, [{}])",
             memberId,
             memberType,
@@ -300,7 +302,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by references and membership type", ex);
+            log.error("Failed to find membership by references and membership type", ex);
             throw new TechnicalException("Failed to find membership by references and membership type", ex);
         }
     }
@@ -312,7 +314,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         Collection<String> roleIds
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findReferenceIdByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn({}, {}, {}, [{}])",
             memberId,
             memberType,
@@ -351,7 +353,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 }
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find reference ids by references and membership type and member", ex);
+            log.error("Failed to find reference ids by references and membership type and member", ex);
             throw new TechnicalException("Failed to find reference ids by references and membership type and member", ex);
         }
     }
@@ -420,7 +422,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         final MembershipMemberType memberType,
         final MembershipReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType({}, {}, {}, {})",
             memberId,
             memberType,
@@ -430,7 +432,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? and reference_type = ? ";
             return query(memberId, memberType, null, referenceType, null, query);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user and membership type", ex);
+            log.error("Failed to find membership by user and membership type", ex);
             throw new TechnicalException("Failed to find membership by user and membership type", ex);
         }
     }
@@ -446,19 +448,19 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 "select reference_id from " + getOrm().getTableName() + " where member_id = ? and member_type = ? and reference_type = ? ";
             return queryForStream(memberId, memberType, null, referenceType, null, query).map(Membership::getReferenceId);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find reference ids by member and reference type", ex);
+            log.error("Failed to find reference ids by member and reference type", ex);
             throw new TechnicalException("Failed to find reference ids by member and reference type", ex);
         }
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberType(String memberId, final MembershipMemberType memberType) throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberType({}, {})", memberId, memberType);
+        log.debug("JdbcMembershipRepository.findByMemberIdAndMemberType({}, {})", memberId, memberType);
         try {
             final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? ";
             return query(memberId, memberType, null, null, null, query);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user ", ex);
+            log.error("Failed to find membership by user ", ex);
             throw new TechnicalException("Failed to find by user ", ex);
         }
     }
@@ -471,7 +473,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         String referenceId,
         String roleId
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId({}, {}, {}, {}, {})",
             memberId,
             memberType,
@@ -494,7 +496,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             );
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user and membership type", ex);
+            log.error("Failed to find membership by user and membership type", ex);
             throw new TechnicalException("Failed to find membership by user and membership type", ex);
         }
     }
@@ -505,7 +507,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdsAndMemberTypeAndReferenceType({}, {}, {})",
             memberIds,
             memberType,
@@ -540,7 +542,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             );
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by references and membership role", ex);
+            log.error("Failed to find membership by references and membership role", ex);
             throw new TechnicalException("Failed to find membership by references and membership role", ex);
         }
     }
@@ -552,7 +554,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         String sourceId
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndSource({}, {}, {}, {})",
             memberId,
             memberType,
@@ -572,7 +574,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             );
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user, source and membership type", ex);
+            log.error("Failed to find membership by user, source and membership type", ex);
             throw new TechnicalException("Failed to find membership by user, source and membership type", ex);
         }
     }
@@ -584,7 +586,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         String referenceId
     ) throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId({}, {}, {}, {})",
             memberId,
             memberType,
@@ -617,7 +619,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user and membership type", ex);
+            log.error("Failed to find membership by user and membership type", ex);
             throw new TechnicalException("Failed to find membership by user and membership type", ex);
         }
     }

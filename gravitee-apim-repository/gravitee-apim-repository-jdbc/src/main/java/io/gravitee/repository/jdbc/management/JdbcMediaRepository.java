@@ -28,8 +28,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -37,10 +36,9 @@ import org.springframework.stereotype.Repository;
  * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implements MediaRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMediaRepository.class);
 
     JdbcMediaRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "media");
@@ -65,10 +63,10 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     @Override
     public List<Media> findAllByApi(String api) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
+        log.debug("JdbcMediaRepository.findAllByApi({})", api);
 
         if (api == null) {
-            LOGGER.warn("Returning an empty list because API identifier given as an argument is null");
+            log.warn("Returning an empty list because API identifier given as an argument is null");
             return List.of();
         } else {
             return doFindAllByApi(api);
@@ -88,27 +86,27 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     @Override
     public Media create(Media media) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.create({})", media);
+        log.debug("JdbcMediaRepository.create({})", media);
         media.setCreatedAt(new Date());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(media));
             return media;
         } catch (Exception ex) {
-            LOGGER.error("Failed to create media", ex);
+            log.error("Failed to create media", ex);
             throw new TechnicalException("Failed to create media", ex);
         }
     }
 
     @Override
     public void deleteAllByApi(String api) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
+        log.debug("JdbcMediaRepository.deleteByApi({})", api);
 
         deleteByField("api", api);
     }
 
     @Override
     public void deleteByHashAndApi(String hash, String api) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.deleteByHashAndApi({}, {})", hash, api);
+        log.debug("JdbcMediaRepository.deleteByHashAndApi({}, {})", hash, api);
 
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and api = ?", hash, api);
@@ -118,7 +116,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     public void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.deleteByHashAndEnvironment({}, {})", hash, environment);
+        log.debug("JdbcMediaRepository.deleteByHashAndEnvironment({}, {})", hash, environment);
 
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and environment = ?", hash, environment);
@@ -129,19 +127,19 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     @Override
     public List<String> deleteByEnvironment(String environment) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.deleteByEnvironment({})", environment);
+        log.debug("JdbcMediaRepository.deleteByEnvironment({})", environment);
         return deleteByField("environment", environment);
     }
 
     @Override
     public List<String> deleteByOrganization(String organization) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.deleteByOrganization({})", organization);
+        log.debug("JdbcMediaRepository.deleteByOrganization({})", organization);
         return deleteByField("organization", organization);
     }
 
     @Override
     public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHash({},{},{}, {})", hash, mediaCriteria, withContent);
+        log.debug("JdbcMediaRepository.findByHash({},{},{}, {})", hash, mediaCriteria, withContent);
 
         try {
             String select = "select id, type, sub_type, file_name, size, created_at, api, hash";
@@ -181,7 +179,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     private List<String> deleteByField(String field, String value) throws TechnicalException {
         if (field == null || value == null) {
-            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", field, value);
+            log.warn("Skipping media deletion because the [{}/{}] given as an argument is null", field, value);
         } else {
             try {
                 final var rows = jdbcTemplate.queryForList(

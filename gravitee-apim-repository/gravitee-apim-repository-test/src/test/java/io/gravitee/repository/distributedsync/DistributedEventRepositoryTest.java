@@ -26,14 +26,14 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired

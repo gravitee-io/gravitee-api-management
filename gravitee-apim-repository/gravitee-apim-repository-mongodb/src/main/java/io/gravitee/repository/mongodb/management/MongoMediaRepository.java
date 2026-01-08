@@ -15,7 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.not;
+import static com.mongodb.client.model.Filters.or;
 
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
@@ -34,11 +38,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import lombok.CustomLog;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.stereotype.Component;
@@ -47,10 +50,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoMediaRepository implements MediaRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoMediaRepository.class);
 
     @Autowired
     private MongoDatabaseFactory mongoFactory;
@@ -92,7 +94,7 @@ public class MongoMediaRepository implements MediaRepository {
             Bson apiQuery = eq("metadata.api", api);
             return this.findAll(apiQuery);
         }
-        LOGGER.warn("Returning an empty list because the API identifier given as an argument is null");
+        log.warn("Returning an empty list because the API identifier given as an argument is null");
         return new ArrayList<>();
     }
 
@@ -150,7 +152,7 @@ public class MongoMediaRepository implements MediaRepository {
                     result = bos.toByteArray();
                     bos.close();
                 } catch (IOException e) {
-                    LOGGER.error("An error as occurred while converting GridFs file to media", e);
+                    log.error("An error as occurred while converting GridFs file to media", e);
                 }
                 imageData.setData(result);
             }
@@ -222,7 +224,7 @@ public class MongoMediaRepository implements MediaRepository {
     @Override
     public void deleteByHashAndApi(String hash, String api) throws TechnicalException {
         if (hash == null || api == null) {
-            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, api);
+            log.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, api);
         } else {
             deleteWithQuery(and(eq("metadata.api", api), eq("metadata.hash", hash)));
         }
@@ -230,7 +232,7 @@ public class MongoMediaRepository implements MediaRepository {
 
     public void deleteByHashAndEnvironment(String hash, String environment) throws TechnicalException {
         if (hash == null || environment == null) {
-            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, environment);
+            log.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, environment);
         } else {
             deleteWithQuery(and(eq("metadata.environment", environment), eq("metadata.hash", hash)));
         }
@@ -248,7 +250,7 @@ public class MongoMediaRepository implements MediaRepository {
 
     private List<String> deleteWithMetadata(String metadata, String value) throws TechnicalException {
         if (metadata == null || value == null) {
-            LOGGER.warn("Skipping media deletion because the [{}] given as an argument is null", metadata);
+            log.warn("Skipping media deletion because the [{}] given as an argument is null", metadata);
         } else {
             return deleteWithQuery(eq(metadata, value));
         }

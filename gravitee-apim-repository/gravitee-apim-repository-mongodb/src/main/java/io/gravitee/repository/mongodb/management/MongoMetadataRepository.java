@@ -28,20 +28,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoMetadataRepository implements MetadataRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoMetadataRepository.class);
 
     private final MetadataMongoRepository internalMetadataRepository;
 
@@ -52,26 +48,26 @@ public class MongoMetadataRepository implements MetadataRepository {
     @Override
     public Optional<Metadata> findById(final String key, final String referenceId, final MetadataReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}'", key, referenceType, referenceId);
+        log.debug("Find metadata by key '{}' ref type '{}' ref id '{}'", key, referenceType, referenceId);
         final MetadataMongo metadata = internalMetadataRepository
             .findById(new MetadataPkMongo(key, referenceId, referenceType.name()))
             .orElse(null);
-        LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}' done", key, referenceType, referenceId);
+        log.debug("Find metadata by key '{}' ref type '{}' ref id '{}' done", key, referenceType, referenceId);
         return Optional.ofNullable(map(metadata));
     }
 
     @Override
     public Metadata create(Metadata metadata) throws TechnicalException {
-        LOGGER.debug("Create metadata [{}]", metadata.getName());
+        log.debug("Create metadata [{}]", metadata.getName());
         try {
             Metadata res = map(internalMetadataRepository.insert(map(metadata)));
-            LOGGER.debug("Create metadata [{}] - Done", metadata.getName());
+            log.debug("Create metadata [{}] - Done", metadata.getName());
             return res;
         } catch (org.springframework.dao.DuplicateKeyException e) {
-            LOGGER.error("An error occurred while creating metadata", e);
+            log.error("An error occurred while creating metadata", e);
             throw new DuplicateKeyException("An error occurred while creating metadata", e);
         } catch (Exception e) {
-            LOGGER.error("An error occurred while creating metadata", e);
+            log.error("An error occurred while creating metadata", e);
             throw new TechnicalException("An error occurred while updating metadata", e);
         }
     }
@@ -101,7 +97,7 @@ public class MongoMetadataRepository implements MetadataRepository {
 
             return map(internalMetadataRepository.save(metadataMongo));
         } catch (Exception e) {
-            LOGGER.error("An error occurred while updating metadata", e);
+            log.error("An error occurred while updating metadata", e);
             throw new TechnicalException("An error occurred while updating metadata");
         }
     }
@@ -112,56 +108,56 @@ public class MongoMetadataRepository implements MetadataRepository {
         try {
             internalMetadataRepository.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurred while deleting metadata [{}]", id, e);
+            log.error("An error occurred while deleting metadata [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting metadata");
         }
     }
 
     @Override
     public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) {
-        LOGGER.debug("Find metadata by ref type '{}'", referenceType);
+        log.debug("Find metadata by ref type '{}'", referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceType(referenceType);
 
-        LOGGER.debug("Find metadata by ref type '{}' done", referenceType);
+        log.debug("Find metadata by ref type '{}' done", referenceType);
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) {
-        LOGGER.debug("Find metadata by ref type '{}'", referenceType);
+        log.debug("Find metadata by ref type '{}'", referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);
 
-        LOGGER.debug("Find metadata by ref type '{}' done", referenceType);
+        log.debug("Find metadata by ref type '{}' done", referenceType);
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete metadata by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete metadata by refId: {}/{}", referenceId, referenceType);
         try {
             final var metadata = internalMetadataRepository
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
                 .stream()
                 .map(metadataMongo -> metadataMongo.getId().getKey())
                 .toList();
-            LOGGER.debug("Delete metadata by refId: {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete metadata by refId: {}/{} - Done", referenceId, referenceType);
             return metadata;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete metadata by refId: {}/{}", referenceId, referenceId, ex);
+            log.error("Failed to delete metadata by refId: {}/{}", referenceId, referenceId, ex);
             throw new TechnicalException("Failed to delete metadata by reference");
         }
     }
 
     @Override
     public List<Metadata> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
-        LOGGER.debug("Find metadata by key '{}' and ref type '{}'", key, referenceType);
+        log.debug("Find metadata by key '{}' and ref type '{}'", key, referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdKeyAndIdReferenceType(key, referenceType);
 
-        LOGGER.debug("Find metadata by key '{}' and ref type '{}' done", key, referenceType);
+        log.debug("Find metadata by key '{}' and ref type '{}' done", key, referenceType);
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
 

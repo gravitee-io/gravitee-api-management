@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class SearchTopFailedApisAdapter {
 
     private static final String FAILED_REQUESTS = "failed_requests";

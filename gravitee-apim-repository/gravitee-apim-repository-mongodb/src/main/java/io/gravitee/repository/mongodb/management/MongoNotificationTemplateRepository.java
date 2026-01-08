@@ -26,8 +26,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoNotificationTemplateRepository implements NotificationTemplateRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoNotificationTemplateRepository.class);
 
     @Autowired
     private NotificationTemplateMongoRepository internalNotificationTemplateRepo;
@@ -48,24 +46,24 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
 
     @Override
     public Optional<NotificationTemplate> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find notificationTemplate by ID [{}]", id);
+        log.debug("Find notificationTemplate by ID [{}]", id);
         NotificationTemplateMongo notificationTemplate = internalNotificationTemplateRepo.findById(id).orElse(null);
         NotificationTemplate res = mapper.map(notificationTemplate);
 
-        LOGGER.debug("Find notificationTemplate by ID [{}] - Done", id);
+        log.debug("Find notificationTemplate by ID [{}] - Done", id);
         return Optional.ofNullable(res);
     }
 
     @Override
     public NotificationTemplate create(NotificationTemplate notificationTemplate) throws TechnicalException {
-        LOGGER.debug("Create notificationTemplate [{}]", notificationTemplate.getName());
+        log.debug("Create notificationTemplate [{}]", notificationTemplate.getName());
 
         NotificationTemplateMongo notificationTemplateMongo = mapper.map(notificationTemplate);
         NotificationTemplateMongo createdNotificationTemplateMongo = internalNotificationTemplateRepo.insert(notificationTemplateMongo);
 
         NotificationTemplate res = mapper.map(createdNotificationTemplateMongo);
 
-        LOGGER.debug("Create notificationTemplate [{}] - Done", notificationTemplate.getName());
+        log.debug("Create notificationTemplate [{}] - Done", notificationTemplate.getName());
 
         return res;
     }
@@ -99,7 +97,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
             NotificationTemplateMongo notificationTemplateMongoUpdated = internalNotificationTemplateRepo.save(notificationTemplateMongo);
             return mapper.map(notificationTemplateMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating notificationTemplate", e);
+            log.error("An error occured when updating notificationTemplate", e);
             throw new TechnicalException("An error occured when updating notificationTemplate");
         }
     }
@@ -109,19 +107,19 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         try {
             internalNotificationTemplateRepo.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting notificationTemplate [{}]", id, e);
+            log.error("An error occured when deleting notificationTemplate [{}]", id, e);
             throw new TechnicalException("An error occured when deleting notificationTemplate");
         }
     }
 
     @Override
     public Set<NotificationTemplate> findAll() throws TechnicalException {
-        LOGGER.debug("Find all notificationTemplates");
+        log.debug("Find all notificationTemplates");
 
         List<NotificationTemplateMongo> notificationTemplates = internalNotificationTemplateRepo.findAll();
         Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
-        LOGGER.debug("Find all notificationTemplates - Done");
+        log.debug("Find all notificationTemplates - Done");
         return res;
     }
 
@@ -131,7 +129,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         String referenceId,
         NotificationTemplateReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug("Find all notificationTemplates by type {}", type);
+        log.debug("Find all notificationTemplates by type {}", type);
 
         List<NotificationTemplateMongo> notificationTemplates = internalNotificationTemplateRepo.findByType(
             type.name(),
@@ -140,7 +138,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         );
         Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
-        LOGGER.debug("Find all notificationTemplates by type - Done");
+        log.debug("Find all notificationTemplates by type - Done");
         return res;
     }
 
@@ -149,7 +147,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         String referenceId,
         NotificationTemplateReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug("Find all notificationTemplates by environment");
+        log.debug("Find all notificationTemplates by environment");
 
         List<NotificationTemplateMongo> notificationTemplates = internalNotificationTemplateRepo.findByReferenceIdAndReferenceType(
             referenceId,
@@ -157,7 +155,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         );
         Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
-        LOGGER.debug("Find all notificationTemplates by environment- Done");
+        log.debug("Find all notificationTemplates by environment- Done");
         return res;
     }
 
@@ -168,7 +166,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         String referenceId,
         NotificationTemplateReferenceType referenceType
     ) throws TechnicalException {
-        LOGGER.debug("Find all notificationTemplates by environment");
+        log.debug("Find all notificationTemplates by environment");
 
         List<NotificationTemplateMongo> notificationTemplates =
             internalNotificationTemplateRepo.findByHookAndScopeAndReferenceIdAndReferenceType(
@@ -179,24 +177,24 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
             );
         Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
-        LOGGER.debug("Find all notificationTemplates by environment- Done");
+        log.debug("Find all notificationTemplates by environment- Done");
         return res;
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete notification template by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete notification template by refId: {}/{}", referenceId, referenceType);
         try {
             final var metadata = internalNotificationTemplateRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
                 .stream()
                 .map(NotificationTemplateMongo::getId)
                 .toList();
-            LOGGER.debug("Delete notification by refId: {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete notification by refId: {}/{} - Done", referenceId, referenceType);
             return metadata;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete notification by refId: {}/{}", referenceId, referenceId, ex);
+            log.error("Failed to delete notification by refId: {}/{}", referenceId, referenceId, ex);
             throw new TechnicalException("Failed to delete notification by reference");
         }
     }

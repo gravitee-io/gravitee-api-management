@@ -23,13 +23,15 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.RatingCriteria;
-import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -38,10 +40,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, String> implements RatingRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingRepository.class);
 
     JdbcRatingRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "ratings");
@@ -69,12 +70,12 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     public Rating create(Rating item) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.create({})", item);
+        log.debug("JdbcRatingRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create rating:", ex);
+            log.error("Failed to create rating:", ex);
             throw new TechnicalException("Failed to create rating", ex);
         }
     }
@@ -82,7 +83,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     @Override
     public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable page)
         throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
+        log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
         final List<Rating> ratings;
         try {
             ratings = jdbcTemplate.query(
@@ -93,7 +94,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
             );
         } catch (final Exception ex) {
             final String message = "Failed to find ratings by api pageable";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
         return getResultAsPage(page, ratings);
@@ -101,7 +102,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
                 "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? ",
@@ -110,7 +111,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
                 referenceType.name()
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ratings by ref:", ex);
+            log.error("Failed to find ratings by ref:", ex);
             throw new TechnicalException("Failed to find ratings by ref", ex);
         }
     }
@@ -118,7 +119,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     @Override
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
         throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
+        log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
         try {
             List<Rating> ratings = jdbcTemplate.query(
                 "select r.* from " +
@@ -133,7 +134,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
             );
             return ratings.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ratings by api:", ex);
+            log.error("Failed to find ratings by api:", ex);
             throw new TechnicalException("Failed to find ratings by api", ex);
         }
     }
@@ -165,7 +166,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findReferenceIdsOrderByRate({})", ratingCriteria.toString());
+        log.debug("JdbcRatingRepository.findReferenceIdsOrderByRate({})", ratingCriteria.toString());
         try {
             boolean hasInClause = ratingCriteria.getReferenceIds() != null && !ratingCriteria.getReferenceIds().isEmpty();
 
@@ -182,7 +183,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
                 }
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to compute ranking by criteria:", ex);
+            log.error("Failed to compute ranking by criteria:", ex);
             throw new TechnicalException("Failed to compute ranking by criteria", ex);
         }
     }
@@ -190,7 +191,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        log.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_type = ? and reference_id = ?",
@@ -207,10 +208,10 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
                 );
             }
 
-            LOGGER.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete rating by reference", ex);
         }
     }

@@ -25,9 +25,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -36,10 +42,10 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Installation, String> implements InstallationRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcInstallationRepository.class);
     private final String INSTALLATION_INFORMATIONS;
 
     JdbcInstallationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -74,7 +80,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     @Override
     public Optional<Installation> find() throws TechnicalException {
-        LOGGER.debug("JdbcInstallationRepository.find()");
+        log.debug("JdbcInstallationRepository.find()");
         try {
             JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -87,14 +93,14 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             );
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find installation", ex);
+            log.error("Failed to find installation", ex);
             throw new TechnicalException("Failed to find installation", ex);
         }
     }
 
     @Override
     public Optional<Installation> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcInstallationRepository.findById({})", id);
+        log.debug("JdbcInstallationRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -111,7 +117,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             );
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find installation by id", ex);
+            log.error("Failed to find installation by id", ex);
             throw new TechnicalException("Failed to find installation by id", ex);
         }
     }
@@ -123,7 +129,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             storeInstallationInformations(installation, false);
             return findById(installation.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create installation", ex);
+            log.error("Failed to create installation", ex);
             throw new TechnicalException("Failed to create installation", ex);
         }
     }
@@ -142,7 +148,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update installation:", ex);
+            log.error("Failed to update installation:", ex);
             throw new TechnicalException("Failed to update installation", ex);
         }
     }
@@ -155,7 +161,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     @Override
     public Set<Installation> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcInstallationRepository.findAll()");
+        log.debug("JdbcInstallationRepository.findAll()");
         try {
             JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -168,7 +174,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             );
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all installations:", ex);
+            log.error("Failed to find all installations:", ex);
             throw new TechnicalException("Failed to find all installations", ex);
         }
     }

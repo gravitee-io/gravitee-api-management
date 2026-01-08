@@ -38,17 +38,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@CustomLog
 @Repository
 public class JdbcSharedPolicyGroupRepository
     extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
     implements SharedPolicyGroupRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSharedPolicyGroupRepository.class);
 
     JdbcSharedPolicyGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygroups");
@@ -113,7 +111,7 @@ public class JdbcSharedPolicyGroupRepository
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+        log.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             StringJoiner andWhere = new StringJoiner(" AND ");
@@ -162,14 +160,14 @@ public class JdbcSharedPolicyGroupRepository
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
-            LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
+            log.error("Failed to search for SharedPolicyGroups:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
         }
     }
 
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
+        log.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
 
         try {
             final var result = jdbcTemplate.query(
@@ -181,17 +179,17 @@ public class JdbcSharedPolicyGroupRepository
 
             final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
 
-            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+            log.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
             return Optional.ofNullable(sharedPolicyGroup);
         } catch (Exception ex) {
-            LOGGER.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
+            log.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
             throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and cross ID", ex);
         }
     }
 
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and  HRID [{}]", environmentId, hrid);
+        log.debug("Find shared policy group by environment ID [{}] and  HRID [{}]", environmentId, hrid);
 
         try {
             final var result = jdbcTemplate.query(
@@ -203,7 +201,7 @@ public class JdbcSharedPolicyGroupRepository
 
             final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
 
-            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, hrid);
+            log.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, hrid);
             return Optional.ofNullable(sharedPolicyGroup);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and HRID", ex);
@@ -212,7 +210,7 @@ public class JdbcSharedPolicyGroupRepository
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete shared policy group by environment ID [{}]", environmentId);
+        log.debug("Delete shared policy group by environment ID [{}]", environmentId);
 
         try {
             final var rows = jdbcTemplate.queryForList(
@@ -225,10 +223,10 @@ public class JdbcSharedPolicyGroupRepository
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("Delete shared policy group by environment ID [{}] - Done", environmentId);
+            log.debug("Delete shared policy group by environment ID [{}] - Done", environmentId);
             return rows;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete SharedPolicyGroup by environment ID:", ex);
+            log.error("Failed to delete SharedPolicyGroup by environment ID:", ex);
             throw new TechnicalException("Failed to delete SharedPolicyGroup by environment ID", ex);
         }
     }

@@ -24,8 +24,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +32,9 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoInstallationRepository implements InstallationRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private InstallationMongoRepository internalRepository;
@@ -46,25 +44,25 @@ public class MongoInstallationRepository implements InstallationRepository {
 
     @Override
     public Optional<Installation> find() throws TechnicalException {
-        logger.debug("Find installation");
+        log.debug("Find installation");
         Installation installation = map(internalRepository.findAll().stream().findFirst().orElse(null));
-        logger.debug("Find installation - DONE");
+        log.debug("Find installation - DONE");
         return Optional.ofNullable(installation);
     }
 
     @Override
     public Optional<Installation> findById(String s) throws TechnicalException {
-        logger.debug("Find installation by id [{}]", s);
+        log.debug("Find installation by id [{}]", s);
         Installation installation = map(internalRepository.findById(s).orElse(null));
-        logger.debug("Find installation by id [{}] - DONE", s);
+        log.debug("Find installation by id [{}] - DONE", s);
         return Optional.ofNullable(installation);
     }
 
     @Override
     public Installation create(Installation installation) throws TechnicalException {
-        logger.debug("Create installation [{}]", installation.getId());
+        log.debug("Create installation [{}]", installation.getId());
         Installation createdInstallation = map(internalRepository.insert(map(installation)));
-        logger.debug("Create installation [{}] - Done", createdInstallation.getId());
+        log.debug("Create installation [{}] - Done", createdInstallation.getId());
         return createdInstallation;
     }
 
@@ -79,17 +77,17 @@ public class MongoInstallationRepository implements InstallationRepository {
             throw new IllegalStateException(String.format("No installation found with id [%s]", installation.getId()));
         }
 
-        logger.debug("Update installation [{}]", installation.getId());
+        log.debug("Update installation [{}]", installation.getId());
         Installation updatedInstallation = map(internalRepository.save(map(installation)));
-        logger.debug("Update installation [{}] - Done", updatedInstallation.getId());
+        log.debug("Update installation [{}] - Done", updatedInstallation.getId());
         return updatedInstallation;
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete installation [{}]", id);
+        log.debug("Delete installation [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete installation [{}] - Done", id);
+        log.debug("Delete installation [{}] - Done", id);
     }
 
     @Override

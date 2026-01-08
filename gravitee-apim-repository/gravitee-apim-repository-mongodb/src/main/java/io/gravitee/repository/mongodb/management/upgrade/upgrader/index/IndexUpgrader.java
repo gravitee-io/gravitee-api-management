@@ -17,19 +17,17 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.index;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
 import java.time.Duration;
+import lombok.CustomLog;
 import org.bson.BsonInt32;
 import org.bson.BsonValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 public abstract class IndexUpgrader extends IndexMongoUpgrader {
-
-    private static final Logger LOG = LoggerFactory.getLogger(IndexUpgrader.class);
 
     protected abstract Index buildIndex();
 
@@ -51,14 +49,14 @@ public abstract class IndexUpgrader extends IndexMongoUpgrader {
             .indexOps(collection)
             .ensureIndex(index.toIndexDefinition())
             .doOnSubscribe(s ->
-                LOG.info("Starting creation of index {} on {}", name, collection)
+                log.info("Starting creation of index {} on {}", name, collection)
             )
             .doOnSuccess(r ->
-                LOG.info("Index {} has been created successfully on {}", name, collection)
+                log.info("Index {} has been created successfully on {}", name, collection)
             )
             .thenReturn(true)
             .onErrorResume(e -> {
-                LOG.error(
+                log.error(
                     "Unexpected error while creating index {} on {}",
                     name,
                     collection,
@@ -70,7 +68,7 @@ public abstract class IndexUpgrader extends IndexMongoUpgrader {
 
         Flux.interval(Duration.ofSeconds(10))
             .doOnNext(t ->
-                LOG.info("Index {} on {} is still being created...", name, collection)
+                log.info("Index {} on {} is still being created...", name, collection)
             )
             .takeUntilOther(create)
             .subscribe();

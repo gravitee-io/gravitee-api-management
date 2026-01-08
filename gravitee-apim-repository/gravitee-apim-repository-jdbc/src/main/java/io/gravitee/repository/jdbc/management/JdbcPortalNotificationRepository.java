@@ -24,8 +24,7 @@ import io.gravitee.repository.management.model.PortalNotification;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -33,12 +32,11 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcPortalNotificationRepository
     extends JdbcAbstractCrudRepository<PortalNotification, String>
     implements PortalNotificationRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationRepository.class);
 
     JdbcPortalNotificationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_notifications");
@@ -62,7 +60,7 @@ public class JdbcPortalNotificationRepository
 
     @Override
     public List<PortalNotification> findByUser(String user) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationRepository.findByUser({})", user);
+        log.debug("JdbcPortalNotificationRepository.findByUser({})", user);
         try {
             List<PortalNotification> items = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where " + escapeReservedWord("user") + " = ?",
@@ -72,7 +70,7 @@ public class JdbcPortalNotificationRepository
             return items;
         } catch (final Exception ex) {
             final String message = "Failed to find notifications by user";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
@@ -86,12 +84,12 @@ public class JdbcPortalNotificationRepository
 
     @Override
     public void deleteAll(String user) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationRepository.deleteAll({})", user);
+        log.debug("JdbcPortalNotificationRepository.deleteAll({})", user);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("user") + " = ?", user);
         } catch (final Exception ex) {
             final String message = "Failed to delete notifications by user";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }

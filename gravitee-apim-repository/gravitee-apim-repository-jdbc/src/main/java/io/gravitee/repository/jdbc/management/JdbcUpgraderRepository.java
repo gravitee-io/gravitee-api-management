@@ -23,8 +23,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.sql.Types;
 import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -32,10 +31,9 @@ import org.springframework.stereotype.Repository;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord> implements UpgraderRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcUpgraderRepository.class);
 
     JdbcUpgraderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "upgraders");
@@ -51,7 +49,7 @@ public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord
 
     @Override
     public Maybe<UpgradeRecord> findById(String id) {
-        LOGGER.debug("JdbcUpgraderRepository.findById({})", id);
+        log.debug("JdbcUpgraderRepository.findById({})", id);
         try {
             return jdbcTemplate
                 .query(getOrm().getSelectByIdSql(), getRowMapper(), id)
@@ -60,19 +58,19 @@ public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord
                 .map(Maybe::just)
                 .orElseGet(Maybe::empty);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find upgrader data by id {}", id, ex);
+            log.error("Failed to find upgrader data by id {}", id, ex);
             return Maybe.error(new TechnicalException("Failed to find upgrader data by id {}", ex));
         }
     }
 
     @Override
     public Single<UpgradeRecord> create(UpgradeRecord upgradeRecord) {
-        LOGGER.debug("JdbcUpgraderRepository.create({})", upgradeRecord);
+        log.debug("JdbcUpgraderRepository.create({})", upgradeRecord);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(upgradeRecord));
             return findById(upgradeRecord.getId()).toSingle();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create upgrade data:", ex);
+            log.error("Failed to create upgrade data:", ex);
             return Single.error(new TechnicalException("Failed to create upgrade data", ex));
         }
     }

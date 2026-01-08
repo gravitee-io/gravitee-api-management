@@ -22,11 +22,11 @@ import io.gravitee.repository.management.model.ScoringFunction;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
+@CustomLog
 @Repository
 public class JdbcScoringFunctionRepository
     extends JdbcAbstractCrudRepository<ScoringFunction, String>

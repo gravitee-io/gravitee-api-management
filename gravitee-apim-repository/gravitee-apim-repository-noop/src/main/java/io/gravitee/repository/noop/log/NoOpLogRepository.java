@@ -21,19 +21,14 @@ import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class NoOpLogRepository implements LogRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(NoOpLogRepository.class);
 
     @Override
     public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {

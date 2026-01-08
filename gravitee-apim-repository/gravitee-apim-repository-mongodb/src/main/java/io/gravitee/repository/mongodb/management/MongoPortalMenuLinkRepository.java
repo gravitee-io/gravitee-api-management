@@ -16,40 +16,25 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.AccessControl;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageMedia;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PortalMenuLink;
-import io.gravitee.repository.mongodb.management.internal.model.AccessControlMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PageMediaMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalMenuLinkMongo;
-import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.portalMenuLink.PortalMenuLinkMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
-
-    private static final Logger logger = LoggerFactory.getLogger(MongoPortalMenuLinkRepository.class);
 
     @Autowired
     private PortalMenuLinkMongoRepository internalPortalMenuLinkRepo;
@@ -62,7 +47,7 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
         try {
             internalPortalMenuLinkRepo.deleteByEnvironmentId(environmentId);
         } catch (Exception e) {
-            logger.error("An error occurred when deleting portal menu links by environment[{}]", environmentId, e);
+            log.error("An error occurred when deleting portal menu links by environment[{}]", environmentId, e);
             throw new TechnicalException("An error occurred when deleting portal menu links");
         }
     }
@@ -87,38 +72,38 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
 
     @Override
     public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
-        logger.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
+        log.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 
         PortalMenuLinkMongo portalMenuLink = internalPortalMenuLinkRepo
             .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
             .orElse(null);
         PortalMenuLink res = mapper.map(portalMenuLink);
 
-        logger.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
+        log.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
         return Optional.ofNullable(res);
     }
 
     @Override
     public Optional<PortalMenuLink> findById(String portalMenuLinkId) throws TechnicalException {
-        logger.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
+        log.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 
         PortalMenuLinkMongo portalMenuLink = internalPortalMenuLinkRepo.findById(portalMenuLinkId).orElse(null);
         PortalMenuLink res = mapper.map(portalMenuLink);
 
-        logger.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
+        log.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
         return Optional.ofNullable(res);
     }
 
     @Override
     public PortalMenuLink create(PortalMenuLink portalMenuLink) throws TechnicalException {
-        logger.debug("Create portal menu link [{}]", portalMenuLink.getName());
+        log.debug("Create portal menu link [{}]", portalMenuLink.getName());
 
         PortalMenuLinkMongo portalMenuLinkMongo = mapper.map(portalMenuLink);
         PortalMenuLinkMongo createdPortalMenuLink = internalPortalMenuLinkRepo.insert(portalMenuLinkMongo);
 
         PortalMenuLink res = mapper.map(createdPortalMenuLink);
 
-        logger.debug("Create portal menu link [{}] - Done", portalMenuLink.getName());
+        log.debug("Create portal menu link [{}] - Done", portalMenuLink.getName());
 
         return res;
     }
@@ -139,7 +124,7 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
             PortalMenuLinkMongo portalMenuLinkMongoUpdated = internalPortalMenuLinkRepo.save(portalMenuLinkMongo);
             return mapper.map(portalMenuLinkMongoUpdated);
         } catch (Exception e) {
-            logger.error("An error occurred when updating portal menu page", e);
+            log.error("An error occurred when updating portal menu page", e);
             throw new TechnicalException("An error occurred when updating portal menu page");
         }
     }
@@ -149,7 +134,7 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
         try {
             internalPortalMenuLinkRepo.deleteById(portalMenuLinkId);
         } catch (Exception e) {
-            logger.error("An error occurred when deleting portal menu link [{}]", portalMenuLinkId, e);
+            log.error("An error occurred when deleting portal menu link [{}]", portalMenuLinkId, e);
             throw new TechnicalException("An error occurred when deleting portal menu link");
         }
     }

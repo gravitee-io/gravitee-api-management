@@ -49,8 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
@@ -60,10 +59,10 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> implements ApiRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiRepository.class);
     private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
         Set<String> categories = parent.getCategories();
         if (categories == null) {
@@ -127,7 +126,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Optional<Api> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findById({})", id);
+        log.debug("JdbcApiRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
@@ -140,17 +139,17 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 addLabels(result.get());
                 addGroups(result.get());
             }
-            LOGGER.debug("JdbcApiRepository.findById({}) = {}", id, result);
+            log.debug("JdbcApiRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api by id:", ex);
+            log.error("Failed to find api by id:", ex);
             throw new TechnicalException("Failed to find api by id", ex);
         }
     }
 
     @Override
     public Api create(Api item) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.create({})", item);
+        log.debug("JdbcApiRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeLabels(item, false);
@@ -158,14 +157,14 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             storeCategories(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create api:", ex);
+            log.error("Failed to create api:", ex);
             throw new TechnicalException("Failed to create api", ex);
         }
     }
 
     @Override
     public Api update(final Api api) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.update({})", api);
+        log.debug("JdbcApiRepository.update({})", api);
         if (api == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -178,7 +177,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update api", ex);
+            log.error("Failed to update api", ex);
             throw new TechnicalException("Failed to update api", ex);
         }
     }
@@ -210,7 +209,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Page<String> searchIds(List<ApiCriteria> criteria, Pageable pageable, Sortable sortable) {
-        LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
+        log.debug("JdbcApiRepository.searchIds({})", criteria);
 
         final StringBuilder sbQuery = new StringBuilder("select distinct a.id");
 
@@ -270,7 +269,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.listCategories({})", apiCriteria);
+        log.debug("JdbcApiRepository.listCategories({})", apiCriteria);
         try {
             boolean hasInClause = apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty();
 
@@ -298,14 +297,14 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 }
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to list categories api:", ex);
+            log.error("Failed to list categories api:", ex);
             throw new TechnicalException("Failed to list categories", ex);
         }
     }
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
+        log.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
         JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(
             getOrm().getSelectAllSql() +
@@ -328,13 +327,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             addGroups(result.get());
         }
 
-        LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+        log.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
         return result;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcApiRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var apiIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -350,10 +349,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcApiRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcApiRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return apiIds;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete api by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete api by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete api by environment", ex);
         }
     }
@@ -424,7 +423,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             CHILD_ADDER,
             "id"
         );
-        LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
+        log.debug("JdbcApiRepository.search({})", apiCriteria);
 
         String projection =
             "ac.*, a.id, a.environment_id, a.cross_id, a.name, a.description, a.version, a.type, a.deployed_at, a.created_at, a.updated_at, " +
@@ -611,7 +610,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
+        log.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
         List<String> rows = jdbcTemplate.queryForList(
             "select a.id from " + this.tableName + " a where a.environment_id = ? and a.cross_id = ?",
             String.class,
@@ -625,17 +624,17 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         Optional<String> result = rows.stream().findFirst();
 
-        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+        log.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
         return result;
     }
 
     @Override
     public boolean existById(final String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.existById({})", apiId);
+        log.debug("JdbcApiRepository.existById({})", apiId);
         try {
             String idFound = jdbcTemplate.queryForObject("select a.id from " + this.tableName + " a where a.id = ?", String.class, apiId);
 
-            LOGGER.debug("JdbcApiRepository.existById({}) = {}", apiId, idFound);
+            log.debug("JdbcApiRepository.existById({}) = {}", apiId, idFound);
             return true;
         } catch (EmptyResultDataAccessException e) {
             return false;

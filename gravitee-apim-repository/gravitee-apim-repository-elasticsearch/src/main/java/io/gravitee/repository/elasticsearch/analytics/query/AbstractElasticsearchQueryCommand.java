@@ -22,6 +22,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.analytics.query.AbstractQuery;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
@@ -32,8 +33,8 @@ import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.CustomLog;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -52,7 +53,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
     /**
      * Logger.
      */
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     /**
      * Elasticsearch client to perform search request.
@@ -111,7 +112,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
         final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 
-        logger.debug("ES request {}", request);
+        log.debug("ES request {}", request);
 
         return request;
     }

@@ -22,12 +22,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.repository.management.model.Group;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -35,10 +38,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> implements CategoryRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCategoryRepository.class);
 
     JdbcCategoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "categories");
@@ -65,7 +67,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
 
     @Override
     public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findAllByEnvironment({})", environmentId);
+        log.debug("JdbcCategoryRepository.findAllByEnvironment({})", environmentId);
         try {
             List<Category> categories = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where environment_id = ?",
@@ -74,14 +76,14 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             );
             return new HashSet<>(categories);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find categories by environment:", ex);
+            log.error("Failed to find categories by environment:", ex);
             throw new TechnicalException("Failed to find categories by environment", ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcCategoryRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -93,29 +95,29 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcCategoryRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcCategoryRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete categories by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete categories by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete categories by environment", ex);
         }
     }
 
     @Override
     public Optional<Category> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findById({})", id);
+        log.debug("JdbcCategoryRepository.findById({})", id);
         try {
             List<Category> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getOrm().getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find categories items by id : {} ", id, ex);
+            log.error("Failed to find categories items by id : {} ", id, ex);
             throw new TechnicalException("Failed to find categories items by id : " + id, ex);
         }
     }
 
     @Override
     public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findByEnvironmentIdAndIdIn({}, {})", environmentId, ids);
+        log.debug("JdbcCategoryRepository.findByEnvironmentIdAndIdIn({}, {})", environmentId, ids);
         if (ids == null || ids.isEmpty()) {
             return Collections.emptySet();
         }
@@ -135,26 +137,26 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             );
             return new HashSet<>(rows);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find group by ids", ex);
+            log.error("Failed to find group by ids", ex);
             throw new TechnicalException("Failed to find group by ids", ex);
         }
     }
 
     @Override
     public Category create(Category item) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.create({})", item);
+        log.debug("JdbcCategoryRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create categories item:", ex);
+            log.error("Failed to create categories item:", ex);
             throw new TechnicalException("Failed to create categories item.", ex);
         }
     }
 
     @Override
     public Category update(Category item) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.update({})", item);
+        log.debug("JdbcCategoryRepository.update({})", item);
         if (item == null) {
             throw new IllegalStateException("Unable to update null item");
         }
@@ -209,37 +211,37 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         } catch (IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update categories item:", ex);
+            log.error("Failed to update categories item:", ex);
             throw new TechnicalException("Failed to update categories item", ex);
         }
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.delete({})", id);
+        log.debug("JdbcCategoryRepository.delete({})", id);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where id = ?", id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete categories item:", ex);
+            log.error("Failed to delete categories item:", ex);
             throw new TechnicalException("Failed to delete categories item", ex);
         }
     }
 
     @Override
     public Set<Category> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findAll()");
+        log.debug("JdbcCategoryRepository.findAll()");
         try {
             List<Category> items = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all categories items:", ex);
+            log.error("Failed to find all categories items:", ex);
             throw new TechnicalException("Failed to find all categories items", ex);
         }
     }
 
     @Override
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findByKey({},{})", key, environment);
+        log.debug("JdbcCategoryRepository.findByKey({},{})", key, environment);
         try {
             final Optional<Category> category = jdbcTemplate
                 .query(
@@ -253,19 +255,19 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             return category;
         } catch (final Exception ex) {
             final String error = "Failed to find category by key " + key;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public Set<Category> findByPage(String page) throws TechnicalException {
-        LOGGER.debug("JdbcCategoryRepository.findByPage()");
+        log.debug("JdbcCategoryRepository.findByPage()");
         try {
             List<Category> categories = jdbcTemplate.query(getOrm().getSelectAllSql() + " where page = ?", getOrm().getRowMapper(), page);
             return new HashSet<>(categories);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find categories by page:", ex);
+            log.error("Failed to find categories by page:", ex);
             throw new TechnicalException("Failed to find categories by page", ex);
         }
     }

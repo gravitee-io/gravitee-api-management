@@ -27,8 +27,7 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Repository;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<PageRevision> implements PageRevisionRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRevisionRepository.class);
 
     JdbcPageRevisionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "page_revisions");
@@ -72,7 +70,7 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.findById({}, {})", pageId, revision);
+        log.debug("JdbcPageRevisionRepository.findById({}, {})", pageId, revision);
         try {
             final List<PageRevision> items = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where page_id = ? and revision = ?",
@@ -82,43 +80,43 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
             );
             return items.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find page revision by id", ex);
+            log.error("Failed to find page revision by id", ex);
             throw new TechnicalException("Failed to find page revision by id", ex);
         }
     }
 
     @Override
     public PageRevision create(PageRevision item) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.create({})", item);
+        log.debug("JdbcPageRevisionRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getPageId(), item.getRevision()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create page revision", ex);
+            log.error("Failed to create page revision", ex);
             throw new TechnicalException("Failed to create page revision", ex);
         }
     }
 
     @Override
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.findAllByPageId({})", pageId);
+        log.debug("JdbcPageRevisionRepository.findAllByPageId({})", pageId);
         try {
             List<PageRevision> result = jdbcTemplate.query(
                 "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
                 getOrm().getRowMapper(),
                 pageId
             );
-            LOGGER.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
+            log.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find revisions by page id: {}", pageId, ex);
+            log.error("Failed to find revisions by page id: {}", pageId, ex);
             throw new TechnicalException("Failed to find revisions by page id", ex);
         }
     }
 
     @Override
     public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.findLastByPageId({})", pageId);
+        log.debug("JdbcPageRevisionRepository.findLastByPageId({})", pageId);
         try {
             List<PageRevision> rows = jdbcTemplate.query(
                 "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc " + createPagingClause(1, 0),
@@ -126,17 +124,17 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
                 pageId
             );
             Optional<PageRevision> result = rows.stream().findFirst();
-            LOGGER.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
+            log.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find last revision by page id: {}", pageId, ex);
+            log.error("Failed to find last revision by page id: {}", pageId, ex);
             throw new TechnicalException("Failed to find last revision by page id", ex);
         }
     }
 
     @Override
     public List<String> deleteByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.deleteByPageId({})", pageId);
+        log.debug("JdbcPageRevisionRepository.deleteByPageId({})", pageId);
         try {
             List<PageRevision> result = jdbcTemplate.query(
                 "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
@@ -148,30 +146,30 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
                 jdbcTemplate.update("delete from " + this.tableName + " where page_id = ?", pageId);
             }
 
-            LOGGER.debug("JdbcPageRevisionRepository.delete({}) - Done", pageId);
+            log.debug("JdbcPageRevisionRepository.delete({}) - Done", pageId);
             return result
                 .stream()
                 .map(p -> p.getPageId() + ":" + p.getRevision())
                 .toList();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete page revision by id: {}", pageId, ex);
+            log.error("Failed to delete page revision by id: {}", pageId, ex);
             throw new TechnicalException("Failed to delete page revision by page id", ex);
         }
     }
 
     @Override
     public void deleteAllByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.deleteAllByPageId({})", pageId);
+        log.debug("JdbcPageRevisionRepository.deleteAllByPageId({})", pageId);
         try {
             String sql = "DELETE FROM " + this.tableName + " WHERE page_id = ?";
             int rowsAffected = jdbcTemplate.update(sql, pageId);
-            LOGGER.debug("JdbcPageRevisionRepository.deleteAllByPageId({}) = {} rows deleted", pageId, rowsAffected);
+            log.debug("JdbcPageRevisionRepository.deleteAllByPageId({}) = {} rows deleted", pageId, rowsAffected);
 
             if (rowsAffected == 0) {
-                LOGGER.warn("No revisions found for page id: {}", pageId);
+                log.warn("No revisions found for page id: {}", pageId);
             }
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete revisions by page id: {}", pageId, ex);
+            log.error("Failed to delete revisions by page id: {}", pageId, ex);
             throw new TechnicalException("Failed to delete revisions by page id", ex);
         }
     }
