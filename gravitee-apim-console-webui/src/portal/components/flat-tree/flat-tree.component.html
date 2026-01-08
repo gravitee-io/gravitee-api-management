@@ -44,7 +44,7 @@
       tabindex="0"
       *matTreeNodeDef="let node"
       matTreeNodePadding
-      [matTreeNodePaddingIndent]="26"
+      [matTreeNodePaddingIndent]="25"
       cdkDrag
       [cdkDragData]="node"
       (cdkDragStarted)="onDragStarted($event)"
@@ -68,7 +68,7 @@
       tabindex="0"
       *matTreeNodeDef="let node; when: hasChild"
       matTreeNodePadding
-      [matTreeNodePaddingIndent]="26"
+      [matTreeNodePaddingIndent]="25"
       cdkDrag
       [cdkDragData]="node"
       (cdkDragStarted)="onDragStarted($event)"
@@ -85,7 +85,7 @@
 
       <mat-icon
         matTreeNodeToggle
-        class="tree__icon"
+        class="tree__icon expand-collapse-icon"
         [attr.data-test-icon]="'toggle'"
         [svgIcon]="treeBase.isExpanded(node) ? 'gio:nav-arrow-down' : 'gio:nav-arrow-right'"
         aria-hidden="true"
