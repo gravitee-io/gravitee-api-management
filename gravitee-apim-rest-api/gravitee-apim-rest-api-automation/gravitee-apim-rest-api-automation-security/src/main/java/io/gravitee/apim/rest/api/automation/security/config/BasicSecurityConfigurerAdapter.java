@@ -26,13 +26,13 @@ import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
+import io.gravitee.rest.api.security.config.SecureHeadersConfigurer;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
-import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
@@ -68,7 +68,6 @@ import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -79,7 +78,7 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-public class BasicSecurityConfigurerAdapter {
+public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -185,6 +184,7 @@ public class BasicSecurityConfigurerAdapter {
         authorizations(http);
         hsts(http);
         csrf(http);
+        configure(http, environment);
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
