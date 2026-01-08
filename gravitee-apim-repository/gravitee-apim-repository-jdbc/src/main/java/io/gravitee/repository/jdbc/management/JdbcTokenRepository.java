@@ -22,8 +22,7 @@ import io.gravitee.repository.management.model.Token;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -31,10 +30,9 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, String> implements TokenRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTokenRepository.class);
 
     JdbcTokenRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "tokens");
@@ -61,7 +59,7 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
 
     @Override
     public List<Token> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcTokenRepository.findByReference({}, {})", referenceType, referenceId);
+        log.debug("JdbcTokenRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
@@ -71,14 +69,14 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
             );
         } catch (final Exception ex) {
             final String message = "Failed to find tokens by reference";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceType, referenceId);
+        log.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceType, referenceId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_type = ? and reference_id = ?",
@@ -95,10 +93,10 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
                 );
             }
 
-            LOGGER.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceType, referenceId);
+            log.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceType, referenceId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tokens by reference", ex);
         }
     }

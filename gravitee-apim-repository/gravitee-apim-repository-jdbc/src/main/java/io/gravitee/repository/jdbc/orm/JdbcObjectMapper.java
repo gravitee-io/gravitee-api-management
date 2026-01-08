@@ -39,9 +39,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import lombok.CustomLog;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -50,9 +49,8 @@ import org.springframework.jdbc.core.RowMapper;
  *
  * @author njt
  */
+@CustomLog
 public class JdbcObjectMapper<T> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcObjectMapper.class);
 
     private final Constructor<T> constructor;
 
@@ -121,8 +119,8 @@ public class JdbcObjectMapper<T> {
 
         @Override
         public PreparedStatement createPreparedStatement(Connection cnctn) throws SQLException {
-            LOGGER.trace("SQL: {}", sql);
-            LOGGER.trace("Item: {}", item);
+            log.trace("SQL: {}", sql);
+            log.trace("Item: {}", item);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = setStatementValues(stmt, item, 1);
 
@@ -142,7 +140,7 @@ public class JdbcObjectMapper<T> {
                 setFromResultSet(item, rs);
                 return item;
             } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException ex) {
-                LOGGER.error("Failed to construct {}", tableName);
+                log.error("Failed to construct {}", tableName);
                 throw new IllegalStateException("Failed to construct " + tableName, ex);
             }
         }
@@ -195,7 +193,7 @@ public class JdbcObjectMapper<T> {
         try {
             this.constructor = clazz.getConstructor();
         } catch (final Exception e) {
-            LOGGER.error("Unable to find default constructor for {}", tableName);
+            log.error("Unable to find default constructor for {}", tableName);
             throw new IllegalStateException("Unable to find default constructor for " + tableName, e);
         }
         this.tableName = tableName;
@@ -252,7 +250,7 @@ public class JdbcObjectMapper<T> {
 
     public int setArguments(PreparedStatement stmt, Collection data, int idx) throws SQLException {
         for (Object item : data) {
-            LOGGER.trace("Setting {} to {}", idx, item);
+            log.trace("Setting {} to {}", idx, item);
 
             if (item instanceof Enum) {
                 stmt.setString(idx++, ((Enum) item).name());
@@ -283,15 +281,15 @@ public class JdbcObjectMapper<T> {
                     column.setter.invoke(item, value);
                 }
             } catch (SQLException ex) {
-                LOGGER.debug("Field {} is not part of the result set; {}", getDBName(column.name), ex.getMessage());
+                log.debug("Field {} is not part of the result set; {}", getDBName(column.name), ex.getMessage());
             } catch (Exception ex) {
-                LOGGER.error("Failed to invoke setter {} on {}; {}", column.setter, item, ex.getMessage());
+                log.error("Failed to invoke setter {} on {}; {}", column.setter, item, ex.getMessage());
             }
         }
     }
 
     private Object checkTypeAndConvert(final T item, final JdbcColumn column, final Object value) {
-        LOGGER.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
+        log.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
         if (column.javaType.isEnum() && (value instanceof String)) {
             final String stringValue = (String) value;
             if (hasText(stringValue)) {
@@ -355,7 +353,7 @@ public class JdbcObjectMapper<T> {
             try {
                 final Object value = column.getter.invoke(item);
                 if (value == null) {
-                    LOGGER.debug("Setting {}/{} to null for the type {}", idx, getDBName(column.name), column.jdbcType);
+                    log.debug("Setting {}/{} to null for the type {}", idx, getDBName(column.name), column.jdbcType);
                     if (column.jdbcType == Types.NVARCHAR) {
                         stmt.setNull(idx, Types.VARCHAR);
                     } else {
@@ -376,10 +374,10 @@ public class JdbcObjectMapper<T> {
                     stmt.setObject(idx, value);
                 }
                 if (value != null) {
-                    LOGGER.debug("Setting {}/{} to {} for the type {}", idx, getDBName(column.name), value, column.jdbcType);
+                    log.debug("Setting {}/{} to {} for the type {}", idx, getDBName(column.name), value, column.jdbcType);
                 }
             } catch (Exception ex) {
-                LOGGER.error("Failed to invoke getter {} on {} : ", column.setter, item, ex);
+                log.error("Failed to invoke getter {} on {} : ", column.setter, item, ex);
             }
             ++idx;
         }

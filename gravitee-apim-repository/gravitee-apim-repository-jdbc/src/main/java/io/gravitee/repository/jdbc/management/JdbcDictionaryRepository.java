@@ -42,8 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -55,10 +54,10 @@ import org.springframework.util.CollectionUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Dictionary, String> implements DictionaryRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcDictionaryRepository.class);
     private final String DICTIONARY_PROPERTY;
 
     JdbcDictionaryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -140,8 +139,8 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
         @Override
         public PreparedStatement createPreparedStatement(Connection cnctn) throws SQLException {
-            LOGGER.debug("SQL: {}", sql);
-            LOGGER.debug("dictionary: {}", dictionary);
+            log.debug("SQL: {}", sql);
+            log.debug("dictionary: {}", dictionary);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = orm.setStatementValues(stmt, dictionary, 1);
             stmt.setString(idx++, dictionary.getProvider() == null ? null : dictionary.getProvider().getType());
@@ -259,7 +258,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     @Override
     public Optional<Dictionary> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.findById({})", id);
+        log.debug("JdbcDictionaryRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
@@ -268,10 +267,10 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
                 id
             );
             Optional<Dictionary> result = rowMapper.getRows().stream().findFirst();
-            LOGGER.debug("JdbcDictionaryRepository.findById({}) = {}", id, result);
+            log.debug("JdbcDictionaryRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find dictionary by id:", ex);
+            log.error("Failed to find dictionary by id:", ex);
             throw new TechnicalException("Failed to find dictionary by id", ex);
         }
     }
@@ -284,20 +283,20 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     @Override
     public Dictionary create(Dictionary item) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.create({})", item);
+        log.debug("JdbcDictionaryRepository.create({})", item);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             storeProperties(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create dictionary", ex);
+            log.error("Failed to create dictionary", ex);
             throw new TechnicalException("Failed to create dictionary", ex);
         }
     }
 
     @Override
     public Dictionary update(final Dictionary dictionary) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.update({})", dictionary);
+        log.debug("JdbcPageRepository.update({})", dictionary);
         if (dictionary == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -310,14 +309,14 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update dictionary", ex);
+            log.error("Failed to update dictionary", ex);
             throw new TechnicalException("Failed to update dictionary", ex);
         }
     }
 
     @Override
     public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({})", environments);
+        log.debug("JdbcDictionaryRepository.findAllByEnvironments({})", environments);
         try {
             if (CollectionUtils.isEmpty(environments)) {
                 return findAll();
@@ -334,17 +333,17 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, environments, 1), rowMapper);
             Set<Dictionary> result = new HashSet<>(rowMapper.getRows());
-            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({}) = {}", environments, result);
+            log.debug("JdbcDictionaryRepository.findAllByEnvironments({}) = {}", environments, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find dictionary for environments:", ex);
+            log.error("Failed to find dictionary for environments:", ex);
             throw new TechnicalException("Failed to find dictionary for environments", ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcDictionaryRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var dictionaryIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -360,17 +359,17 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcDictionaryRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcDictionaryRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return dictionaryIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete dictionaries for environment: {}", environmentId, ex);
+            log.error("Failed to delete dictionaries for environment: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete dictionaries by environment", ex);
         }
     }
 
     @Override
     public Optional<Dictionary> findByKeyAndEnvironment(String key, String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {})", key, environmentId);
+        log.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {})", key, environmentId);
         try {
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
@@ -385,10 +384,10 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
                 environmentId
             );
             Optional<Dictionary> result = rowMapper.getRows().stream().findFirst();
-            LOGGER.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {}) = {}", key, environmentId, result);
+            log.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {}) = {}", key, environmentId, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find dictionary by key and environment:", ex);
+            log.error("Failed to find dictionary by key and environment:", ex);
             throw new TechnicalException("Failed to find dictionary by id", ex);
         }
     }

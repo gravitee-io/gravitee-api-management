@@ -28,9 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -39,11 +37,9 @@ import org.springframework.stereotype.Component;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class MongoPageRevisionRepository implements PageRevisionRepository {
-
-    private static final Logger logger = LoggerFactory.getLogger(MongoPageRevisionRepository.class);
 
     @Autowired
     private PageRevisionMongoRepository internalPageRevisionRepo;
@@ -61,25 +57,25 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
-        logger.debug("Find page revision by ID [{}]", pageId);
+        log.debug("Find page revision by ID [{}]", pageId);
 
         PageRevisionMongo page = internalPageRevisionRepo.findById(new PageRevisionPkMongo(pageId, revision)).orElse(null);
         PageRevision res = mapper.map(page);
 
-        logger.debug("Find page revision by ID [{}] - Done", pageId);
+        log.debug("Find page revision by ID [{}] - Done", pageId);
         return Optional.ofNullable(res);
     }
 
     @Override
     public PageRevision create(PageRevision page) throws TechnicalException {
-        logger.debug("Create revision for page [{}]", page.getName());
+        log.debug("Create revision for page [{}]", page.getName());
 
         PageRevisionMongo pageMongo = mapper.map(page);
         PageRevisionMongo createdPageMongo = internalPageRevisionRepo.insert(pageMongo);
 
         PageRevision res = mapper.map(createdPageMongo);
 
-        logger.debug("Create revision for page [{}] - Done", page.getName());
+        log.debug("Create revision for page [{}] - Done", page.getName());
 
         return res;
     }
@@ -93,7 +89,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
                 .map(rev -> mapper.map(rev))
                 .collect(Collectors.toList());
         } catch (Exception e) {
-            logger.error("An error occurred when querying all revisions for page [{}]", pageId, e);
+            log.error("An error occurred when querying all revisions for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying page revisions");
         }
     }
@@ -103,7 +99,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
         try {
             return internalPageRevisionRepo.findLastByPageId(pageId).map(rev -> mapper.map(rev));
         } catch (Exception e) {
-            logger.error("An error occurred when querying last revision for page [{}]", pageId, e);
+            log.error("An error occurred when querying last revision for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying the last page revision");
         }
     }
@@ -113,7 +109,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
         try {
             internalPageRevisionRepo.deleteAllByPageId(pageId);
         } catch (Exception e) {
-            logger.error("An error occurred when deleting revision for page [{}]", pageId, e);
+            log.error("An error occurred when deleting revision for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when deleting the page revisions");
         }
     }
@@ -130,7 +126,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public List<String> deleteByPageId(String pageId) throws TechnicalException {
         try {
-            logger.debug("Delete revision for pageId [{}]", pageId);
+            log.debug("Delete revision for pageId [{}]", pageId);
             return internalPageRevisionRepo
                 .deleteByPageId(pageId)
                 .stream()
@@ -138,7 +134,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
                 .map(id -> id.getPageId() + ":" + id.getRevision())
                 .toList();
         } catch (Exception e) {
-            logger.error("An error occurred when deleting page revision [{}]", pageId, e);
+            log.error("An error occurred when deleting page revision [{}]", pageId, e);
             throw new TechnicalException("An error occurred when deleting page revision");
         }
     }

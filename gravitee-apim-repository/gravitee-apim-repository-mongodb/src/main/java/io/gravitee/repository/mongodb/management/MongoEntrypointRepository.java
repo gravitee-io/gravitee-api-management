@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoEntrypointRepository implements EntrypointRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoEntrypointRepository.class);
 
     @Autowired
     private EntrypointMongoRepository internalEntryPointRepo;
@@ -48,36 +46,36 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
     @Override
     public Optional<Entrypoint> findById(String entrypointId) throws TechnicalException {
-        LOGGER.debug("Find entry point by ID [{}]", entrypointId);
+        log.debug("Find entry point by ID [{}]", entrypointId);
 
         final EntrypointMongo entrypoint = internalEntryPointRepo.findById(entrypointId).orElse(null);
 
-        LOGGER.debug("Find entry point by ID [{}] - Done", entrypointId);
+        log.debug("Find entry point by ID [{}] - Done", entrypointId);
         return Optional.ofNullable(mapper.map(entrypoint));
     }
 
     @Override
     public Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
-        LOGGER.debug("Find entry point by ID and reference [{}, {}, {}]", entrypointId, referenceId, referenceType);
+        log.debug("Find entry point by ID and reference [{}, {}, {}]", entrypointId, referenceId, referenceType);
 
         final EntrypointMongo entrypoint = internalEntryPointRepo
             .findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType)
             .orElse(null);
 
-        LOGGER.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
+        log.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(entrypoint));
     }
 
     @Override
     public Entrypoint create(Entrypoint entrypoint) throws TechnicalException {
-        LOGGER.debug("Create entry point [{}]", entrypoint.getValue());
+        log.debug("Create entry point [{}]", entrypoint.getValue());
 
         EntrypointMongo entrypointMongo = mapper.map(entrypoint);
         EntrypointMongo createdEntryPointMongo = internalEntryPointRepo.insert(entrypointMongo);
 
         Entrypoint res = mapper.map(createdEntryPointMongo);
 
-        LOGGER.debug("Create entry point [{}] - Done", entrypoint.getValue());
+        log.debug("Create entry point [{}] - Done", entrypoint.getValue());
 
         return res;
     }
@@ -105,7 +103,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
             return mapper.map(entrypointMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating entry point", e);
+            log.error("An error occurred when updating entry point", e);
             throw new TechnicalException("An error occurred when updating entry point");
         }
     }
@@ -115,7 +113,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         try {
             internalEntryPointRepo.deleteById(entrypointId);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting entry point [{}]", entrypointId, e);
+            log.error("An error occurred when deleting entry point [{}]", entrypointId, e);
             throw new TechnicalException("An error occurred when deleting entry point");
         }
     }
@@ -150,13 +148,13 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final EntrypointReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete entrypoint by reference [{}, {}]", referenceType, referenceId);
+        log.debug("Delete entrypoint by reference [{}, {}]", referenceType, referenceId);
         try {
             List<EntrypointMongo> entrypointMongos = internalEntryPointRepo.deleteByReferenceIdAndReferenceType(
                 referenceId,
                 referenceType.name()
             );
-            LOGGER.debug("Delete entrypoint by reference [{}, {}] - Done", referenceType, referenceId);
+            log.debug("Delete entrypoint by reference [{}, {}] - Done", referenceType, referenceId);
             return entrypointMongos.stream().map(EntrypointMongo::getId).toList();
         } catch (Exception e) {
             throw new TechnicalException("An error occurred while deleting entrypoint", e);

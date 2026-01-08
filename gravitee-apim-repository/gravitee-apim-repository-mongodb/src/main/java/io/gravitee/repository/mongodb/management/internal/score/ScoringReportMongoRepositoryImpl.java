@@ -35,7 +35,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -43,7 +43,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+@CustomLog
 @Component
 @AllArgsConstructor
 public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepositoryCustom {

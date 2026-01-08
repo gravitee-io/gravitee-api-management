@@ -31,9 +31,14 @@ import io.gravitee.repository.management.model.GroupEventRule;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -44,10 +49,10 @@ import org.springframework.util.StringUtils;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, String> implements GroupRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGroupRepository.class);
     private final String GROUP_EVENT_RULES;
     private final String ENVIRONMENTS;
 
@@ -83,7 +88,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     public Optional<Group> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findById({})", id);
+        log.debug("JdbcGroupRepository.findById({})", id);
         try {
             Optional<Group> group = jdbcTemplate
                 .query(getOrm().getSelectAllSql() + " g where id = ?", getOrm().getRowMapper(), id)
@@ -94,7 +99,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             }
             return group;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find group by id", ex);
+            log.error("Failed to find group by id", ex);
             throw new TechnicalException("Failed to find group by id", ex);
         }
     }
@@ -106,7 +111,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             storeGroupEvents(group, false);
             return findById(group.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create group", ex);
+            log.error("Failed to create group", ex);
             throw new TechnicalException("Failed to create group", ex);
         }
     }
@@ -125,7 +130,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update group:", ex);
+            log.error("Failed to update group:", ex);
             throw new TechnicalException("Failed to update group", ex);
         }
     }
@@ -149,7 +154,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                 try {
                     return GroupEvent.valueOf(value);
                 } catch (IllegalArgumentException ex) {
-                    LOGGER.error("Failed to parse {} as group_event:", value, ex);
+                    log.error("Failed to parse {} as group_event:", value, ex);
                     return null;
                 }
             },
@@ -186,7 +191,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     public Set<Group> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findAll()");
+        log.debug("JdbcGroupRepository.findAll()");
         try {
             List<Group> rows = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
             Set<Group> groups = new HashSet<>();
@@ -196,14 +201,14 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             }
             return groups;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all groups:", ex);
+            log.error("Failed to find all groups:", ex);
             throw new TechnicalException("Failed to find all groups", ex);
         }
     }
 
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findByIds({})", ids);
+        log.debug("JdbcGroupRepository.findByIds({})", ids);
         if (ids == null || ids.isEmpty()) {
             return Collections.emptySet();
         }
@@ -222,14 +227,14 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             }
             return groups;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find group by ids", ex);
+            log.error("Failed to find group by ids", ex);
             throw new TechnicalException("Failed to find group by ids", ex);
         }
     }
 
     @Override
     public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findAllByOrganization({})", organizationId);
+        log.debug("JdbcGroupRepository.findAllByOrganization({})", organizationId);
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
             .append(" grp")
@@ -240,7 +245,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             return new HashSet<>(jdbcTemplate.query(query.toString(), getOrm().getRowMapper(), organizationId));
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find group by organization", ex);
+            log.error("Failed to find group by organization", ex);
             throw new TechnicalException("Failed to find group by organization", ex);
         }
     }
@@ -293,7 +298,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findAllByEnvironment({})", environmentId);
+        log.debug("JdbcGroupRepository.findAllByEnvironment({})", environmentId);
         try {
             List<Group> rows = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where environment_id = ?",
@@ -307,14 +312,14 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             }
             return groups;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all groups by environment : {}", environmentId, ex);
+            log.error("Failed to find all groups by environment : {}", environmentId, ex);
             throw new TechnicalException("Failed to find all groups by environment : " + environmentId, ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcGroupRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var groupIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -329,10 +334,10 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcGroupRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcGroupRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return groupIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete groups by environment : {}", environmentId, ex);
+            log.error("Failed to delete groups by environment : {}", environmentId, ex);
             throw new TechnicalException("Failed to delete groups by environment : " + environmentId, ex);
         }
     }

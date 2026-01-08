@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Component;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoFlowRepository implements FlowRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private FlowMongoRepository internalRepository;
@@ -49,20 +47,20 @@ public class MongoFlowRepository implements FlowRepository {
 
     @Override
     public Optional<Flow> findById(String id) throws TechnicalException {
-        logger.debug("Find flow by ID [{}]", id);
+        log.debug("Find flow by ID [{}]", id);
 
         FlowMongo flow = internalRepository.findById(id).orElse(null);
         Flow res = map(flow);
 
-        logger.debug("Find flow by ID [{}] - Done", id);
+        log.debug("Find flow by ID [{}] - Done", id);
         return Optional.ofNullable(res);
     }
 
     @Override
     public Flow create(Flow flow) throws TechnicalException {
-        logger.debug("Create flow [{}]", flow.getId());
+        log.debug("Create flow [{}]", flow.getId());
         Flow createdFlow = map(internalRepository.insert(map(flow)));
-        logger.debug("Create flow [{}] - Done", createdFlow.getId());
+        log.debug("Create flow [{}] - Done", createdFlow.getId());
         return createdFlow;
     }
 
@@ -76,15 +74,15 @@ public class MongoFlowRepository implements FlowRepository {
             .findById(flow.getId())
             .orElseThrow(() -> new IllegalStateException(String.format("No flow found with id [%s]", flow.getId())));
 
-        logger.debug("Update flow [{}]", flow.getName());
+        log.debug("Update flow [{}]", flow.getName());
         return map(internalRepository.save(map(flow)));
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete flow [{}]", id);
+        log.debug("Delete flow [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete flow [{}] - Done", id);
+        log.debug("Delete flow [{}] - Done", id);
     }
 
     @Override
@@ -95,26 +93,26 @@ public class MongoFlowRepository implements FlowRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
-        logger.debug("Delete flows by reference [{},{}]", referenceId, referenceType);
+        log.debug("Delete flows by reference [{},{}]", referenceId, referenceType);
         try {
             final var flows = internalRepository
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
                 .map(FlowMongo::getId)
                 .toList();
-            logger.debug("Delete flows by reference [{},{}] - Done", referenceId, referenceType);
+            log.debug("Delete flows by reference [{},{}] - Done", referenceId, referenceType);
             return flows;
         } catch (Exception ex) {
-            logger.error("Failed to delete flows by refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete flows by refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete flows by reference");
         }
     }
 
     @Override
     public void deleteAllById(Collection<String> ids) {
-        logger.debug("Delete flows [{}]", ids);
+        log.debug("Delete flows [{}]", ids);
         internalRepository.deleteAllById(ids);
-        logger.debug("Delete flows [{}] - Done", ids);
+        log.debug("Delete flows [{}] - Done", ids);
     }
 
     @Override

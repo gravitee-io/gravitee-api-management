@@ -27,8 +27,7 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<ApiQualityRule> implements ApiQualityRuleRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiQualityRuleRepository.class);
 
     JdbcApiQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_quality_rules");
@@ -71,7 +69,7 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
 
     @Override
     public Optional<ApiQualityRule> findById(String api, String qualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.findById({}, {})", api, qualityRule);
+        log.debug("JdbcApiQualityRuleRepository.findById({}, {})", api, qualityRule);
         try {
             final List<ApiQualityRule> apiQualityRules = jdbcTemplate.query(
                 "select" +
@@ -86,27 +84,27 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
             return apiQualityRules.stream().findFirst();
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by id";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.create({})", apiQualityRule);
+        log.debug("JdbcApiQualityRuleRepository.create({})", apiQualityRule);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiQualityRule));
             return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule()).orElse(null);
         } catch (final Exception ex) {
             final String error = "Failed to create apiQualityRule";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public ApiQualityRule update(ApiQualityRule apiQualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.update({})", apiQualityRule);
+        log.debug("JdbcApiQualityRuleRepository.update({})", apiQualityRule);
         if (apiQualityRule == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -123,71 +121,71 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
             throw ex;
         } catch (final Exception ex) {
             final String error = "Failed to update apiQualityRule";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public void delete(String api, String qualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.delete({}, {})", api, qualityRule);
+        log.debug("JdbcApiQualityRuleRepository.delete({}, {})", api, qualityRule);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where api = ? and quality_rule = ? ", api, qualityRule);
         } catch (final Exception ex) {
             final String error = "Failed to delete apiQualityRule";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public List<ApiQualityRule> findByQualityRule(String qualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.findByQualityRule({})", qualityRule);
+        log.debug("JdbcApiQualityRuleRepository.findByQualityRule({})", qualityRule);
         try {
             final String query =
                 "select " + " api, quality_rule, checked, created_at, updated_at " + " from " + this.tableName + " where quality_rule = ? ";
             return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, qualityRule), getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by quality rule";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public List<ApiQualityRule> findByApi(String api) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.findByApi({})", api);
+        log.debug("JdbcApiQualityRuleRepository.findByApi({})", api);
         try {
             final String query =
                 "select " + " api, quality_rule, checked, created_at, updated_at " + " from " + this.tableName + " where api = ? ";
             return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, api), getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by api";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public void deleteByQualityRule(String qualityRule) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.deleteByQualityRule({})", qualityRule);
+        log.debug("JdbcApiQualityRuleRepository.deleteByQualityRule({})", qualityRule);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where quality_rule = ? ", qualityRule);
         } catch (final Exception ex) {
             final String error = "Failed to delete apiQualityRule by quality rule";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public void deleteByApi(String api) throws TechnicalException {
-        LOGGER.debug("JdbcApiQualityRuleRepository.deleteByApi({})", api);
+        log.debug("JdbcApiQualityRuleRepository.deleteByApi({})", api);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where api = ? ", api);
         } catch (final Exception ex) {
             final String error = "Failed to delete apiQualityRule by api";
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }

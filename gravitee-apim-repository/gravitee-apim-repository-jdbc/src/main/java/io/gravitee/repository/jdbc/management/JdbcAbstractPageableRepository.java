@@ -20,16 +20,14 @@ import static java.util.Collections.emptyList;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<T> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAbstractPageableRepository.class);
 
     JdbcAbstractPageableRepository(String prefix, String tableName) {
         super(prefix, tableName);
@@ -40,7 +38,7 @@ abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<
             return new Page<>(items, 0, items.size(), items.size());
         }
 
-        LOGGER.debug("Getting results as page {} for {}", page, items);
+        log.debug("Getting results as page {} for {}", page, items);
         int start = page.from();
 
         // If the page is out of bounds, return an empty list

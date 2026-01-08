@@ -30,8 +30,7 @@ import io.reactivex.rxjava3.core.Single;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,12 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guillaume Waignier (zenika)
  * @author Sebastien Devaux (zenika)
  */
+@CustomLog
 public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepository implements MonitoringRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ElasticsearchMonitoringRepository.class);
 
     /**
      * Name of the FreeMarker template used to query monitoring document types.
@@ -83,7 +78,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
                 return this.convert(hits.getHits().get(0).getSource());
             }
         } catch (Exception eex) {
-            logger.error("Impossible to make query for monitoring", eex);
+            log.error("Impossible to make query for monitoring", eex);
             return null;
         }
         //TODO return null?

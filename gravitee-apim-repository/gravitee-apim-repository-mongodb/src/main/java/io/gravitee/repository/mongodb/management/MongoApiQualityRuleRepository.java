@@ -29,8 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,10 +37,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoApiQualityRuleRepository.class);
 
     @Autowired
     private ApiQualityRuleMongoRepository internalApiQualityRuleRepo;
@@ -51,21 +49,21 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
 
     @Override
     public Optional<ApiQualityRule> findById(String api, String qualityRuleId) throws TechnicalException {
-        LOGGER.debug("Find quality rule by ID [{}]", qualityRuleId);
+        log.debug("Find quality rule by ID [{}]", qualityRuleId);
         final ApiQualityRuleMongo apiQualityRule = internalApiQualityRuleRepo
             .findById(new ApiQualityRulePkMongo(api, qualityRuleId))
             .orElse(null);
-        LOGGER.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
+        log.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
         return Optional.ofNullable(mapper.map(apiQualityRule));
     }
 
     @Override
     public ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException {
-        LOGGER.debug("Create quality rule for api [{}] and quality rule [{}]", apiQualityRule.getApi(), apiQualityRule.getQualityRule());
+        log.debug("Create quality rule for api [{}] and quality rule [{}]", apiQualityRule.getApi(), apiQualityRule.getQualityRule());
         ApiQualityRuleMongo apiQualityRuleMongo = mapper.map(apiQualityRule);
         ApiQualityRuleMongo createdApiQualityRuleMongo = internalApiQualityRuleRepo.insert(apiQualityRuleMongo);
         ApiQualityRule res = mapper.map(createdApiQualityRuleMongo);
-        LOGGER.debug(
+        log.debug(
             "Create quality rule for api [{}] and quality rule [{}] - Done",
             apiQualityRule.getApi(),
             apiQualityRule.getQualityRule()
@@ -101,7 +99,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             return mapper.map(apiQualityRuleMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating quality rule";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -116,7 +114,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
                 api,
                 qualityRule
             );
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -145,7 +143,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             internalApiQualityRuleRepo.deleteByIdQualityRule(qualityRule);
         } catch (Exception e) {
             final String error = format("An error occurred when deleting api quality rule by quality rule [%s]", qualityRule);
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -156,7 +154,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             internalApiQualityRuleRepo.deleteByIdApi(api);
         } catch (Exception e) {
             final String error = format("An error occurred when deleting api quality rule by api [%s]", api);
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }

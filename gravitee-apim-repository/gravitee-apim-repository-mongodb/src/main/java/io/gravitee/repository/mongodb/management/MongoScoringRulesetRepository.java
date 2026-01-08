@@ -15,42 +15,31 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.ScoringRuleset;
-import io.gravitee.repository.mongodb.management.internal.integration.IntegrationMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringRulesetMongo;
 import io.gravitee.repository.mongodb.management.internal.score.ScoringRulesetMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 @RequiredArgsConstructor
 class MongoScoringRulesetRepository implements ScoringRulesetRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ScoringRulesetMongoRepository internalRepository;
     private final GraviteeMapper mapper;
 
     @Override
     public Optional<ScoringRuleset> findById(String s) throws TechnicalException {
-        logger.debug("Find ruleset by id [{}]", s);
+        log.debug("Find ruleset by id [{}]", s);
         var result = internalRepository.findById(s).map(this::map);
-        logger.debug("Find ruleset by id [{}] - Done", s);
+        log.debug("Find ruleset by id [{}] - Done", s);
         return result;
     }
 
@@ -63,9 +52,9 @@ class MongoScoringRulesetRepository implements ScoringRulesetRepository {
         return internalRepository
             .findById(scoringRuleset.getId())
             .map(found -> {
-                logger.debug("Update scoring ruleset [{}]", scoringRuleset.getId());
+                log.debug("Update scoring ruleset [{}]", scoringRuleset.getId());
                 ScoringRuleset updatedScoringRuleset = map(internalRepository.save(map(scoringRuleset)));
-                logger.debug("Update scoring ruleset [{}] - Done", updatedScoringRuleset.getId());
+                log.debug("Update scoring ruleset [{}] - Done", updatedScoringRuleset.getId());
                 return updatedScoringRuleset;
             })
             .orElseThrow(() -> new IllegalStateException(String.format("No scoring ruleset found with id [%s]", scoringRuleset.getId())));
@@ -73,42 +62,42 @@ class MongoScoringRulesetRepository implements ScoringRulesetRepository {
 
     @Override
     public ScoringRuleset create(ScoringRuleset ruleset) throws TechnicalException {
-        logger.debug("Create ruleset [{}]", ruleset.getId());
+        log.debug("Create ruleset [{}]", ruleset.getId());
         var created = map(internalRepository.insert(map(ruleset)));
-        logger.debug("Create ruleset [{}] - Done", created.getId());
+        log.debug("Create ruleset [{}] - Done", created.getId());
         return created;
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete ruleset [{}]", id);
+        log.debug("Delete ruleset [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete ruleset [{}] - Done", id);
+        log.debug("Delete ruleset [{}] - Done", id);
     }
 
     @Override
     public List<ScoringRuleset> findAllByReferenceId(String referenceId, String referenceType) {
-        logger.debug("Search by reference [{}={}]", referenceType, referenceId);
+        log.debug("Search by reference [{}={}]", referenceType, referenceId);
 
         var result = internalRepository.findByReferenceIdAndReferenceType(referenceId, referenceType).stream().map(mapper::map).toList();
 
-        logger.debug("Search by reference [{}={}] - Done", referenceType, referenceId);
+        log.debug("Search by reference [{}={}] - Done", referenceType, referenceId);
         return result;
     }
 
     @Override
     public List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException {
-        logger.debug("Delete by reference: [{}={}]", referenceType, referenceId);
+        log.debug("Delete by reference: [{}={}]", referenceType, referenceId);
         try {
             List<String> all = internalRepository
                 .deleteByReferenceIdAAndReferenceType(referenceId, referenceType)
                 .stream()
                 .map(ScoringRulesetMongo::getId)
                 .toList();
-            logger.debug("Delete by reference: [{}={}] - Done", referenceType, referenceId);
+            log.debug("Delete by reference: [{}={}] - Done", referenceType, referenceId);
             return all;
         } catch (Exception ex) {
-            logger.error("Failed to delete ruleset by Reference: [{}={}]", referenceType, referenceId, ex);
+            log.error("Failed to delete ruleset by Reference: [{}={}]", referenceType, referenceId, ex);
             throw new TechnicalException("Failed to delete ruleset by Reference");
         }
     }

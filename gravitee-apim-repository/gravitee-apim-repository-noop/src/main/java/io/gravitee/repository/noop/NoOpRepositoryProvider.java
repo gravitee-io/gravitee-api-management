@@ -17,16 +17,14 @@ package io.gravitee.repository.noop;
 
 import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class NoOpRepositoryProvider implements RepositoryProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NoOpRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -48,7 +46,7 @@ public class NoOpRepositoryProvider implements RepositoryProvider {
             return NoOpRateLimitRepositoryConfiguration.class;
         }
 
-        LOGGER.debug("Skipping unhandled repository scope {}", scope);
+        log.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }

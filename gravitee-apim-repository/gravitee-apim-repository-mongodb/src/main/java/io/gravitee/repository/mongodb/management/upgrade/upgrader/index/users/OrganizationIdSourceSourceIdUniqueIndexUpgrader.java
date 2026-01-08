@@ -27,17 +27,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import lombok.CustomLog;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component("OrganizationIdSourceSourceIdUniqueIndexUpgrader")
 public class OrganizationIdSourceSourceIdUniqueIndexUpgrader extends MongoUpgrader {
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-        OrganizationIdSourceSourceIdUniqueIndexUpgrader.class
-    );
 
     @Override
     public String version() {
@@ -65,7 +61,7 @@ public class OrganizationIdSourceSourceIdUniqueIndexUpgrader extends MongoUpgrad
                 false
             ).anyMatch(index -> index.getString("name").equals(nonUniqueIndexName));
             if (nonUniqueIndexExists) {
-                LOG.info(
+                log.info(
                     "Non unique index found on triplet (organizationId, source, sourceId), dropping non unique index and replacing by unique one."
                 );
                 usersCollection.dropIndex(nonUniqueIndexName);
@@ -79,11 +75,11 @@ public class OrganizationIdSourceSourceIdUniqueIndexUpgrader extends MongoUpgrad
                 indexOptions
             );
         } else {
-            LOG.warn(
+            log.warn(
                 "Cannot create unique index on triplet (organizationId, source, sourceId): duplicate values found in collection."
             );
             for (final var entry : duplicates.entrySet()) {
-                LOG.warn(
+                log.warn(
                     "Duplicate group: {}. Document IDs: {}",
                     entry.getKey(),
                     entry.getValue()

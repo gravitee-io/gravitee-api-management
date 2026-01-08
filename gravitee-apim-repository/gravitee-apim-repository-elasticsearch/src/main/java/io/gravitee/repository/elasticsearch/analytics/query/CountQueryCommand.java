@@ -52,7 +52,7 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
             ).blockingGet();
             return this.toCountResponse(response);
         } catch (final Exception eex) {
-            logger.error("Impossible to perform CountQuery", eex);
+            log.error("Impossible to perform CountQuery", eex);
             throw new AnalyticsException("Impossible to perform CountQuery", eex);
         }
     }

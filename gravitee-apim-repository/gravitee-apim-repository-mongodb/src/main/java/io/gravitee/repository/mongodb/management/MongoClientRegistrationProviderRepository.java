@@ -24,8 +24,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +32,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoClientRegistrationProviderRepository implements ClientRegistrationProviderRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoClientRegistrationProviderRepository.class);
 
     @Autowired
     private ClientRegistrationProviderMongoRepository internalClientRegistrationProviderRepository;
@@ -46,24 +44,24 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
 
     @Override
     public Optional<ClientRegistrationProvider> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find client registration provider by ID [{}]", id);
+        log.debug("Find client registration provider by ID [{}]", id);
 
         ClientRegistrationProviderMongo clientRegistrationProvider = internalClientRegistrationProviderRepository.findById(id).orElse(null);
 
-        LOGGER.debug("Find client registration provider by ID [{}] - Done", id);
+        log.debug("Find client registration provider by ID [{}] - Done", id);
         return Optional.ofNullable(map(clientRegistrationProvider));
     }
 
     @Override
     public ClientRegistrationProvider create(ClientRegistrationProvider clientRegistrationProvider) throws TechnicalException {
-        LOGGER.debug("Create client registration provider [{}]", clientRegistrationProvider.getName());
+        log.debug("Create client registration provider [{}]", clientRegistrationProvider.getName());
 
         ClientRegistrationProviderMongo identityProviderMongo = map(clientRegistrationProvider);
         ClientRegistrationProviderMongo createdIdentityProviderMongo = internalClientRegistrationProviderRepository.insert(
             identityProviderMongo
         );
 
-        LOGGER.debug("Create client registration provider [{}] - Done", clientRegistrationProvider.getName());
+        log.debug("Create client registration provider [{}] - Done", clientRegistrationProvider.getName());
 
         return map(createdIdentityProviderMongo);
     }
@@ -114,7 +112,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             );
             return map(clientRegistrationProviderMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when updating client registration provider", e);
+            log.error("An error occurs when updating client registration provider", e);
             throw new TechnicalException("An error occurs when updating client registration provider");
         }
     }
@@ -124,47 +122,47 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         try {
             internalClientRegistrationProviderRepository.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when deleting client registration provider [{}]", id, e);
+            log.error("An error occurs when deleting client registration provider [{}]", id, e);
             throw new TechnicalException("An error occurs when deleting client registration provider");
         }
     }
 
     @Override
     public Set<ClientRegistrationProvider> findAll() throws TechnicalException {
-        LOGGER.debug("Find all client registration providers");
+        log.debug("Find all client registration providers");
 
         List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findAll();
         Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
 
-        LOGGER.debug("Find all client registration providers - Done");
+        log.debug("Find all client registration providers - Done");
         return res;
     }
 
     @Override
     public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) {
-        LOGGER.debug("Find all client registration providers by environment");
+        log.debug("Find all client registration providers by environment");
         final List<ClientRegistrationProviderMongo> clientRegistrationProviders =
             internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
 
         Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
 
-        LOGGER.debug("Find all client registration providers by environment - Done");
+        log.debug("Find all client registration providers by environment - Done");
         return res;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete client registration providers by environment [{}]", environmentId);
+        log.debug("Delete client registration providers by environment [{}]", environmentId);
         try {
             final var subscriptionMongos = internalClientRegistrationProviderRepository
                 .deleteByEnvironmentId(environmentId)
                 .stream()
                 .map(ClientRegistrationProviderMongo::getId)
                 .toList();
-            LOGGER.debug("Delete client registration providers by environment [{}] - Done", environmentId);
+            log.debug("Delete client registration providers by environment [{}] - Done", environmentId);
             return subscriptionMongos;
         } catch (Exception e) {
-            LOGGER.error("Failed to delete client registration providers by environment [{}]", environmentId, e);
+            log.error("Failed to delete client registration providers by environment [{}]", environmentId, e);
             throw new TechnicalException("Failed to delete client registration providers by environment");
         }
     }

@@ -25,9 +25,9 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregat
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class SearchRequestResponseTimeAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

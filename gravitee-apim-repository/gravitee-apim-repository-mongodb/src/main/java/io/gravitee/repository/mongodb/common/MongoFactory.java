@@ -18,10 +18,21 @@ package io.gravitee.repository.mongodb.common;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-import com.mongodb.*;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ReadPreference;
+import com.mongodb.ServerAddress;
+import com.mongodb.Tag;
+import com.mongodb.TagSet;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.connection.*;
+import com.mongodb.connection.ClusterSettings;
+import com.mongodb.connection.ConnectionPoolSettings;
+import com.mongodb.connection.ServerSettings;
+import com.mongodb.connection.SocketSettings;
+import com.mongodb.connection.SslSettings;
 import java.io.FileInputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -32,12 +43,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
@@ -47,9 +61,8 @@ import org.springframework.util.Assert;
  * @author GraviteeSource Team
  * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  */
+@CustomLog
 public class MongoFactory implements FactoryBean<MongoClient> {
-
-    private final Logger logger = LoggerFactory.getLogger(MongoFactory.class);
 
     private final Environment environment;
 
@@ -364,7 +377,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private int getServersCount() {
-        logger.debug("Looking for MongoDB server configuration...");
+        log.debug("Looking for MongoDB server configuration...");
 
         boolean found = true;
         int idx = 0;
@@ -420,7 +433,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         } else {
             value = environment.getProperty(propertyName, propertyType, defaultValue);
         }
-        logger.debug("Read property {}: {}", propertyName, value);
+        log.debug("Read property {}: {}", propertyName, value);
         return value;
     }
 

@@ -26,8 +26,7 @@ import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -43,9 +42,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
  *
  * @author njt
  */
+@CustomLog
 public abstract class AbstractJdbcRepositoryConfiguration implements ApplicationContextAware {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJdbcRepositoryConfiguration.class);
 
     private static final boolean DEFAULT_AUTO_COMMIT = true;
     private static final long DEFAULT_CONNECTION_TIMEOUT = 10000;
@@ -112,7 +110,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     @Override
     public void setApplicationContext(final ApplicationContext applicationContext) {
-        LOGGER.debug("AbstractJdbcRepositoryConfiguration.setApplicationContext({})", applicationContext);
+        log.debug("AbstractJdbcRepositoryConfiguration.setApplicationContext({})", applicationContext);
         final ConfigurableApplicationContext appContext;
         final ApplicationContext applicationContextParent = applicationContext.getParent();
         if (applicationContextParent == null) {
@@ -194,12 +192,12 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     @Bean
     public JdbcTemplate graviteeJdbcTemplate(final DataSource dataSource) {
-        LOGGER.debug("AbstractJdbcRepositoryConfiguration.graviteeJdbcTemplate()");
+        log.debug("AbstractJdbcRepositoryConfiguration.graviteeJdbcTemplate()");
         return new JdbcTemplate(dataSource);
     }
 
     private void runLiquibase(DataSource dataSource) {
-        LOGGER.debug("Running Liquibase on {}", dataSource);
+        log.debug("Running Liquibase on {}", dataSource);
 
         System.setProperty("liquibase.databaseChangeLogTableName", prefix + "databasechangelog");
         System.setProperty("liquibase.databaseChangeLogLockTableName", prefix + "databasechangeloglock");
@@ -233,7 +231,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue, final boolean displayOnLog) {
         final String scope = getScope();
         final T value = env.getProperty(scope + "." + propertyName, propertyType, defaultValue);
-        LOGGER.debug("Reading property {}: {}", propertyName, displayOnLog ? value : "********");
+        log.debug("Reading property {}: {}", propertyName, displayOnLog ? value : "********");
         return value;
     }
 }

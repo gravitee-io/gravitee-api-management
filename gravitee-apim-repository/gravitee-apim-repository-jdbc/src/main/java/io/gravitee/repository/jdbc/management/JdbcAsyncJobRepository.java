@@ -30,17 +30,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
+@CustomLog
 @Repository
 public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob, String> implements AsyncJobRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAsyncJobRepository.class);
 
     JdbcAsyncJobRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "asyncjobs");
@@ -48,7 +44,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
 
     @Override
     public Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException {
-        LOGGER.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
+        log.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
         try {
             var jobs = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
@@ -58,14 +54,14 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
             return jobs.stream().map(this::handleDeadLine).filter(not(AsyncJob::isTimedOut)).findFirst();
         } catch (final Exception ex) {
             final String message = "Failed to find pending AsyncJob for: " + sourceId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcAsyncJobRepository.search({})", criteria);
+        log.debug("JdbcAsyncJobRepository.search({})", criteria);
         try {
             var jobs = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
@@ -75,26 +71,26 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
             return getResultAsPage(pageable, jobs.stream().map(this::handleDeadLine).toList());
         } catch (final Exception ex) {
             final String message = "Failed to search AsyncJob with: " + criteria;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public void delay(String id, Date newDeadLine) throws TechnicalException {
-        LOGGER.debug("JdbcAsyncJobRepository.delay({}, {})", id, newDeadLine);
+        log.debug("JdbcAsyncJobRepository.delay({}, {})", id, newDeadLine);
         try {
             jdbcTemplate.update("update " + tableName + " set updated_at = ?, dead_line = ? where id = ?", new Date(), newDeadLine, id);
         } catch (final Exception ex) {
             final String message = "Failed to delay AsyncJob: " + id;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where environment_id = ?",
@@ -106,11 +102,11 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return rows;
         } catch (final Exception ex) {
             final String message = "Failed to find integrations jobs of environment: " + environmentId;
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }

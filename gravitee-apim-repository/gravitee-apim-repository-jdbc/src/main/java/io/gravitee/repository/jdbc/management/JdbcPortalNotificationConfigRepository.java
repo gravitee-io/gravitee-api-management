@@ -28,9 +28,16 @@ import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -40,12 +47,12 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcPortalNotificationConfigRepository
     extends JdbcAbstractFindAllRepository<PortalNotificationConfig>
     implements PortalNotificationConfigRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationConfigRepository.class);
     private final String PORTAL_NOTIFICATION_CONFIG_HOOKS;
     private final String PORTAL_NOTIFICATION_CONFIG_GROUPS;
 
@@ -88,7 +95,7 @@ public class JdbcPortalNotificationConfigRepository
 
     @Override
     public PortalNotificationConfig create(final PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.create({})", portalNotificationConfig);
+        log.debug("JdbcPortalNotificationConfigRepository.create({})", portalNotificationConfig);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(portalNotificationConfig));
             storeHooks(portalNotificationConfig, false);
@@ -99,21 +106,21 @@ public class JdbcPortalNotificationConfigRepository
                 portalNotificationConfig.getReferenceId()
             ).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create PortalNotificationConfig", ex);
+            log.error("Failed to create PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to create PortalNotificationConfig", ex);
         }
     }
 
     @Override
     public List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.findByHookAndOrganizationId({}, {})", hook, orgId);
+        log.debug("JdbcPortalNotificationConfigRepository.findByHookAndOrganizationId({}, {})", hook, orgId);
         return findByCriteria(PortalNotificationCriteria.builder().hook(hook).organizationId(orgId).build());
     }
 
     @Override
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.findByReferenceAndHook({}, {}, {})", hook, referenceType, referenceId);
+        log.debug("JdbcPortalNotificationConfigRepository.findByReferenceAndHook({}, {}, {})", hook, referenceType, referenceId);
         return findByCriteria(
             PortalNotificationCriteria.builder().hook(hook).referenceType(referenceType).referenceId(referenceId).build()
         );
@@ -185,14 +192,14 @@ public class JdbcPortalNotificationConfigRepository
             return jdbcTemplate.query(query, pss, getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String message = "Failed to find notifications by reference and hook";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public PortalNotificationConfig update(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.update({})", portalNotificationConfig);
+        log.debug("JdbcPortalNotificationConfigRepository.update({})", portalNotificationConfig);
         if (portalNotificationConfig == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -224,7 +231,7 @@ public class JdbcPortalNotificationConfigRepository
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update portalNotificationConfig", ex);
+            log.error("Failed to update portalNotificationConfig", ex);
             throw new TechnicalException("Failed to update portalNotificationConfig", ex);
         }
     }
@@ -232,7 +239,7 @@ public class JdbcPortalNotificationConfigRepository
     @Override
     public Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.findById({}, {}, {})", user, referenceType, referenceId);
+        log.debug("JdbcPortalNotificationConfigRepository.findById({}, {}, {})", user, referenceType, referenceId);
         try {
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                 "select " +
@@ -256,14 +263,14 @@ public class JdbcPortalNotificationConfigRepository
             }
             return items.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find PortalNotificationConfig by id", ex);
+            log.error("Failed to find PortalNotificationConfig by id", ex);
             throw new TechnicalException("Failed to find PortalNotificationConfig by id", ex);
         }
     }
 
     @Override
     public void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.delete({})", portalNotificationConfig);
+        log.debug("JdbcPortalNotificationConfigRepository.delete({})", portalNotificationConfig);
         try {
             jdbcTemplate.update(
                 "delete from " +
@@ -281,26 +288,26 @@ public class JdbcPortalNotificationConfigRepository
             storeHooks(portalNotificationConfig, true);
             storeGroups(portalNotificationConfig, true);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete PortalNotificationConfig", ex);
+            log.error("Failed to delete PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to delete PortalNotificationConfig", ex);
         }
     }
 
     @Override
     public void deleteByUser(String user) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteByUser({})", user);
+        log.debug("JdbcPortalNotificationConfigRepository.deleteByUser({})", user);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("user") + " = ?", user);
             jdbcTemplate.update("delete from " + PORTAL_NOTIFICATION_CONFIG_HOOKS + " where " + escapeReservedWord("user") + " = ?", user);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete PortalNotificationConfig", ex);
+            log.error("Failed to delete PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to delete PortalNotificationConfig", ex);
         }
     }
 
     @Override
     public void deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+        log.debug("JdbcPortalNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             jdbcTemplate.update(
                 "delete from " + this.tableName + " where reference_type = ?" + " and reference_id = ? ",
@@ -313,13 +320,13 @@ public class JdbcPortalNotificationConfigRepository
                 referenceType.name(),
                 referenceId
             );
-            LOGGER.debug(
+            log.debug(
                 "JdbcPortalNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
                 referenceType,
                 referenceId
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete portal notification config for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete portal notification config for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete portal notification config by reference", ex);
         }
     }
@@ -499,10 +506,10 @@ public class JdbcPortalNotificationConfigRepository
                 }
             );
 
-            LOGGER.debug("JdbcPortalNotificationConfigRepository.findAll() - Done and found {} configs", configs.size());
+            log.debug("JdbcPortalNotificationConfigRepository.findAll() - Done and found {} configs", configs.size());
             return new HashSet<>(configs);
         } catch (Exception ex) {
-            LOGGER.error("Failed to load all PortalNotificationConfigs", ex);
+            log.error("Failed to load all PortalNotificationConfigs", ex);
             throw new TechnicalException("Failed to load all PortalNotificationConfigs", ex);
         }
     }

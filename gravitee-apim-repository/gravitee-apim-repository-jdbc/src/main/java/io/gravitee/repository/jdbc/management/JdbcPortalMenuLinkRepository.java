@@ -24,18 +24,16 @@ import io.gravitee.repository.management.model.PortalMenuLink;
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<PortalMenuLink, String> implements PortalMenuLinkRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalMenuLinkRepository.class);
 
     JdbcPortalMenuLinkRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_menu_links");
@@ -61,7 +59,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
 
     @Override
     public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalMenuLinkRepository.findByIdAndEnvironmentId({})", environmentId);
+        log.debug("JdbcPortalMenuLinkRepository.findByIdAndEnvironmentId({})", environmentId);
         try {
             return jdbcTemplate
                 .query(
@@ -78,14 +76,14 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
                 portalMenuLinkId,
                 environmentId
             );
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public List<PortalMenuLink> findByEnvironmentIdSortByOrder(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdSortByOrder({})", environmentId);
+        log.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdSortByOrder({})", environmentId);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " WHERE environment_id = ? ORDER BY " + escapeReservedWord("order"),
@@ -94,7 +92,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
             );
         } catch (final Exception ex) {
             final String error = "Failed to find portal menu links by environment id: " + environmentId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
@@ -104,7 +102,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
         String environmentId,
         PortalMenuLink.PortalMenuLinkVisibility visibility
     ) throws TechnicalException {
-        LOGGER.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder({})", environmentId);
+        log.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder({})", environmentId);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " WHERE environment_id = ? AND visibility = ? ORDER BY " + escapeReservedWord("order"),
@@ -114,19 +112,19 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
             );
         } catch (final Exception ex) {
             final String error = "Failed to find portal menu links by environment id: " + environmentId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalMenuLinkRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcPortalMenuLinkRepository.deleteByEnvironmentId({})", environmentId);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (final Exception ex) {
             final String error = "Failed to delete portal menu links by environment id: " + environmentId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }

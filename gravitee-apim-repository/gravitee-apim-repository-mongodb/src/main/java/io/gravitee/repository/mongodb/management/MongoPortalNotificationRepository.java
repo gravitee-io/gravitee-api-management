@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoPortalNotificationRepository implements PortalNotificationRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoPortalNotificationRepository.class);
 
     @Autowired
     private PortalNotificationMongoRepository internalRepo;
@@ -47,7 +45,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
 
     @Override
     public List<PortalNotification> findByUser(String user) {
-        LOGGER.debug("Find notifications by user: {}", user);
+        log.debug("Find notifications by user: {}", user);
         return internalRepo
             .findByUser(user)
             .stream()
@@ -57,7 +55,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
 
     @Override
     public Optional<PortalNotification> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find notification by id: {}", id);
+        log.debug("Find notification by id: {}", id);
         PortalNotificationMongo portalNotificationMongo = internalRepo.findById(id).orElse(null);
         return Optional.ofNullable(mapPortalNotification(portalNotificationMongo));
     }
@@ -68,13 +66,13 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
 
     @Override
     public PortalNotification create(PortalNotification item) throws TechnicalException {
-        LOGGER.debug("Create notification : {}", item);
+        log.debug("Create notification : {}", item);
         return mapper.map(internalRepo.insert(mapper.map(item)));
     }
 
     @Override
     public void create(List<PortalNotification> notifications) throws TechnicalException {
-        LOGGER.debug("Create notifications : {}", notifications);
+        log.debug("Create notifications : {}", notifications);
         List<PortalNotificationMongo> notificationMongos = notifications
             .stream()
             .map(n -> mapper.map(n))
@@ -84,13 +82,13 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("Delete notification : {}", id);
+        log.debug("Delete notification : {}", id);
         internalRepo.deleteById(id);
     }
 
     @Override
     public void deleteAll(String user) {
-        LOGGER.debug("Delete notification for user : {}", user);
+        log.debug("Delete notification for user : {}", user);
         internalRepo.deleteAll(user);
     }
 

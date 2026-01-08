@@ -19,39 +19,37 @@ import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.jdbc.management.JdbcManagementRepositoryConfiguration;
 import io.gravitee.repository.jdbc.ratelimit.JdbcRateLimitRepositoryConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  *
  * @author njt
  */
+@CustomLog
 public class JdbcRepositoryProvider implements RepositoryProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRepositoryProvider.class);
 
     @Override
     public String type() {
-        LOGGER.debug("JdbcRepository.type()");
+        log.debug("JdbcRepository.type()");
         return "jdbc";
     }
 
     @Override
     public Scope[] scopes() {
-        LOGGER.debug("JdbcRepository.scopes()");
+        log.debug("JdbcRepository.scopes()");
         return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
     }
 
     @Override
     public Class<?> configuration(Scope scope) {
-        LOGGER.debug("JdbcRepository.configuration({})", scope);
+        log.debug("JdbcRepository.configuration({})", scope);
         switch (scope) {
             case MANAGEMENT:
                 return JdbcManagementRepositoryConfiguration.class;
             case RATE_LIMIT:
                 return JdbcRateLimitRepositoryConfiguration.class;
             default:
-                LOGGER.debug("Skipping unhandled repository scope {}", scope);
+                log.debug("Skipping unhandled repository scope {}", scope);
                 break;
         }
         return null;

@@ -27,8 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +35,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoParameterRepository implements ParameterRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoParameterRepository.class);
 
     @Autowired
     private ParameterMongoRepository internalParameterRepo;
@@ -47,33 +45,33 @@ public class MongoParameterRepository implements ParameterRepository {
     @Override
     public Optional<Parameter> findById(String parameterKey, String referenceId, ParameterReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Find parameter by key [{}]", parameterKey);
+        log.debug("Find parameter by key [{}]", parameterKey);
         final ParameterMongo parameter = internalParameterRepo
             .findById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()))
             .orElse(null);
-        LOGGER.debug("Find parameter by key [{}] - Done", parameterKey);
+        log.debug("Find parameter by key [{}] - Done", parameterKey);
         return Optional.ofNullable(map(parameter));
     }
 
     @Override
     public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) {
-        LOGGER.debug("Find parameters by keys [{}]", keys);
+        log.debug("Find parameters by keys [{}]", keys);
         List<ParameterPkMongo> pkList = keys
             .stream()
             .map(k -> new ParameterPkMongo(k, referenceId, referenceType.name()))
             .collect(Collectors.toList());
         Iterable<ParameterMongo> all = internalParameterRepo.findAllById(pkList);
-        LOGGER.debug("Find parameters by keys [{}] - Done", keys);
+        log.debug("Find parameters by keys [{}] - Done", keys);
         return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public Parameter create(Parameter parameter) throws TechnicalException {
-        LOGGER.debug("Create parameter [{}]", parameter);
+        log.debug("Create parameter [{}]", parameter);
         ParameterMongo parameterMongo = map(parameter);
         ParameterMongo createdParameterMongo = internalParameterRepo.insert(parameterMongo);
         Parameter res = map(createdParameterMongo);
-        LOGGER.debug("Create parameter [{}] - Done", parameter);
+        log.debug("Create parameter [{}] - Done", parameter);
         return res;
     }
 
@@ -93,7 +91,7 @@ public class MongoParameterRepository implements ParameterRepository {
             ParameterMongo parameterMongoUpdated = internalParameterRepo.save(parameterMongo);
             return map(parameterMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating parameter", e);
+            log.error("An error occurred when updating parameter", e);
             throw new TechnicalException("An error occurred when updating parameter");
         }
     }
@@ -103,35 +101,35 @@ public class MongoParameterRepository implements ParameterRepository {
         try {
             internalParameterRepo.deleteById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()));
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting parameter [{}]", parameterKey, e);
+            log.error("An error occurred when deleting parameter [{}]", parameterKey, e);
             throw new TechnicalException("An error occurred when deleting parameter");
         }
     }
 
     @Override
     public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Find parameters by keys and env");
+        log.debug("Find parameters by keys and env");
         Iterable<ParameterMongo> all = internalParameterRepo.findAll(referenceId, referenceType.name());
 
-        LOGGER.debug("Find parameters by keys and env - Done");
+        log.debug("Find parameters by keys and env - Done");
         return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete parameter by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete parameter by refId: {}/{}", referenceId, referenceType);
         try {
             final var parameterMongos = internalParameterRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
                 .map(parameterMongo -> parameterMongo.getId().getKey())
                 .toList();
-            LOGGER.debug("Delete parameter by refId {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete parameter by refId {}/{} - Done", referenceId, referenceType);
 
             return parameterMongos;
         } catch (Exception e) {
-            LOGGER.error("Failed to delete parameter by refId: {}/{}", referenceId, referenceType, e);
+            log.error("Failed to delete parameter by refId: {}/{}", referenceId, referenceType, e);
             throw new TechnicalException("Failed to delete parameter by reference");
         }
     }

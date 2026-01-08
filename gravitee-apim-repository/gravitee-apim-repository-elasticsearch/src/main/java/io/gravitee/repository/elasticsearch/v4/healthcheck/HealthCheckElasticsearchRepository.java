@@ -35,9 +35,9 @@ import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTim
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLog;
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.reactivex.rxjava3.core.Maybe;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
-@Slf4j
+@CustomLog
 public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRepository implements HealthCheckRepository {
 
     private final String[] clusters;

@@ -26,8 +26,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoQualityRuleRepository implements QualityRuleRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoQualityRuleRepository.class);
 
     @Autowired
     private QualityRuleMongoRepository internalQualityRuleRepo;
@@ -48,24 +46,24 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
 
     @Override
     public Optional<QualityRule> findById(String qualityRuleId) throws TechnicalException {
-        LOGGER.debug("Find quality rule by ID [{}]", qualityRuleId);
+        log.debug("Find quality rule by ID [{}]", qualityRuleId);
 
         final QualityRuleMongo qualityRule = internalQualityRuleRepo.findById(qualityRuleId).orElse(null);
 
-        LOGGER.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
+        log.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
         return Optional.ofNullable(mapper.map(qualityRule));
     }
 
     @Override
     public QualityRule create(QualityRule qualityRule) throws TechnicalException {
-        LOGGER.debug("Create quality rule [{}]", qualityRule.getName());
+        log.debug("Create quality rule [{}]", qualityRule.getName());
 
         QualityRuleMongo qualityRuleMongo = mapper.map(qualityRule);
         QualityRuleMongo createdQualityRuleMongo = internalQualityRuleRepo.insert(qualityRuleMongo);
 
         QualityRule res = mapper.map(createdQualityRuleMongo);
 
-        LOGGER.debug("Create quality rule [{}] - Done", qualityRule.getName());
+        log.debug("Create quality rule [{}] - Done", qualityRule.getName());
 
         return res;
     }
@@ -95,7 +93,7 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
             return mapper.map(qualityRuleMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating quality rule";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -106,7 +104,7 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
             internalQualityRuleRepo.deleteById(qualityRuleId);
         } catch (Exception e) {
             final String error = "An error occurred when deleting quality rule " + qualityRuleId;
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -131,7 +129,7 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
         } catch (Exception e) {
             final String error =
                 "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -139,13 +137,13 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final QualityRule.ReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete quality rules by reference [{}, {}]", referenceType, referenceId);
+        log.debug("Delete quality rules by reference [{}, {}]", referenceType, referenceId);
         try {
             List<QualityRuleMongo> qualityRuleMongos = internalQualityRuleRepo.deleteByReferenceIdAndReferenceType(
                 referenceId,
                 referenceType.name()
             );
-            LOGGER.debug("Delete quality rules by reference [{}, {}] - Done", referenceType, referenceId);
+            log.debug("Delete quality rules by reference [{}, {}] - Done", referenceType, referenceId);
             return qualityRuleMongos.stream().map(QualityRuleMongo::getId).toList();
         } catch (Exception e) {
             throw new TechnicalException("An error occurred while deleting quality rules", e);

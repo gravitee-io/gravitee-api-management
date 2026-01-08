@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,27 +35,26 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoRatingAnswerRepository implements RatingAnswerRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoRatingAnswerRepository.class);
 
     @Autowired
     private RatingAnswerMongoRepository internalRatingAnswerRepository;
 
     @Override
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
-        LOGGER.debug("Find rating answer by rating [{}]", rating);
+        log.debug("Find rating answer by rating [{}]", rating);
         final List<RatingAnswerMongo> ratingAnswersMongo = internalRatingAnswerRepository.findByRating(rating);
-        LOGGER.debug("Find rating answer by api [{}] - internalRatingAnswerRepository", rating);
+        log.debug("Find rating answer by api [{}] - internalRatingAnswerRepository", rating);
         return ratingAnswersMongo.stream().map(this::map).collect(toList());
     }
 
     @Override
     public RatingAnswer create(RatingAnswer ratingAnswer) throws TechnicalException {
-        LOGGER.debug("Create rating answer for rating [{}] by user [{}]", ratingAnswer.getRating(), ratingAnswer.getUser());
+        log.debug("Create rating answer for rating [{}] by user [{}]", ratingAnswer.getRating(), ratingAnswer.getUser());
         final RatingAnswer createdRatingAnswer = map(internalRatingAnswerRepository.insert(map(ratingAnswer)));
-        LOGGER.debug("Create rating answer for rating [{}] by user [{}] - DONE", ratingAnswer.getRating(), ratingAnswer.getUser());
+        log.debug("Create rating answer for rating [{}] by user [{}] - DONE", ratingAnswer.getRating(), ratingAnswer.getUser());
         return createdRatingAnswer;
     }
 
@@ -77,16 +75,16 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
             ratingAnswerMongo.setUpdatedAt(ratingAnswer.getUpdatedAt());
             return map(internalRatingAnswerRepository.save(ratingAnswerMongo));
         } catch (Exception e) {
-            LOGGER.error("An error occurred while updating rating answer", e);
+            log.error("An error occurred while updating rating answer", e);
             throw new TechnicalException("An error occurred while updating rating answer");
         }
     }
 
     @Override
     public Optional<RatingAnswer> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find rating answer by ID [{}]", id);
+        log.debug("Find rating answer by ID [{}]", id);
         final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findById(id).orElse(null);
-        LOGGER.debug("Find rating answer by ID [{}] - internalRatingAnswerRepository", id);
+        log.debug("Find rating answer by ID [{}] - internalRatingAnswerRepository", id);
         return ofNullable(map(ratingAnswerMongo));
     }
 
@@ -95,7 +93,7 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
         try {
             internalRatingAnswerRepository.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurred while deleting rating answer [{}]", id, e);
+            log.error("An error occurred while deleting rating answer [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting rating answer");
         }
     }
@@ -103,10 +101,10 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
     @Override
     public List<String> deleteByRating(String ratingId) throws TechnicalException {
         try {
-            LOGGER.debug("Delete rating answer by ratingId [{}]", ratingId);
+            log.debug("Delete rating answer by ratingId [{}]", ratingId);
             return internalRatingAnswerRepository.deleteByRating(ratingId).stream().map(RatingAnswerMongo::getId).toList();
         } catch (Exception e) {
-            LOGGER.error("An error occurred while deleting rating answer by ratingId [{}]", ratingId, e);
+            log.error("An error occurred while deleting rating answer by ratingId [{}]", ratingId, e);
             throw new TechnicalException("An error occurred while deleting rating answer by ratingId");
         }
     }

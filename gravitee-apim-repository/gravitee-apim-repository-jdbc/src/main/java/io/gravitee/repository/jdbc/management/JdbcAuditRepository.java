@@ -36,7 +36,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Map.Entry;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
-@Slf4j
+@CustomLog
 @Repository
 public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> implements AuditRepository {
 

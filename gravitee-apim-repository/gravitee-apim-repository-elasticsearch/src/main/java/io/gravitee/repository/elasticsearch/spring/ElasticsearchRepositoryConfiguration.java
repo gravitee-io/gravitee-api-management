@@ -41,8 +41,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -65,9 +64,8 @@ import org.springframework.context.annotation.Import;
         MonitoringConfiguration.class,
     }
 )
+@CustomLog
 public class ElasticsearchRepositoryConfiguration {
-
-    private final Logger logger = LoggerFactory.getLogger(ElasticsearchRepositoryConfiguration.class);
 
     @Bean
     public Vertx vertxRx(io.vertx.core.Vertx vertx) {

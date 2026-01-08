@@ -24,12 +24,10 @@ import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.mongodb.management.internal.api.AlertEventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +35,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoAlertEventRepository implements AlertEventRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoAlertEventRepository.class);
 
     @Autowired
     private AlertEventMongoRepository internalAlertEventRepo;
@@ -50,24 +47,24 @@ public class MongoAlertEventRepository implements AlertEventRepository {
 
     @Override
     public Optional<AlertEvent> findById(String eventId) throws TechnicalException {
-        LOGGER.debug("Find an alert event by ID [{}]", eventId);
+        log.debug("Find an alert event by ID [{}]", eventId);
 
         final AlertEventMongo alertEvent = internalAlertEventRepo.findById(eventId).orElse(null);
 
-        LOGGER.debug("Find an alert event by ID [{}] - Done", eventId);
+        log.debug("Find an alert event by ID [{}] - Done", eventId);
         return Optional.ofNullable(mapper.map(alertEvent));
     }
 
     @Override
     public AlertEvent create(AlertEvent event) throws TechnicalException {
-        LOGGER.debug("Create alert event [{}]", event.getId());
+        log.debug("Create alert event [{}]", event.getId());
 
         AlertEventMongo alertEventMongo = mapper.map(event);
         AlertEventMongo createdAlertEventMongo = internalAlertEventRepo.insert(alertEventMongo);
 
         AlertEvent res = mapper.map(createdAlertEventMongo);
 
-        LOGGER.debug("Create alert event [{}] - Done", event.getId());
+        log.debug("Create alert event [{}] - Done", event.getId());
 
         return res;
     }
@@ -93,7 +90,7 @@ public class MongoAlertEventRepository implements AlertEventRepository {
             AlertEventMongo alertEventMongoUpdated = internalAlertEventRepo.save(alertEventMongo);
             return mapper.map(alertEventMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when updating alert event", e);
+            log.error("An error occurs when updating alert event", e);
             throw new TechnicalException("An error occurs when updating alert event");
         }
     }
@@ -103,7 +100,7 @@ public class MongoAlertEventRepository implements AlertEventRepository {
         try {
             internalAlertEventRepo.deleteById(eventId);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when deleting alert event [{}]", eventId, e);
+            log.error("An error occurs when deleting alert event [{}]", eventId, e);
             throw new TechnicalException("An error occurs when deleting alert event");
         }
     }

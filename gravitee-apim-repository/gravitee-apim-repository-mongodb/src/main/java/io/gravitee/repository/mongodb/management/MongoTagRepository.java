@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoTagRepository implements TagRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoTagRepository.class);
 
     @Autowired
     private TagMongoRepository internalTagRepo;
@@ -48,32 +46,32 @@ public class MongoTagRepository implements TagRepository {
 
     @Override
     public Optional<Tag> findById(String tagId) throws TechnicalException {
-        LOGGER.debug("Find tag by ID [{}]", tagId);
+        log.debug("Find tag by ID [{}]", tagId);
 
         final TagMongo tag = internalTagRepo.findById(tagId).orElse(null);
 
-        LOGGER.debug("Find tag by ID [{}] - Done", tagId);
+        log.debug("Find tag by ID [{}] - Done", tagId);
         return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
     public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) {
-        LOGGER.debug("Find tag by ID and reference [{}, {}, {}]", tagId, referenceId, referenceType);
+        log.debug("Find tag by ID and reference [{}, {}, {}]", tagId, referenceId, referenceType);
 
         final TagMongo tag = internalTagRepo.findByIdAndReferenceIdAndReferenceType(tagId, referenceId, referenceType).orElse(null);
 
-        LOGGER.debug("Find tag by ID and reference[{}, {}, {}] - Done", tagId, referenceId, referenceType);
+        log.debug("Find tag by ID and reference[{}, {}, {}] - Done", tagId, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
     public Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Find tags by IDs and reference [{}, {}, {}]", tagIds, referenceId, referenceType);
+        log.debug("Find tags by IDs and reference [{}, {}, {}]", tagIds, referenceId, referenceType);
 
         final List<TagMongo> tags = internalTagRepo.findByIdInAndReferenceIdAndReferenceType(tagIds, referenceId, referenceType);
 
-        LOGGER.debug("Find tag by IDs and reference[{}, {}, {}] - Done", tagIds, referenceId, referenceType);
+        log.debug("Find tag by IDs and reference[{}, {}, {}] - Done", tagIds, referenceId, referenceType);
         return tags
             .stream()
             .map(tagMongo -> mapper.map(tagMongo))
@@ -82,7 +80,7 @@ public class MongoTagRepository implements TagRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Delete tags by reference {}/{}", referenceId, referenceType);
+        log.debug("Delete tags by reference {}/{}", referenceId, referenceType);
 
         final var tags = internalTagRepo
             .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
@@ -90,20 +88,20 @@ public class MongoTagRepository implements TagRepository {
             .map(TagMongo::getId)
             .toList();
 
-        LOGGER.debug("Delete tag by reference {}/{} - Done", referenceId, referenceType);
+        log.debug("Delete tag by reference {}/{} - Done", referenceId, referenceType);
         return tags;
     }
 
     @Override
     public Tag create(Tag tag) throws TechnicalException {
-        LOGGER.debug("Create tag [{}]", tag.getName());
+        log.debug("Create tag [{}]", tag.getName());
 
         TagMongo tagMongo = mapper.map(tag);
         TagMongo createdTagMongo = internalTagRepo.insert(tagMongo);
 
         Tag res = mapper.map(createdTagMongo);
 
-        LOGGER.debug("Create tag [{}] - Done", tag.getName());
+        log.debug("Create tag [{}] - Done", tag.getName());
 
         return res;
     }
@@ -131,7 +129,7 @@ public class MongoTagRepository implements TagRepository {
             TagMongo tagMongoUpdated = internalTagRepo.save(tagMongo);
             return mapper.map(tagMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating tag", e);
+            log.error("An error occured when updating tag", e);
             throw new TechnicalException("An error occured when updating tag");
         }
     }
@@ -141,7 +139,7 @@ public class MongoTagRepository implements TagRepository {
         try {
             internalTagRepo.deleteById(tagId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting tag [{}]", tagId, e);
+            log.error("An error occured when deleting tag [{}]", tagId, e);
             throw new TechnicalException("An error occured when deleting tag");
         }
     }

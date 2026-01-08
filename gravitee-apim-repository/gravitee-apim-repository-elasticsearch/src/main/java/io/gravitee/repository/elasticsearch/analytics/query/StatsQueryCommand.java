@@ -48,7 +48,7 @@ public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsRe
             SearchResponse searchResponse = execute(queryContext, statsQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toStatsResponse(searchResponse);
         } catch (final Exception eex) {
-            logger.error("Impossible to perform StatsQuery", eex);
+            log.error("Impossible to perform StatsQuery", eex);
             throw new AnalyticsException("Impossible to perform StatsQuery", eex);
         }
     }

@@ -52,7 +52,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -62,7 +62,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author njt
  */
-@Slf4j
+@CustomLog
 @Repository
 public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> implements EventRepository {
 

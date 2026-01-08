@@ -19,16 +19,14 @@ import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.distributedsync.RedisDistributedSyncRepositoryConfiguration;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class RedisRepositoryProvider implements RepositoryProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RedisRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -47,7 +45,7 @@ public class RedisRepositoryProvider implements RepositoryProvider {
         } else if (scope == Scope.DISTRIBUTED_SYNC) {
             return RedisDistributedSyncRepositoryConfiguration.class;
         }
-        LOGGER.debug("Skipping unhandled repository scope {}", scope);
+        log.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }

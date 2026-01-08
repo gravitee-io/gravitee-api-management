@@ -21,21 +21,25 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.LicenseRepository;
-import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.License;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+@CustomLog
 @Repository
 public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<License> implements LicenseRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcLicenseRepository.class);
 
     JdbcLicenseRepository(@Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
         super(tablePrefix, "licenses");
@@ -68,7 +72,7 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
 
     @Override
     public Optional<License> findById(String referenceId, License.ReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.findById({}, {})", referenceId, referenceType);
+        log.debug("JdbcLicenseRepository.findById({}, {})", referenceId, referenceType);
         try {
             List<License> result = jdbcTemplate.query(
                 "select ol.* from " + this.tableName + " ol where ol.reference_id = ? and ol.reference_type = ?",
@@ -76,29 +80,29 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
                 referenceId,
                 referenceType.name()
             );
-            LOGGER.debug("JdbcLicenseRepository.findById({}, {}) = {}", referenceId, referenceType, result);
+            log.debug("JdbcLicenseRepository.findById({}, {}) = {}", referenceId, referenceType, result);
             return result.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find licenses with reference id and type: {} {}", referenceId, referenceType, ex);
+            log.error("Failed to find licenses with reference id and type: {} {}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to find licenses by id", ex);
         }
     }
 
     @Override
     public License create(License license) throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.create({})", license);
+        log.debug("JdbcLicenseRepository.create({})", license);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(license));
             return findById(license.getReferenceId(), license.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create license", ex);
+            log.error("Failed to create license", ex);
             throw new TechnicalException("Failed to create license", ex);
         }
     }
 
     @Override
     public License update(License license) throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.update({})", license);
+        log.debug("JdbcLicenseRepository.update({})", license);
         try {
             int rows = jdbcTemplate.update(
                 getOrm().buildUpdatePreparedStatementCreator(license, license.getReferenceId(), license.getReferenceType().name())
@@ -108,14 +112,14 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
             }
             return findById(license.getReferenceId(), license.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update license: {} {}", license.getReferenceId(), license.getReferenceType(), ex);
+            log.error("Failed to update license: {} {}", license.getReferenceId(), license.getReferenceType(), ex);
             throw new TechnicalException("Failed to update license", ex);
         }
     }
 
     @Override
     public void delete(String referenceId, License.ReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.delete({} {})", referenceId, referenceType);
+        log.debug("JdbcLicenseRepository.delete({} {})", referenceId, referenceType);
         try {
             jdbcTemplate.update(
                 "delete from " + this.tableName + " where reference_id = ? and reference_type = ?",
@@ -123,14 +127,14 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
                 referenceType.name()
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete {} license:", getOrm().getTableName(), ex);
+            log.error("Failed to delete {} license:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete license", ex);
         }
     }
 
     @Override
     public Page<License> findByCriteria(final LicenseCriteria filter, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.findByCriteria({})", filter);
+        log.debug("JdbcLicenseRepository.findByCriteria({})", filter);
         try {
             List<Object> args = new ArrayList<>();
 
@@ -164,7 +168,7 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
             List<License> licenses = jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());
             return getResultAsPage(pageable, licenses);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find Licenses by criteria:", ex);
+            log.error("Failed to find Licenses by criteria:", ex);
             throw new TechnicalException("Failed to find Licenses by criteria", ex);
         }
     }
@@ -180,13 +184,13 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
 
     @Override
     public Set<License> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcLicenseRepository.findAll()");
+        log.debug("JdbcLicenseRepository.findAll()");
         try {
             List<License> result = jdbcTemplate.query("select ol.* from " + this.tableName + " ol", getOrm().getRowMapper());
-            LOGGER.debug("JdbcLicenseRepository.findById() = {}", result);
+            log.debug("JdbcLicenseRepository.findById() = {}", result);
             return new HashSet<>(result);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find licenses: ", ex);
+            log.error("Failed to find licenses: ", ex);
             throw new TechnicalException("Failed to find licenses", ex);
         }
     }

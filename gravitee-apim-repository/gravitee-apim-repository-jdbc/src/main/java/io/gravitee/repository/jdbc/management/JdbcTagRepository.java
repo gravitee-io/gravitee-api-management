@@ -20,18 +20,14 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
-import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
-import io.gravitee.repository.management.model.TenantReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -39,10 +35,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> implements TagRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(JdbcTagRepository.class);
 
     private final String TAG_GROUPS;
 
@@ -91,7 +86,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             tag.ifPresent(this::addGroups);
             return tag;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} tags by id, referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} tags by id, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by id, referenceId and referenceType", ex);
         }
     }
@@ -117,14 +112,14 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .peek(this::addGroups)
                 .collect(toSet());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} tags by ids, referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} tags by ids, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by ids, referenceId and referenceType", ex);
         }
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        log.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_id = ? and reference_type = ?",
@@ -145,10 +140,10 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                     referenceType.name()
                 );
             }
-            LOGGER.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
+            log.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete tags by reference {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete tags by reference {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tags by reference", ex);
         }
     }
@@ -167,7 +162,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .peek(this::addGroups)
                 .collect(toSet());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} tags referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} tags referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
         }
     }

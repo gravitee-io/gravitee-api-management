@@ -32,13 +32,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 @AllArgsConstructor
 public class MongoClusterRepository implements ClusterRepository {
 

@@ -32,8 +32,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -51,10 +50,9 @@ import org.springframework.util.StringUtils;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoGroupRepository implements GroupRepository {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${management.mongodb.prefix:}")
     private String tablePrefix;
@@ -70,25 +68,25 @@ public class MongoGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findById(String s) throws TechnicalException {
-        logger.debug("Find group by id [{}]", s);
+        log.debug("Find group by id [{}]", s);
         Group group = map(internalRepository.findById(s).orElse(null));
-        logger.debug("Find group by id [{}] - DONE", s);
+        log.debug("Find group by id [{}] - DONE", s);
         return Optional.ofNullable(group);
     }
 
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
-        logger.debug("Find groups by ids");
+        log.debug("Find groups by ids");
         Set<Group> groups = stream(internalRepository.findByIds(ids)).map(this::map).collect(Collectors.toSet());
-        logger.debug("Find groups by ids - Found {}", groups);
+        log.debug("Find groups by ids - Found {}", groups);
         return groups;
     }
 
     @Override
     public Group create(Group group) throws TechnicalException {
-        logger.debug("Create group [{}]", group.getName());
+        log.debug("Create group [{}]", group.getName());
         Group createdGroup = map(internalRepository.insert(map(group)));
-        logger.debug("Create group [{}] - Done", createdGroup.getName());
+        log.debug("Create group [{}] - Done", createdGroup.getName());
         return createdGroup;
     }
 
@@ -103,24 +101,24 @@ public class MongoGroupRepository implements GroupRepository {
             throw new IllegalStateException(String.format("No group found with id [%s]", group.getId()));
         }
 
-        logger.debug("Update group [{}]", group.getName());
+        log.debug("Update group [{}]", group.getName());
         Group updatedGroup = map(internalRepository.save(map(group)));
-        logger.debug("Update group [{}] - Done", updatedGroup.getName());
+        log.debug("Update group [{}] - Done", updatedGroup.getName());
         return updatedGroup;
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        logger.debug("Delete group [{}]", id);
+        log.debug("Delete group [{}]", id);
         internalRepository.deleteById(id);
-        logger.debug("Delete group [{}] - Done", id);
+        log.debug("Delete group [{}] - Done", id);
     }
 
     @Override
     public Set<Group> findAll() throws TechnicalException {
-        logger.debug("Find all groups");
+        log.debug("Find all groups");
         Set<Group> all = internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
-        logger.debug("Find all groups - Found {}", all);
+        log.debug("Find all groups - Found {}", all);
         return all;
     }
 
@@ -164,28 +162,28 @@ public class MongoGroupRepository implements GroupRepository {
 
     @Override
     public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
-        logger.debug("Find all groups by environment");
+        log.debug("Find all groups by environment");
         Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
-        logger.debug("Find all groups by environment - Found {}", all);
+        log.debug("Find all groups by environment - Found {}", all);
         return all;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        logger.debug("Delete groups by environmentId: {}", environmentId);
+        log.debug("Delete groups by environmentId: {}", environmentId);
         try {
             List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(GroupMongo::getId).toList();
-            logger.debug("Delete groups by environment - Done {}", all);
+            log.debug("Delete groups by environment - Done {}", all);
             return all;
         } catch (Exception ex) {
-            logger.error("Failed to delete groups by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete groups by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete groups by environmentId");
         }
     }
 
     @Override
     public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
-        logger.debug("Find all groups by organization");
+        log.debug("Find all groups by organization");
 
         LookupOperation lookupOperation = LookupOperation.newLookup()
             .from(getTableNameFor("environments"))
@@ -205,7 +203,7 @@ public class MongoGroupRepository implements GroupRepository {
             .map(this::map)
             .collect(Collectors.toSet());
 
-        logger.debug("Find all groups by organization - Found {}", groups);
+        log.debug("Find all groups by organization - Found {}", groups);
         return groups;
     }
 

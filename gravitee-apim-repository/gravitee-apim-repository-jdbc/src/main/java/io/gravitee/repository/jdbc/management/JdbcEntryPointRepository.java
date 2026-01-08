@@ -25,8 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Repository;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypoint, String> implements EntrypointRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEntryPointRepository.class);
 
     JdbcEntryPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "entrypoints");
@@ -75,7 +73,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
                 .stream()
                 .findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} entrypoint by id, referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} entrypoint by id, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException(
                 "Failed to find " + getOrm().getTableName() + " entrypoint by id, referenceId and referenceType",
                 ex
@@ -95,7 +93,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
                 )
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} entrypoints referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} entrypoints referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " entrypoints by referenceId and referenceType", ex);
         }
     }

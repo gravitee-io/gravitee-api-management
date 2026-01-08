@@ -32,18 +32,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 @RequiredArgsConstructor
 public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoSharedPolicyGroupRepository.class);
 
     private final GraviteeMapper mapper;
 
@@ -51,18 +49,18 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
 
     @Override
     public Optional<SharedPolicyGroup> findById(String s) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by ID [{}]", s);
+        log.debug("Find shared policy group by ID [{}]", s);
 
         final SharedPolicyGroupMongo sharedPolicyGroupMongo = internalSharedPolicyGroupMongoRepo.findById(s).orElse(null);
 
-        LOGGER.debug("Find shared policy group by ID [{}] - Done", sharedPolicyGroupMongo);
+        log.debug("Find shared policy group by ID [{}] - Done", sharedPolicyGroupMongo);
 
         return Optional.ofNullable(mapSharedPolicyGroup(sharedPolicyGroupMongo));
     }
 
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup item) throws TechnicalException {
-        LOGGER.debug("Create shared policy group with id [{}]", item.getId());
+        log.debug("Create shared policy group with id [{}]", item.getId());
 
         SharedPolicyGroupMongo sharedPolicyGroupMongo = mapSharedPolicyGroup(item);
 
@@ -70,7 +68,7 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
 
         SharedPolicyGroup res = mapSharedPolicyGroup(created);
 
-        LOGGER.debug("Create shared policy group with id [{}] - Done", res.getId());
+        log.debug("Create shared policy group with id [{}] - Done", res.getId());
         return res;
     }
 
@@ -86,10 +84,10 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
             throw new IllegalStateException(String.format("No shared policy group found with id [%s]", item.getId()));
         }
 
-        LOGGER.debug("Update shared policy group with id [{}]", item.getId());
+        log.debug("Update shared policy group with id [{}]", item.getId());
         sharedPolicyGroupMongo = mapSharedPolicyGroup(item);
         sharedPolicyGroupMongo = internalSharedPolicyGroupMongoRepo.save(sharedPolicyGroupMongo);
-        LOGGER.debug("Update shared policy group with id [{}] - Done", item.getId());
+        log.debug("Update shared policy group with id [{}] - Done", item.getId());
         return mapSharedPolicyGroup(sharedPolicyGroupMongo);
     }
 
@@ -98,7 +96,7 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         try {
             internalSharedPolicyGroupMongoRepo.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting shared policy group [{}]", id, e);
+            log.error("An error occurred when deleting shared policy group [{}]", id, e);
             throw new TechnicalException("An error occurred when deleting shared policy group");
         }
     }
@@ -114,7 +112,7 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("MongoSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+        log.debug("MongoSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
@@ -126,34 +124,34 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
                 PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
             ).map(this::mapSharedPolicyGroup);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when searching for shared policy groups", e);
+            log.error("An error occurred when searching for shared policy groups", e);
             throw new TechnicalException("An error occurred when searching for shared policy groups", e);
         }
     }
 
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
+        log.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
 
         var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapSharedPolicyGroup);
 
-        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+        log.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
         return res;
     }
 
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and HRID [{}]", environmentId, hrid);
+        log.debug("Find shared policy group by environment ID [{}] and HRID [{}]", environmentId, hrid);
 
         var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndHRID(environmentId, hrid).map(this::mapSharedPolicyGroup);
 
-        LOGGER.debug("Find shared policy group by environment ID [{}] and HRID [{}] - Done", environmentId, hrid);
+        log.debug("Find shared policy group by environment ID [{}] and HRID [{}] - Done", environmentId, hrid);
         return res;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete shared policy group by environmentId [{}]", environmentId);
+        log.debug("Delete shared policy group by environmentId [{}]", environmentId);
 
         try {
             final var res = internalSharedPolicyGroupMongoRepo
@@ -162,10 +160,10 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
                 .map(SharedPolicyGroupMongo::getId)
                 .toList();
 
-            LOGGER.debug("Delete shared policy group by environmentId [{}] - Done", environmentId);
+            log.debug("Delete shared policy group by environmentId [{}] - Done", environmentId);
             return res;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete shared policy group by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete shared policy group by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete shared policy group by environmentId");
         }
     }

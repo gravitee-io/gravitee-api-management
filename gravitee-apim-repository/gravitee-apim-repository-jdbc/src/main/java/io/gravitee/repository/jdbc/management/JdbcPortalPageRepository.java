@@ -25,8 +25,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Repository;
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalPage, String> implements PortalPageRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalPageRepository.class);
 
     JdbcPortalPageRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_pages");
@@ -62,7 +60,7 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
 
     @Override
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(PortalPage item) {
-        LOGGER.debug("Building update statement for PortalPage: {}", item);
+        log.debug("Building update statement for PortalPage: {}", item);
         return getOrm().buildUpdatePreparedStatementCreator(item, getId(item));
     }
 
@@ -76,7 +74,7 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
             getOrm().buildInCondition(true, sql, "id", ids);
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {
-            LOGGER.error("Failed to find PortalPages by ids {}", ids, ex);
+            log.error("Failed to find PortalPages by ids {}", ids, ex);
             return List.of();
         }
     }
@@ -97,19 +95,19 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
             getOrm().buildInCondition(true, sql, "id", ids);
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {
-            LOGGER.error("Failed to find PortalPages by ids {} with expands {}", ids, expands, ex);
+            log.error("Failed to find PortalPages by ids {} with expands {}", ids, expands, ex);
             return List.of();
         }
     }
 
     @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Deleting PortalPage by environmentId {}", environmentId);
+        log.debug("Deleting PortalPage by environmentId {}", environmentId);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (final Exception ex) {
             final String error = "Failed to delete PortalPage by environmentId:" + environmentId;
-            LOGGER.error(error, ex);
+            log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }

@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +36,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoAlertRepository implements AlertTriggerRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoAlertRepository.class);
 
     @Autowired
     private AlertMongoRepository internalAlertRepo;
@@ -50,24 +48,24 @@ public class MongoAlertRepository implements AlertTriggerRepository {
 
     @Override
     public Optional<AlertTrigger> findById(String triggerId) throws TechnicalException {
-        LOGGER.debug("Find an alert trigger by ID [{}]", triggerId);
+        log.debug("Find an alert trigger by ID [{}]", triggerId);
 
         final AlertTriggerMongo alert = internalAlertRepo.findById(triggerId).orElse(null);
 
-        LOGGER.debug("Find an alert trigger by ID [{}] - Done", triggerId);
+        log.debug("Find an alert trigger by ID [{}] - Done", triggerId);
         return Optional.ofNullable(mapper.map(alert));
     }
 
     @Override
     public AlertTrigger create(AlertTrigger trigger) throws TechnicalException {
-        LOGGER.debug("Create alert trigger [{}]", trigger.getName());
+        log.debug("Create alert trigger [{}]", trigger.getName());
 
         AlertTriggerMongo alertTriggerMongo = mapper.map(trigger);
         AlertTriggerMongo createdAlertTriggerMongo = internalAlertRepo.insert(alertTriggerMongo);
 
         AlertTrigger res = mapper.map(createdAlertTriggerMongo);
 
-        LOGGER.debug("Create alert trigger [{}] - Done", trigger.getName());
+        log.debug("Create alert trigger [{}] - Done", trigger.getName());
 
         return res;
     }
@@ -113,7 +111,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             AlertTriggerMongo alertTriggerMongoUpdated = internalAlertRepo.save(alertTriggerMongo);
             return mapper.map(alertTriggerMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when updating alert trigger", e);
+            log.error("An error occurs when updating alert trigger", e);
             throw new TechnicalException("An error occurs when updating alert trigger");
         }
     }
@@ -123,7 +121,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         try {
             internalAlertRepo.deleteById(triggerId);
         } catch (Exception e) {
-            LOGGER.error("An error occurs when deleting alert trigger [{}]", triggerId, e);
+            log.error("An error occurs when deleting alert trigger [{}]", triggerId, e);
             throw new TechnicalException("An error occurs when deleting alert trigger");
         }
     }
@@ -136,11 +134,11 @@ public class MongoAlertRepository implements AlertTriggerRepository {
 
     @Override
     public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) {
-        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}'", referenceType, referenceIds);
+        log.debug("Find alert trigger by reference '{}' and referencesIds '{}'", referenceType, referenceIds);
 
         final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds);
 
-        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}' done", referenceType, referenceIds);
+        log.debug("Find alert trigger by reference '{}' and referencesIds '{}' done", referenceType, referenceIds);
         return triggers.stream().map(this::map).collect(Collectors.toList());
     }
 

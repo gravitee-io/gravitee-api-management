@@ -25,10 +25,13 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryProviderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -37,10 +40,9 @@ import org.springframework.util.CollectionUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoDictionaryRepository implements DictionaryRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDictionaryRepository.class);
 
     private static final String DOT_REPLACEMENT = "\\$#\\$";
     private static final String DOT = "\\.";
@@ -55,7 +57,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
     @Override
     public Optional<Dictionary> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find dictionary by ID [{}]", id);
+        log.debug("Find dictionary by ID [{}]", id);
 
         DictionaryMongo page = internalDictionaryRepo.findById(id).orElse(null);
         Dictionary res = mapper.map(page);
@@ -66,13 +68,13 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             res.setProperties(properties);
         }
 
-        LOGGER.debug("Find dictionary by ID [{}] - Done", id);
+        log.debug("Find dictionary by ID [{}] - Done", id);
         return Optional.ofNullable(res);
     }
 
     @Override
     public Dictionary create(Dictionary dictionary) throws TechnicalException {
-        LOGGER.debug("Create dictionary [{}]", dictionary.getName());
+        log.debug("Create dictionary [{}]", dictionary.getName());
 
         DictionaryMongo dictionaryMongo = mapper.map(dictionary);
 
@@ -92,7 +94,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             res.setProperties(properties);
         }
 
-        LOGGER.debug("Create dictionary [{}] - Done", dictionary.getName());
+        log.debug("Create dictionary [{}] - Done", dictionary.getName());
 
         return res;
     }
@@ -149,7 +151,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
             return res;
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating dictionary", e);
+            log.error("An error occured when updating dictionary", e);
             throw new TechnicalException("An error occured when updating dictionary");
         }
     }
@@ -159,19 +161,19 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         try {
             internalDictionaryRepo.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting dictionary [{}]", id, e);
+            log.error("An error occured when deleting dictionary [{}]", id, e);
             throw new TechnicalException("An error occured when deleting dictionary");
         }
     }
 
     @Override
     public Set<Dictionary> findAll() throws TechnicalException {
-        LOGGER.debug("Find all dictionaries");
+        log.debug("Find all dictionaries");
 
         List<DictionaryMongo> dictionaries = internalDictionaryRepo.findAll();
         Set<Dictionary> res = mapper.mapDictionaries(dictionaries);
 
-        LOGGER.debug("Find all dictionaries - Done");
+        log.debug("Find all dictionaries - Done");
         return res;
     }
 
@@ -215,7 +217,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
     @Override
     public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
-        LOGGER.debug("Find all dictionaries by environment");
+        log.debug("Find all dictionaries by environment");
 
         if (CollectionUtils.isEmpty(environments)) {
             return findAll();
@@ -224,30 +226,30 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironments(environments);
         Set<Dictionary> res = mapper.mapDictionaries(dictionaries);
 
-        LOGGER.debug("Find all dictionaries by environment- Done");
+        log.debug("Find all dictionaries by environment- Done");
         return res;
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete dictionaries by environmentId: {}", environmentId);
+        log.debug("Delete dictionaries by environmentId: {}", environmentId);
         try {
             final var dictionaries = internalDictionaryRepo
                 .deleteByEnvironmentId(environmentId)
                 .stream()
                 .map(DictionaryMongo::getId)
                 .toList();
-            LOGGER.debug("Delete dictionaries by environmentId: {} - Done", environmentId);
+            log.debug("Delete dictionaries by environmentId: {} - Done", environmentId);
             return dictionaries;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete dictionaries by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete dictionaries by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete dictionaries by environmentId");
         }
     }
 
     @Override
     public Optional<Dictionary> findByKeyAndEnvironment(String key, String environmentId) throws TechnicalException {
-        LOGGER.debug("Find dictionary by key and environmentId");
+        log.debug("Find dictionary by key and environmentId");
         DictionaryMongo dictionaryMongo = internalDictionaryRepo.findByKeyAndEnvironmentId(key, environmentId);
 
         return Optional.ofNullable(dictionaryMongo).map(mapper::map);

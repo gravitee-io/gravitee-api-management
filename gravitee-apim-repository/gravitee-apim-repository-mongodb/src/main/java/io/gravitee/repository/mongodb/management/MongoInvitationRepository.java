@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoInvitationRepository implements InvitationRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoInvitationRepository.class);
 
     @Autowired
     private InvitationMongoRepository internalInvitationRepo;
@@ -48,24 +46,24 @@ public class MongoInvitationRepository implements InvitationRepository {
 
     @Override
     public Optional<Invitation> findById(String invitationId) throws TechnicalException {
-        LOGGER.debug("Find invitation by ID [{}]", invitationId);
+        log.debug("Find invitation by ID [{}]", invitationId);
 
         final InvitationMongo invitation = internalInvitationRepo.findById(invitationId).orElse(null);
 
-        LOGGER.debug("Find invitation by ID [{}] - Done", invitationId);
+        log.debug("Find invitation by ID [{}] - Done", invitationId);
         return Optional.ofNullable(mapper.map(invitation));
     }
 
     @Override
     public Invitation create(Invitation invitation) throws TechnicalException {
-        LOGGER.debug("Create invitation [{}]", invitation.getEmail());
+        log.debug("Create invitation [{}]", invitation.getEmail());
 
         InvitationMongo invitationMongo = mapper.map(invitation);
         InvitationMongo createdInvitationMongo = internalInvitationRepo.insert(invitationMongo);
 
         Invitation res = mapper.map(createdInvitationMongo);
 
-        LOGGER.debug("Create invitation [{}] - Done", invitation.getEmail());
+        log.debug("Create invitation [{}] - Done", invitation.getEmail());
 
         return res;
     }
@@ -95,7 +93,7 @@ public class MongoInvitationRepository implements InvitationRepository {
             InvitationMongo invitationMongoUpdated = internalInvitationRepo.save(invitationMongo);
             return mapper.map(invitationMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating invitation", e);
+            log.error("An error occured when updating invitation", e);
             throw new TechnicalException("An error occured when updating invitation");
         }
     }
@@ -105,7 +103,7 @@ public class MongoInvitationRepository implements InvitationRepository {
         try {
             internalInvitationRepo.deleteById(invitationId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting invitation [{}]", invitationId, e);
+            log.error("An error occured when deleting invitation [{}]", invitationId, e);
             throw new TechnicalException("An error occured when deleting invitation");
         }
     }
@@ -118,21 +116,21 @@ public class MongoInvitationRepository implements InvitationRepository {
 
     @Override
     public List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) {
-        LOGGER.debug("Find invitation by reference '{}' / '{}'", referenceId, referenceType);
+        log.debug("Find invitation by reference '{}' / '{}'", referenceId, referenceType);
 
         final List<InvitationMongo> invitations = internalInvitationRepo.findByReferenceIdAndReferenceType(
             referenceId,
             referenceType.name()
         );
 
-        LOGGER.debug("Find invitation by reference '{}' / '{}' done", referenceId, referenceType);
+        log.debug("Find invitation by reference '{}' / '{}' done", referenceId, referenceType);
         return invitations.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete invitation by refId: {}/{}", referenceId, referenceType);
+        log.debug("Delete invitation by refId: {}/{}", referenceId, referenceType);
         try {
             final var invitations = internalInvitationRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
@@ -140,10 +138,10 @@ public class MongoInvitationRepository implements InvitationRepository {
                 .map(InvitationMongo::getId)
                 .toList();
 
-            LOGGER.debug("Delete invitation by refId {}/{} - Done", referenceId, referenceType);
+            log.debug("Delete invitation by refId {}/{} - Done", referenceId, referenceType);
             return invitations;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete invitation by refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete invitation by refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete invitation by reference");
         }
     }

@@ -26,10 +26,14 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,10 +42,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoApplicationRepository implements ApplicationRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoApplicationRepository.class);
 
     @Autowired
     private ApplicationMongoRepository internalApplicationRepo;
@@ -178,17 +181,17 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete by environmentId [{}]", environmentId);
+        log.debug("Delete by environmentId [{}]", environmentId);
         try {
             final var applicationMongos = internalApplicationRepo
                 .deleteByEnvironmentId(environmentId)
                 .stream()
                 .map(ApplicationMongo::getId)
                 .toList();
-            LOGGER.debug("Delete by environmentId [{}] - Done", environmentId);
+            log.debug("Delete by environmentId [{}] - Done", environmentId);
             return applicationMongos;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete applications by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete applications by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete applications by environmentId");
         }
     }

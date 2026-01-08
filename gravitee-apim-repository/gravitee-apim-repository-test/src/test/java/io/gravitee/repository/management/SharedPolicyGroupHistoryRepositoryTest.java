@@ -26,11 +26,11 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.junit.Before;
 import org.junit.Test;
 
-@Slf4j
+@CustomLog
 public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRepositoryTest {
 
     private static final String ENV_ID_TO_BE_DELETED = "env_to_be_deleted";

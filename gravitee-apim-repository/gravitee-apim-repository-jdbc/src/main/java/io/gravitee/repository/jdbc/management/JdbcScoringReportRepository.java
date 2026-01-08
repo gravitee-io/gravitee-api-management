@@ -40,13 +40,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
+@CustomLog
 @Repository
 class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow> implements ScoringReportRepository {
 

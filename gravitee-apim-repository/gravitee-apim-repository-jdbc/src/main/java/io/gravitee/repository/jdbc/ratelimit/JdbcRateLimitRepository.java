@@ -23,8 +23,7 @@ import io.reactivex.rxjava3.core.Single;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,10 +41,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRateLimitRepository.class);
     private final String TABLE_NAME;
 
     @Autowired
@@ -120,7 +119,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     @Override
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
-        LOGGER.debug("JdbcRateLimitRepository.incrementAndGet({}, {}, {})", key, weight, supplier);
+        log.debug("JdbcRateLimitRepository.incrementAndGet({}, {}, {})", key, weight, supplier);
 
         return transactionTemplate.execute(
             new TransactionCallback<Single<RateLimit>>() {

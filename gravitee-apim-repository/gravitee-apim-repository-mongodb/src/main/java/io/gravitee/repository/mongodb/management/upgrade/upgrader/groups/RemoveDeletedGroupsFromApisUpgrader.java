@@ -23,7 +23,7 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUp
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.environment.MissingEnvironmentUpgrader;
 import java.util.List;
 import java.util.stream.StreamSupport;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.bson.BsonNull;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  * Remove any remaining deleted groups from APIs.
  */
 @Component
-@Slf4j
+@CustomLog
 public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
 
     public static final int REMOVE_DELETED_GROUPS_UPGRADER_ORDER = MissingEnvironmentUpgrader.MISSING_ENVIRONMENT_UPGRADER_ORDER + 1;

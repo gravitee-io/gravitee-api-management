@@ -21,7 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
 import java.util.Date;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+@CustomLog
 @Component
 @AllArgsConstructor
 public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCustom {

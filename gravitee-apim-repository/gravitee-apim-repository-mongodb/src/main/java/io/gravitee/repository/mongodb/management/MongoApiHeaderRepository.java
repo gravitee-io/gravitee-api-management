@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoApiHeaderRepository implements ApiHeaderRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoApiHeaderRepository.class);
 
     @Autowired
     private ApiHeaderMongoRepository internalApiHeaderRepo;
@@ -47,24 +45,24 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
 
     @Override
     public Optional<ApiHeader> findById(String apiHeaderId) throws TechnicalException {
-        LOGGER.debug("Find apiHeader by ID [{}]", apiHeaderId);
+        log.debug("Find apiHeader by ID [{}]", apiHeaderId);
 
         final ApiHeaderMongo apiHeader = internalApiHeaderRepo.findById(apiHeaderId).orElse(null);
 
-        LOGGER.debug("Find apiHeader by ID [{}] - Done", apiHeaderId);
+        log.debug("Find apiHeader by ID [{}] - Done", apiHeaderId);
         return Optional.ofNullable(mapper.map(apiHeader));
     }
 
     @Override
     public ApiHeader create(ApiHeader apiHeader) throws TechnicalException {
-        LOGGER.debug("Create apiHeader [{}]", apiHeader.getName());
+        log.debug("Create apiHeader [{}]", apiHeader.getName());
 
         ApiHeaderMongo apiHeaderMongo = mapper.map(apiHeader);
         ApiHeaderMongo createdApiHeaderMongo = internalApiHeaderRepo.insert(apiHeaderMongo);
 
         ApiHeader res = mapper.map(createdApiHeaderMongo);
 
-        LOGGER.debug("Create apiHeader [{}] - Done", apiHeader.getName());
+        log.debug("Create apiHeader [{}] - Done", apiHeader.getName());
 
         return res;
     }
@@ -85,7 +83,7 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
             ApiHeaderMongo apiHeaderMongoUpdated = internalApiHeaderRepo.save(mapper.map(apiHeader));
             return mapper.map(apiHeaderMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating apiHeader", e);
+            log.error("An error occured when updating apiHeader", e);
             throw new TechnicalException("An error occured when updating apiHeader");
         }
     }
@@ -95,7 +93,7 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
         try {
             internalApiHeaderRepo.deleteById(apiHeaderId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting apiHeader [{}]", apiHeaderId, e);
+            log.error("An error occured when deleting apiHeader [{}]", apiHeaderId, e);
             throw new TechnicalException("An error occured when deleting apiHeader");
         }
     }
@@ -120,13 +118,13 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete by environmentId [{}]", environmentId);
+        log.debug("Delete by environmentId [{}]", environmentId);
         try {
             final var apiHeaders = internalApiHeaderRepo.deleteByEnvironmentId(environmentId).stream().map(ApiHeaderMongo::getId).toList();
-            LOGGER.debug("Delete by environmentId [{}] - Done", environmentId);
+            log.debug("Delete by environmentId [{}] - Done", environmentId);
             return apiHeaders;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete apiHeader by envId: {}", environmentId, ex);
+            log.error("Failed to delete apiHeader by envId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete apiHeader by envId");
         }
     }

@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupHistoryMongo;
-import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygrouphistory.SharedPolicyGroupHistoryMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -33,18 +32,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+@CustomLog
 @Component
 @RequiredArgsConstructor
 public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGroupHistoryRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoSharedPolicyGroupHistoryRepository.class);
 
     private final GraviteeMapper mapper;
 
@@ -56,7 +53,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("MongoSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
+        log.debug("MongoSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             sortable = sortable == null ? new SortableBuilder().field("updated_at").setAsc(true).build() : sortable;
@@ -68,7 +65,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
                 PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
             ).map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when searching for shared policy group history", e);
+            log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
         }
     }
@@ -77,11 +74,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-        LOGGER.debug(
-            "MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
-            environmentId,
-            pageable.toString()
-        );
+        log.debug("MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})", environmentId, pageable.toString());
 
         try {
             return this.internalSharedPolicyGroupHistoryMongoRepo.searchLatestBySharedPolicyGroupId(
@@ -90,7 +83,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
                 pageable.pageSize()
             ).map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when searching for shared policy group history", e);
+            log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
         }
     }
@@ -98,7 +91,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     @Override
     public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
         throws TechnicalException {
-        LOGGER.debug(
+        log.debug(
             "Get latest shared policy group by environment ID [{}] and shared policy group ID [{}]",
             environmentId,
             sharedPolicyGroupId
@@ -108,7 +101,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
             .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
             .orElse(null);
 
-        LOGGER.debug(
+        log.debug(
             "Get shared policy group by environment ID [{}] and shared policy group ID [{}] - Done",
             environmentId,
             sharedPolicyGroupId
@@ -124,7 +117,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
 
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup item) throws TechnicalException {
-        LOGGER.debug("Create shared policy group history with id [{}]", item.getId());
+        log.debug("Create shared policy group history with id [{}]", item.getId());
 
         SharedPolicyGroupHistoryMongo sharedPolicyGroupHistoryMongo = mapSharedPolicyGroup(item);
 
@@ -132,7 +125,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
 
         SharedPolicyGroup res = mapSharedPolicyGroupHistory(created);
 
-        LOGGER.debug("Create shared policy group history with id [{}] - Done", res.getId());
+        log.debug("Create shared policy group history with id [{}] - Done", res.getId());
         return res;
     }
 
@@ -146,7 +139,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
         try {
             internalSharedPolicyGroupHistoryMongoRepo.deleteBySharedPolicyGroupId(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting shared policy group history [{}]", id, e);
+            log.error("An error occurred when deleting shared policy group history [{}]", id, e);
             throw new TechnicalException("An error occurred when deleting shared policy group history");
         }
     }
@@ -158,7 +151,7 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete shared policy group history by environmentId [{}]", environmentId);
+        log.debug("Delete shared policy group history by environmentId [{}]", environmentId);
 
         try {
             final var res = internalSharedPolicyGroupHistoryMongoRepo
@@ -167,10 +160,10 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
                 .map(SharedPolicyGroupHistoryMongo::get_id)
                 .toList();
 
-            LOGGER.debug("Delete shared policy group history by environmentId [{}] - Done", environmentId);
+            log.debug("Delete shared policy group history by environmentId [{}] - Done", environmentId);
             return res;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete shared policy group history by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete shared policy group history by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete shared policy group history by environmentId");
         }
     }

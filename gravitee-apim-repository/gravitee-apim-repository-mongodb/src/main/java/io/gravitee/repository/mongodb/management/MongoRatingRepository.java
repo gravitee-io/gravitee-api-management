@@ -27,13 +27,11 @@ import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
-import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -43,19 +41,18 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoRatingRepository implements RatingRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoRatingRepository.class);
 
     @Autowired
     private RatingMongoRepository internalRatingRepository;
 
     @Override
     public Optional<Rating> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find rating by ID [{}]", id);
+        log.debug("Find rating by ID [{}]", id);
         final RatingMongo rating = internalRatingRepository.findById(id).orElse(null);
-        LOGGER.debug("Find rating by ID [{}] - Done", id);
+        log.debug("Find rating by ID [{}] - Done", id);
         return ofNullable(map(rating));
     }
 
@@ -65,29 +62,29 @@ public class MongoRatingRepository implements RatingRepository {
         final RatingReferenceType referenceType,
         final String user
     ) {
-        LOGGER.debug("Find rating by ref [{}] and user [{}]", referenceId, user);
+        log.debug("Find rating by ref [{}] and user [{}]", referenceId, user);
         final RatingMongo rating = internalRatingRepository.findByReferenceIdAndReferenceTypeAndUser(
             referenceId,
             referenceType.name(),
             user
         );
-        LOGGER.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
+        log.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
         return ofNullable(map(rating));
     }
 
     @Override
     public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException {
-        LOGGER.debug("Find rating by criteria [{}]", ratingCriteria);
+        log.debug("Find rating by criteria [{}]", ratingCriteria);
         Set<String> ranking = internalRatingRepository.findReferenceIdsOrderByRate(ratingCriteria);
-        LOGGER.debug("Find rating by criteria [{}] - DONE", ratingCriteria);
+        log.debug("Find rating by criteria [{}] - DONE", ratingCriteria);
         return ranking;
     }
 
     @Override
     public Rating create(final Rating rating) throws TechnicalException {
-        LOGGER.debug("Create rating for ref [{}] by user [{}]", rating.getReferenceId(), rating.getUser());
+        log.debug("Create rating for ref [{}] by user [{}]", rating.getReferenceId(), rating.getUser());
         final Rating createdRating = map(internalRatingRepository.insert(map(rating)));
-        LOGGER.debug("Create rating for ref [{}] by user [{}] - DONE", rating.getReferenceId(), rating.getUser());
+        log.debug("Create rating for ref [{}] by user [{}] - DONE", rating.getReferenceId(), rating.getUser());
         return createdRating;
     }
 
@@ -97,7 +94,7 @@ public class MongoRatingRepository implements RatingRepository {
         final RatingReferenceType referenceType,
         final Pageable pageable
     ) {
-        LOGGER.debug("Find rating by ref [{}] with pagination", referenceId);
+        log.debug("Find rating by ref [{}] with pagination", referenceId);
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo =
             internalRatingRepository.findByReferenceIdAndReferenceType(
                 referenceId,
@@ -111,16 +108,16 @@ public class MongoRatingRepository implements RatingRepository {
             ratingPageMongo.getNumberOfElements(),
             ratingPageMongo.getTotalElements()
         );
-        LOGGER.debug("Find rating by ref [{}] with pagination - DONE", referenceId);
+        log.debug("Find rating by ref [{}] with pagination - DONE", referenceId);
         return ratingPage;
     }
 
     @Override
     public List<Rating> findByReferenceIdAndReferenceType(final String referenceId, final RatingReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Find rating by ref [{}, {}]", referenceId, referenceType);
+        log.debug("Find rating by ref [{}, {}]", referenceId, referenceType);
         final List<RatingMongo> ratings = internalRatingRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
-        LOGGER.debug("Find rating by ID [{}, {}] - Done", referenceId, referenceType);
+        log.debug("Find rating by ID [{}, {}] - Done", referenceId, referenceType);
         return ratings.stream().map(this::map).collect(toList());
     }
 
@@ -142,7 +139,7 @@ public class MongoRatingRepository implements RatingRepository {
             ratingMongo.setUpdatedAt(rating.getUpdatedAt());
             return map(internalRatingRepository.save(ratingMongo));
         } catch (Exception e) {
-            LOGGER.error("An error occurred while updating rating", e);
+            log.error("An error occurred while updating rating", e);
             throw new TechnicalException("An error occurred while updating rating");
         }
     }
@@ -152,7 +149,7 @@ public class MongoRatingRepository implements RatingRepository {
         try {
             internalRatingRepository.deleteById(id);
         } catch (Exception e) {
-            LOGGER.error("An error occurred while deleting rating [{}]", id, e);
+            log.error("An error occurred while deleting rating [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting rating");
         }
     }
@@ -196,17 +193,17 @@ public class MongoRatingRepository implements RatingRepository {
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete rating by ref type '{}' and ref id '{}'", referenceType, referenceId);
+        log.debug("Delete rating by ref type '{}' and ref id '{}'", referenceType, referenceId);
         try {
             final var ratings = internalRatingRepository
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
                 .map(RatingMongo::getId)
                 .toList();
-            LOGGER.debug("Delete rating by ref type '{}' and ref id '{}' done", referenceId, referenceType);
+            log.debug("Delete rating by ref type '{}' and ref id '{}' done", referenceId, referenceType);
             return ratings;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete rating by reference", ex);
         }
     }

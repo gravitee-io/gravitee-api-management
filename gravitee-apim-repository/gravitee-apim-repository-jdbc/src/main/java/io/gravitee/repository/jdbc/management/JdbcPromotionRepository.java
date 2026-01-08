@@ -33,15 +33,13 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@CustomLog
 @Repository
 public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotion, String> implements PromotionRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPromotionRepository.class);
 
     JdbcPromotionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "promotions");
@@ -76,7 +74,7 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
 
     @Override
     public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcPromotionRepository.search() - {}", getOrm().getTableName());
+        log.debug("JdbcPromotionRepository.search() - {}", getOrm().getTableName());
 
         try {
             List<Promotion> result;
@@ -137,14 +135,14 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
 
             return getResultAsPage(pageable, result);
         } catch (Exception e) {
-            LOGGER.error("Failed to search {} items:", getOrm().getTableName(), e);
+            log.error("Failed to search {} items:", getOrm().getTableName(), e);
             throw new TechnicalException("Failed to search " + getOrm().getTableName() + " items", e);
         }
     }
 
     @Override
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcPromotionRepository.deleteByApiId({})", apiId);
+        log.debug("JdbcPromotionRepository.deleteByApiId({})", apiId);
         try {
             final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where api_id = ?", String.class, apiId);
 
@@ -152,10 +150,10 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                 jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);
             }
 
-            LOGGER.debug("JdbcPromotionRepository.deleteByApiId({}) - Done", apiId);
+            log.debug("JdbcPromotionRepository.deleteByApiId({}) - Done", apiId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete Promotion by apiId: {}", apiId, ex);
+            log.error("Failed to delete Promotion by apiId: {}", apiId, ex);
             throw new TechnicalException("Failed to delete Promotion by apiId", ex);
         }
     }

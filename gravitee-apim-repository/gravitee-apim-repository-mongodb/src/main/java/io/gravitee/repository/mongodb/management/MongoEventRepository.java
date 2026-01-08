@@ -29,9 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,11 +37,9 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class MongoEventRepository implements EventRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private EventMongoRepository internalEventRepo;
@@ -53,25 +49,25 @@ public class MongoEventRepository implements EventRepository {
 
     @Override
     public Optional<Event> findById(String id) throws TechnicalException {
-        logger.debug("Find event by ID [{}]", id);
+        log.debug("Find event by ID [{}]", id);
 
         EventMongo event = internalEventRepo.findById(id).orElse(null);
         Event res = mapper.map(event);
 
-        logger.debug("Find event by ID [{}] - Done", id);
+        log.debug("Find event by ID [{}] - Done", id);
         return Optional.ofNullable(res);
     }
 
     @Override
     public Event create(Event event) throws TechnicalException {
-        logger.debug("Create event [{}]", event.getId());
+        log.debug("Create event [{}]", event.getId());
 
         EventMongo eventMongo = mapper.map(event);
         EventMongo createdEventMongo = internalEventRepo.insert(eventMongo);
 
         Event res = mapper.map(createdEventMongo);
 
-        logger.debug("Create event [{}] - Done", event.getId());
+        log.debug("Create event [{}] - Done", event.getId());
 
         return res;
     }
@@ -99,7 +95,7 @@ public class MongoEventRepository implements EventRepository {
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapper.map(eventMongoUpdated);
         } catch (Exception e) {
-            logger.error("An error occurred when updating event", e);
+            log.error("An error occurred when updating event", e);
             throw new TechnicalException("An error occurred when updating event");
         }
     }
@@ -121,7 +117,7 @@ public class MongoEventRepository implements EventRepository {
         try {
             internalEventRepo.deleteById(id);
         } catch (Exception e) {
-            logger.error("An error occurred when deleting event [{}]", id, e);
+            log.error("An error occurred when deleting event [{}]", id, e);
             throw new TechnicalException("An error occurred when deleting event");
         }
     }
@@ -132,7 +128,7 @@ public class MongoEventRepository implements EventRepository {
             return internalEventRepo.deleteAllByApi(apiId);
         } catch (Exception e) {
             String error = String.format("An error occurred when deleting all events of API %s", apiId);
-            logger.error(error, apiId, e);
+            log.error(error, apiId, e);
             throw new TechnicalException(error);
         }
     }

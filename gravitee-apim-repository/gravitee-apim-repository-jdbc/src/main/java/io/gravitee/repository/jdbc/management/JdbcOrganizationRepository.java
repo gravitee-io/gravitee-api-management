@@ -18,23 +18,25 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
+@CustomLog
 @Repository
 public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organization, String> implements OrganizationRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcOrganizationRepository.class);
     private final String ORGANIZATION_HRIDS;
 
     JdbcOrganizationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -93,14 +95,14 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         try {
             return jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " o", Long.class);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when counting organizations", e);
+            log.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
         }
     }
 
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
-        LOGGER.debug("JdbcOrganizationRepository.findByHrids({})", hrids);
+        log.debug("JdbcOrganizationRepository.findByHrids({})", hrids);
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
             .append(" org")
@@ -121,14 +123,14 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             }
             return new HashSet<>(organizations);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find organization by hrids:", ex);
+            log.error("Failed to find organization by hrids:", ex);
             throw new TechnicalException("Failed to find environments by hrids", ex);
         }
     }
 
     @Override
     public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
-        LOGGER.debug("JdbcOrganizationRepository.findByCockpitId({})", cockpitId);
+        log.debug("JdbcOrganizationRepository.findByCockpitId({})", cockpitId);
         try {
             List<Organization> organizations = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where cockpit_id = ?",
@@ -144,7 +146,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
             return organization;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find organizations by cockpit:", ex);
+            log.error("Failed to find organizations by cockpit:", ex);
             throw new TechnicalException("Failed to find organizations by cockpit", ex);
         }
     }
@@ -162,7 +164,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
             return organizations;
         } catch (Exception e) {
-            LOGGER.error("An error occurred when listing all organizations", e);
+            log.error("An error occurred when listing all organizations", e);
             throw new TechnicalException("An error occurred when listing all organizations");
         }
     }

@@ -24,12 +24,12 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.themes.ThemeTy
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.StreamSupport;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
+@CustomLog
 public class RemoveOrphanedSubscriptionsUpgrader extends MongoUpgrader {
 
     public static final int REMOVE_ORPHANED_SUBSCRIPTIONS_ORDER = ThemeTypeUpgrader.THEME_TYPE_UPGRADER_ORDER + 1;

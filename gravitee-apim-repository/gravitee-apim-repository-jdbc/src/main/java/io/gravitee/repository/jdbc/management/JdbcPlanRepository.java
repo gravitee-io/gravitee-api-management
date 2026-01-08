@@ -29,10 +29,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -41,10 +49,10 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
     private final String APIS;
     private final String PLAN_TAGS;
     private final String PLAN_CHARACTERISTICS;
@@ -117,7 +125,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     public Optional<Plan> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.findById({})", id);
+        log.debug("JdbcPlanRepository.findById({})", id);
         try {
             String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.id = ?";
             JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
@@ -132,14 +140,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             }
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find plan by id:", ex);
+            log.error("Failed to find plan by id:", ex);
             throw new TechnicalException("Failed to find plan by id", ex);
         }
     }
 
     @Override
     public Plan create(Plan item) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.create({})", item);
+        log.debug("JdbcPlanRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeCharacteristics(item, false);
@@ -147,14 +155,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             storeTags(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create plan", ex);
+            log.error("Failed to create plan", ex);
             throw new TechnicalException("Failed to create plan", ex);
         }
     }
 
     @Override
     public Plan update(final Plan plan) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.update({})", plan);
+        log.debug("JdbcPlanRepository.update({})", plan);
         if (plan == null) {
             throw new IllegalStateException();
         }
@@ -167,32 +175,32 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update plan", ex);
+            log.error("Failed to update plan", ex);
             throw new TechnicalException("Failed to update plan", ex);
         }
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.delete({})", id);
+        log.debug("JdbcPlanRepository.delete({})", id);
         try {
             jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id = ?", id);
             jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id = ?", id);
             jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?", id);
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete plan:", ex);
+            log.error("Failed to delete plan:", ex);
             throw new TechnicalException("Failed to delete plan", ex);
         }
     }
 
     private List<String> getTags(String planId) {
-        LOGGER.debug("JdbcPlanRepository.getTags({})", planId);
+        log.debug("JdbcPlanRepository.getTags({})", planId);
         return jdbcTemplate.queryForList("select tag from " + PLAN_TAGS + " where plan_id = ?", String.class, planId);
     }
 
     private List<String> getCharacteristics(String planId) {
-        LOGGER.debug("JdbcPlanRepository.getCharacteristics({})", planId);
+        log.debug("JdbcPlanRepository.getCharacteristics({})", planId);
         return jdbcTemplate.queryForList("select characteristic from " + PLAN_CHARACTERISTICS + " where plan_id = ?", String.class, planId);
     }
 
@@ -205,7 +213,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     private void storeCharacteristics(Plan plan, boolean deleteFirst) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.storeApis({}, {})", plan, deleteFirst);
+        log.debug("JdbcPlanRepository.storeApis({}, {})", plan, deleteFirst);
         try {
             if (deleteFirst) {
                 jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id = ?", plan.getId());
@@ -218,7 +226,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 );
             }
         } catch (final Exception ex) {
-            LOGGER.error("Failed to store characteristics:", ex);
+            log.error("Failed to store characteristics:", ex);
             throw new TechnicalException("Failed to store characteristics", ex);
         }
     }
@@ -248,7 +256,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     private void storeTags(Plan plan, boolean deleteFirst) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.storeTags({}, {})", plan, deleteFirst);
+        log.debug("JdbcPlanRepository.storeTags({}, {})", plan, deleteFirst);
         try {
             if (deleteFirst) {
                 jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id = ?", plan.getId());
@@ -261,14 +269,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 );
             }
         } catch (final Exception ex) {
-            LOGGER.error("Failed to store tags:", ex);
+            log.error("Failed to store tags:", ex);
             throw new TechnicalException("Failed to store tags", ex);
         }
     }
 
     @Override
     public List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.findByApisAndEnvironments({})", apiIds);
+        log.debug("JdbcPlanRepository.findByApisAndEnvironments({})", apiIds);
         if (isEmpty(apiIds)) {
             return Collections.emptyList();
         }
@@ -299,14 +307,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             }
             return plans;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find plans by api:", ex);
+            log.error("Failed to find plans by api:", ex);
             throw new TechnicalException("Failed to find plans by api", ex);
         }
     }
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
+        log.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
             var query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.api = ?";
             var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
@@ -320,14 +328,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             }
             return new HashSet<>(plans);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find plans by api:", ex);
+            log.error("Failed to find plans by api:", ex);
             throw new TechnicalException("Failed to find plans by api", ex);
         }
     }
 
     @Override
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.findByIdIn({})", ids);
+        log.debug("JdbcPlanRepository.findByIdIn({})", ids);
         if (isEmpty(ids)) {
             return Collections.emptySet();
         }
@@ -352,14 +360,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             }
             return new HashSet<>(plans);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find plans by id list", ex);
+            log.error("Failed to find plans by id list", ex);
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
+        log.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> planIds = jdbcTemplate.queryForList(
                 "select p.id from " + tableName + " p left join " + APIS + " api on api.id = p.api where api.environment_id = ?",
@@ -375,43 +383,43 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id in (" + inClause + ")", planIds.toArray());
             }
 
-            LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({}) = {}", environmentId, planIds);
+            log.debug("JdbcPlanRepository.deleteByEnvironment({}) = {}", environmentId, planIds);
             return planIds;
         } catch (final Exception ex) {
             String message = String.format("Failed to delete by environment (%s)", environmentId);
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
     public boolean exists(String id) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.exists({})", id);
+        log.debug("JdbcPlanRepository.exists({})", id);
         try {
             return jdbcTemplate.queryForObject("select count(id) from " + tableName + " where id = ?", Integer.class, id) > 0;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to check if plan exists", ex);
+            log.error("Failed to check if plan exists", ex);
             throw new TechnicalException("Failed to check if plan exists", ex);
         }
     }
 
     @Override
     public void updateOrder(String planId, int order) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
+        log.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
         try {
             jdbcTemplate.update("update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?", ps -> {
                 ps.setInt(1, order);
                 ps.setString(2, planId);
             });
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update plan order", ex);
+            log.error("Failed to update plan order", ex);
             throw new TechnicalException("Failed to update plan order", ex);
         }
     }
 
     @Override
     public void updateCrossIds(List<Plan> plans) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.updateCrossIds({})", plans);
+        log.debug("JdbcPlanRepository.updateCrossIds({})", plans);
         if (plans == null || plans.isEmpty()) {
             return;
         }
@@ -440,7 +448,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     public Set<Plan> findAll() throws TechnicalException {
-        LOGGER.info("JdbcPlanRepository.findAll()");
+        log.info("JdbcPlanRepository.findAll()");
         try {
             String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api";
             JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");

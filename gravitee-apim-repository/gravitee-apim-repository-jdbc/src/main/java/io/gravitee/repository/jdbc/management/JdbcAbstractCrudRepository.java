@@ -20,17 +20,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 
 /**
  *
  * @author njt
  */
+@CustomLog
 public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPageableRepository<T> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAbstractCrudRepository.class);
 
     JdbcAbstractCrudRepository(String prefix, String tableName) {
         super(prefix, tableName);
@@ -39,34 +37,34 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
     protected abstract I getId(T item);
 
     public Optional<T> findById(I id) throws TechnicalException {
-        LOGGER.debug("JdbcAbstractCrudRepository<{}>.findById({})", getOrm().getTableName(), id);
+        log.debug("JdbcAbstractCrudRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
             List<T> items = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} items by id:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} items by id:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " items by id", ex);
         }
     }
 
     public Set<T> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
+        log.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
         try {
             List<T> items = jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper());
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
+            log.error("Failed to find all {} items:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
         }
     }
 
     public T create(T item) throws TechnicalException {
-        LOGGER.debug("JdbcAbstractCrudRepository<{}>.create({})", getOrm().getTableName(), item);
+        log.debug("JdbcAbstractCrudRepository<{}>.create({})", getOrm().getTableName(), item);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             return findById(getId(item)).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create {} item:", getOrm().getTableName(), ex);
+            log.error("Failed to create {} item:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to create " + getOrm().getTableName() + " item.", ex);
         }
     }
@@ -76,7 +74,7 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
     }
 
     public T update(T item) throws TechnicalException {
-        LOGGER.debug("JdbcAbstractCrudRepository<{}>.update({})", getOrm().getTableName(), item);
+        log.debug("JdbcAbstractCrudRepository<{}>.update({})", getOrm().getTableName(), item);
         if (item == null) {
             throw new IllegalStateException("Unable to update null item");
         }
@@ -90,7 +88,7 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
         } catch (IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update {} item:", getOrm().getTableName(), ex);
+            log.error("Failed to update {} item:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to update " + getOrm().getTableName() + " item", ex);
         }
     }
@@ -100,11 +98,11 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
     }
 
     public void delete(I id) throws TechnicalException {
-        LOGGER.debug("JdbcAbstractCrudRepository<{}>.delete({})", getOrm().getTableName(), id);
+        log.debug("JdbcAbstractCrudRepository<{}>.delete({})", getOrm().getTableName(), id);
         try {
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete {} item:", getOrm().getTableName(), ex);
+            log.error("Failed to delete {} item:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete " + getOrm().getTableName() + " item", ex);
         }
     }

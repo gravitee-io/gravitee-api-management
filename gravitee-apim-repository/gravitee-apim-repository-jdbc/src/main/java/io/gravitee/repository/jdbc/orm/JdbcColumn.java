@@ -20,16 +20,14 @@ import static org.springframework.util.StringUtils.capitalize;
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  *
  * @author njt
  */
+@CustomLog
 public class JdbcColumn {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcColumn.class);
 
     public final String name;
     public final int jdbcType;
@@ -50,7 +48,7 @@ public class JdbcColumn {
         try {
             this.getter = owningClass.getMethod(getterName);
         } catch (NoSuchMethodException ex) {
-            LOGGER.error("Method {} not found: ", getterName, ex);
+            log.error("Method {} not found: ", getterName, ex);
             throw new IllegalStateException("Method " + owningClass.getSimpleName() + "." + getterName + " not found", ex);
         }
         try {

@@ -23,8 +23,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,10 +31,9 @@ import org.springframework.stereotype.Component;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoUpgraderRepository implements UpgraderRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoUpgraderRepository.class);
 
     @Autowired
     private UpgraderMongoRepository internalUpgraderMongoRepository;
@@ -45,25 +43,25 @@ public class MongoUpgraderRepository implements UpgraderRepository {
 
     @Override
     public Maybe<UpgradeRecord> findById(String id) {
-        LOGGER.debug("Find upgrade record by ID [{}]", id);
+        log.debug("Find upgrade record by ID [{}]", id);
 
         final UpgradeRecordMongo record = internalUpgraderMongoRepository.findById(id).orElse(null);
 
-        LOGGER.debug("Find upgrade record by ID [{}] - Done", id);
+        log.debug("Find upgrade record by ID [{}] - Done", id);
 
         return Optional.ofNullable(mapper.map(record)).map(Maybe::just).orElseGet(Maybe::empty);
     }
 
     @Override
     public Single<UpgradeRecord> create(UpgradeRecord upgradeRecord) {
-        LOGGER.debug("Create upgrade record [{}]", upgradeRecord.getId());
+        log.debug("Create upgrade record [{}]", upgradeRecord.getId());
 
         UpgradeRecordMongo recordMongo = mapper.map(upgradeRecord);
         UpgradeRecordMongo createdRecordMongo = internalUpgraderMongoRepository.insert(recordMongo);
 
         UpgradeRecord res = mapper.map(createdRecordMongo);
 
-        LOGGER.debug("Create upgrade record [{}] - Done", upgradeRecord.getId());
+        log.debug("Create upgrade record [{}] - Done", upgradeRecord.getId());
 
         return Single.just(res);
     }

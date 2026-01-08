@@ -38,17 +38,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@CustomLog
 @Repository
 public class JdbcSharedPolicyGroupHistoryRepository
     extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
     implements SharedPolicyGroupHistoryRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSharedPolicyGroupHistoryRepository.class);
 
     JdbcSharedPolicyGroupHistoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygrouphistories");
@@ -82,12 +80,12 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup item) throws TechnicalException {
-        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository<{}>.create({})", getOrm().getTableName(), item);
+        log.debug("JdbcSharedPolicyGroupHistoryRepository<{}>.create({})", getOrm().getTableName(), item);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             return getLatestBySharedPolicyGroupId(item.getEnvironmentId(), item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create SharedPolicyGroup item:", ex);
+            log.error("Failed to create SharedPolicyGroup item:", ex);
             throw new TechnicalException("Failed to create SharedPolicyGroup item", ex);
         }
     }
@@ -113,7 +111,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
+        log.debug("JdbcSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             StringJoiner andWhere = new StringJoiner(" AND ");
@@ -161,7 +159,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
-            LOGGER.error("Failed to search for SharedPolicyGroupHistory:", ex);
+            log.error("Failed to search for SharedPolicyGroupHistory:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroupHistory", ex);
         }
     }
@@ -171,7 +169,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
         try {
             Objects.requireNonNull(pageable, "Pageable must not be null");
             Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-            LOGGER.debug(
+            log.debug(
                 "JdbcSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
                 environmentId,
                 pageable.toString()
@@ -213,7 +211,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
-            LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
+            log.error("Failed to search for SharedPolicyGroups:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
         }
     }
@@ -223,7 +221,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
         throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
-        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId({}, {})", environmentId, sharedPolicyGroupId);
+        log.debug("JdbcSharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId({}, {})", environmentId, sharedPolicyGroupId);
 
         try {
             StringJoiner andWhere = new StringJoiner(" AND ");
@@ -242,14 +240,14 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
             return Optional.ofNullable(result.isEmpty() ? null : result.get(0));
         } catch (Exception ex) {
-            LOGGER.error("Failed to search for SharedPolicyGroupHistory:", ex);
+            log.error("Failed to search for SharedPolicyGroupHistory:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroupHistory", ex);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete shared policy group history by environment ID [{}]", environmentId);
+        log.debug("Delete shared policy group history by environment ID [{}]", environmentId);
 
         try {
             final var rows = jdbcTemplate.queryForList(
@@ -262,10 +260,10 @@ public class JdbcSharedPolicyGroupHistoryRepository
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("Delete shared policy group history by environment ID [{}] - Done", environmentId);
+            log.debug("Delete shared policy group history by environment ID [{}] - Done", environmentId);
             return rows;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete SharedPolicyGroupHistory by environment ID:", ex);
+            log.error("Failed to delete SharedPolicyGroupHistory by environment ID:", ex);
             throw new TechnicalException("Failed to delete SharedPolicyGroupHistory by environment ID", ex);
         }
     }

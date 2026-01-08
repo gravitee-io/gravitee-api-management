@@ -111,7 +111,7 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
             SearchResponse searchResponse = execute(queryContext, dateHistogramQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toDateHistogramResponse(searchResponse, dateHistogramQuery);
         } catch (final Exception eex) {
-            logger.error("Impossible to perform DateHistogramQuery", eex);
+            log.error("Impossible to perform DateHistogramQuery", eex);
             throw new AnalyticsException("Impossible to perform DateHistogramQuery", eex);
         }
     }

@@ -17,8 +17,7 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.config;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,10 +30,9 @@ import org.springframework.core.env.Environment;
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Configuration
 public class MongoUpgraderConfiguration implements ApplicationContextAware {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MongoUpgraderConfiguration.class);
 
     private boolean isUpgrade;
 
@@ -56,7 +54,7 @@ public class MongoUpgraderConfiguration implements ApplicationContextAware {
     }
 
     private void registerBeans(ApplicationContext context, ConfigurableBeanFactory factory) {
-        LOG.debug("Registering upgrader beans in parent application context");
+        log.debug("Registering upgrader beans in parent application context");
         context.getBeansOfType(Upgrader.class).forEach(factory::registerSingleton);
     }
 }

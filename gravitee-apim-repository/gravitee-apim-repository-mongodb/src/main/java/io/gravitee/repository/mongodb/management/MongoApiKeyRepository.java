@@ -30,8 +30,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +38,9 @@ import org.springframework.stereotype.Component;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
     @Autowired
     private GraviteeMapper mapper;
@@ -104,13 +102,13 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("Delete by environmentId [{}]", environmentId);
+        log.debug("Delete by environmentId [{}]", environmentId);
         try {
             final var apiKeyMongos = internalApiKeyRepo.deleteByEnvironmentId(environmentId).stream().map(ApiKeyMongo::getId).toList();
-            LOGGER.debug("Delete by environmentId [{}] - Done", environmentId);
+            log.debug("Delete by environmentId [{}] - Done", environmentId);
             return apiKeyMongos;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete api key by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete api key by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete api key by apiId");
         }
     }

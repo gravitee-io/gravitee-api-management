@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class DistributedSyncStateRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired

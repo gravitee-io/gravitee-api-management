@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoCommandRepository implements CommandRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(MongoCommandRepository.class);
 
     @Autowired
     private CommandMongoRepository internalMessageRepo;
@@ -48,23 +46,23 @@ public class MongoCommandRepository implements CommandRepository {
 
     @Override
     public Optional<Command> findById(String commandId) throws TechnicalException {
-        logger.debug("Find Command by ID [{}]", commandId);
+        log.debug("Find Command by ID [{}]", commandId);
 
         final CommandMongo msg = internalMessageRepo.findById(commandId).orElse(null);
 
-        logger.debug("Find Command by ID [{}] - Done", commandId);
+        log.debug("Find Command by ID [{}] - Done", commandId);
         return Optional.ofNullable(mapper.map(msg));
     }
 
     @Override
     public Command create(Command command) throws TechnicalException {
-        logger.debug("Create Command [{}]", command.getId());
+        log.debug("Create Command [{}]", command.getId());
 
         CommandMongo createdMsgMongo = internalMessageRepo.insert(mapper.map(command));
 
         Command res = mapper.map(createdMsgMongo);
 
-        logger.debug("Create Command [{}] - Done", res.getId());
+        log.debug("Create Command [{}] - Done", res.getId());
 
         return res;
     }
@@ -85,7 +83,7 @@ public class MongoCommandRepository implements CommandRepository {
             CommandMongo commandMongoUpdated = internalMessageRepo.save(mapper.map(command));
             return mapper.map(commandMongoUpdated);
         } catch (Exception e) {
-            logger.error("An error occurred when updating command", e);
+            log.error("An error occurred when updating command", e);
             throw new TechnicalException("An error occurred when updating command");
         }
     }
@@ -95,40 +93,40 @@ public class MongoCommandRepository implements CommandRepository {
         try {
             internalMessageRepo.deleteById(commandId);
         } catch (Exception e) {
-            logger.error("An error occurred when deleting command [{}]", commandId, e);
+            log.error("An error occurred when deleting command [{}]", commandId, e);
             throw new TechnicalException("An error occurred when deleting command");
         }
     }
 
     @Override
     public List<Command> search(CommandCriteria criteria) {
-        logger.debug("Search Command [{}]", criteria);
+        log.debug("Search Command [{}]", criteria);
         List<CommandMongo> result = internalMessageRepo.search(criteria);
         return mapper.mapCommands(result);
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        logger.debug("Delete by environmentId [{}]", environmentId);
+        log.debug("Delete by environmentId [{}]", environmentId);
         try {
             final var rows = internalMessageRepo.deleteByEnvironmentId(environmentId).stream().map(CommandMongo::getId).toList();
-            logger.debug("Delete by environmentId [{}] - Done", environmentId);
+            log.debug("Delete by environmentId [{}] - Done", environmentId);
             return rows;
         } catch (Exception ex) {
-            logger.error("Failed to delete commands by envId: {}", environmentId, ex);
+            log.error("Failed to delete commands by envId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete commands by envId");
         }
     }
 
     @Override
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
-        logger.debug("Delete by organizationId [{}]", organizationId);
+        log.debug("Delete by organizationId [{}]", organizationId);
         try {
             final var rows = internalMessageRepo.deleteByOrganizationId(organizationId).stream().map(CommandMongo::getId).toList();
-            logger.debug("Delete by organizationId [{}] - Done", organizationId);
+            log.debug("Delete by organizationId [{}] - Done", organizationId);
             return rows;
         } catch (Exception ex) {
-            logger.error("Failed to delete commands by organizationId: {}", organizationId, ex);
+            log.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organizationId");
         }
     }

@@ -37,8 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -47,10 +46,9 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@CustomLog
 @Repository
 public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, String> implements ApiKeyRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiKeyRepository.class);
 
     private final String keySubscriptions;
     private final String subscription;
@@ -108,7 +106,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             }
             return findById(apiKey.getId()).orElse(null);
         } catch (Exception e) {
-            LOGGER.error("Failed to create API Key", e);
+            log.error("Failed to create API Key", e);
             throw new TechnicalException("Failed to create API Key", e);
         }
     }
@@ -131,7 +129,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         } catch (IllegalStateException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Failed to update API Key " + apiKey.getId(), e);
+            log.error("Failed to update API Key " + apiKey.getId(), e);
             throw new TechnicalException("Failed to update API Key " + apiKey.getId(), e);
         }
     }
@@ -143,7 +141,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     public List<ApiKey> findByCriteria(final ApiKeyCriteria criteria, final Sortable sortable) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByCriteria({})", criteria);
+        log.debug("JdbcApiKeyRepository.findByCriteria({})", criteria);
         try {
             List<Object> args = new ArrayList<>();
 
@@ -227,14 +225,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Keys by criteria:", ex);
+            log.error("Failed to find API Keys by criteria:", ex);
             throw new TechnicalException("Failed to find API Keys by criteria", ex);
         }
     }
 
     @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
+        log.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
         Optional<ApiKey> apiKey = findById(id);
         if (apiKey.isEmpty()) {
             return apiKey;
@@ -246,7 +244,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var keyIds = jdbcTemplate.queryForList(
                 "select id from " + this.tableName + " where environment_id = ?",
@@ -261,10 +259,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 );
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
-            LOGGER.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete api keys by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete api keys by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete api keys by environment", ex);
         }
     }
@@ -280,7 +278,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findBySubscription({})", subscription);
+        log.debug("JdbcApiKeyRepository.findBySubscription({})", subscription);
         try {
             String query = String.format(
                 "%s k join %s ks on ks.key_id = k.id where k.id in ( select key_id from %s where subscription_id = ?)",
@@ -295,14 +293,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Keys by subscription:", ex);
+            log.error("Failed to find API Keys by subscription:", ex);
             throw new TechnicalException("Failed to find API Keys by subscription", ex);
         }
     }
 
     @Override
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByPlan({})", plan);
+        log.debug("JdbcApiKeyRepository.findByPlan({})", plan);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -322,14 +320,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Keys by plan:", ex);
+            log.error("Failed to find API Keys by plan:", ex);
             throw new TechnicalException("Failed to find API Keys by plan", ex);
         }
     }
 
     @Override
     public List<ApiKey> findByKey(String key) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByKey(****)");
+        log.debug("JdbcApiKeyRepository.findByKey(****)");
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -348,14 +346,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Key by key", ex);
+            log.error("Failed to find API Key by key", ex);
             throw new TechnicalException("Failed to find API Key by key", ex);
         }
     }
 
     @Override
     public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByApplication({})", applicationId);
+        log.debug("JdbcApiKeyRepository.findByApplication({})", applicationId);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -372,14 +370,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Keys by application", ex);
+            log.error("Failed to find API Keys by application", ex);
             throw new TechnicalException("Failed to find API Keys by application", ex);
         }
     }
 
     @Override
     public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndEnvironmentId(*****, {})", environmentId);
+        log.debug("JdbcApiKeyRepository.findByKeyAndEnvironmentId(*****, {})", environmentId);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -401,14 +399,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Keys by key and environment:", ex);
+            log.error("Failed to find API Keys by key and environment:", ex);
             throw new TechnicalException("Failed to find API Keys by key and environment", ex);
         }
     }
 
     @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
+        log.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -430,14 +428,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find API Key by key and api", ex);
+            log.error("Failed to find API Key by key and api", ex);
             throw new TechnicalException("Failed to find API Key by key and api", ex);
         }
     }
 
     @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findById({})", id);
+        log.debug("JdbcApiKeyRepository.findById({})", id);
         try {
             String query =
                 getOrm().getSelectAllSql() + " k " + " left join " + keySubscriptions + " ks on ks.key_id = k.id" + " where k.id = ?";
@@ -448,14 +446,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find key by id", ex);
+            log.error("Failed to find key by id", ex);
             throw new TechnicalException("Failed to find key by id", ex);
         }
     }
 
     @Override
     public Set<ApiKey> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findAll()");
+        log.debug("JdbcApiKeyRepository.findAll()");
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -471,7 +469,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all keys", ex);
+            log.error("Failed to find all keys", ex);
             throw new TechnicalException("Failed to find all keys", ex);
         }
     }

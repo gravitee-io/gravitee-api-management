@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +33,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Component
 public class MongoTokenRepository implements TokenRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoTokenRepository.class);
 
     @Autowired
     private TokenMongoRepository internalTokenRepo;
@@ -47,19 +45,19 @@ public class MongoTokenRepository implements TokenRepository {
 
     @Override
     public Optional<Token> findById(String tokenId) throws TechnicalException {
-        LOGGER.debug("Find token by ID [{}]", tokenId);
+        log.debug("Find token by ID [{}]", tokenId);
         final TokenMongo token = internalTokenRepo.findById(tokenId).orElse(null);
-        LOGGER.debug("Find token by ID [{}] - Done", tokenId);
+        log.debug("Find token by ID [{}] - Done", tokenId);
         return Optional.ofNullable(mapper.map(token));
     }
 
     @Override
     public Token create(Token token) throws TechnicalException {
-        LOGGER.debug("Create token [{}]", token.getName());
+        log.debug("Create token [{}]", token.getName());
         TokenMongo tokenMongo = mapper.map(token);
         TokenMongo createdTokenMongo = internalTokenRepo.insert(tokenMongo);
         Token res = mapper.map(createdTokenMongo);
-        LOGGER.debug("Create token [{}] - Done", token.getName());
+        log.debug("Create token [{}] - Done", token.getName());
         return res;
     }
 
@@ -87,7 +85,7 @@ public class MongoTokenRepository implements TokenRepository {
             return mapper.map(tokenMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating token";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -98,7 +96,7 @@ public class MongoTokenRepository implements TokenRepository {
             internalTokenRepo.deleteById(tokenId);
         } catch (Exception e) {
             final String error = "An error occurred when deleting token [" + tokenId + "]";
-            LOGGER.error(error, e);
+            log.error(error, e);
             throw new TechnicalException(error);
         }
     }
@@ -114,9 +112,9 @@ public class MongoTokenRepository implements TokenRepository {
 
     @Override
     public List<Token> findByReference(String referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("Find token by ref type '{}' and ref id '{}'", referenceType, referenceId);
+        log.debug("Find token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         final List<TokenMongo> token = internalTokenRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
-        LOGGER.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
+        log.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
         return token
             .stream()
             .map(t -> mapper.map(t))
@@ -125,17 +123,17 @@ public class MongoTokenRepository implements TokenRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
-        LOGGER.debug("Delete token by ref type '{}' and ref id '{}'", referenceType, referenceId);
+        log.debug("Delete token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         try {
             final var tokens = internalTokenRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
                 .stream()
                 .map(TokenMongo::getId)
                 .toList();
-            LOGGER.debug("Delete token by ref type '{}' and ref id '{}' done", referenceId, referenceType);
+            log.debug("Delete token by ref type '{}' and ref id '{}' done", referenceId, referenceType);
             return tokens;
         } catch (Exception ex) {
-            LOGGER.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tokens by reference", ex);
         }
     }

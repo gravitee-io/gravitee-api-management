@@ -29,12 +29,20 @@ import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -44,10 +52,9 @@ import org.springframework.stereotype.Repository;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<IdentityProvider> implements IdentityProviderRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderRepository.class);
 
     JdbcIdentityProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "identity_providers");
@@ -131,8 +138,8 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
 
         @Override
         public PreparedStatement createPreparedStatement(Connection cnctn) throws SQLException {
-            LOGGER.debug("SQL: {}", sql);
-            LOGGER.debug("identity_provider: {}", identityProvider);
+            log.debug("SQL: {}", sql);
+            log.debug("identity_provider: {}", identityProvider);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = orm.setStatementValues(stmt, identityProvider, 1);
             stmt.setString(idx++, convert(identityProvider.getConfiguration()));
@@ -230,31 +237,31 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
 
     @Override
     public Set<IdentityProvider> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.findAll()", getOrm().getTableName());
+        log.debug("JdbcIdentityProviderRepository<{}>.findAll()", getOrm().getTableName());
         try {
             List<IdentityProvider> items = jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper());
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
+            log.error("Failed to find all {} items:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
         }
     }
 
     @Override
     public IdentityProvider create(IdentityProvider identityProvider) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.create({})", getOrm().getTableName(), identityProvider);
+        log.debug("JdbcIdentityProviderRepository<{}>.create({})", getOrm().getTableName(), identityProvider);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(identityProvider));
             return findById(identityProvider.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create {} item:", getOrm().getTableName(), ex);
+            log.error("Failed to create {} item:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to create " + getOrm().getTableName() + " item.", ex);
         }
     }
 
     @Override
     public IdentityProvider update(IdentityProvider identityProvider) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.update({})", getOrm().getTableName(), identityProvider);
+        log.debug("JdbcIdentityProviderRepository<{}>.update({})", getOrm().getTableName(), identityProvider);
         if (identityProvider == null) {
             throw new IllegalStateException("Unable to update null identityProvider");
         }
@@ -268,37 +275,37 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         } catch (IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update {} identityProvider:", getOrm().getTableName(), ex);
+            log.error("Failed to update {} identityProvider:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to update " + getOrm().getTableName() + " identityProvider", ex);
         }
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.delete({})", getOrm().getTableName(), id);
+        log.debug("JdbcIdentityProviderRepository<{}>.delete({})", getOrm().getTableName(), id);
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where id = ?", id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete {} identityProvider:", getOrm().getTableName(), ex);
+            log.error("Failed to delete {} identityProvider:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete " + getOrm().getTableName() + " identityProvider", ex);
         }
     }
 
     @Override
     public Optional<IdentityProvider> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.findById({})", getOrm().getTableName(), id);
+        log.debug("JdbcIdentityProviderRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
             List<IdentityProvider> identityProviders = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id);
             return identityProviders.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} identityProviders by id:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} identityProviders by id:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " identityProviders by id", ex);
         }
     }
 
     @Override
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({})", organizationId);
+        log.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var identityProviderIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where organization_id = ?",
@@ -310,17 +317,17 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
                 jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
             }
 
-            LOGGER.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({}) - Done", organizationId);
+            log.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({}) - Done", organizationId);
             return identityProviderIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete identityProviders by organizationId: {}", organizationId, ex);
+            log.error("Failed to delete identityProviders by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete identityProviders by organizationId", ex);
         }
     }
 
     @Override
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository.findAllByOrganizationId({})", organizationId);
+        log.debug("JdbcIdentityProviderRepository.findAllByOrganizationId({})", organizationId);
         try {
             List<IdentityProvider> identityProviders = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where organization_id = ?",
@@ -329,7 +336,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
             );
             return new HashSet<>(identityProviders);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} identityProviders by org:", getOrm().getTableName(), ex);
+            log.error("Failed to find {} identityProviders by org:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " identityProviders by org", ex);
         }
     }

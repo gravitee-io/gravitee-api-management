@@ -28,13 +28,29 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
-import java.sql.*;
-import java.util.*;
+import io.gravitee.repository.management.model.AccessControl;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -46,10 +62,9 @@ import org.springframework.stereotype.Repository;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String> implements PageRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRepository.class);
 
     private static final String ESCAPED_ORDER_COLUMN_NAME = escapeReservedWord("order");
     private final String PAGE_ATTACHED_MEDIA;
@@ -149,8 +164,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
         @Override
         public PreparedStatement createPreparedStatement(Connection cnctn) throws SQLException {
-            LOGGER.debug("SQL: {}", sql);
-            LOGGER.debug("page: {}", page);
+            log.debug("SQL: {}", sql);
+            log.debug("page: {}", page);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = orm.setStatementValues(stmt, page, 1);
             stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getType());
@@ -365,7 +380,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public Optional<Page> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findById({})", id);
+        log.debug("JdbcPageRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
@@ -390,17 +405,17 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 this.addAttachedMedia(page);
                 this.addAccessControls(page);
             });
-            LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
+            log.debug("JdbcPageRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find page by id:", ex);
+            log.error("Failed to find page by id:", ex);
             throw new TechnicalException("Failed to find page by id", ex);
         }
     }
 
     @Override
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findAll()", pageable);
+        log.debug("JdbcPageRepository.findAll()", pageable);
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             Integer totalPages = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " p", Integer.class);
@@ -431,10 +446,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     return p;
                 })
                 .collect(Collectors.toList());
-            LOGGER.debug("JdbcPageRepository.findAll() = {} result", result.size());
+            log.debug("JdbcPageRepository.findAll() = {} result", result.size());
             return new io.gravitee.common.data.domain.Page<>(result, pageable.pageNumber(), result.size(), totalPages);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find page by id:", ex);
+            log.error("Failed to find page by id:", ex);
             throw new TechnicalException("Failed to find page by id", ex);
         }
     }
@@ -449,11 +464,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             args.add(parentId);
             args.add(true);
 
-            LOGGER.debug("SQL: {}", builder);
-            LOGGER.debug("Args: {}", args);
+            log.debug("SQL: {}", builder);
+            log.debug("Args: {}", args);
             return jdbcTemplate.queryForObject(builder, args.toArray(), Long.class);
         } catch (final Exception e) {
-            LOGGER.error("Failed to count page by parent_id:", e);
+            log.error("Failed to count page by parent_id:", e);
             throw new TechnicalException("Failed to count page by parentId", e);
         }
     }
@@ -476,7 +491,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public Page create(Page item) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.create({})", item);
+        log.debug("JdbcPageRepository.create({})", item);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             storeAttachedMedia(item, false);
@@ -485,14 +500,14 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             storeAccessControls(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create page", ex);
+            log.error("Failed to create page", ex);
             throw new TechnicalException("Failed to create page", ex);
         }
     }
 
     @Override
     public Page update(final Page page) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.update({})", page);
+        log.debug("JdbcPageRepository.update({})", page);
         if (page == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -506,7 +521,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update page", ex);
+            log.error("Failed to update page", ex);
             throw new TechnicalException("Failed to update page", ex);
         }
     }
@@ -514,7 +529,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     @Override
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findMaxPageReferenceIdAndReferenceTypeOrder({}, {})", referenceId, referenceType);
+        log.debug("JdbcPageRepository.findMaxPageReferenceIdAndReferenceTypeOrder({}, {})", referenceId, referenceType);
         try {
             Integer result = jdbcTemplate.queryForObject(
                 "select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from " + this.tableName + " where reference_type = ? and reference_id = ? ",
@@ -524,7 +539,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             );
             return result == null ? 0 : result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find max page order by api:", ex);
+            log.error("Failed to find max page order by api:", ex);
             throw new TechnicalException("Failed to find max page order by api", ex);
         }
     }
@@ -532,7 +547,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     @Override
     public Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+        log.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             final var pageIds = jdbcTemplate.queryForList(
                 "select id from " + tableName + " where reference_id = ? and reference_type = ?",
@@ -560,17 +575,17 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 );
             }
 
-            LOGGER.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
             return pageIdAndMedias;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete page for refId: {}/{}", referenceId, referenceType, ex);
+            log.error("Failed to delete page for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete page by reference", ex);
         }
     }
 
     @Override
     public void updateCrossIds(List<Page> pages) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.updateCrossIds({})", pages);
+        log.debug("JdbcPageRepository.updateCrossIds({})", pages);
         if (pages == null || pages.isEmpty()) {
             return;
         }
@@ -599,7 +614,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.search()");
+        log.debug("JdbcPageRepository.search()");
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
 
@@ -676,7 +691,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             return items;
         } catch (final Exception ex) {
             final String message = "Failed to find portal pages";
-            LOGGER.error(message, ex);
+            log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
