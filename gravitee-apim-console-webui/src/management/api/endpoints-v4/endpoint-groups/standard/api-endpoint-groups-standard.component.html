@@ -146,6 +146,14 @@
             </td>
           </ng-container>
 
+          <!-- Tenants Column -->
+          <ng-container matColumnDef="tenants">
+            <th mat-header-cell *matHeaderCellDef id="tenants">Tenants</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.tenants.join(', ') }}
+            </td>
+          </ng-container>
+
           <!-- Weight Column -->
           <ng-container matColumnDef="weight">
             <th mat-header-cell *matHeaderCellDef id="weight">Weight</th>

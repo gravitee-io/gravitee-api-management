@@ -16,6 +16,7 @@
 import { get, isEmpty, remove } from 'lodash';
 
 import { ApiV4, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
+import { Tenant } from '../../../../../entities/tenant/tenant';
 
 export type EndpointGroup = {
   name: string;
@@ -38,15 +39,16 @@ export type Endpoint = {
     tooltip: string;
     textContent: string;
   }[];
+  tenants?: string[];
   weight: number;
   configuration?: any;
 };
 
-export const toEndpoints = (api: ApiV4): EndpointGroup[] => {
-  return toEndpointsFromApiV4(api);
+export const toEndpoints = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] => {
+  return toEndpointsFromApiV4(api, tenants);
 };
 
-const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
+const toEndpointsFromApiV4 = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] => {
   if (!api.endpointGroups) {
     return [];
   }
@@ -55,12 +57,10 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
 
   return api.endpointGroups.flatMap((endpointGroup, endpointGroupIndex) => {
     const loadBalancerType = endpointGroup?.loadBalancer?.type?.replace(/_/g, ' ');
-    const endpointsDisplayedColumns = ['drag-icon', 'name', 'general', 'options', 'weight', 'actions'];
+    const endpointsDisplayedColumns = ['drag-icon', 'name', 'general', 'options', 'tenants', 'weight', 'actions'];
     if (api.type === 'NATIVE') {
       remove(endpointsDisplayedColumns, (o) => o === 'weight');
     }
-    let hasOptions = false;
-
     const partialEndpointGroup = {
       name: endpointGroup.name,
       type: endpointGroup.type,
@@ -78,15 +78,12 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
               }
               const options = toEndpointOptions(api, endpointGroup, endpoint);
 
-              if (!isEmpty(options)) {
-                hasOptions = true;
-              }
-
               return {
                 name: endpoint.name,
                 general: toGeneralInfo(api, endpoint),
                 nameBadge,
                 options,
+                tenants: endpoint.tenants?.map((tenantId) => tenants.find((tenant) => tenant.id === tenantId)?.name ?? tenantId),
                 weight: endpoint.weight,
                 configuration: endpoint.configuration,
               } satisfies Endpoint;
@@ -95,8 +92,12 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
       endpointsDisplayedColumns,
     };
 
-    if (!hasOptions) {
+    if (!partialEndpointGroup.endpoints.some((endpoint) => endpoint.options.length > 0)) {
       remove(endpointsDisplayedColumns, (o) => o === 'options');
+    }
+
+    if (!partialEndpointGroup.endpoints.some((endpoint) => endpoint.tenants?.length > 0)) {
+      remove(endpointsDisplayedColumns, (o) => o === 'tenants');
     }
 
     if (isEmpty(partialEndpointGroup.generalColumnName)) {
