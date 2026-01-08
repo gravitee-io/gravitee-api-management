@@ -64,7 +64,6 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
   };
 
-  public endpointsDisplayedColumns = ['drag-icon', 'name', 'options', 'weight', 'actions'];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
