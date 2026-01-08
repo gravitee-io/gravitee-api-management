@@ -17,12 +17,12 @@ package io.gravitee.apim.reporter.common.formatter.csv.v4;
 
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.vertx.core.buffer.Buffer;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ApiEventMetricsFormatter extends BaseEventMetricsFormatter<ApiEventMetrics> {
 
     @Override

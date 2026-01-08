@@ -22,16 +22,14 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.buffer.Buffer;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class EndpointStatusFormatter extends SingleValueFormatter<EndpointStatus> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(EndpointStatusFormatter.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -68,13 +66,13 @@ public class EndpointStatusFormatter extends SingleValueFormatter<EndpointStatus
             try {
                 appendString(buffer, mapper.writeValueAsString(last.getRequest()));
             } catch (JsonProcessingException e) {
-                LOG.error("Unexpected error while writing request as JSON", e);
+                log.error("Unexpected error while writing request as JSON", e);
             }
 
             try {
                 appendString(buffer, mapper.writeValueAsString(last.getResponse()));
             } catch (JsonProcessingException e) {
-                LOG.error("Unexpected error while writing response as JSON", e);
+                log.error("Unexpected error while writing response as JSON", e);
             }
         } else {
             appendEmpty(buffer);

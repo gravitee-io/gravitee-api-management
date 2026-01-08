@@ -18,10 +18,10 @@ package io.gravitee.apim.reporter.common.bulk.backpressure;
 import io.gravitee.apim.reporter.common.bulk.compressor.CompressedBulk;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@CustomLog
 @NoArgsConstructor
 public class BulkDropper {
 

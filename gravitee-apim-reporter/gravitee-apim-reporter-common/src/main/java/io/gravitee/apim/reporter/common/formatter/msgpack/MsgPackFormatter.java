@@ -27,20 +27,21 @@ import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
-import io.gravitee.reporter.api.jackson.*;
+import io.gravitee.reporter.api.jackson.AdditionalMetricDeserialization;
+import io.gravitee.reporter.api.jackson.FieldFilterMixin;
+import io.gravitee.reporter.api.jackson.FieldFilterProvider;
+import io.gravitee.reporter.api.jackson.HttpHeadersSerializer;
 import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import io.vertx.core.buffer.Buffer;
+import lombok.CustomLog;
 import org.msgpack.jackson.dataformat.MessagePackMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class MsgPackFormatter<T extends Reportable> extends AbstractFormatter<T> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MsgPackFormatter.class);
 
     private final ObjectMapper mapper = new MessagePackMapper();
 
@@ -67,7 +68,7 @@ public class MsgPackFormatter<T extends Reportable> extends AbstractFormatter<T>
         try {
             return Buffer.buffer(mapper.writeValueAsBytes(data));
         } catch (JsonProcessingException e) {
-            LOG.error("Unexpected error while formatting data", e);
+            log.error("Unexpected error while formatting data", e);
             return null;
         }
     }
