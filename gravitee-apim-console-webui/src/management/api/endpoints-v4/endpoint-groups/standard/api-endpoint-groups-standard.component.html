@@ -103,10 +103,12 @@
           class="gio-table-light"
         >
           <!-- Drag icon Column -->
-          <ng-container matColumnDef="drag-icon" *ngIf="!isReadOnly">
+          <ng-container matColumnDef="drag-icon">
             <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
-            <td mat-cell *matCellDef="let element" [class.plans__table__drag-icon]="!isReadOnly">
-              <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>
+            <td mat-cell *matCellDef="let element">
+              @if (!isReadOnly) {
+                <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>
+              }
             </td>
           </ng-container>
 
@@ -128,7 +130,11 @@
           <ng-container matColumnDef="options">
             <th mat-header-cell *matHeaderCellDef id="options">Options</th>
             <td mat-cell *matCellDef="let element">
-              <span class="neutral" *ngIf="element.options.healthCheck"> Health-check </span>
+              @for (option of element.options; track option.textContent) {
+                <span [class]="option.class" [matTooltip]="option.tooltip">
+                  {{ option.textContent }}
+                </span>
+              }
             </td>
           </ng-container>
 
@@ -173,14 +179,20 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="endpointsDisplayedColumns"></tr>
-          <tr mat-row cdkDrag [cdkDragDisabled]="isReadOnly || isReordering" *matRowDef="let row; columns: endpointsDisplayedColumns"></tr>
+          <tr mat-header-row *matHeaderRowDef="group.endpointsDisplayedColumns"></tr>
+          <tr
+            mat-row
+            cdkDrag
+            [cdkDragDisabled]="isReadOnly || isReordering"
+            *matRowDef="let row; columns: group.endpointsDisplayedColumns"
+          ></tr>
 
           <!-- Row shown when there is no data -->
           <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
+            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="group.endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
+        {{ group.endpointsDisplayedColumns }}
         @if (api?.type !== 'MCP_PROXY') {
           <a
             *gioPermission="{ anyOf: ['api-definition-u'] }"

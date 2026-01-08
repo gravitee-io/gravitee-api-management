@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { get, isEmpty, remove } from 'lodash';
+
 import { ApiV4 } from '../../../../../entities/management-api-v2';
 
 export type EndpointGroup = {
@@ -20,6 +22,7 @@ export type EndpointGroup = {
   type: string;
   loadBalancerType: string;
   endpoints: Endpoint[];
+  endpointsDisplayedColumns: string[];
 };
 
 export type Endpoint = {
@@ -29,8 +32,10 @@ export type Endpoint = {
     tooltip?: string;
   };
   options: {
-    healthCheck: boolean;
-  };
+    class: string;
+    tooltip: string;
+    textContent: string;
+  }[];
   weight: number;
   configuration?: any;
 };
@@ -48,7 +53,13 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
 
   return api.endpointGroups.flatMap((endpointGroup, endpointGroupIndex) => {
     const loadBalancerType = endpointGroup?.loadBalancer?.type?.replace(/_/g, ' ');
-    return {
+    const endpointsDisplayedColumns = ['drag-icon', 'name', 'options', 'weight', 'actions'];
+    if (api.type === 'NATIVE') {
+      remove(endpointsDisplayedColumns, (o) => o === 'weight');
+    }
+    let hasOptions = false;
+
+    const partialEndpointGroup = {
       name: endpointGroup.name,
       type: endpointGroup.type,
       loadBalancerType: loadBalancerType ? loadBalancerType.charAt(0).toUpperCase() + loadBalancerType.slice(1).toLowerCase() : '',
@@ -62,17 +73,42 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
                   tooltip: 'The default endpoint used by the API is the first one',
                 };
               }
+              const options = [];
+
+              const groupHealthCheckEnabled = get(endpointGroup, 'services.healthCheck.enabled', false);
+              const endpointHealthCheckEnabled = get(endpoint, 'services.healthCheck.enabled', false);
+              if (groupHealthCheckEnabled || endpointHealthCheckEnabled)
+                options.push({
+                  class: 'gio-badge-neutral',
+                  tooltip: endpointHealthCheckEnabled
+                    ? 'Health check enabled by endpoint configuration'
+                    : 'Health check enabled via inherited group configuration',
+                  textContent: 'Health Check',
+                });
+
+              if (!isEmpty(options)) {
+                hasOptions = true;
+              }
+
               return {
                 name: endpoint.name,
                 nameBadge,
-                options: {
-                  healthCheck: false, // TODO: check it somewhere in the group configuration
-                },
+                options,
                 weight: endpoint.weight,
                 configuration: endpoint.configuration,
               } satisfies Endpoint;
             })
           : [],
+      endpointsDisplayedColumns,
+    };
+
+    if (!hasOptions) {
+      remove(endpointsDisplayedColumns, (o) => o === 'options');
+    }
+
+    return {
+      ...partialEndpointGroup,
+      endpointsDisplayedColumns,
     } satisfies EndpointGroup;
   });
 };
