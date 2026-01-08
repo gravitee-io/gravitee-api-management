@@ -33,6 +33,8 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypointsForGroup } from '../../api-endpoint-v4-matching-dlq';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { TenantService } from '../../../../../services-ngx/tenant.service';
+import { Tenant } from '../../../../../entities/tenant/tenant';
 
 @Component({
   selector: 'api-endpoint-groups-standard',
@@ -71,6 +73,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
+    private readonly tenantService: TenantService,
     private readonly snackBarService: SnackBarService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
@@ -78,12 +81,16 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.connectorPluginsV2Service.listEndpointPlugins()])
+    combineLatest([
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId),
+      this.connectorPluginsV2Service.listEndpointPlugins(),
+      this.tenantService.list(),
+    ])
       .pipe(
-        tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
+        tap(([apiV4, plugins, tenants]: [ApiV4, ConnectorPlugin[], Tenant[]]) => {
           this.api = apiV4;
           this.isA2ASelcted = this.api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
-          this.groupsTableData = toEndpoints(apiV4);
+          this.groupsTableData = toEndpoints(apiV4, tenants);
 
           const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
           this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES' || !canUpdate;

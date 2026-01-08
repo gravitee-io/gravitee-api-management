@@ -44,7 +44,7 @@ describe('TenantService', () => {
         done();
       });
 
-      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants` }).flush(tenants);
+      expectTenantsGetRequest(httpTestingController, tenants);
     });
   });
 
@@ -93,3 +93,7 @@ describe('TenantService', () => {
     httpTestingController.verify();
   });
 });
+
+export function expectTenantsGetRequest(httpTestingController: HttpTestingController, tenants = [fakeTenant()]): void {
+  httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants`, method: 'GET' }).flush(tenants);
+}

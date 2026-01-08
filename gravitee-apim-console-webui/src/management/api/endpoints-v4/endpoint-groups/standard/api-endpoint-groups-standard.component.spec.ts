@@ -32,6 +32,7 @@ import { ApiEndpointGroupsModule } from '../api-endpoint-groups.module';
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { expectTenantsGetRequest } from '../../../../../services-ngx/tenant.service.spec';
 
 describe('ApiEndpointGroupsStandardComponent', () => {
   const API_ID = 'apiId';
@@ -167,6 +168,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
 
     expectApiGetRequest(api);
     expectEndpointsGetRequest();
+    expectTenantsGetRequest(httpTestingController);
   };
 
   afterEach(() => {
@@ -271,6 +273,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[1] }, { ...group1.endpoints[0] }] }],
       });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
   });
@@ -292,6 +295,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[0] }] }, { ...group2 }],
       });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
 
@@ -338,6 +342,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         ],
       });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
 
@@ -363,6 +368,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2] });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
 
@@ -406,6 +412,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         ],
       });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
 
@@ -449,6 +456,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         ],
       });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
   });
@@ -467,6 +475,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
 
@@ -483,6 +492,7 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
       expectApiGetRequest(apiV4);
+      expectTenantsGetRequest(httpTestingController);
       expectEndpointsGetRequest();
     });
   });
