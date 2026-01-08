@@ -21,16 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.reporter.common.formatter.csv.SingleValueFormatter;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.vertx.core.buffer.Buffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class LogFormatter extends SingleValueFormatter<Log> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -51,25 +49,25 @@ public class LogFormatter extends SingleValueFormatter<Log> {
         try {
             appendString(buffer, mapper.writeValueAsString(log.getEntrypointRequest()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process entrypoint request", e);
+            LogFormatter.log.error("Unable to process entrypoint request", e);
         }
 
         try {
             appendString(buffer, mapper.writeValueAsString(log.getEntrypointResponse()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process entrypoint response", e);
+            LogFormatter.log.error("Unable to process entrypoint response", e);
         }
 
         try {
             appendString(buffer, mapper.writeValueAsString(log.getEndpointRequest()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process endpoint request", e);
+            LogFormatter.log.error("Unable to process endpoint request", e);
         }
 
         try {
             appendString(buffer, mapper.writeValueAsString(log.getEndpointResponse()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process endpoint response", e);
+            LogFormatter.log.error("Unable to process endpoint response", e);
         }
 
         return buffer;

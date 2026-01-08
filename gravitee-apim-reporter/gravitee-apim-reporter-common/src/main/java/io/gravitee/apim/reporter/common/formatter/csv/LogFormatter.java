@@ -20,16 +20,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.reporter.api.log.Log;
 import io.vertx.core.buffer.Buffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class LogFormatter extends SingleValueFormatter<Log> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -48,22 +46,22 @@ public class LogFormatter extends SingleValueFormatter<Log> {
         try {
             appendString(buffer, mapper.writeValueAsString(log.getClientRequest()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process client request", e);
+            LogFormatter.log.error("Unable to process client request", e);
         }
         try {
             appendString(buffer, mapper.writeValueAsString(log.getClientResponse()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process client response", e);
+            LogFormatter.log.error("Unable to process client response", e);
         }
         try {
             appendString(buffer, mapper.writeValueAsString(log.getProxyRequest()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process proxy request", e);
+            LogFormatter.log.error("Unable to process proxy request", e);
         }
         try {
             appendString(buffer, mapper.writeValueAsString(log.getProxyResponse()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process proxy response", e);
+            LogFormatter.log.error("Unable to process proxy response", e);
         }
 
         return buffer;

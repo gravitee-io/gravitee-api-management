@@ -22,16 +22,14 @@ import io.gravitee.apim.reporter.common.formatter.csv.SingleValueFormatter;
 import io.gravitee.apim.reporter.common.formatter.util.ReportableSanitizationUtil;
 import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.vertx.core.buffer.Buffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MessageLogFormatter.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -56,7 +54,7 @@ public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
             ReportableSanitizationUtil.removeMessageMetadataWithNullValues(log.getMessage());
             appendString(buffer, mapper.writeValueAsString(log.getMessage()));
         } catch (JsonProcessingException e) {
-            LOG.error("Unable to process message", e);
+            MessageLogFormatter.log.error("Unable to process message", e);
         }
 
         return buffer;

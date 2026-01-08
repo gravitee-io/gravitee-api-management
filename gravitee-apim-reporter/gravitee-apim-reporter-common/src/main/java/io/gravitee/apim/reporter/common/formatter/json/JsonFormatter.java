@@ -20,18 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.reporter.common.formatter.AbstractFormatter;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.configuration.Rules;
-import io.gravitee.reporter.api.jackson.*;
+import io.gravitee.reporter.api.jackson.JacksonUtils;
 import io.vertx.core.buffer.Buffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JsonFormatter.class);
 
     private final ObjectMapper mapper;
 
@@ -44,12 +42,12 @@ public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
         try {
             String json = mapper.writeValueAsString(data);
             if ("{}".equals(json)) {
-                LOG.trace("Excluding data format in reporter: {}", json);
+                log.trace("Excluding data format in reporter: {}", json);
                 return null;
             }
             return Buffer.buffer(json);
         } catch (JsonProcessingException e) {
-            LOG.error("Unexpected error while formatting data", e);
+            log.error("Unexpected error while formatting data", e);
             return null;
         }
     }
