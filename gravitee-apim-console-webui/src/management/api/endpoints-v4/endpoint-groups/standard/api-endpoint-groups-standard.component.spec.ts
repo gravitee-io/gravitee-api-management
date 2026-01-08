@@ -183,8 +183,8 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.getTableRows(0)).toEqual([
-        ['', 'an endpoint', '', '1', ''],
-        ['', 'another endpoint', '', '5', ''],
+        ['', 'an endpoint', '1', ''],
+        ['', 'another endpoint', '5', ''],
       ]);
     });
     it('should a warning in kafka endpoint group if failover is enabled', async () => {
@@ -198,8 +198,8 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.getTableRows(0)).toEqual([
-        ['', 'an endpoint', '', '1', ''],
-        ['', 'another endpoint', '', '5', ''],
+        ['', 'an endpoint', '1', ''],
+        ['', 'another endpoint', '5', ''],
       ]);
 
       const warningFailoverBanner = await componentHarness.getWarningFailoverBanner();
