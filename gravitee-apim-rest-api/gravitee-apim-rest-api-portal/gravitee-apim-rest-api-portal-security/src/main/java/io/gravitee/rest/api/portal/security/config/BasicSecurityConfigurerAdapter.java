@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
+import io.gravitee.rest.api.security.config.SecureHeadersConfigurer;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
@@ -79,7 +80,7 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-public class BasicSecurityConfigurerAdapter {
+public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
@@ -182,6 +183,7 @@ public class BasicSecurityConfigurerAdapter {
         hsts(http);
         csrf(http);
         cors(http);
+        configure(http, environment);
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
