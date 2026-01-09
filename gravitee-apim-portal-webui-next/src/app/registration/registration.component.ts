@@ -17,10 +17,10 @@ import { Component, DestroyRef, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
-import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
-import { MatOption, MatSelect } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, tap } from 'rxjs';
 
@@ -38,21 +38,14 @@ interface UserRegistrationFormValue {
 @Component({
   selector: 'app-registration',
   imports: [
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    MatCardTitle,
-    MatError,
-    MatFormField,
-    MatInput,
-    MatLabel,
+    MatCardModule,
+    MatInputModule,
     MatButtonModule,
     ReactiveFormsModule,
+    MatSelectModule,
     RouterLink,
     MobileClassDirective,
-    MatOption,
-    MatSelect,
-    MatIcon,
+    MatIconModule,
   ],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.scss',
