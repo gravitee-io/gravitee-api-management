@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
@@ -84,10 +85,13 @@ public class ComputeMeasuresUseCase {
         var responses = new ArrayList<MeasuresResponse>();
 
         queryExecutions.forEach((queryService, request) -> {
-            var filters = new ArrayList<>(request.filters());
-            filterPreprocessors.forEach(filterPreprocessor -> filters.addAll(filterPreprocessor.buildFilters(metricsContext)));
+            var finalFilters = new ArrayList<>(request.filters());
+            filterPreprocessors.forEach(filterPreprocessor -> {
+                List<Filter> f = filterPreprocessor.buildFilters(metricsContext, request.filters());
+                finalFilters.addAll(f);
+            });
 
-            responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
+            responses.add(queryService.searchMeasures(executionContext, request.withFilters(finalFilters)));
         });
 
         return responses;

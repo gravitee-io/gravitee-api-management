@@ -93,7 +93,9 @@ public class ComputeFacetsUseCase {
         var responses = new ArrayList<FacetsResponse>();
         queryContext.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filterPreprocessors.forEach(filterPreprocessor -> filters.addAll(filterPreprocessor.buildFilters(metricsContext)));
+            filterPreprocessors.forEach(filterPreprocessor ->
+                filters.addAll(filterPreprocessor.buildFilters(metricsContext, request.filters()))
+            );
 
             responses.add(queryService.searchFacets(executionContext, request.withFilters(filters)));
         });

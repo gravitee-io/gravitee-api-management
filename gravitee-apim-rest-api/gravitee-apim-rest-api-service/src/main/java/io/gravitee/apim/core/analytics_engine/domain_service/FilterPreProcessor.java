@@ -23,6 +23,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface FilterPreProcessor {
-    // Returns a new MetricsContext with updated filters, preserving exiting filters.
-    List<Filter> buildFilters(MetricsContext context);
+    List<Filter> buildFilters(MetricsContext context, List<Filter> requestFilters);
 }

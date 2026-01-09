@@ -42,7 +42,7 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     @Override
-    public List<Filter> buildFilters(MetricsContext context) {
+    public List<Filter> buildFilters(MetricsContext context, List<Filter> requestFilters) {
         if (context.apis().isEmpty()) {
             return List.of(new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, Collections.emptyList()));
         }
