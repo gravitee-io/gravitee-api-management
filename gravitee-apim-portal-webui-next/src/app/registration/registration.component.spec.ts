@@ -29,7 +29,6 @@ import { CustomUserField } from '../../entities/user/custom-user-field';
 import { User } from '../../entities/user/user';
 import { UsersService } from '../../services/users.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
-import { DivHarness } from '../../testing/div.harness';
 
 describe('RegistrationComponent', () => {
   let fixture: ComponentFixture<RegistrationComponent>;
@@ -65,10 +64,7 @@ describe('RegistrationComponent', () => {
 
     const card = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration__form__container' }));
 
-    expect(await card.getTitleText()).toContain('Create account');
-
-    const signUp = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign up' }));
-    expect(signUp).not.toBeNull();
+    expect(await card.getTitleText()).toContain('Create your account');
 
     const firstnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
     const lastnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
@@ -78,8 +74,8 @@ describe('RegistrationComponent', () => {
     expect(await lastnameInput.getValue()).toBe('');
     expect(await emailInput.getValue()).toBe('');
 
-    const success = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
-    expect(success).toBeNull();
+    const signUp = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign up' }));
+    expect(await signUp.isDisabled()).toBe(true);
   });
 
   it('ngOnInit should call listCustomUserFields and create customFields form group when fields exist', async () => {
@@ -92,9 +88,6 @@ describe('RegistrationComponent', () => {
 
     expect(usersServiceMock.listCustomUserFields).toHaveBeenCalledTimes(1);
     expect(component.customUserFields()).toEqual(customFields);
-
-    await fixture.whenStable();
-    fixture.detectChanges();
 
     const companyField = await harnessLoader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Company' }));
     const companyInput = await companyField.getControl(MatInputHarness);
@@ -111,11 +104,6 @@ describe('RegistrationComponent', () => {
     await init({ customUserFields: [] });
 
     expect(usersServiceMock.listCustomUserFields).toHaveBeenCalledTimes(1);
-
-    const customFieldsContainer = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '[data-testid="custom-fields"]' }));
-
-    expect(customFieldsContainer).toBeNull();
-
     const companyField = await harnessLoader.getHarnessOrNull(MatFormFieldHarness.with({ floatingLabelText: 'Company' }));
     expect(companyField).toBeNull();
   });
@@ -131,12 +119,12 @@ describe('RegistrationComponent', () => {
     const firstnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
     const lastnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
     const emailInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
-    const submitButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign up' }));
+    const signUp = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign up' }));
 
     await firstnameInput.setValue('John');
     await lastnameInput.setValue('Doe');
     await emailInput.setValue('john@doe.com');
-    await submitButton.click();
+    await signUp.click();
 
     fixture.detectChanges();
 
@@ -155,14 +143,12 @@ describe('RegistrationComponent', () => {
     expect(component.submitted()).toBe(true);
     expect(component.sentToEmail()).toBe('john@doe.com');
 
-    const successContainer = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.registration__success__container' }));
-    expect(successContainer).not.toBeNull();
-
     const successCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration__form__container' }));
-    expect(await successCard.getTitleText()).toContain('Registration success');
+    expect(await successCard.getTitleText()).toContain('Check your email');
 
-    const successText = await successCard.getText();
-    expect(successText).toContain('An email has been sent to:');
-    expect(successText).toContain('john@doe.com');
+    const cardText = await successCard.getText();
+    expect(cardText).toContain("We've sent you a confirmation link to:");
+    expect(cardText).toContain('john@doe.com');
+    expect(cardText).toContain('Please follow the link to activate your account.');
   });
 });
