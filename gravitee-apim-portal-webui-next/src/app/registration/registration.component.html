@@ -80,11 +80,11 @@
             }
 
             @if (error() === 401) {
-              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationError401">Unauthorized </mat-error>
+              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationError401">Unauthorized</mat-error>
             } @else if (error() === 400) {
-              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationError400">User cannot be created </mat-error>
+              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationError400">User cannot be created</mat-error>
             } @else if (error() !== 200) {
-              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationErrorUnknown">Unknown error </mat-error>
+              <mat-error class="registration__form__error m3-label-large" i18n="@@registrationErrorUnknown">Unknown error</mat-error>
             }
           </div>
           <div class="registration__form__buttons">

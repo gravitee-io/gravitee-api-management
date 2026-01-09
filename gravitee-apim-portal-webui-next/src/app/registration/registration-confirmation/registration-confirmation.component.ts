@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, DestroyRef, effect, input, signal } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, tap } from 'rxjs';
 
 import { MobileClassDirective } from '../../../directives/mobile-class.directive';
@@ -66,8 +66,6 @@ export class RegistrationConfirmationComponent {
   error = signal(200);
 
   constructor(
-    private route: ActivatedRoute,
-    private readonly destroyRef: DestroyRef,
     private tokenService: TokenService,
     private usersService: UsersService,
   ) {
