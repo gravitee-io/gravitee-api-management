@@ -50,30 +50,11 @@
               }
             </mat-form-field>
 
-            @if ((customUserFields() ?? []).length > 0) {
-              <div formGroupName="customFields">
-                @for (customField of customUserFields(); track customField.key) {
-                  @if ((customField.values ?? []).length === 0) {
-                    <mat-form-field appearance="outline" class="registration__form__input">
-                      <mat-label>{{ customField.label }}</mat-label>
-                      <input matInput [formControlName]="customField.key!" />
-                      @if (registrationForm.get(['customFields', customField.key!])?.hasError('required')) {
-                        <mat-error i18n="@@registrationUserFieldValueErrorRequired">Value is required</mat-error>
-                      }
-                    </mat-form-field>
-                  }
-                  @if ((customField.values ?? []).length > 0) {
-                    <mat-form-field appearance="outline">
-                      <mat-label>{{ customField.label }}</mat-label>
-                      <mat-select [formControlName]="customField.key!" [aria-label]="customField.label!" data-testId="grantTypes">
-                        @for (customFieldValue of customField.values; track customFieldValue) {
-                          <mat-option [value]="customFieldValue">{{ customFieldValue }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  }
-                }
-              </div>
+            @let customFields = customUserFields();
+            @if (customFields.length > 0) {
+              <ng-container
+                [ngTemplateOutlet]="customFieldsTemplate"
+                [ngTemplateOutletContext]="{ customFields: customFields, customFieldsGroup: customFieldsGroup() }" />
             }
 
             @if (error() === 401) {
@@ -114,3 +95,28 @@
     </mat-card-content>
   }
 </mat-card>
+
+<ng-template #customFieldsTemplate let-customFields="customFields" let-customFieldsGroup="customFieldsGroup">
+  <div [formGroup]="customFieldsGroup" data-testid="custom-fields">
+    @for (customField of customFields; track customField.key) {
+      @if ((customField.values ?? []).length === 0) {
+        <mat-form-field appearance="outline" class="registration__form__input">
+          <mat-label>{{ customField.label }}</mat-label>
+          <input matInput [formControlName]="customField.key!" />
+          @if (registrationForm.get(['customFields', customField.key!])?.hasError('required')) {
+            <mat-error>{{ customField.label }} <span i18n="@@registrationUserFieldValueErrorRequired">is required</span></mat-error>
+          }
+        </mat-form-field>
+      } @else {
+        <mat-form-field appearance="outline">
+          <mat-label>{{ customField.label }}</mat-label>
+          <mat-select [formControlName]="customField.key!" [aria-label]="customField.label!" data-testId="grantTypes">
+            @for (customFieldValue of customField.values; track customFieldValue) {
+              <mat-option [value]="customFieldValue">{{ customFieldValue }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    }
+  </div>
+</ng-template>
