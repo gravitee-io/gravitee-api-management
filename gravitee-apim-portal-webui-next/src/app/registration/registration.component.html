@@ -19,7 +19,7 @@
 <mat-card appearance="outlined" class="registration registration__form__container content">
   @if (!submitted()) {
     <mat-card-header class="registration__form__header">
-      <mat-card-title class="registration__form__title" i18n="@@registrationTitle">Create account</mat-card-title>
+      <mat-card-title class="registration__form__title m3-headline-small" i18n="@@registrationTitle"> Create your account </mat-card-title>
     </mat-card-header>
     <mat-card-content class="registration__form__content">
       <form [formGroup]="registrationForm" (ngSubmit)="register()" [appIsMobile]="'registration__form__container--mobile'">
@@ -40,7 +40,7 @@
               }
             </mat-form-field>
             <mat-form-field appearance="outline" class="registration__form__input">
-              <mat-label i18n="@@registrationEmail">Email</mat-label>
+              <mat-label i18n="@@registrationEmail">Email address</mat-label>
               <input matInput formControlName="email" />
               @if (registrationForm.controls.email.hasError('required')) {
                 <mat-error i18n="@@registrationEmailErrorRequired">Email is required</mat-error>
@@ -74,23 +74,30 @@
               class="registration__form__submit">
               Sign up
             </button>
-            <a mat-stroked-button class="m3-label-large" i18n="@@registrationBackToPortalAction" routerLink="/log-in"> Back to Login </a>
+            <div class="registration__form__login m3-label-large">
+              <span i18n="@@registrationConfirmationLoginLabel">Already have an account?</span>
+              <a routerLink="/log-in" class="internal-link" i18n="@@registrationConfirmationLoginAction">Login</a>
+            </div>
           </div>
         </div>
       </form>
     </mat-card-content>
   } @else {
     <mat-card-header class="registration__form__header">
-      <mat-card-title class="registration__form__title" i18n="@@registrationSuccessHeader">Registration success </mat-card-title>
+      <mat-card-title class="registration__form__title m3-headline-small" i18n="@@registrationSuccessHeader">
+        Check your email
+      </mat-card-title>
     </mat-card-header>
     <mat-card-content class="registration__form__content">
       <div class="registration__success__container">
-        <div class="registration__success__container__icon">
-          <mat-icon>outgoing_mail</mat-icon>
+        <div class="registration__success__text m3-body-medium" i18n="@@registrationSuccessLabel">
+          We've sent you a confirmation link to:
         </div>
-        <div i18n="@@registrationSuccessLabel">An email has been sent to:</div>
-        <div>{{ sentToEmail() }}</div>
-        <button mat-flat-button i18n="@@registrationBackAction" class="registration__form__submit" routerLink="/">Back to portal</button>
+        <div class="registration__success__email m3-title-small">{{ sentToEmail() }}</div>
+        <div class="registration__success__text m3-body-medium" i18n="@@registrationSuccessHint">
+          Please follow the link to activate your account.
+        </div>
+        <a i18n="@@registrationBackAction" class="registration__success__action internal-link" routerLink="/log-in">Back to login</a>
       </div>
     </mat-card-content>
   }
@@ -108,7 +115,7 @@
           }
         </mat-form-field>
       } @else {
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="registration__form__input">
           <mat-label>{{ customField.label }}</mat-label>
           <mat-select [formControlName]="customField.key!" [aria-label]="customField.label!" data-testId="grantTypes">
             @for (customFieldValue of customField.values; track customFieldValue) {
