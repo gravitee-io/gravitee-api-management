@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, EMPTY, filter, map, tap } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { RouterLink } from '@angular/router';
+import { catchError, EMPTY, tap } from 'rxjs';
 
 import { MobileClassDirective } from '../../../directives/mobile-class.directive';
 import { TokenService } from '../../../services/token.service';
@@ -51,46 +50,48 @@ interface RegistrationConfirmationFormValue {
 
 @Component({
   selector: 'app-registration-confirmation',
-  imports: [
-    MatError,
-    MatButton,
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    MatCardTitle,
-    MatFormField,
-    MatInput,
-    MatLabel,
-    ReactiveFormsModule,
-    RouterLink,
-    MobileClassDirective,
-    MatIcon,
-  ],
+  imports: [MatCardModule, MatInputModule, MatButtonModule, ReactiveFormsModule, RouterLink, MobileClassDirective, MatIconModule],
   templateUrl: './registration-confirmation.component.html',
   styleUrl: './registration-confirmation.component.scss',
 })
-export class RegistrationConfirmationComponent implements OnInit {
-  registrationConfirmationForm: RegistrationConfirmationFormType = new FormGroup({
-    firstname: new FormControl({ value: '', disabled: true }),
-    lastname: new FormControl({ value: '', disabled: true }),
-    email: new FormControl({ value: '', disabled: true }),
-    password: new FormControl('', Validators.required),
-    confirmedPassword: new FormControl('', Validators.required),
-  });
+export class RegistrationConfirmationComponent {
+  registrationConfirmationForm?: RegistrationConfirmationFormType;
 
-  token: string | null = null;
-  userFromToken?: RegistrationToken;
+  token = input<string | null>(null);
+  userFromToken = computed<RegistrationToken | null>(() => this.tokenService.parseToken(this.token()));
 
   submitted = signal(false);
-
   error = signal(200);
 
   constructor(
-    private route: ActivatedRoute,
-    private readonly destroyRef: DestroyRef,
     private tokenService: TokenService,
     private usersService: UsersService,
-  ) {}
+    private readonly destroyRef: DestroyRef,
+  ) {
+    effect(() => {
+      const user = this.userFromToken();
+
+      if (!user) {
+        this.error.set(401);
+        return;
+      }
+
+      this.registrationConfirmationForm = new FormGroup({
+        firstname: new FormControl({ value: user.firstname, disabled: true }),
+        lastname: new FormControl({ value: user.lastname, disabled: true }),
+        email: new FormControl({ value: user.email, disabled: true }),
+        password: new FormControl('', Validators.required),
+        confirmedPassword: new FormControl('', Validators.required),
+      });
+
+      this.registrationConfirmationForm.controls.confirmedPassword.setValidators([
+        Validators.required,
+        RegistrationConfirmationComponent.sameValueValidator(this.registrationConfirmationForm.get('password')!),
+      ]);
+
+      this.error.set(200);
+    });
+  }
 
   static sameValueValidator(field: AbstractControl): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -99,52 +100,27 @@ export class RegistrationConfirmationComponent implements OnInit {
     };
   }
 
-  ngOnInit(): void {
-    this.registrationConfirmationForm
-      .get('confirmedPassword')!
-      .setValidators([
-        Validators.required,
-        RegistrationConfirmationComponent.sameValueValidator(this.registrationConfirmationForm.get('password')!),
-      ]);
-    this.route.paramMap
-      .pipe(
-        map(params => params.get('token')),
-        tap(token => (this.token = token)),
-        map(token => this.tokenService.parseToken(token)),
-        tap(userFromToken => {
-          if (!userFromToken) {
-            this.error.set(401);
-          }
-        }),
-        filter(userFromToken => !!userFromToken),
-        tap(userFromToken => {
-          this.userFromToken = userFromToken;
-          this.registrationConfirmationForm.get('firstname')?.patchValue(this.userFromToken?.firstname || '');
-          this.registrationConfirmationForm.get('lastname')?.patchValue(this.userFromToken?.lastname || '');
-          this.registrationConfirmationForm.get('email')?.patchValue(this.userFromToken?.email || '');
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-  }
-
   confirmRegistration() {
     const val = this.registrationConfirmationForm!.value as RegistrationConfirmationFormValue;
 
-    this.usersService
-      .finalizeRegistration({
-        firstname: this.userFromToken!.firstname,
-        lastname: this.userFromToken!.lastname,
-        token: this.token!,
-        password: val.password,
-      })
-      .pipe(
-        tap(_ => this.submitted.set(true)),
-        catchError(_ => {
-          this.error.set(400);
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+    const userFromToken = this.userFromToken();
+    if (userFromToken) {
+      this.usersService
+        .finalizeRegistration({
+          firstname: userFromToken.firstname,
+          lastname: userFromToken.lastname,
+          token: this.token()!,
+          password: val.password,
+        })
+        .pipe(
+          tap(_ => this.submitted.set(true)),
+          catchError(_ => {
+            this.error.set(400);
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    }
   }
 }

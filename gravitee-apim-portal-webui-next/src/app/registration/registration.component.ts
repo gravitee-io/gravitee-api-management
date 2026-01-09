@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
-import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
-import { MatOption, MatSelect } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, tap } from 'rxjs';
 
@@ -38,21 +39,15 @@ interface UserRegistrationFormValue {
 @Component({
   selector: 'app-registration',
   imports: [
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    MatCardTitle,
-    MatError,
-    MatFormField,
-    MatInput,
-    MatLabel,
+    CommonModule,
+    MatCardModule,
+    MatInputModule,
     MatButtonModule,
     ReactiveFormsModule,
+    MatSelectModule,
     RouterLink,
     MobileClassDirective,
-    MatOption,
-    MatSelect,
-    MatIcon,
+    MatIconModule,
   ],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.scss',
@@ -86,10 +81,11 @@ export class RegistrationComponent implements OnInit {
       .listCustomUserFields()
       .pipe(
         tap(customUserFields => {
-          this.customUserFields.set(customUserFields);
-          if ((customUserFields || []).length > 0) {
+          const fields = customUserFields ?? [];
+          this.customUserFields.set(fields);
+          if (fields.length > 0) {
             const customFields = new FormGroup({});
-            for (const customUserField of customUserFields) {
+            for (const customUserField of fields) {
               customFields.addControl(customUserField.key!, new FormControl('', customUserField.required ? [Validators.required] : []));
             }
             this.registrationForm.addControl('customFields', customFields);
@@ -99,6 +95,9 @@ export class RegistrationComponent implements OnInit {
       )
 
       .subscribe();
+  }
+  customFieldsGroup(): FormGroup | null {
+    return this.registrationForm.controls.customFields as FormGroup | null;
   }
 
   register() {
