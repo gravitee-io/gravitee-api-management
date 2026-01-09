@@ -16,7 +16,6 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ConfigService } from './config.service';
 import { FinalizeRegistrationInput, RegisterUserInput, UsersService } from './users.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
 import { User } from '../entities/user/user';
@@ -29,13 +28,7 @@ describe('UsersService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AppTestingModule],
-      providers: [
-        UsersService,
-        {
-          provide: ConfigService,
-          useValue: { baseURL: TESTING_BASE_URL } as Partial<ConfigService>,
-        },
-      ],
+      providers: [UsersService],
     });
 
     service = TestBed.inject(UsersService);

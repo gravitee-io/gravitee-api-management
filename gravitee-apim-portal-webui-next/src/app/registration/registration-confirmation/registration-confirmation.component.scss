@@ -17,8 +17,8 @@
 @use '../../../scss/layout' as layout;
 
 :host {
-  display: flex;
-  justify-content: center;
+  // display: flex;
+  // justify-content: center;
   @include layout.small-container-legacy();
 }
 
