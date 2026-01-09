@@ -18,7 +18,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, tap } from 'rxjs';
@@ -50,7 +49,7 @@ interface RegistrationConfirmationFormValue {
 
 @Component({
   selector: 'app-registration-confirmation',
-  imports: [MatCardModule, MatInputModule, MatButtonModule, ReactiveFormsModule, RouterLink, MobileClassDirective, MatIconModule],
+  imports: [MatCardModule, MatInputModule, MatButtonModule, ReactiveFormsModule, RouterLink, MobileClassDirective],
   templateUrl: './registration-confirmation.component.html',
   styleUrl: './registration-confirmation.component.scss',
 })
