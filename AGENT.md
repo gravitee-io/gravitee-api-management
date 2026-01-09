@@ -28,6 +28,15 @@ Backend build prerequisites
 - Faster local build: `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
 - Full bundle with plugins: `mvn clean install -T 2C -P bundle-default,bundle-dev`
 
+Build workaround (host JDK 25/Lombok issues)
+- If local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
+  - `docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true`
+- To refresh the local Management API image used by `docker/quick-setup/mongodb`:
+  - `rm -rf gravitee-apim-rest-api/docker/distribution`
+  - `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
+  - `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
+  - `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
+
 Suggested first-run steps (local full stack with MongoDB compose)
 0) (Optional) Build backend artifacts
    - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
