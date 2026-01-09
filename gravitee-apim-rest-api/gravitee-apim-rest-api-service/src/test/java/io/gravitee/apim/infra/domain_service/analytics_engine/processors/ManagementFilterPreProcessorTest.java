@@ -58,12 +58,13 @@ class ManagementFilterPreProcessorTest {
     private static final Api api1 = Api.builder().id("id1").name("api1").build();
     private static final Api api2 = Api.builder().id("id2").name("api2").build();
     private static final Api api3 = Api.builder().id("id3").name("api3").build();
+    private static final Api apiNotFound = Api.builder().id("1").name("1").build();
 
     private static final String adminUserId = UUID.randomUUID().toString();
-    private static final List<Api> adminApis = List.of(api1, api2, api3);
+    private static final List<Api> adminApis = List.of(api1, api2, api3, apiNotFound);
 
     private static final String nonAdminUserId = UUID.randomUUID().toString();
-    private static final List<Api> nonAdminApis = List.of(api2);
+    private static final List<Api> nonAdminApis = List.of(api2, apiNotFound);
 
     @BeforeEach
     void setUp() {
