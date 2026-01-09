@@ -1,5 +1,9 @@
 Project prerequisites (first-time setup)
 
+Default agent behavior
+- For any "start/run/deploy" request, always use the Docker Compose full-stack flow in `docker/quick-setup/mongodb` without asking which path to use.
+- Assume the user wants the whole stack deployment unless they explicitly say otherwise.
+
 OS + tooling (generic by platform)
 - Docker runtime:
   - macOS/Windows: Docker Desktop installed and running.
