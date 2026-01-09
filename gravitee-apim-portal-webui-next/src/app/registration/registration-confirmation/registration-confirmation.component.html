@@ -24,9 +24,9 @@
       </mat-card-title>
     </mat-card-header>
     <mat-card-content class="registration-confirmation__form__content">
-      <mat-error i18n="@@registrationConfirmationBadToken">Bad request. Invalid token value</mat-error>
+      <mat-error i18n="@@registrationConfirmationBadToken">Invalid token value</mat-error>
     </mat-card-content>
-  } @else if (!submitted()) {
+  } @else if (!submitted() && registrationConfirmationForm) {
     <mat-card-header class="registration-confirmation__form__header">
       <mat-card-title class="registration-confirmation__form__title" i18n="@@registrationConfirmationTitle"
         >Confirm registration
@@ -80,7 +80,7 @@
             </mat-form-field>
           </div>
           @if (error() === 400) {
-            <mat-error i18n="@@registrationConfirmationBadPassword">Bad request. Invalid password</mat-error>
+            <mat-error i18n="@@registrationConfirmationBadPassword">Invalid password</mat-error>
           }
           <div class="registration-confirmation__form__buttons">
             <button
@@ -111,6 +111,7 @@
         mat-flat-button
         i18n="@@registrationConfirmationSuccessAction"
         class="registration-confirmation__form__submit"
+        data-testid="confirm-btn"
         routerLink="/">
         Back to portal
       </button>
