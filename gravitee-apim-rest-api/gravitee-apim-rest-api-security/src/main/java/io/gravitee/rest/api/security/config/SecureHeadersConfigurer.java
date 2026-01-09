@@ -41,9 +41,9 @@ public interface SecureHeadersConfigurer {
     }
 
     static void xframe(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        boolean enabled = environment.getProperty("http.xframe.enabled", Boolean.class, true);
+        boolean enabled = environment.getProperty("http.secureHeaders.xframe.enabled", Boolean.class, true);
         if (enabled) {
-            String action = environment.getProperty("http.xframe.action", "SAMEORIGIN");
+            String action = environment.getProperty("http.secureHeaders.xframe.action", "SAMEORIGIN");
             if ("SAMEORIGIN".equalsIgnoreCase(action)) {
                 security.headers().frameOptions().sameOrigin();
             } else {
@@ -55,21 +55,21 @@ public interface SecureHeadersConfigurer {
     }
 
     static void csp(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        String cspPolicy = environment.getProperty("http.csp.policy");
+        String cspPolicy = environment.getProperty("http.secureHeaders.csp.policy");
         if (cspPolicy != null && !cspPolicy.isEmpty()) {
             security.headers().contentSecurityPolicy(policy -> policy.policyDirectives(cspPolicy));
         }
     }
 
     static void xContentTypeOptions(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        boolean enabled = environment.getProperty("http.xContentTypeOptions.enabled", Boolean.class, true);
+        boolean enabled = environment.getProperty("http.secureHeaders.xContentTypeOptions.enabled", Boolean.class, true);
         if (enabled) {
             security.headers().contentTypeOptions();
         }
     }
 
     static void referrerPolicy(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        String policyString = environment.getProperty("http.referrerPolicy.policy");
+        String policyString = environment.getProperty("http.secureHeaders.referrerPolicy.policy");
 
         var policy = Arrays.stream(ReferrerPolicyHeaderWriter.ReferrerPolicy.values())
             .filter(p -> p.getPolicy().equalsIgnoreCase(policyString))
@@ -79,7 +79,7 @@ public interface SecureHeadersConfigurer {
     }
 
     static void permissionsPolicy(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        String permissionsPolicy = environment.getProperty("http.permissionsPolicy.policy");
+        String permissionsPolicy = environment.getProperty("http.secureHeaders.permissionsPolicy.policy");
         if (permissionsPolicy != null && !permissionsPolicy.isEmpty()) {
             security.headers().permissionsPolicy(policy -> policy.policy(permissionsPolicy));
         }
@@ -88,11 +88,15 @@ public interface SecureHeadersConfigurer {
     static void hsts(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
         HeadersConfigurer<HttpSecurity>.HstsConfig hstsConfig = security.headers().httpStrictTransportSecurity();
 
-        Boolean hstsEnabled = environment.getProperty("http.hsts.enabled", Boolean.class, true);
+        Boolean hstsEnabled = environment.getProperty(
+            "http.secureHeaders.hsts.enabled",
+            Boolean.class,
+            environment.getProperty("http.hsts.enabled", Boolean.class, true)
+        );
         if (hstsEnabled) {
             hstsConfig
-                .includeSubDomains(environment.getProperty("http.hsts.include-sub-domains", Boolean.class, true))
-                .maxAgeInSeconds(environment.getProperty("http.hsts.max-age", Long.class, 31536000L));
+                .includeSubDomains(environment.getProperty("http.secureHeaders.hsts.include-sub-domains", Boolean.class, true))
+                .maxAgeInSeconds(environment.getProperty("http.secureHeaders.hsts.max-age", Long.class, 31536000L));
         } else {
             hstsConfig.disable();
         }
@@ -100,7 +104,13 @@ public interface SecureHeadersConfigurer {
 
     static void csrf(HttpSecurity security, ConfigurableEnvironment environment, CookieCsrfSignedTokenRepository csrfTokenRepository)
         throws Exception {
-        if (environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+        if (
+            environment.getProperty(
+                "http.secureHeaders.csrf.enabled",
+                Boolean.class,
+                environment.getProperty("http.csrf.enabled", Boolean.class, false)
+            )
+        ) {
             // Don't use deferred csrf (see https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_need_to_opt_out_of_deferred_tokens_for_another_reason)
             final CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
             requestHandler.setCsrfRequestAttributeName(null);
