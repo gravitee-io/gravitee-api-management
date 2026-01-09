@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.rest.api.automation.security.config;
 
+import static io.gravitee.rest.api.security.config.SecureHeadersConfigurer.csrf;
+import static io.gravitee.rest.api.security.config.SecureHeadersConfigurer.hsts;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
@@ -72,7 +75,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
+public class BasicSecurityConfigurerAdapter {
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -176,7 +179,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         authentication(http);
         session(http);
         authorizations(http);
-        configure(http, environment, cookieCsrfSignedTokenRepository());
+        hsts(http, environment);
+        csrf(http, environment, cookieCsrfSignedTokenRepository());
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
