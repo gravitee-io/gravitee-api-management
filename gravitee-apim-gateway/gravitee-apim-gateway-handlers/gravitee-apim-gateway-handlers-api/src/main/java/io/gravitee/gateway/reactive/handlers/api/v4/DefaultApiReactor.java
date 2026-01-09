@@ -19,16 +19,10 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API_NAME;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_APPLICATION;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_ENVIRONMENT;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_ORGANIZATION;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PLAN;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_USER;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_API_TYPE;
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.*;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
@@ -116,12 +110,9 @@ import lombok.Getter;
 public class DefaultApiReactor extends AbstractApiReactor {
 
     private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
-        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context ->
-            context.getAttribute(ContextAttributes.ATTR_CONTEXT_PATH)
-        ),
-        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
-            context.getAttribute(ContextAttributes.ATTR_REQUEST_METHOD)
-        )
+        LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
+        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
+        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_REQUEST_METHOD))
     );
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
@@ -264,7 +255,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected void prepareExecutionContext(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
-        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
@@ -378,7 +369,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 }
             }
         } catch (Exception e) {
-            log.warn("Unable to end {} tracing phase", executionPhase, e);
+            ctx.withLogger(log).warn("Unable to end {} tracing phase", executionPhase, e);
         }
     }
 
@@ -475,14 +466,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
             // In case of any error exception, log original exception, execute api error processor chain and resume the execution
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
     }
 
     protected Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(() -> {
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             computeEndpointResponseTimeMetric(ctx);
 
             ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());

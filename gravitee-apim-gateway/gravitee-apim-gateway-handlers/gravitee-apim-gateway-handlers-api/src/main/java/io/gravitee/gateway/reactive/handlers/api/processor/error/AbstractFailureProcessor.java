@@ -89,12 +89,14 @@ public abstract class AbstractFailureProcessor implements Processor {
             var exception = (Throwable) executionFailure.parameters().get("exception");
 
             if (exception != null) {
-                log.debug(
-                    "An error occurred while executing request [requestId={}]: {}",
-                    request.id(),
-                    executionFailure.message(),
-                    exception
-                );
+                ctx
+                    .withLogger(log)
+                    .debug(
+                        "An error occurred while executing request [requestId={}]: {}",
+                        request.id(),
+                        executionFailure.message(),
+                        exception
+                    );
             }
         }
 
