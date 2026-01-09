@@ -25,3 +25,4 @@ import { ApiProductNavigationModule } from '../navigation/api-product-navigation
 })
 export class ApiProductDetailModule {}
 
+

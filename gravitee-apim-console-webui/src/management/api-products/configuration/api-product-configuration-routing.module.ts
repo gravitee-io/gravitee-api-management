@@ -32,3 +32,4 @@ const routes: Routes = [
 })
 export class ApiProductConfigurationRoutingModule {}
 
+
