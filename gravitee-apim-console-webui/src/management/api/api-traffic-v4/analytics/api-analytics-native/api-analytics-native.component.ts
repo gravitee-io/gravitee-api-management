@@ -235,7 +235,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     {
       type: 'bar',
       apiId: this.apiId,
-      title: 'Authentication Success vs. Failure (number per second)',
+      title: 'Authentication Success vs. Failure',
       tooltip: 'Total authentication successes and failures over time (combined downstream + upstream)',
       analyticsType: 'HISTOGRAM',
       mapQueryParams: mapQueryParams,
