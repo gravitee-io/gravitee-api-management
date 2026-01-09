@@ -29,12 +29,6 @@ import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetail
 import io.gravitee.rest.api.security.config.SecureHeadersConfigurer;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
-<<<<<<< HEAD
-import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
-import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
-=======
-import io.gravitee.rest.api.security.filter.ContextualLoggingFilter;
->>>>>>> bacd7ec0fd (refactor: move hsts and csrf methods to SecureHeadersConfigurer)
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
 import io.gravitee.rest.api.security.filter.RecaptchaFilter;
