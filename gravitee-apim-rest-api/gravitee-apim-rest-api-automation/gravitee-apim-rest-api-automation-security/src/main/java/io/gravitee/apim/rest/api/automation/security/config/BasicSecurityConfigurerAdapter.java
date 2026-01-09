@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.security.config;
+package io.gravitee.apim.rest.api.automation.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -29,15 +29,8 @@ import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetail
 import io.gravitee.rest.api.security.config.SecureHeadersConfigurer;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
-<<<<<<< HEAD
-import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
-import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
-=======
-import io.gravitee.rest.api.security.filter.ContextualLoggingFilter;
->>>>>>> bacd7ec0fd (refactor: move hsts and csrf methods to SecureHeadersConfigurer)
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
-import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
@@ -51,8 +44,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,20 +60,19 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -168,34 +159,33 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
 
         //Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("#                      SECURITY WARNING                      #");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-            LOGGER.warn("You still use the default jwt secret.");
-            LOGGER.warn("This known secret can be used to impersonate anyone.");
-            LOGGER.warn("Please change this value, or ask your administrator to do it !");
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("#                      SECURITY WARNING                      #");
+            log.warn("##############################################################");
+            log.warn("");
+            log.warn("You still use the default jwt secret.");
+            log.warn("This known secret can be used to impersonate anyone.");
+            log.warn("Please change this value, or ask your administrator to do it !");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("");
         }
 
         authenticationManager(http);
         authentication(http);
         session(http);
         authorizations(http);
-        cors(http);
         configure(http, environment, cookieCsrfSignedTokenRepository());
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
             BasicAuthenticationFilter.class
         );
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
+        // http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
         http.addFilterBefore(
             new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CorsFilter.class
+            CsrfFilter.class
         );
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
@@ -205,9 +195,9 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     private void authenticationManager(HttpSecurity http) throws Exception {
         final AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        LOGGER.info("--------------------------------------------------------------");
-        LOGGER.info("Management API BasicSecurity Config");
-        LOGGER.info("Loading authentication identity providers for Basic authentication");
+        log.info("--------------------------------------------------------------");
+        log.info("Management API BasicSecurity Config");
+        log.info("Loading authentication identity providers for Basic authentication");
 
         List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
             .getIdentityProviders()
@@ -216,7 +206,7 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .collect(Collectors.toList());
 
         for (io.gravitee.rest.api.security.authentication.AuthenticationProvider provider : providers) {
-            LOGGER.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
+            log.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
 
             boolean found = false;
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
@@ -244,10 +234,10 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             }
 
             if (!found) {
-                LOGGER.error("No authentication provider found for type: {}", provider.type());
+                log.error("No authentication provider found for type: {}", provider.type());
             }
         }
-        LOGGER.info("--------------------------------------------------------------");
+        log.info("--------------------------------------------------------------");
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
@@ -270,20 +260,10 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .authorizeHttpRequests()
             .requestMatchers(HttpMethod.GET, "/")
             .permitAll()
-            .requestMatchers(HttpMethod.GET, "/index-*.html")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, "/openapi-*.yaml")
+            .requestMatchers(HttpMethod.GET, "/open-api.yaml")
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
-            /*
-             * Management UI resources.
-             */
-            .requestMatchers(HttpMethod.GET, "/ui/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/ui/**")
-            .permitAll()
-            // Any other request must be authenticated
             .anyRequest()
             .authenticated()
             .and();
@@ -291,9 +271,5 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
 
     private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
         return GraviteeAuthenticationDetails::new;
-    }
-
-    private HttpSecurity cors(HttpSecurity security) throws Exception {
-        return security.cors().and();
     }
 }

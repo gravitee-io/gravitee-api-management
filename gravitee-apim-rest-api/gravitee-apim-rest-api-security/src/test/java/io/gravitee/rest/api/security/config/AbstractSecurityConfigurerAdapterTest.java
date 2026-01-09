@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.security.config;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +41,8 @@ import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
+import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,12 +71,29 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
         "http.csp.policy=frame-ancestors 'self';",
         "http.referrerPolicy.policy=strict-origin-when-cross-origin",
         "http.permissionsPolicy.policy=camera=(), microphone=(), geolocation=()",
+        "http.hsts.enabled=true",
+        "http.hsts.include-sub-domains=true",
+        "http.hsts.max-age=31536000",
+        "http.csrf.enabled=true",
     }
 )
 public abstract class AbstractSecurityConfigurerAdapterTest {
 
     @Autowired
     protected MockMvc mockMvc;
+
+    @Autowired
+    protected Configuration graviteeConfiguration;
+
+    @Autowired
+    protected CookieGenerator cookieGenerator;
+
+    @BeforeEach
+    public void setUp() {
+        when(graviteeConfiguration.getProperty("jwt.secret")).thenReturn("my-secret-for-tests");
+        when(graviteeConfiguration.getProperty("jwt.issuer", "gravitee-management-auth")).thenReturn("gravitee-management-auth");
+        when(cookieGenerator.generate(eq("XSRF-TOKEN"), any(), eq(true))).thenReturn(new Cookie("XSRF-TOKEN", "some-csrf-token"));
+    }
 
     @Test
     void should_configure_secure_headers() throws Exception {
@@ -80,7 +103,9 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
             .andExpect(header().string("X-Frame-Options", "SAMEORIGIN"))
             .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
             .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=()"))
-            .andExpect(header().string("Content-Security-Policy", "frame-ancestors 'self';"));
+            .andExpect(header().string("Content-Security-Policy", "frame-ancestors 'self';"))
+            .andExpect(header().string("Strict-Transport-Security", "max-age=31536000 ; includeSubDomains"))
+            .andExpect(cookie().exists("XSRF-TOKEN"));
     }
 
     protected abstract String getPath();
