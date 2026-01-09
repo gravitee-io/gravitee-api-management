@@ -19,7 +19,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
@@ -39,7 +38,6 @@ interface UserRegistrationFormValue {
 @Component({
   selector: 'app-registration',
   imports: [
-    CommonModule,
     MatCardModule,
     MatInputModule,
     MatButtonModule,
@@ -47,7 +45,7 @@ interface UserRegistrationFormValue {
     MatSelectModule,
     RouterLink,
     MobileClassDirective,
-    MatIconModule,
+    CommonModule,
   ],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.scss',
@@ -115,6 +113,7 @@ export class RegistrationComponent implements OnInit {
           this.error.set(err.status);
           return EMPTY;
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
