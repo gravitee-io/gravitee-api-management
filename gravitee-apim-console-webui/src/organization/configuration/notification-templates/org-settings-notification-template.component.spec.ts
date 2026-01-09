@@ -187,7 +187,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
     it('should activate, update content and save a template', async () => {
       respondToAlertRequest();
       const baseNotificationTemplate = fakeNotificationTemplate({
-        content: '<img src="images/GRAVITEE_LOGO_RVB-11.png" />',
+        content: '<img src="images/GRAVITEE_LOGO.png" width="200" alt="Logo" />',
         created_at: 1634278951703,
         enabled: false,
         hook: '',
