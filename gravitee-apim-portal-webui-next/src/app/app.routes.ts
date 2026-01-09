@@ -59,6 +59,8 @@ import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+import { ManagementComponent } from './management/management.component';
+import { SubscriptionsComponent } from './management/subscriptions/subscriptions.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { RegistrationComponent } from './registration/registration.component';
 
@@ -185,6 +187,18 @@ export const routes: Routes = [
         ],
       },
       ...apiRoutes,
+    ],
+  },
+  {
+    path: 'management',
+    canActivateChild: [redirectGuard, authGuard],
+    component: ManagementComponent,
+    children: [
+      { path: '', redirectTo: 'subscriptions', pathMatch: 'full' },
+      {
+        path: 'subscriptions',
+        component: SubscriptionsComponent,
+      },
     ],
   },
   {

@@ -1,0 +1,125 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '@angular/material' as mat;
+@use '../../scss/theme' as app-theme;
+
+$sidenav-min-width: 330px;
+$sidenav-horizontal-padding: 40px;
+$sidenav-vertical-padding: 25px;
+$sidenav-content-width: calc($sidenav-min-width - $sidenav-horizontal-padding * 2);
+$transition-base: 300ms ease-in-out;
+
+:host {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex: 1 1 100%;
+}
+
+.management {
+  &__sidenav {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    overflow: hidden;
+    width: $sidenav-min-width;
+    min-width: $sidenav-min-width;
+    box-sizing: border-box;
+    border-right: 1px solid app-theme.$border-color;
+    background: app-theme.$background-color;
+    transition:
+      min-width $transition-base,
+      width $transition-base;
+
+    &__content {
+      display: flex;
+      overflow: hidden auto;
+      width: 100%;
+      flex-direction: column;
+      padding: $sidenav-vertical-padding $sidenav-horizontal-padding;
+      transition: padding $transition-base;
+
+      button {
+        justify-content: flex-start;
+        text-align: start;
+
+        &.selected {
+          color: #{app-theme.$primary-main-color};
+        }
+
+        // TODO this needs to be centralized (copy pasted from desktop-nav-bar)
+        @include mat.button-overrides(
+          (
+            outlined-outline-color: transparent,
+            outlined-label-text-color: app-theme.$nav-bar-link-color,
+            filled-label-text-color: app-theme.$nav-bar-link-active-color,
+            filled-container-color: app-theme.$nav-bar-link-active-background-color,
+            outlined-hover-state-layer-opacity: 7%,
+            filled-horizontal-padding: app-theme.$nav-bar-link-padding,
+            outlined-horizontal-padding: app-theme.$nav-bar-link-padding,
+            outlined-outline-width: 0,
+          )
+        );
+      }
+    }
+
+    &.collapsed {
+      width: 0;
+      min-width: 0;
+
+      &__content {
+        padding: $sidenav-vertical-padding 0;
+      }
+    }
+
+    app-sidenav-toggle-button-component {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      display: none;
+    }
+
+    &__mobile {
+      position: absolute;
+      height: 100%;
+
+      app-sidenav-toggle-button-component {
+        display: block;
+      }
+    }
+  }
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    &__breadcrumbs {
+      display: flex;
+      min-height: 55px;
+      align-items: center;
+      padding: 0 15px;
+      border-bottom: 1px solid app-theme.$border-color;
+      gap: 10px;
+    }
+
+    &__content {
+      overflow: auto;
+      height: 100%;
+      padding: 0 30px 30px;
+    }
+  }
+}

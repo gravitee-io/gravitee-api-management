@@ -40,11 +40,6 @@ $indent-step: 26px;
 
     &.selected {
       color: #{theme.$primary-main-color};
-
-      .tree__button.more-actions {
-        opacity: 1;
-        visibility: visible;
-      }
     }
 
     &:hover {
