@@ -19,6 +19,7 @@ import { BaseChartDirective } from 'ng2-charts';
 
 import { PieConverterService } from './converter/pie-converter.service';
 import { FacetsResponse } from '../../widget/model/response/facets-response';
+import { CHART_COLORS } from '../shared/chart-colors';
 
 export type PieType = 'doughnut' | 'pie' | 'polarArea';
 
@@ -36,7 +37,13 @@ export class PieChartComponent {
   converter = inject(PieConverterService);
 
   public dataFormatted = computed(() => {
-    return this.converter.convert(this.data());
+    const chartData = this.converter.convert(this.data());
+
+    chartData.datasets.forEach(dataset => {
+      dataset.backgroundColor = CHART_COLORS;
+    });
+
+    return chartData;
   });
 
   private getDefaultOptions(): ChartConfiguration<PieType>['options'] {
