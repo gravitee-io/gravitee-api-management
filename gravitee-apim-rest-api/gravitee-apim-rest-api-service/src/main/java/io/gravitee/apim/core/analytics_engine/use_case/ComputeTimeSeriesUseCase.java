@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
@@ -41,20 +42,24 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final FilterPreProcessor filterPreprocessor;
+    private final List<FilterPreProcessor> filterPreprocessors;
 
     private final BucketNamesPostProcessor bucketNamesPostprocessor;
+
+    private final MetricsContextManager metricsContextManager;
 
     public ComputeTimeSeriesUseCase(
         AnalyticsQueryContextProvider queryContextProvider,
         AnalyticsQueryValidator validator,
-        FilterPreProcessor filterPreprocessor,
-        BucketNamesPostProcessor bucketNamesPostprocessor
+        List<FilterPreProcessor> filterPreprocessors,
+        BucketNamesPostProcessor bucketNamesPostprocessor,
+        MetricsContextManager metricsContextManager
     ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
-        this.filterPreprocessor = filterPreprocessor;
+        this.filterPreprocessors = filterPreprocessors;
         this.bucketNamesPostprocessor = bucketNamesPostprocessor;
+        this.metricsContextManager = metricsContextManager;
     }
 
     public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
@@ -66,15 +71,16 @@ public class ComputeTimeSeriesUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
+        MetricsContext metricsContext = new MetricsContext(input.auditInfo);
+        metricsContext = metricsContextManager.loadApis(metricsContext);
 
         var queryContext = queryContextProvider.resolve(input.request);
 
-        var responses = executeQueries(executionContext, metricsContextWithPermissions, queryContext);
+        var responses = executeQueries(executionContext, metricsContext, queryContext);
 
         TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(metricsContextWithPermissions, input.request.facets(), response);
+        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(metricsContext, input.request.facets(), response);
 
         return new Output(mappedResponse);
     }
@@ -88,7 +94,7 @@ public class ComputeTimeSeriesUseCase {
 
         queryContext.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filterPreprocessors.forEach(filterPreprocessor -> filters.addAll(filterPreprocessor.buildFilters(metricsContext)));
 
             responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
         });
