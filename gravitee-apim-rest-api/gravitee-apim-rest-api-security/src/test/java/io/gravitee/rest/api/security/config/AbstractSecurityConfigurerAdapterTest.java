@@ -91,7 +91,6 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
     @BeforeEach
     public void setUp() {
         when(graviteeConfiguration.getProperty("jwt.secret")).thenReturn("my-secret-for-tests");
-        when(graviteeConfiguration.getProperty("jwt.issuer", "gravitee-management-auth")).thenReturn("gravitee-management-auth");
         when(cookieGenerator.generate(eq("XSRF-TOKEN"), any(), eq(true))).thenReturn(new Cookie("XSRF-TOKEN", "some-csrf-token"));
     }
 
