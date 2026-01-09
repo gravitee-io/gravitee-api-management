@@ -105,7 +105,7 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build());
 
@@ -117,7 +117,7 @@ public class EmailServiceTest {
         assertThat(mimeMessageParser.getTo()).containsExactly(new InternetAddress("test@gravitee.io"));
         assertThat(mimeMessageParser.getBcc()).containsExactly(new InternetAddress("copy@gravitee.io"));
         assertThat(mimeMessageParser.getSubject()).isEqualTo("[Gravitee.io] Test email title");
-        assertThat(mimeMessageParser.getHtmlContent()).contains("cid:images/GRAVITEE_LOGO_RVB-11.png");
+        assertThat(mimeMessageParser.getHtmlContent()).contains("cid:images/GRAVITEE_LOGO.png");
         assertThat(mimeMessageParser.getAttachmentList())
             .extracting(DataSource::getName, DataSource::getContentType)
             .containsExactly(tuple("inline", "image/png"));
@@ -138,7 +138,7 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().to((String[]) null).build());
 
@@ -165,7 +165,7 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().copyToSender(true).build());
 
