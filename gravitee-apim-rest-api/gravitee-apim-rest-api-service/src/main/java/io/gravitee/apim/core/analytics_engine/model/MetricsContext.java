@@ -15,35 +15,40 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.Getter;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public record MetricsContext(
-    @Getter AuditInfo auditInfo,
+    AuditInfo auditInfo,
     Optional<Map<String, String>> apiNameById,
     Optional<Map<String, String>> applicationNameById,
-    List<Filter> filters
+    List<Filter> filters,
+    Optional<List<Api>> apis
 ) {
     public MetricsContext(AuditInfo auditInfo) {
-        this(auditInfo, Optional.empty(), Optional.empty(), List.of());
+        this(auditInfo, Optional.empty(), Optional.empty(), List.of(), Optional.empty());
     }
 
     public MetricsContext withApiNamesById(Map<String, String> apiNameById) {
-        return new MetricsContext(auditInfo, Optional.ofNullable(apiNameById), applicationNameById, filters);
+        return new MetricsContext(auditInfo, Optional.ofNullable(apiNameById), applicationNameById, filters, apis);
     }
 
     public MetricsContext withApplicationNameById(Map<String, String> applicationNameById) {
-        return new MetricsContext(auditInfo, apiNameById, Optional.ofNullable(applicationNameById), filters);
+        return new MetricsContext(auditInfo, apiNameById, Optional.ofNullable(applicationNameById), filters, apis);
     }
 
     public MetricsContext withFilters(List<Filter> filters) {
-        return new MetricsContext(auditInfo, apiNameById, applicationNameById, filters);
+        return new MetricsContext(auditInfo, apiNameById, applicationNameById, filters, apis);
+    }
+
+    public MetricsContext withApis(List<Api> apis) {
+        return new MetricsContext(auditInfo, apiNameById, applicationNameById, filters, Optional.ofNullable(apis));
     }
 }
