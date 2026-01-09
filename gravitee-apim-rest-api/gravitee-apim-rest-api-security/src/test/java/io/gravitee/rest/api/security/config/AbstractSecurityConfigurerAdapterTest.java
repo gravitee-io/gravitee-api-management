@@ -65,16 +65,16 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @TestPropertySource(
     properties = {
         "jwt.secret=my-secret-for-tests",
-        "http.xframe.enabled=true",
-        "http.xframe.action=SAMEORIGIN",
-        "http.xContentTypeOptions.enabled=true",
-        "http.csp.policy=frame-ancestors 'self';",
-        "http.referrerPolicy.policy=strict-origin-when-cross-origin",
-        "http.permissionsPolicy.policy=camera=(), microphone=(), geolocation=()",
-        "http.hsts.enabled=true",
-        "http.hsts.include-sub-domains=true",
-        "http.hsts.max-age=31536000",
-        "http.csrf.enabled=true",
+        "http.secureHeaders.xframe.enabled=true",
+        "http.secureHeaders.xframe.action=SAMEORIGIN",
+        "http.secureHeaders.xContentTypeOptions.enabled=true",
+        "http.secureHeaders.csp.policy=frame-ancestors 'self';",
+        "http.secureHeaders.referrerPolicy.policy=strict-origin-when-cross-origin",
+        "http.secureHeaders.permissionsPolicy.policy=camera=(), microphone=(), geolocation=()",
+        "http.secureHeaders.hsts.enabled=true",
+        "http.secureHeaders.hsts.include-sub-domains=true",
+        "http.secureHeaders.hsts.max-age=31536000",
+        "http.secureHeaders.csrf.enabled=true",
     }
 )
 public abstract class AbstractSecurityConfigurerAdapterTest {
