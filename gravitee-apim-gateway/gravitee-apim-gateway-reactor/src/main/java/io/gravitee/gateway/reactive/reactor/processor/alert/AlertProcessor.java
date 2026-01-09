@@ -118,7 +118,7 @@ public class AlertProcessor implements Processor {
                     .build()
             )
         )
-            .doOnError(throwable -> log.error("An error occurs while sending alert", throwable))
+            .doOnError(throwable -> ctx.withLogger(log).error("An error occurs while sending alert", throwable))
             .onErrorComplete();
     }
 }
