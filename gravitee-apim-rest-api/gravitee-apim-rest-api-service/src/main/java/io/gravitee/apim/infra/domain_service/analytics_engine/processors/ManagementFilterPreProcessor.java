@@ -21,18 +21,10 @@ import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.I
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -47,26 +39,17 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
-    private final ApiAuthorizationService apiAuthorizationService;
-    private final ApiRepository apiRepository;
-
     @Override
-    public MetricsContext buildFilters(MetricsContext context) {
-        var userApis = findUserApis(
-            context.auditInfo().organizationId(),
-            context.auditInfo().environmentId(),
-            context.auditInfo().actor().userId()
-        );
+    public List<Filter> buildFilters(MetricsContext context) {
+        if (context.apis().isEmpty()) {
+            throw new IllegalStateException("No APIs were found for the current user");
+        }
 
-        var userApisIds = userApis.keySet();
+        var apiIds = context.apis().get().stream().map(Api::getId).collect(Collectors.toList());
 
-        var permissionsFilter = new Filter(API, IN, userApisIds);
+        var permissionsFilter = new Filter(API, IN, apiIds);
 
-        return context.withFilters(List.of(permissionsFilter)).withApiNamesById(userApis);
-    }
-
-    private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
-        return apis.stream().collect(Collectors.toMap(Api::getId, Api::getName));
+        return List.of(permissionsFilter);
     }
 
     protected boolean isAdmin() {
@@ -80,21 +63,5 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
                     return authority.equalsIgnoreCase(ORGANIZATION_ADMIN);
                 }
             );
-    }
-
-    private Map<String, String> findUserApis(String organizationId, String environmentId, String userId) {
-        ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
-
-        ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder().environmentId(environmentId);
-
-        if (!isAdmin()) {
-            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
-
-            apiCriteriaBuilder.ids(userApiIds);
-        }
-
-        List<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields());
-
-        return mapApiIdsToNames(apis);
     }
 }

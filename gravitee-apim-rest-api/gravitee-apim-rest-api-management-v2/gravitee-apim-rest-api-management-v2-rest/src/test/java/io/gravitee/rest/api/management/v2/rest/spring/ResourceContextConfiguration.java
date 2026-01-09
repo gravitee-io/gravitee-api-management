@@ -41,6 +41,7 @@ import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
@@ -202,6 +203,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -980,9 +982,15 @@ public class ResourceContextConfiguration {
     public ComputeMeasuresUseCase computeMeasuresUseCase(
         AnalyticsQueryContextProvider analyticsQueryContextProvider,
         AnalyticsQueryValidator analyticsQueryValidator,
-        FilterPreProcessor filterPreprocessor
+        List<FilterPreProcessor> filterPreprocessors,
+        MetricsContextManager metricsContextManager
     ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
+        return new ComputeMeasuresUseCase(
+            analyticsQueryContextProvider,
+            analyticsQueryValidator,
+            filterPreprocessors,
+            metricsContextManager
+        );
     }
 
     @Bean
@@ -1023,5 +1031,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public MetricsContextManager metricsContextManager() {
+        return mock(MetricsContextManager.class);
     }
 }
