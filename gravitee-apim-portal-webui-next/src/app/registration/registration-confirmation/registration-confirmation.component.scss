@@ -23,38 +23,32 @@
 .registration-confirmation {
   display: flex;
   flex-flow: column;
-  gap: 20px;
+  gap: 16px;
 
   &__success {
     &__content {
       display: flex;
       flex-flow: column;
-      align-items: center;
+      align-items: flex-start;
       gap: 16px;
-      text-align: center;
+      text-align: left;
+    }
 
-      &__icon {
-        font-size: 64px;
+    &__text {
+      margin-top: 6px;
+      color: theme.$paragraph-color;
+    }
 
-        mat-icon {
-          width: 64px;
-          height: 64px;
-          font-size: 64px;
-          line-height: 64px;
-          text-align: center;
-        }
-      }
+    &__action {
+      align-self: center;
+      color: theme.$primary-main-color;
     }
   }
 
   &__form {
     display: flex;
     flex-flow: column;
-    gap: 16px;
-
-    &__header {
-      padding: 20px;
-    }
+    gap: 20px;
 
     &__container {
       border-radius: 8px;
@@ -64,24 +58,52 @@
       }
     }
 
-    &__content:last-child {
-      padding: 0 20px 20px;
+    &__section {
+      display: flex;
+      flex-flow: column;
+      gap: 12px;
+    }
+
+    &__section-title {
+      color: theme.$paragraph-color;
+    }
+
+    &__details {
+      display: flex;
+      flex-flow: column;
+      gap: 6px;
+    }
+
+    &__detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    &__detail-label {
+      color: theme.$default-text-color;
     }
 
     &__fields {
       display: flex;
       flex-flow: column;
-      gap: 8px;
+      gap: 12px;
     }
 
     &__buttons {
       display: flex;
       flex-flow: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     &__submit {
       width: 100%;
+    }
+
+    &__login {
+      display: inline-flex;
+      justify-content: center;
+      gap: 6px;
     }
 
     &__error {
