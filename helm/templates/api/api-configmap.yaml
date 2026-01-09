@@ -222,14 +222,20 @@ data:
       {{- end }}
     {{- end }}
 
-    {{- if and .Values.api.http .Values.api.http.api }}
+    {{- if and .Values.api.http .Values.api.http }}
     http:
+    {{- if and .Values.api.http .Values.api.http.api }}
       api:
         entrypoint: {{ .Values.api.http.api.entrypoint }}
         management:
           entrypoint: ${http.api.entrypoint}management
         portal:
           entrypoint: ${http.api.entrypoint}portal
+    {{- end }}
+    {{- if and .Values.api.http .Values.api.http.secureHeaders }}
+      secureHeaders:
+        {{ toYaml .Values.api.http.secureHeaders | nindent 8 | trim -}}
+    {{- end }}
     {{- end }}
 
     analytics:
