@@ -731,6 +731,38 @@ api:
 #         appProtocol: http
     api:
       entrypoint: /
+    secureHeaders:
+      csrf:
+        # Allows to enable or disable the CSRF protection. Enabled by default.
+        enabled: true
+      hsts:
+        enabled: true
+        include-sub-domains: true
+        max-age: 31536000
+
+      # Adds the X-Frame-Options header. Possible values: DENY, SAMEORIGIN. Enabled by default on SAMEORIGIN.
+      xframe:
+        enabled: true
+        action: SAMEORIGIN
+
+      # Adds the X-Content-Type-Options: nosniff header. Enabled by default.
+      xContentTypeOptions:
+        enabled: true
+
+      # Adds the Content-Security-Policy header.
+      # Example: "default-src 'self'; frame-ancestors 'none';"
+      csp:
+        policy: "frame-ancestors 'self';"
+
+      # Adds the Referrer-Policy header.
+      # Example: "no-referrer", "strict-origin-when-cross-origin", ...
+      referrerPolicy:
+        policy: "strict-origin-when-cross-origin"
+
+      # Adds the Permissions-Policy header.
+      # Example: "geolocation=(), microphone=(), camera=()"
+      permissionsPolicy:
+        policy: "geolocation=(), microphone=(), camera=()"
     client:
       timeout: 10000
       # proxy:
