@@ -113,15 +113,14 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             Optional<Api> apiOptional = apiRepository.findById(apiId);
             if (apiOptional.isPresent()) {
                 final Api api = apiOptional.get();
-                return planRepository
-                    .findByApi(apiId)
-                    .stream()
-                    .map(plan ->
-                        withFlow
-                            ? genericPlanMapper.toGenericPlanWithFlow(api, plan)
-                            : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
-                    )
-                    .collect(Collectors.toSet());
+                final var plans = planRepository.findByApi(apiId);
+                if (plans == null || plans.isEmpty()) {
+                    return Set.of();
+                }
+
+                return withFlow
+                    ? genericPlanMapper.toGenericPlansWithFlow(api, plans)
+                    : genericPlanMapper.toGenericPlansWithoutFlow(api, plans);
             } else {
                 return Set.of();
             }
