@@ -15,16 +15,22 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,8 +73,13 @@ public class GenericPlanMapperTest {
         api.setType(ApiType.MESSAGE);
 
         Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        List<Flow> flows = List.of(new Flow());
+        when(flowServiceV4.findByReferences(any(), anySet())).thenReturn(Map.of("plan-id", flows));
+
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planMapper).toEntity(plan, List.of());
+        verify(planMapper).toEntity(plan, flows);
     }
 
     @Test
@@ -78,8 +89,13 @@ public class GenericPlanMapperTest {
         api.setType(ApiType.NATIVE);
 
         Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        List<NativeFlow> nativeFlows = List.of(new NativeFlow());
+        when(flowCrudService.getNativePlanFlows(anySet())).thenReturn(Map.of("plan-id", nativeFlows));
+
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planMapper).toNativeEntity(plan, List.of());
+        verify(planMapper).toNativeEntity(plan, nativeFlows);
     }
 
     @Test
@@ -88,8 +104,13 @@ public class GenericPlanMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V2);
 
         Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        List<io.gravitee.definition.model.flow.Flow> v2Flows = List.of(new io.gravitee.definition.model.flow.Flow());
+        when(flowCrudService.getPlanV2Flows(anySet())).thenReturn(Map.of("plan-id", v2Flows));
+
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planConverter).toPlanEntity(plan, List.of());
+        verify(planConverter).toPlanEntity(plan, v2Flows);
     }
 
     @Test
@@ -98,8 +119,13 @@ public class GenericPlanMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V1);
 
         Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        List<io.gravitee.definition.model.flow.Flow> v2Flows = List.of(new io.gravitee.definition.model.flow.Flow());
+        when(flowCrudService.getPlanV2Flows(anySet())).thenReturn(Map.of("plan-id", v2Flows));
+
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planConverter).toPlanEntity(plan, List.of());
+        verify(planConverter).toPlanEntity(plan, v2Flows);
     }
 
     @Test
@@ -107,7 +133,12 @@ public class GenericPlanMapperTest {
         Api api = new Api();
 
         Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        List<io.gravitee.definition.model.flow.Flow> v2Flows = List.of(new io.gravitee.definition.model.flow.Flow());
+        when(flowCrudService.getPlanV2Flows(anySet())).thenReturn(Map.of("plan-id", v2Flows));
+
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
-        verify(planConverter).toPlanEntity(plan, List.of());
+        verify(planConverter).toPlanEntity(plan, v2Flows);
     }
 }

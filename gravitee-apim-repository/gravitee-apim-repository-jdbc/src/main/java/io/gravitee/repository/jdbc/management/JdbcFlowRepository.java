@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -195,10 +196,14 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     @Override
-    public List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.findByReference({}, {})", referenceType, referenceId);
+    public List<Flow> findByReferences(FlowReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
+        LOGGER.debug("JdbcFlowRepository.findByReferences({}, {})", referenceType, referenceIds);
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return List.of();
+        }
 
         try {
+            String inClause = getOrm().buildInClause(referenceIds);
             StringBuilder selectQueryBuilder = new StringBuilder("select");
             selectQueryBuilder.append(" f.id as \"flows.id\",");
             selectQueryBuilder.append(" f.").append(escapeReservedWord("condition")).append(" as \"flows.condition\",");
@@ -257,13 +262,15 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
             selectQueryBuilder.append(" left join ").append(FLOW_TAGS).append(" ft on f.id = ft.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_METHODS).append(" fm on f.id = fm.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_CONSUMERS).append(" fc on f.id = fc.flow_id");
-            selectQueryBuilder.append(" where f.reference_id = ? and f.reference_type = ?");
+            selectQueryBuilder.append(" where f.reference_type = ? and f.reference_id in (").append(inClause).append(")");
             selectQueryBuilder
                 .append(" order by f.id, fs.phase, fs.")
                 .append(escapeReservedWord("order"))
                 .append(", fm.method, ft.tag, fc.consumer_id, fse.type, fsce.channel_entrypoint, fsco.channel_operation asc");
 
-            SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(selectQueryBuilder.toString(), referenceId, referenceType.name());
+            final var params = Stream.concat(Stream.of(referenceType.name()), referenceIds.stream()).toArray();
+
+            SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(selectQueryBuilder.toString(), params);
             return computeFlowList(sqlRowSet);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find flows by reference:", ex);
