@@ -30,4 +30,9 @@ public interface FlowService {
 
     List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
     List<NativeFlow> findNativeFlowByReference(final FlowReferenceType flowReferenceType, final String referenceId);
+
+    java.util.Map<String, java.util.List<Flow>> findByReferences(
+        final FlowReferenceType flowReferenceType,
+        final java.util.Collection<String> referenceIds
+    );
 }

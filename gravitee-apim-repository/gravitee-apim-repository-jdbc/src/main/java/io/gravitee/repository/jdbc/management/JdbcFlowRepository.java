@@ -262,6 +262,110 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         }
     }
 
+    @Override
+    public List<Flow> findByReferences(FlowReferenceType referenceType, java.util.Collection<String> referenceIds)
+        throws TechnicalException {
+        LOGGER.debug("JdbcFlowRepository.findByReferences({}, {})", referenceType, referenceIds);
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return java.util.List.of();
+        }
+        try {
+            String inClause = getOrm().buildInClause(referenceIds);
+            String selectQuery =
+                "select" +
+                " f.id as \"flows.id\"," +
+                " f." +
+                escapeReservedWord("condition") +
+                " as \"flows.condition\"," +
+                " f.created_at as \"flows.createdAt\"," +
+                " f.enabled as \"flows.enabled\"," +
+                " f.name as \"flows.name\"," +
+                " f.path as \"flows.path\"," +
+                " f.operator as \"flows.operator\"," +
+                " f.reference_id as \"flows.referenceId\"," +
+                " f.reference_type as \"flows.referenceType\"," +
+                " f.updated_at as \"flows.updatedAt\"," +
+                " f." +
+                escapeReservedWord("order") +
+                " as \"flows.order\"," +
+                " fs.configuration as \"flowSteps.configuration\"," +
+                " fs.description as \"flowSteps.description\"," +
+                " fs.enabled as \"flowSteps.enabled\"," +
+                " fs.name as \"flowSteps.name\"," +
+                " fs.policy as \"flowSteps.policy\"," +
+                " fs." +
+                escapeReservedWord("order") +
+                " as \"flowSteps.order\"," +
+                " fs.phase as \"flowSteps.phase\"," +
+                " fs." +
+                escapeReservedWord("condition") +
+                " as \"flowSteps.condition\"," +
+                " fs.id as \"flowSteps.id\"," +
+                " fs.message_condition as \"flowSteps.messageCondition\"," +
+                " fse.type as \"flowSelectors.type\"," +
+                " fse.path as \"flowSelectors.path\"," +
+                " fse.path_operator as \"flowSelectors.pathOperator\"," +
+                " fse." +
+                escapeReservedWord("condition") +
+                " as \"flowSelectors.condition\"," +
+                " fse.channel as \"flowSelectors.channel\"," +
+                " fse.channel_operator as \"flowSelectors.channelOperator\"," +
+                " ft.tag as \"flowTags.tag\"," +
+                " fm.method as \"flowMethods.method\"," +
+                " fc.consumer_type as \"flowConsumers.consumerType\"," +
+                " fc.consumer_id as \"flowConsumers.consumerId\"," +
+                " fsce.channel_entrypoint as \"flowSelectorChannelEntrypoints.channelEntrypoint\"," +
+                " fsco.channel_operation as \"flowSelectorChannelOperations.channelOperation\"," +
+                " fshm.method as \"flowSelectorHttpMethods.method\"" +
+                " from " +
+                FLOWS +
+                " f" +
+                " left join " +
+                FLOW_STEPS +
+                " fs on f.id = fs.flow_id" +
+                " left join " +
+                FLOW_SELECTORS +
+                " fse on f.id = fse.flow_id" +
+                " left join " +
+                FLOW_SELECTOR_CHANNEL_ENTRYPOINTS +
+                " fsce on f.id = fsce.flow_id and fse.type = 'CHANNEL'" +
+                " left join " +
+                FLOW_SELECTOR_CHANNEL_OPERATIONS +
+                " fsco on f.id = fsco.flow_id  and fse.type = 'CHANNEL'" +
+                " left join " +
+                FLOW_SELECTOR_HTTP_METHODS +
+                " fshm on f.id = fshm.flow_id  and fse.type = 'HTTP'" +
+                " left join " +
+                FLOW_TAGS +
+                " ft on f.id = ft.flow_id" +
+                " left join " +
+                FLOW_METHODS +
+                " fm on f.id = fm.flow_id" +
+                " left join " +
+                FLOW_CONSUMERS +
+                " fc on f.id = fc.flow_id" +
+                " where f.reference_type = ? and f.reference_id in (" +
+                inClause +
+                ")" +
+                " order by f.id, fs.phase, fs." +
+                escapeReservedWord("order") +
+                ", fm.method, ft.tag, fc.consumer_id, fse.type, fsce.channel_entrypoint, fsco.channel_operation asc";
+
+            Object[] params = new Object[referenceIds.size() + 1];
+            int i = 0;
+            params[i++] = referenceType.name();
+            for (String refId : referenceIds) {
+                params[i++] = refId;
+            }
+
+            SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(selectQuery, params);
+            return computeFlowList(sqlRowSet);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find flows by references:", ex);
+            throw new TechnicalException("Failed to find flows by references", ex);
+        }
+    }
+
     private List<Flow> computeFlowList(SqlRowSet rs) {
         Map<String, Flow> flowsById = new HashMap<>();
         Map<String, FlowStep> flowStepsById = new HashMap<>();

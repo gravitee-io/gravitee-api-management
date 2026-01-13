@@ -44,4 +44,8 @@ public interface FlowCrudService {
     List<NativeFlow> getNativeApiFlows(String apiId);
 
     List<NativeFlow> getNativePlanFlows(String planId);
+
+    java.util.Map<String, java.util.List<NativeFlow>> getNativePlanFlows(java.util.Collection<String> planIds);
+
+    java.util.Map<String, java.util.List<io.gravitee.definition.model.flow.Flow>> getPlanV2Flows(java.util.Collection<String> planIds);
 }

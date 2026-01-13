@@ -168,6 +168,39 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     }
 
     @Override
+    public java.util.Map<String, java.util.List<Flow>> findByReferences(
+        final FlowReferenceType flowReferenceType,
+        final java.util.Collection<String> referenceIds
+    ) {
+        try {
+            if (referenceIds == null || referenceIds.isEmpty()) {
+                return java.util.Map.of();
+            }
+            log.debug("Find flows by references {} - {}", flowReferenceType, referenceIds.size());
+            List<io.gravitee.repository.management.model.flow.Flow> flows = flowRepository.findByReferences(
+                flowReferenceType,
+                referenceIds
+            );
+            flows.forEach(this::enrichFlow);
+            return flows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        e.getValue().stream().map(flowMapper::toDefinition).collect(Collectors.toList())
+                    )
+                );
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while find flows by references";
+            log.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    @Override
     public List<NativeFlow> findNativeFlowByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);

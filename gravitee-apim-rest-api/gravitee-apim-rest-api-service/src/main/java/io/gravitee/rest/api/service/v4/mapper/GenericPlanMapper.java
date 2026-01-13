@@ -64,4 +64,27 @@ public class GenericPlanMapper {
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
     }
+
+    public GenericPlanEntity toGenericPlan(
+        final Api api,
+        final Plan plan,
+        final java.util.Map<String, java.util.List<io.gravitee.definition.model.v4.flow.Flow>> flowsByPlanId,
+        final java.util.Map<String, java.util.List<io.gravitee.definition.model.v4.nativeapi.NativeFlow>> nativeFlowsByPlanId,
+        final java.util.Map<String, java.util.List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId
+    ) {
+        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        return switch (apiDefinitionVersion) {
+            case V4 -> switch (api.getType()) {
+                case PROXY, MESSAGE -> planMapper.toEntity(plan, flowsByPlanId == null ? null : flowsByPlanId.get(plan.getId()));
+                case NATIVE -> planMapper.toNativeEntity(plan, nativeFlowsByPlanId == null ? null : nativeFlowsByPlanId.get(plan.getId()));
+            };
+            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            default -> planConverter.toPlanEntity(
+                plan,
+                v2FlowsByPlanId == null
+                    ? flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId())
+                    : v2FlowsByPlanId.get(plan.getId())
+            );
+        };
+    }
 }

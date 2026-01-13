@@ -94,6 +94,15 @@ public class MongoFlowRepository implements FlowRepository {
     }
 
     @Override
+    public List<Flow> findByReferences(FlowReferenceType referenceType, java.util.Collection<String> referenceIds) {
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return java.util.List.of();
+        }
+        final List<FlowMongo> flows = internalRepository.findAll(referenceType.name(), referenceIds.toArray(new String[0]));
+        return flows.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
         logger.debug("Delete flows by reference [{},{}]", referenceId, referenceType);
         try {

@@ -18,12 +18,14 @@ package io.gravitee.rest.api.service.v4.impl;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
@@ -35,6 +37,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
@@ -60,12 +63,16 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
     private final GenericPlanMapper genericPlanMapper;
+    private final FlowService flowService;
+    private final FlowCrudService flowCrudService;
 
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
         @Lazy final ApiRepository apiRepository,
         @Lazy final GroupService groupService,
         @Lazy final ApiSearchService apiSearchService,
+        @Lazy final FlowService flowService,
+        @Lazy final FlowCrudService flowCrudService,
         final ObjectMapper objectMapper,
         final GenericPlanMapper genericPlanMapper
     ) {
@@ -73,6 +80,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         this.apiRepository = apiRepository;
         this.groupService = groupService;
         this.apiSearchService = apiSearchService;
+        this.flowService = flowService;
+        this.flowCrudService = flowCrudService;
         this.objectMapper = objectMapper;
         this.genericPlanMapper = genericPlanMapper;
     }
@@ -106,10 +115,31 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             Optional<Api> apiOptional = apiRepository.findById(apiId);
             if (apiOptional.isPresent()) {
                 final Api api = apiOptional.get();
-                return planRepository
-                    .findByApi(apiId)
+                final var plans = planRepository.findByApi(apiId);
+                if (plans == null || plans.isEmpty()) {
+                    return Set.of();
+                }
+                // collect plan ids
+                final java.util.Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
+
+                // bulk fetch flows for V4 http plans (if available)
+                final java.util.Map<String, java.util.List<io.gravitee.definition.model.v4.flow.Flow>> flowsByPlanId = flowService != null
+                    ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
+                    : null;
+
+                // bulk fetch native flows for V4 native plans (if available)
+                final java.util.Map<String, java.util.List<io.gravitee.definition.model.v4.nativeapi.NativeFlow>> nativeFlowsByPlanId =
+                    flowCrudService != null ? flowCrudService.getNativePlanFlows(planIds) : null;
+
+                // bulk fetch V2 flows for V2 plans (avoid per-plan calls to flowServiceV2.findByReference)
+                final java.util.Map<String, java.util.List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId = flowCrudService !=
+                    null
+                    ? flowCrudService.getPlanV2Flows(planIds)
+                    : null;
+
+                return plans
                     .stream()
-                    .map(plan -> genericPlanMapper.toGenericPlan(api, plan))
+                    .map(plan -> genericPlanMapper.toGenericPlan(api, plan, flowsByPlanId, nativeFlowsByPlanId, v2FlowsByPlanId))
                     .collect(Collectors.toSet());
             } else {
                 return Set.of();
