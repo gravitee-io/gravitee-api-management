@@ -71,6 +71,10 @@ public interface SecureHeadersConfigurer {
     static void referrerPolicy(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
         String policyString = environment.getProperty("http.secureHeaders.referrerPolicy.policy");
 
+        if (policyString == null || policyString.isEmpty()) {
+            return;
+        }
+
         var policy = Arrays.stream(ReferrerPolicyHeaderWriter.ReferrerPolicy.values())
             .filter(p -> p.getPolicy().equalsIgnoreCase(policyString))
             .findFirst()
