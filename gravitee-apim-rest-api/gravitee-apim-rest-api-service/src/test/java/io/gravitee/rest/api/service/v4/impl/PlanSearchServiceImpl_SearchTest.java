@@ -17,9 +17,11 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
@@ -48,7 +51,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PlanSearchServiceImpl_SearchTest {
 
-    private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
     private static final String USER = "my-user";
 
@@ -72,6 +74,12 @@ public class PlanSearchServiceImpl_SearchTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
+
     private Api api;
 
     @Before
@@ -90,6 +98,8 @@ public class PlanSearchServiceImpl_SearchTest {
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(flowService.findByReferences(any(), anySet())).thenReturn(Collections.emptyMap());
+        when(flowCrudService.getNativePlanFlows(anySet())).thenReturn(Collections.emptyMap());
     }
 
     @Test
@@ -115,13 +125,13 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan1))).thenReturn(
             fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan2))).thenReturn(
             fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan3))).thenReturn(
             fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
 
@@ -152,7 +162,7 @@ public class PlanSearchServiceImpl_SearchTest {
         rule.setEnabled(true);
         var rules = List.of(rule);
 
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan1))).thenReturn(
             fakeV2PlanEntity(
                 "plan-1",
                 1,
@@ -162,7 +172,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 rules
             )
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan2))).thenReturn(
             fakeV2PlanEntity(
                 "plan-2",
                 2,
@@ -172,7 +182,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 null
             )
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan3))).thenReturn(
             fakeV2PlanEntity(
                 "plan-3",
                 3,
@@ -182,7 +192,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 null
             )
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan4)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan4))).thenReturn(
             fakeV2PlanEntity(
                 "plan-4",
                 4,
@@ -192,7 +202,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 rules
             )
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan5)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan5))).thenReturn(
             fakeV2PlanEntity(
                 "plan-5",
                 5,
@@ -231,13 +241,13 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan1))).thenReturn(
             fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan2))).thenReturn(
             fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
         );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan3))).thenReturn(
             fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
 

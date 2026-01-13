@@ -21,10 +21,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -38,6 +42,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
@@ -162,8 +167,8 @@ public class PlanSearchServiceImplTest {
         planEntity1.setId(plan1.getId());
         PlanEntity planEntity2 = new PlanEntity();
         planEntity2.setId(plan2.getId());
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(planEntity1);
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(planEntity2);
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan1))).thenReturn(planEntity1);
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan2))).thenReturn(planEntity2);
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
         Set<GenericPlanEntity> plans = planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
 
