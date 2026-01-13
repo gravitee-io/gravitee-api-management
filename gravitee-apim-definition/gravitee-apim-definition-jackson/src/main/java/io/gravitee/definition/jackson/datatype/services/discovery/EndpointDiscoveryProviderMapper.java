@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.jackson.datatype.services.discovery;
 
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -24,13 +24,21 @@ import java.util.Map;
  */
 public class EndpointDiscoveryProviderMapper {
 
-    private static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = new HashMap<>();
-
-    static {
-        PROVIDERS_PLUGIN_MAPPING.put("CONSUL", "consul-service-discovery");
-    }
+    private static final String CONSUL_PROVIDER = "CONSUL";
+    private static final String KUBERNETES_PROVIDER = "KUBERNETES";
+    private static final String CONSUL_PLUGIN_ID = "consul-service-discovery";
+    private static final String KUBERNETES_PLUGIN_ID = "kubernetes-service-discovery";
+    private static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = Map.of(
+        CONSUL_PROVIDER,
+        CONSUL_PLUGIN_ID,
+        KUBERNETES_PROVIDER,
+        KUBERNETES_PLUGIN_ID
+    );
 
     public static String getProvider(String provider) {
-        return PROVIDERS_PLUGIN_MAPPING.getOrDefault(provider, provider.toLowerCase());
+        if (provider == null) {
+            return null;
+        }
+        return PROVIDERS_PLUGIN_MAPPING.getOrDefault(provider, provider.toLowerCase(Locale.ROOT));
     }
 }

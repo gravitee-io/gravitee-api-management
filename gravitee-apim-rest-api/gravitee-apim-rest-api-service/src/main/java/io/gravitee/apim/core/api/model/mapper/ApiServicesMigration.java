@@ -41,7 +41,14 @@ public final class ApiServicesMigration {
 
     private final ObjectMapper jsonMapper;
     private static final String TYPE_ENDPOINT = "ENDPOINT";
-    private static final List<String> ALLOWED_DISCOVERY_PLUGIN_IDS = List.of("consul-service-discovery");
+    private static final String CONSUL_SERVICE_DISCOVERY_ID = "consul-service-discovery";
+    private static final String KUBERNETES_SERVICE_DISCOVERY_ID = "kubernetes-service-discovery";
+    private static final String HTTP_HEALTH_CHECK_TYPE = "http-health-check";
+    private static final String HTTP_DYNAMIC_PROPERTIES_TYPE = "http-dynamic-properties";
+    private static final List<String> ALLOWED_DISCOVERY_PLUGIN_IDS = List.of(
+        CONSUL_SERVICE_DISCOVERY_ID,
+        KUBERNETES_SERVICE_DISCOVERY_ID
+    );
 
     public MigrationResult<io.gravitee.definition.model.v4.service.Service> convert(
         io.gravitee.definition.model.Service v2Service,
@@ -74,7 +81,7 @@ public final class ApiServicesMigration {
     private MigrationResult<Service> convertHealthCheckService(HealthCheckService v2HealthCheckService, String type, String name) {
         ObjectNode config = jsonMapper.createObjectNode();
         var migrationResult = MigrationResult.value(
-            Service.builder().enabled(v2HealthCheckService.isEnabled()).overrideConfiguration(false).type("http-health-check").build()
+            Service.builder().enabled(v2HealthCheckService.isEnabled()).overrideConfiguration(false).type(HTTP_HEALTH_CHECK_TYPE).build()
         );
         String endpointReferenceForMessage = String.format("%s : %s", type.equals(TYPE_ENDPOINT) ? "endpoint" : "endpointgroup", name);
 
@@ -150,7 +157,7 @@ public final class ApiServicesMigration {
         MigrationResult<Service> migrationResult = MigrationResult.value(
             Service.builder()
                 .overrideConfiguration(false)
-                .type("http-dynamic-properties")
+                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
                 .enabled(v2dynamicPropertyService.isEnabled())
                 .build()
         );

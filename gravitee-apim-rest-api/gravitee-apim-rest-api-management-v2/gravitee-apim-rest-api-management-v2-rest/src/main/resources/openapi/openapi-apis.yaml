@@ -433,6 +433,28 @@ paths:
                                 $ref: "#/components/schemas/VerifyApiDeploymentResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/service-discovery/endpoints:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get service discovery endpoints for an API
+            description: |-
+                Get the current endpoints discovered by service discovery for API v4 endpoint groups.
+
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getServiceDiscoveryEndpoints
+            responses:
+                "200":
+                    description: Service discovery endpoints
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ServiceDiscoveryEndpointsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/picture:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -4292,6 +4314,32 @@ components:
             properties:
                 healthCheck:
                     $ref: "#/components/schemas/ServiceV4"
+        ServiceDiscoveryEndpointsResponse:
+            type: object
+            properties:
+                groups:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ServiceDiscoveryEndpointGroup"
+        ServiceDiscoveryEndpointGroup:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The endpoint group name
+                endpoints:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ServiceDiscoveryEndpoint"
+        ServiceDiscoveryEndpoint:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The discovered endpoint name
+                target:
+                    type: string
+                    description: The resolved target URL
         Entrypoint:
             type: object
             required:

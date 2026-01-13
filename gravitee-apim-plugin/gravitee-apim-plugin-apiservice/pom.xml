@@ -33,10 +33,11 @@
     <name>Gravitee.io APIM - Plugin - Api Service</name>
 
     <modules>
+        <module>gravitee-apim-plugin-apiservice-dynamicproperties</module>
         <module>gravitee-apim-plugin-apiservice-handler</module>
         <module>gravitee-apim-plugin-apiservice-healthcheck-common</module>
         <module>gravitee-apim-plugin-apiservice-healthcheck-http</module>
         <module>gravitee-apim-plugin-apiservice-servicediscovery-consul</module>
-        <module>gravitee-apim-plugin-apiservice-dynamicproperties</module>
+        <module>gravitee-apim-plugin-apiservice-servicediscovery-kubernetes</module>
     </modules>
 </project>

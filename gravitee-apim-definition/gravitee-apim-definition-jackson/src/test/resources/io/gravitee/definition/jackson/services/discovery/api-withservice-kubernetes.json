@@ -1,0 +1,27 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "default"
+      }
+    ]
+  },
+  "paths": {
+    "/*": []
+  },
+  "services": {
+    "discovery": {
+      "provider": "kubernetes-service-discovery",
+      "configuration": {
+        "namespace": "default",
+        "service": "my-service",
+        "port": 8080,
+        "scheme": "https",
+        "path": "/api"
+      }
+    }
+  }
+}

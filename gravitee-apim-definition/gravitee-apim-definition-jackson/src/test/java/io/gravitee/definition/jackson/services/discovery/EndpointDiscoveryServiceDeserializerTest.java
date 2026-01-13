@@ -28,6 +28,9 @@ import org.junit.jupiter.api.Test;
  */
 public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
 
+    private static final String CONSUL_SERVICE_DISCOVERY_ID = "consul-service-discovery";
+    private static final String KUBERNETES_SERVICE_DISCOVERY_ID = "kubernetes-service-discovery";
+
     @Test
     public void definition_withoutEndpointDiscovery() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withoutservice.json", Api.class);
@@ -40,22 +43,38 @@ public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
     public void definition_withEndpointDiscovery_consul() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json", Api.class);
 
-        EndpointDiscoveryService endpointDiscoveryService = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getServices()
-            .get(EndpointDiscoveryService.class);
+        EndpointDiscoveryService endpointDiscoveryService = getDiscoveryService(api);
         Assertions.assertNotNull(endpointDiscoveryService);
         Assertions.assertNotNull(endpointDiscoveryService.getConfiguration());
 
-        Assertions.assertEquals("consul-service-discovery", endpointDiscoveryService.getProvider());
+        Assertions.assertEquals(CONSUL_SERVICE_DISCOVERY_ID, endpointDiscoveryService.getProvider());
         Assertions.assertNotNull(endpointDiscoveryService.getConfiguration());
 
         JsonNode configNode = objectMapper().readTree(endpointDiscoveryService.getConfiguration());
         Assertions.assertEquals("my-service", configNode.path("service").asText());
         Assertions.assertEquals("acl", configNode.path("acl").asText());
         Assertions.assertEquals("dc", configNode.path("dc").asText());
+    }
+
+    @Test
+    public void definition_withEndpointDiscovery_kubernetes() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-kubernetes.json", Api.class);
+
+        EndpointDiscoveryService endpointDiscoveryService = getDiscoveryService(api);
+        Assertions.assertNotNull(endpointDiscoveryService);
+        Assertions.assertNotNull(endpointDiscoveryService.getConfiguration());
+
+        Assertions.assertEquals(KUBERNETES_SERVICE_DISCOVERY_ID, endpointDiscoveryService.getProvider());
+
+        JsonNode configNode = objectMapper().readTree(endpointDiscoveryService.getConfiguration());
+        Assertions.assertEquals("default", configNode.path("namespace").asText());
+        Assertions.assertEquals("my-service", configNode.path("service").asText());
+        Assertions.assertEquals(8080, configNode.path("port").asInt());
+        Assertions.assertEquals("https", configNode.path("scheme").asText());
+        Assertions.assertEquals("/api", configNode.path("path").asText());
+    }
+
+    private EndpointDiscoveryService getDiscoveryService(Api api) {
+        return api.getProxy().getGroups().iterator().next().getServices().get(EndpointDiscoveryService.class);
     }
 }

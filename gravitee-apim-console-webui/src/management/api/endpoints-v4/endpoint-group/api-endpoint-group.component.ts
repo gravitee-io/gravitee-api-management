@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,6 +29,7 @@ import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint
 import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-form/api-health-check-v4-form.component';
 import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
 import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-v4-matching-dlq';
+import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 
 export type EndpointGroupHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -42,8 +43,9 @@ export type EndpointGroupHealthCheckFormType = FormGroup<{
   standalone: false,
 })
 export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  private SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE = 'Configuration successfully saved!';
+  private static readonly SERVICE_DISCOVERY_SUFFIX = '-service-discovery';
+  private readonly unsubscribe$ = new Subject<void>();
+  private readonly SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE = 'Configuration successfully saved!';
 
   public api: ApiV4;
   public initialApi: ApiV4;
@@ -55,6 +57,8 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public healthCheckSchema: unknown;
   public isHttpProxyApi: boolean;
   public isNativeKafkaApi: boolean;
+  public serviceDiscoveryForm: UntypedFormGroup;
+  public serviceDiscoveryItems: ResourceListItem[];
 
   public initialGroupFormValue: any;
   public endpointGroup: EndpointGroupV4;
@@ -159,6 +163,24 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       }),
     });
 
+    this.serviceDiscoveryForm = new UntypedFormGroup(
+      {
+        enabled: new UntypedFormControl({
+          value: this.endpointGroup.services?.discovery?.enabled ?? false,
+          disabled: this.isReadOnly || !this.isHttpProxyApi,
+        }),
+        type: new UntypedFormControl({
+          value: this.endpointGroup.services?.discovery?.type ?? null,
+          disabled: this.isReadOnly || !this.isHttpProxyApi,
+        }),
+        configuration: new UntypedFormControl({
+          value: this.endpointGroup.services?.discovery?.configuration ?? {},
+          disabled: this.isReadOnly || !this.isHttpProxyApi,
+        }),
+      },
+      { validators: [serviceDiscoveryValidator] },
+    );
+
     if (this.isHttpProxyApi) {
       this.apiServicePluginsV2Service
         .getApiServicePluginSchema(ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK)
@@ -169,6 +191,29 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
           takeUntil(this.unsubscribe$),
         )
         .subscribe();
+
+      this.apiServicePluginsV2Service
+        .list()
+        .pipe(
+          map((items) => items.filter((item) => this.isServiceDiscoveryPlugin(item))),
+          tap((items) => {
+            this.serviceDiscoveryItems = items;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+
+      this.serviceDiscoveryForm.controls.enabled.valueChanges
+        .pipe(startWith(this.serviceDiscoveryForm.controls.enabled.value), takeUntil(this.unsubscribe$))
+        .subscribe((enabled) => {
+          if (enabled) {
+            this.serviceDiscoveryForm.controls.type.enable({ emitEvent: false });
+            this.serviceDiscoveryForm.controls.configuration.enable({ emitEvent: false });
+          } else {
+            this.serviceDiscoveryForm.controls.type.disable({ emitEvent: false });
+            this.serviceDiscoveryForm.controls.configuration.disable({ emitEvent: false });
+          }
+        });
 
       this.healthCheckForm.controls.enabled.valueChanges
         .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
@@ -185,6 +230,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       general: this.generalForm,
       configuration: this.configurationForm,
       healthCheck: this.healthCheckForm,
+      serviceDiscovery: this.serviceDiscoveryForm,
     });
 
     this.initialGroupFormValue = this.groupForm.getRawValue();
@@ -208,6 +254,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     };
     if (this.isHttpProxyApi) {
       const isHealthCheckEnabled = this.healthCheckForm.controls.enabled.value;
+      const isServiceDiscoveryEnabled = this.serviceDiscoveryForm.controls.enabled.value;
+      const serviceDiscoveryType = this.serviceDiscoveryForm.getRawValue().type;
+      const serviceDiscoveryConfiguration = this.serviceDiscoveryForm.getRawValue().configuration;
       updatedEndpointGroups[this.activatedRoute.snapshot.params.groupIndex].services = {
         ...this.endpointGroup.services,
         healthCheck: isHealthCheckEnabled
@@ -218,13 +267,28 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
               overrideConfiguration: false,
             }
           : undefined,
+        discovery: isServiceDiscoveryEnabled
+          ? {
+              enabled: isServiceDiscoveryEnabled,
+              type: serviceDiscoveryType,
+              configuration: serviceDiscoveryConfiguration,
+              overrideConfiguration: false,
+            }
+          : undefined,
       };
+      if (isServiceDiscoveryEnabled) {
+        updatedEndpointGroups[this.activatedRoute.snapshot.params.groupIndex].endpoints = [];
+      }
     }
 
     return {
       ...api,
       endpointGroups: updatedEndpointGroups,
     };
+  }
+
+  private isServiceDiscoveryPlugin(item: ResourceListItem): boolean {
+    return item.id?.endsWith(ApiEndpointGroupComponent.SERVICE_DISCOVERY_SUFFIX) === true;
   }
 
   private updateApi(): Observable<Api> {
@@ -259,3 +323,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     }
   }
 }
+
+const serviceDiscoveryValidator = (control: AbstractControl): ValidationErrors | null => {
+  const enabled = control.get('enabled')?.value;
+  const type = control.get('type')?.value;
+  return enabled && !type ? { requireTypeWhenEnabled: true } : null;
+};

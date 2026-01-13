@@ -19,6 +19,7 @@ import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { ResourceListItem } from '../entities/resource/resourceListItem';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,14 @@ export class ApiServicePluginsV2Service {
   ) {}
 
   getApiServicePluginSchema(id: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/api-services/${id}/schema`);
+    return this.http.get<GioJsonSchema>(`${this.apiServicesBaseUrl}/${id}/schema`);
+  }
+
+  list(): Observable<ResourceListItem[]> {
+    return this.http.get<ResourceListItem[]>(this.apiServicesBaseUrl);
+  }
+
+  private get apiServicesBaseUrl(): string {
+    return `${this.constants.org.v2BaseURL}/plugins/api-services`;
   }
 }

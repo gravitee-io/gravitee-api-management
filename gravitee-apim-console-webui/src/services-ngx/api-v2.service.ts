@@ -39,6 +39,7 @@ import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
+import { ServiceDiscoveryEndpointsResponse } from '../entities/management-api-v2/api/v4/serviceDiscoveryEndpoints';
 
 export interface HostValidatorParams {
   currentHost?: string;
@@ -102,6 +103,10 @@ export class ApiV2Service {
 
   getCurrentDeployment(apiId: string): Observable<unknown> {
     return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments/current`);
+  }
+
+  getServiceDiscoveryEndpoints(apiId: string): Observable<ServiceDiscoveryEndpointsResponse> {
+    return this.http.get<ServiceDiscoveryEndpointsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/service-discovery/endpoints`);
   }
 
   duplicate(apiId: string, options: DuplicateApiOptions): Observable<Api> {

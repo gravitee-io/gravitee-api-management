@@ -70,6 +70,66 @@
     margin-bottom: 32px;
   }
 
+  &__service-discovery-info {
+    margin-bottom: 16px;
+  }
+
+  &__service-discovery {
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &__content {
+      min-height: 48px;
+    }
+
+    &__empty {
+      font-style: italic;
+    }
+
+    &__list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+
+      &__name {
+        font-weight: 500;
+      }
+
+      &__target {
+        font-family: monospace;
+        word-break: break-all;
+      }
+    }
+
+    &__controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    &__page {
+      min-width: 48px;
+      text-align: center;
+    }
+  }
+
   &__table {
     table-layout: fixed;
 

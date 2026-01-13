@@ -121,6 +121,10 @@ class MigrateApiUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String ROLE_ID = "role-id";
+    private static final String CONSUL_SERVICE_DISCOVERY_ID = "consul-service-discovery";
+    private static final String FORBIDDEN_SERVICE_DISCOVERY_ID = "eureka-service-discovery";
+    private static final String CONSUL_SERVICE_DISCOVERY_CONFIGURATION =
+        "{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .environmentId(ENVIRONMENT_ID)
         .organizationId(ORGANIZATION_ID)
@@ -1488,8 +1492,8 @@ class MigrateApiUseCaseTest {
         // Given
         var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
         consulDiscoveryService.setEnabled(true);
-        consulDiscoveryService.setProvider("consul-service-discovery");
-        consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+        consulDiscoveryService.setProvider(CONSUL_SERVICE_DISCOVERY_ID);
+        consulDiscoveryService.setConfiguration(CONSUL_SERVICE_DISCOVERY_CONFIGURATION);
 
         var services = new io.gravitee.definition.model.services.Services();
         services.setDiscoveryService(consulDiscoveryService);
@@ -1525,8 +1529,8 @@ class MigrateApiUseCaseTest {
         // Given
         var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
         consulDiscoveryService.setEnabled(true);
-        consulDiscoveryService.setProvider("consul-service-discovery");
-        consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+        consulDiscoveryService.setProvider(CONSUL_SERVICE_DISCOVERY_ID);
+        consulDiscoveryService.setConfiguration(CONSUL_SERVICE_DISCOVERY_CONFIGURATION);
 
         var services = new io.gravitee.definition.model.services.Services();
         services.setDiscoveryService(consulDiscoveryService);
@@ -1562,11 +1566,9 @@ class MigrateApiUseCaseTest {
             var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
             assertThat(endpointGroups).hasSize(1);
             var migratedServices = endpointGroups.getFirst().getServices();
-            assertThat(migratedServices.getDiscovery().getType()).isEqualTo("consul-service-discovery");
+            assertThat(migratedServices.getDiscovery().getType()).isEqualTo(CONSUL_SERVICE_DISCOVERY_ID);
             assertThat(migratedServices.getDiscovery().isEnabled()).isTrue();
-            assertThat(migratedServices.getDiscovery().getConfiguration()).isEqualTo(
-                "{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}"
-            );
+            assertThat(migratedServices.getDiscovery().getConfiguration()).isEqualTo(CONSUL_SERVICE_DISCOVERY_CONFIGURATION);
         });
     }
 
@@ -1575,7 +1577,7 @@ class MigrateApiUseCaseTest {
         // Given
         var forbiddenDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
         forbiddenDiscoveryService.setEnabled(true);
-        forbiddenDiscoveryService.setProvider("kubernetes-service-discovery");
+        forbiddenDiscoveryService.setProvider(FORBIDDEN_SERVICE_DISCOVERY_ID);
         forbiddenDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8080\",\"service\":\"my-service\"}");
 
         var services = new io.gravitee.definition.model.services.Services();
@@ -1606,7 +1608,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.issues()).anySatisfy(issue ->
             assertThat(issue.message()).contains(
-                MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted("kubernetes-service-discovery")
+                MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted(FORBIDDEN_SERVICE_DISCOVERY_ID)
             )
         );
     }

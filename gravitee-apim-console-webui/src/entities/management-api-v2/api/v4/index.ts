@@ -46,6 +46,7 @@ export * from './qos';
 export * from './sampling';
 export * from './selector';
 export * from './serviceV4';
+export * from './serviceDiscoveryEndpoints';
 export * from './stepV4';
 export * from './subscriptionListener';
 export * from './tcpListener';

@@ -20,10 +20,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { GioLicenseService, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 import { cloneDeep } from 'lodash';
+import { of } from 'rxjs';
 
 import { ApiEndpointGroupsStandardComponent } from './api-endpoint-groups-standard.component';
 import { ApiEndpointGroupsStandardHarness } from './api-endpoint-groups-standard.harness';
@@ -140,17 +141,48 @@ describe('ApiEndpointGroupsStandardComponent', () => {
     ],
   };
 
+  const serviceDiscoveryGroup: EndpointGroupV4 = {
+    name: 'service-discovery-group',
+    type: 'http-proxy',
+    loadBalancer: { type: 'ROUND_ROBIN' },
+    services: {
+      discovery: {
+        enabled: true,
+        type: 'kubernetes-service-discovery',
+        configuration: {},
+      },
+    },
+    endpoints: [
+      {
+        name: 'manual-endpoint',
+        type: 'http-proxy',
+        weight: 1,
+        inheritConfiguration: false,
+        configuration: {
+          target: 'http://localhost:8080',
+        },
+      },
+    ],
+  };
+
   let fixture: ComponentFixture<ApiEndpointGroupsStandardComponent>;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
   let componentHarness: ApiEndpointGroupsStandardHarness;
 
   const initComponent = async (api: ApiV4, permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r']) => {
+    const licenseServiceMock = {
+      getLicense$: () => of({}),
+      isOEM$: () => of(false),
+      openDialog: jest.fn(),
+    };
+
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
+        { provide: GioLicenseService, useValue: licenseServiceMock },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -272,6 +304,64 @@ describe('ApiEndpointGroupsStandardComponent', () => {
       });
       expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
+    });
+
+    it('should disable manual endpoint actions when service discovery is enabled', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [serviceDiscoveryGroup],
+      });
+      await initComponent(apiV4);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expectServiceDiscoveryEndpointsGetRequest({
+        groups: [
+          {
+            name: serviceDiscoveryGroup.name,
+            endpoints: [],
+          },
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(await componentHarness.isAddEndpointButtonDisabled(0)).toEqual(true);
+      expect(await componentHarness.isEditEndpointDisabled(0)).toEqual(true);
+      expect(await componentHarness.isEndpointDeleteDisabled(0)).toEqual(true);
+      fixture.destroy();
+    });
+
+    it('should paginate service discovery endpoints list', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [serviceDiscoveryGroup],
+      });
+      await initComponent(apiV4);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expectServiceDiscoveryEndpointsGetRequest({
+        groups: [
+          {
+            name: serviceDiscoveryGroup.name,
+            endpoints: Array.from({ length: 16 }).map((_, index) => ({
+              name: `kubernetes#10.0.0.${index}#8080`,
+              target: `http://10.0.0.${index}:8080/`,
+            })),
+          },
+        ],
+      });
+      fixture.detectChanges();
+
+      const endpointItems = fixture.nativeElement.querySelectorAll('.endpoint-group-card__service-discovery__item');
+      expect(endpointItems.length).toBe(15);
+
+      const nextButton = fixture.nativeElement.querySelector('[aria-label="Next service discovery page"]');
+      nextButton.click();
+      fixture.detectChanges();
+
+      const pageLabel = fixture.nativeElement.querySelector('.endpoint-group-card__service-discovery__page');
+      expect(pageLabel.textContent.trim()).toBe('2/2');
+
+      fixture.destroy();
     });
   });
 
@@ -521,6 +611,19 @@ describe('ApiEndpointGroupsStandardComponent', () => {
   function expectEndpointsGetRequest() {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
-      .flush([fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }), fakeConnectorPlugin({ id: 'mock', name: 'mock' })]);
+      .flush([
+        fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }),
+        fakeConnectorPlugin({ id: 'mock', name: 'mock' }),
+        fakeConnectorPlugin({ id: 'http-proxy', name: 'http-proxy' }),
+      ]);
+  }
+
+  function expectServiceDiscoveryEndpointsGetRequest(response: { groups: { name: string; endpoints: { name: string; target: string }[] }[] }) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/service-discovery/endpoints`,
+        method: 'GET',
+      })
+      .flush(response);
   }
 });

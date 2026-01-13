@@ -1,0 +1,234 @@
+{
+  "data" : [ {
+    "definitionVersion" : "V4",
+    "type" : "PROXY",
+    "listeners" : [ {
+      "type" : "HTTP",
+      "paths" : [ {
+        "path" : "/disco/",
+        "overrideAccess" : false
+      } ],
+      "pathMappings" : [ ],
+      "entrypoints" : [ {
+        "type" : "http-proxy",
+        "qos" : "AUTO",
+        "configuration" : { }
+      } ],
+      "servers" : [ ]
+    } ],
+    "endpointGroups" : [ {
+      "name" : "Default HTTP proxy group",
+      "type" : "http-proxy",
+      "loadBalancer" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "sharedConfiguration" : {
+        "proxy" : {
+          "useSystemProxy" : false,
+          "enabled" : false
+        },
+        "http" : {
+          "keepAliveTimeout" : 30000,
+          "keepAlive" : true,
+          "propagateClientHost" : false,
+          "followRedirects" : false,
+          "readTimeout" : 10000,
+          "idleTimeout" : 0,
+          "connectTimeout" : 3000,
+          "useCompression" : true,
+          "maxConcurrentConnections" : 20,
+          "version" : "HTTP_1_1",
+          "pipelining" : false
+        },
+        "ssl" : {
+          "keyStore" : {
+            "type" : ""
+          },
+          "hostnameVerifier" : true,
+          "trustStore" : {
+            "type" : ""
+          },
+          "trustAll" : false
+        }
+      },
+      "endpoints" : [ {
+        "name" : "Default HTTP proxy",
+        "type" : "http-proxy",
+        "weight" : 1,
+        "inheritConfiguration" : true,
+        "configuration" : {
+          "target" : "http://dontexist:8080"
+        },
+        "services" : { },
+        "secondary" : false,
+        "tenants" : [ ]
+      } ],
+      "services" : {
+        "discovery" : {
+          "overrideConfiguration" : false,
+          "configuration" : {
+            "namespace" : "gravitee-apim",
+            "service" : "echo",
+            "scheme" : "http",
+            "path" : "/"
+          },
+          "enabled" : true,
+          "type" : "kubernetes-service-discovery"
+        }
+      }
+    } ],
+    "analytics" : {
+      "enabled" : true
+    },
+    "flowExecution" : {
+      "mode" : "DEFAULT",
+      "matchRequired" : false
+    },
+    "flows" : [ ],
+    "id" : "31d241f5-b861-40ab-9241-f5b861a0ab2f",
+    "name" : "disco",
+    "description" : "",
+    "apiVersion" : "1.0",
+    "deployedAt" : "2026-01-11T00:38:40.356Z",
+    "createdAt" : "2026-01-11T00:31:22.038Z",
+    "updatedAt" : "2026-01-11T00:38:40.356Z",
+    "disableMembershipNotifications" : false,
+    "groups" : [ ],
+    "state" : "STARTED",
+    "visibility" : "PRIVATE",
+    "labels" : [ ],
+    "lifecycleState" : "CREATED",
+    "tags" : [ ],
+    "categories" : [ ],
+    "originContext" : {
+      "origin" : "MANAGEMENT"
+    },
+    "definitionContext" : {
+      "origin" : "MANAGEMENT",
+      "mode" : "FULLY_MANAGED",
+      "syncFrom" : "MANAGEMENT"
+    },
+    "responseTemplates" : { },
+    "resources" : [ ],
+    "properties" : [ ],
+    "_links" : {
+      "pictureUrl" : "http://apim.localhost/management/v2/environments/DEFAULT/apis/31d241f5-b861-40ab-9241-f5b861a0ab2f/picture?hash=1768091920356",
+      "backgroundUrl" : "http://apim.localhost/management/v2/environments/DEFAULT/apis/31d241f5-b861-40ab-9241-f5b861a0ab2f/background?hash=1768091920356"
+    }
+  }, {
+    "definitionVersion" : "V4",
+    "type" : "PROXY",
+    "listeners" : [ {
+      "type" : "HTTP",
+      "paths" : [ {
+        "path" : "/test/",
+        "overrideAccess" : false
+      } ],
+      "pathMappings" : [ ],
+      "entrypoints" : [ {
+        "type" : "http-proxy",
+        "qos" : "AUTO",
+        "configuration" : { }
+      } ],
+      "servers" : [ ]
+    } ],
+    "endpointGroups" : [ {
+      "name" : "Default HTTP proxy group",
+      "type" : "http-proxy",
+      "loadBalancer" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "sharedConfiguration" : {
+        "proxy" : {
+          "useSystemProxy" : false,
+          "enabled" : false
+        },
+        "http" : {
+          "keepAliveTimeout" : 30000,
+          "keepAlive" : true,
+          "propagateClientHost" : false,
+          "followRedirects" : false,
+          "readTimeout" : 10000,
+          "idleTimeout" : 0,
+          "connectTimeout" : 3000,
+          "useCompression" : true,
+          "maxConcurrentConnections" : 20,
+          "version" : "HTTP_1_1",
+          "pipelining" : false
+        },
+        "ssl" : {
+          "keyStore" : {
+            "type" : ""
+          },
+          "hostnameVerifier" : true,
+          "trustStore" : {
+            "type" : ""
+          },
+          "trustAll" : false
+        }
+      },
+      "endpoints" : [ ],
+      "services" : {
+        "discovery" : {
+          "overrideConfiguration" : false,
+          "configuration" : {
+            "namespace" : "gravitee-apim",
+            "service" : "echo",
+            "scheme" : "http",
+            "path" : "/"
+          },
+          "enabled" : true,
+          "type" : "kubernetes-service-discovery"
+        }
+      }
+    } ],
+    "analytics" : {
+      "enabled" : true
+    },
+    "flowExecution" : {
+      "mode" : "DEFAULT",
+      "matchRequired" : false
+    },
+    "flows" : [ ],
+    "id" : "fe7acec1-0328-46ad-bace-c10328f6ad02",
+    "name" : "test",
+    "description" : "",
+    "apiVersion" : "1.0",
+    "deployedAt" : "2026-01-11T00:30:16.234Z",
+    "createdAt" : "2026-01-10T20:40:47.884Z",
+    "updatedAt" : "2026-01-11T00:32:42.544Z",
+    "disableMembershipNotifications" : false,
+    "groups" : [ ],
+    "state" : "STARTED",
+    "visibility" : "PRIVATE",
+    "labels" : [ ],
+    "lifecycleState" : "CREATED",
+    "tags" : [ ],
+    "categories" : [ ],
+    "originContext" : {
+      "origin" : "MANAGEMENT"
+    },
+    "definitionContext" : {
+      "origin" : "MANAGEMENT",
+      "mode" : "FULLY_MANAGED",
+      "syncFrom" : "MANAGEMENT"
+    },
+    "responseTemplates" : { },
+    "resources" : [ ],
+    "properties" : [ ],
+    "_links" : {
+      "pictureUrl" : "http://apim.localhost/management/v2/environments/DEFAULT/apis/fe7acec1-0328-46ad-bace-c10328f6ad02/picture?hash=1768091562544",
+      "backgroundUrl" : "http://apim.localhost/management/v2/environments/DEFAULT/apis/fe7acec1-0328-46ad-bace-c10328f6ad02/background?hash=1768091562544"
+    }
+  } ],
+  "pagination" : {
+    "page" : 1,
+    "perPage" : 10,
+    "pageCount" : 1,
+    "pageItemsCount" : 2,
+    "totalCount" : 2
+  },
+  "links" : {
+    "self" : "http://apim.localhost/management/v2/environments/DEFAULT/apis"
+  }
+}

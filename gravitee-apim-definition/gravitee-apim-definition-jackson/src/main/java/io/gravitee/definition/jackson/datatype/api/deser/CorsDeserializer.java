@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import lombok.CustomLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,6 +36,8 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class CorsDeserializer extends StdScalarDeserializer<Cors> {
+
+    private static final Logger log = LoggerFactory.getLogger(CorsDeserializer.class);
 
     public CorsDeserializer(Class<Cors> vc) {
         super(vc);
@@ -91,15 +95,13 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             allowOriginNode
                 .elements()
                 .forEachRemaining(jsonNode -> {
-                    allowOrigin.add(jsonNode.asText());
-                    if (
-                        !"*".equals(jsonNode.asText()) &&
-                        (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
-                    ) {
+                    String origin = jsonNode.asText();
+                    allowOrigin.add(origin);
+                    if (!"*".equals(origin) && (origin.contains("(") || origin.contains("[") || origin.contains("*"))) {
                         try {
-                            allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
+                            allowOriginRegex.add(Pattern.compile(origin));
                         } catch (PatternSyntaxException pse) {
-                            log.error("Allow origin regex invalid: {} {}", jsonNode.asText(), pse.getMessage());
+                            log.error("Allow origin regex invalid: {} {}", origin, pse.getMessage());
                         }
                     }
                 });

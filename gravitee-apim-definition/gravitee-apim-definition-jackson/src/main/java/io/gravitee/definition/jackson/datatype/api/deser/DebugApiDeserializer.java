@@ -16,6 +16,7 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -30,10 +31,15 @@ import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 import lombok.CustomLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @CustomLog
 public class DebugApiDeserializer extends StdScalarDeserializer<DebugApiV2> {
+
+    private static final Logger log = LoggerFactory.getLogger(DebugApiDeserializer.class);
 
     private final ApiDeserializer base;
 
@@ -44,41 +50,39 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApiV2> {
 
     @Override
     public DebugApiV2 deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+        ObjectCodec codec = jp.getCodec();
+        JsonNode node = codec.readTree(jp);
         DebugApiV2 debugApi = (DebugApiV2) this.base.deserialize(jp, ctxt, new DebugApiV2(), node);
         JsonNode requestNode = node.get("request");
         if (requestNode != null) {
-            debugApi.setRequest(requestNode.traverse(jp.getCodec()).readValueAs(HttpRequest.class));
+            debugApi.setRequest(requestNode.traverse(codec).readValueAs(HttpRequest.class));
         } else {
             log.error("A request property is required for {}", debugApi.getName());
             throw JsonMappingException.from(ctxt, "A request property is required for " + debugApi.getName());
         }
 
-        JsonNode responseNode = node.get("response");
-        if (responseNode != null) {
-            debugApi.setResponse(responseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
-        }
-
-        JsonNode resultNode = node.get("debugSteps");
-        if (resultNode != null) {
-            debugApi.setDebugSteps((resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<List<DebugStep>>() {})));
-        }
-
-        JsonNode preprocessorStepNode = node.get("preprocessorStep");
-        if (preprocessorStepNode != null) {
-            debugApi.setPreprocessorStep((preprocessorStepNode.traverse(jp.getCodec()).readValueAs(PreprocessorStep.class)));
-        }
-
-        JsonNode backendResponseNode = node.get("backendResponse");
-        if (backendResponseNode != null) {
-            debugApi.setBackendResponse(backendResponseNode.traverse(jp.getCodec()).readValueAs(HttpResponse.class));
-        }
-
-        JsonNode metricsNode = node.get("metrics");
-        if (metricsNode != null) {
-            debugApi.setMetrics(metricsNode.traverse(jp.getCodec()).readValueAs(DebugMetrics.class));
-        }
+        readOptional(node, "response", codec, HttpResponse.class, debugApi::setResponse);
+        readOptional(node, "debugSteps", codec, new TypeReference<List<DebugStep>>() {}, debugApi::setDebugSteps);
+        readOptional(node, "preprocessorStep", codec, PreprocessorStep.class, debugApi::setPreprocessorStep);
+        readOptional(node, "backendResponse", codec, HttpResponse.class, debugApi::setBackendResponse);
+        readOptional(node, "metrics", codec, DebugMetrics.class, debugApi::setMetrics);
 
         return debugApi;
+    }
+
+    private static <T> void readOptional(JsonNode node, String field, ObjectCodec codec, Class<T> type, Consumer<T> setter)
+        throws IOException {
+        JsonNode valueNode = node.get(field);
+        if (valueNode != null) {
+            setter.accept(valueNode.traverse(codec).readValueAs(type));
+        }
+    }
+
+    private static <T> void readOptional(JsonNode node, String field, ObjectCodec codec, TypeReference<T> type, Consumer<T> setter)
+        throws IOException {
+        JsonNode valueNode = node.get(field);
+        if (valueNode != null) {
+            setter.accept(valueNode.traverse(codec).readValueAs(type));
+        }
     }
 }

@@ -27,10 +27,33 @@ tags:
       description: Everything about endpoint plugins
     - name: Plugins - Entrypoints
       description: Everything about entrypoint plugins
+    - name: Plugins - Api Services
+      description: Everything about api-service plugins
     - name: Plugins - Policies
       description: Everything about policies plugins
 
 paths:
+    /plugins/api-services:
+        get:
+            tags:
+                - Plugins - Api Services
+            summary: Get available api-services
+            description: |
+                Get available API service plugins.
+
+                User must be authenticated.
+            operationId: getApiServices
+            responses:
+                "200":
+                    description: List of Api Services.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ApiServicePlugin"
+                default:
+                    $ref: "#/components/responses/Error"
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
@@ -480,6 +503,10 @@ paths:
 
 components:
     schemas:
+        ApiServicePlugin:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/PlatformPlugin"
         ConnectorPlugin:
             type: object
             allOf:

@@ -33,6 +33,8 @@ import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import java.io.IOException;
 import java.util.*;
 import lombok.CustomLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,6 +43,8 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiDeserializer.class);
 
     public ApiDeserializer(Class<T> vc) {
         super(vc);
@@ -92,18 +96,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             api.getServices().set(services.getAll());
         }
 
-        // Add compatibility with Definition 1.22
-        if (api.getServices() != null) {
-            EndpointDiscoveryService discoveryService = api.getServices().get(EndpointDiscoveryService.class);
-            if (discoveryService != null) {
-                api.getServices().remove(EndpointDiscoveryService.class);
-                Set<EndpointGroup> endpointGroups = api.getProxy().getGroups();
-                if (endpointGroups != null && !endpointGroups.isEmpty()) {
-                    EndpointGroup defaultGroup = endpointGroups.iterator().next();
-                    defaultGroup.getServices().put(EndpointDiscoveryService.class, discoveryService);
-                }
-            }
-        }
+        applyEndpointDiscoveryCompatibility(api);
 
         JsonNode resourcesNode = node.get("resources");
         if (resourcesNode != null && resourcesNode.isArray()) {
@@ -241,6 +234,27 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         }
 
         return api;
+    }
+
+    private void applyEndpointDiscoveryCompatibility(T api) {
+        // Add compatibility with Definition 1.22
+        if (api.getServices() == null) {
+            return;
+        }
+
+        EndpointDiscoveryService discoveryService = api.getServices().get(EndpointDiscoveryService.class);
+        if (discoveryService == null) {
+            return;
+        }
+
+        api.getServices().remove(EndpointDiscoveryService.class);
+        Set<EndpointGroup> endpointGroups = api.getProxy().getGroups();
+        if (endpointGroups == null || endpointGroups.isEmpty()) {
+            return;
+        }
+
+        EndpointGroup defaultGroup = endpointGroups.iterator().next();
+        defaultGroup.getServices().put(EndpointDiscoveryService.class, discoveryService);
     }
 
     private static DefinitionVersion foundDefinitionVersion(JsonNode node) {

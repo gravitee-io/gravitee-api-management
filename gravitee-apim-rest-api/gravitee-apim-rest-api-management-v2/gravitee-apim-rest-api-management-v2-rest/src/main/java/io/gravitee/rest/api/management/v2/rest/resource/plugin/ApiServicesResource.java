@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.v4.apiservice.ApiServicePluginEntity;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import java.util.Set;
 
 /**
  * Defines the REST resources to manage ApiServices.
@@ -37,10 +39,16 @@ public class ApiServicesResource extends AbstractResource {
     private ApiServicePluginService apiServicePluginService;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<ApiServicePluginEntity> getApiServices() {
+        return apiServicePluginService.findAll();
+    }
+
+    @GET
     @Path("/{apiServiceId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public String getApiServiceSchema(@PathParam("apiServiceId") String apiServiceId) {
-        // Check that the entrypoint exists
+        // Check that the API service exists.
         apiServicePluginService.findById(apiServiceId);
 
         return apiServicePluginService.getSchema(apiServiceId);

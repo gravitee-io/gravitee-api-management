@@ -20,6 +20,8 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -39,11 +41,22 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.kubernetes.client.KubernetesClient;
+import io.gravitee.kubernetes.client.api.ResourceQuery;
+import io.gravitee.kubernetes.client.config.KubernetesConfig;
+import io.gravitee.kubernetes.client.impl.KubernetesClientV1Impl;
+import io.gravitee.kubernetes.client.model.v1.EndpointAddress;
+import io.gravitee.kubernetes.client.model.v1.EndpointPort;
+import io.gravitee.kubernetes.client.model.v1.EndpointSubset;
+import io.gravitee.kubernetes.client.model.v1.Endpoints;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
@@ -62,6 +75,9 @@ import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIss
 import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PromotionRequest;
+import io.gravitee.rest.api.management.v2.rest.model.ServiceDiscoveryEndpoint;
+import io.gravitee.rest.api.management.v2.rest.model.ServiceDiscoveryEndpointGroup;
+import io.gravitee.rest.api.management.v2.rest.model.ServiceDiscoveryEndpointsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
@@ -151,6 +167,8 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -183,6 +201,10 @@ public class ApiResource extends AbstractResource {
         "metadata",
         Excludable.METADATA
     );
+    private static final String KUBERNETES_SERVICE_DISCOVERY_ID = "kubernetes-service-discovery";
+    private static final String DEFAULT_NAMESPACE = "default";
+    private static final String DEFAULT_SCHEME = "http";
+    private static final String DEFAULT_PATH = "/";
 
     @Context
     private ResourceContext resourceContext;
@@ -480,6 +502,24 @@ public class ApiResource extends AbstractResource {
     }
 
     @GET
+    @Path("/service-discovery/endpoints")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response getServiceDiscoveryEndpoints(@PathParam("apiId") String apiId) {
+        var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
+        if (!(output.apiDefinition() instanceof Api apiDefinition)) {
+            ServiceDiscoveryEndpointsResponse response = new ServiceDiscoveryEndpointsResponse();
+            response.setGroups(emptyList());
+            return Response.ok(response).build();
+        }
+
+        var groups = resolveServiceDiscoveryEndpointGroups(apiDefinition);
+        ServiceDiscoveryEndpointsResponse response = new ServiceDiscoveryEndpointsResponse();
+        response.setGroups(groups);
+        return Response.ok(response).build();
+    }
+
+    @GET
     @Path("/deployments/_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -539,6 +579,212 @@ public class ApiResource extends AbstractResource {
         var output = exportApiCRDUseCase.execute(input);
         var spec = ApiCRDMapper.INSTANCE.map(output.spec());
         return Response.ok(new ApiCRD(spec)).build();
+    }
+
+    private List<ServiceDiscoveryEndpointGroup> resolveServiceDiscoveryEndpointGroups(Api apiDefinition) {
+        if (apiDefinition.getEndpointGroups() == null) {
+            return emptyList();
+        }
+
+        List<ServiceDiscoveryEndpointGroup> groups = new ArrayList<>();
+        for (var group : apiDefinition.getEndpointGroups()) {
+            Service discovery = group.getServices() != null ? group.getServices().getDiscovery() : null;
+            if (!isKubernetesDiscoveryEnabled(discovery)) {
+                continue;
+            }
+
+            groups.add(resolveGroupEndpoints(group, discovery));
+        }
+
+        return groups;
+    }
+
+    private ServiceDiscoveryEndpointGroup resolveGroupEndpoints(
+        io.gravitee.definition.model.v4.endpointgroup.EndpointGroup group,
+        Service discovery
+    ) {
+        KubernetesServiceDiscoveryConfiguration configuration = readDiscoveryConfiguration(discovery);
+            if (configuration == null || configuration.getService() == null || configuration.getService().isBlank()) {
+                log.warn("Missing Kubernetes service discovery configuration for endpoint group [{}].", group.getName());
+                ServiceDiscoveryEndpointGroup emptyGroup = new ServiceDiscoveryEndpointGroup();
+                emptyGroup.setName(group.getName());
+                emptyGroup.setEndpoints(emptyList());
+                return emptyGroup;
+            }
+
+        String namespace = resolveNamespace(configuration);
+        KubernetesClient kubernetesClient = new KubernetesClientV1Impl();
+        @SuppressWarnings("unchecked")
+        ResourceQuery<Endpoints> query = (ResourceQuery<Endpoints>) (ResourceQuery<?>) ResourceQuery.endpoints(
+            namespace,
+            configuration.getService()
+        ).build();
+
+        Endpoints endpoints = null;
+        try {
+            endpoints = kubernetesClient.get(query).blockingGet();
+        } catch (Exception ex) {
+            log.warn(
+                "Unable to resolve Kubernetes endpoints for service [{}] in namespace [{}].",
+                configuration.getService(),
+                namespace,
+                ex
+            );
+        }
+
+        List<ServiceDiscoveryEndpoint> resolved = resolveEndpoints(endpoints, configuration);
+        ServiceDiscoveryEndpointGroup resolvedGroup = new ServiceDiscoveryEndpointGroup();
+        resolvedGroup.setName(group.getName());
+        resolvedGroup.setEndpoints(resolved);
+        return resolvedGroup;
+    }
+
+    private List<ServiceDiscoveryEndpoint> resolveEndpoints(Endpoints endpoints, KubernetesServiceDiscoveryConfiguration configuration) {
+        if (endpoints == null || endpoints.getSubsets() == null) {
+            return emptyList();
+        }
+
+        Map<String, ServiceDiscoveryEndpoint> resolved = new LinkedHashMap<>();
+        Integer configuredPort = configuration.getPort();
+        for (EndpointSubset subset : endpoints.getSubsets()) {
+            List<EndpointPort> ports = subset.getPorts();
+            List<EndpointAddress> addresses = subset.getAddresses();
+            if (ports == null || addresses == null) {
+                continue;
+            }
+
+            if (configuredPort != null) {
+                if (!containsPort(ports, configuredPort)) {
+                    continue;
+                }
+                for (EndpointAddress address : addresses) {
+                    upsertResolved(resolved, address, configuredPort, configuration);
+                }
+            } else {
+                for (EndpointPort port : ports) {
+                    int resolvedPort = port.getPort();
+                    if (resolvedPort <= 0) {
+                        continue;
+                    }
+                    for (EndpointAddress address : addresses) {
+                        upsertResolved(resolved, address, resolvedPort, configuration);
+                    }
+                }
+            }
+        }
+
+        return resolved.values().stream().sorted(Comparator.comparing(ServiceDiscoveryEndpoint::getName)).toList();
+    }
+
+    private void upsertResolved(
+        Map<String, ServiceDiscoveryEndpoint> resolved,
+        EndpointAddress address,
+        int port,
+        KubernetesServiceDiscoveryConfiguration configuration
+    ) {
+        String name = endpointName(address.getIp(), port);
+        resolved.computeIfAbsent(name, key -> {
+            ServiceDiscoveryEndpoint endpoint = new ServiceDiscoveryEndpoint();
+            endpoint.setName(name);
+            endpoint.setTarget(buildTargetUrl(address.getIp(), port, configuration));
+            return endpoint;
+        });
+    }
+
+    private boolean containsPort(List<EndpointPort> ports, int desiredPort) {
+        return ports.stream().anyMatch(port -> port.getPort() == desiredPort);
+    }
+
+    private boolean isKubernetesDiscoveryEnabled(Service discovery) {
+        return discovery != null && discovery.isEnabled() && KUBERNETES_SERVICE_DISCOVERY_ID.equals(discovery.getType());
+    }
+
+    private KubernetesServiceDiscoveryConfiguration readDiscoveryConfiguration(Service discovery) {
+        String configuration = discovery != null ? discovery.getConfiguration() : null;
+        if (configuration == null || configuration.isBlank()) {
+            return null;
+        }
+
+        ObjectMapper mapper = new GraviteeMapper();
+        try {
+            return mapper.readValue(configuration, KubernetesServiceDiscoveryConfiguration.class);
+        } catch (JsonProcessingException ex) {
+            log.warn("Unable to parse Kubernetes service discovery configuration: {}", configuration, ex);
+            return null;
+        }
+    }
+
+    private String resolveNamespace(KubernetesServiceDiscoveryConfiguration configuration) {
+        if (configuration.getNamespace() != null && !configuration.getNamespace().isBlank()) {
+            return configuration.getNamespace();
+        }
+
+        String namespace = KubernetesConfig.getInstance().getCurrentNamespace();
+        return namespace == null || namespace.isBlank() ? DEFAULT_NAMESPACE : namespace;
+    }
+
+    private String buildTargetUrl(String ip, int port, KubernetesServiceDiscoveryConfiguration configuration) {
+        String scheme = normalizeValue(configuration.getScheme(), DEFAULT_SCHEME);
+        String path = normalizeValue(configuration.getPath(), DEFAULT_PATH);
+        String portSuffix = port > 0 ? ":" + port : "";
+        return scheme + "://" + ip + portSuffix + path;
+    }
+
+    private String normalizeValue(String value, String defaultValue) {
+        return value == null || value.isBlank() ? defaultValue : value;
+    }
+
+    private String endpointName(String ip, int port) {
+        return "kubernetes#" + ip.replace(":", "#") + "#" + port;
+    }
+
+    private static class KubernetesServiceDiscoveryConfiguration {
+
+        private String namespace;
+        private String service;
+        private Integer port;
+        private String scheme;
+        private String path;
+
+        public String getNamespace() {
+            return namespace;
+        }
+
+        public void setNamespace(String namespace) {
+            this.namespace = namespace;
+        }
+
+        public String getService() {
+            return service;
+        }
+
+        public void setService(String service) {
+            this.service = service;
+        }
+
+        public Integer getPort() {
+            return port;
+        }
+
+        public void setPort(Integer port) {
+            this.port = port;
+        }
+
+        public String getScheme() {
+            return scheme;
+        }
+
+        public void setScheme(String scheme) {
+            this.scheme = scheme;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
     }
 
     @POST

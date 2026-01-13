@@ -93,6 +93,11 @@
             servers.
           </gio-banner-warning>
         }
+        @if (group.serviceDiscoveryEnabled) {
+          <gio-banner-info class="endpoint-group-card__service-discovery-info">
+            Manual endpoints are read-only while service discovery is enabled.
+          </gio-banner-info>
+        }
         <table
           mat-table
           [dataSource]="group.endpoints"
@@ -106,7 +111,7 @@
           <ng-container matColumnDef="drag-icon">
             <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
             <td mat-cell *matCellDef="let element">
-              @if (!isReadOnly) {
+              @if (!isReadOnly && !isManualEndpointEditionDisabled(group)) {
                 <mat-icon svgIcon="gio:drag-indicator"></mat-icon>
               }
             </td>
@@ -159,24 +164,35 @@
             <th mat-header-cell *matHeaderCellDef id="actions"></th>
             <td mat-cell *matCellDef="let element; let j = index">
               <div class="endpoint-group-card__table__actions">
-                <a
+                <button
                   mat-button
                   [attr.aria-label]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
-                  [matTooltip]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
+                  [matTooltip]="
+                    isReadOnly
+                      ? 'View endpoint'
+                      : isManualEndpointEditionDisabled(group)
+                        ? 'Manual endpoints are disabled while service discovery is enabled'
+                        : 'Edit endpoint'
+                  "
                   [routerLink]="['./', i, j]"
+                  [disabled]="!isReadOnly && isManualEndpointEditionDisabled(group)"
                 >
                   <mat-icon [svgIcon]="isReadOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
-                </a>
+                </button>
                 <button
                   mat-button
                   aria-label="Delete endpoint"
                   *gioPermission="{ anyOf: ['api-definition-u'] }"
                   (click)="deleteEndpoint(group.name, element.name)"
-                  [disabled]="isReadOnly || (groupsTableData?.length === 1 && group.endpoints.length === 1)"
+                  [disabled]="
+                    isReadOnly || isManualEndpointEditionDisabled(group) || (groupsTableData?.length === 1 && group.endpoints.length === 1)
+                  "
                 >
                   <mat-icon
                     [matTooltip]="
-                      groupsTableData?.length === 1 && group.endpoints.length === 1
+                      isManualEndpointEditionDisabled(group)
+                        ? 'Manual endpoints are disabled while service discovery is enabled'
+                        : groupsTableData?.length === 1 && group.endpoints.length === 1
                         ? 'At least one endpoint is required'
                         : 'Delete endpoint'
                     "
@@ -191,7 +207,7 @@
           <tr
             mat-row
             cdkDrag
-            [cdkDragDisabled]="isReadOnly || isReordering"
+            [cdkDragDisabled]="isReadOnly || isReordering || isManualEndpointEditionDisabled(group)"
             *matRowDef="let row; columns: group.endpointsDisplayedColumns"
           ></tr>
 
@@ -207,9 +223,52 @@
             aria-label="Add endpoint"
             class="add_endpoint"
             [routerLink]="['./', i, 'new']"
-            [disabled]="isReadOnly"
+            [disabled]="isReadOnly || isManualEndpointEditionDisabled(group)"
             >Add endpoint</a
           >
+        }
+        @if (group.serviceDiscoveryEnabled) {
+          <div class="endpoint-group-card__service-discovery">
+            <div class="endpoint-group-card__service-discovery__header">
+              <span class="mat-subtitle-2">Service discovery endpoints</span>
+              <span class="gio-badge-neutral">Auto</span>
+            </div>
+            <div class="endpoint-group-card__service-discovery__content" [attr.data-testid]="'serviceDiscoveryList-' + i">
+              @if (getServiceDiscoveryEndpointsForGroup(group.name).length === 0) {
+                <div class="endpoint-group-card__service-discovery__empty">No endpoints discovered yet.</div>
+              } @else {
+                <div class="endpoint-group-card__service-discovery__list">
+                  @for (endpoint of getServiceDiscoveryPage(group.name); track endpoint.name) {
+                    <div class="endpoint-group-card__service-discovery__item">
+                      <span class="endpoint-group-card__service-discovery__item__name">{{ endpoint.name }}</span>
+                      <span class="endpoint-group-card__service-discovery__item__target">{{ endpoint.target }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+            @if (hasServiceDiscoveryOverflow(group.name)) {
+              <div class="endpoint-group-card__service-discovery__controls">
+                <button
+                  mat-stroked-button
+                  aria-label="Previous service discovery page"
+                  (click)="goToPreviousServiceDiscoveryPage(group.name)"
+                  [disabled]="(serviceDiscoveryPageIndex[group.name] ?? 0) === 0"
+                >
+                  <mat-icon svgIcon="gio:arrow-left"></mat-icon>
+                </button>
+                <span class="endpoint-group-card__service-discovery__page">{{ getServiceDiscoveryPageLabel(group.name) }}</span>
+                <button
+                  mat-stroked-button
+                  aria-label="Next service discovery page"
+                  (click)="goToNextServiceDiscoveryPage(group.name)"
+                  [disabled]="(serviceDiscoveryPageIndex[group.name] ?? 0) >= getServiceDiscoveryMaxPageIndex(group.name)"
+                >
+                  <mat-icon svgIcon="gio:arrow-right"></mat-icon>
+                </button>
+              </div>
+            }
+          </div>
         }
       </mat-card-content>
     </mat-card>

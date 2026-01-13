@@ -62,6 +62,10 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
     return this.getDeleteEndpointButtons().then((buttons) => buttons[index].isDisabled());
   }
 
+  public async isEditEndpointDisabled(index: number) {
+    return this.getEditEndpointButtons().then((buttons) => buttons[index].isDisabled());
+  }
+
   public async isEndpointDeleteButtonVisible(): Promise<boolean> {
     return this.getDeleteEndpointButtons().then((buttons) => buttons?.length > 0);
   }
@@ -73,6 +77,10 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
 
   public async isAddEndpointButtonVisible(): Promise<boolean> {
     return this.getAddEndpointButtons().then((buttons) => buttons?.length > 0);
+  }
+
+  public async isAddEndpointButtonDisabled(index: number): Promise<boolean> {
+    return this.getAddEndpointButtons().then((buttons) => buttons[index].isDisabled());
   }
 
   public async clickEditEndpoint(index: number) {

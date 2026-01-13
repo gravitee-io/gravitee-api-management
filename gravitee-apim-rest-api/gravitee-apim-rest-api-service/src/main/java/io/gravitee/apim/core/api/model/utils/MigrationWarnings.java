@@ -18,6 +18,8 @@ package io.gravitee.apim.core.api.model.utils;
 public final class MigrationWarnings {
 
     private MigrationWarnings() {}
+    private static final String SERVICE_DISCOVERY_SUPPORTED =
+        "consul-service-discovery and kubernetes-service-discovery";
 
     public static final String API_NOT_V2_DEFINITION =
         "Unable to migrate an API which is not a v2 definition. Please ensure the API is of type V2 before migration";
@@ -58,7 +60,9 @@ public final class MigrationWarnings {
         "Unable to migrate the API as an error occurred while parsing the Dynamic Property configuration. Please contact support and attach your API definition with the support ticket for debugging";
 
     public static final String SERVICE_DISCOVERY_NOT_SUPPORTED =
-        "Unable to migrate the Service Discovery Configuration, as Service discovery provider %s is not supported for migration. Only consul-service-discovery is supported";
+        "Unable to migrate the Service Discovery Configuration, as Service discovery provider %s is not supported for migration. Only " +
+        SERVICE_DISCOVERY_SUPPORTED +
+        " are supported";
 
     public static final String SERVICE_DISCOVERY_LIMITATION =
         "Service discovery configuration can be migrated, but the configuration page will not be available in the V4 API";

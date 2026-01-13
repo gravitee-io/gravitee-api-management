@@ -26,12 +26,17 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group';
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
-  private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
-  private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
-  private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
+  private getGeneralTab = this.getTab('General');
+  private getConfigurationTab = this.getTab('Configuration');
+  private getHealthCheckTab = this.getTab('Health-check');
+  private getServiceDiscoveryTab = this.getTab('Service discovery');
   private getEndpointGroupGeneralHarness = this.locatorFor(ApiEndpointGroupGeneralHarness);
   private getHealthCheckGeneralHarness = this.locatorFor(ApiHealthCheckV4FormHarness);
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
+
+  private getTab(label: string) {
+    return this.locatorFor(MatTabHarness.with({ label }));
+  }
 
   public async clickBackButton() {
     return this.getBackButton().then((button) => button.click());
@@ -78,6 +83,10 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   public async clickHealthCheckTab() {
     return this.getHealthCheckTab().then((tab) => tab.select());
+  }
+
+  public async clickServiceDiscoveryTab() {
+    return this.getServiceDiscoveryTab().then((tab) => tab.select());
   }
 
   public async toggleEnableHealthCheckInput() {

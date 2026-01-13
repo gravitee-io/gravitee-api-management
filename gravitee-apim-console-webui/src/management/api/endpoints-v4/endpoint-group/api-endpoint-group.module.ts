@@ -41,10 +41,11 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
-import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
 import { ApiEndpointGroupConfigurationComponent } from './configuration/api-endpoint-group-configuration.component';
-import { ApiEndpointGroupSelectionComponent } from './selection/api-endpoint-group-selection.component';
 import { ApiEndpointGroupCreateComponent } from './create/api-endpoint-group-create.component';
+import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
+import { ApiEndpointGroupSelectionComponent } from './selection/api-endpoint-group-selection.component';
+import { ApiEndpointGroupServiceDiscoveryComponent } from './service-discovery/api-endpoint-group-service-discovery.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -52,14 +53,17 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
 import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form/api-health-check-v4-form.module';
 import { GioLicenseBannerModule } from '../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
+const endpointGroupComponents = [
+  ApiEndpointGroupComponent,
+  ApiEndpointGroupGeneralComponent,
+  ApiEndpointGroupConfigurationComponent,
+  ApiEndpointGroupCreateComponent,
+  ApiEndpointGroupSelectionComponent,
+  ApiEndpointGroupServiceDiscoveryComponent,
+];
+
 @NgModule({
-  declarations: [
-    ApiEndpointGroupComponent,
-    ApiEndpointGroupGeneralComponent,
-    ApiEndpointGroupConfigurationComponent,
-    ApiEndpointGroupCreateComponent,
-    ApiEndpointGroupSelectionComponent,
-  ],
+  declarations: endpointGroupComponents,
   exports: [ApiEndpointGroupComponent],
   imports: [
     CommonModule,

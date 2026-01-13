@@ -1,0 +1,69 @@
+apim:
+  roleRules:
+    - apiGroups: [""]
+      resources: [configmaps, secrets, endpoints]
+      verbs: [get, list, watch]
+
+mongo:
+  uri: mongodb://gravitee-mongodb.gravitee-apim.svc.cluster.local:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+
+es:
+  enabled: true
+  endpoints:
+    - https://elasticsearch-master:9200
+  security:
+    enabled: true
+    username: elastic
+    password: eUDO9JE7KDobIihn
+  ssl:
+    verifyHostname: false
+    trustAll: true
+
+api:
+  image:
+    repository: graviteeio/apim-management-api
+    tag: dev
+    pullPolicy: IfNotPresent
+  env:
+    - name: gravitee_http_referrerPolicy_policy
+      value: "strict-origin-when-cross-origin"
+  ingress:
+    management:
+      scheme: http
+      hosts:
+        - apim.localhost
+    portal:
+      scheme: http
+      hosts:
+        - apim.localhost
+
+gateway:
+  image:
+    repository: graviteeio/apim-gateway
+    tag: dev
+    pullPolicy: IfNotPresent
+  ingress:
+    hosts:
+      - api.localhost
+
+ui:
+  image:
+    repository: graviteeio/apim-management-ui
+    tag: dev
+    pullPolicy: IfNotPresent
+  ingress:
+    hosts:
+      - apim.localhost
+
+portal:
+  image:
+    repository: graviteeio/apim-portal-ui
+    tag: dev
+    pullPolicy: IfNotPresent
+  ingress:
+    hosts:
+      - dev.localhost
+
+license:
+  name: licensekey-apim
+  key: Ic5OXgAAACAAAAACAAAADAAAAAhhbGVydC1lbmdpbmVpbmNsdWRlZAAAABsAAAACAAAABwAAAAhjb21wYW55R3Jhdml0ZWUAAAAyAAAAAgAAAAUAAAAhZW1haWxtYXRldXN6LmFkYW1la0BncmF2aXRlZXNvdXJjZS5jb20AAAAaAAAACwAAAApleHBpcnlEYXRlAAABos6L0/8AAAAgAAAAAgAAAAgAAAAMZmVhdHVyZXNhbGVydC1lbmdpbmUAAAAhAAAADAAAAAlsaWNlbnNlSWSTVFGgy6M8+H90BnbsKETJAAABHAAAAAEAAAAQAAABAGxpY2Vuc2VTaWduYXR1cmXVjp17UgALvI7h8bZXAx2470T0pjC39hhsxxBi5R6qd3Tu5gdOWZHVzKt0QLqObEqW5gL4maUJPG7prsGQirYHvsO3KXi1PjktYmRexId9EBcU5Mm4soliB2wf3ZxRvzXybNaOD4UIKXJPmKo3+gxR3vFTN/BiKEDDaY97g1pzvHgsgYl7JCgSaGBRrKGBtNo8hUUvBNWz17jK1kcDJjmrlPbszagSeDVaRtMtc7Kn0gdFieyR53DZ0Fojo0c4Dz7T6Fc/y/XNhZKOWeofCSLdOb/05fRj3NPUjn9bv3QPCYuIEx3p5L7Qn1WqzJb4vFR0Y0saTzIEJmoJ/uXrqTfjAAAAKAAAAAIAAAAFAAAAF3BhY2tzbmF0aXZlLWthZmthLGFnZW50LW1lc2gAAAAiAAAAAgAAAA8AAAAHc2lnbmF0dXJlRGlnZXN0U0hBLTI1NgAAABgAAAACAAAABAAAAAh0aWVydW5pdmVyc2U=

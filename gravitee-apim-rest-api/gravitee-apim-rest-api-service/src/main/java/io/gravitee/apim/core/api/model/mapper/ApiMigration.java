@@ -69,6 +69,7 @@ class ApiMigration {
     private static final String TYPE_ENDPOINT = "ENDPOINT";
     private static final String TYPE_ENDPOINTGROUP = "ENDPOINTGROUP";
     public static final String CONSUL_DISCOVERY_SERVICE_TYPE = "consul-service-discovery";
+    public static final String KUBERNETES_DISCOVERY_SERVICE_TYPE = "kubernetes-service-discovery";
     public static final String HTTP_HEALTH_CHECK_SERVICE_TYPE = "http-health-check";
     private final ObjectMapper jsonMapper;
     private final ApiServicesMigration apiServicesMigration;
@@ -229,12 +230,14 @@ class ApiMigration {
                 .stream()
                 .filter(
                     service ->
-                        CONSUL_DISCOVERY_SERVICE_TYPE.equals(service.getType()) || HTTP_HEALTH_CHECK_SERVICE_TYPE.equals(service.getType())
+                        CONSUL_DISCOVERY_SERVICE_TYPE.equals(service.getType()) ||
+                        KUBERNETES_DISCOVERY_SERVICE_TYPE.equals(service.getType()) ||
+                        HTTP_HEALTH_CHECK_SERVICE_TYPE.equals(service.getType())
                 )
                 .collect(Collectors.toMap(Service::getType, svc -> svc, (svc1, svc2) -> svc2));
 
             var egs = new EndpointGroupServices();
-            egs.setDiscovery(servicesByType.get(CONSUL_DISCOVERY_SERVICE_TYPE));
+            egs.setDiscovery(selectDiscoveryService(servicesByType));
             egs.setHealthCheck(servicesByType.get(HTTP_HEALTH_CHECK_SERVICE_TYPE));
             return egs;
         });
@@ -407,5 +410,10 @@ class ApiMigration {
     @Nullable
     private String addSlashIfNeeded(@Nullable String path) {
         return path == null || path.isEmpty() || path.endsWith("/") ? path : path + '/';
+    }
+
+    private Service selectDiscoveryService(java.util.Map<String, Service> servicesByType) {
+        Service discovery = servicesByType.get(CONSUL_DISCOVERY_SERVICE_TYPE);
+        return discovery != null ? discovery : servicesByType.get(KUBERNETES_DISCOVERY_SERVICE_TYPE);
     }
 }

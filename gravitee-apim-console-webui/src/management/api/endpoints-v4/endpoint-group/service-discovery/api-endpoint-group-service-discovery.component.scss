@@ -1,0 +1,26 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.card {
+  &__group-sd {
+    &__enable,
+    &__type {
+      &__label,
+      &__hint {
+        padding: 0 0.75em 0 0.75em;
+      }
+
+      &__form-field {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+    }
+
+    &__enable {
+      width: 100%;
+    }
+  }
+}

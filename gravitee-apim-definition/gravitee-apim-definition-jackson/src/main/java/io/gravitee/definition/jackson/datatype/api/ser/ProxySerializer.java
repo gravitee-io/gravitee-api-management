@@ -23,6 +23,8 @@ import io.gravitee.definition.model.Proxy;
 import java.io.IOException;
 import java.util.Set;
 import lombok.CustomLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,6 +32,8 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class ProxySerializer extends StdScalarSerializer<Proxy> {
+
+    private static final Logger log = LoggerFactory.getLogger(ProxySerializer.class);
 
     public ProxySerializer(Class<Proxy> t) {
         super(t);
@@ -40,17 +44,7 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStartObject();
 
         if (proxy.getVirtualHosts() != null) {
-            jgen.writeArrayFieldStart("virtual_hosts");
-            proxy
-                .getVirtualHosts()
-                .forEach(vhost -> {
-                    try {
-                        jgen.writeObject(vhost);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            jgen.writeEndArray();
+            writeArrayField(jgen, "virtual_hosts", proxy.getVirtualHosts(), "An error occurred while serializing api virtual hosts.");
         }
 
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
@@ -64,15 +58,7 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         final Set<EndpointGroup> groups = proxy.getGroups();
 
         if (groups != null) {
-            jgen.writeArrayFieldStart("groups");
-            groups.forEach(group -> {
-                try {
-                    jgen.writeObject(group);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            jgen.writeEndArray();
+            writeArrayField(jgen, "groups", groups, "An error occurred while serializing api proxy groups.");
         }
 
         if (proxy.getFailover() != null) {
@@ -84,19 +70,21 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         }
 
         if (proxy.getServers() != null && !proxy.getServers().isEmpty()) {
-            jgen.writeArrayFieldStart("servers");
-            proxy
-                .getServers()
-                .forEach(server -> {
-                    try {
-                        jgen.writeObject(server);
-                    } catch (IOException e) {
-                        log.warn("An error occurred while serializing api proxy servers.", e);
-                    }
-                });
-            jgen.writeEndArray();
+            writeArrayField(jgen, "servers", proxy.getServers(), "An error occurred while serializing api proxy servers.");
         }
 
         jgen.writeEndObject();
+    }
+
+    private void writeArrayField(JsonGenerator jgen, String fieldName, Iterable<?> values, String errorMessage) throws IOException {
+        jgen.writeArrayFieldStart(fieldName);
+        for (Object value : values) {
+            try {
+                jgen.writeObject(value);
+            } catch (IOException e) {
+                log.warn(errorMessage, e);
+            }
+        }
+        jgen.writeEndArray();
     }
 }

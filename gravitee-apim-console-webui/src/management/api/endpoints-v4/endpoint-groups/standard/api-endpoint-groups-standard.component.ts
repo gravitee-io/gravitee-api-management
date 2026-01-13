@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
-import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subject, Subscription, timer } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
@@ -33,6 +33,10 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypointsForGroup } from '../../api-endpoint-v4-matching-dlq';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import {
+  ServiceDiscoveryEndpoint,
+  ServiceDiscoveryEndpointsResponse,
+} from '../../../../../entities/management-api-v2/api/v4/serviceDiscoveryEndpoints';
 
 @Component({
   selector: 'api-endpoint-groups-standard',
@@ -41,6 +45,9 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
   standalone: false,
 })
 export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
+  private static readonly SERVICE_DISCOVERY_PAGE_SIZE = 15;
+  private static readonly SERVICE_DISCOVERY_POLL_INTERVAL_MS = 5000;
+
   public groupsTableData: EndpointGroup[];
   public plugins: Map<string, ConnectorPlugin>;
   public api: ApiV4;
@@ -50,6 +57,8 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public isA2ASelcted: boolean;
+  public serviceDiscoveryEndpoints: Record<string, ServiceDiscoveryEndpoint[]> = {};
+  public serviceDiscoveryPageIndex: Record<string, number> = {};
 
   private messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
@@ -65,6 +74,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
   };
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private serviceDiscoveryPollingSubscription?: Subscription;
 
   constructor(
     private permissionService: GioPermissionService,
@@ -101,6 +111,8 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
 
           this.license$ = this.licenseService.getLicense$();
           this.isOEM$ = this.licenseService.isOEM$();
+
+          this.startServiceDiscoveryPolling(this.api.id);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -110,6 +122,59 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
   public ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.complete();
+    this.serviceDiscoveryPollingSubscription?.unsubscribe();
+  }
+
+  public isManualEndpointEditionDisabled(group: EndpointGroup): boolean {
+    return group.serviceDiscoveryEnabled;
+  }
+
+  public getServiceDiscoveryEndpointsForGroup(groupName: string): ServiceDiscoveryEndpoint[] {
+    return this.serviceDiscoveryEndpoints[groupName] ?? [];
+  }
+
+  public getServiceDiscoveryPage(groupName: string): ServiceDiscoveryEndpoint[] {
+    const endpoints = this.getServiceDiscoveryEndpointsForGroup(groupName);
+    const pageIndex = this.serviceDiscoveryPageIndex[groupName] ?? 0;
+    const start = pageIndex * ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE;
+    return endpoints.slice(start, start + ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE);
+  }
+
+  public hasServiceDiscoveryOverflow(groupName: string): boolean {
+    return this.getServiceDiscoveryEndpointsForGroup(groupName).length > ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE;
+  }
+
+  public getServiceDiscoveryPageLabel(groupName: string): string {
+    const endpoints = this.getServiceDiscoveryEndpointsForGroup(groupName);
+    if (endpoints.length === 0) {
+      return '0/0';
+    }
+    const pageIndex = this.serviceDiscoveryPageIndex[groupName] ?? 0;
+    const totalPages = Math.ceil(endpoints.length / ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE);
+    return `${pageIndex + 1}/${totalPages}`;
+  }
+
+  public getServiceDiscoveryMaxPageIndex(groupName: string): number {
+    const endpoints = this.getServiceDiscoveryEndpointsForGroup(groupName);
+    return Math.max(0, Math.ceil(endpoints.length / ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE) - 1);
+  }
+
+  public goToPreviousServiceDiscoveryPage(groupName: string): void {
+    const current = this.serviceDiscoveryPageIndex[groupName] ?? 0;
+    this.serviceDiscoveryPageIndex = {
+      ...this.serviceDiscoveryPageIndex,
+      [groupName]: Math.max(0, current - 1),
+    };
+  }
+
+  public goToNextServiceDiscoveryPage(groupName: string): void {
+    const endpoints = this.getServiceDiscoveryEndpointsForGroup(groupName);
+    const maxPage = Math.max(0, Math.ceil(endpoints.length / ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE) - 1);
+    const current = this.serviceDiscoveryPageIndex[groupName] ?? 0;
+    this.serviceDiscoveryPageIndex = {
+      ...this.serviceDiscoveryPageIndex,
+      [groupName]: Math.min(maxPage, current + 1),
+    };
   }
 
   public deleteGroup(groupName: string): void {
@@ -268,5 +333,52 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
           this.isReordering = false;
         },
       });
+  }
+
+  private startServiceDiscoveryPolling(apiId: string): void {
+    this.serviceDiscoveryPollingSubscription?.unsubscribe();
+
+    if (!this.groupsTableData?.some((group) => group.serviceDiscoveryEnabled)) {
+      this.serviceDiscoveryEndpoints = {};
+      this.serviceDiscoveryPageIndex = {};
+      return;
+    }
+
+    this.serviceDiscoveryPollingSubscription = timer(0, ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_POLL_INTERVAL_MS)
+      .pipe(
+        switchMap(() =>
+          this.apiService.getServiceDiscoveryEndpoints(apiId).pipe(
+            catchError(() => of<ServiceDiscoveryEndpointsResponse | null>(null)),
+          ),
+        ),
+        filter((response): response is ServiceDiscoveryEndpointsResponse => response !== null),
+        map((response) => this.toServiceDiscoveryEndpointsMap(response)),
+        tap((endpointsByGroup) => this.ensureServiceDiscoveryPageIndexes(endpointsByGroup)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((endpointsByGroup) => {
+        this.serviceDiscoveryEndpoints = endpointsByGroup;
+      });
+  }
+
+  private toServiceDiscoveryEndpointsMap(response: ServiceDiscoveryEndpointsResponse): Record<string, ServiceDiscoveryEndpoint[]> {
+    const endpointsByGroup: Record<string, ServiceDiscoveryEndpoint[]> = {};
+    response?.groups?.forEach((group) => {
+      endpointsByGroup[group.name] = group.endpoints ?? [];
+    });
+    return endpointsByGroup;
+  }
+
+  private ensureServiceDiscoveryPageIndexes(endpointsByGroup: Record<string, ServiceDiscoveryEndpoint[]>): void {
+    const nextIndexes: Record<string, number> = {};
+    this.groupsTableData
+      ?.filter((group) => group.serviceDiscoveryEnabled)
+      .forEach((group) => {
+        const endpoints = endpointsByGroup[group.name] ?? [];
+        const maxPage = Math.max(0, Math.ceil(endpoints.length / ApiEndpointGroupsStandardComponent.SERVICE_DISCOVERY_PAGE_SIZE) - 1);
+        const current = this.serviceDiscoveryPageIndex[group.name] ?? 0;
+        nextIndexes[group.name] = Math.min(current, maxPage);
+      });
+    this.serviceDiscoveryPageIndex = nextIndexes;
   }
 }

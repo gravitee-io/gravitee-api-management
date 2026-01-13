@@ -74,6 +74,10 @@
 			<groupId>io.gravitee.el</groupId>
 			<artifactId>gravitee-expression-language</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.kubernetes</groupId>
+			<artifactId>gravitee-kubernetes-client</artifactId>
+		</dependency>
 
 		<!-- Spring dependencies -->
 		<dependency>

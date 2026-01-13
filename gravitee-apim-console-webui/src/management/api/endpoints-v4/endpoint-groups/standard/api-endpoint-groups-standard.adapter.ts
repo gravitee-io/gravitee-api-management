@@ -24,6 +24,8 @@ export type EndpointGroup = {
   generalColumnName?: string;
   endpoints: Endpoint[];
   endpointsDisplayedColumns: string[];
+  serviceDiscoveryEnabled: boolean;
+  serviceDiscoveryType?: string;
 };
 
 export type Endpoint = {
@@ -66,6 +68,8 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
       type: endpointGroup.type,
       loadBalancerType: loadBalancerType ? loadBalancerType.charAt(0).toUpperCase() + loadBalancerType.slice(1).toLowerCase() : '',
       generalColumnName: toGeneralColumnName(api, endpointGroup),
+      serviceDiscoveryEnabled: Boolean(endpointGroup?.services?.discovery?.enabled),
+      serviceDiscoveryType: endpointGroup?.services?.discovery?.type,
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0
           ? endpointGroup.endpoints.map((endpoint, endpointIndex) => {

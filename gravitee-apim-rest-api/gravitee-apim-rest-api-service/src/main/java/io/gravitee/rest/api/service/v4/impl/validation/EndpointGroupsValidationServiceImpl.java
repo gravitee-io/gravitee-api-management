@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
@@ -87,6 +88,10 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         final Set<String> names = new HashSet<>();
 
         endpointGroups.forEach(endpointGroup -> {
+            if (endpointGroup instanceof EndpointGroup asHttpEndpointGroup && isServiceDiscoveryEnabled(asHttpEndpointGroup)) {
+                asHttpEndpointGroup.setEndpoints(Collections.emptyList());
+            }
+
             validateUniqueEndpointGroupName(endpointGroup.getName(), names);
 
             final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
@@ -116,6 +121,11 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         });
 
         return endpointGroups;
+    }
+
+    private boolean isServiceDiscoveryEnabled(EndpointGroup endpointGroup) {
+        Service discovery = endpointGroup.getServices() == null ? null : endpointGroup.getServices().getDiscovery();
+        return discovery != null && discovery.isEnabled();
     }
 
     private void validateEndpointWeight(final AbstractEndpoint endpoint) {

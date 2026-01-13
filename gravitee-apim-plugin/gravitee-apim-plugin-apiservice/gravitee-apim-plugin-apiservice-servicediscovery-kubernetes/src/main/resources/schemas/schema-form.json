@@ -1,0 +1,34 @@
+{
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:plugin:apiservice:servicediscovery:KubernetesServiceDiscoveryServiceConfiguration",
+    "properties": {
+        "namespace": {
+            "title": "Namespace",
+            "description": "Kubernetes namespace to watch. Defaults to the current namespace.",
+            "type": "string"
+        },
+        "service": {
+            "title": "Service",
+            "description": "The Kubernetes service name to resolve endpoints from.",
+            "type": "string"
+        },
+        "port": {
+            "title": "Port",
+            "description": "Port to use when the service exposes multiple ports.",
+            "type": "integer"
+        },
+        "scheme": {
+            "title": "Scheme",
+            "description": "Override the scheme used to build endpoint targets.",
+            "type": "string",
+            "default": "http",
+            "enum": ["http", "https"]
+        },
+        "path": {
+            "title": "Path",
+            "description": "Base path to append to discovered endpoints.",
+            "type": "string",
+            "default": "/"
+        }
+    }
+}

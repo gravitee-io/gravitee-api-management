@@ -36,6 +36,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { fakeKafkaListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
+import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 
 /**
  * Expect that a single GET request has been made which matches the specified URL
@@ -86,8 +87,49 @@ function expectHealthCheckSchemaGet(
   fixture.detectChanges();
 }
 
+function expectServiceDiscoverySchemaGet(
+  fixture: ComponentFixture<any>,
+  httpTestingController: HttpTestingController,
+  type: string,
+  schema: any,
+): void {
+  httpTestingController
+    .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/api-services/${type}/schema`, method: 'GET' })
+    .flush(schema);
+  fixture.detectChanges();
+}
+
+function enableServiceDiscovery(
+  fixture: ComponentFixture<ApiEndpointGroupComponent>,
+  type: string,
+  configuration: Record<string, unknown>,
+): void {
+  const component = fixture.componentInstance;
+  component.serviceDiscoveryForm.controls.enabled.setValue(true);
+  fixture.detectChanges();
+  component.serviceDiscoveryForm.controls.type.setValue(type);
+  component.serviceDiscoveryForm.controls.configuration.setValue(configuration);
+  fixture.detectChanges();
+}
+
+function expectApiServicePluginsList(
+  fixture: ComponentFixture<any>,
+  httpTestingController: HttpTestingController,
+  plugins: ResourceListItem[],
+): void {
+  httpTestingController
+    .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/api-services`, method: 'GET' })
+    .flush(plugins);
+  fixture.detectChanges();
+}
+
+function isHttpProxyApi(api: ApiV4): boolean {
+  return api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
+}
+
 describe('ApiEndpointGroupComponent', () => {
   const API_ID = 'apiId';
+  const KUBERNETES_SERVICE_DISCOVERY_ID = 'kubernetes-service-discovery';
   const HEALTH_CHECK_SCHEMA = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     type: 'object',
@@ -101,11 +143,45 @@ describe('ApiEndpointGroupComponent', () => {
     },
     required: ['dummy'],
   };
+  const SERVICE_DISCOVERY_SCHEMA = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    type: 'object',
+    properties: {
+      namespace: {
+        type: 'string',
+      },
+      service: {
+        type: 'string',
+      },
+      port: {
+        type: 'string',
+      },
+    },
+  };
+  const SERVICE_DISCOVERY_CONFIGURATION = { namespace: 'default', service: 'demo', port: 8080 };
   let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiEndpointGroupHarness;
   let api: ApiV4;
   let rootLoader: HarnessLoader;
+  const API_SERVICE_PLUGINS: ResourceListItem[] = [
+    {
+      id: 'consul-service-discovery',
+      name: 'Consul.io Service Discovery',
+      description: 'Consul service discovery',
+      version: '1.0.0',
+      schema: '',
+      icon: '',
+    },
+    {
+      id: KUBERNETES_SERVICE_DISCOVERY_ID,
+      name: 'Kubernetes Service Discovery',
+      description: 'Kubernetes service discovery',
+      version: '1.0.0',
+      schema: '',
+      icon: '',
+    },
+  ];
 
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     TestBed.configureTestingModule({
@@ -129,6 +205,9 @@ describe('ApiEndpointGroupComponent', () => {
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     expectApiGetRequest(api, fixture, httpTestingController);
+    if (isHttpProxyApi(api)) {
+      expectApiServicePluginsList(fixture, httpTestingController, API_SERVICE_PLUGINS);
+    }
 
     fixture.detectChanges();
   };
@@ -272,6 +351,28 @@ describe('ApiEndpointGroupComponent', () => {
         overrideConfiguration: false,
         type: 'http-health-check',
         configuration: { dummy: 'New health check value' },
+      });
+    });
+  });
+
+  describe('endpoint group update - service discovery', () => {
+    it('should update endpoint group service discovery', async () => {
+      api = fakeProxyApiV4({ id: API_ID, endpointGroups: [fakeHTTPProxyEndpointGroupV4()] });
+      await initComponent(api);
+      expectHealthCheckSchemaGet(fixture, httpTestingController, HEALTH_CHECK_SCHEMA);
+      await componentHarness.clickServiceDiscoveryTab();
+
+      enableServiceDiscovery(fixture, KUBERNETES_SERVICE_DISCOVERY_ID, SERVICE_DISCOVERY_CONFIGURATION);
+      expectServiceDiscoverySchemaGet(fixture, httpTestingController, KUBERNETES_SERVICE_DISCOVERY_ID, SERVICE_DISCOVERY_SCHEMA);
+
+      await componentHarness.clickEndpointGroupSaveButton();
+      expectApiGetRequest(api, fixture, httpTestingController);
+      const endpointsGroup = expectApiPutRequest(api, fixture, httpTestingController).request.body.endpointGroups;
+      expect(endpointsGroup[0].services.discovery).toEqual({
+        enabled: true,
+        type: KUBERNETES_SERVICE_DISCOVERY_ID,
+        configuration: SERVICE_DISCOVERY_CONFIGURATION,
+        overrideConfiguration: false,
       });
     });
   });

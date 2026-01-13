@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.gravitee.definition.model.Service;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Collections;
 import java.util.Map;
 import lombok.experimental.SuperBuilder;
 
@@ -31,7 +30,16 @@ import lombok.experimental.SuperBuilder;
 public class EndpointDiscoveryService extends Service {
 
     public static final String SERVICE_KEY = "discovery";
-    public static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = Collections.singletonMap("CONSUL", "consul-service-discovery");
+    private static final String PROVIDER_CONSUL = "CONSUL";
+    private static final String PROVIDER_KUBERNETES = "KUBERNETES";
+    private static final String CONSUL_PLUGIN_ID = "consul-service-discovery";
+    private static final String KUBERNETES_PLUGIN_ID = "kubernetes-service-discovery";
+    public static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = Map.of(
+        PROVIDER_CONSUL,
+        CONSUL_PLUGIN_ID,
+        PROVIDER_KUBERNETES,
+        KUBERNETES_PLUGIN_ID
+    );
 
     public EndpointDiscoveryService() {
         super(SERVICE_KEY);
