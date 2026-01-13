@@ -34,13 +34,18 @@ import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface FlowRepository extends CrudRepository<Flow, String> {
-    List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
+    default List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
+        return findByReferences(referenceType, Set.of(referenceId));
+    }
+
+    List<Flow> findByReferences(FlowReferenceType referenceType, Set<String> referenceIds) throws TechnicalException;
 
     void deleteAllById(Collection<String> ids) throws TechnicalException;
 

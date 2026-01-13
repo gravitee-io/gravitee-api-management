@@ -46,6 +46,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -162,6 +163,36 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
+            log.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    @Override
+    public Map<String, List<Flow>> findByReferences(final FlowReferenceType flowReferenceType, final Set<String> referenceIds) {
+        try {
+            if (referenceIds == null || referenceIds.isEmpty()) {
+                return Map.of();
+            }
+            log.debug("Find flows by references {} - {}", flowReferenceType, referenceIds.size());
+            List<io.gravitee.repository.management.model.flow.Flow> flows = flowRepository.findByReferences(
+                flowReferenceType,
+                referenceIds
+            );
+            flows.forEach(this::enrichFlow);
+            return flows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        e.getValue().stream().map(flowMapper::toDefinition).collect(Collectors.toList())
+                    )
+                );
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while find flows by references";
             log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }

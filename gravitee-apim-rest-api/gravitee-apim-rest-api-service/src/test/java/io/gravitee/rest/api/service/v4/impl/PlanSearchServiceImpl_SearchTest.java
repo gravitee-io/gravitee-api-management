@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +53,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PlanSearchServiceImpl_SearchTest {
 
-    private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
     private static final String USER = "my-user";
 
