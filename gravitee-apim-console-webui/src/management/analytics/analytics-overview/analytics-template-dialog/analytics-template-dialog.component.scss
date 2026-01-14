@@ -24,6 +24,7 @@ mat-dialog-content {
     padding: 0 !important;
     display: flex;
     overflow: hidden;
+    min-height: 0; // Allow flex child to shrink and trigger internal scrolling
 }
 
 .modal-container {
@@ -106,6 +107,7 @@ mat-dialog-content {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    min-height: 0; // Allow flex child to shrink and trigger internal scrolling
 
     .detail-header {
         display: flex;
@@ -135,13 +137,13 @@ mat-dialog-content {
     .detail-preview {
         border: 1px solid #e0e0e0;
         border-radius: 8px;
-        overflow: hidden;
         background-color: #ffffff;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
         img {
             width: 100%;
             display: block;
+            border-radius: 8px;
         }
     }
 }
