@@ -777,7 +777,7 @@ describe('ApiPlanListComponent', () => {
       .expectOne(
         `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&${
           statuses ? `statuses=${castArray(statuses).join(',')}` : 'statuses=PUBLISHED'
-        }${security ? `securities=${security}` : ''}`,
+        }${security ? `securities=${security}` : ''}&fields=-flow`,
         'GET',
       )
       .flush(response);
