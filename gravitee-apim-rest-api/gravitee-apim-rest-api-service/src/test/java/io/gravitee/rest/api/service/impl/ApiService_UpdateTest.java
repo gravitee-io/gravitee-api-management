@@ -794,7 +794,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("Plan");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(any(), eq(API_ID), true)).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -919,7 +919,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(any(), eq(API_ID), true)).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -941,7 +941,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(any(), eq(API_ID), true)).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -963,7 +963,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("VALID");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(any(), eq(API_ID), true)).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"

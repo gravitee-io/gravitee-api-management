@@ -172,13 +172,8 @@ public class ApiConverter {
             );
         }
 
-        var plans = planService.findByApi(executionContext, api.getId());
+        var plans = planService.findByApi(executionContext, api.getId(), readDatabaseFlows);
         apiEntity.setPlans(plans);
-
-        if (readDatabaseFlows) {
-            List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
-            apiEntity.setFlows(flows);
-        }
 
         apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
 

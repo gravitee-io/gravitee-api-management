@@ -125,7 +125,7 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
 
             // Get plan IDs
             Map<String, String> plansByCrossId = planService
-                .findByApi(executionContext, importedApi.getId())
+                .findByApi(executionContext, importedApi.getId(), true)
                 .stream()
                 .collect(toMap(PlanEntity::getCrossId, PlanEntity::getId));
 

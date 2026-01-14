@@ -178,7 +178,7 @@ public class ApiServiceImplTest {
         when(primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())).thenReturn(primaryOwnerEntity);
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
         when(currentApi.getId()).thenReturn("api-id");
-        when(planService.findByApi(executionContext, "api-id")).thenReturn(Set.of());
+        when(planService.findByApi(executionContext, "api-id", true)).thenReturn(Set.of());
         when(currentApi.getPaths()).thenReturn(paths);
 
         boolean result = apiService.isSynchronized(executionContext, "api-id");

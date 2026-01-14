@@ -474,7 +474,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
 
         Set<PlanEntity> plans = planService
-            .findByApi(executionContext, api.getId())
+            .findByApi(executionContext, api.getId(), true)
             .stream()
             .filter(p -> p.getStatus() != io.gravitee.rest.api.model.PlanStatus.CLOSED)
             .collect(toSet());

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
@@ -621,7 +620,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         verify(groupService, times(2)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group");
 
         // check find plans by API has been called once to remove potential pre-existing plans on target API
-        verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
+        verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any(), true);
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1)).createOrUpdatePlan(
             eq(GraviteeContext.getExecutionContext()),

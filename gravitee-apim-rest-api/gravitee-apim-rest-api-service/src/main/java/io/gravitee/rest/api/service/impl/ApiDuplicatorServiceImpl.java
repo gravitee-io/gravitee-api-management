@@ -304,7 +304,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
             planService
-                .findByApi(executionContext, apiId)
+                .findByApi(executionContext, apiId, true)
                 .forEach(plan -> {
                     plan.setId(plansIdsMap.get(plan.getId()));
                     plan.setApi(duplicatedApi.getId());
@@ -855,7 +855,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private Map<String, PlanEntity> readApiPlansById(ExecutionContext executionContext, String apiId) {
-        return planService.findByApi(executionContext, apiId).stream().collect(toMap(PlanEntity::getId, Function.identity()));
+        return planService.findByApi(executionContext, apiId, true).stream().collect(toMap(PlanEntity::getId, Function.identity()));
     }
 
     protected void createOrUpdatePages(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.stream.Collectors.toMap;
 
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -95,7 +94,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
         Map<String, String> pagesIdsMap
     ) {
         Map<String, PlanEntity> plansByCrossId = planService
-            .findByApi(executionContext, api.getId())
+            .findByApi(executionContext, api.getId(), true)
             .stream()
             .filter(plan -> plan.getCrossId() != null)
             .collect(toMap(PlanEntity::getCrossId, Function.identity()));

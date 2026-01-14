@@ -560,7 +560,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         PlanEntity plan4 = new PlanEntity();
         plan4.setId("plan-id4");
 
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true)).thenReturn(
             Set.of(plan1, plan2, plan3, plan4)
         );
 
@@ -575,7 +575,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         verify(groupService, times(2)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group");
 
-        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true);
         // plan1, plan2 and plan4 has to be created or updated
         verify(planService, times(1)).createOrUpdatePlan(
             eq(GraviteeContext.getExecutionContext()),
@@ -616,7 +616,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         plan1.setCrossId("plan-cross-id-1");
         plan1.setName("plan name before import");
         plan1.setDescription("plan description before import");
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true)).thenReturn(Set.of(plan1));
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
@@ -707,14 +707,14 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         plan2.setCrossId(planCrossId2);
         plan2.setApi(apiId);
 
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1, plan2));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true)).thenReturn(Set.of(plan1, plan2));
         when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(apiId), any())).thenReturn(apiEntity);
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true);
     }
 
     @Test(expected = ApiDefinitionVersionNotSupportedException.class)

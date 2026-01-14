@@ -35,7 +35,7 @@ public interface PlanService {
     @Nullable
     PlanEntity findById(ExecutionContext executionContext, String plan);
 
-    Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);
+    Set<PlanEntity> findByApi(ExecutionContext executionContext, String api, Boolean withFlow);
 
     PlanEntity create(ExecutionContext executionContext, NewPlanEntity plan);
 

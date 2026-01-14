@@ -110,7 +110,7 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         return planService
-            .findByApi(executionContext, api)
+            .findByApi(executionContext, api, true)
             .stream()
             .filter(
                 plan ->

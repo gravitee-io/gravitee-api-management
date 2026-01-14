@@ -1193,7 +1193,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
                 planService
-                    .findByApi(executionContext, apiId)
+                    .findByApi(executionContext, apiId, true)
                     .forEach(plan -> {
                         if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
                             planService.deprecate(executionContext, plan.getId(), true);
@@ -1569,7 +1569,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiRunningStateException(apiId);
             }
 
-            Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+            Set<PlanEntity> plans = planService.findByApi(executionContext, apiId, true);
             if (closePlans) {
                 plans = plans
                     .stream()
@@ -1748,7 +1748,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
                     if (sync) {
-                        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+                        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId(), true);
                         sync = plans
                             .stream()
                             .noneMatch(
@@ -2042,7 +2042,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiEntity migrate(ExecutionContext executionContext, String apiId) {
         final ApiEntity apiEntity = findById(executionContext, apiId);
         final Set<PolicyEntity> policies = policyService.findAll();
-        Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+        Set<PlanEntity> plans = planService.findByApi(executionContext, apiId, true);
 
         ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
 

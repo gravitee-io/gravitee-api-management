@@ -276,7 +276,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(set);
     }
 
     @Test

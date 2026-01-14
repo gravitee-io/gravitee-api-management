@@ -32,8 +32,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -266,7 +264,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             if (!filteredFieldsList.contains("plans")) {
                 Set<PlanEntity> plans = applicationContext
                     .getBean(PlanService.class)
-                    .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+                    .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId(), true);
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
                     : plans

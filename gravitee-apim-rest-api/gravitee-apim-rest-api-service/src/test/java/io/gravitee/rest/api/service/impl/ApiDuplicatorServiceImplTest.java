@@ -24,31 +24,22 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import io.gravitee.apim.core.documentation.model.AccessControl;
-import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageSourceEntity;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.GroupService;
@@ -69,10 +60,8 @@ import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -392,10 +381,10 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode emptyPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.empty.json");
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId("existing-plan-id");
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(singleton(planEntity));
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, emptyPlansNode);
 
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), "existing-plan-id");
         verify(planService, never()).createOrUpdatePlan(any(), any());
     }
@@ -405,7 +394,7 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode plansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.default.json");
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, plansNode);
 
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
         verify(planService, never()).delete(any(), any());
         verify(planService, times(2)).createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), any(PlanEntity.class));
     }

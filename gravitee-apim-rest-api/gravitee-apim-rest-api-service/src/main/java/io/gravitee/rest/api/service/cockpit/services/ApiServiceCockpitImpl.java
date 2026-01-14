@@ -185,7 +185,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
         apiDeployment.setDeploymentLabel("Model updated");
 
-        Set<PlanEntity> plans = this.planService.findByApi(executionContext, apiId);
+        Set<PlanEntity> plans = this.planService.findByApi(executionContext, apiId, true);
         if (null == plans || plans.isEmpty()) {
             this.planService.create(executionContext, createKeylessPlan(apiId, environmentId));
         }

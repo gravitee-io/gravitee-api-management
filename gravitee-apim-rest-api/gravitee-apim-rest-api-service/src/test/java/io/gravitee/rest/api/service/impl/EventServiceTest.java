@@ -595,7 +595,7 @@ public class EventServiceTest {
         api.setId(API_ID);
         api.setDefinition("{}");
 
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(
+        when(planService.findByApi(any(), eq(API_ID), true)).thenReturn(
             Set.of(
                 buildPlanEntity("plan1", PlanStatus.STAGING),
                 buildPlanEntity("plan2", PlanStatus.CLOSED),

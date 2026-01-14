@@ -711,11 +711,11 @@ public class ApiServiceCockpitImplTest {
         ).thenReturn(updatedApiEntity);
 
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(updatedApiEntity);
-        when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(null);
+        when(planService.findByApi(EXECUTION_CONTEXT, API_ID, true)).thenReturn(null);
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID), true);
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
@@ -754,7 +754,7 @@ public class ApiServiceCockpitImplTest {
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID), true);
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
@@ -793,13 +793,13 @@ public class ApiServiceCockpitImplTest {
             apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class))
         ).thenReturn(updatedApiEntity);
 
-        when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
+        when(planService.findByApi(EXECUTION_CONTEXT, API_ID, true)).thenReturn(Collections.singleton(new PlanEntity()));
 
         preparePageServiceMock();
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID), true);
         verify(planService, never()).create(eq(EXECUTION_CONTEXT), any(NewPlanEntity.class));
 
         verify(apiService, never()).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));
