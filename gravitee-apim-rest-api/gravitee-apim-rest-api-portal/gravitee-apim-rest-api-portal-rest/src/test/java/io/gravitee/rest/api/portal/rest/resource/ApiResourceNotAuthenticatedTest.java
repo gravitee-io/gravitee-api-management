@@ -85,7 +85,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(new HashSet<GenericPlanEntity>(Arrays.asList(plan1, plan2, plan3)))
             .when(planSearchService)
-            .findByApi(GraviteeContext.getExecutionContext(), API);
+            .findByApi(GraviteeContext.getExecutionContext(), API, true);
 
         doReturn(new Api()).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());

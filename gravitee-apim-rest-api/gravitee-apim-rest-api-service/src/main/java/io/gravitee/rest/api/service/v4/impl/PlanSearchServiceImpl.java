@@ -102,7 +102,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId) {
+    public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId, boolean withFlow) {
         try {
             log.debug("Find plan by api : {}", apiId);
             Optional<Api> apiOptional = apiRepository.findById(apiId);
@@ -111,7 +111,11 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
                 return planRepository
                     .findByApi(apiId)
                     .stream()
-                    .map(plan -> genericPlanMapper.toGenericPlan(api, plan))
+                    .map(plan ->
+                        withFlow
+                            ? genericPlanMapper.toGenericPlanWithFlow(api, plan)
+                            : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
+                    )
                     .collect(Collectors.toSet());
             } else {
                 return Set.of();
@@ -122,14 +126,20 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query, String user, boolean isAdmin) {
+    public List<GenericPlanEntity> search(
+        final ExecutionContext executionContext,
+        final PlanQuery query,
+        String user,
+        boolean isAdmin,
+        boolean withFlow
+    ) {
         if (query.getApiId() == null) {
             return emptyList();
         }
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
 
-        return findByApi(executionContext, query.getApiId())
+        return findByApi(executionContext, query.getApiId(), withFlow)
             .stream()
             .filter(p -> {
                 boolean filtered = true;
@@ -189,7 +199,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         try {
             Optional<Api> apiOptional = apiRepository.findById(plan.getApi());
             final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(plan.getApi()));
-            return genericPlanMapper.toGenericPlan(api, plan);
+            return genericPlanMapper.toGenericPlanWithFlow(api, plan);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + plan.getApi(), e);
         }

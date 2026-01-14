@@ -79,7 +79,15 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
 
     combineLatest([
       this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV2Filter(this.snackBarService)),
-      this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, 1, 9999),
+      this.apiPlanService.list(
+        this.activatedRoute.snapshot.params.apiId,
+        undefined,
+        ['PUBLISHED', 'DEPRECATED'],
+        undefined,
+        undefined,
+        1,
+        9999,
+      ),
     ])
       .pipe(
         tap(([api, plansResponse]) => {
@@ -103,7 +111,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
 
     const updatePlans$ = this.apiPlanService
-      .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, 1, 9999)
+      .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
       .pipe(
         switchMap((plansResponse) => {
           const plans = plansResponse.data as PlanV2[];
