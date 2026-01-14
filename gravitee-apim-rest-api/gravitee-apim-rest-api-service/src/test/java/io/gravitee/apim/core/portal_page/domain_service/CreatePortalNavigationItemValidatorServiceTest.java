@@ -24,6 +24,7 @@ import static org.junit.Assert.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
@@ -52,6 +53,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
+    private ApiCrudServiceInMemory apiCrudService;
     private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
@@ -60,7 +62,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = new PortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService);
+        apiCrudService = new ApiCrudServiceInMemory();
+        validatorService = new PortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService, apiCrudService);
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }

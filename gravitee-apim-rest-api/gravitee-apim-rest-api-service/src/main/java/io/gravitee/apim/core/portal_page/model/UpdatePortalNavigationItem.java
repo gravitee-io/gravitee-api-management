@@ -31,6 +31,7 @@ public final class UpdatePortalNavigationItem {
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;
     private String url;
+    private String apiId;
     private Boolean published;
     private PortalVisibility visibility;
 }

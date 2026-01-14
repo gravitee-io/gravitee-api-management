@@ -1802,7 +1802,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [ PAGE, FOLDER, LINK ]
+      enum: [ PAGE, FOLDER, LINK, API ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -1845,10 +1845,11 @@ components:
       required: [ id, organizationId, environmentId, title, type, area, order, published, visibility ]
       discriminator:
         propertyName: type
-        mapping:
-          PAGE: "#/components/schemas/PortalNavigationPage"
-          FOLDER: "#/components/schemas/PortalNavigationFolder"
-          LINK: "#/components/schemas/PortalNavigationLink"
+          mapping:
+            PAGE: "#/components/schemas/PortalNavigationPage"
+            FOLDER: "#/components/schemas/PortalNavigationFolder"
+            LINK: "#/components/schemas/PortalNavigationLink"
+            API: "#/components/schemas/PortalNavigationApi"
     PortalNavigationPage:
       description: Portal navigation item of type PAGE
       allOf:
@@ -1874,17 +1875,50 @@ components:
               description: The URL for the link
               example: https://example.com
           required: [ url ]
+    PortalNavigationApi:
+      description: Portal navigation item of type API
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: The unique ID of the referenced API
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ apiId ]
+        - properties:
+            apiName:
+              type: string
+              readOnly: true
+              description: The name of the API
+            apiLifecycleState:
+              type: string
+              readOnly: true
+              enum:
+                - PUBLISHED
+                - UNPUBLISHED
+                - ARCHIVED
+                - DEPRECATED
+              description: The lifecycle state of the API
+            apiVisibility:
+              type: string
+              readOnly: true
+              enum:
+                - PUBLIC
+                - PRIVATE
+              description: The visibility of the API
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
         - $ref: "#/components/schemas/PortalNavigationFolder"
         - $ref: "#/components/schemas/PortalNavigationLink"
+        - $ref: "#/components/schemas/PortalNavigationApi"
       discriminator:
         propertyName: type
         mapping:
           PAGE: "#/components/schemas/PortalNavigationPage"
           FOLDER: "#/components/schemas/PortalNavigationFolder"
           LINK: "#/components/schemas/PortalNavigationLink"
+          API: "#/components/schemas/PortalNavigationApi"
 
     BaseCreatePortalNavigationItem:
       type: object
@@ -1920,6 +1954,7 @@ components:
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
+          API: "#/components/schemas/CreatePortalNavigationApi"
       required: [ title, type, area, visibility ]
     CreatePortalNavigationFolder:
       type: object
@@ -1951,17 +1986,31 @@ components:
               description: The URL for the link
               example: https://example.com
           required: [ url ]
+    CreatePortalNavigationApi:
+      type: object
+      title: "CreatePortalNavigationApi"
+      description: Portal navigation API reference to create
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: The unique ID of the API to reference
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ apiId ]
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
         - $ref: "#/components/schemas/CreatePortalNavigationFolder"
         - $ref: "#/components/schemas/CreatePortalNavigationLink"
+        - $ref: "#/components/schemas/CreatePortalNavigationApi"
       discriminator:
         propertyName: type
         mapping:
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
+          API: "#/components/schemas/CreatePortalNavigationApi"
 
     BaseUpdatePortalNavigationItem:
       type: object
@@ -1994,6 +2043,7 @@ components:
           FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
           PAGE: "#/components/schemas/UpdatePortalNavigationPage"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
+          API: "#/components/schemas/UpdatePortalNavigationApi"
       required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
       type: object
@@ -2019,17 +2069,31 @@ components:
               description: The URL for the link
               example: https://example.com
           required: [ url ]
+    UpdatePortalNavigationApi:
+      type: object
+      title: "UpdatePortalNavigationApi"
+      description: Portal navigation API reference to update
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            apiId:
+              type: string
+              description: The unique ID of the API to reference
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ apiId ]
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"
         - $ref: "#/components/schemas/UpdatePortalNavigationFolder"
         - $ref: "#/components/schemas/UpdatePortalNavigationLink"
+        - $ref: "#/components/schemas/UpdatePortalNavigationApi"
       discriminator:
         propertyName: type
         mapping:
           PAGE: "#/components/schemas/UpdatePortalNavigationPage"
           FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
+          API: "#/components/schemas/UpdatePortalNavigationApi"
 
     PortalPageContent:
       type: object

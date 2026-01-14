@@ -24,7 +24,8 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public abstract sealed class PortalNavigationItem permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder {
+public abstract sealed class PortalNavigationItem
+    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi {
 
     @Nonnull
     private final PortalNavigationItemId id;
@@ -142,6 +143,17 @@ public abstract sealed class PortalNavigationItem permits PortalNavigationPage, 
                 area,
                 order,
                 url,
+                published,
+                PortalVisibility.valueOf(visibility)
+            );
+            case API -> new PortalNavigationApi(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                item.getApiId(),
                 published,
                 PortalVisibility.valueOf(visibility)
             );

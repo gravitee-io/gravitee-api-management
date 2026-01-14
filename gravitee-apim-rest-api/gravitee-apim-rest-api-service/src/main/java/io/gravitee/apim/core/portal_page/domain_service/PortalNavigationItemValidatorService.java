@@ -16,6 +16,9 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
@@ -26,6 +29,7 @@ import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -44,6 +48,7 @@ public class PortalNavigationItemValidatorService {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalPageContentQueryService pageContentQueryService;
+    private final ApiCrudService apiCrudService;
 
     public void validate(CreatePortalNavigationItem item, String environmentId) {
         validateItem(item, environmentId);
@@ -83,6 +88,13 @@ public class PortalNavigationItemValidatorService {
             if (!isValidUrl(item.getUrl())) {
                 throw new InvalidUrlFormatException();
             }
+        }
+
+        if (item.getType() == PortalNavigationItemType.API) {
+            if (item.getApiId() == null || item.getApiId().isBlank()) {
+                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
+            }
+            validateApi(item.getApiId(), environmentId);
         }
     }
 
@@ -124,6 +136,20 @@ public class PortalNavigationItemValidatorService {
             if (!isValidUrl(toUpdate.getUrl())) {
                 throw new InvalidUrlFormatException();
             }
+        } else if (toUpdate.getType() == PortalNavigationItemType.API) {
+            if (toUpdate.getApiId() != null) {
+                if (toUpdate.getApiId().isBlank()) {
+                    throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
+                }
+                validateApi(toUpdate.getApiId(), existingItem.getEnvironmentId());
+            } else if (existingItem instanceof PortalNavigationApi apiItem) {
+                // If updating an API item but not changing apiId (apiId null in payload implies
+                // no change?)
+                // Assuming partial update behavior where null means no change.
+                // But if it's a replacement/update, usually ID must be present if required?
+                // UpdatePortalNavigationItem has apiId. If null, we might keep existing?
+                // For now, only validate if provided.
+            }
         }
     }
 
@@ -132,10 +158,23 @@ public class PortalNavigationItemValidatorService {
             case PortalNavigationFolder ignored -> PortalNavigationItemType.FOLDER;
             case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
             case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
+            case PortalNavigationApi ignored -> PortalNavigationItemType.API;
         };
 
         if (existingType != requestedType) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(requestedType.toString(), existingType.toString());
+        }
+    }
+
+    private void validateApi(String apiId, String environmentId) {
+        var api = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+        if (!api.getEnvironmentId().equals(environmentId)) {
+            throw new ApiNotFoundException(apiId);
+        }
+
+        if (api.getApiLifecycleState() != Api.ApiLifecycleState.PUBLISHED) {
+            throw InvalidPortalNavigationItemDataException.apiNotPublished();
         }
     }
 }

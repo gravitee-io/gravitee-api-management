@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -39,11 +40,13 @@ class ListPortalNavigationItemsUseCaseTest {
 
     private ListPortalNavigationItemsUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
+    private ApiQueryServiceInMemory apiQueryService;
 
     @BeforeEach
     void setUp() {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
-        useCase = new ListPortalNavigationItemsUseCase(queryService);
+        apiQueryService = new ApiQueryServiceInMemory();
+        useCase = new ListPortalNavigationItemsUseCase(queryService, apiQueryService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -359,5 +362,53 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Nav Bar Item");
+    }
+
+    @Test
+    void should_enrich_api_items_with_metadata() {
+        // Given
+        var api = io.gravitee.apim.core.api.model.Api.builder()
+            .id("api-1")
+            .environmentId(ENV_ID)
+            .name("My API")
+            .version("1.0")
+            .lifecycleState(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED)
+            .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
+            .build();
+        apiQueryService.initWith(List.of(api));
+
+        var apiNavItem = io.gravitee.apim.core.portal_page.model.PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.of("nav-item-1"))
+            .environmentId(ENV_ID)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .apiId("api-1")
+            .build();
+
+        queryService.initWith(List.of((PortalNavigationItem) apiNavItem));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole()
+            )
+        );
+
+        // Then
+        assertThat(result.items())
+            .hasSize(1)
+            .first()
+            .isInstanceOf(io.gravitee.apim.core.portal_page.model.PortalNavigationApi.class)
+            .satisfies(item -> {
+                var apiItem = (io.gravitee.apim.core.portal_page.model.PortalNavigationApi) item;
+                assertThat(apiItem.getApiDefinition()).isNotNull();
+                assertThat(apiItem.getApiDefinition().getName()).isEqualTo("My API");
+                assertThat(apiItem.getApiDefinition().getVersion()).isEqualTo("1.0");
+            });
     }
 }

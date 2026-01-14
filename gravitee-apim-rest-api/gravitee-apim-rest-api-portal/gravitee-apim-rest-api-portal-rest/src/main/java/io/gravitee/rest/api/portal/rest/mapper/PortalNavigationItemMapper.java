@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -23,7 +24,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
@@ -46,6 +46,7 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationFolder folder -> map(folder);
             case PortalNavigationLink link -> map(link);
             case PortalNavigationPage page -> map(page);
+            case PortalNavigationApi api -> map(api);
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);
@@ -53,8 +54,16 @@ public interface PortalNavigationItemMapper {
     }
 
     io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder map(PortalNavigationFolder folder);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationLink map(PortalNavigationLink link);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
+
+    @Mapping(target = "type", constant = "API")
+    @Mapping(source = "apiDefinition.name", target = "apiName")
+    @Mapping(source = "apiDefinition.version", target = "apiVersion")
+    @Mapping(source = "apiDefinition.description", target = "apiDescription")
+    io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
 
     @Mapping(source = "type", target = "type")
     io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent content);

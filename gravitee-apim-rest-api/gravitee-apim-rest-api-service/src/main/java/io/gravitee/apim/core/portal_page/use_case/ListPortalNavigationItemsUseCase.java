@@ -16,7 +16,12 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiFieldFilter;
+import io.gravitee.apim.core.api.model.ApiSearchCriteria;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
@@ -28,8 +33,11 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -37,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
+    private final ApiQueryService apiQueryService;
     private static final Predicate<PortalNavigationItem> IS_FOLDER_PREDICATE = i -> i instanceof PortalNavigationFolder;
 
     public Output execute(Input input) {
@@ -57,7 +66,24 @@ public class ListPortalNavigationItemsUseCase {
             allItems.addAll(descendants);
         }
 
+        enrichWithApiDefinitions(allItems, input.environmentId());
+
         return new Output(sortItems(allItems));
+    }
+
+    private void enrichWithApiDefinitions(List<PortalNavigationItem> items, String environmentId) {
+        var apiItems = items.stream().filter(PortalNavigationApi.class::isInstance).map(PortalNavigationApi.class::cast).toList();
+
+        if (apiItems.isEmpty()) {
+            return;
+        }
+
+        var apiIds = apiItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toList());
+        var apis = apiQueryService
+            .search(ApiSearchCriteria.builder().ids(apiIds).environmentId(environmentId).build(), null, ApiFieldFilter.builder().build())
+            .collect(Collectors.toMap(Api::getId, Function.identity()));
+
+        apiItems.forEach(item -> item.setApiDefinition(apis.get(item.getApiId())));
     }
 
     private PortalNavigationItem findAndValidateParent(Input input) {

@@ -192,7 +192,8 @@ public class JdbcPortalNavigationItemRepository
             switch (param) {
                 case String s -> ps.setString(index++, s);
                 case Boolean b -> ps.setBoolean(index++, b);
-                case null, default -> ps.setObject(index++, param);
+                case null -> ps.setObject(index++, null);
+                default -> ps.setObject(index++, param);
             }
         }
     }

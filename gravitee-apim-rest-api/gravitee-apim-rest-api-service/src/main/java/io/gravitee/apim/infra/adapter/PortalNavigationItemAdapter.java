@@ -30,12 +30,14 @@ public interface PortalNavigationItemAdapter {
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
     String URL = "url";
+    String API_ID = "apiId";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
             case FOLDER -> portalNavigationFolderFromRepository(portalNavigationItem);
             case PAGE -> portalNavigationPageFromRepository(portalNavigationItem);
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
+            case API -> portalNavigationApiFromRepository(portalNavigationItem);
         };
     }
 
@@ -72,6 +74,7 @@ public interface PortalNavigationItemAdapter {
             case PortalNavigationFolder ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER;
             case PortalNavigationPage ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.PAGE;
             case PortalNavigationLink ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.LINK;
+            case PortalNavigationApi ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API;
         };
     }
 
@@ -86,6 +89,11 @@ public interface PortalNavigationItemAdapter {
                 case PortalNavigationLink link -> {
                     Map<String, String> config = new HashMap<>();
                     config.put(URL, link.getUrl());
+                    yield OBJECT_MAPPER.writeValueAsString(config);
+                }
+                case PortalNavigationApi api -> {
+                    Map<String, String> config = new HashMap<>();
+                    config.put(API_ID, api.getApiId());
                     yield OBJECT_MAPPER.writeValueAsString(config);
                 }
                 case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
@@ -120,6 +128,24 @@ public interface PortalNavigationItemAdapter {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem LINK type", e);
         }
     }
+
+    @Named("parseApiId")
+    default String parseApiId(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            throw new IllegalArgumentException("PortalNavigationItem configuration is missing for API type");
+        }
+        try {
+            var node = OBJECT_MAPPER.readTree(configuration);
+            return node.get(API_ID).asText();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem API type", e);
+        }
+    }
+
+    @Mapping(target = "apiId", expression = "java(parseApiId(portalNavigationItem.getConfiguration()))")
+    PortalNavigationApi portalNavigationApiFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    );
 
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem

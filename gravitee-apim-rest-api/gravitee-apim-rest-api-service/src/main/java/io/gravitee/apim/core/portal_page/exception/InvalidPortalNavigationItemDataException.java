@@ -32,4 +32,8 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
             "Navigation item type cannot be changed or is mismatched (expected %s, got %s).".formatted(expected, received)
         );
     }
+
+    public static InvalidPortalNavigationItemDataException apiNotPublished() {
+        return new InvalidPortalNavigationItemDataException("API must be published");
+    }
 }

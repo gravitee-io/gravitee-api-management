@@ -36,6 +36,7 @@ public class PortalNavigationItem {
         PAGE,
         FOLDER,
         LINK,
+        API,
     }
 
     public enum Area {

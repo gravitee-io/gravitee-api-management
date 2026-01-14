@@ -37,6 +37,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -976,9 +977,10 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentQueryService portalPageContentQueryService
+        PortalPageContentQueryService portalPageContentQueryService,
+        ApiCrudService apiCrudService
     ) {
-        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService, apiCrudService);
     }
 
     @Bean
@@ -1012,9 +1014,10 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        ApiQueryService apiQueryService
     ) {
-        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService);
+        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, apiQueryService);
     }
 
     @Bean
