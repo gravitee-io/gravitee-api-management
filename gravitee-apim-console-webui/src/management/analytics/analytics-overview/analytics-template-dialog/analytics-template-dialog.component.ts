@@ -28,14 +28,6 @@ export interface Template {
 
 const TEMPLATES: Template[] = [
     {
-        id: 'MCP',
-        name: 'Quick summary dashboard',
-        shortDescription: 'Provides a high-level overview of key metrics and performance insights at a glance.',
-        longDescription: "High-level overview of your organization's API traffic and performance. This dashboard highlights top services, routes, and consumers across your organization with time-based trends for key performance metrics. It surfaces critical bottlenecks in the slowest services, routes, and consumers, helping you identify areas that may need optimization.",
-        thumbnailUrl: 'assets/analytics-templates/mcp.png',
-        previewUrl: 'assets/analytics-templates/mcp.png',
-    },
-    {
         id: 'Proxy',
         name: 'API Proxy dashboard',
         shortDescription: 'Monitors standard API traffic, including request counts and status distribution.',
@@ -50,6 +42,14 @@ const TEMPLATES: Template[] = [
         longDescription: 'Deep insights into your AI gateway traffic. Monitor token usage, cost analysis, and provider performance (OpenAI, Anthropic, etc.). Ensure your AI infrastructure is scalable and efficient.',
         thumbnailUrl: 'assets/analytics-templates/llm-dashboard.png',
         previewUrl: 'assets/analytics-templates/llm.png',
+    },
+    {
+        id: 'MCP',
+        name: 'Quick summary dashboard',
+        shortDescription: 'Provides a high-level overview of key metrics and performance insights at a glance.',
+        longDescription: "High-level overview of your organization's API traffic and performance. This dashboard highlights top services, routes, and consumers across your organization with time-based trends for key performance metrics. It surfaces critical bottlenecks in the slowest services, routes, and consumers, helping you identify areas that may need optimization.",
+        thumbnailUrl: 'assets/analytics-templates/mcp.png',
+        previewUrl: 'assets/analytics-templates/mcp.png',
     },
 ];
 
