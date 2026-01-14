@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNaviga
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.kafka.KafkaConnectionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
@@ -134,5 +135,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/proxy-kafka-console")
     public ProxyKafkaConsoleResource getProxyKafkaConsoleResource() {
         return resourceContext.getResource(ProxyKafkaConsoleResource.class);
+    }
+
+    @Path("/kafka")
+    public KafkaConnectionResource getKafkaConnectionResource() {
+        return resourceContext.getResource(KafkaConnectionResource.class);
     }
 }

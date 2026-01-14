@@ -198,6 +198,19 @@ const managementRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'connectors',
+        loadChildren: () => import('./connectors/connectors.module').then((m) => m.ConnectorsModule),
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_CLUSTER },
+            redirect: '/',
+          },
+          permissions: {
+            anyOf: ['environment-cluster-r'],
+          },
+        },
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
