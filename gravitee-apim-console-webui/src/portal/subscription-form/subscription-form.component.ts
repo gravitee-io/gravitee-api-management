@@ -1,0 +1,183 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { GmdFormEditorComponent } from '@gravitee/gravitee-markdown';
+
+import { Component, effect, inject, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+
+import { PortalHeaderComponent } from '../components/header/portal-header.component';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+
+@Component({
+  selector: 'subscription-form',
+  imports: [PortalHeaderComponent, ReactiveFormsModule, GmdFormEditorComponent],
+  templateUrl: './subscription-form.component.html',
+  styleUrl: './subscription-form.component.scss',
+})
+export class SubscriptionFormComponent {
+  contentControl = new FormControl({
+    value: '',
+    disabled: true,
+  });
+
+  private readonly gioPermissionService = inject(GioPermissionService);
+  private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-settings-u']));
+
+  constructor() {
+    effect(() => {
+      this.contentControl.reset(this.getDefaultBoilerplate());
+    });
+
+    effect(() => {
+      this.canUpdate() ? this.contentControl.enable() : this.contentControl.disable();
+    });
+  }
+
+  private getDefaultBoilerplate(): string {
+    return `<gmd-grid columns="1" class="hero-grid">
+  <gmd-card class="boilerplate-hero">
+    <gmd-card-title>🎨 Subscription Form Builder</gmd-card-title>
+    <gmd-md>
+      Welcome to your subscription form workspace! This is where you can design and customize the form that API consumers will see when subscribing to your APIs.
+
+      **How to use this space:**
+
+      - **✏️ Edit freely** - Modify the examples below or start from scratch
+      - **👀 Live preview** - See your changes instantly on the right side
+      - **🧪 Test validation** - Try filling out the form to test required fields and validation rules
+      - **💾 Save & publish** - When ready, save your form and publish it to make it available in the portal
+
+      ---
+
+      **💡 Pro tip:** Start by editing the example form below, then delete what you don't need and build your own!
+    </gmd-md>
+  </gmd-card>
+</gmd-grid>
+
+<style>
+  .hero-grid {
+    margin-bottom: 2rem;
+  }
+
+  .boilerplate-hero {
+    --gmd-card-container-color: #dbeafe;
+    --gmd-card-text-color: #1e3a8a;
+    --gmd-card-outline-color: #60a5fa;
+    --gmd-card-outline-width: 2px;
+    --gmd-card-container-shape: 12px;
+  }
+</style>
+
+---
+
+## 📋 Example: Complete Subscription Request Form
+
+Below is a full example showing all available form components. Feel free to customize it or use it as inspiration!
+
+<gmd-grid columns="2" class="subscription-form-grid form-demo">
+  <gmd-card>
+    <gmd-card-title>👤 Applicant Information</gmd-card-title>
+    <gmd-md>Tell us about yourself and your organization.</gmd-md>
+
+    <gmd-input name="fullName" label="Full name" fieldKey="full_name" required="true"></gmd-input>
+    <gmd-input name="email" label="Email address" fieldKey="email" type="email" required="true" placeholder="you@company.com"></gmd-input>
+    <gmd-input name="company" label="Company" fieldKey="company" required="true" minLength="2" maxLength="100"></gmd-input>
+    <gmd-input name="website" label="Company website" fieldKey="company_website" type="url" placeholder="https://example.com"></gmd-input>
+    <gmd-select name="country" label="Country" fieldKey="country" required="true" options="United States,Canada,United Kingdom,Germany,France,Poland,Spain,Italy,Netherlands,Other"></gmd-select>
+  </gmd-card>
+
+  <gmd-card>
+    <gmd-card-title>🎯 Usage Details</gmd-card-title>
+    <gmd-md>Help us understand your API usage needs.</gmd-md>
+
+    <gmd-select name="plan" label="Requested plan" fieldKey="requested_plan" required="true" options="Free Tier,Starter,Professional,Enterprise"></gmd-select>
+    <gmd-radio name="env" label="Target environment" fieldKey="target_environment" required="true" options="Production,Staging,Development,Testing"></gmd-radio>
+    <gmd-input name="monthlyCalls" label="Expected monthly API calls" fieldKey="expected_monthly_calls" type="number" placeholder="e.g. 100000"></gmd-input>
+    <gmd-textarea
+      name="useCase"
+      label="Use case description"
+      fieldKey="use_case"
+      required="true"
+      minLength="20"
+      maxLength="500"
+      placeholder="Please describe how you plan to use this API and what problem it will solve for your business..."></gmd-textarea>
+
+    <gmd-checkbox name="terms" label="I confirm that all information provided is accurate" fieldKey="confirm_accuracy" required="true"></gmd-checkbox>
+    <gmd-checkbox name="newsletter" label="Subscribe to API updates and newsletters" fieldKey="subscribe_newsletter"></gmd-checkbox>
+  </gmd-card>
+</gmd-grid>
+
+---
+
+## 🚀 Example: Simplified Quick Access Form
+
+Here's a minimal form variant for faster onboarding:
+
+<gmd-grid columns="1" class="compact-form-grid">
+  <gmd-card class="form-demo form-demo--compact">
+    <gmd-card-title>⚡ Quick Access Request</gmd-card-title>
+    <gmd-md>Get started quickly with just the essentials.</gmd-md>
+
+    <gmd-input name="appName" label="Application name" fieldKey="app_name" required="true" placeholder="My API Integration"></gmd-input>
+    <gmd-select name="team" label="Team or department" fieldKey="team" options="Engineering,Product,Data & Analytics,DevOps,Security,Partner Integration,Other"></gmd-select>
+    <gmd-radio name="priority" label="Request priority" fieldKey="priority" options="Low,Normal,High,Urgent"></gmd-radio>
+    <gmd-textarea name="notes" label="Additional notes" fieldKey="notes" maxLength="300" placeholder="Any additional context or special requirements..."></gmd-textarea>
+    <gmd-checkbox name="terms" label="I accept the terms and conditions" fieldKey="accept_terms" required="true"></gmd-checkbox>
+  </gmd-card>
+</gmd-grid>
+
+<style>
+  .subscription-form-grid {
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .form-demo {
+    --gmd-card-container-color: #f8fafc;
+    --gmd-card-outline-color: #e2e8f0;
+    --gmd-card-outline-width: 1px;
+    --gmd-card-container-shape: 10px;
+    --gmd-card-text-color: #0f172a;
+
+    --gmd-input-label-text-color: #0f172a;
+    --gmd-input-field-text-color: #0f172a;
+    --gmd-input-field-outline-color: #94a3b8;
+    --gmd-input-field-outline-radius: 8px;
+
+    --gmd-textarea-label-text-color: #0f172a;
+    --gmd-textarea-field-text-color: #0f172a;
+    --gmd-textarea-field-outline-color: #94a3b8;
+    --gmd-textarea-field-outline-radius: 8px;
+
+    --gmd-select-label-text-color: #0f172a;
+    --gmd-select-field-text-color: #0f172a;
+    --gmd-select-field-outline-color: #94a3b8;
+    --gmd-select-field-outline-radius: 8px;
+
+    --gmd-checkbox-label-text-color: #0f172a;
+
+    --gmd-radio-label-text-color: #0f172a;
+    --gmd-radio-option-text-color: #0f172a;
+  }
+
+  .form-demo--compact {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+</style>
+`;
+  }
+}
