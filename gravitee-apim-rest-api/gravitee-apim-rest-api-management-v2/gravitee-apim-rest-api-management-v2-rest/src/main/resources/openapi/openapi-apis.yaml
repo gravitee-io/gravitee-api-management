@@ -988,6 +988,19 @@ paths:
                   description: Application's identifier. Allow user to get API's plans subscribable by an application.
                   schema:
                       type: string
+                - name: fields
+                  in: query
+                  description: Nested fields of data to return in plans.
+                  schema:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - flow
+                        - -flow
+                    default: ['flow']
+                  explode: false
+                  style: form
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:

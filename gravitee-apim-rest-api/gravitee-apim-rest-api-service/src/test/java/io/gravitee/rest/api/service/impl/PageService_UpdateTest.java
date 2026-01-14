@@ -46,9 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -584,12 +582,12 @@ public class PageService_UpdateTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(planStatus);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && !p.isPublished()));
-        verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)), eq(false));
     }
 
     @Test(expected = PageUsedByCategoryException.class)
@@ -614,7 +612,7 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)), true);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -647,10 +645,10 @@ public class PageService_UpdateTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(planStatus);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)), false);
     }
 }

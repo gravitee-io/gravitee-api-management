@@ -98,6 +98,7 @@ public class PlanSearchServiceImpl_SearchTest {
             GraviteeContext.getExecutionContext(),
             PlanQuery.builder().build(),
             USER,
+            true,
             true
         );
 
@@ -114,13 +115,13 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
             fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
-        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
             fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
         );
-        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
             fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
 
@@ -128,6 +129,7 @@ public class PlanSearchServiceImpl_SearchTest {
             GraviteeContext.getExecutionContext(),
             PlanQuery.builder().apiId(API_ID).securityType(List.of(PlanSecurityType.API_KEY)).build(),
             USER,
+            true,
             true
         );
 
@@ -150,7 +152,7 @@ public class PlanSearchServiceImpl_SearchTest {
         rule.setEnabled(true);
         var rules = List.of(rule);
 
-        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
             fakeV2PlanEntity(
                 "plan-1",
                 1,
@@ -160,7 +162,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 rules
             )
         );
-        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
             fakeV2PlanEntity(
                 "plan-2",
                 2,
@@ -170,7 +172,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 null
             )
         );
-        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
             fakeV2PlanEntity(
                 "plan-3",
                 3,
@@ -180,7 +182,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 null
             )
         );
-        when(genericPlanMapper.toGenericPlan(api, plan4)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan4)).thenReturn(
             fakeV2PlanEntity(
                 "plan-4",
                 4,
@@ -190,7 +192,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 rules
             )
         );
-        when(genericPlanMapper.toGenericPlan(api, plan5)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan5)).thenReturn(
             fakeV2PlanEntity(
                 "plan-5",
                 5,
@@ -214,6 +216,7 @@ public class PlanSearchServiceImpl_SearchTest {
                 .mode(PlanMode.STANDARD)
                 .build(),
             USER,
+            true,
             true
         );
 
@@ -228,13 +231,13 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
             fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
-        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
             fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
         );
-        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
             fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
         );
 
@@ -248,7 +251,8 @@ public class PlanSearchServiceImpl_SearchTest {
             GraviteeContext.getExecutionContext(),
             PlanQuery.builder().apiId(API_ID).build(),
             USER,
-            false
+            false,
+            true
         );
 
         assertNotNull(plans);

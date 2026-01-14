@@ -22,6 +22,7 @@ import AnalyticsService from '../../../../services/analytics.service';
 import TenantService from '../../../../services/tenant.service';
 import { ApiService, LogsQuery } from '../../../../services/api.service';
 import { Constants } from '../../../../entities/Constants';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
 class ApiAnalyticsLogsControllerAjs {
   private api: any;
@@ -42,6 +43,7 @@ class ApiAnalyticsLogsControllerAjs {
     private $timeout: ng.ITimeoutService,
     private AnalyticsService: AnalyticsService,
     private TenantService: TenantService,
+    private ngApiPlanV2Service: ApiPlanV2Service,
     private $q: ng.IQService,
     private Constants: Constants,
   ) {
@@ -52,7 +54,10 @@ class ApiAnalyticsLogsControllerAjs {
   $onInit() {
     this.$q
       .all({
-        plans: this.ApiService.getApiPlans(this.activatedRoute.snapshot.params.apiId, 'published,closed,deprecated'),
+        plans: this.ngApiPlanV2Service
+          .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'CLOSED', 'DEPRECATED'], undefined, ['-flow'], 1)
+          .toPromise(),
+        // plans: this.ApiService.getApiPlans(this.activatedRoute.snapshot.params.apiId, 'published,closed,deprecated'),
         applications: this.ApiService.getSubscribers(this.activatedRoute.snapshot.params.apiId, null, null, null, ['owner']),
         tenants: this.TenantService.list(),
         resolvedApi: this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
@@ -179,6 +184,7 @@ ApiAnalyticsLogsControllerAjs.$inject = [
   '$timeout',
   'AnalyticsService',
   'TenantService',
+  'ngApiPlanV2Service',
   '$q',
   'Constants',
 ];

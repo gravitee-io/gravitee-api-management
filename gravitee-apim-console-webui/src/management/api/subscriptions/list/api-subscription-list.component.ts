@@ -148,7 +148,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
             !this.isKubernetesOrigin &&
             this.api.definitionVersion !== 'V1';
         }),
-        switchMap(() => this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, null, null, null, 1, 9999)),
+        switchMap(() => this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, null, null, null, undefined, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data.filter((plan) => plan.security?.type !== 'KEY_LESS'))),
         catchError((error) => {
           this.snackBarService.error(error.message);
