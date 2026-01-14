@@ -259,7 +259,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   }
 
   private publishNativeKafkaPlan$(plan: Plan): Observable<Plan> {
-    return this.plansService.list(this.api.id, undefined, ['PUBLISHED'], undefined, undefined, 1, 9999).pipe(
+    return this.plansService.list(this.api.id, undefined, ['PUBLISHED'], undefined, ['-flow'], 1, 9999).pipe(
       switchMap((plansResponse) => {
         const publishedKeylessPlan = plansResponse.data.filter((plan) => plan.security.type === 'KEY_LESS');
         const publishedAuthPlans = plansResponse.data.filter((plan) => plan.security.type !== 'KEY_LESS');
@@ -308,7 +308,7 @@ Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : '
   private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {
     // For full reload, we need to reset the number of plans for each status
     const getApiPlans$: Observable<Plan[]> = fullReload
-      ? this.plansService.list(this.activatedRoute.snapshot.params.apiId, undefined, [...PLAN_STATUS], undefined, undefined, 1, 9999).pipe(
+      ? this.plansService.list(this.activatedRoute.snapshot.params.apiId, undefined, [...PLAN_STATUS], undefined, ['-flow'], 1, 9999).pipe(
           map((plans) => {
             // Update the number of plans for each status
             const plansNumber = plans.data.reduce(
@@ -329,7 +329,7 @@ Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : '
           }),
         )
       : this.plansService
-          .list(this.activatedRoute.snapshot.params.apiId, undefined, [selectedStatus], undefined, undefined, 1, 9999)
+          .list(this.activatedRoute.snapshot.params.apiId, undefined, [selectedStatus], undefined, ['-flow'], 1, 9999)
           .pipe(map((response) => response.data));
 
     getApiPlans$
