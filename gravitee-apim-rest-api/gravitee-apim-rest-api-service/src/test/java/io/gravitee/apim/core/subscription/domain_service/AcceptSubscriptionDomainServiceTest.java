@@ -251,6 +251,32 @@ class AcceptSubscriptionDomainServiceTest {
     }
 
     @Test
+    void should_preserve_metadata_when_accepting_subscription() {
+        // Given
+        var initialMetadata = Map.of("consumer_company", "Acme Corp", "consumer_department", "Engineering");
+        SubscriptionEntity subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .subscribedBy("subscriber")
+                .planId(PLAN_PUBLISHED.getId())
+                .applicationId(APPLICATION_ID)
+                .status(SubscriptionEntity.Status.PENDING)
+                .metadata(initialMetadata)
+                .build()
+        );
+
+        // When
+        final SubscriptionEntity result = accept(subscription, PLAN_PUBLISHED);
+
+        // Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getId()).isEqualTo("subscription-id");
+            softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            softly.assertThat(result.getMetadata()).isEqualTo(initialMetadata);
+        });
+    }
+
+    @Test
     void should_generated_key_for_API_Key_plan() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
