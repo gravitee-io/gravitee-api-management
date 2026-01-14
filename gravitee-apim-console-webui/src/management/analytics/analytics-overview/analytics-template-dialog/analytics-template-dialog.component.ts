@@ -48,7 +48,7 @@ const TEMPLATES: Template[] = [
         name: 'AI gateway dashboard',
         shortDescription: 'Monitors AI gateway performance including traffic, latency, and errors.',
         longDescription: 'Deep insights into your AI gateway traffic. Monitor token usage, cost analysis, and provider performance (OpenAI, Anthropic, etc.). Ensure your AI infrastructure is scalable and efficient.',
-        thumbnailUrl: 'assets/analytics-templates/llm.png',
+        thumbnailUrl: 'assets/analytics-templates/llm-dashboard.png',
         previewUrl: 'assets/analytics-templates/llm.png',
     },
 ];
