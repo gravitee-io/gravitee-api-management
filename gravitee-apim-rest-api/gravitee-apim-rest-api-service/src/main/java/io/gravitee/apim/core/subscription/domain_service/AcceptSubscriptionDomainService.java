@@ -158,7 +158,13 @@ public class AcceptSubscriptionDomainService {
                 .blockingGet();
         }
 
-        var acceptedSubscription = subscription.acceptBy(auditInfo.actor().userId(), startingAt, endingAt, reason);
+        var acceptedSubscription = subscription.acceptBy(
+            auditInfo.actor().userId(),
+            startingAt,
+            endingAt,
+            reason,
+            subscription.getMetadata()
+        );
 
         if (plan.isApiKey()) {
             synchronized (this) {
