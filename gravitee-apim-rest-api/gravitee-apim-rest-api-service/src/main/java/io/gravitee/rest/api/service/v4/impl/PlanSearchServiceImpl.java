@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -134,9 +135,22 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             return emptyList();
         }
 
+        // TODO: Find a way to optimize this. findGenericById featch Plans and Flows in db.
+        //  but we don't need them here.
+        //  or find a way to reuse plans and flow bellow
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
 
-        return findByApi(executionContext, query.getApiId(), withFlow)
+        // get all GenericPlanEntity from GenericApiEntity
+        Set<? extends GenericPlanEntity> plans = new HashSet<>();
+        if (genericApiEntity instanceof io.gravitee.rest.api.model.api.ApiEntity asV2ApiEntity) {
+            plans = asV2ApiEntity.getPlans();
+        } else if(genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
+            plans = asNativeApiEntity.getPlans();
+        } else if (genericApiEntity instanceof io.gravitee.rest.api.model.v4.api.ApiEntity asV4ApiEntity) {
+            plans = asV4ApiEntity.getPlans();
+        }
+
+        return plans
             .stream()
             .filter(p -> {
                 boolean filtered = true;
