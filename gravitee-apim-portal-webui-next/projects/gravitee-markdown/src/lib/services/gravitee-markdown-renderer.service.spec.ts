@@ -334,6 +334,19 @@ This markdown editor demonstrates the **button component** integration.
           '<gmd-card>\n  <gmd-card-title>Parent Card</gmd-card-title>\n  <gmd-card-subtitle>This card contains another card</gmd-card-subtitle>\n  <gmd-card>\n    <gmd-card-title>Child Card</gmd-card-title>\n    <gmd-card-subtitle>Nested inside parent</gmd-card-subtitle>\n    <gmd-button appearance="filled">Child Action</gmd-button>\n  </gmd-card>\n  <gmd-button appearance="outlined">Parent Action</gmd-button>\n</gmd-card>',
       },
       {
+        description: 'should normalize self-closing GMD form components to opening/closing format',
+        input: `<gmd-input name="test" label="Test Input" type="text" required="true" />
+<gmd-select name="test-select" label="Test Select" options='["Option 1", "Option 2"]' />
+<gmd-textarea name="test-textarea" label="Test Textarea" placeholder="Enter text" />
+<gmd-checkbox name="test-checkbox" label="Test Checkbox" required="true" />
+<gmd-radio name="test-radio" label="Test Radio" options="option1,option2" />`,
+        expected: `<gmd-input name="test" label="Test Input" type="text" required="true"></gmd-input>
+<gmd-select name="test-select" label="Test Select" options="[&quot;Option 1&quot;, &quot;Option 2&quot;]"></gmd-select>
+<gmd-textarea name="test-textarea" label="Test Textarea" placeholder="Enter text"></gmd-textarea>
+<gmd-checkbox name="test-checkbox" label="Test Checkbox" required="true"></gmd-checkbox>
+<gmd-radio name="test-radio" label="Test Radio" options="option1,option2"></gmd-radio>`,
+      },
+      {
         description: 'should handle images inside GMD components without parsing errors',
         input: `## Outside
 
@@ -388,6 +401,67 @@ console.log(special);
         const result = service.render(input);
         expect(result).toBe(expected);
       });
+    });
+  });
+
+  describe('Form Components Normalization', () => {
+    it('should normalize all self-closing form components', () => {
+      const input = `<gmd-input name="test" />
+<gmd-textarea name="test2" />
+<gmd-select name="test3" />
+<gmd-checkbox name="test4" />
+<gmd-radio name="test5" />`;
+
+      const result = service.render(input);
+
+      // All self-closing components should be converted to opening/closing format
+      expect(result).toContain('<gmd-input name="test"></gmd-input>');
+      expect(result).toContain('<gmd-textarea name="test2"></gmd-textarea>');
+      expect(result).toContain('<gmd-select name="test3"></gmd-select>');
+      expect(result).toContain('<gmd-checkbox name="test4"></gmd-checkbox>');
+      expect(result).toContain('<gmd-radio name="test5"></gmd-radio>');
+
+      // Should not contain self-closing format
+      expect(result).not.toContain('<gmd-input name="test" />');
+      expect(result).not.toContain('<gmd-textarea name="test2" />');
+      expect(result).not.toContain('<gmd-select name="test3" />');
+      expect(result).not.toContain('<gmd-checkbox name="test4" />');
+      expect(result).not.toContain('<gmd-radio name="test5" />');
+    });
+
+    it('should preserve attributes when normalizing self-closing components', () => {
+      const input = `<gmd-input name="email" label="Email" placeholder="Enter email" required="true" fieldKey="consumer_email" />
+<gmd-select name="env" label="Environment" options='["dev", "prod"]' fieldKey="environment" />`;
+
+      const result = service.render(input);
+
+      // Attributes should be preserved
+      expect(result).toContain('name="email"');
+      expect(result).toContain('label="Email"');
+      expect(result).toContain('placeholder="Enter email"');
+      expect(result).toContain('required="true"');
+      // DOMParser converts attribute names to lowercase
+      expect(result).toContain('fieldkey="consumer_email"');
+      expect(result).toContain('fieldkey="environment"');
+
+      // Components should be normalized
+      expect(result).toContain('</gmd-input>');
+      expect(result).toContain('</gmd-select>');
+    });
+
+    it('should handle self-closing components with various spacing', () => {
+      const input = `<gmd-input name="test1"/>
+<gmd-input name="test2" />
+<gmd-input name="test3"  />
+<gmd-input name="test4"   />`;
+
+      const result = service.render(input);
+
+      // All variations should be normalized
+      expect(result).toContain('<gmd-input name="test1"></gmd-input>');
+      expect(result).toContain('<gmd-input name="test2"></gmd-input>');
+      expect(result).toContain('<gmd-input name="test3"></gmd-input>');
+      expect(result).toContain('<gmd-input name="test4"></gmd-input>');
     });
   });
 

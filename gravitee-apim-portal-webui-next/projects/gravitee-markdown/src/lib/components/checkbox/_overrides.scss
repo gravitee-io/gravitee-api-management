@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use './token-utils' as token-utils;
+@use '../../scss/token-utils' as token-utils;
+@use '../../scss/theme' as theme;
+
+$theme-tokens: theme.tokens();
 
 @function tokens() {
   @return (
-    (
-      namespace: sys,
-      tokens: (
-        container-shape: 4px,
-        primary-color: #275cf6,
-        on-primary-color: #ffffff,
-        outline-color: #cdd7e1,
-        hover-state-layer-opacity: 90%,
-        focus-state-layer-opacity: 80%,
-        text-color: #1d192b,
-        error-color: #d32f2f,
-      )
+    namespace: checkbox,
+    tokens: (
+      label-text-size: 0.875rem,
+      label-text-weight: 500,
+      label-text-color: inherit,
+      required-text-color: token-utils.slot(error-color, $theme-tokens),
+      error-text-color: token-utils.slot(error-color, $theme-tokens),
+      error-text-size: 0.8125rem,
     )
   );
 }

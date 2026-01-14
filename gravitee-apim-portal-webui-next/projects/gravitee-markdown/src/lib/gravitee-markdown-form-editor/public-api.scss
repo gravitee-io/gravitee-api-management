@@ -13,15 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/scss/theme' as theme-* show theme-overrides;
 
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/gravitee-markdown-form-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
-@forward './lib/components/button/public-api';
-@forward './lib/components/input/public-api';
-@forward './lib/components/textarea/public-api';
-@forward './lib/components/select/public-api';
-@forward './lib/components/checkbox/public-api';
-@forward './lib/components/radio/public-api';
+@forward './overrides' as form-editor-* show form-editor-overrides;

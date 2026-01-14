@@ -23,6 +23,11 @@ import { GmdButtonComponent } from './button/gmd-button.component';
 import { GmdCardSubtitleComponent } from './card/components/card-subtitle/gmd-card-subtitle.component';
 import { GmdCardTitleComponent } from './card/components/card-title/gmd-card-title.component';
 import { GmdCardComponent } from './card/gmd-card.component';
+import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
+import { GmdInputComponent } from './input/gmd-input.component';
+import { GmdRadioComponent } from './radio/gmd-radio.component';
+import { GmdSelectComponent } from './select/gmd-select.component';
+import { GmdTextareaComponent } from './textarea/gmd-textarea.component';
 
 export const prefixStripperParser: HookParserEntry[] = [
   {
@@ -52,5 +57,25 @@ export const prefixStripperParser: HookParserEntry[] = [
   {
     component: GmdButtonComponent,
     selector: ComponentSelector.BUTTON,
+  },
+  {
+    component: GmdInputComponent,
+    selector: ComponentSelector.INPUT,
+  },
+  {
+    component: GmdTextareaComponent,
+    selector: ComponentSelector.TEXTAREA,
+  },
+  {
+    component: GmdSelectComponent,
+    selector: ComponentSelector.SELECT,
+  },
+  {
+    component: GmdCheckboxComponent,
+    selector: ComponentSelector.CHECKBOX,
+  },
+  {
+    component: GmdRadioComponent,
+    selector: ComponentSelector.RADIO,
   },
 ];

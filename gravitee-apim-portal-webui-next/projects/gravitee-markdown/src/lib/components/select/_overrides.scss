@@ -1,0 +1,45 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+@use '../../scss/theme' as theme;
+
+$theme-tokens: theme.tokens();
+
+@function tokens() {
+  @return (
+    namespace: select,
+    tokens: (
+      label-text-size: 0.875rem,
+      label-text-weight: 500,
+      label-text-color: inherit,
+      required-text-color: token-utils.slot(error-color, $theme-tokens),
+      field-text-size: 1rem,
+      field-text-color: inherit,
+      field-outline-width: 1px,
+      field-outline-color: token-utils.slot(outline-color, $theme-tokens),
+      field-outline-radius: token-utils.slot(container-shape, $theme-tokens),
+      field-background-color: #ffffff,
+      field-focus-outline-color: token-utils.slot(primary-color, $theme-tokens),
+      field-disabled-background-color: #f5f5f5,
+      error-text-color: token-utils.slot(error-color, $theme-tokens),
+      error-text-size: 0.8125rem,
+    )
+  );
+}
+
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}

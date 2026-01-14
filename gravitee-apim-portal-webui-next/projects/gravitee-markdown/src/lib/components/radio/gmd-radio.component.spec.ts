@@ -1,0 +1,308 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Component, input } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { GmdRadioComponent } from './gmd-radio.component';
+import { GmdFieldState } from '../../models/formField';
+
+@Component({
+  template: `
+    <gmd-radio
+      [fieldKey]="fieldKey()"
+      [name]="name()"
+      [label]="label()"
+      [value]="value()"
+      [required]="required()"
+      [options]="options()"
+      [readonly]="readonly()"
+      [disabled]="disabled()" />
+  `,
+  standalone: true,
+  imports: [GmdRadioComponent],
+})
+class TestHostComponent {
+  fieldKey = input<string | undefined>();
+  name = input<string>('test-radio');
+  label = input<string | undefined>();
+  value = input<string | undefined>();
+  required = input<boolean>(false);
+  options = input<string>('');
+  readonly = input<boolean>(false);
+  disabled = input<boolean>(false);
+}
+
+describe('GmdRadioComponent', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let component: TestHostComponent;
+  let radioComponent: GmdRadioComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    component = fixture.componentInstance;
+    radioComponent = fixture.debugElement.query(p => p.name === 'gmd-radio')?.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+    expect(radioComponent).toBeTruthy();
+  });
+
+  it('should initialize with default values', () => {
+    expect(radioComponent.value()).toBeUndefined();
+    expect(radioComponent.required()).toBe(false);
+    expect(radioComponent.readonly()).toBe(false);
+    expect(radioComponent.disabled()).toBe(false);
+  });
+
+  it('should display label when provided', () => {
+    fixture.componentRef.setInput('label', 'Test Radio');
+    fixture.detectChanges();
+
+    const labelElement = fixture.nativeElement.querySelector('.gmd-radio__group-label');
+    expect(labelElement).toBeTruthy();
+    expect(labelElement.textContent.trim()).toContain('Test Radio');
+  });
+
+  it('should show required indicator when required is true', () => {
+    fixture.componentRef.setInput('label', 'Test Radio');
+    fixture.componentRef.setInput('required', true);
+    fixture.detectChanges();
+
+    const requiredIndicator = fixture.nativeElement.querySelector('.gmd-radio__required');
+    expect(requiredIndicator).toBeTruthy();
+    expect(requiredIndicator.textContent.trim()).toBe('*');
+  });
+
+  describe('Options parsing', () => {
+    it('should parse comma-separated options', () => {
+      fixture.componentRef.setInput('options', 'option1,option2,option3');
+      fixture.detectChanges();
+
+      const options = radioComponent.optionsVM();
+      expect(options).toEqual(['option1', 'option2', 'option3']);
+    });
+
+    it('should parse JSON array options', () => {
+      fixture.componentRef.setInput('options', '["option1","option2","option3"]');
+      fixture.detectChanges();
+
+      const options = radioComponent.optionsVM();
+      expect(options).toEqual(['option1', 'option2', 'option3']);
+    });
+
+    it('should handle empty options', () => {
+      fixture.componentRef.setInput('options', '');
+      fixture.detectChanges();
+
+      const options = radioComponent.optionsVM();
+      expect(options).toEqual([]);
+    });
+
+    it('should trim whitespace from comma-separated options', () => {
+      fixture.componentRef.setInput('options', 'option1 , option2 , option3');
+      fixture.detectChanges();
+
+      const options = radioComponent.optionsVM();
+      expect(options).toEqual(['option1', 'option2', 'option3']);
+    });
+
+    it('should render options in template', () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+
+      const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]');
+      expect(radioInputs.length).toBe(2);
+    });
+  });
+
+  it('should update value when radio option is selected', () => {
+    fixture.componentRef.setInput('options', 'option1,option2');
+    fixture.detectChanges();
+
+    const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    radioInputs[1].click();
+    fixture.detectChanges();
+
+    expect(radioInputs[1].checked).toBe(true);
+  });
+
+  it('should be disabled when disabled input is true', () => {
+    fixture.componentRef.setInput('options', 'option1,option2');
+    fixture.componentRef.setInput('disabled', true);
+    fixture.detectChanges();
+
+    const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    radioInputs.forEach(input => {
+      expect(input.disabled).toBe(true);
+    });
+  });
+
+  it('should be readonly when readonly input is true', () => {
+    fixture.componentRef.setInput('options', 'option1,option2');
+    fixture.componentRef.setInput('readonly', true);
+    fixture.detectChanges();
+
+    const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    radioInputs.forEach(input => {
+      expect(input.readOnly).toBe(true);
+    });
+  });
+
+  describe('Validation', () => {
+    it('should be valid when not required and empty', () => {
+      fixture.componentRef.setInput('required', false);
+      fixture.detectChanges();
+
+      expect(radioComponent.valid()).toBe(true);
+      expect(radioComponent.errors().length).toBe(0);
+    });
+
+    it('should be invalid when required and no option selected', () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+
+      expect(radioComponent.valid()).toBe(false);
+      expect(radioComponent.errors()).toContain('required');
+    });
+
+    it('should be valid when required and option selected', () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('value', 'option1');
+      fixture.detectChanges();
+
+      expect(radioComponent.valid()).toBe(true);
+      expect(radioComponent.errors().length).toBe(0);
+    });
+
+    it('should show error messages when touched and invalid', () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+
+      const radioInput = fixture.nativeElement.querySelector('input[type="radio"]') as HTMLInputElement;
+      radioInput.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      const errorElement = fixture.nativeElement.querySelector('.gmd-radio__error');
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.textContent.trim()).toBe('This field is required.');
+    });
+  });
+
+  describe('Event emission', () => {
+    it('should emit gmdFieldStateChange event when fieldKey is set and value changes', async () => {
+      fixture.componentRef.setInput('fieldKey', 'test-key');
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
+        const radioElement = fixture.nativeElement.querySelector('gmd-radio');
+        radioElement.addEventListener(
+          'gmdFieldStateChange',
+          (event: Event) => {
+            resolve(event as CustomEvent<GmdFieldState>);
+          },
+          { once: true },
+        );
+      });
+
+      const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      radioInputs[0].click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // Wait for effect() to trigger and setTimeout in emitState to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const customEvent = await eventPromise;
+      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.value).toBe('option1');
+      expect(customEvent.detail.valid).toBe(true);
+    });
+
+    it('should not emit event when fieldKey is not set', async () => {
+      fixture.componentRef.setInput('fieldKey', undefined);
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+
+      let eventEmitted = false;
+      const radioElement = fixture.nativeElement.querySelector('gmd-radio');
+      radioElement.addEventListener('gmdFieldStateChange', () => {
+        eventEmitted = true;
+      });
+
+      const radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      radioInputs[0].click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // Wait to ensure no event is emitted
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(eventEmitted).toBe(false);
+    });
+
+    it('should emit event with validation errors when invalid', async () => {
+      fixture.componentRef.setInput('fieldKey', 'test-key');
+      fixture.componentRef.setInput('required', true);
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.detectChanges();
+
+      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
+        const radioElement = fixture.nativeElement.querySelector('gmd-radio');
+        radioElement.addEventListener('gmdFieldStateChange', (event: Event) => {
+          resolve(event as CustomEvent<GmdFieldState>);
+        });
+      });
+
+      const radioInput = fixture.nativeElement.querySelector('input[type="radio"]') as HTMLInputElement;
+      radioInput.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const customEvent = await eventPromise;
+      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.valid).toBe(false);
+      expect(customEvent.detail.errors).toContain('required');
+    });
+  });
+
+  describe('Initial value synchronization', () => {
+    it('should sync and update value from input', () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('value', 'option1');
+      fixture.detectChanges();
+
+      let radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      expect(radioInputs[0].checked).toBe(true);
+
+      fixture.componentRef.setInput('value', 'option2');
+      fixture.detectChanges();
+
+      radioInputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      expect(radioInputs[1].checked).toBe(true);
+    });
+  });
+});

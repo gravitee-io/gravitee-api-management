@@ -21,6 +21,11 @@ export enum ComponentSelector {
   CARD_SUBTITLE = 'gmd-card-subtitle',
   MD_BLOCK = 'gmd-md',
   BUTTON = 'gmd-button',
+  INPUT = 'gmd-input',
+  TEXTAREA = 'gmd-textarea',
+  SELECT = 'gmd-select',
+  CHECKBOX = 'gmd-checkbox',
+  RADIO = 'gmd-radio',
 }
 
 export function getComponentSelector(componentTag: string): ComponentSelector | undefined {
