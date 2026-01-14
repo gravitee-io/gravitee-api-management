@@ -372,7 +372,7 @@ describe('ApiAnalyticsMcpProxyComponent', () => {
   function expectPlanList(plans: PlanV4[] = []) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED,CLOSED`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED,CLOSED&fields=-flow`,
         method: 'GET',
       })
       .flush(fakePagedResult(plans));
