@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { AnalyticsTemplateDialogComponent } from './analytics-template-dialog/analytics-template-dialog.component';
 
 export interface Dashboard {
   id: string;
@@ -23,4 +25,19 @@ const ELEMENT_DATA: Dashboard[] = [
 export class AnalyticsOverviewComponent {
   displayedColumns: string[] = ['name', 'createdAt', 'lastModificationAt', 'labels', 'actions'];
   dataSource = ELEMENT_DATA;
+
+  constructor(private readonly dialog: MatDialog) { }
+
+  public onFromTemplateClick(): void {
+    const dialogRef = this.dialog.open(AnalyticsTemplateDialogComponent, {
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // eslint-disable-next-line no-console
+        console.log('Selected template:', result);
+      }
+    });
+  }
 }

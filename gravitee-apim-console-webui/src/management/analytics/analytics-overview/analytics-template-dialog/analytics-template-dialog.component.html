@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Select a dashboard template</h2>
+
+<mat-dialog-content>
+    <mat-radio-group [(ngModel)]="selectedTemplate" class="template-radio-group">
+        <mat-radio-button value="MCP">MCP</mat-radio-button>
+        <mat-radio-button value="Proxy">Proxy</mat-radio-button>
+        <mat-radio-button value="LLM">LLM</mat-radio-button>
+    </mat-radio-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onGenerate()" [disabled]="!selectedTemplate">Generate</button>
+</mat-dialog-actions>

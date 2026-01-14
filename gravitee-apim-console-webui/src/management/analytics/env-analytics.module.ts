@@ -20,6 +20,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
+import { FormsModule } from '@angular/forms';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
@@ -28,6 +31,7 @@ import { PlatformLogsComponent } from './logs/platform-logs.component';
 import { PlatformLogComponent } from './logs/platform-log.component';
 import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
 import { AnalyticsOverviewComponent } from './analytics-overview/analytics-overview.component';
+import { AnalyticsTemplateDialogComponent } from './analytics-overview/analytics-template-dialog/analytics-template-dialog.component';
 
 const routes: Routes = [
   {
@@ -80,8 +84,26 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent, AnalyticsOverviewComponent],
-  imports: [CommonModule, RouterModule.forChild(routes), MatTabsModule, GioIconsModule, MatTableModule, MatButtonModule, MatMenuModule],
+  declarations: [
+    EnvAnalyticsLayoutComponent,
+    AnalyticsDashboardComponent,
+    PlatformLogsComponent,
+    PlatformLogComponent,
+    AnalyticsOverviewComponent,
+    AnalyticsTemplateDialogComponent,
+  ],
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes),
+    MatTabsModule,
+    GioIconsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatRadioModule,
+    FormsModule,
+  ],
   exports: [RouterModule],
 })
 export class EnvAnalyticsModule { }

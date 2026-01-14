@@ -1,0 +1,10 @@
+.template-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+mat-dialog-content {
+    min-width: 300px;
+}
