@@ -1731,7 +1731,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         return false;
                     }
 
-                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
+                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, true);
                     // Remove policy description from sync check
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
