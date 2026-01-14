@@ -276,7 +276,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
         return planSearchService
-            .findByApi(executionContext, apiId)
+            .findByApi(executionContext, apiId, false)
             .stream()
             .anyMatch(
                 planEntity ->

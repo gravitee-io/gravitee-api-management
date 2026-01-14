@@ -348,7 +348,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   ];
 
   apiPlans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
+    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, undefined, 1, 9999)
     .pipe(
       map((plans) => plans.data),
       shareReplay(1),

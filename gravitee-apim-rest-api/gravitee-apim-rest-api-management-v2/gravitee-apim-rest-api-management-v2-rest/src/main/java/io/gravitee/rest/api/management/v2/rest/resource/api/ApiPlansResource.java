@@ -85,6 +85,8 @@ import java.util.stream.Stream;
  */
 public class ApiPlansResource extends AbstractResource {
 
+    private static final String FLOW = "flow";
+
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
     private final FlowMapper flowMapper = FlowMapper.INSTANCE;
 
@@ -123,8 +125,13 @@ public class ApiPlansResource extends AbstractResource {
         @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
         @QueryParam("mode") PlanMode planMode,
         @QueryParam("subscribableBy") String subscribableBy,
+        @QueryParam("fields") Set<String> fields,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
+        if (fields == null || fields.isEmpty()) {
+            fields = Set.of(FLOW);
+        }
+
         var planQuery = PlanQuery.builder()
             .apiId(apiId)
             .securityType(
@@ -141,8 +148,10 @@ public class ApiPlansResource extends AbstractResource {
             )
             .mode(planMode);
 
+        boolean withFlow = fields.contains(FLOW);
+
         Stream<GenericPlanEntity> plansStream = planSearchService
-            .search(GraviteeContext.getExecutionContext(), planQuery.build(), getAuthenticatedUser(), isAdmin())
+            .search(GraviteeContext.getExecutionContext(), planQuery.build(), getAuthenticatedUser(), isAdmin(), withFlow)
             .stream()
             .sorted(comparingInt(GenericPlanEntity::getOrder))
             .map(this::filterSensitiveData);
