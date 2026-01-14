@@ -1,0 +1,65 @@
+<!--
+ *
+ *    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *            http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+-->
+
+<h2 mat-dialog-title>Add API</h2>
+
+<form autocomplete="off" (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <!-- Information Box -->
+    <div class="info-box">
+      <mat-icon class="info-box__icon">info</mat-icon>
+      <div class="info-box__content">
+        <p class="info-box__title">Can't see all your APIs?</p>
+        <p class="info-box__text">APIs must have API products enabled before they appear in the list.</p>
+      </div>
+    </div>
+
+    <!-- API Selection Field -->
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Add APIs</mat-label>
+      <input matInput type="search" [matAutocomplete]="auto" [formControl]="searchApiControl" data-testid="api-select-input" />
+      <button *ngIf="searchApiControl.value" matSuffix mat-icon-button aria-label="Clear input" (click)="resetSearchTerm()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectAPI()" [displayWith]="displayFn">
+        @if (filteredOptions$ | async; as filteredOptions) {
+          <mat-option *ngFor="let option of filteredOptions" [value]="option" data-testid="api-select-option">
+            <span class="autocompleteRow">
+              <gio-avatar
+                class="autocompleteRow__avatar"
+                [src]="option._links?.pictureUrl"
+                [name]="option.name + ' ' + option.apiVersion"
+                [size]="28"
+                [roundedBorder]="true"
+              ></gio-avatar>
+              <span>{{ option.name }} - {{ option.apiVersion }}</span>
+            </span>
+          </mat-option>
+          <mat-option *ngIf="filteredOptions.length === 0 && searchApiControl.getRawValue()" disabled>
+            No APIs matching search criteria
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions [align]="'end'" class="form-actions">
+    <button type="button" mat-flat-button (click)="onCancelClick()" data-testid="cancel-button">Cancel</button>
+    <button type="submit" [disabled]="!isApiSelected" mat-raised-button color="primary" data-testid="submit-button">Add API</button>
+  </mat-dialog-actions>
+</form>

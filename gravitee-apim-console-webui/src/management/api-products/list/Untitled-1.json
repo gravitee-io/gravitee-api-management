@@ -1,0 +1,92 @@
+{
+  "data" : [ 
+    {
+    "flows" : [ ],
+    "id" : "a5823fa3-c320-48b5-823f-a3c32008b599",
+    "name" : "api-product-1",
+    "description" : "",
+    "numberOfApis" : 3,
+    "apiVersion" : "1",
+    "deployedAt" : "2026-01-06T16:05:05.066Z",
+    "createdAt" : "2026-01-06T09:45:38.764Z",
+    "updatedAt" : "2026-01-06T16:05:05.066Z",
+    "disableMembershipNotifications" : false,
+    "groups" : [ ],
+    "state" : "STARTED",
+    "visibility" : "PRIVATE",
+    "labels" : [ ],
+    "lifecycleState" : "CREATED",
+    "tags" : [ ],
+    "primaryOwner" : {
+      "id" : "6c36ed7a-ad34-433a-b6ed-7aad34733a90",
+      "displayName" : "admin",
+      "type" : "USER"
+    },
+    "categories" : [ ],
+    "originContext" : {
+      "origin" : "MANAGEMENT"
+    },
+    "definitionContext" : {
+      "origin" : "MANAGEMENT",
+      "mode" : "FULLY_MANAGED",
+      "syncFrom" : "MANAGEMENT"
+    },
+    "responseTemplates" : { },
+    "resources" : [ ],
+    "properties" : [ ],
+    "_links" : {
+      "pictureUrl" : "http://localhost:8083/management/v2/environments/DEFAULT/apis/a5823fa3-c320-48b5-823f-a3c32008b599/picture?hash=1767715505066",
+      "backgroundUrl" : "http://localhost:8083/management/v2/environments/DEFAULT/apis/a5823fa3-c320-48b5-823f-a3c32008b599/background?hash=1767715505066"
+    }
+  }, {
+    "flows" : [ ],
+    "services" : { },
+    "pathMappings" : [ ],
+    "id" : "15c69ced-f9c0-48f5-869c-edf9c048f568",
+    "name" : "api-product-2",
+    "numberOfApis" : 2,
+    "description" : "a",
+    "apiVersion" : "2",
+    "deployedAt" : "2026-01-06T15:25:38.87Z",
+    "createdAt" : "2026-01-06T15:24:27.244Z",
+    "updatedAt" : "2026-01-06T15:25:38.87Z",
+    "disableMembershipNotifications" : false,
+    "groups" : [ ],
+    "state" : "STARTED",
+    "visibility" : "PRIVATE",
+    "labels" : [ ],
+    "lifecycleState" : "CREATED",
+    "tags" : [ ],
+    "primaryOwner" : {
+      "id" : "6c36ed7a-ad34-433a-b6ed-7aad34733a90",
+      "displayName" : "admin",
+      "type" : "USER"
+    },
+    "categories" : [ ],
+    "originContext" : {
+      "origin" : "MANAGEMENT"
+    },
+    "definitionContext" : {
+      "origin" : "MANAGEMENT",
+      "mode" : "FULLY_MANAGED",
+      "syncFrom" : "MANAGEMENT"
+    },
+    "responseTemplates" : { },
+    "resources" : [ ],
+    "properties" : [ ],
+    "_links" : {
+      "pictureUrl" : "http://localhost:8083/management/v2/environments/DEFAULT/apis/15c69ced-f9c0-48f5-869c-edf9c048f568/picture?hash=1767713138870",
+      "backgroundUrl" : "http://localhost:8083/management/v2/environments/DEFAULT/apis/15c69ced-f9c0-48f5-869c-edf9c048f568/background?hash=1767713138870"
+    }
+  } ],
+  "pagination" : {
+    "page" : 1,
+    "perPage" : 25,
+    "pageCount" : 1,
+    "pageItemsCount" : 2,
+    "totalCount" : 2
+  },
+  "links" : {
+    "self" : "http://localhost:8083/management/v2/environments/DEFAULT/apis/_search?page=1&perPage=25&sortBy=name"
+  }
+}

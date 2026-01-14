@@ -17,29 +17,17 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 
-import { ApiProductNavigationComponent } from '../navigation/api-product-navigation.component';
+import { ApiProductApisComponent } from './api-product-apis.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: ApiProductNavigationComponent,
-    children: [
-      {
-        path: '',
-        redirectTo: 'configuration',
-        pathMatch: 'full',
+    component: ApiProductApisComponent,
+    data: {
+      docs: {
+        page: 'management-api-products-apis',
       },
-      {
-        path: 'configuration',
-        loadChildren: () =>
-          import('../configuration/api-product-configuration.module').then((m) => m.ApiProductConfigurationModule),
-      },
-      {
-        path: 'apis',
-        loadChildren: () => import('../apis/api-product-apis.module').then((m) => m.ApiProductApisModule),
-      },
-      // TODO: Add route for 'consumers' when component is created
-    ],
+    },
   },
 ];
 
@@ -47,5 +35,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class ApiProductDetailRoutingModule {}
-
+export class ApiProductApisRoutingModule {}

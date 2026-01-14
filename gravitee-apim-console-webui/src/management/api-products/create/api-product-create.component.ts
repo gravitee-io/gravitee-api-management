@@ -23,6 +23,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../../entities/Constants';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { CreateApiProduct } from '../../../entities/management-api-v2/api-product';
 
 @Component({
   selector: 'api-product-create',
@@ -35,6 +38,9 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
 
   public form: UntypedFormGroup;
   public descriptionMaxLength = 250;
+  public nameMaxLength = 255;
+  public versionMaxLength = 255;
+  public isCreating = false;
 
   constructor(
     @Inject(Constants) private readonly constants: Constants,
@@ -42,12 +48,22 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: UntypedFormBuilder,
     private readonly matDialog: MatDialog,
+    private readonly apiProductV2Service: ApiProductV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required]),
-      version: this.formBuilder.control('', [Validators.required]),
+      name: this.formBuilder.control('', [
+        Validators.required,
+        Validators.maxLength(this.nameMaxLength),
+        Validators.minLength(1),
+      ]),
+      version: this.formBuilder.control('', [
+        Validators.required,
+        Validators.maxLength(this.versionMaxLength),
+        Validators.minLength(1),
+      ]),
       description: this.formBuilder.control('', [Validators.maxLength(this.descriptionMaxLength)]),
     });
   }
@@ -85,18 +101,57 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
   }
 
   onCreate(): void {
-    if (this.form.valid) {
-      // TODO: Create API Product
-      console.log('Creating API Product:', this.form.value);
-      // Navigate back to the API Products list page
-      this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+    if (this.form.valid && !this.isCreating) {
+      this.isCreating = true;
+      const formValue = this.form.getRawValue();
+
+      // Sanitize input: trim whitespace and validate non-empty after trim
+      const trimmedName = formValue.name?.trim() || '';
+      const trimmedVersion = formValue.version?.trim() || '';
+      const trimmedDescription = formValue.description?.trim() || '';
+
+      // Validate that trimmed values are not empty
+      if (!trimmedName || !trimmedVersion) {
+        this.snackBarService.error('Name and version are required and cannot be empty');
+        this.isCreating = false;
+        this.form.markAllAsTouched();
+        return;
+      }
+
+      const createApiProduct: CreateApiProduct = {
+        name: trimmedName,
+        version: trimmedVersion,
+        description: trimmedDescription || undefined,
+        apiIds: [], // TODO: Add API selection functionality
+      };
+
+      this.apiProductV2Service
+        .create(createApiProduct)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe({
+          next: (apiProduct) => {
+            this.isCreating = false;
+            this.snackBarService.success('API Product created successfully!');
+            // Navigate to the created API Product details page
+            this.router.navigate(['..', apiProduct.id], { relativeTo: this.activatedRoute });
+          },
+          error: (error) => {
+            this.isCreating = false;
+            const errorMessage =
+              error.error?.message ||
+              error.error?.errors?.[0]?.message ||
+              'An error occurred while creating the API Product';
+            this.snackBarService.error(errorMessage);
+          },
+        });
     } else {
       this.form.markAllAsTouched();
     }
   }
 
   getDescriptionLength(): number {
-    return this.form.get('description')?.value?.length || 0;
+    const description = this.form.get('description')?.value;
+    return description ? description.length : 0;
   }
 }
 

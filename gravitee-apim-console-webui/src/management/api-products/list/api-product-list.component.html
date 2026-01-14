@@ -28,7 +28,7 @@
       color="primary"
       class="create-api-product-button"
       aria-label="create-api-product"
-      *gioPermission="{ anyOf: ['environment-api-c'] }"
+      *gioPermission="{ anyOf: ['environment-api-products-c'] }"
       data-testid="api_product_list_create_button"
     >
       Create API Product
@@ -141,10 +141,10 @@
           class="mat-mdc-cell mdc-data-table__cell"
           [attr.colspan]="displayedColumns.length"
         >
-          {{ 'There is no API Product (yet).' }}
+          There is no API Product (yet).
         </td>
         <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-          {{ 'Loading...' }}
+          Loading...
         </td>
       </tr>
     </table>

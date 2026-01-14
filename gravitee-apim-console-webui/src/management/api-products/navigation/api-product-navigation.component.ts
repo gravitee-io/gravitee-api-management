@@ -17,8 +17,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { ApiProduct } from '../../../entities/management-api-v2/api-product';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface MenuItem {
   displayName: string;
@@ -35,8 +39,9 @@ interface MenuItem {
 export class ApiProductNavigationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public currentApiProduct: any; // TODO: Replace with proper ApiProduct type
+  public currentApiProduct: ApiProduct | null = null;
   public apiProductId: string;
+  public isLoading = false;
   public subMenuItems: MenuItem[] = [
     {
       displayName: 'Configuration',
@@ -60,6 +65,8 @@ export class ApiProductNavigationComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly gioMenuService: GioMenuService,
+    private readonly apiProductV2Service: ApiProductV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -84,14 +91,25 @@ export class ApiProductNavigationComponent implements OnInit, OnDestroy {
           const apiProductId = getApiProductId(this.activatedRoute);
           if (apiProductId) {
             this.apiProductId = apiProductId;
-            // TODO: Load API Product from service
-            // For now, create a mock object
-            this.currentApiProduct = {
-              id: apiProductId,
-              name: 'My API Product', // TODO: Load from service
-              version: '1', // TODO: Load from service
-            };
+            this.isLoading = true;
+            this.currentApiProduct = null;
           }
+        }),
+        switchMap(() => {
+          const apiProductId = getApiProductId(this.activatedRoute);
+          if (apiProductId) {
+            return this.apiProductV2Service.get(apiProductId).pipe(
+              catchError((error) => {
+                this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
+                return of(null);
+              }),
+            );
+          }
+          return of(null);
+        }),
+        tap((apiProduct) => {
+          this.currentApiProduct = apiProduct;
+          this.isLoading = false;
         }),
         switchMap(() => this.router.events),
         filter((event) => event instanceof NavigationEnd),

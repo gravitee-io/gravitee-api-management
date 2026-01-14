@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { isEqual } from 'lodash';
+import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { toSort, toOrder } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Constants } from '../../../entities/Constants';
 
 export type ApiProductTableDS = {
   id: string;
@@ -39,9 +46,6 @@ interface ApiProductListTableWrapperFilters extends GioTableWrapperFilters {
   standalone: false,
 })
 export class ApiProductListComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  isLoadingData = false;
-  
   displayedColumns = ['picture', 'name', 'apis', 'version', 'owner', 'actions'];
   apiProductsTableDS: ApiProductTableDS = [];
   apiProductsTableDSUnpaginatedLength = 0;
@@ -50,51 +54,56 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   searchLabel = 'Search';
+  isLoadingData = true;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private filters$ = new BehaviorSubject<ApiProductListTableWrapperFilters>(this.filters);
 
-  // Dummy data from the provided JSON
-  
-  private dummyData = [
-    {
-      id: 'a5823fa3-c320-48b5-823f-a3c32008b599',
-      name: 'api-product-1',
-      description: '',
-      numberOfApis: 3,
-      apiVersion: '1',
-      primaryOwner: {
-        id: '6c36ed7a-ad34-433a-b6ed-7aad34733a90',
-        displayName: 'admin',
-        type: 'USER',
-      },
-      _links: {
-        pictureUrl: 'http://localhost:8083/management/v2/environments/DEFAULT/apis/a5823fa3-c320-48b5-823f-a3c32008b599/picture?hash=1767715505066',
-      },
-    },
-    {
-      id: '15c69ced-f9c0-48f5-869c-edf9c048f568',
-      name: 'api-product-2',
-      description: 'a',
-      numberOfApis: 2,
-      apiVersion: '2',
-      primaryOwner: {
-        id: '6c36ed7a-ad34-433a-b6ed-7aad34733a90',
-        displayName: 'admin',
-        type: 'USER',
-      },
-      _links: {
-        pictureUrl: 'http://localhost:8083/management/v2/environments/DEFAULT/apis/15c69ced-f9c0-48f5-869c-edf9c048f568/picture?hash=1767713138870',
-      },
-    },
-  ];
-  
-
-  //private dummyData = [] // when we do not have  any api products, UI still needs bit work. 
-  // when click on create api product after filling the form, we redirect to the screen to show the api product list
-  // used dummy json data for now to show the api product list.
-
-  constructor() {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+    @Inject(Constants) private readonly constants: Constants,
+    private readonly apiProductV2Service: ApiProductV2Service,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
-    this.loadApiProducts();
+    this.initFilters();
+
+    this.filters$
+      .pipe(
+        debounceTime(100),
+        distinctUntilChanged(isEqual),
+        tap((filters: ApiProductListTableWrapperFilters) => {
+          // Update URL params
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: {
+              q: filters.searchTerm,
+              page: filters.pagination.index,
+              size: filters.pagination.size,
+              ...(filters.sort ? { order: toOrder(filters.sort) } : {}),
+            },
+            queryParamsHandling: 'merge',
+          });
+        }),
+        switchMap((filters: ApiProductListTableWrapperFilters) => {
+          const page = filters.pagination?.index || 1;
+          const perPage = filters.pagination?.size || 10;
+          return this.apiProductV2Service.list(page, perPage).pipe(
+            catchError((error) => {
+              this.snackBarService.error(error.error?.message || 'An error occurred while loading API Products');
+              return of({ data: [], pagination: { totalCount: 0 } });
+            }),
+          );
+        }),
+        tap((response) => {
+          this.apiProductsTableDS = this.toApiProductsTableDS(response.data || []);
+          this.apiProductsTableDSUnpaginatedLength = response.pagination?.totalCount || 0;
+          this.isLoadingData = false;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy(): void {
@@ -102,22 +111,34 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
     this.unsubscribe$.complete();
   }
 
-  private loadApiProducts(): void {
-    this.isLoadingData = true;
-    // Simulate API call delay
-    setTimeout(() => {
-      this.apiProductsTableDS = this.toApiProductsTableDS(this.dummyData);
-      this.apiProductsTableDSUnpaginatedLength = this.dummyData.length;
-      this.isLoadingData = false;
-    }, 100);
+  private initFilters(): void {
+    const initialSearchValue = this.activatedRoute.snapshot.queryParams.q ?? this.filters.searchTerm;
+    const initialPageNumber = this.activatedRoute.snapshot.queryParams.page
+      ? Number(this.activatedRoute.snapshot.queryParams.page)
+      : this.filters.pagination.index;
+    const initialPageSize = this.activatedRoute.snapshot.queryParams.size
+      ? Number(this.activatedRoute.snapshot.queryParams.size)
+      : this.filters.pagination.size;
+    const initialSort = toSort(this.activatedRoute.snapshot.queryParams.order, this.filters.sort);
+
+    this.filters = {
+      searchTerm: initialSearchValue,
+      sort: initialSort,
+      pagination: {
+        index: initialPageNumber,
+        size: initialPageSize,
+      },
+    };
+    this.filters$.next(this.filters);
   }
+
 
   private toApiProductsTableDS(data: any[]): ApiProductTableDS {
     return data.map((product) => ({
       id: product.id,
       name: product.name,
-      version: product.apiVersion,
-      numberOfApis: product.numberOfApis,
+      version: product.version,
+      numberOfApis: product.apiIds?.length || 0,
       owner: product.primaryOwner?.displayName || 'N/A',
       picture: product._links?.pictureUrl,
     }));
@@ -125,8 +146,7 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
 
   onFiltersChanged(filters: ApiProductListTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
-    // In a real implementation, you would filter the data here
-    // For now, we'll just update the filters
+    this.filters$.next(this.filters);
   }
 
   get hasApiProducts(): boolean {

@@ -36,14 +36,22 @@
           <div class="form-row form-row--inline">
             <mat-form-field appearance="outline" class="form-field--name">
               <mat-label>Name </mat-label>
-              <input matInput formControlName="name" required />
+              <input matInput formControlName="name" required [maxlength]="nameMaxLength" />
               <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+              <mat-error *ngIf="form.get('name')?.hasError('maxlength')"
+                >Name must be at most {{ nameMaxLength }} characters</mat-error
+              >
+              <mat-error *ngIf="form.get('name')?.hasError('minlength')">Name must be at least 1 character</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="form-field--version">
               <mat-label>Version </mat-label>
-              <input matInput formControlName="version" required />
+              <input matInput formControlName="version" required [maxlength]="versionMaxLength" />
               <mat-error *ngIf="form.get('version')?.hasError('required')">Version is required</mat-error>
+              <mat-error *ngIf="form.get('version')?.hasError('maxlength')"
+                >Version must be at most {{ versionMaxLength }} characters</mat-error
+              >
+              <mat-error *ngIf="form.get('version')?.hasError('minlength')">Version must be at least 1 character</mat-error>
             </mat-form-field>
           </div>
 
@@ -62,8 +70,17 @@
     </mat-card-content>
     <mat-card-footer>
       <div class="api-product-create__footer">
-        <button mat-stroked-button class="cancel-button" (click)="onBack()">Cancel</button>
-        <button mat-raised-button class="create-button" color="primary" (click)="onCreate()" [disabled]="form.invalid">Create API Product</button>
+        <button mat-stroked-button class="cancel-button" (click)="onBack()" [disabled]="isCreating">Cancel</button>
+        <button
+          mat-raised-button
+          class="create-button"
+          color="primary"
+          (click)="onCreate()"
+          [disabled]="form.invalid || isCreating"
+        >
+          <span *ngIf="!isCreating">Create API Product</span>
+          <span *ngIf="isCreating">Creating...</span>
+        </button>
       </div>
     </mat-card-footer>
   </mat-card>
