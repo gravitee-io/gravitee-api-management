@@ -617,4 +617,105 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
             new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
         );
     }
+
+    @Test
+    public void shouldGetDefaultRoleEntityNameWhenHasPermissionIsFalseWhenAddingGroupMember() {
+        shouldGetRoleEntityNameWhenAddingGroupMember(false);
+    }
+
+    @Test
+    public void shouldGetRoleEntityNameWhenHasPermissionIsTrueWhenAddingGroupMember() {
+        shouldGetRoleEntityNameWhenAddingGroupMember(true);
+    }
+
+    private void shouldGetRoleEntityNameWhenAddingGroupMember(boolean hasPermission) {
+        initUPDATEmock();
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                anyString(),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        ).thenReturn(hasPermission);
+
+        RoleEntity appOwnerRoleEntity = new RoleEntity();
+        appOwnerRoleEntity.setId("APP_OWNER");
+        appOwnerRoleEntity.setName("OWNER");
+        appOwnerRoleEntity.setScope(RoleScope.APPLICATION);
+        when(roleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(appOwnerRoleEntity)
+        );
+
+        RoleEntity apiOwnerRoleEntity = new RoleEntity();
+        apiOwnerRoleEntity.setId("API_OWNER");
+        apiOwnerRoleEntity.setName("OWNER");
+        apiOwnerRoleEntity.setScope(RoleScope.API);
+        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(apiOwnerRoleEntity)
+        );
+
+        RoleEntity integrationUserRoleEntity = new RoleEntity();
+        integrationUserRoleEntity.setId("INT_USER");
+        integrationUserRoleEntity.setName("USER");
+        integrationUserRoleEntity.setScope(RoleScope.INTEGRATION);
+        when(roleService.findByScopeAndName(RoleScope.INTEGRATION, "USER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(integrationUserRoleEntity)
+        );
+
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setLockApiRole(true);
+        groupEntity.setLockApplicationRole(true);
+        groupEntity.setSystemInvitation(true);
+        groupEntity.setRoles(Map.of(RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(groupEntity);
+
+        RoleEntity defaultIntegrationRole = new RoleEntity();
+        defaultIntegrationRole.setName("USER");
+        when(roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.INTEGRATION)).thenReturn(
+            Collections.singletonList(defaultIntegrationRole)
+        );
+
+        MemberRoleEntity appRole = new MemberRoleEntity();
+        appRole.setRoleScope(RoleScope.APPLICATION);
+        appRole.setRoleName("OWNER");
+
+        MemberRoleEntity apiRole = new MemberRoleEntity();
+        apiRole.setRoleScope(RoleScope.API);
+        apiRole.setRoleName("OWNER");
+
+        MemberRoleEntity integrationRole = new MemberRoleEntity();
+        integrationRole.setRoleScope(RoleScope.INTEGRATION);
+        integrationRole.setRoleName("USER");
+
+        GroupMembership groupMembership = new GroupMembership();
+        groupMembership.setId(USERNAME);
+        groupMembership.setRoles(List.of(appRole, apiRole, integrationRole));
+
+        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            any(),
+            argThat(role -> role.getScope() == RoleScope.APPLICATION && role.getName().equals("OWNER"))
+        );
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            any(),
+            argThat(role -> role.getScope() == RoleScope.API && role.getName().equals("OWNER"))
+        );
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            any(),
+            argThat(role -> role.getScope() == RoleScope.INTEGRATION && role.getName().equals("USER"))
+        );
+    }
 }
