@@ -29,7 +29,7 @@ export interface Template {
 const TEMPLATES: Template[] = [
     {
         id: 'Proxy',
-        name: 'API Proxy dashboard',
+        name: 'Proxy v4 dashboard',
         shortDescription: 'Monitors standard API traffic, including request counts and status distribution.',
         longDescription: 'Standard API performance monitoring. Track your API health with detailed charts on response codes, throughput, and top-performing APIs. Identify potential issues before they impact your users.',
         thumbnailUrl: 'assets/analytics-templates/proxy.png',
