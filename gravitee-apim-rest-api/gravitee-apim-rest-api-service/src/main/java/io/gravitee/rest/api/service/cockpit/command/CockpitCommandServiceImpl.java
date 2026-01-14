@@ -27,18 +27,27 @@ public class CockpitCommandServiceImpl implements CockpitCommandService {
     private final CockpitConnector cockpitConnector;
 
     public CockpitCommandServiceImpl(
-        // Need to make this injection lazy to be sure cockpit-connector plugin has been loaded before looking for this bean
-        @Lazy CockpitConnector cockpitConnector
-    ) {
+            // Need to make this injection lazy to be sure cockpit-connector plugin has been
+            // loaded before looking for this bean
+            @Lazy CockpitConnector cockpitConnector) {
         this.cockpitConnector = cockpitConnector;
     }
 
+    @org.springframework.beans.factory.annotation.Value("${cockpit.command.timeout:10000}")
+    private int cockpitCommandTimeout;
+
     @Override
     public BridgeReply send(BridgeCommand command) {
-        return cockpitConnector
-            .sendCommand(command)
-            .onErrorReturn(error -> new BridgeReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()))
-            .cast(BridgeReply.class)
-            .blockingGet();
+        try {
+            return cockpitConnector
+                    .sendCommand(command)
+                    .timeout(cockpitCommandTimeout, java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .onErrorReturn(error -> new BridgeReply(command.getId(),
+                            error.getMessage() != null ? error.getMessage() : error.toString()))
+                    .cast(BridgeReply.class)
+                    .blockingGet();
+        } catch (Exception e) {
+            return new BridgeReply(command.getId(), "Error while sending command to cockpit: " + e.getMessage());
+        }
     }
 }
