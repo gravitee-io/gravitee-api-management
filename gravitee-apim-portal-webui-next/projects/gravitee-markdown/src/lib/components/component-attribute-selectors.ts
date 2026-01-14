@@ -17,7 +17,12 @@ import { reflectComponentType, Type } from '@angular/core';
 
 import { GmdButtonComponent } from './button/gmd-button.component';
 import { GmdCardComponent } from './card/gmd-card.component';
+import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
 import { GridComponent } from './grid/grid.component';
+import { GmdInputComponent } from './input/gmd-input.component';
+import { GmdRadioComponent } from './radio/gmd-radio.component';
+import { GmdSelectComponent } from './select/gmd-select.component';
+import { GmdTextareaComponent } from './textarea/gmd-textarea.component';
 
 interface InputMetadata {
   propName: string;
@@ -41,4 +46,9 @@ export const componentAttributeNames = [
   ...getComponentInputNames(GmdCardComponent),
   ...getComponentInputNames(GridComponent),
   ...getComponentInputNames(GmdButtonComponent),
+  ...getComponentInputNames(GmdInputComponent),
+  ...getComponentInputNames(GmdTextareaComponent),
+  ...getComponentInputNames(GmdSelectComponent),
+  ...getComponentInputNames(GmdCheckboxComponent),
+  ...getComponentInputNames(GmdRadioComponent),
 ];
