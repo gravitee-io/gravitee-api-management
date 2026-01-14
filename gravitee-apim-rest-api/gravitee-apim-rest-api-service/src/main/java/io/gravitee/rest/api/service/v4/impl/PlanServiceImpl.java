@@ -188,12 +188,16 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+        return planSearchService.findByApi(executionContext, api, true).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
     public Set<NativePlanEntity> findNativePlansByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(NativePlanEntity.class::cast).collect(Collectors.toSet());
+        return planSearchService
+            .findByApi(executionContext, api, true)
+            .stream()
+            .map(NativePlanEntity.class::cast)
+            .collect(Collectors.toSet());
     }
 
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
@@ -514,7 +518,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String apiId = plan.getApi();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-            return genericPlanMapper.toGenericPlan(api, plan);
+            return genericPlanMapper.toGenericPlanWithFlow(api, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);

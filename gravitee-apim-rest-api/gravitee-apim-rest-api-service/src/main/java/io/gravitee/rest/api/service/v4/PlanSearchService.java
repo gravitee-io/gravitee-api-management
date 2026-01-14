@@ -32,9 +32,15 @@ public interface PlanSearchService {
 
     Set<GenericPlanEntity> findByIdIn(final ExecutionContext executionContext, final Set<String> ids);
 
-    Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId);
+    Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId, boolean withFlow);
 
-    List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query, String user, boolean isAdmin);
+    List<GenericPlanEntity> search(
+        final ExecutionContext executionContext,
+        final PlanQuery query,
+        String user,
+        boolean isAdmin,
+        boolean expandWithFlow
+    );
 
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 

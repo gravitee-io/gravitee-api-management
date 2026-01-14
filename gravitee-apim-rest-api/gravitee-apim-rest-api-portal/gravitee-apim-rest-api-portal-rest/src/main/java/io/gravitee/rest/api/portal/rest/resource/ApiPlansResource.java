@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-import static java.util.Collections.emptyList;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -73,7 +72,7 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         List<Plan> plans = planSearchService
-            .findByApi(executionContext, apiId)
+            .findByApi(executionContext, apiId, true)
             .stream()
             .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
             .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))

@@ -330,7 +330,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(
+        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
             Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build())
         );
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
@@ -341,7 +341,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(
+        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
             Set.of(PlanEntity.builder().status(PlanStatus.DEPRECATED).build())
         );
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
@@ -352,7 +352,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of());
+        when(planSearchService.findByApi(executionContext, apiId, true)).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -361,7 +361,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(
+        when(planSearchService.findByApi(executionContext, apiId, true)).thenReturn(
             Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
         );
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));

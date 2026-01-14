@@ -101,15 +101,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
             this.connectorPluginsV2Service.listEntrypointPlugins(),
             this.connectorPluginsV2Service.listEndpointPlugins(),
             this.apiPlanV2Service
-              .list(
-                this.activatedRoute.snapshot.params.apiId,
-                undefined,
-                ['PUBLISHED'],
-                undefined,
-                1,
-                // No pagination here. Policy Studio doesn't support it for now.
-                9999,
-              )
+              .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED'], undefined, undefined, 1, 9999)
               .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
             this.policyV2Service.list(),
             this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),

@@ -28,7 +28,6 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageRevisionService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
@@ -109,7 +108,9 @@ public class PageService_CreateOrUpdatePagesTest {
         // Simulate the fact that page 1 is already created
         when(pageRepository.findById(updatedPageId)).thenReturn(Optional.of(page));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(Collections.emptySet());
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), anyString(), eq(true))).thenReturn(
+            Collections.emptySet()
+        );
 
         pageService.createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(page1, page2, page3), API_ID);
 

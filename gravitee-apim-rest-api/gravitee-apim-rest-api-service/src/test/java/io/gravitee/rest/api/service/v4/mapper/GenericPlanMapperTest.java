@@ -67,7 +67,7 @@ public class GenericPlanMapperTest {
         api.setType(ApiType.MESSAGE);
 
         Plan plan = new Plan();
-        genericPlanMapper.toGenericPlan(api, plan);
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planMapper).toEntity(plan, List.of());
     }
 
@@ -78,7 +78,7 @@ public class GenericPlanMapperTest {
         api.setType(ApiType.NATIVE);
 
         Plan plan = new Plan();
-        genericPlanMapper.toGenericPlan(api, plan);
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planMapper).toNativeEntity(plan, List.of());
     }
 
@@ -88,7 +88,7 @@ public class GenericPlanMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V2);
 
         Plan plan = new Plan();
-        genericPlanMapper.toGenericPlan(api, plan);
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planConverter).toPlanEntity(plan, List.of());
     }
 
@@ -98,7 +98,7 @@ public class GenericPlanMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V1);
 
         Plan plan = new Plan();
-        genericPlanMapper.toGenericPlan(api, plan);
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planConverter).toPlanEntity(plan, List.of());
     }
 
@@ -107,7 +107,7 @@ public class GenericPlanMapperTest {
         Api api = new Api();
 
         Plan plan = new Plan();
-        genericPlanMapper.toGenericPlan(api, plan);
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planConverter).toPlanEntity(plan, List.of());
     }
 }
