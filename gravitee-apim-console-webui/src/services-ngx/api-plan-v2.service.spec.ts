@@ -60,7 +60,7 @@ describe('ApiPlanV2Service', () => {
         ],
       };
 
-      apiPlanV2Service.list(API_ID).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID, undefined, undefined, undefined, undefined).subscribe((apiPlansResponse) => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
             id: PLAN_ID,
@@ -89,7 +89,7 @@ describe('ApiPlanV2Service', () => {
         ],
       };
 
-      apiPlanV2Service.list(API_ID, security, statuses, mode).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID, security, statuses, mode, undefined).subscribe((apiPlansResponse) => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
             id: PLAN_ID,

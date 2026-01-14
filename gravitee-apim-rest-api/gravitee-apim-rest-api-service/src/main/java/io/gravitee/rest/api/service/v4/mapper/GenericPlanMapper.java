@@ -53,7 +53,7 @@ public class GenericPlanMapper {
         this.flowCrudService = flowCrudService;
     }
 
-    public GenericPlanEntity toGenericPlan(final Api api, final Plan plan) {
+    public GenericPlanEntity toGenericPlanWithFlow(final Api api, final Plan plan) {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
@@ -65,6 +65,18 @@ public class GenericPlanMapper {
             };
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
+        };
+    }
+
+    public GenericPlanEntity toGenericPlanWithoutFlow(final Api api, final Plan plan) {
+        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        return switch (apiDefinitionVersion) {
+            case V4 -> switch (api.getType()) {
+                case PROXY, MESSAGE -> planMapper.toEntity(plan, null);
+                case NATIVE -> planMapper.toNativeEntity(plan, null);
+            };
+            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            default -> planConverter.toPlanEntity(plan, null);
         };
     }
 }
