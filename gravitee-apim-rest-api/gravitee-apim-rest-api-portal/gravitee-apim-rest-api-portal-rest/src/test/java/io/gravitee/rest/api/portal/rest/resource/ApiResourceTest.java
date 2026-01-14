@@ -125,7 +125,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn(new HashSet<>(Arrays.asList(plan1, plan2, plan3)))
             .when(planSearchService)
-            .findByApi(GraviteeContext.getExecutionContext(), API);
+            .findByApi(GraviteeContext.getExecutionContext(), API, true);
 
         // For pages
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
