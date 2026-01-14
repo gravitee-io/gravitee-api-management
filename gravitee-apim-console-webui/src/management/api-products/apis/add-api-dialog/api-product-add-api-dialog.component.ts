@@ -17,8 +17,8 @@
 import { Component, Inject, OnInit, DestroyRef, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
@@ -29,14 +29,16 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { Api } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 export interface ApiProductAddApiDialogData {
   apiProductId: string;
   existingApiIds?: string[];
 }
 
-export type ApiProductAddApiDialogResult = Api;
+export type ApiProductAddApiDialogResult = boolean;
 
 @Component({
   selector: 'api-product-add-api-dialog',
@@ -61,29 +63,41 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   public searchApiControl: FormControl<string | Api> = new FormControl('');
   public filteredOptions$: Observable<Api[]>;
   public isApiSelected = false;
+  public isSubmitting = false;
   private destroyRef = inject(DestroyRef);
 
   constructor(
     public dialogRef: MatDialogRef<ApiProductAddApiDialogComponent>,
     private apiService: ApiV2Service,
+    private apiProductV2Service: ApiProductV2Service,
+    private snackBarService: SnackBarService,
     @Inject(MAT_DIALOG_DATA) public data: ApiProductAddApiDialogData,
   ) {}
 
   ngOnInit(): void {
+    // Filtered options for autocomplete - only show when input has text
     this.filteredOptions$ = this.searchApiControl.valueChanges.pipe(
       filter((v) => typeof v === 'string'),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap((term: string) =>
-        this.apiService.search({
+      switchMap((term: string) => {
+        // Don't search if input is empty or only whitespace
+        if (!term || term.trim() === '') {
+          return of<Api[]>([]);
+        }
+        return this.apiService.search({
           query: term,
-        }),
-      ),
+        });
+      }),
       tap(() => (this.isApiSelected = false)),
       map((apisResponse) => {
         // Filter out APIs that are already in the API Product
         const existingIds = this.data.existingApiIds || [];
-        return apisResponse.data.filter((api) => !existingIds.includes(api.id));
+        // Handle both array (from of([])) and ApisResponse (from search)
+        if (Array.isArray(apisResponse)) {
+          return apisResponse;
+        }
+        return apisResponse.data ? apisResponse.data.filter((api) => !existingIds.includes(api.id)) : [];
       }),
       takeUntilDestroyed(this.destroyRef),
     );
@@ -110,8 +124,51 @@ export class ApiProductAddApiDialogComponent implements OnInit {
 
   public submit() {
     const selectedApi = this.searchApiControl.getRawValue();
-    if (selectedApi && typeof selectedApi !== 'string') {
-      this.dialogRef.close(selectedApi);
+    if (!selectedApi || typeof selectedApi === 'string') {
+      return;
     }
+
+    this.isSubmitting = true;
+
+    // Get current API Product to get existing API IDs
+    this.apiProductV2Service
+      .get(this.data.apiProductId)
+      .pipe(
+        switchMap((apiProduct) => {
+          const currentApiIds = apiProduct.apiIds || [];
+          
+          // Check if API is already in the product
+          if (currentApiIds.includes(selectedApi.id)) {
+            this.snackBarService.error(`API "${selectedApi.name}" is already in this API Product`);
+            this.isSubmitting = false;
+            return of(null);
+          }
+
+          // Add the new API ID to the list
+          const updatedApiIds = [...currentApiIds, selectedApi.id];
+
+          // Update the API Product with the new API list
+          return this.apiProductV2Service.updateApiProductApis(this.data.apiProductId, updatedApiIds);
+        }),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message || 'An error occurred while adding the API');
+          this.isSubmitting = false;
+          return of(null);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.snackBarService.success(`API "${selectedApi.name}" has been added to the API Product`);
+          // Close dialog with success indicator
+          this.dialogRef.close(true);
+        } else {
+          this.isSubmitting = false;
+        }
+      });
+  }
+
+  public isNonEmptyString(value: string | Api | null | undefined): boolean {
+    return typeof value === 'string' && value.trim().length > 0;
   }
 }

@@ -24,7 +24,6 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import {
   ApiProductAddApiDialogComponent,
   ApiProductAddApiDialogData,
-  ApiProductAddApiDialogResult,
 } from './add-api-dialog/api-product-add-api-dialog.component';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
@@ -108,6 +107,8 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
           });
         }),
         switchMap((filters: ApiProductApisTableWrapperFilters) => {
+          // Call GET /api-products/{apiProductId} to reload the table
+          this.isLoadingData = true;
           return this.apiProductV2Service.get(this.apiProductId).pipe(
             catchError((error) => {
               this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
@@ -268,6 +269,76 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
+  /**
+   * Reload the table by calling GET /api-products/{apiProductId}
+   * This method directly triggers the GET request to refresh the API list
+   */
+  private reloadTable(): void {
+    // Directly call GET /api-products/{apiProductId} to reload the table
+    // This bypasses distinctUntilChanged to ensure the GET call is always made
+    this.isLoadingData = true;
+    this.apiProductV2Service
+      .get(this.apiProductId)
+      .pipe(
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
+          this.isLoadingData = false;
+          return of(null);
+        }),
+        switchMap((apiProduct) => {
+          if (!apiProduct || !apiProduct.apiIds || apiProduct.apiIds.length === 0) {
+            this.apisTableDS = [];
+            this.apisTableDSUnpaginatedLength = 0;
+            this.isLoadingData = false;
+            return of([]);
+          }
+
+          // Fetch all APIs for the API Product
+          const apiObservables = apiProduct.apiIds.map((apiId) =>
+            this.apiV2Service.get(apiId).pipe(
+              catchError((error) => {
+                console.error(`Error loading API ${apiId}:`, error);
+                return of(null);
+              }),
+            ),
+          );
+
+          return forkJoin(apiObservables).pipe(
+            catchError((error) => {
+              this.snackBarService.error(error.error?.message || 'An error occurred while loading APIs');
+              return of([]);
+            }),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((apis: (Api | null)[]) => {
+        // Filter out null values and apply search filter
+        let filteredApis = apis.filter((api): api is Api => api !== null);
+        const searchTerm = this.filters.searchTerm?.toLowerCase() || '';
+
+        if (searchTerm) {
+          filteredApis = filteredApis.filter(
+            (api) =>
+              api.name?.toLowerCase().includes(searchTerm) ||
+              this.getContextPath(api)?.toLowerCase().includes(searchTerm) ||
+              api.apiVersion?.toLowerCase().includes(searchTerm),
+          );
+        }
+
+        // Apply pagination
+        const page = this.filters.pagination?.index || 1;
+        const perPage = this.filters.pagination?.size || 10;
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedApis = filteredApis.slice(startIndex, endIndex);
+
+        this.apisTableDS = this.toApisTableDS(paginatedApis);
+        this.apisTableDSUnpaginatedLength = filteredApis.length;
+        this.isLoadingData = false;
+      });
+  }
+
   onAddApi(): void {
     this.apiProductV2Service
       .get(this.apiProductId)
@@ -281,7 +352,7 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
       .subscribe((apiProduct) => {
         if (apiProduct) {
           this.matDialog
-            .open<ApiProductAddApiDialogComponent, ApiProductAddApiDialogData, ApiProductAddApiDialogResult>(
+            .open<ApiProductAddApiDialogComponent, ApiProductAddApiDialogData, boolean>(
               ApiProductAddApiDialogComponent,
               {
                 width: '600px',
@@ -295,42 +366,17 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
             )
             .afterClosed()
             .pipe(takeUntil(this.unsubscribe$))
-            .subscribe((selectedApi) => {
-              if (selectedApi) {
-                this.addApiToProduct(selectedApi);
+            .subscribe((success) => {
+              // If dialog closed with success (true), reload the table
+              if (success) {
+                // Reload the table by calling GET /api-products/{apiProductId}
+                this.reloadTable();
               }
             });
         }
       });
   }
 
-  private addApiToProduct(api: Api): void {
-    this.apiProductV2Service
-      .get(this.apiProductId)
-      .pipe(
-        switchMap((apiProduct) => {
-          const currentApiIds = apiProduct.apiIds || [];
-          if (currentApiIds.includes(api.id)) {
-            this.snackBarService.error(`API "${api.name}" is already in this API Product`);
-            return of(null);
-          }
-          const updatedApiIds = [...currentApiIds, api.id];
-          return this.apiProductV2Service.updateApiProductApis(this.apiProductId, updatedApiIds);
-        }),
-        catchError((error) => {
-          this.snackBarService.error(error.error?.message || 'An error occurred while adding the API');
-          return of(null);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe((result) => {
-        if (result) {
-          this.snackBarService.success(`API "${api.name}" has been added to the API Product`);
-          // Refresh the list
-          this.filters$.next(this.filters);
-        }
-      });
-  }
 
   onDeleteApi(api: ApiProductApiTableDS[0]): void {
     this.matDialog
