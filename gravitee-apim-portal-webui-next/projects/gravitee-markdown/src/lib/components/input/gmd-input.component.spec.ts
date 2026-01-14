@@ -1,0 +1,315 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { Component, input } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { GmdInputComponent } from './gmd-input.component';
+import { GmdInputComponentHarness } from './gmd-input.component.harness';
+import { GmdFieldState } from '../../models/formField';
+
+@Component({
+  template: `
+    <gmd-input
+      [fieldKey]="fieldKey()"
+      [name]="name()"
+      [label]="label()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [required]="required()"
+      [minLength]="minLength()"
+      [maxLength]="maxLength()"
+      [pattern]="pattern()" />
+  `,
+  standalone: true,
+  imports: [GmdInputComponent],
+})
+class TestHostComponent {
+  fieldKey = input<string | undefined>();
+  name = input<string>('test-input');
+  label = input<string | undefined>();
+  placeholder = input<string | undefined>();
+  value = input<string | undefined>();
+  required = input<boolean>(false);
+  minLength = input<number | string | null | undefined>();
+  maxLength = input<number | string | null | undefined>();
+  pattern = input<string | undefined>();
+}
+
+describe('GmdInputComponent', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let component: TestHostComponent;
+  let inputComponent: GmdInputComponent;
+  let loader: HarnessLoader;
+  let harness: GmdInputComponentHarness;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    component = fixture.componentInstance;
+    inputComponent = fixture.debugElement.query(p => p.name === 'gmd-input')?.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    harness = await loader.getHarness(GmdInputComponentHarness);
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+    expect(inputComponent).toBeTruthy();
+  });
+
+  it('should initialize with default values', () => {
+    expect(inputComponent.value()).toBeUndefined();
+    expect(inputComponent.required()).toBe(false);
+  });
+
+  it('should display label when provided', async () => {
+    fixture.componentRef.setInput('label', 'Test Input');
+    fixture.detectChanges();
+
+    const label = await harness.getLabel();
+    expect(label).toContain('Test Input');
+  });
+
+  it('should show placeholder when provided', async () => {
+    fixture.componentRef.setInput('placeholder', 'Enter text here');
+    fixture.detectChanges();
+
+    const placeholder = await harness.getPlaceholder();
+    expect(placeholder).toBe('Enter text here');
+  });
+
+  it('should show required indicator when required is true', async () => {
+    fixture.componentRef.setInput('label', 'Test Input');
+    fixture.componentRef.setInput('required', true);
+    fixture.detectChanges();
+
+    const hasRequired = await harness.hasRequiredIndicator();
+    expect(hasRequired).toBe(true);
+  });
+
+  it('should update value when input changes', async () => {
+    await harness.setValue('test value');
+    fixture.detectChanges();
+
+    const value = await harness.getValue();
+    expect(value).toBe('test value');
+  });
+
+  describe('Validation', () => {
+    it('should be valid when not required and empty', () => {
+      fixture.componentRef.setInput('required', false);
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(true);
+      expect(inputComponent.errors().length).toBe(0);
+    });
+
+    it('should be invalid when required and empty', () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(false);
+      expect(inputComponent.errors()).toContain('required');
+    });
+
+    it('should be valid when required and has value', async () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      await harness.setValue('test');
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(true);
+      expect(inputComponent.errors().length).toBe(0);
+    });
+
+    it('should validate minLength', async () => {
+      fixture.componentRef.setInput('minLength', 5);
+      fixture.detectChanges();
+
+      await harness.setValue('test');
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(false);
+      expect(inputComponent.errors()).toContain('minLength');
+    });
+
+    it('should validate maxLength', async () => {
+      fixture.componentRef.setInput('maxLength', 5);
+      fixture.detectChanges();
+
+      await harness.setValue('too long value');
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(false);
+      expect(inputComponent.errors()).toContain('maxLength');
+    });
+
+    it('should validate pattern', async () => {
+      fixture.componentRef.setInput('pattern', '^[0-9]+$');
+      fixture.detectChanges();
+
+      await harness.setValue('abc123');
+      fixture.detectChanges();
+
+      expect(inputComponent.valid()).toBe(false);
+      expect(inputComponent.errors()).toContain('pattern');
+    });
+
+    it('should show error messages when touched and invalid', async () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      await harness.blur();
+      fixture.detectChanges();
+
+      const errors = await harness.getErrorMessages();
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0]).toBe('This field is required.');
+    });
+  });
+
+  describe('Event emission', () => {
+    it('should emit gmdFieldStateChange event when fieldKey is set and value changes', async () => {
+      fixture.componentRef.setInput('fieldKey', 'test-key');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
+        const inputElement = fixture.nativeElement.querySelector('gmd-input');
+        inputElement.addEventListener(
+          'gmdFieldStateChange',
+          (event: Event) => {
+            resolve(event as CustomEvent<GmdFieldState>);
+          },
+          { once: true },
+        );
+      });
+
+      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+      input.value = 'test value';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // Wait for effect() to trigger and setTimeout in emitState to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const customEvent = await eventPromise;
+      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.value).toBe('test value');
+      expect(customEvent.detail.valid).toBe(true);
+    });
+
+    it('should not emit event when fieldKey is not set', async () => {
+      fixture.componentRef.setInput('fieldKey', undefined);
+      fixture.detectChanges();
+
+      let eventEmitted = false;
+      const inputElement = fixture.nativeElement.querySelector('gmd-input');
+      inputElement.addEventListener('gmdFieldStateChange', () => {
+        eventEmitted = true;
+      });
+
+      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+      input.value = 'test';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // Wait to ensure no event is emitted
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(eventEmitted).toBe(false);
+    });
+
+    it('should emit event with validation errors when invalid', async () => {
+      fixture.componentRef.setInput('fieldKey', 'test-key');
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
+        const inputElement = fixture.nativeElement.querySelector('gmd-input');
+        inputElement.addEventListener('gmdFieldStateChange', (event: Event) => {
+          resolve(event as CustomEvent<GmdFieldState>);
+        });
+      });
+
+      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+      input.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const customEvent = await eventPromise;
+      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.valid).toBe(false);
+      expect(customEvent.detail.errors).toContain('required');
+    });
+  });
+
+  describe('Initial value synchronization', () => {
+    it('should sync and update value from input', async () => {
+      fixture.componentRef.setInput('value', 'first value');
+      fixture.detectChanges();
+
+      let value = await harness.getValue();
+      expect(value).toBe('first value');
+
+      fixture.componentRef.setInput('value', 'second value');
+      fixture.detectChanges();
+
+      value = await harness.getValue();
+      expect(value).toBe('second value');
+    });
+
+    it('should handle undefined value', async () => {
+      fixture.componentRef.setInput('value', undefined);
+      fixture.detectChanges();
+
+      const value = await harness.getValue();
+      expect(value).toBe('');
+    });
+  });
+
+  describe('Number-like validation inputs', () => {
+    it.each([
+      { input: 5, expected: '5', type: 'numeric' },
+      { input: '10', expected: '10', type: 'string' },
+    ])('should accept $type minLength', async ({ input, expected }) => {
+      fixture.componentRef.setInput('minLength', input);
+      fixture.detectChanges();
+
+      const minLength = await harness.getMinLength();
+      expect(minLength).toBe(expected);
+    });
+
+    it.each([
+      { input: 20, expected: '20', type: 'numeric' },
+      { input: '30', expected: '30', type: 'string' },
+    ])('should accept $type maxLength', async ({ input, expected }) => {
+      fixture.componentRef.setInput('maxLength', input);
+      fixture.detectChanges();
+
+      const maxLength = await harness.getMaxLength();
+      expect(maxLength).toBe(expected);
+    });
+  });
+});

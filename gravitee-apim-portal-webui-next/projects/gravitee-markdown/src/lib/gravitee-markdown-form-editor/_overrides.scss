@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use './token-utils' as token-utils;
+@use '../scss/token-utils' as token-utils;
+@use '../scss/theme' as theme;
+
+$theme-tokens: theme.tokens();
 
 @function tokens() {
   @return (
-    (
-      namespace: sys,
-      tokens: (
-        container-shape: 4px,
-        primary-color: #275cf6,
-        on-primary-color: #ffffff,
-        outline-color: #cdd7e1,
-        hover-state-layer-opacity: 90%,
-        focus-state-layer-opacity: 80%,
-        text-color: #1d192b,
-        error-color: #d32f2f,
-      )
+    namespace: form-editor,
+    tokens: (
+      card-background-color: #fff,
+      outline-color: token-utils.slot(outline-color, $theme-tokens),
+      primary-color: token-utils.slot(primary-color, $theme-tokens),
+      error-color: token-utils.slot(error-color, $theme-tokens),
+      contrast-text-color: token-utils.slot(on-primary-color, $theme-tokens),
+      text-primary-color: token-utils.slot(text-color, $theme-tokens),
     )
   );
 }
 
+// Component-level override mixin
 @mixin overrides($overrides: ()) {
   @include token-utils.apply-token-overrides(tokens(), $overrides);
 }

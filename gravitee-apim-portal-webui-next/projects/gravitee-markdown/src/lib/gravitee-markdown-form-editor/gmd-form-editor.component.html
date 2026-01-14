@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="container">
+  <div class="container__editor-preview">
+    <gmd-monaco-editor
+      class="container__inner-border"
+      [value]="value"
+      [readOnly]="isDisabled"
+      (valueChange)="onValueChange($event)"
+      (touched)="onTouched()" />
+    <hr class="hr" />
+    <div class="container__inner-border">
+      <gmd-viewer [content]="value" />
+    </div>
+  </div>
+  <div class="container__form-status">
+    <div class="form-status">
+      <div class="form-status__header">
+        <span class="form-status__label">Form status:</span>
+        @if (formValid()) {
+          <span class="form-status__badge form-status__badge--valid">Valid</span>
+        } @else {
+          <span class="form-status__badge form-status__badge--invalid">Invalid</span>
+        }
+      </div>
+      @if (requiredFieldsCount() > 0) {
+        <div class="form-status__count">Valid ({{ validRequiredFieldsCount() }}/{{ requiredFieldsCount() }} required fields filled)</div>
+      }
+      @if (invalidFields().length > 0) {
+        <div class="form-status__errors">
+          <div class="form-status__errors-title">Invalid fields:</div>
+          <ul class="form-status__errors-list">
+            @for (field of invalidFields(); track field.key) {
+              <li class="form-status__error-item">
+                <span class="form-status__error-key">{{ field.key }}:</span>
+                <span class="form-status__error-codes">{{ field.errors.join(', ') }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+      @if (fieldValues().length > 0) {
+        <details class="form-status__values">
+          <summary class="form-status__values-summary">Field values ({{ fieldValues().length }})</summary>
+          <ul class="form-status__values-list">
+            @for (field of fieldValues(); track field.key) {
+              <li class="form-status__value-item">
+                <span class="form-status__value-key">{{ field.key }}:</span>
+                <span class="form-status__value-text">{{ formatValue(field.value) }}</span>
+              </li>
+            }
+          </ul>
+        </details>
+      }
+    </div>
+  </div>
+</div>
