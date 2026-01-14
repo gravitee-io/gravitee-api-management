@@ -30,7 +30,10 @@ export class AnalyticsOverviewComponent {
 
   public onFromTemplateClick(): void {
     const dialogRef = this.dialog.open(AnalyticsTemplateDialogComponent, {
-      width: '400px',
+      width: '80vw',
+      maxWidth: '80vw',
+      height: '80vh',
+      maxHeight: '80vh',
     });
 
     dialogRef.afterClosed().subscribe((result) => {

@@ -1,14 +1,42 @@
-<h2 mat-dialog-title>Select a dashboard template</h2>
+<div class="modal-header">
+    <h2 mat-dialog-title>Create from template</h2>
+    <button mat-icon-button (click)="onCancel()" aria-label="Close dialog">
+        <mat-icon svgIcon="gio:cancel"></mat-icon>
+    </button>
+</div>
 
 <mat-dialog-content>
-    <mat-radio-group [(ngModel)]="selectedTemplate" class="template-radio-group">
-        <mat-radio-button value="MCP">MCP</mat-radio-button>
-        <mat-radio-button value="Proxy">Proxy</mat-radio-button>
-        <mat-radio-button value="LLM">LLM</mat-radio-button>
-    </mat-radio-group>
+    <div class="modal-container">
+        <div class="left-panel">
+            <div *ngFor="let template of templates" class="template-card"
+                [class.selected]="selectedTemplate.id === template.id" (click)="onSelect(template)">
+                <div class="card-thumbnail">
+                    <img [src]="template.thumbnailUrl" alt="Thumbnail" />
+                </div>
+                <div class="card-content">
+                    <div class="card-title">{{ template.name }}</div>
+                    <div class="card-description">{{ template.shortDescription }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="detail-header">
+                <h3>{{ selectedTemplate.name }}</h3>
+                <mat-icon svgIcon="gio:info" class="info-icon"></mat-icon>
+            </div>
+            <div class="detail-description">
+                {{ selectedTemplate.longDescription }}
+            </div>
+            <div class="detail-preview">
+                <img [src]="selectedTemplate.previewUrl" alt="Preview" />
+            </div>
+        </div>
+    </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="onGenerate()" [disabled]="!selectedTemplate">Generate</button>
+    <button mat-stroked-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onGenerate()" [disabled]="!selectedTemplate">Use
+        template</button>
 </mat-dialog-actions>
