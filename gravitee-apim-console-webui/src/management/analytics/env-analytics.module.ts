@@ -22,6 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
@@ -102,6 +103,7 @@ const routes: Routes = [
     MatMenuModule,
     MatDialogModule,
     MatRadioModule,
+    MatChipsModule,
     FormsModule,
   ],
   exports: [RouterModule],

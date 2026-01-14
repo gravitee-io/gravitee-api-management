@@ -43,4 +43,17 @@ export class AnalyticsOverviewComponent {
       }
     });
   }
+
+  public getLabelColor(label: string): string {
+    const colors: Record<string, string> = {
+      traffic: 'success',
+      http: 'accent',
+      errors: 'warn',
+      '5xx': 'warn',
+      '4xx': 'primary',
+      latency: 'info',
+      performance: 'accent',
+    };
+    return colors[label.toLowerCase()] || 'default';
+  }
 }

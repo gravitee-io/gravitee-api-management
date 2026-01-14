@@ -36,7 +36,13 @@
     <!-- Labels Column -->
     <ng-container matColumnDef="labels">
       <th mat-header-cell *matHeaderCellDef> Labels </th>
-      <td mat-cell *matCellDef="let element"> {{element.labels.join(', ')}} </td>
+      <td mat-cell *matCellDef="let element">
+        <mat-chip-set aria-label="Dashboard labels">
+          <mat-chip *ngFor="let label of element.labels" [class]="getLabelColor(label)">
+            {{label}}
+          </mat-chip>
+        </mat-chip-set>
+      </td>
     </ng-container>
 
     <!-- Actions Column -->

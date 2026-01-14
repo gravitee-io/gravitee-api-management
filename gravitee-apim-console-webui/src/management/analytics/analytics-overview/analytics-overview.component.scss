@@ -1,60 +1,61 @@
-@use 'sass:map';
-@use '@gravitee/ui-particles-angular' as gio;
-@use '../../../scss/gio-layout' as gio-layout;
+.title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 
-:host {
-    @include gio-layout.gio-responsive-content-container;
-
-    .title {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        width: 100%;
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-
-            // Split button styling
-            button:first-child {
-                border-top-right-radius: 0;
-                border-bottom-right-radius: 0;
-                border-right: 1px solid rgba(255, 255, 255, 0.2);
-            }
-
-            button:last-child {
-                border-top-left-radius: 0;
-                border-bottom-left-radius: 0;
-                min-width: 36px;
-                padding: 0 4px;
-
-                mat-icon {
-                    margin: 0;
-                }
-            }
-        }
+    h1 {
+        margin: 0;
     }
 }
 
-table {
+.mat-table {
     width: 100%;
+}
 
-    .mat-column-actions {
-        width: 64px;
-        text-align: center;
-    }
+.mat-column-actions {
+    width: 48px;
+    text-align: right;
 }
 
 .remove-action {
-    color: #f44336; // Material Red 500
+    color: var(--gio-color-error-base, #f44336);
+}
 
-    mat-icon {
-        color: #f44336;
+mat-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+mat-chip {
+    &.success {
+        --mdc-chip-label-text-color: #2e7d32;
+        --mdc-chip-elevated-container-color: #e8f5e9;
+    }
+
+    &.accent {
+        --mdc-chip-label-text-color: #006064;
+        --mdc-chip-elevated-container-color: #e0f7fa;
+    }
+
+    &.warn {
+        --mdc-chip-label-text-color: #c62828;
+        --mdc-chip-elevated-container-color: #ffebee;
+    }
+
+    &.primary {
+        --mdc-chip-label-text-color: #1565c0;
+        --mdc-chip-elevated-container-color: #e3f2fd;
+    }
+
+    &.info {
+        --mdc-chip-label-text-color: #01579b;
+        --mdc-chip-elevated-container-color: #e1f5fe;
+    }
+
+    &.default {
+        --mdc-chip-label-text-color: #424242;
+        --mdc-chip-elevated-container-color: #f5f5f5;
     }
 }
