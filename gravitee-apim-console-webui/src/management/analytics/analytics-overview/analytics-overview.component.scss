@@ -1,0 +1,60 @@
+@use 'sass:map';
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+    @include gio-layout.gio-responsive-content-container;
+
+    .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        width: 100%;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+
+            // Split button styling
+            button:first-child {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+                border-right: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            button:last-child {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                min-width: 36px;
+                padding: 0 4px;
+
+                mat-icon {
+                    margin: 0;
+                }
+            }
+        }
+    }
+}
+
+table {
+    width: 100%;
+
+    .mat-column-actions {
+        width: 64px;
+        text-align: center;
+    }
+}
+
+.remove-action {
+    color: #f44336; // Material Red 500
+
+    mat-icon {
+        color: #f44336;
+    }
+}

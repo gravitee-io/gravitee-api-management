@@ -65,7 +65,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly gioMenuSearchService: GioMenuSearchService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.activatedRoute.params
@@ -195,6 +195,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         icon: 'gio:bar-chart-2',
         displayName: 'Analytics',
         routerLink: './analytics/dashboard',
+        permissions: ['environment-platform-r'],
+        category: 'Analytics',
+      },
+      {
+        icon: 'gio:bar-chart-2',
+        displayName: 'Analytics Overview',
+        routerLink: './analytics/overview',
         permissions: ['environment-platform-r'],
         category: 'Analytics',
       },

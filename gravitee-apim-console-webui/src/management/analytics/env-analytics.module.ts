@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
@@ -23,6 +27,7 @@ import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-das
 import { PlatformLogsComponent } from './logs/platform-logs.component';
 import { PlatformLogComponent } from './logs/platform-log.component';
 import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
+import { AnalyticsOverviewComponent } from './analytics-overview/analytics-overview.component';
 
 const routes: Routes = [
   {
@@ -60,6 +65,10 @@ const routes: Routes = [
         path: 'dashboard-v4',
         component: AnalyticsViewerComponent,
       },
+      {
+        path: 'overview',
+        component: AnalyticsOverviewComponent,
+      },
 
       {
         path: '',
@@ -71,8 +80,8 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
-  imports: [RouterModule.forChild(routes), MatTabsModule, GioIconsModule, MatTabsModule],
+  declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent, AnalyticsOverviewComponent],
+  imports: [CommonModule, RouterModule.forChild(routes), MatTabsModule, GioIconsModule, MatTableModule, MatButtonModule, MatMenuModule],
   exports: [RouterModule],
 })
-export class EnvAnalyticsModule {}
+export class EnvAnalyticsModule { }
