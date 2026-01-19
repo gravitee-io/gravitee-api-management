@@ -103,6 +103,9 @@ if $cygwin; then
 fi
 
 # Display our environment
+
+MASKED_JAVA_OPTS=$(echo "$JAVA_OPTS" | sed -E 's/(-D[^= ]*[pP]assword=)[^ ]+/\1*****/g')
+
 echo "=============================================================="
 echo ""
 echo "  Gravitee.IO Standalone Runtime Bootstrap Environment"
@@ -113,7 +116,7 @@ echo "  GRAVITEE_OPTS: $GRAVITEE_OPTS"
 echo ""
 echo "  JAVA: $JAVA"
 echo ""
-echo "  JAVA_OPTS: $JAVA_OPTS"
+echo "  JAVA_OPTS: $MASKED_JAVA_OPTS"
 echo ""
 echo "  CLASSPATH: $GRAVITEE_BOOT_CLASSPATH"
 echo ""
