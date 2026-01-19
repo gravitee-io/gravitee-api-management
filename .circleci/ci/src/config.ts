@@ -23,7 +23,7 @@ const awsCliVersion = '2.22.35';
 const awsECRUrl = '430630701098.dkr.ecr.eu-west-2.amazonaws.com';
 
 const cache = {
-  prefix: 'gravitee-api-management-v11',
+  prefix: 'gravitee-api-management-v14',
 };
 
 const dockerImages = {
