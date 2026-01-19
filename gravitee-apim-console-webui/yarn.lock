@@ -10747,10 +10747,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:3.5.0":
-  version: 3.5.0
-  resolution: "diff@npm:3.5.0"
-  checksum: 10c0/fc62d5ba9f6d1b8b5833380969037007913d4886997838c247c54ec6934f09ae5a07e17ae28b1f016018149d81df8ad89306f52eac1afa899e0bed49015a64d1
+"diff@npm:8.0.3":
+  version: 8.0.3
+  resolution: "diff@npm:8.0.3"
+  checksum: 10c0/d29321c70d3545fdcb56c5fdd76028c3f04c012462779e062303d4c3c531af80d2c360c26b871e6e2b9a971d2422d47e1779a859106c4cac4b5d2d143df70e20
   languageName: node
   linkType: hard
 
@@ -12882,7 +12882,7 @@ __metadata:
     codemirror: "npm:5.65.20"
     codemirror-asciidoc: "npm:1.0.4"
     date-fns: "npm:4.1.0"
-    diff: "npm:3.5.0"
+    diff: "npm:8.0.3"
     diff2html: "npm:3.4.51"
     dompurify: "npm:3.2.7"
     dragular: "npm:4.6.0"
