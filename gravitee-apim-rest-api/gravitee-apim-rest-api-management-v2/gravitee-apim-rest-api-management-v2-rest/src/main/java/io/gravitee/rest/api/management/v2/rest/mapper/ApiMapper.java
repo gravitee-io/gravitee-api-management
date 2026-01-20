@@ -160,24 +160,29 @@ public interface ApiMapper {
 
     @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "metadata", ignore = true)
     ApiFederated mapToFederated(FederatedApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToV4(ApiEntity apiEntity);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToV4(NativeApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToV4(NativeApiEntity apiEntity);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
@@ -207,6 +212,7 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
@@ -218,6 +224,7 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
@@ -231,13 +238,16 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "metadata", ignore = true)
     ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "metadata", ignore = true)
     io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(
         io.gravitee.rest.api.model.api.ApiEntity apiEntity,
         UriInfo uriInfo,
@@ -246,13 +256,16 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", ignore = true)
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapFromHttpApiEntity(ApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "links", ignore = true)
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 mapFromNativeApiEntity(NativeApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    @Mapping(target = "metadata", ignore = true)
     ApiEntity map(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
