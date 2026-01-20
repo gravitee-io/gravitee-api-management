@@ -131,6 +131,27 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
+    public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final GenericApiEntity genericApi, boolean withFlow) {
+        try {
+            logger.debug("Find plan by api : {}", genericApi.getId());
+            return planRepository
+                .findByApi(genericApi.getId())
+                .stream()
+                .map(plan ->
+                    withFlow
+                        ? genericPlanMapper.toGenericPlanWithFlow(genericApi, plan)
+                        : genericPlanMapper.toGenericPlanWithoutFlow(genericApi, plan)
+                )
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find a plan by api: %s", genericApi.getId()),
+                ex
+            );
+        }
+    }
+
+    @Override
     public List<GenericPlanEntity> search(
         final ExecutionContext executionContext,
         final PlanQuery query,

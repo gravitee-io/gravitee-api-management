@@ -587,7 +587,7 @@ public class PageService_UpdateTest {
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && !p.isPublished()));
-        verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)), eq(false));
+        verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), (String) argThat(p -> p.equals(API_ID)), eq(false));
     }
 
     @Test(expected = PageUsedByCategoryException.class)
@@ -612,7 +612,7 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)), true);
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), (String) argThat(p -> p.equals(API_ID)), true);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -649,6 +649,6 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)), false);
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), (String) argThat(p -> p.equals(API_ID)), false);
     }
 }
