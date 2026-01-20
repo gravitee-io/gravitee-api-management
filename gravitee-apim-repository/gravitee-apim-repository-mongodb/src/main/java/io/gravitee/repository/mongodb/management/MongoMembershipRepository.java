@@ -388,19 +388,47 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
-        String referenceId
+        Set<String> referenceIds
     ) {
-        log.debug("Find membership by member and reference [{}, {}, {}, {}]", memberId, memberType, referenceId, referenceType);
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, memberType.name(), referenceType.name(), referenceId)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
-        log.debug("Find membership by user [{}, {}, {}, {}] = {}", memberId, memberType, referenceId, referenceType, memberships);
+        log.debug("Find membership by member and references [{}, {}, {}, {}]", memberId, memberType, referenceType, referenceIds);
+
+        // Empty set returns empty result (no query)
+        if (referenceIds != null && referenceIds.isEmpty()) {
+            return Set.of();
+        }
+
+        Set<MembershipMongo> membershipMongos;
+        if (referenceIds == null) {
+            // Null set means query for referenceId IS NULL
+            membershipMongos = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                memberId,
+                memberType.name(),
+                referenceType.name(),
+                null
+            );
+        } else {
+            // Non-empty set means query with $in
+            membershipMongos = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+                memberId,
+                memberType.name(),
+                referenceType.name(),
+                referenceIds
+            );
+        }
+
+        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
+        log.debug(
+            "Find membership by member and references [{}, {}, {}, {}] = {}",
+            memberId,
+            memberType,
+            referenceType,
+            referenceIds,
+            memberships
+        );
         return memberships;
     }
 
