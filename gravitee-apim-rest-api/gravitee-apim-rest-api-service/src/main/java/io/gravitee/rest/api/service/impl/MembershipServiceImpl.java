@@ -1544,31 +1544,40 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             Set<RoleEntity> userDirectRoles = new HashSet<>();
             if (!userMemberships.isEmpty()) {
-                userDirectRoles = userMemberships
+                Set<String> directRoleIds = userMemberships
                     .stream()
                     .map(io.gravitee.repository.management.model.Membership::getRoleId)
-                    .map(roleService::findById)
                     .collect(Collectors.toSet());
+                userDirectRoles = new HashSet<>(roleService.findByIds(directRoleIds).values());
 
                 userRoles.addAll(userDirectRoles);
             }
             memberEntity.setRoles(new ArrayList<>(userDirectRoles));
 
             if (entityGroups != null && !entityGroups.isEmpty()) {
+                Set<io.gravitee.repository.management.model.Membership> groupMemberships =
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+                        userId,
+                        convert(MembershipMemberType.USER),
+                        convert(MembershipReferenceType.GROUP),
+                        entityGroups
+                    );
+
+                // Batch fetch all roles by role IDs
+                Set<String> roleIds = groupMemberships
+                    .stream()
+                    .map(io.gravitee.repository.management.model.Membership::getRoleId)
+                    .collect(Collectors.toSet());
+                Map<String, RoleEntity> rolesById = roleService.findByIds(roleIds);
+
                 userRoles.addAll(
-                    membershipRepository
-                        .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
-                            userId,
-                            convert(MembershipMemberType.USER),
-                            convert(MembershipReferenceType.GROUP),
-                            entityGroups
-                        )
+                    groupMemberships
                         .stream()
                         .map(membership -> {
-                            RoleEntity role = roleService.findById(membership.getRoleId());
+                            RoleEntity role = rolesById.get(membership.getRoleId());
                             return new AbstractMap.SimpleEntry<>(membership.getReferenceId(), role);
                         })
-                        .filter(entry -> entry.getValue().getScope().name().equals(referenceType.name()))
+                        .filter(entry -> entry.getValue() != null && entry.getValue().getScope().name().equals(referenceType.name()))
                         .map(entry -> {
                             RoleEntity role = entry.getValue();
                             String group = entry.getKey();

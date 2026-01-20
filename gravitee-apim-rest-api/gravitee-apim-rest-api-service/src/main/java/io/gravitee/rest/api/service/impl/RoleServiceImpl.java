@@ -83,7 +83,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.ArrayUtils;
@@ -147,6 +149,36 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
             }
         });
+    }
+
+    @Override
+    public Map<String, RoleEntity> findByIds(Set<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Map.of();
+        }
+
+        log.debug("Find Roles by ids: {}", roleIds);
+
+        Map<String, RoleEntity> cache = GraviteeContext.getCurrentRoles();
+
+        // Filter out IDs already in cache
+        Set<String> missingRoleIds = roleIds
+            .stream()
+            .filter(id -> !cache.containsKey(id))
+            .collect(Collectors.toSet());
+
+        // Fetch missing roles and add to cache
+        if (!missingRoleIds.isEmpty()) {
+            try {
+                roleRepository.findAllByIdIn(missingRoleIds).forEach(role -> cache.put(role.getId(), convert(role)));
+            } catch (TechnicalException ex) {
+                log.error("An error occurs while trying to find roles by ids: {}", missingRoleIds, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find roles by ids", ex);
+            }
+        }
+
+        // Return requested roles from cache
+        return roleIds.stream().filter(cache::containsKey).collect(Collectors.toMap(id -> id, cache::get));
     }
 
     @Override
