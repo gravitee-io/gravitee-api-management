@@ -157,6 +157,31 @@ $typography: map.get(gio.$mat-theme, typography);
   margin-top: 16px;
 }
 
+.diagram-card {
+  margin-top: 16px;
+
+  .mermaid-diagram-container {
+    width: 100%;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+    padding: 16px;
+
+    ::ng-deep svg {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  .diagram-loading {
+    text-align: center;
+    padding: 40px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
 @keyframes spin {
   from {
     transform: rotate(0);

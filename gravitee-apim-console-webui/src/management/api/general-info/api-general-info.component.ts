@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -48,10 +48,12 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4, Plan } from '../../../entities/management-api-v2';
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
+import { HttpListener } from '../../../entities/management-api-v2/api/v4/httpListener';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 
 export interface MigrateDialogResult {
   confirmed: boolean;
@@ -64,12 +66,18 @@ export interface MigrateDialogResult {
   styleUrls: ['./api-general-info.component.scss'],
   standalone: false,
 })
-export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
+export class ApiGeneralInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  @ViewChild('mermaidDiagram', { static: false }) mermaidDiagram: ElementRef;
 
   public apiId: string;
   public api: Api;
   public apiType: ApiType;
+  public mermaidDiagramDefinition: string = '';
+  public isMermaidLoaded: boolean = false;
+  public plans: Plan[] = [];
+  private nodeClickHandlers: Map<string, () => void> = new Map();
 
   public apiDetailsForm: UntypedFormGroup;
   public apiImagesForm: UntypedFormGroup;
@@ -114,6 +122,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly integrationsService: IntegrationsService,
+    private readonly planService: ApiPlanV2Service,
+    private readonly cdr: ChangeDetectorRef,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
@@ -243,6 +253,29 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
           this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
+
+          // Generate diagram when API is loaded
+          if (api && api.definitionVersion === 'V4') {
+            // Fetch plans for the API
+            this.planService
+              .list(api.id, undefined, undefined, undefined, 1, 100)
+              .pipe(
+                takeUntil(this.unsubscribe$),
+                tap((plansResponse) => {
+                  this.plans = plansResponse.data || [];
+                  // Regenerate diagram with plans
+                  this.generateMermaidDiagram(api as ApiV4);
+                }),
+                catchError((error) => {
+                  console.error('Error fetching plans:', error);
+                  // Still generate diagram without plans
+                  this.plans = [];
+                  this.generateMermaidDiagram(api as ApiV4);
+                  return of(null);
+                }),
+              )
+              .subscribe();
+          }
         }),
         switchMap(([api]) => {
           if ('integrationId' in api.originContext) {
@@ -264,6 +297,517 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  ngAfterViewInit(): void {
+    this.loadMermaidAndRender();
+  }
+
+  private async loadMermaidAndRender(): Promise<void> {
+    try {
+      // Check if mermaid is already loaded
+      if ((window as any).mermaid) {
+        this.isMermaidLoaded = true;
+        this.renderDiagram();
+        return;
+      }
+
+      // Try to load mermaid from node_modules
+      try {
+        const mermaidModule = await import('mermaid');
+        // Handle different mermaid module structures
+        let mermaid: any;
+        if (mermaidModule.default) {
+          mermaid = mermaidModule.default;
+        } else if (typeof mermaidModule === 'function') {
+          mermaid = mermaidModule;
+        } else if ((mermaidModule as any).mermaid) {
+          mermaid = (mermaidModule as any).mermaid;
+        } else {
+          mermaid = mermaidModule;
+        }
+
+        if (mermaid && typeof mermaid.initialize === 'function') {
+          (window as any).mermaid = mermaid;
+          mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+          this.isMermaidLoaded = true;
+          this.renderDiagram();
+          return;
+        } else if (mermaid && typeof (mermaid as any).init === 'function') {
+          // Some versions use 'init' instead of 'initialize'
+          (window as any).mermaid = mermaid;
+          (mermaid as any).init({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+          this.isMermaidLoaded = true;
+          this.renderDiagram();
+          return;
+        }
+      } catch (e) {
+        console.log('Mermaid not found in node_modules, loading from CDN', e);
+      }
+
+      // Fallback to CDN
+      if (!(window as any).mermaid) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+        script.onload = () => {
+          const mermaid = (window as any).mermaid;
+          if (mermaid) {
+            if (typeof mermaid.initialize === 'function') {
+              mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+            } else if (typeof mermaid.init === 'function') {
+              mermaid.init({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+            }
+            this.isMermaidLoaded = true;
+            this.renderDiagram();
+          }
+        };
+        script.onerror = () => {
+          console.error('Failed to load Mermaid from CDN');
+        };
+        document.head.appendChild(script);
+      }
+    } catch (error) {
+      console.error('Error loading Mermaid:', error);
+    }
+  }
+
+  private renderDiagram(): void {
+    if (!this.isMermaidLoaded || !this.mermaidDiagramDefinition || !this.mermaidDiagram) {
+      return;
+    }
+
+    setTimeout(() => {
+      const element = this.mermaidDiagram.nativeElement;
+      if (!element || !this.mermaidDiagramDefinition) {
+        return;
+      }
+
+      const mermaid = (window as any).mermaid;
+      if (!mermaid) {
+        return;
+      }
+
+      try {
+        element.innerHTML = '';
+        const id = 'mermaid-' + Date.now();
+
+        // Use mermaid.render for async rendering
+        mermaid
+          .render(id, this.mermaidDiagramDefinition)
+          .then((result: { svg: string }) => {
+            element.innerHTML = result.svg;
+
+            // Add click handlers to nodes after rendering
+            setTimeout(() => {
+              this.addClickHandlersToDiagram(element);
+            }, 100);
+          })
+          .catch((error: any) => {
+            console.error('Error rendering Mermaid diagram:', error);
+            element.innerHTML = '<p>Error rendering diagram. Please check the console for details.</p>';
+          });
+      } catch (error) {
+        console.error('Error in renderDiagram:', error);
+        element.innerHTML = '<p>Error rendering diagram. Please check the console for details.</p>';
+      }
+    }, 200);
+  }
+
+  private generateMermaidDiagram(api: ApiV4): void {
+    if (!api) {
+      return;
+    }
+
+    // Clear previous click handlers
+    this.nodeClickHandlers.clear();
+
+    let diagram = 'graph TB\n';
+    diagram += `    Start([API: ${api.name || 'Unnamed'}<br/>Version: ${api.definitionVersion || 'V4'}<br/>Type: ${api.type || 'PROXY'}]) --> Listeners\n`;
+
+    // Add Listeners
+    if (api.listeners && api.listeners.length > 0) {
+      api.listeners.forEach((listener, idx) => {
+        const listenerId = `Listener${idx}`;
+        diagram += `    Listeners --> ${listenerId}[Listener ${idx + 1}<br/>Type: ${listener.type || 'HTTP'}]\n`;
+
+        // Add Paths (only for HTTP listeners)
+        if (listener.type === 'HTTP') {
+          const httpListener = listener as HttpListener;
+          if (httpListener.paths && httpListener.paths.length > 0) {
+            httpListener.paths.forEach((path, pathIdx) => {
+              const pathId = `Path${idx}_${pathIdx}`;
+              diagram += `    ${listenerId} --> ${pathId}["Path: ${path.path || '/'}"]\n`;
+            });
+          }
+        }
+
+        // Add Entrypoints
+        if (listener.entrypoints && listener.entrypoints.length > 0) {
+          listener.entrypoints.forEach((entrypoint, epIdx) => {
+            const epId = `Entrypoint${idx}_${epIdx}`;
+            diagram += `    ${listenerId} --> ${epId}["Entrypoint: ${entrypoint.type || 'http-proxy'}<br/>QoS: ${entrypoint.qos || 'AUTO'}"]\n`;
+          });
+        }
+      });
+    }
+
+    // Add Endpoint Groups
+    if (api.endpointGroups && api.endpointGroups.length > 0) {
+      diagram += `    Listeners --> EndpointGroups\n`;
+      api.endpointGroups.forEach((group, groupIdx) => {
+        const groupId = `EndpointGroup${groupIdx}`;
+        diagram += `    EndpointGroups --> ${groupId}["Endpoint Group: ${group.name || 'Default'}<br/>Type: ${group.type || 'http-proxy'}<br/>Load Balancer: ${group.loadBalancer?.type || 'ROUND_ROBIN'}"]\n`;
+
+        // Add Endpoints
+        if (group.endpoints && group.endpoints.length > 0) {
+          group.endpoints.forEach((endpoint, epIdx) => {
+            const epId = `Endpoint${groupIdx}_${epIdx}`;
+            const target = (endpoint.configuration as any)?.target || 'N/A';
+            diagram += `    ${groupId} --> ${epId}["Endpoint: ${endpoint.name || 'Default'}<br/>Target: ${target}<br/>Weight: ${endpoint.weight || 1}"]\n`;
+          });
+        }
+      });
+    }
+
+    // Add Flow Execution
+    if (api.flowExecution) {
+      diagram += `    Listeners --> FlowExecution["Flow Execution<br/>Mode: ${api.flowExecution.mode || 'DEFAULT'}<br/>Match Required: ${api.flowExecution.matchRequired || false}"]\n`;
+    }
+
+    // Add Flows (Policies)
+    if (api.flows && api.flows.length > 0) {
+      diagram += `    FlowExecution --> Flows\n`;
+      api.flows.forEach((flow, flowIdx) => {
+        const flowId = `Flow${flowIdx}`;
+        const flowName = flow.name || `Flow ${flowIdx + 1}`;
+        const enabledStatus = flow.enabled !== false ? 'Enabled' : 'Disabled';
+        diagram += `    Flows --> ${flowId}["${flowName}<br/>Status: ${enabledStatus}"]\n`;
+
+        // Add click handler for API-level flows (planIndex=0 for API flows)
+        this.nodeClickHandlers.set(flowId, () => {
+          this.router.navigate(['v4/policy-studio', '0', flowIdx.toString()], { relativeTo: this.activatedRoute });
+        });
+
+        // Add Selectors
+        if (flow.selectors && flow.selectors.length > 0) {
+          flow.selectors.forEach((selector, selIdx) => {
+            const selId = `Selector${flowIdx}_${selIdx}`;
+            if (selector.type === 'HTTP' && 'path' in selector) {
+              const httpSelector = selector as any;
+              const path = httpSelector.path || '/';
+              const pathOp = httpSelector.pathOperator || 'EQUALS';
+              const methods = httpSelector.methods && httpSelector.methods.length > 0 ? httpSelector.methods.join(', ') : 'ALL';
+              diagram += `    ${flowId} --> ${selId}["Selector: ${path}<br/>Operator: ${pathOp}<br/>Methods: ${methods}"]\n`;
+            } else {
+              diagram += `    ${flowId} --> ${selId}["Selector: ${selector.type || 'UNKNOWN'}"]\n`;
+            }
+          });
+        }
+
+        // Add Request Policies
+        if (flow.request && flow.request.length > 0) {
+          const requestId = `Request${flowIdx}`;
+          diagram += `    ${flowId} --> ${requestId}["Request Policies"]\n`;
+          flow.request.forEach((step, stepIdx) => {
+            const stepId = `RequestStep${flowIdx}_${stepIdx}`;
+            const stepName = step.name || step.policy || 'Policy';
+            const stepEnabled = step.enabled !== false ? '✓' : '✗';
+            diagram += `    ${requestId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+          });
+        }
+
+        // Add Response Policies
+        if (flow.response && flow.response.length > 0) {
+          const responseId = `Response${flowIdx}`;
+          diagram += `    ${flowId} --> ${responseId}["Response Policies"]\n`;
+          flow.response.forEach((step, stepIdx) => {
+            const stepId = `ResponseStep${flowIdx}_${stepIdx}`;
+            const stepName = step.name || step.policy || 'Policy';
+            const stepEnabled = step.enabled !== false ? '✓' : '✗';
+            diagram += `    ${responseId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+          });
+        }
+
+        // Add Subscribe Policies
+        if (flow.subscribe && flow.subscribe.length > 0) {
+          const subscribeId = `Subscribe${flowIdx}`;
+          diagram += `    ${flowId} --> ${subscribeId}["Subscribe Policies"]\n`;
+          flow.subscribe.forEach((step, stepIdx) => {
+            const stepId = `SubscribeStep${flowIdx}_${stepIdx}`;
+            const stepName = step.name || step.policy || 'Policy';
+            const stepEnabled = step.enabled !== false ? '✓' : '✗';
+            diagram += `    ${subscribeId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+          });
+        }
+
+        // Add Publish Policies
+        if (flow.publish && flow.publish.length > 0) {
+          const publishId = `Publish${flowIdx}`;
+          diagram += `    ${flowId} --> ${publishId}["Publish Policies"]\n`;
+          flow.publish.forEach((step, stepIdx) => {
+            const stepId = `PublishStep${flowIdx}_${stepIdx}`;
+            const stepName = step.name || step.policy || 'Policy';
+            const stepEnabled = step.enabled !== false ? '✓' : '✗';
+            diagram += `    ${publishId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+          });
+        }
+      });
+    }
+
+    // Add Plan Flows
+    if (this.plans && this.plans.length > 0) {
+      diagram += `    Start --> Plans["Plans"]\n`;
+      this.plans.forEach((plan, planIdx) => {
+        const planId = `Plan${planIdx}`;
+        const planName = plan.name || `Plan ${planIdx + 1}`;
+        const planStatus = plan.status || 'UNKNOWN';
+        const planMode = (plan as any).mode || 'STANDARD';
+        diagram += `    Plans --> ${planId}["${planName}<br/>Status: ${planStatus}<br/>Mode: ${planMode}"]\n`;
+
+        // Add click handler for plan - navigate to plan edit page
+        if (plan.id) {
+          this.nodeClickHandlers.set(planId, () => {
+            this.router.navigate(['plans', plan.id], { relativeTo: this.activatedRoute });
+          });
+        }
+
+        // Add flows from this plan (only V4 plans have flows in the same format)
+        if (plan.definitionVersion === 'V4') {
+          const planV4 = plan as any; // PlanV4
+          if (planV4.flows && planV4.flows.length > 0) {
+            const planFlowsId = `PlanFlows${planIdx}`;
+            diagram += `    ${planId} --> ${planFlowsId}["Plan Flows"]\n`;
+
+            planV4.flows.forEach((flow: any, flowIdx: number) => {
+              const flowId = `PlanFlow${planIdx}_${flowIdx}`;
+              const flowName = flow.name || `Flow ${flowIdx + 1}`;
+              const enabledStatus = flow.enabled !== false ? 'Enabled' : 'Disabled';
+              diagram += `    ${planFlowsId} --> ${flowId}["${flowName}<br/>Status: ${enabledStatus}"]\n`;
+
+              // Add click handler for plan-level flows (planIndex=planIdx+1, since 0 is for API flows)
+              this.nodeClickHandlers.set(flowId, () => {
+                this.router.navigate(['v4/policy-studio', (planIdx + 1).toString(), flowIdx.toString()], {
+                  relativeTo: this.activatedRoute,
+                });
+              });
+
+              // Add Selectors
+              if (flow.selectors && flow.selectors.length > 0) {
+                flow.selectors.forEach((selector, selIdx) => {
+                  const selId = `PlanSelector${planIdx}_${flowIdx}_${selIdx}`;
+                  if (selector.type === 'HTTP' && 'path' in selector) {
+                    const httpSelector = selector as any;
+                    const path = httpSelector.path || '/';
+                    const pathOp = httpSelector.pathOperator || 'EQUALS';
+                    const methods = httpSelector.methods && httpSelector.methods.length > 0 ? httpSelector.methods.join(', ') : 'ALL';
+                    diagram += `    ${flowId} --> ${selId}["Selector: ${path}<br/>Operator: ${pathOp}<br/>Methods: ${methods}"]\n`;
+                  } else {
+                    diagram += `    ${flowId} --> ${selId}["Selector: ${selector.type || 'UNKNOWN'}"]\n`;
+                  }
+                });
+              }
+
+              // Add Request Policies
+              if (flow.request && flow.request.length > 0) {
+                const requestId = `PlanRequest${planIdx}_${flowIdx}`;
+                diagram += `    ${flowId} --> ${requestId}["Request Policies"]\n`;
+                flow.request.forEach((step, stepIdx) => {
+                  const stepId = `PlanRequestStep${planIdx}_${flowIdx}_${stepIdx}`;
+                  const stepName = step.name || step.policy || 'Policy';
+                  const stepEnabled = step.enabled !== false ? '✓' : '✗';
+                  diagram += `    ${requestId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+                });
+              }
+
+              // Add Response Policies
+              if (flow.response && flow.response.length > 0) {
+                const responseId = `PlanResponse${planIdx}_${flowIdx}`;
+                diagram += `    ${flowId} --> ${responseId}["Response Policies"]\n`;
+                flow.response.forEach((step, stepIdx) => {
+                  const stepId = `PlanResponseStep${planIdx}_${flowIdx}_${stepIdx}`;
+                  const stepName = step.name || step.policy || 'Policy';
+                  const stepEnabled = step.enabled !== false ? '✓' : '✗';
+                  diagram += `    ${responseId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+                });
+              }
+
+              // Add Subscribe Policies
+              if (flow.subscribe && flow.subscribe.length > 0) {
+                const subscribeId = `PlanSubscribe${planIdx}_${flowIdx}`;
+                diagram += `    ${flowId} --> ${subscribeId}["Subscribe Policies"]\n`;
+                flow.subscribe.forEach((step, stepIdx) => {
+                  const stepId = `PlanSubscribeStep${planIdx}_${flowIdx}_${stepIdx}`;
+                  const stepName = step.name || step.policy || 'Policy';
+                  const stepEnabled = step.enabled !== false ? '✓' : '✗';
+                  diagram += `    ${subscribeId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+                });
+              }
+
+              // Add Publish Policies
+              if (flow.publish && flow.publish.length > 0) {
+                const publishId = `PlanPublish${planIdx}_${flowIdx}`;
+                diagram += `    ${flowId} --> ${publishId}["Publish Policies"]\n`;
+                flow.publish.forEach((step, stepIdx) => {
+                  const stepId = `PlanPublishStep${planIdx}_${flowIdx}_${stepIdx}`;
+                  const stepName = step.name || step.policy || 'Policy';
+                  const stepEnabled = step.enabled !== false ? '✓' : '✗';
+                  diagram += `    ${publishId} --> ${stepId}["${stepName} ${stepEnabled}<br/>Policy: ${step.policy || 'N/A'}"]\n`;
+                });
+              }
+            });
+          }
+        }
+      });
+    }
+
+    // Add Analytics
+    if (api.analytics) {
+      diagram += `    Start --> Analytics["Analytics<br/>Enabled: ${api.analytics.enabled || false}"]\n`;
+    }
+
+    this.mermaidDiagramDefinition = diagram;
+    this.cdr.detectChanges();
+
+    // Render after a short delay to ensure view is ready
+    setTimeout(() => {
+      this.renderDiagram();
+    }, 200);
+  }
+
+  private addClickHandlersToDiagram(element: HTMLElement): void {
+    const svg = element.querySelector('svg');
+    if (!svg) {
+      return;
+    }
+
+    // Find all node groups in the SVG - Mermaid wraps nodes in g.node
+    const nodeGroups = svg.querySelectorAll('g.node');
+
+    // Create a mapping of expected node patterns to handlers
+    // We'll match by node ID pattern since Mermaid uses consistent naming
+    this.nodeClickHandlers.forEach((handler, nodeId) => {
+      // Mermaid generates node IDs with lowercase and specific patterns
+      // Try multiple selectors to catch different ID formats
+      const patterns = [`[id*="${nodeId.toLowerCase()}"]`, `[id*="${nodeId}"]`, `#${nodeId.toLowerCase()}`, `#${nodeId}`];
+
+      patterns.forEach((pattern) => {
+        try {
+          const matches = svg.querySelectorAll(pattern);
+          matches.forEach((match) => {
+            // Find the parent g.node element
+            let nodeGroup = match;
+            while (nodeGroup && nodeGroup.nodeName !== 'g') {
+              nodeGroup = nodeGroup.parentElement;
+            }
+
+            if (nodeGroup && nodeGroup.classList.contains('node') && !nodeGroup.getAttribute('data-clickable')) {
+              const nodeEl = nodeGroup as HTMLElement;
+              nodeEl.style.cursor = 'pointer';
+
+              // Add click handler
+              nodeGroup.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handler();
+              });
+
+              // Add hover effects
+              nodeGroup.addEventListener('mouseenter', () => {
+                nodeEl.style.opacity = '0.8';
+                // Add title tooltip
+                nodeEl.setAttribute('title', 'Click to navigate');
+              });
+
+              nodeGroup.addEventListener('mouseleave', () => {
+                nodeEl.style.opacity = '1';
+              });
+
+              // Mark as processed
+              nodeGroup.setAttribute('data-clickable', 'true');
+            }
+          });
+        } catch (e) {
+          // Invalid selector, skip
+        }
+      });
+    });
+
+    // Fallback: Try to match by text content for nodes we couldn't match by ID
+    nodeGroups.forEach((nodeGroup) => {
+      if (nodeGroup.getAttribute('data-clickable')) {
+        return; // Already processed
+      }
+
+      const textElements = nodeGroup.querySelectorAll('text');
+      let textContent = '';
+      textElements.forEach((text) => {
+        textContent += (text.textContent || '') + ' ';
+      });
+      textContent = textContent.toLowerCase().trim();
+
+      // Try to match flow nodes (contain "flow" and have a name)
+      if (textContent.includes('flow') && !textContent.includes('policy')) {
+        // Extract flow index from node ID or try to match
+        const nodeIdAttr = nodeGroup.getAttribute('id') || '';
+
+        // Check for API flows (Flow0, Flow1, etc.)
+        for (const [nodeId, handler] of this.nodeClickHandlers.entries()) {
+          if (nodeId.startsWith('Flow') && (nodeIdAttr.includes(nodeId.toLowerCase()) || textContent.includes(nodeId.toLowerCase()))) {
+            const nodeEl = nodeGroup as HTMLElement;
+            nodeEl.style.cursor = 'pointer';
+
+            nodeGroup.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handler();
+            });
+
+            nodeGroup.addEventListener('mouseenter', () => {
+              nodeEl.style.opacity = '0.8';
+              nodeEl.setAttribute('title', 'Click to open in Policy Studio');
+            });
+
+            nodeGroup.addEventListener('mouseleave', () => {
+              nodeEl.style.opacity = '1';
+            });
+
+            nodeGroup.setAttribute('data-clickable', 'true');
+            break;
+          }
+        }
+      }
+
+      // Try to match plan nodes
+      if (textContent.includes('status:') && textContent.includes('mode:')) {
+        for (const [nodeId, handler] of this.nodeClickHandlers.entries()) {
+          if (nodeId.startsWith('Plan') && !nodeId.includes('Flow')) {
+            const nodeIdAttr = nodeGroup.getAttribute('id') || '';
+            if (nodeIdAttr.includes(nodeId.toLowerCase()) || textContent.includes('plan')) {
+              const nodeEl = nodeGroup as HTMLElement;
+              nodeEl.style.cursor = 'pointer';
+
+              nodeGroup.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handler();
+              });
+
+              nodeGroup.addEventListener('mouseenter', () => {
+                nodeEl.style.opacity = '0.8';
+                nodeEl.setAttribute('title', 'Click to edit plan');
+              });
+
+              nodeGroup.addEventListener('mouseleave', () => {
+                nodeEl.style.opacity = '1';
+              });
+
+              nodeGroup.setAttribute('data-clickable', 'true');
+              break;
+            }
+          }
+        }
+      }
+    });
   }
 
   onSubmit() {

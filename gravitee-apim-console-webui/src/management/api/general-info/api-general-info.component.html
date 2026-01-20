@@ -96,7 +96,7 @@
           <div class="details-card__header__right-coll">
             <div class="details-card__header__right-coll__media" [formGroup]="apiImagesForm">
               <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
-                <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
+                <gio-form-file-picker-label>API picture1</gio-form-file-picker-label>
                 <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
                   <span class="details-card__header__right-coll__media__picture__btn__text">
                     Click here or drag an image <br />Max 500KB</span
@@ -208,6 +208,20 @@
       </mat-card-actions>
     }
   </mat-card>
+
+  @if (api && api.definitionVersion === 'V4') {
+    <mat-card class="diagram-card">
+      <mat-card-header>
+        <mat-card-title>API Definition Diagram</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div #mermaidDiagram class="mermaid-diagram-container"></div>
+        @if (!mermaidDiagramDefinition) {
+          <div class="diagram-loading">Loading diagram...</div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
 
   @if (isQualityEnabled && isQualitySupported && apiId) {
     <api-general-info-quality class="api-quality" [apiId]="apiId" />
