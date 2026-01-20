@@ -3302,10 +3302,10 @@ __metadata:
   dependencies:
     tslib: "npm:2.3.1"
   peerDependencies:
-    "@angular/cdk": 19.2.4
-    "@angular/common": 19.2.4
-    "@angular/core": 19.2.4
-    "@angular/material": 19.2.4
+    "@angular/cdk": 20.2.14
+    "@angular/common": 20.3.16
+    "@angular/core": 20.3.16
+    "@angular/material": 20.2.14
     "@danielmoncada/angular-datetime-picker": ^20.0.1
     "@danielmoncada/angular-datetime-picker-moment-adapter": ^7.0.1
     angular-gridster2: 20.2.3
@@ -3325,8 +3325,8 @@ __metadata:
     ngx-dynamic-hooks: "npm:3.1.2"
     tslib: "npm:2.8.1"
   peerDependencies:
-    "@angular/common": ^19.2.0
-    "@angular/core": ^19.2.0
+    "@angular/common": 20.3.16
+    "@angular/core": 20.3.16
     dompurify: 3.2.7
   languageName: node
   linkType: soft
