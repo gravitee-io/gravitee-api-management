@@ -22,33 +22,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-builders/common@npm:3.0.0":
-  version: 3.0.0
-  resolution: "@angular-builders/common@npm:3.0.0"
+"@angular-builders/common@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@angular-builders/common@npm:4.0.0"
   dependencies:
-    "@angular-devkit/core": "npm:^19.0.0"
+    "@angular-devkit/core": "npm:^20.0.0"
     ts-node: "npm:^10.0.0"
-    tsconfig-paths: "npm:^4.1.0"
-  checksum: 10c0/e51d4acd00fcb0bb423c6e9c9d129bc673a32e12e789146f2d2bd62fde411e17c4d379e97aca3f1f53704548b7ffa2293c4423f21d67c409831370c69dcf0819
+    tsconfig-paths: "npm:^4.2.0"
+  checksum: 10c0/da17a778d14f634314b2127d62dba594afe714d1a202537b335a1674a20a3fff9736d838a08eb1468c7e2fab3f3b42db9372519a48e7c93cd343d0a3d51210d7
   languageName: node
   linkType: hard
 
-"@angular-builders/jest@npm:19.0.0":
-  version: 19.0.0
-  resolution: "@angular-builders/jest@npm:19.0.0"
+"@angular-builders/jest@npm:20.0.0":
+  version: 20.0.0
+  resolution: "@angular-builders/jest@npm:20.0.0"
   dependencies:
-    "@angular-builders/common": "npm:3.0.0"
-    "@angular-devkit/architect": "npm:>=0.1900.0 < 0.2000.0"
-    "@angular-devkit/core": "npm:^19.0.0"
-    jest-preset-angular: "npm:14.4.2"
+    "@angular-builders/common": "npm:4.0.0"
+    "@angular-devkit/architect": "npm:>=0.2000.0 < 0.2100.0"
+    "@angular-devkit/core": "npm:^20.0.0"
+    jest-preset-angular: "npm:14.6.0"
     lodash: "npm:^4.17.15"
   peerDependencies:
-    "@angular-devkit/build-angular": ^19.0.0
-    "@angular/compiler-cli": ^19.0.0
-    "@angular/core": ^19.0.0
-    "@angular/platform-browser-dynamic": ^19.0.0
+    "@angular-devkit/build-angular": ^20.0.0
+    "@angular/compiler-cli": ^20.0.0
+    "@angular/core": ^20.0.0
+    "@angular/platform-browser-dynamic": ^20.0.0
     jest: ">=29"
-  checksum: 10c0/d17e9cff9708da2c654f81ad2c6f9185c30c3168673a3d9135ffb193f0f7f36e710c895d2de433b874154dbe9ff0912cdf5a89904ecaed94d30acb895c2ec20c
+  checksum: 10c0/294514e7a1c09175279b74002c826c7b70ce749dec33ca125b9380b9800034c2dffb7d1e587f3b6e2db16cb131c60d0e20a0d19f0942dc6f59e09477dcbd2eea
   languageName: node
   linkType: hard
 
@@ -62,13 +62,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/architect@npm:>= 0.1900.0 < 0.2000.0, @angular-devkit/architect@npm:>=0.1900.0 < 0.2000.0":
+"@angular-devkit/architect@npm:>= 0.1900.0 < 0.2000.0":
   version: 0.1902.18
   resolution: "@angular-devkit/architect@npm:0.1902.18"
   dependencies:
     "@angular-devkit/core": "npm:19.2.18"
     rxjs: "npm:7.8.1"
   checksum: 10c0/977c8cf5e5a7e8106dab7fbfd9d10cf62df151c729c29c3e5e3daa67048db5700d529866fb04b396f846f7169f4a27dbc57072a4707fa2e1fd73930ebbdd01a6
+  languageName: node
+  linkType: hard
+
+"@angular-devkit/architect@npm:>=0.2000.0 < 0.2100.0":
+  version: 0.2003.14
+  resolution: "@angular-devkit/architect@npm:0.2003.14"
+  dependencies:
+    "@angular-devkit/core": "npm:20.3.14"
+    rxjs: "npm:7.8.2"
+  checksum: 10c0/ab8f1e55dcbe78c07707ff8b8abc33c8eefbcdb2bf62cdb2e56b012a3b353f88fdbdffd400ca5e89965512e8063f751dc8d9c0d5600cd5894bc82b92ab2f7d73
   languageName: node
   linkType: hard
 
@@ -192,7 +202,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/core@npm:19.2.18, @angular-devkit/core@npm:>= 19.0.0 < 20.0.0, @angular-devkit/core@npm:^19.0.0":
+"@angular-devkit/core@npm:19.2.18, @angular-devkit/core@npm:>= 19.0.0 < 20.0.0":
   version: 19.2.18
   resolution: "@angular-devkit/core@npm:19.2.18"
   dependencies:
@@ -227,6 +237,25 @@ __metadata:
     chokidar:
       optional: true
   checksum: 10c0/c42ec0de4b421a0f6b4c61e3d4e0a27eaa4446d33fae5f19c54dc3bc0ff4dbf2f1d7db713ebf4e97481a41bd24c85d48238cb08df7ba1aba70ced7a5c7005b60
+  languageName: node
+  linkType: hard
+
+"@angular-devkit/core@npm:20.3.14, @angular-devkit/core@npm:^20.0.0":
+  version: 20.3.14
+  resolution: "@angular-devkit/core@npm:20.3.14"
+  dependencies:
+    ajv: "npm:8.17.1"
+    ajv-formats: "npm:3.0.1"
+    jsonc-parser: "npm:3.3.1"
+    picomatch: "npm:4.0.3"
+    rxjs: "npm:7.8.2"
+    source-map: "npm:0.7.6"
+  peerDependencies:
+    chokidar: ^4.0.0
+  peerDependenciesMeta:
+    chokidar:
+      optional: true
+  checksum: 10c0/59df673374203326fa439b22fcce2d42c4d5f5ca548a67f4846bc95c90c827ea85f48a3536f34a4a4d2a04363693e3d9148389dcac3b71757b45ddf07cffb089
   languageName: node
   linkType: hard
 
@@ -11492,7 +11521,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "gravitee-apim-portal-webui-next@workspace:."
   dependencies:
-    "@angular-builders/jest": "npm:19.0.0"
+    "@angular-builders/jest": "npm:20.0.0"
     "@angular-devkit/build-angular": "npm:19.2.4"
     "@angular-eslint/builder": "npm:19.2.1"
     "@angular-eslint/eslint-plugin": "npm:19.2.1"
@@ -13000,7 +13029,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-environment-jsdom@npm:^29.0.0, jest-environment-jsdom@npm:^29.7.0":
+"jest-environment-jsdom@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest-environment-jsdom@npm:29.7.0"
   dependencies:
@@ -13139,27 +13168,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-preset-angular@npm:14.4.2":
-  version: 14.4.2
-  resolution: "jest-preset-angular@npm:14.4.2"
+"jest-preset-angular@npm:14.6.0":
+  version: 14.6.0
+  resolution: "jest-preset-angular@npm:14.6.0"
   dependencies:
     bs-logger: "npm:^0.2.6"
     esbuild: "npm:>=0.15.13"
     esbuild-wasm: "npm:>=0.15.13"
-    jest-environment-jsdom: "npm:^29.0.0"
-    jest-util: "npm:^29.0.0"
-    pretty-format: "npm:^29.0.0"
-    ts-jest: "npm:^29.0.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    jest-util: "npm:^29.7.0"
+    pretty-format: "npm:^29.7.0"
+    ts-jest: "npm:^29.3.0"
   peerDependencies:
-    "@angular/compiler-cli": ">=15.0.0 <20.0.0"
-    "@angular/core": ">=15.0.0 <20.0.0"
-    "@angular/platform-browser-dynamic": ">=15.0.0 <20.0.0"
+    "@angular/compiler-cli": ">=15.0.0 <21.0.0"
+    "@angular/core": ">=15.0.0 <21.0.0"
+    "@angular/platform-browser-dynamic": ">=15.0.0 <21.0.0"
     jest: ^29.0.0
+    jsdom: ">=20.0.0"
     typescript: ">=4.8"
   dependenciesMeta:
     esbuild:
       optional: true
-  checksum: 10c0/f8447be640beff7a20d00d49a5afab3066568d0b12de8ae2d0c8e266ff1dd5b4b2bf1bed08bce2b178415a28d7b90f31702b36ff28fbf19e34b1d791cb235c97
+  peerDependenciesMeta:
+    jsdom:
+      optional: true
+  checksum: 10c0/d19f3d8b37914c3ab5a45c7709669696fd21e54a02ae25f6030a9e0dcf157bb630b163e8bd0bc9314cb69c9953b4cdeb4786d79b1b46291da76cfdd59b79b80c
   languageName: node
   linkType: hard
 
@@ -13312,7 +13345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-util@npm:^29.0.0, jest-util@npm:^29.7.0":
+"jest-util@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest-util@npm:29.7.0"
   dependencies:
@@ -15833,17 +15866,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch@npm:4.0.3, picomatch@npm:^4.0.2, picomatch@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "picomatch@npm:4.0.3"
+  checksum: 10c0/9582c951e95eebee5434f59e426cddd228a7b97a0161a375aed4be244bd3fe8e3a31b846808ea14ef2c8a2527a6eeab7b3946a67d5979e81694654f939473ae2
+  languageName: node
+  linkType: hard
+
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.3, picomatch@npm:^2.3.1":
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
   checksum: 10c0/26c02b8d06f03206fc2ab8d16f19960f2ff9e81a658f831ecb656d8f17d9edc799e8364b1f4a7873e89d9702dff96204be0fa26fe4181f6843f040f819dac4be
-  languageName: node
-  linkType: hard
-
-"picomatch@npm:^4.0.2, picomatch@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "picomatch@npm:4.0.3"
-  checksum: 10c0/9582c951e95eebee5434f59e426cddd228a7b97a0161a375aed4be244bd3fe8e3a31b846808ea14ef2c8a2527a6eeab7b3946a67d5979e81694654f939473ae2
   languageName: node
   linkType: hard
 
@@ -17977,6 +18010,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"source-map@npm:0.7.6":
+  version: 0.7.6
+  resolution: "source-map@npm:0.7.6"
+  checksum: 10c0/59f6f05538539b274ba771d2e9e32f6c65451982510564438e048bc1352f019c6efcdc6dd07909b1968144941c14015c2c7d4369fb7c4d7d53ae769716dcc16c
+  languageName: node
+  linkType: hard
+
 "space-separated-tokens@npm:^1.0.0":
   version: 1.1.5
   resolution: "space-separated-tokens@npm:1.1.5"
@@ -18978,7 +19018,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.0.0, ts-jest@npm:^29.3.0":
+"ts-jest@npm:^29.3.0":
   version: 29.4.5
   resolution: "ts-jest@npm:29.4.5"
   dependencies:
@@ -19094,7 +19134,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:^4.1.0, tsconfig-paths@npm:^4.1.2":
+"tsconfig-paths@npm:^4.1.2, tsconfig-paths@npm:^4.2.0":
   version: 4.2.0
   resolution: "tsconfig-paths@npm:4.2.0"
   dependencies:
