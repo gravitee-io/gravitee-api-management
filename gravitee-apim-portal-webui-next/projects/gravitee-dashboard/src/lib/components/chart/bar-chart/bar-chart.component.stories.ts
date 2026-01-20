@@ -204,3 +204,77 @@ export const Stacked: StoryObj<BarChartStoryArgs> = {
     };
   },
 };
+
+export const StatusDistribution: StoryObj<BarChartStoryArgs> = {
+  args: {
+    storyId: 'status-distribution',
+    type: 'bar',
+    dataPoints: [],
+  },
+  render: args => {
+    const timestamps = Array.from({ length: 10 }, (_, i) => {
+      return new Date(new Date('2025-01-01T00:00:00Z').getTime() + i * 1 * 60 * 60 * 1000).toISOString();
+    });
+
+    const getRandomValue = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const maybeZero = (value: number, chance = 0.2) => (Math.random() < chance ? 0 : value);
+
+    const buckets1xx = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: maybeZero(getRandomValue(5, 20)) }],
+    }));
+    const buckets2xx = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: getRandomValue(100, 300) }],
+    }));
+
+    const buckets3xx = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: maybeZero(getRandomValue(10, 50)) }],
+    }));
+    const buckets4xx = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: maybeZero(getRandomValue(20, 100)) }],
+    }));
+
+    const buckets5xx = timestamps.map(ts => ({
+      key: ts,
+      name: ts,
+      timestamp: new Date(ts),
+      measures: [{ name: 'COUNT' as const, value: maybeZero(getRandomValue(0, 30)) }],
+    }));
+
+    const timeSeriesData: TimeSeriesResponse = {
+      interval: '1h',
+      metrics: [
+        { name: 'APIS', buckets: buckets1xx },
+        { name: 'HTTP_REQUESTS', buckets: buckets2xx },
+        { name: 'MESSAGES', buckets: buckets3xx },
+        { name: 'HTTP_ERRORS', buckets: buckets4xx },
+        { name: 'MESSAGE_ERRORS', buckets: buckets5xx },
+      ],
+      buckets: timestamps.map(ts => ({ key: ts, name: ts, timestamp: new Date(ts) })),
+    };
+
+    return {
+      template: `
+        <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
+          <gd-bar-chart [type]="type" [data]="timeSeriesData" />
+        </div>
+      `,
+      props: {
+        type: args.type,
+        timeSeriesData,
+      },
+    };
+  },
+};
