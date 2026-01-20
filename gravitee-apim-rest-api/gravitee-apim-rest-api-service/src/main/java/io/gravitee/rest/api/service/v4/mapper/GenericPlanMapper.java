@@ -20,6 +20,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -65,10 +67,34 @@ public class GenericPlanMapper {
         };
     }
 
+    public GenericPlanEntity toGenericPlanWithFlow(final GenericApiEntity api, final Plan plan) {
+        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        return switch (apiDefinitionVersion) {
+            case V4 -> switch (((ApiEntity) api).getType()) {
+                case PROXY, MESSAGE -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+                case NATIVE -> planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
+            };
+            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
+        };
+    }
+
     public GenericPlanEntity toGenericPlanWithoutFlow(final Api api, final Plan plan) {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
+                case PROXY, MESSAGE -> planMapper.toEntity(plan, null);
+                case NATIVE -> planMapper.toNativeEntity(plan, null);
+            };
+            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            default -> planConverter.toPlanEntity(plan, null);
+        };
+    }
+
+    public GenericPlanEntity toGenericPlanWithoutFlow(final GenericApiEntity api, final Plan plan) {
+        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        return switch (apiDefinitionVersion) {
+            case V4 -> switch (((ApiEntity) api).getType()) {
                 case PROXY, MESSAGE -> planMapper.toEntity(plan, null);
                 case NATIVE -> planMapper.toNativeEntity(plan, null);
             };

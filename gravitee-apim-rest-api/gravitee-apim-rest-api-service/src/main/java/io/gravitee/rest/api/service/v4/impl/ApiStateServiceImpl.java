@@ -572,7 +572,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                     // 2 - If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
                     if (sync) {
-                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity.getId(), false);
+                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity, false);
                         sync = plans
                             .stream()
                             .noneMatch(
