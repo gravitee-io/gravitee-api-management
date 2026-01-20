@@ -360,7 +360,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (genericPlanEntity.getExcludedGroups() != null && !genericPlanEntity.getExcludedGroups().isEmpty()) {
                 final boolean userAuthorizedToAccessApiData = groupService.isUserAuthorizedToAccessApiData(
-                    apiSearchService.findGenericById(executionContext, genericPlanEntity.getApiId()),
+                    apiSearchService.findGenericById(executionContext, genericPlanEntity.getApiId(), false),
                     genericPlanEntity.getExcludedGroups(),
                     getAuthenticatedUsername()
                 );
