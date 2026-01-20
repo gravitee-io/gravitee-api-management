@@ -486,11 +486,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId) {
+    public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, GenericApiEntity genericApiEntity) {
         boolean result = false;
         if (MARKDOWN.name().equals(page.getType())) {
             Optional<GenericPlanEntity> optPlan = planSearchService
-                .findByApi(executionContext, apiId, false)
+                .findByApi(executionContext, genericApiEntity, false)
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
                 .filter(p -> !(PlanStatus.CLOSED == p.getPlanStatus() || PlanStatus.STAGING == p.getPlanStatus()))
