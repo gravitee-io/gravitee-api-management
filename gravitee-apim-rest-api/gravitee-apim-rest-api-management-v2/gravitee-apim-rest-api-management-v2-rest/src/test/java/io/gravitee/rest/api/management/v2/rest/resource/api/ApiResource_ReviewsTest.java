@@ -49,7 +49,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         apiReview.setMessage("My comment");
 
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date()).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         when(
             apiWorkflowStateService.askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
@@ -77,7 +79,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
             .workflowState(WorkflowState.IN_REVIEW)
             .updatedAt(new Date())
             .build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         final Response response = rootTarget("_ask").request().post(Entity.json(apiReview));
 
@@ -96,7 +100,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
             .lifecycleState(ApiLifecycleState.ARCHIVED)
             .updatedAt(new Date())
             .build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         final Response response = rootTarget("_ask").request().post(Entity.json(apiReview));
 
@@ -110,7 +116,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         apiReview.setMessage("My comment");
 
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date()).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         when(
             apiWorkflowStateService.acceptReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
@@ -133,7 +141,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         apiReview.setMessage("My comment");
 
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).workflowState(WorkflowState.DRAFT).updatedAt(new Date()).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         final Response response = rootTarget("_accept").request().post(Entity.json(apiReview));
 
@@ -147,7 +157,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         apiReview.setMessage("My comment");
 
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date()).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         when(
             apiWorkflowStateService.rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
@@ -170,7 +182,9 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         apiReview.setMessage("My comment");
 
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).workflowState(WorkflowState.DRAFT).updatedAt(new Date()).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false))).thenReturn(
+            apiEntity
+        );
 
         final Response response = rootTarget("_reject").request().post(Entity.json(apiReview));
 

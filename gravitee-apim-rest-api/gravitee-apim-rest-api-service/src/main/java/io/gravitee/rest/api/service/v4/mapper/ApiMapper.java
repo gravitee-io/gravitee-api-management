@@ -231,20 +231,23 @@ public class ApiMapper {
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
 
-    public ApiEntity toEntity(final ExecutionContext executionContext, final Api api, final boolean readDatabaseFlows) {
-        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, readDatabaseFlows);
+    public ApiEntity toEntity(final ExecutionContext executionContext, final Api api, final boolean withApiFlow, final boolean withPlans) {
+        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, withApiFlow, withPlans);
     }
 
     public ApiEntity toEntity(
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
-        final boolean withApiFlows
+        final boolean withApiFlows,
+        final boolean withPlans
     ) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
 
-        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
-        apiEntity.setPlans(plans);
+        if (withPlans) {
+            Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+            apiEntity.setPlans(plans);
+        }
 
         if (withApiFlows) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
@@ -274,12 +277,15 @@ public class ApiMapper {
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
-        final boolean withApiFlows
+        final boolean withApiFlows,
+        final boolean withPlans
     ) {
         NativeApiEntity apiEntity = toNativeEntity(api, primaryOwner);
 
-        Set<NativePlanEntity> plans = planService.findNativePlansByApi(executionContext, api.getId());
-        apiEntity.setPlans(plans);
+        if (withPlans) {
+            Set<NativePlanEntity> plans = planService.findNativePlansByApi(executionContext, api.getId());
+            apiEntity.setPlans(plans);
+        }
 
         if (withApiFlows) {
             List<NativeFlow> flows = flowService.findNativeFlowByReference(FlowReferenceType.API, api.getId());

@@ -91,7 +91,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
     @Override
     public ExportApiEntity exportApi(ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData) {
-        final var apiEntity = apiSearchService.findGenericById(executionContext, apiId, true);
+        final var apiEntity = apiSearchService.findGenericById(executionContext, apiId, true, false);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
