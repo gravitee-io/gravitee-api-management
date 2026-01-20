@@ -158,7 +158,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(false).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+        doReturn(false)
+            .when(accessControlService)
+            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
 
         // test
         final Response response = target(API).request().get();
