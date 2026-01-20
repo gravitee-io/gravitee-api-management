@@ -181,7 +181,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         logger.debug("Run health availability query for API '{}'", api);
 
         try {
-            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
 
             AvailabilityResponse response = healthCheckRepository.query(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
@@ -200,7 +200,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         logger.debug("Run health response-time query for API '{}'", api);
 
         try {
-            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),

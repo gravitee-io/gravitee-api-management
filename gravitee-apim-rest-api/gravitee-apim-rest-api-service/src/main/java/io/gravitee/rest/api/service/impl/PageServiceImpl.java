@@ -584,7 +584,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity) {
         if (pageEntity instanceof ApiPageEntity) {
             ApiPageEntity apiPageEntity = (ApiPageEntity) pageEntity;
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiPageEntity.getApi(), false);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiPageEntity.getApi(), false, false);
             transformSwagger(executionContext, pageEntity, genericApiEntity);
         } else {
             if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
