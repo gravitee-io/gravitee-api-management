@@ -157,7 +157,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
 
         // Get updated API with new workflow state for notification
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false);
 
         final UserEntity user = userService.findById(executionContext, userId);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, genericApiEntity);

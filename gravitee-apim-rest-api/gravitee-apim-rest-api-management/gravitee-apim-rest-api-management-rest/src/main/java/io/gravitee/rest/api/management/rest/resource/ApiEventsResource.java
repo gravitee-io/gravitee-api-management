@@ -125,7 +125,7 @@ public class ApiEventsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public EventEntityPage searchApiEvents(@Parameter @BeanParam EventSearchParam eventSearchParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, api);
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, api, false);
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), List.of(api));
