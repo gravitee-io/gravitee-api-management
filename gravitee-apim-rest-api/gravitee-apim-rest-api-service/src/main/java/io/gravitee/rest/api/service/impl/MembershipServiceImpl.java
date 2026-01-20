@@ -92,6 +92,7 @@ import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1547,28 +1548,30 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             memberEntity.setRoles(new ArrayList<>(userDirectRoles));
 
             if (entityGroups != null && !entityGroups.isEmpty()) {
-                for (String group : entityGroups) {
-                    userRoles.addAll(
-                        membershipRepository
-                            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                                userId,
-                                convert(MembershipMemberType.USER),
-                                convert(MembershipReferenceType.GROUP),
-                                group
-                            )
-                            .stream()
-                            .map(io.gravitee.repository.management.model.Membership::getRoleId)
-                            .map(roleService::findById)
-                            .filter(role -> role.getScope().name().equals(referenceType.name()))
-                            .map(role ->
-                                role.isApiPrimaryOwner()
-                                    ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
-                                    : role
-                            )
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toSet())
-                    );
-                }
+                userRoles.addAll(
+                    membershipRepository
+                        .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+                            userId,
+                            convert(MembershipMemberType.USER),
+                            convert(MembershipReferenceType.GROUP),
+                            entityGroups
+                        )
+                        .stream()
+                        .map(membership -> {
+                            RoleEntity role = roleService.findById(membership.getRoleId());
+                            return new AbstractMap.SimpleEntry<>(membership.getReferenceId(), role);
+                        })
+                        .filter(entry -> entry.getValue().getScope().name().equals(referenceType.name()))
+                        .map(entry -> {
+                            RoleEntity role = entry.getValue();
+                            String group = entry.getKey();
+                            return role.isApiPrimaryOwner()
+                                ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
+                                : role;
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet())
+                );
             }
 
             Map<String, char[]> permissions = new HashMap<>();

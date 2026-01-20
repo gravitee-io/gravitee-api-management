@@ -344,4 +344,68 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(nbAfterDeletion).isZero();
         assertThat(deleted).hasSize(2);
     }
+
+    @Test
+    public void shouldFindByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds() throws TechnicalException {
+        // When - fetch memberships for multiple groups in a single batch call
+        var memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+            "user_batch",
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            Set.of("group1", "group2", "group3")
+        );
+
+        // Then
+        assertThat(memberships).hasSize(3);
+        assertThat(memberships).map(Membership::getReferenceId).containsExactlyInAnyOrder("group1", "group2", "group3");
+        assertThat(memberships).map(Membership::getMemberId).containsOnly("user_batch");
+        assertThat(memberships).map(Membership::getRoleId).containsExactlyInAnyOrder("GROUP_MEMBER", "GROUP_ADMIN", "GROUP_MEMBER");
+    }
+
+    @Test
+    public void shouldFindByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds_partialMatch() throws TechnicalException {
+        // When - fetch memberships for some groups (including one that doesn't exist)
+        var memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+            "user_batch",
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            Set.of("group1", "group_unknown")
+        );
+
+        // Then - only return existing memberships
+        assertThat(memberships).hasSize(1);
+        assertThat(memberships).map(Membership::getReferenceId).containsExactly("group1");
+    }
+
+    @Test
+    public void shouldReturnEmptySetWhenReferenceIdsIsEmpty() throws TechnicalException {
+        // When - call with empty set
+        var memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+            "user_batch",
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            Set.of()
+        );
+
+        // Then
+        assertThat(memberships).isEmpty();
+    }
+
+    @Test
+    public void shouldFindMembershipsWithNullReferenceIdWhenReferenceIdsIsNull() throws TechnicalException {
+        // When - call with null set should query for reference_id IS NULL
+        var memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+            "group1",
+            MembershipMemberType.GROUP,
+            MembershipReferenceType.API,
+            null
+        );
+
+        // Then - should find the membership with null referenceId
+        assertThat(memberships).hasSize(1);
+        Membership membership = memberships.iterator().next();
+        assertThat(membership.getReferenceId()).isNull();
+        assertThat(membership.getMemberId()).isEqualTo("group1");
+        assertThat(membership.getRoleId()).isEqualTo("11baec92-8823-4f8b-baec-9288238f8b5c");
+    }
 }
