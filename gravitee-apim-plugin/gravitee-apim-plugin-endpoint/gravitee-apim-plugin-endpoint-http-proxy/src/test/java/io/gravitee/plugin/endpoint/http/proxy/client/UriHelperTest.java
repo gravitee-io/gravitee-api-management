@@ -24,6 +24,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -60,5 +62,23 @@ class UriHelperTest {
         assertThat(requestOptions.getHost()).isEqualTo("api.gravitee.io");
         assertThat(requestOptions.getPort()).isEqualTo(443);
         assertThat(requestOptions.isSsl()).isTrue();
+    }
+
+    @ParameterizedTest(name = "joinPaths(\"{0}\", \"{1}\") should return \"{2}\"")
+    @CsvSource(
+        nullValues = "null",
+        value = {
+            "/, /api/users, /api/users",
+            "/base/, /path, /base/path",
+            "/base, /path, /base/path",
+            "/base, path, /base/path",
+            "'', /path, /path",
+            "null, /path, /path",
+            "/base, null, /base",
+            "/base/, '', /base",
+        }
+    )
+    void should_join_paths(String prefix, String suffix, String expected) {
+        assertThat(UriHelper.joinPaths(prefix, suffix)).isEqualTo(expected);
     }
 }

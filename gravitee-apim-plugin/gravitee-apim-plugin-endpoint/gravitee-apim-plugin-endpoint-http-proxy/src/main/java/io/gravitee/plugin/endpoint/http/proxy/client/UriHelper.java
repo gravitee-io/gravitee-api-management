@@ -53,6 +53,18 @@ public class UriHelper {
         return requestOptions.setURI(buildFinalUri(uri, parameters));
     }
 
+    /**
+     * Joins two path segments, normalizing slashes to avoid double slashes.
+     * @param prefix the base path (trailing slash will be removed if present)
+     * @param suffix the path to append (will ensure it starts with /)
+     * @return the joined path
+     */
+    public static String joinPaths(String prefix, String suffix) {
+        String normalizedPrefix = prefix != null && prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+        String normalizedSuffix = suffix != null && !suffix.isEmpty() && !suffix.startsWith("/") ? "/" + suffix : suffix;
+        return (normalizedPrefix != null ? normalizedPrefix : "") + (normalizedSuffix != null ? normalizedSuffix : "");
+    }
+
     private static String buildFinalUri(String targetUri, MultiValueMap<String, String> parameters) {
         if (parameters != null && !parameters.isEmpty()) {
             final StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);

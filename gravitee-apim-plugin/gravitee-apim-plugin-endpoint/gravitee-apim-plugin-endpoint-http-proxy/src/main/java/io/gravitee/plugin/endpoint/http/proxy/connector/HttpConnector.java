@@ -305,11 +305,11 @@ public class HttpConnector implements ProxyConnector {
                 uri = customEndpointTarget;
                 isRelative = false;
             } else {
-                uri = endpointOverride ? customEndpointTarget : relativeTarget + customEndpointTarget;
+                uri = endpointOverride ? customEndpointTarget : UriHelper.joinPaths(relativeTarget, customEndpointTarget);
             }
         } else {
             // Just append the current request path.
-            uri = uri + request.pathInfo();
+            uri = UriHelper.joinPaths(uri, request.pathInfo());
         }
 
         if (isRelative) {
