@@ -20,7 +20,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +38,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
 import org.junit.Before;
@@ -75,6 +75,9 @@ public class PlanSearchServiceImplTest {
     @Mock
     private GenericPlanMapper genericPlanMapper;
 
+    @Mock
+    private GenericApiMapper genericApiMapper;
+
     private Plan plan;
 
     @Mock
@@ -90,7 +93,8 @@ public class PlanSearchServiceImplTest {
             groupService,
             apiSearchService,
             objectMapper,
-            genericPlanMapper
+            genericPlanMapper,
+            genericApiMapper
         );
 
         api = new Api();
