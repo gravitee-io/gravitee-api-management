@@ -114,7 +114,7 @@ public class ApiPagesResource extends AbstractResource {
                 .map(page -> {
                     // check if the page is used as GeneralCondition by an active Plan
                     // and update the PageEntity to transfer the information to the FrontEnd
-                    page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, api));
+                    page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, genericApiEntity));
                     return page;
                 })
                 .collect(Collectors.toList());

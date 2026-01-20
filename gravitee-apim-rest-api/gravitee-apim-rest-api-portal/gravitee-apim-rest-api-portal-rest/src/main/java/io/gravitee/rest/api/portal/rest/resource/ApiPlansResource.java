@@ -72,7 +72,7 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         List<Plan> plans = planSearchService
-            .findByApi(executionContext, apiId, true)
+            .findByApi(executionContext, genericApiEntity, true)
             .stream()
             .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
             .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))

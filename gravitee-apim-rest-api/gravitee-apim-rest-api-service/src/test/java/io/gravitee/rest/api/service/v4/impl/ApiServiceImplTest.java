@@ -469,7 +469,9 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.PUBLISHED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+            singleton(planEntity)
+        );
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
@@ -485,7 +487,9 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+            singleton(planEntity)
+        );
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -504,7 +508,9 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.STAGING);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+            singleton(planEntity)
+        );
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -526,7 +532,9 @@ public class ApiServiceImplTest {
         io.gravitee.rest.api.model.PlanEntity planEntity = new io.gravitee.rest.api.model.PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(io.gravitee.rest.api.model.PlanStatus.STAGING);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+            singleton(planEntity)
+        );
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -570,7 +578,7 @@ public class ApiServiceImplTest {
         final PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId(PLAN_ID);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
             Collections.singleton(planEntity)
         );
         when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
