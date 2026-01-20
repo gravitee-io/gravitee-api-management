@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -223,7 +224,7 @@ public class MembershipService_IntegrationMembershipTest {
                     INTEGRATION_ID,
                     existingUserId,
                     null,
-                    "OWNER"
+                    INTEGRATION_OWNER
                 )
             ).isInstanceOf(MembershipAlreadyExistsException.class);
         }
@@ -433,7 +434,7 @@ public class MembershipService_IntegrationMembershipTest {
         lenient()
             .when(roleService.findByScopeAndName(RoleScope.INTEGRATION, roleId, GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(role));
-        when(roleService.findById(roleId)).thenReturn(role);
+        when(roleService.findByIds(Set.of(roleId))).thenReturn(Map.of(roleId, role));
     }
 
     private static RoleEntity role(String roleId) {
