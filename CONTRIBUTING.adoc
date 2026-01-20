@@ -17,10 +17,10 @@ You will need the following tools installed on your computer:
 * Java (JDK >= 17)
 * Maven
 * Docker
-* Node.js 20.11.x
+* Node.js 22.12.x
 * Yarn 4.1.1 (preferably with NVM)
 
-TIP: The UI projects declare `node: ^20.11` and `packageManager: yarn@4.1.1` in their `package.json` files.
+TIP: The UI projects declare `node: ^22.12` and `packageManager: yarn@4.1.1` in their `package.json` files.
 
 === Get the project and prepare your workspace
 
@@ -124,14 +124,14 @@ Notes:
 
 * If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
 * Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
-* Node 25.x is not supported (odd-numbered); use Node 20.11.x.
+* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
 * If Corepack is missing, do not use Yarn 1.x; use the `npx @yarnpkg/cli-dist@4.1.1` fallback.
 * If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
 
 Environment checks:
 
 * `docker --version` and `docker compose version`
-* `node -v` (expect 20.11.x)
+* `node -v` (expect 22.12.x)
 * `java -version` (expect 17)
 * `mvn -v` (expect 3.9+)
 * `git --version`

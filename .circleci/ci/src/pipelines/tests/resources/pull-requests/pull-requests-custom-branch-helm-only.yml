@@ -39,7 +39,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout

@@ -118,7 +118,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
@@ -500,7 +500,7 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -532,7 +532,7 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-console-webui-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout
@@ -559,7 +559,7 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-console-webui-build-storybook:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout
@@ -580,7 +580,7 @@ jobs:
             - gravitee-apim-console-webui/dist-lib
   job-console-webui-chromatic-deployment:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
@@ -690,7 +690,7 @@ jobs:
       - cmd-docker-logout
   job-portal-webui-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout
@@ -823,7 +823,7 @@ jobs:
             - gravitee-apim-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
@@ -932,7 +932,7 @@ jobs:
           path: ./gravitee-apim-e2e/.logs
   job-perf-lint-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
@@ -1002,7 +1002,7 @@ jobs:
           jobName: job-publish-on-nexus
   job-release-helm:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: medium
     steps:
       - checkout

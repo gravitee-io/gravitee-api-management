@@ -137,7 +137,7 @@
     "typescript": "5.5.4"
   },
   "engines": {
-    "node": "^20.11"
+    "node": "^22.12"
   },
   "scripts": {
     "ng": "ng",
