@@ -40,6 +40,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -655,7 +656,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API but not published -> No redeploy needed
         planStaging.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId()), eq(false))).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
             Set.of(planPublished, planStaging)
         );
 
@@ -680,7 +681,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             1L
         );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any(), eq(false));
+        verify(planSearchService, times(1)).findByApi(any(), any(GenericApiEntity.class), eq(false));
     }
 
     @Test
@@ -731,7 +732,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API -> Redeploy needed
         planPublished.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId()), eq(false))).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
             Set.of(planPublished)
         );
 
@@ -756,7 +757,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             1L
         );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any(), eq(false));
+        verify(planSearchService, times(1)).findByApi(any(), any(GenericApiEntity.class), eq(false));
     }
 
     @Test
