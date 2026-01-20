@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
     private final GenericPlanMapper genericPlanMapper;
+    private final GenericApiMapper genericApiMapper;
 
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
@@ -70,7 +72,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         @Lazy final GroupService groupService,
         @Lazy final ApiSearchService apiSearchService,
         final ObjectMapper objectMapper,
-        final GenericPlanMapper genericPlanMapper
+        final GenericPlanMapper genericPlanMapper,
+        GenericApiMapper genericApiMapper
     ) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
@@ -78,6 +81,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
         this.genericPlanMapper = genericPlanMapper;
+        this.genericApiMapper = genericApiMapper;
     }
 
     @Override
@@ -138,47 +142,46 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             return emptyList();
         }
 
-        // Note: withFlow is no longer used. findGenericById always retrieves API plans and their flows. TODO: improve it later in dedicated commit
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId(), false, false);
-        Set<? extends GenericPlanEntity> plans = getGenericPlanEntities(genericApiEntity);
+        try {
+            Optional<Api> apiOptional = apiRepository.findById(query.getApiId());
+            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(query.getApiId()));
+            final GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false);
 
-        return plans
-            .stream()
-            .filter(p -> {
-                boolean filtered = true;
-                if (query.getName() != null) {
-                    filtered = query.getName().equals(p.getName());
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
-                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
-                        return false;
+            return planRepository
+                .findByApi(query.getApiId())
+                .stream()
+                .map(plan ->
+                    withFlow ? genericPlanMapper.toGenericPlanWithFlow(api, plan) : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
+                )
+                .filter(p -> {
+                    boolean filtered = true;
+                    if (query.getName() != null) {
+                        filtered = query.getName().equals(p.getName());
                     }
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = query.getSecurityType().contains(planSecurityType);
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
-                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
-                    filtered = query.getStatus().contains(planStatus);
-                }
-                if (filtered && query.getMode() != null) {
-                    filtered = query.getMode().equals(p.getPlanMode());
-                }
-                return filtered;
-            })
-            .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
-            .collect(Collectors.toList());
-    }
-
-    private static Set<? extends GenericPlanEntity> getGenericPlanEntities(GenericApiEntity genericApiEntity) {
-        Set<? extends GenericPlanEntity> plans = Collections.emptySet();
-        if (genericApiEntity instanceof io.gravitee.rest.api.model.api.ApiEntity asV2ApiEntity) {
-            plans = asV2ApiEntity.getPlans();
-        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
-            plans = asNativeApiEntity.getPlans();
-        } else if (genericApiEntity instanceof io.gravitee.rest.api.model.v4.api.ApiEntity asV4ApiEntity) {
-            plans = asV4ApiEntity.getPlans();
+                    if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
+                        if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                            return false;
+                        }
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                        filtered = query.getSecurityType().contains(planSecurityType);
+                    }
+                    if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
+                        PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                        filtered = query.getStatus().contains(planStatus);
+                    }
+                    if (filtered && query.getMode() != null) {
+                        filtered = query.getMode().equals(p.getPlanMode());
+                    }
+                    return filtered;
+                })
+                .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying search plans by api: %s", query.getApiId()),
+                ex
+            );
         }
-        return plans;
     }
 
     @Override
