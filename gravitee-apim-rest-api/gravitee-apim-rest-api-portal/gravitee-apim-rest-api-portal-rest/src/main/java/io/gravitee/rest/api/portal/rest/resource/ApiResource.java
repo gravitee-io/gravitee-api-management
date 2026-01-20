@@ -95,8 +95,8 @@ public class ApiResource extends AbstractResource {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false);
+        if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             Api api = apiMapper.convert(executionContext, genericApiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {

@@ -427,7 +427,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (apiIds.isEmpty()) return;
 
         for (String apiId : apiIds) {
-            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, false);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             searchEngineService.index(executionContext, genericApiEntity, false);
         }

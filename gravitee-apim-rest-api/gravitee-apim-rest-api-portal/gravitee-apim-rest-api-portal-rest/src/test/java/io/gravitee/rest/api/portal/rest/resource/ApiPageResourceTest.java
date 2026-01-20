@@ -60,7 +60,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false)).thenReturn(mockApi);
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);

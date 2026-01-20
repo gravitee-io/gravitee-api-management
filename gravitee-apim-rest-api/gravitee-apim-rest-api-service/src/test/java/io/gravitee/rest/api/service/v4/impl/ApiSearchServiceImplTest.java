@@ -277,10 +277,30 @@ public class ApiSearchServiceImplTest {
         userEntity.setId("user");
         when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
 
-        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, true);
 
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(ApiEntity.class);
+    }
+
+    @Test
+    public void should_find_V4_GenericApi_without_API_fLows() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setEnvironmentId("DEFAULT");
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
+
+        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        assertThat(indexableApi).isNotNull();
+        assertThat(indexableApi).isInstanceOf(ApiEntity.class);
+        verify(flowServiceV4, times(0)).findByReference(any(), any());
     }
 
     @Test
@@ -295,7 +315,7 @@ public class ApiSearchServiceImplTest {
         userEntity.setId("user");
         when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
 
-        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, true);
 
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
@@ -324,7 +344,7 @@ public class ApiSearchServiceImplTest {
         category2.setId(categoryId2);
         category2.setKey(categoryKey2);
         when(categoryService.findAll("DEFAULT")).thenReturn(List.of(category1, category2));
-        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, true);
 
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);

@@ -102,7 +102,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_V4() throws JsonProcessingException {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV4());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeApiEntityV4());
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
 
@@ -241,7 +241,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V4() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV4());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeApiEntityV4());
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -277,7 +277,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_native_api_V4() throws JsonProcessingException {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeNativeApiEntityV4());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeNativeApiEntityV4());
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
 
@@ -379,7 +379,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_native_api_V4() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeNativeApiEntityV4());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeNativeApiEntityV4());
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -412,7 +412,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_V2() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV2());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeApiEntityV2());
 
         final Response response = rootTarget(API).request().get();
 
@@ -461,7 +461,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V2() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeApiEntityV2());
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(this.fakeApiEntityV2());
 
         when(
             permissionService.hasPermission(
@@ -498,7 +498,9 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     public void shouldNotGetApiBecauseNotFound() {
         final String UNKNOWN_API = "unknown";
 
-        doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
+        doThrow(ApiNotFoundException.class)
+            .when(apiSearchServiceV4)
+            .findGenericById(GraviteeContext.getExecutionContext(), UNKNOWN_API, true);
 
         final Response response = rootTarget(UNKNOWN_API).request().get();
 

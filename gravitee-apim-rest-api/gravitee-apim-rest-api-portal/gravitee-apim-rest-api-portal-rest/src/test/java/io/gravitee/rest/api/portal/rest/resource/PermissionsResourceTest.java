@@ -57,7 +57,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), "fake")).thenReturn(false);
 
         GenericApiEntity genericApiEntity = mock(GenericApiEntity.class);
-        doReturn(genericApiEntity).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
+        doReturn(genericApiEntity).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false);
         Map<String, char[]> apiPermissions = new HashMap<>();
         apiPermissions.put("API", new char[] { 'R' });
         doReturn(apiPermissions)

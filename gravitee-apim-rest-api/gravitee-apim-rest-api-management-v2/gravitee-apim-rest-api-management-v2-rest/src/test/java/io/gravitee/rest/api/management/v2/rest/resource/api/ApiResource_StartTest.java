@@ -76,7 +76,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_not_start_api_with_incorrect_if_match() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().header(HttpHeaders.IF_MATCH, "\"000\"").post(Entity.json(""));
         assertEquals(HttpStatusCode.PRECONDITION_FAILED_412, response.getStatus());
@@ -89,7 +89,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_not_found() {
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenThrow(
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenThrow(
             new ApiNotFoundException(API)
         );
 
@@ -110,7 +110,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
             .state(Lifecycle.State.STOPPED)
             .lifecycleState(ApiLifecycleState.ARCHIVED)
             .build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -125,7 +125,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_not_start_api_with_failing_license_check() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
         doThrow(new ForbiddenFeatureException("apim-en-endpoint-kafka")).when(apiLicenseService).checkLicense(any(), anyString());
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -140,7 +140,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_not_start_api_if_already_started() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STARTED).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -160,7 +160,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
             .state(Lifecycle.State.STOPPED)
             .workflowState(WorkflowState.IN_REVIEW)
             .build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
 
         when(
             parameterService.findAsBoolean(
@@ -183,7 +183,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Test
     public void should_start_api() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false))).thenReturn(apiEntity);
 
         when(apiStateServiceV4.start(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME))).thenReturn(apiEntity);
 

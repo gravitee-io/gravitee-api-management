@@ -372,7 +372,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
+                    GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false);
                     metadata.put(METADATA_NAME, genericApiEntity.getName());
                     metadata.put(METADATA_VERSION, genericApiEntity.getApiVersion());
                     if (ApiLifecycleState.ARCHIVED.equals(genericApiEntity.getLifecycleState())) {

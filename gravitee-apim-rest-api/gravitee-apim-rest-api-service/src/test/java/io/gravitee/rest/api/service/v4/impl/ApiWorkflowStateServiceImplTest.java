@@ -155,7 +155,7 @@ public class ApiWorkflowStateServiceImplTest {
         when(
             workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, reviewEntity.getMessage())
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
         apiWorkflowStateService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_ID, reviewEntity);
@@ -187,7 +187,7 @@ public class ApiWorkflowStateServiceImplTest {
         when(
             workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, reviewEntity.getMessage())
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
             UserEntity.builder().email("test@gio.gio").status("ACTIVE").password("password").build()
         );
@@ -234,7 +234,7 @@ public class ApiWorkflowStateServiceImplTest {
         when(
             workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, reviewEntity.getMessage())
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
             UserEntity.builder().email("test@gio.gio").status("ACTIVE").password("password").build()
         );
@@ -281,7 +281,7 @@ public class ApiWorkflowStateServiceImplTest {
         when(
             workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, reviewEntity.getMessage())
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
             UserEntity.builder().email("test@gio.gio").status("PENDING").password("password").build()
         );
@@ -316,7 +316,7 @@ public class ApiWorkflowStateServiceImplTest {
         genericApiEntity.setId(API_ID);
 
         when(workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, null)).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
         apiWorkflowStateService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_ID, null);
@@ -341,7 +341,7 @@ public class ApiWorkflowStateServiceImplTest {
         when(
             workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.REVIEW_OK, reviewEntity.getMessage())
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
         apiWorkflowStateService.acceptReview(GraviteeContext.getExecutionContext(), API_ID, USER_ID, reviewEntity);
@@ -380,7 +380,7 @@ public class ApiWorkflowStateServiceImplTest {
                 reviewEntity.getMessage()
             )
         ).thenReturn(null);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(genericApiEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
 
         apiWorkflowStateService.rejectReview(GraviteeContext.getExecutionContext(), API_ID, USER_ID, reviewEntity);

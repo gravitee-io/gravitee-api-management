@@ -348,7 +348,7 @@ public class MembershipService_TransferOwnershipTest {
         GenericApiEntity mockApi = mock(GenericApiEntity.class);
         GenericApiEntity mockApiWithMetadata = mock(GenericApiEntity.class);
 
-        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, API_ID)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, API_ID, false)).thenReturn(mockApi);
         when(apiMetadataService.fetchMetadataForApi(EXECUTION_CONTEXT, mockApi)).thenReturn(mockApiWithMetadata);
         membershipService.transferApiOwnership(
             EXECUTION_CONTEXT,
@@ -357,7 +357,7 @@ public class MembershipService_TransferOwnershipTest {
             List.of(newPrimaryOwnerRole)
         );
 
-        verify(apiSearchService).findGenericById(EXECUTION_CONTEXT, API_ID);
+        verify(apiSearchService).findGenericById(EXECUTION_CONTEXT, API_ID, false);
         verify(apiMetadataService).fetchMetadataForApi(EXECUTION_CONTEXT, mockApi);
         verify(searchEngineService).index(EXECUTION_CONTEXT, mockApiWithMetadata, false);
     }

@@ -469,7 +469,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         if (!CollectionUtils.isEmpty(previousPromotions)) {
             PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
             return apiSearchService.exists(lastAcceptedPromotion.getTargetApiId())
-                ? apiSearchService.findGenericById(executionContext, lastAcceptedPromotion.getTargetApiId()).getId()
+                ? apiSearchService.findGenericById(executionContext, lastAcceptedPromotion.getTargetApiId(), false).getId()
                 : null;
         }
         return null;
