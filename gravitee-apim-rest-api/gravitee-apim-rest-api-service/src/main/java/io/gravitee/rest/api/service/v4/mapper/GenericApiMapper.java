@@ -57,7 +57,13 @@ public class GenericApiMapper {
         return switch (getVersionOfDefault(api)) {
             case V4 -> switch (api.getType()) {
                 case NATIVE -> apiMapper.toNativeEntity(executionContext, api, primaryOwner, withApiFlows, withPlans);
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(executionContext, api, primaryOwner, withApiFlows, withPlans);
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(
+                    executionContext,
+                    api,
+                    primaryOwner,
+                    withApiFlows,
+                    withPlans
+                );
             };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);

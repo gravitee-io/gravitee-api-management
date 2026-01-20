@@ -461,7 +461,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
                 planSearchService
-                    .findByApi(executionContext, apiId, false)
+                    .findByApi(executionContext, existingApiEntity, false)
                     .forEach(plan -> {
                         if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
                             planService.deprecate(executionContext, plan.getId(), true);
@@ -589,8 +589,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiId);
             }
+            final ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, null, false, false);
 
-            Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiId, false);
+            Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiEntity, false);
             if (closePlans) {
                 plans
                     .stream()

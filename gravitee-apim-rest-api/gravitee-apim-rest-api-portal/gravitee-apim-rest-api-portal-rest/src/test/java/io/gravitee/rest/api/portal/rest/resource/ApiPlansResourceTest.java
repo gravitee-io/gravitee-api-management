@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -80,7 +81,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API, true)).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), isA(GenericApiEntity.class), eq(true))).thenReturn(
             Set.of(plan1, plan2, planWrongStatus)
         );
 
