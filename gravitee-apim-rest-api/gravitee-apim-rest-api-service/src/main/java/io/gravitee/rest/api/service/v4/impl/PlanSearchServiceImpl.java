@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -136,8 +137,9 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         }
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
+        Set<? extends GenericPlanEntity> plans = getGenericPlanEntities(genericApiEntity);
 
-        return findByApi(executionContext, query.getApiId(), withFlow)
+        return plans
             .stream()
             .filter(p -> {
                 boolean filtered = true;
@@ -162,6 +164,18 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             })
             .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
             .collect(Collectors.toList());
+    }
+
+    private static Set<? extends GenericPlanEntity> getGenericPlanEntities(GenericApiEntity genericApiEntity) {
+        Set<? extends GenericPlanEntity> plans = Collections.emptySet();
+        if (genericApiEntity instanceof io.gravitee.rest.api.model.api.ApiEntity asV2ApiEntity) {
+            plans = asV2ApiEntity.getPlans();
+        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
+            plans = asNativeApiEntity.getPlans();
+        } else if (genericApiEntity instanceof io.gravitee.rest.api.model.v4.api.ApiEntity asV4ApiEntity) {
+            plans = asV4ApiEntity.getPlans();
+        }
+        return plans;
     }
 
     @Override
