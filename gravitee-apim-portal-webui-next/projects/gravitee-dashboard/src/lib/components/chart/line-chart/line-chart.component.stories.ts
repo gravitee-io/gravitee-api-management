@@ -168,3 +168,249 @@ export const HighVolume: StoryObj<LineChartStoryArgs> = {
     })),
   },
 };
+
+export const ProductionResponseTime: StoryObj<LineChartStoryArgs> = {
+  args: {
+    storyId: 'production-response-time',
+    type: 'line' as LineType,
+    dataPoints: [],
+  },
+  render: args => {
+    const timeSeriesData: TimeSeriesResponse = {
+      interval: '5h36m',
+      metrics: [
+        {
+          name: 'HTTP_ENDPOINT_RESPONSE_TIME',
+          buckets: [
+            {
+              key: '2026-01-13T14:24:00Z',
+              name: '2026-01-13T14:24:00Z',
+              timestamp: new Date('2026-01-13T14:24:00Z'),
+              measures: [{ name: 'AVG', value: 0 }],
+            },
+            {
+              key: '2026-01-13T20:00:00Z',
+              name: '2026-01-13T20:00:00Z',
+              timestamp: new Date('2026-01-13T20:00:00Z'),
+              measures: [{ name: 'AVG', value: 2.6 }],
+            },
+            {
+              key: '2026-01-14T01:36:00Z',
+              name: '2026-01-14T01:36:00Z',
+              timestamp: new Date('2026-01-14T01:36:00Z'),
+              measures: [{ name: 'AVG', value: 0 }],
+            },
+            {
+              key: '2026-01-15T05:36:00Z',
+              name: '2026-01-15T05:36:00Z',
+              timestamp: new Date('2026-01-15T05:36:00Z'),
+              measures: [{ name: 'AVG', value: 38.555557 }],
+            },
+            {
+              key: '2026-01-15T11:12:00Z',
+              name: '2026-01-15T11:12:00Z',
+              timestamp: new Date('2026-01-15T11:12:00Z'),
+              measures: [{ name: 'AVG', value: 156.875 }],
+            },
+            {
+              key: '2026-01-16T04:00:00Z',
+              name: '2026-01-16T04:00:00Z',
+              timestamp: new Date('2026-01-16T04:00:00Z'),
+              measures: [{ name: 'AVG', value: 15.933333 }],
+            },
+            {
+              key: '2026-01-16T09:36:00Z',
+              name: '2026-01-16T09:36:00Z',
+              timestamp: new Date('2026-01-16T09:36:00Z'),
+              measures: [{ name: 'AVG', value: 236.8 }],
+            },
+            {
+              key: '2026-01-16T15:12:00Z',
+              name: '2026-01-16T15:12:00Z',
+              timestamp: new Date('2026-01-16T15:12:00Z'),
+              measures: [{ name: 'AVG', value: 208.3125 }],
+            },
+            {
+              key: '2026-01-17T08:00:00Z',
+              name: '2026-01-17T08:00:00Z',
+              timestamp: new Date('2026-01-17T08:00:00Z'),
+              measures: [{ name: 'AVG', value: 158.0 }],
+            },
+            {
+              key: '2026-01-19T04:48:00Z',
+              name: '2026-01-19T04:48:00Z',
+              timestamp: new Date('2026-01-19T04:48:00Z'),
+              measures: [{ name: 'AVG', value: 250.76923 }],
+            },
+            {
+              key: '2026-01-19T10:24:00Z',
+              name: '2026-01-19T10:24:00Z',
+              timestamp: new Date('2026-01-19T10:24:00Z'),
+              measures: [{ name: 'AVG', value: 28.54 }],
+            },
+            {
+              key: '2026-01-19T16:00:00Z',
+              name: '2026-01-19T16:00:00Z',
+              timestamp: new Date('2026-01-19T16:00:00Z'),
+              measures: [{ name: 'AVG', value: 268.66666 }],
+            },
+            {
+              key: '2026-01-19T21:36:00Z',
+              name: '2026-01-19T21:36:00Z',
+              timestamp: new Date('2026-01-19T21:36:00Z'),
+              measures: [{ name: 'AVG', value: 26.5 }],
+            },
+            {
+              key: '2026-01-20T08:48:00Z',
+              name: '2026-01-20T08:48:00Z',
+              timestamp: new Date('2026-01-20T08:48:00Z'),
+              measures: [{ name: 'AVG', value: 47.24616 }],
+            },
+            {
+              key: '2026-01-20T14:24:00Z',
+              name: '2026-01-20T14:24:00Z',
+              timestamp: new Date('2026-01-20T14:24:00Z'),
+              measures: [{ name: 'AVG', value: 19.258064 }],
+            },
+          ],
+        },
+        {
+          name: 'HTTP_GATEWAY_RESPONSE_TIME',
+          buckets: [
+            {
+              key: '2026-01-13T14:24:00Z',
+              name: '2026-01-13T14:24:00Z',
+              timestamp: new Date('2026-01-13T14:24:00Z'),
+              measures: [{ name: 'AVG', value: 0 }],
+            },
+            {
+              key: '2026-01-13T20:00:00Z',
+              name: '2026-01-13T20:00:00Z',
+              timestamp: new Date('2026-01-13T20:00:00Z'),
+              measures: [{ name: 'AVG', value: 3.0 }],
+            },
+            {
+              key: '2026-01-14T01:36:00Z',
+              name: '2026-01-14T01:36:00Z',
+              timestamp: new Date('2026-01-14T01:36:00Z'),
+              measures: [{ name: 'AVG', value: 0 }],
+            },
+            {
+              key: '2026-01-14T12:48:00Z',
+              name: '2026-01-14T12:48:00Z',
+              timestamp: new Date('2026-01-14T12:48:00Z'),
+              measures: [{ name: 'AVG', value: 8.0 }],
+            },
+            {
+              key: '2026-01-15T05:36:00Z',
+              name: '2026-01-15T05:36:00Z',
+              timestamp: new Date('2026-01-15T05:36:00Z'),
+              measures: [{ name: 'AVG', value: 39.88889 }],
+            },
+            {
+              key: '2026-01-15T11:12:00Z',
+              name: '2026-01-15T11:12:00Z',
+              timestamp: new Date('2026-01-15T11:12:00Z'),
+              measures: [{ name: 'AVG', value: 170.0 }],
+            },
+            {
+              key: '2026-01-16T04:00:00Z',
+              name: '2026-01-16T04:00:00Z',
+              timestamp: new Date('2026-01-16T04:00:00Z'),
+              measures: [{ name: 'AVG', value: 1103.4 }],
+            },
+            {
+              key: '2026-01-16T09:36:00Z',
+              name: '2026-01-16T09:36:00Z',
+              timestamp: new Date('2026-01-16T09:36:00Z'),
+              measures: [{ name: 'AVG', value: 237.55 }],
+            },
+            {
+              key: '2026-01-16T15:12:00Z',
+              name: '2026-01-16T15:12:00Z',
+              timestamp: new Date('2026-01-16T15:12:00Z'),
+              measures: [{ name: 'AVG', value: 413.0 }],
+            },
+            {
+              key: '2026-01-17T08:00:00Z',
+              name: '2026-01-17T08:00:00Z',
+              timestamp: new Date('2026-01-17T08:00:00Z'),
+              measures: [{ name: 'AVG', value: 160.28572 }],
+            },
+            {
+              key: '2026-01-17T13:36:00Z',
+              name: '2026-01-17T13:36:00Z',
+              timestamp: new Date('2026-01-17T13:36:00Z'),
+              measures: [{ name: 'AVG', value: 955.0 }],
+            },
+            {
+              key: '2026-01-19T04:48:00Z',
+              name: '2026-01-19T04:48:00Z',
+              timestamp: new Date('2026-01-19T04:48:00Z'),
+              measures: [{ name: 'AVG', value: 253.46153 }],
+            },
+            {
+              key: '2026-01-19T10:24:00Z',
+              name: '2026-01-19T10:24:00Z',
+              timestamp: new Date('2026-01-19T10:24:00Z'),
+              measures: [{ name: 'AVG', value: 117.26 }],
+            },
+            {
+              key: '2026-01-19T16:00:00Z',
+              name: '2026-01-19T16:00:00Z',
+              timestamp: new Date('2026-01-19T16:00:00Z'),
+              measures: [{ name: 'AVG', value: 269.66666 }],
+            },
+            {
+              key: '2026-01-19T21:36:00Z',
+              name: '2026-01-19T21:36:00Z',
+              timestamp: new Date('2026-01-19T21:36:00Z'),
+              measures: [{ name: 'AVG', value: 27.375 }],
+            },
+            {
+              key: '2026-01-20T08:48:00Z',
+              name: '2026-01-20T08:48:00Z',
+              timestamp: new Date('2026-01-20T08:48:00Z'),
+              measures: [{ name: 'AVG', value: 47.861164 }],
+            },
+            {
+              key: '2026-01-20T14:24:00Z',
+              name: '2026-01-20T14:24:00Z',
+              timestamp: new Date('2026-01-20T14:24:00Z'),
+              measures: [{ name: 'AVG', value: 19.774193 }],
+            },
+          ],
+        },
+      ],
+      buckets: [
+        { key: '2026-01-13T14:24:00Z', name: '2026-01-13T14:24:00Z', timestamp: new Date('2026-01-13T14:24:00Z') },
+        { key: '2026-01-13T20:00:00Z', name: '2026-01-13T20:00:00Z', timestamp: new Date('2026-01-13T20:00:00Z') },
+        { key: '2026-01-14T01:36:00Z', name: '2026-01-14T01:36:00Z', timestamp: new Date('2026-01-14T01:36:00Z') },
+        { key: '2026-01-15T05:36:00Z', name: '2026-01-15T05:36:00Z', timestamp: new Date('2026-01-15T05:36:00Z') },
+        { key: '2026-01-15T11:12:00Z', name: '2026-01-15T11:12:00Z', timestamp: new Date('2026-01-15T11:12:00Z') },
+        { key: '2026-01-16T04:00:00Z', name: '2026-01-16T04:00:00Z', timestamp: new Date('2026-01-16T04:00:00Z') },
+        { key: '2026-01-16T09:36:00Z', name: '2026-01-16T09:36:00Z', timestamp: new Date('2026-01-16T09:36:00Z') },
+        { key: '2026-01-16T15:12:00Z', name: '2026-01-16T15:12:00Z', timestamp: new Date('2026-01-16T15:12:00Z') },
+        { key: '2026-01-17T08:00:00Z', name: '2026-01-17T08:00:00Z', timestamp: new Date('2026-01-17T08:00:00Z') },
+        { key: '2026-01-19T04:48:00Z', name: '2026-01-19T04:48:00Z', timestamp: new Date('2026-01-19T04:48:00Z') },
+        { key: '2026-01-19T10:24:00Z', name: '2026-01-19T10:24:00Z', timestamp: new Date('2026-01-19T10:24:00Z') },
+        { key: '2026-01-19T16:00:00Z', name: '2026-01-19T16:00:00Z', timestamp: new Date('2026-01-19T16:00:00Z') },
+        { key: '2026-01-19T21:36:00Z', name: '2026-01-19T21:36:00Z', timestamp: new Date('2026-01-19T21:36:00Z') },
+        { key: '2026-01-20T08:48:00Z', name: '2026-01-20T08:48:00Z', timestamp: new Date('2026-01-20T08:48:00Z') },
+        { key: '2026-01-20T14:24:00Z', name: '2026-01-20T14:24:00Z', timestamp: new Date('2026-01-20T14:24:00Z') },
+      ],
+    };
+
+    return {
+      template: `
+        <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
+          <gd-line-chart [type]="type" [data]="timeSeriesData" />
+        </div>
+      `,
+      props: {
+        type: args.type,
+        timeSeriesData,
+      },
+    };
+  },
+};
