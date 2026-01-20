@@ -139,7 +139,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         }
 
         // Note: withFlow is no longer used. findGenericById always retrieves API plans and their flows. TODO: improve it later in dedicated commit
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId(), false);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId(), false, false);
         Set<? extends GenericPlanEntity> plans = getGenericPlanEntities(genericApiEntity);
 
         return plans
