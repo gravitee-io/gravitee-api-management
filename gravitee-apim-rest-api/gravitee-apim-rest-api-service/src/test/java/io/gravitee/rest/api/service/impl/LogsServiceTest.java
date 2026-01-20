@@ -397,7 +397,7 @@ class LogsServiceTest {
         log.setClientRequest(newRequest());
         log.setClientResponse(newResponse());
         when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(log);
-        when(apiSearchService.findGenericById(any(), anyString(), eq(false))).thenReturn(newApiEntity());
+        when(apiSearchService.findGenericById(any(), anyString(), eq(false), eq(false))).thenReturn(newApiEntity());
         when(planSearchService.findById(any(), anyString())).thenReturn(newPlan(KEY_LESS));
 
         ApplicationRequest result = logService.findApplicationLog(
@@ -409,7 +409,7 @@ class LogsServiceTest {
 
         assertThat(result).isNotNull();
         verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), anyLong());
-        verify(apiSearchService, times(1)).findGenericById(any(), anyString(), eq(false));
+        verify(apiSearchService, times(1)).findGenericById(any(), anyString(), eq(false), eq(false));
         verify(planSearchService, times(1)).findById(any(), anyString());
     }
 

@@ -207,7 +207,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
         }
 
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi(), false);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi(), false, false);
         subscription.setApi(
             new Subscription.Api(
                 genericApiEntity.getId(),
