@@ -578,47 +578,64 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
-        String referenceId
+        Set<String> referenceIds
     ) throws TechnicalException {
         LOGGER.debug(
-            "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId({}, {}, {}, {})",
+            "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds({}, {}, {}, {})",
             memberId,
             memberType,
             referenceType,
-            referenceId
+            referenceIds
         );
         try {
-            final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? and reference_type = ?";
+            // Empty set returns empty result (no query)
+            if (referenceIds != null && referenceIds.isEmpty()) {
+                return Set.of();
+            }
+
+            final StringBuilder queryBuilder = new StringBuilder("select m.* from " + this.tableName + " m")
+                .append(WHERE_CLAUSE)
+                .append(" m.member_id = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.member_type = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.reference_type = ? ");
 
             final List<Membership> memberships;
 
-            if (referenceId != null) {
+            if (referenceIds == null) {
+                // Null set means query for reference_id IS NULL
+                queryBuilder.append(AND_CLAUSE).append(" m.reference_id is null");
                 memberships = jdbcTemplate.query(
-                    query + " and reference_id = ?",
-                    getOrm().getRowMapper(),
-                    memberId,
-                    memberType.name(),
-                    referenceType.name(),
-                    referenceId
-                );
-            } else {
-                memberships = jdbcTemplate.query(
-                    query + " and reference_id is null",
+                    queryBuilder.toString(),
                     getOrm().getRowMapper(),
                     memberId,
                     memberType.name(),
                     referenceType.name()
                 );
+            } else {
+                // Non-empty set means query with IN clause
+                getOrm().buildInCondition(false, queryBuilder, "m.reference_id", referenceIds);
+                memberships = jdbcTemplate.query(
+                    queryBuilder.toString(),
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, memberId);
+                        ps.setString(2, memberType.name());
+                        ps.setString(3, referenceType.name());
+                        getOrm().setArguments(ps, referenceIds, 4);
+                    },
+                    getOrm().getRowMapper()
+                );
             }
 
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find membership by user and membership type", ex);
-            throw new TechnicalException("Failed to find membership by user and membership type", ex);
+            LOGGER.error("Failed to find membership by member and reference type and reference ids", ex);
+            throw new TechnicalException("Failed to find membership by member and reference type and reference ids", ex);
         }
     }
 }
