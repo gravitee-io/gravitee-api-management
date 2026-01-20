@@ -9,8 +9,8 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",
     "ng2-charts": "8.0.0",
-    "@angular/material": "19.2.4",
-    "@angular/cdk": "19.2.4",
+    "@angular/material": "20.2.14",
+    "@angular/cdk": "20.2.14",
     "@danielmoncada/angular-datetime-picker": "^20.0.1",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "^7.0.1",
     "moment": "^2.30.1"

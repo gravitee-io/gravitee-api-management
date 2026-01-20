@@ -17,13 +17,13 @@
 @use '../../scss/theme';
 
 .banner {
-  --mdc-elevated-card-container-color: #{theme.$banner-background-color};
+  --mat-card-elevated-container-color: #{theme.$banner-background-color};
 
   color: theme.$banner-text-color;
 }
 
 .banner-error {
-  --mdc-elevated-card-container-color: #{theme.$banner-error-background-color};
+  --mat-card-elevated-container-color: #{theme.$banner-error-background-color};
 
   color: theme.$banner-error-text-color;
 }

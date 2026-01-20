@@ -24,16 +24,16 @@
   &__node {
     border-radius: theme.$card-container-shape;
     margin-bottom: 2px;
-    color: var(--mdc-list-list-item-label-text-color);
-    font-family: var(--mdc-list-list-item-label-text-font);
-    font-size: var(--mdc-list-list-item-label-text-size);
-    font-weight: var(--mdc-list-list-item-label-text-weight);
-    letter-spacing: var(--mdc-list-list-item-label-text-tracking);
-    line-height: var(--mdc-list-list-item-label-text-line-height);
+    color: var(--mat-list-list-item-label-text-color);
+    font-family: var(--mat-list-list-item-label-text-font);
+    font-size: var(--mat-list-list-item-label-text-size);
+    font-weight: var(--mat-list-list-item-label-text-weight);
+    letter-spacing: var(--mat-list-list-item-label-text-tracking);
+    line-height: var(--mat-list-list-item-label-text-line-height);
     transition: 0.1s;
 
     &:hover {
-      background-color: color-mix(in srgb, var(--mdc-list-list-item-hover-state-layer-color), transparent 90%);
+      background-color: color-mix(in srgb, var(--mat-list-list-item-hover-state-layer-color), transparent 90%);
     }
 
     &__container {
@@ -52,5 +52,5 @@
 
 .active {
   background-color: var(--mat-list-active-indicator-color);
-  color: var(--mdc-list-list-item-selected-trailing-icon-color);
+  color: var(--mat-list-list-item-selected-trailing-icon-color);
 }
