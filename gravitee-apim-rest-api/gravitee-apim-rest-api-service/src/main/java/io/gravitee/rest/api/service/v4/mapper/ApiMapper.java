@@ -239,14 +239,14 @@ public class ApiMapper {
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
-        final boolean readDatabaseFlows
+        final boolean withApiFlows
     ) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
 
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
 
-        if (readDatabaseFlows) {
+        if (withApiFlows) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
@@ -274,14 +274,14 @@ public class ApiMapper {
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
-        final boolean readDatabaseFlows
+        final boolean withApiFlows
     ) {
         NativeApiEntity apiEntity = toNativeEntity(api, primaryOwner);
 
         Set<NativePlanEntity> plans = planService.findNativePlansByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
 
-        if (readDatabaseFlows) {
+        if (withApiFlows) {
             List<NativeFlow> flows = flowService.findNativeFlowByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }

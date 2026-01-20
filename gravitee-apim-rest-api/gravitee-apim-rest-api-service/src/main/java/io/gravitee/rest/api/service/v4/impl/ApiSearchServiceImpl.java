@@ -120,10 +120,10 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     @Override
-    public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
+    public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId, final boolean withApiFlows) {
         final Api api = this.findRepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
-        GenericApiEntity genericApi = genericApiMapper.toGenericApi(executionContext, api, primaryOwner);
+        GenericApiEntity genericApi = genericApiMapper.toGenericApi(executionContext, api, primaryOwner, withApiFlows);
         return enrichFederatedApi(genericApi);
     }
 
@@ -303,7 +303,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         if (mapToFullGenericApiEntity) {
             apisStream = apis
                 .stream()
-                .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()))));
+                .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), true)));
         } else {
             // Map to simple GenericApiEntity
             apisStream = apis.stream().map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))));
@@ -469,7 +469,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
-            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
+            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), true))
             .collect(Collectors.toSet());
     }
 

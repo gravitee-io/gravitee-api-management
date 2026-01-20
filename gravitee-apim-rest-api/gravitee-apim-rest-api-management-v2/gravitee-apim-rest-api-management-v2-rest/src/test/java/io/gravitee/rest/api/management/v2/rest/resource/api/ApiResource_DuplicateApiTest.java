@@ -52,7 +52,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Test
     void should_return_404_if_not_found() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
@@ -101,7 +101,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_return_400_when_duplicate_v1_api() {
         var apiEntity = ApiFixtures.aModelApiV1().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(apiEntity);
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
@@ -114,7 +114,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_return_400_when_duplicate_exception_is_thrown() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
         when(
@@ -136,7 +136,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_duplicate_v4_api() {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
         when(
@@ -159,7 +159,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_duplicate_v2_api() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true)).thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
         when(
