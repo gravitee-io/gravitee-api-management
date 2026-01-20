@@ -166,13 +166,6 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     @Override
-    public Set<GenericApiEntity> findAllGenericByEnvironment(final ExecutionContext executionContext) {
-        ApiCriteria criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build();
-        List<Api> apisFound = apiRepository.search(criteria, ApiFieldFilter.allFields());
-        return toGenericApis(executionContext, apisFound);
-    }
-
-    @Override
     public Api findRepositoryApiById(final ExecutionContext executionContext, final String apiId) {
         try {
             log.debug("Find API by ID: {}", apiId);
@@ -476,7 +469,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
-            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), true, true))
+            .map(publicApi ->
+                genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), false, false)
+            )
             .collect(Collectors.toSet());
     }
 
