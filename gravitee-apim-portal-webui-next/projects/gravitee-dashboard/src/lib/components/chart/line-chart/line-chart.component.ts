@@ -20,6 +20,7 @@ import 'chartjs-adapter-date-fns';
 
 import { LineConverterService } from './converter/line-converter.service';
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
+import { assignChartColors } from '../shared/chart-colors';
 
 export type LineType = 'line';
 
@@ -36,7 +37,7 @@ export class LineChartComponent {
 
   public readonly dataFormatted = computed(() => {
     const chartData = this.converter.convert(this.data());
-
+    assignChartColors(chartData.datasets);
     chartData.datasets.forEach(dataset => {
       dataset.tension = 0.4;
       dataset.fill = 'start';
