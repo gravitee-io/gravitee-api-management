@@ -57,7 +57,7 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
         final List<GenericApiEntity> apis = parameterService.findAll(
             executionContext,
             PORTAL_TOP_APIS,
-            apiId -> apiSearchService.findGenericById(executionContext, apiId, false),
+            apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false),
             apiSearchService::exists,
             ParameterReferenceType.ENVIRONMENT
         );

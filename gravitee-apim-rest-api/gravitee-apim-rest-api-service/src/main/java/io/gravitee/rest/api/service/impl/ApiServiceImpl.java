@@ -641,7 +641,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
             //TODO add membership log
-            ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner);
+            ApiEntity apiEntity = convertWithApiFlowsAndPlans(executionContext, createdApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             // Create default alerts
@@ -759,7 +759,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(ExecutionContext executionContext, String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api));
+        ApiEntity apiEntity = convertWithApiFlowsAndPlans(executionContext, api, getPrimaryOwner(executionContext, api));
 
         // Compute entrypoints
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiEntity);
@@ -794,7 +794,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDefinitionVersion(DefinitionVersion.V2);
         }
         var apiEntity = switch (api.getDefinitionVersion()) {
-            case V1, V2 -> convert(executionContext, api, getPrimaryOwner(executionContext, api));
+            case V1, V2 -> convertWithApiFlowsAndPlans(executionContext, api, getPrimaryOwner(executionContext, api));
             case V4 -> apiSearchService.findById(executionContext, id);
             default -> throw new BadNotificationConfigException();
         };
@@ -1108,7 +1108,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check resource configurations.
             checkResourceConfigurations(updateApiEntity);
 
-            final ApiEntity apiToCheck = convert(executionContext, apiToUpdate);
+            final ApiEntity apiToCheck = convert(executionContext, apiToUpdate, true, true);
 
             // if user changes definition version, then check if he is allowed to do it
             checkDefinitionVersion(updateApiEntity, apiToCheck);
@@ -1307,7 +1307,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, apiToUpdate, updatedApi);
             }
 
-            ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner);
+            ApiEntity apiEntity = convertWithApiFlowsAndPlans(executionContext, updatedApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
@@ -1650,7 +1650,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiId
             );
             // remove from search engine
-            searchEngineService.delete(executionContext, convert(executionContext, api));
+            searchEngineService.delete(executionContext, convert(executionContext, api, false, false));
 
             mediaService.deleteAllByApi(apiId);
 
@@ -1730,7 +1730,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         return false;
                     }
 
-                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
+                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false, false);
                     // Remove policy description from sync check
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
@@ -2497,7 +2497,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(executionContext, apiRepository.update(api), getPrimaryOwner(executionContext, api));
+            ApiEntity apiEntity = convertWithApiFlowsAndPlans(
+                executionContext,
+                apiRepository.update(api),
+                getPrimaryOwner(executionContext, api)
+            );
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -2615,20 +2619,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
-            .map(publicApi -> this.convert(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
+            .map(publicApi -> this.convertWithApiFlowsAndPlans(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
             .collect(toList());
     }
 
-    private ApiEntity convert(ExecutionContext executionContext, Api api) {
-        return convert(executionContext, api, true);
+    public ApiEntity convert(ExecutionContext executionContext, Api api, boolean withApiFlows, boolean withPlans) {
+        return apiConverter.toApiEntity(executionContext, api, null, withApiFlows, withPlans);
     }
 
-    public ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
-        return apiConverter.toApiEntity(executionContext, api, null, readDatabaseFlows);
-    }
-
-    public ApiEntity convert(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
-        return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
+    public ApiEntity convertWithApiFlowsAndPlans(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
+        return apiConverter.toApiEntity(executionContext, api, primaryOwner, true, true);
     }
 
     private Api convert(ExecutionContext executionContext, String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {

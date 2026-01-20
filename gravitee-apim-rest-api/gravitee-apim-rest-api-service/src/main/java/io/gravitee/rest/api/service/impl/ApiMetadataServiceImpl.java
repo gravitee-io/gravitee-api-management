@@ -114,7 +114,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
             update(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
             metadataEntity.getApiId()
         );
-        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiMetadataEntity.getApiId(), false);
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiMetadataEntity.getApiId(), false, false);
         GenericApiEntity genericApiWithMetadata = fetchMetadataForApi(executionContext, genericApi);
         searchEngineService.index(executionContext, genericApiWithMetadata, false);
         return apiMetadataEntity;
@@ -128,7 +128,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         MetadataReferenceType referenceType,
         String referenceId
     ) {
-        final GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, referenceId, false);
+        final GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, referenceId, false, false);
         metadataService.checkMetadataFormat(executionContext, format, value, referenceType, genericApi);
     }
 

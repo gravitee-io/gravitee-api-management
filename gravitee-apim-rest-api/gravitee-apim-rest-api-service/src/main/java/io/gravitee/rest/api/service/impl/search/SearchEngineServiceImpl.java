@@ -203,7 +203,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     private Indexable getSource(final ExecutionContext executionContext, String clazz, String id) {
         try {
             if (ApiEntity.class.getName().equals(clazz) || io.gravitee.rest.api.model.v4.api.ApiEntity.class.getName().equals(clazz)) {
-                GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, id, false);
+                GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, id, false, false);
                 return apiMetadataService.fetchMetadataForApi(executionContext, genericApi);
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
