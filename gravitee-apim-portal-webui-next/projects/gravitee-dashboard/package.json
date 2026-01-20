@@ -2,8 +2,8 @@
   "name": "@gravitee/gravitee-dashboard",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "19.2.4",
-    "@angular/core": "19.2.4",
+    "@angular/common": "20.3.16",
+    "@angular/core": "20.3.16",
     "angular-gridster2": "20.2.3",
     "chart.js": "4.3.0",
     "chartjs-adapter-date-fns": "^3.0.0",
