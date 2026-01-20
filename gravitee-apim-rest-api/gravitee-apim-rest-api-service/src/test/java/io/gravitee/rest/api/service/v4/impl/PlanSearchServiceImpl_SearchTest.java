@@ -111,7 +111,7 @@ public class PlanSearchServiceImpl_SearchTest {
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
         api.setPlans(Set.of(plan1, plan2, plan3));
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false))).thenReturn(api);
+        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false), eq(false))).thenReturn(api);
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -177,7 +177,7 @@ public class PlanSearchServiceImpl_SearchTest {
         var api = new io.gravitee.rest.api.model.api.ApiEntity();
         api.setId(API_ID);
         api.setPlans(Set.of(plan1, plan2, plan3, plan4, plan5));
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false))).thenReturn(api);
+        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false), eq(false))).thenReturn(api);
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -206,7 +206,7 @@ public class PlanSearchServiceImpl_SearchTest {
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
         api.setPlans(Set.of(plan1, plan2, plan3));
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false))).thenReturn(api);
+        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false), eq(false))).thenReturn(api);
 
         when(groupService.isUserAuthorizedToAccessApiData(eq(api), any(), eq(USER))).thenReturn(false);
 

@@ -17,13 +17,11 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
 import static io.gravitee.repository.management.model.UserStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +31,6 @@ import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -63,13 +60,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
-import org.apache.lucene.index.IndexCommit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -249,7 +244,7 @@ public class SearchIndexInitializerTest {
                     );
             } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                 lenient()
-                    .when(apiConverter.toApiEntity(any(), any(), any(), eq(false)))
+                    .when(apiConverter.toApiEntity(any(), any(), any(), eq(false), eq(false)))
                     .thenReturn(
                         ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
                     );

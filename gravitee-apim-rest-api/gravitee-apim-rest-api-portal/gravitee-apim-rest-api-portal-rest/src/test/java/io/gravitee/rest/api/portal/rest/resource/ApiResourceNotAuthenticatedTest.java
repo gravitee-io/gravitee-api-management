@@ -64,7 +64,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false);
+        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false, false);
 
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(true);
