@@ -93,6 +93,14 @@ public interface MembershipMongoRepository extends MongoRepository<MembershipMon
         String referenceId
     );
 
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'referenceId' : { $in: ?3 } }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+        String memberId,
+        String memberType,
+        String referenceType,
+        Set<String> referenceIds
+    );
+
     @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'referenceId' : ?3, 'roleId' : ?4 }")
     Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
         String memberId,

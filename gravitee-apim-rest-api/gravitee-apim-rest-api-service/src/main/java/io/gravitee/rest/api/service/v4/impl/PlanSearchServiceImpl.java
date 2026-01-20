@@ -133,7 +133,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     @Override
     public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final GenericApiEntity genericApi, boolean withFlow) {
         try {
-            logger.debug("Find plan by api : {}", genericApi.getId());
+            log.debug("Find plan by api : {}", genericApi.getId());
             return planRepository
                 .findByApi(genericApi.getId())
                 .stream()
