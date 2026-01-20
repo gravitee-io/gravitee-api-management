@@ -49,7 +49,7 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
 
         return switch (api.getDefinitionVersion()) {
             case V4 -> {
-                var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId());
+                var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId(), true);
                 yield apiStateService.isSynchronized(executionContext, genericApiEntity);
             }
             case V1, V2 -> apiService.isSynchronized(executionContext, api.getId());

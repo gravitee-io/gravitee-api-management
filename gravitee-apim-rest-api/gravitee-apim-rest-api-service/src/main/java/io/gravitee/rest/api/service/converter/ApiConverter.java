@@ -163,7 +163,7 @@ public class ApiConverter {
         return apiEntity;
     }
 
-    public ApiEntity toApiEntity(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner, boolean readDatabaseFlows) {
+    public ApiEntity toApiEntity(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner, boolean withApiFlows) {
         ApiEntity apiEntity = toApiEntity(api, primaryOwner);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
@@ -175,7 +175,7 @@ public class ApiConverter {
         var plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
 
-        if (readDatabaseFlows) {
+        if (withApiFlows) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }

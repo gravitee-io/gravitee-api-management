@@ -62,7 +62,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
+        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false);
 
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
         doReturn(Set.of(API))

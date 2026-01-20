@@ -63,7 +63,7 @@ public class ApiPageResource extends AbstractResource {
         @QueryParam("include") List<String> include
     ) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false);
 
         if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
@@ -105,7 +105,7 @@ public class ApiPageResource extends AbstractResource {
     public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false);
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
             if (

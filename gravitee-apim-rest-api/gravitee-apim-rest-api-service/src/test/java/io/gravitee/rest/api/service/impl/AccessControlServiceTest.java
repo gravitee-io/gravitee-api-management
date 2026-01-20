@@ -527,7 +527,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
 
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(apiEntity);
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setPublished(true);
