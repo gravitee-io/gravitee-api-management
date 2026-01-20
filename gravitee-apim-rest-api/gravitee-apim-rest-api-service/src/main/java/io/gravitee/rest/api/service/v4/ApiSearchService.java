@@ -44,8 +44,6 @@ public interface ApiSearchService {
         final boolean withPlans
     );
 
-    Set<GenericApiEntity> findAllGenericByEnvironment(ExecutionContext executionContext);
-
     Api findV4RepositoryApiById(ExecutionContext executionContext, String apiId);
 
     Api findRepositoryApiById(ExecutionContext executionContext, String apiId);
