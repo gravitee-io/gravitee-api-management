@@ -77,7 +77,7 @@ public class ApiSubscribersResource extends AbstractResource {
 
             subscriptionQuery.setStatuses(statuses);
 
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false);
             if (!genericApiEntity.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApplicationListItem> userApplications = this.applicationService.findByUser(executionContext, currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {

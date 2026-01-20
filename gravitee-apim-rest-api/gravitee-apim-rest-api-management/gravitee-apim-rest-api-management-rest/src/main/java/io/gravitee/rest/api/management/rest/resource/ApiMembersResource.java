@@ -97,7 +97,12 @@ public class ApiMembersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiMembersPermissions() {
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
+            GraviteeContext.getExecutionContext(),
+            api,
+            false,
+            false
+        );
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();

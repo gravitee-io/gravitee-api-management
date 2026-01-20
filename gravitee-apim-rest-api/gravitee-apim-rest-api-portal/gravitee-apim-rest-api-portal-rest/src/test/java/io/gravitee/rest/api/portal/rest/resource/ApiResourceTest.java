@@ -26,6 +26,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
@@ -62,9 +63,11 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false);
+        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false, false);
 
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(true)
+            .when(accessControlService)
+            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
         doReturn(Set.of(API))
             .when(apiAuthorizationService)
             .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
@@ -155,7 +158,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
 
         // test
         final Response response = target(API).request().get();

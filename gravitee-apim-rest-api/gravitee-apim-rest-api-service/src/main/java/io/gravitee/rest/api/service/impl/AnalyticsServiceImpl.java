@@ -400,7 +400,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false);
+                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
                 metadata.put(METADATA_NAME, genericApiEntity.getName());
                 metadata.put(METADATA_VERSION, genericApiEntity.getApiVersion());
                 if (ApiLifecycleState.ARCHIVED.equals(genericApiEntity.getLifecycleState())) {
