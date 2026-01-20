@@ -49,7 +49,7 @@ jobs:
     generate-config:
         executor:
           name: node/default
-          tag: "20.11"
+          tag: "22.12"
         environment:
             CI_ACTION: "<< pipeline.parameters.gio_action >>"
             CI_DRY_RUN: "<< pipeline.parameters.dry_run >>"

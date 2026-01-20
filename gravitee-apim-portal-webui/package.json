@@ -71,7 +71,7 @@
     "zone.js": "0.15.0"
   },
   "engines": {
-    "node": "^20.11"
+    "node": "^22.12"
   },
   "devDependencies": {
     "@angular-builders/jest": "19.0.0",

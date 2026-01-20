@@ -94,7 +94,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
@@ -115,7 +115,7 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -147,7 +147,7 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout

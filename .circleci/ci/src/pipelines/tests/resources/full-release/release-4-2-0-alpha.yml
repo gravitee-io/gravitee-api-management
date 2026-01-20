@@ -193,7 +193,7 @@ jobs:
             }
   job-console-webui-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout
@@ -220,7 +220,7 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-portal-webui-build:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: large
     steps:
       - checkout
@@ -544,7 +544,7 @@ jobs:
           folder-to-sync: folder_to_sync
   job-release-helm:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: medium
     steps:
       - checkout
@@ -640,7 +640,7 @@ jobs:
           command: echo "Publishing RPMs is not supported for prerelease version"
   job-release-notes-apim:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: medium
     steps:
       - checkout
