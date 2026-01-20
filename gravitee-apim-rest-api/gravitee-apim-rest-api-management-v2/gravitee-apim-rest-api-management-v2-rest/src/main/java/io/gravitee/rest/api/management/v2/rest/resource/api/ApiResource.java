@@ -323,14 +323,14 @@ public class ApiResource extends AbstractResource {
         GenericApiEntity updatedApi;
         var definitionVersion = updateApi.getDefinitionVersion();
         if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4) {
-            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
+            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false);
             evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
             if (!(currentEntity instanceof ApiEntity) && !(currentEntity instanceof NativeApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
         } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2) {
-            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
+            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false);
             evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
             if (!(currentEntity instanceof io.gravitee.rest.api.model.api.ApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
@@ -624,7 +624,7 @@ public class ApiResource extends AbstractResource {
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false);
 
         apiLicenseService.checkLicense(executionContext, apiId);
 
@@ -640,7 +640,7 @@ public class ApiResource extends AbstractResource {
     @Path("/_stop")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.STOP);
@@ -798,7 +798,7 @@ public class ApiResource extends AbstractResource {
     @Path("/reviews/_ask")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response reviewsAsk(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ASK);
@@ -816,7 +816,7 @@ public class ApiResource extends AbstractResource {
     @Path("/reviews/_accept")
     @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
     public Response reviewsAccept(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ACCEPT);
@@ -834,7 +834,7 @@ public class ApiResource extends AbstractResource {
     @Path("/reviews/_reject")
     @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
     public Response reviewsReject(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_REJECT);
@@ -928,9 +928,9 @@ public class ApiResource extends AbstractResource {
         FORCE,
     }
 
-    private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
+    private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData, boolean withApiFlow) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, withApiFlow);
 
         if (!canManageApi(apiEntity)) {
             throw new ForbiddenAccessException();
@@ -940,6 +940,10 @@ public class ApiResource extends AbstractResource {
             prepareDataForResponse(apiId, executionContext, apiEntity);
         }
         return apiEntity;
+    }
+
+    private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
+        return getGenericApiEntityById(apiId, prepareData, true);
     }
 
     private void prepareDataForResponse(String apiId, ExecutionContext executionContext, GenericApiEntity apiEntity) {

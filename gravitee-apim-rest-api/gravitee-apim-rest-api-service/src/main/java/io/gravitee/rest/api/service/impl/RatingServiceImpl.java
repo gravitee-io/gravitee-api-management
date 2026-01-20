@@ -118,7 +118,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 executionContext,
                 ApiHook.NEW_RATING,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
+                new NotificationParamsBuilder()
+                    .api(apiSearchService.findGenericById(executionContext, rating.getReferenceId(), false))
+                    .build()
             );
 
             return convert(executionContext, rating);
@@ -158,7 +160,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 executionContext,
                 ApiHook.NEW_RATING_ANSWER,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
+                new NotificationParamsBuilder()
+                    .api(apiSearchService.findGenericById(executionContext, rating.getReferenceId(), false))
+                    .build()
             );
 
             return convert(executionContext, rating);
