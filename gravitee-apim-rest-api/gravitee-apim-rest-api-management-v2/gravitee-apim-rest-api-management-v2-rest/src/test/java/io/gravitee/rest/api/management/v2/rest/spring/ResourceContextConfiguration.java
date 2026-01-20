@@ -41,9 +41,8 @@ import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
-import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
-import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
@@ -977,15 +976,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ComputeMeasuresUseCase computeMeasuresUseCase(
-        AnalyticsQueryContextProvider analyticsQueryContextProvider,
-        AnalyticsQueryValidator analyticsQueryValidator,
-        FilterPreProcessor filterPreprocessor
-    ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
-    }
-
-    @Bean
     public ProcessPromotionUseCase processPromotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
     }
@@ -1023,5 +1013,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public MetricsContextManager metricsContextManager() {
+        return mock(MetricsContextManager.class);
     }
 }
