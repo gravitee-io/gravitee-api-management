@@ -813,35 +813,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/material-experimental@npm:19.2.4":
-  version: 19.2.4
-  resolution: "@angular/material-experimental@npm:19.2.4"
+"@angular/material-experimental@npm:20.2.14":
+  version: 20.2.14
+  resolution: "@angular/material-experimental@npm:20.2.14"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 19.2.4
-    "@angular/common": ^19.0.0 || ^20.0.0
-    "@angular/core": ^19.0.0 || ^20.0.0
-    "@angular/forms": ^19.0.0 || ^20.0.0
-    "@angular/material": 19.2.4
-    "@angular/platform-browser": ^19.0.0 || ^20.0.0
-  checksum: 10c0/5647b5cf1a135bafde02db5bf6a22aa59fab4d32a8c41390ab8106171ba6237ce3f217e414a8987be5dbd6a1433208e53241c1189a265a2fb781064936bcd766
+    "@angular/cdk": 20.2.14
+    "@angular/cdk-experimental": 20.2.14
+    "@angular/common": ^20.0.0 || ^21.0.0
+    "@angular/core": ^20.0.0 || ^21.0.0
+    "@angular/forms": ^20.0.0 || ^21.0.0
+    "@angular/material": 20.2.14
+    "@angular/platform-browser": ^20.0.0 || ^21.0.0
+  checksum: 10c0/d4591f61006a55bc844012cca7cc2bfaecc4178d615e5f3bd52202e3509042f0c865e1f96775c35882836e021758093a061ff4aac7e0d6afbbc07349b7ec315d
   languageName: node
   linkType: hard
 
-"@angular/material@npm:19.2.4":
-  version: 19.2.4
-  resolution: "@angular/material@npm:19.2.4"
+"@angular/material@npm:20.2.14":
+  version: 20.2.14
+  resolution: "@angular/material@npm:20.2.14"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 19.2.4
-    "@angular/common": ^19.0.0 || ^20.0.0
-    "@angular/core": ^19.0.0 || ^20.0.0
-    "@angular/forms": ^19.0.0 || ^20.0.0
-    "@angular/platform-browser": ^19.0.0 || ^20.0.0
+    "@angular/cdk": 20.2.14
+    "@angular/common": ^20.0.0 || ^21.0.0
+    "@angular/core": ^20.0.0 || ^21.0.0
+    "@angular/forms": ^20.0.0 || ^21.0.0
+    "@angular/platform-browser": ^20.0.0 || ^21.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/d9d7f43e771079d686da26f2ca719420f21fbb2c44c222ebcdd5caa752af92f98c3b629f729374db756f3e4e619254a2bd326bd43edf5235d77f5c52b2b78b50
+  checksum: 10c0/6acfc033f7817f0237968fcc5e24500d949afecf88e3d6e20fcbcdeeac4747942a97e210475511d96db1157519df4e5089d8a36e2f1ad53fad5169bb452c0b40
   languageName: node
   linkType: hard
 
@@ -12099,8 +12100,8 @@ __metadata:
     "@angular/core": "npm:20.3.16"
     "@angular/forms": "npm:20.3.16"
     "@angular/localize": "npm:20.3.16"
-    "@angular/material": "npm:19.2.4"
-    "@angular/material-experimental": "npm:19.2.4"
+    "@angular/material": "npm:20.2.14"
+    "@angular/material-experimental": "npm:20.2.14"
     "@angular/platform-browser": "npm:20.3.16"
     "@angular/platform-browser-dynamic": "npm:20.3.16"
     "@angular/router": "npm:20.3.16"

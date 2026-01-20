@@ -57,7 +57,7 @@ $form-field-hint-height: 16px;
     }
 
     &__separator {
-      border-left: 1px solid var(--mdc-filled-button-disabled-label-text-color);
+      border-left: 1px solid var(--mat-button-filled-disabled-label-text-color);
       margin-bottom: $form-field-hint-height;
     }
 

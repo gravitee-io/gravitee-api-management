@@ -21,7 +21,7 @@
 }
 
 .radio-card {
-  --mdc-radio-state-layer-size: 0;
+  --mat-radio-state-layer-size: 0;
 
   height: 100%;
   min-height: 220px;
@@ -63,10 +63,10 @@
 }
 
 .radio-card.selected {
-  --mdc-radio-selected-focus-icon-color: #{theme.$primary-main-color} !important;
-  --mdc-radio-selected-hover-icon-color: #{theme.$primary-main-color} !important;
-  --mdc-radio-selected-icon-color: #{theme.$primary-main-color} !important;
-  --mdc-radio-selected-pressed-icon-color: #{theme.$primary-main-color} !important;
+  --mat-radio-selected-focus-icon-color: #{theme.$primary-main-color} !important;
+  --mat-radio-selected-hover-icon-color: #{theme.$primary-main-color} !important;
+  --mat-radio-selected-icon-color: #{theme.$primary-main-color} !important;
+  --mat-radio-selected-pressed-icon-color: #{theme.$primary-main-color} !important;
 
   padding: 0;
   border: 2px solid #{theme.$tertiary-main-color};

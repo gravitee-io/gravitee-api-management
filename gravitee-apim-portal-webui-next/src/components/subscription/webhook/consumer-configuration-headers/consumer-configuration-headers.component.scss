@@ -33,10 +33,10 @@
       --mat-form-field-container-vertical-padding: 8px;
       --mat-form-field-subscript-text-line-height: 0;
       --mat-form-field-subscript-text-size: 0;
-      --mdc-filled-text-field-disabled-container-color: #{theme.$card-background-color};
-      --mdc-filled-text-field-container-color: #{theme.$card-background-color};
-      --mdc-filled-text-field-disabled-input-text-color: var(--mdc-filled-text-field-input-text-color);
-      --mdc-filled-text-field-input-text-color: var(--mdc-filled-text-field-input-text-color);
+      --mat-form-field-filled-disabled-container-color: #{theme.$card-background-color};
+      --mat-form-field-filled-container-color: #{theme.$card-background-color};
+      --mat-form-field-filled-disabled-input-text-color: var(--mat-form-field-filled-input-text-color);
+      --mat-form-field-filled-input-text-color: var(--mat-form-field-filled-input-text-color);
     }
 
     .mat-column-actions {
