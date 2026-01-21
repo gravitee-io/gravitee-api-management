@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "path": ["./node_modules/path-browserify"]
+      "path": ["./node_modules/path-browserify"],
+      "url": ["./node_modules/url"] // Ensure compatibility with ui-components library
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
