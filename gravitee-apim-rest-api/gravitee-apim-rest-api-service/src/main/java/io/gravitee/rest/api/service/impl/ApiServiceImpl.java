@@ -1042,6 +1042,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean checkPlans,
         boolean updatePlansAndFlows
     ) {
+        return update(executionContext, apiId, updateApiEntity, checkPlans, updatePlansAndFlows, false);
+    }
+
+    @Override
+    public ApiEntity update(
+        ExecutionContext executionContext,
+        String apiId,
+        UpdateApiEntity updateApiEntity,
+        boolean checkPlans,
+        boolean updatePlansAndFlows,
+        boolean skipSearchEngineIndex
+    ) {
         try {
             LOGGER.debug("Update API {}", apiId);
 
@@ -1313,7 +1325,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
-            searchEngineService.index(executionContext, apiWithMetadata, false);
+            if (skipSearchEngineIndex) {
+                searchEngineService.index(executionContext, apiWithMetadata, false);
+            }
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
