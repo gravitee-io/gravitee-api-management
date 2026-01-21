@@ -135,9 +135,12 @@ import org.springframework.stereotype.Component;
 public class MembershipServiceImpl extends AbstractService implements MembershipService {
 
     private static final String DEFAULT_SOURCE = "system";
-    private final Cache<String, Set<RoleEntity>> cachedRoles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
+    private static final int CACHE_EXPIRE_AFTER_WRITE_SECOND = 60;
+    private final Cache<String, Set<RoleEntity>> cachedRoles = CacheBuilder.newBuilder()
+        .expireAfterWrite(CACHE_EXPIRE_AFTER_WRITE_SECOND, TimeUnit.SECONDS)
+        .build();
     private final Cache<String, Map<String, char[]>> cachedPermissions = CacheBuilder.newBuilder()
-        .expireAfterWrite(10, TimeUnit.SECONDS)
+        .expireAfterWrite(CACHE_EXPIRE_AFTER_WRITE_SECOND, TimeUnit.SECONDS)
         .build();
 
     private final UserService userService;
