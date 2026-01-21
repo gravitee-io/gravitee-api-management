@@ -185,6 +185,7 @@ public class ImportDefinitionCreateDomainService {
                         page
                             .toBuilder()
                             .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
+                            .crossId(page.getCrossId() == null ? UuidString.generateRandom() : page.getCrossId())
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(apiId)
                             .createdAt(now)
