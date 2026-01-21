@@ -153,6 +153,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
                     GraviteeContext.getExecutionContext(),
                     subscription.getApi(),
                     false,
+                    false,
                     false
                 );
                 GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());

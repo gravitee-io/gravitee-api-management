@@ -179,6 +179,6 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         if (api.getEnvironmentId() == null) {
             api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         }
-        return apiConverter.toApiEntity(api, null);
+        return apiConverter.toApiEntity(api, null, false);
     }
 }
