@@ -99,8 +99,7 @@
     "@angular/cli": "19.2.5",
     "@angular/compiler-cli": "19.2.4",
     "@gravitee/ui-schematics": "16.4.0",
-    "@storybook/addon-essentials": "8.6.14",
-    "@storybook/angular": "8.6.14",
+    "@storybook/angular": "9.1.17",
     "@types/angular": "1.8.9",
     "@types/angular-material": "1.1.78",
     "@types/angular-mocks": "1.7.4",
@@ -123,7 +122,7 @@
     "eslint-plugin-angular": "4.1.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-rxjs": "5.0.3",
-    "eslint-plugin-storybook": "0.11.4",
+    "eslint-plugin-storybook": "9.1.17",
     "eslint-plugin-unused-imports": "4.3.0",
     "html-loader": "5.1.0",
     "jest": "29.7.0",
@@ -133,7 +132,7 @@
     "jest-preset-angular": "14.6.1",
     "license-check-and-add": "4.0.5",
     "prettier": "3.5.3",
-    "storybook": "8.6.14",
+    "storybook": "9.1.17",
     "typescript": "5.5.4"
   },
   "engines": {

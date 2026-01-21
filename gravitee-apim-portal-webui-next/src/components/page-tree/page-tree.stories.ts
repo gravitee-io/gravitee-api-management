@@ -15,8 +15,8 @@
  */
 import { importProvidersFrom } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { action } from 'storybook/actions';
 import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
+import { action } from 'storybook/actions';
 
 import { PageTreeComponent, PageTreeNode } from './page-tree.component';
 import { resetTheme } from '../../stories/theme/theme.util';

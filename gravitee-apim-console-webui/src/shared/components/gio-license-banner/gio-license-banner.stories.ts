@@ -15,7 +15,7 @@
  */
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { License } from '@gravitee/ui-particles-angular';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 
 import { GioLicenseBannerComponent } from './gio-license-banner.component';
 import { GioLicenseBannerModule } from './gio-license-banner.module';
