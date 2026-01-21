@@ -20,7 +20,7 @@
     "target": "ES2022",
     "types": ["jest", "angular-mocks", "node"],
     "resolveJsonModule": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": false,
