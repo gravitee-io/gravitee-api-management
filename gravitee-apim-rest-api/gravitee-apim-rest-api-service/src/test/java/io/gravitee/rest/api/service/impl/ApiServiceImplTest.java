@@ -173,8 +173,8 @@ public class ApiServiceImplTest {
         when(currentApi.getDefinitionContext()).thenReturn(new DefinitionContext());
         when(eventLatestRepository.search(any(), any(), anyLong(), anyLong())).thenReturn(List.of(event));
         when(apiEntrypointService.getApiEntrypoints(executionContext, currentApi)).thenReturn(entrypointEntityList);
-        when(apiConverter.toApiEntity(executionContext, api, primaryOwnerEntity, true, true)).thenReturn(currentApi);
-        when(apiConverter.toApiEntity(executionContext, null, null, false, false)).thenReturn(currentApi);
+        when(apiConverter.toApiEntity(executionContext, api, primaryOwnerEntity, true, true, true)).thenReturn(currentApi);
+        when(apiConverter.toApiEntity(executionContext, null, null, false, false, false)).thenReturn(currentApi);
         when(primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())).thenReturn(primaryOwnerEntity);
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
         when(currentApi.getId()).thenReturn("api-id");

@@ -128,9 +128,9 @@ public class PlanSearchServiceImpl_SearchTest {
         var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        when(genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false))).thenReturn(
-            apiEntity
-        );
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);
@@ -159,9 +159,9 @@ public class PlanSearchServiceImpl_SearchTest {
         var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        when(genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false))).thenReturn(
-            apiEntity
-        );
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 1, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
@@ -198,9 +198,9 @@ public class PlanSearchServiceImpl_SearchTest {
         var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        when(genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false))).thenReturn(
-            apiEntity
-        );
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);

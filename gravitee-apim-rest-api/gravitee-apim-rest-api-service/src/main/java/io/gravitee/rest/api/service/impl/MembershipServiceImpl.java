@@ -350,7 +350,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         final GroupEntity group = groupService.findById(executionContext, reference.getId());
                         shouldNotify = !group.isDisableMembershipNotifications();
                     } else if (MembershipReferenceType.API.equals(reference.getType())) {
-                        final GenericApiEntity api = apiSearchService.findGenericById(executionContext, reference.getId(), false, false);
+                        final GenericApiEntity api = apiSearchService.findGenericById(
+                            executionContext,
+                            reference.getId(),
+                            false,
+                            false,
+                            false
+                        );
                         shouldNotify = !api.isDisableMembershipNotifications();
                     } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
                         final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
@@ -555,7 +561,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
-                GenericApiEntity indexableApi = apiSearchService.findGenericById(executionContext, referenceId, false, false);
+                GenericApiEntity indexableApi = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.api(indexableApi).user(user).build();
                 break;
@@ -1863,7 +1869,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
 
         this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
-        GenericApiEntity apiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false);
+        GenericApiEntity apiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, true);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(GraviteeContext.getExecutionContext(), apiEntity);
         searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
     }

@@ -228,7 +228,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -270,7 +270,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -303,7 +303,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), anyBoolean(), eq(true))).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -365,7 +365,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 

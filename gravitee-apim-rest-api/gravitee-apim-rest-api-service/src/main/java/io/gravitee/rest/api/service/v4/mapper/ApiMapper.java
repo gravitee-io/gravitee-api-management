@@ -231,8 +231,14 @@ public class ApiMapper {
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
 
-    public ApiEntity toEntity(final ExecutionContext executionContext, final Api api, final boolean withApiFlow, final boolean withPlans) {
-        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, withApiFlow, withPlans);
+    public ApiEntity toEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final boolean withApiFlow,
+        final boolean withPlans,
+        final boolean withApiCategories
+    ) {
+        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, withApiFlow, withPlans, withApiCategories);
     }
 
     public ApiEntity toEntity(
@@ -240,7 +246,8 @@ public class ApiMapper {
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
         final boolean withApiFlows,
-        final boolean withPlans
+        final boolean withPlans,
+        final boolean withApiCategories
     ) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
 
@@ -254,7 +261,9 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        }
 
         if (
             parameterService.findAsBoolean(
@@ -278,7 +287,8 @@ public class ApiMapper {
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
         final boolean withApiFlows,
-        final boolean withPlans
+        final boolean withPlans,
+        final boolean withApiCategories
     ) {
         NativeApiEntity apiEntity = toNativeEntity(api, primaryOwner);
 
@@ -292,7 +302,9 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        }
 
         if (
             parameterService.findAsBoolean(

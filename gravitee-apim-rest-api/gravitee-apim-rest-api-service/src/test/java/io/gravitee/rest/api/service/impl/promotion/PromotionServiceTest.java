@@ -269,9 +269,9 @@ public class PromotionServiceTest {
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false))).thenReturn(
-            existingApi
-        );
+        when(
+            apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(
@@ -332,7 +332,7 @@ public class PromotionServiceTest {
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(apiSearchService.exists(any())).thenReturn(true);
-        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false))).thenReturn(mock(GenericApiEntity.class));
+        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(false))).thenReturn(mock(GenericApiEntity.class));
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
@@ -360,9 +360,9 @@ public class PromotionServiceTest {
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false))).thenReturn(
-            existingApi
-        );
+        when(
+            apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
 
@@ -481,7 +481,7 @@ public class PromotionServiceTest {
         GenericApiEntity apiFromLastPromotion = mock(GenericApiEntity.class);
         when(apiFromLastPromotion.getId()).thenReturn(aPromotion.getApiId());
         when(apiSearchService.exists(aPromotion.getTargetApiId())).thenReturn(true);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api#1-Promoted", false, false)).thenReturn(
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api#1-Promoted", false, false, false)).thenReturn(
             apiFromLastPromotion
         );
 
