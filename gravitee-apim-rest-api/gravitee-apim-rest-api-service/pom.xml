@@ -245,6 +245,12 @@
 			<artifactId>lucene-analysis-common</artifactId>
 		</dependency>
 
+		<!-- Kafka dependencies -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+		</dependency>
+
 		<!-- ClassGraph -->
 		<dependency>
 			<groupId>io.github.classgraph</groupId>
@@ -412,11 +418,6 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-junit5-rx-java3</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
         </dependency>
 
     </dependencies>

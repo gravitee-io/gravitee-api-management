@@ -1,0 +1,104 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.landing-container {
+  padding: 24px;
+
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 500;
+  }
+
+  .subtitle {
+    margin: 0 0 32px 0;
+    color: #666;
+    font-size: 16px;
+  }
+
+  .connector-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .connector-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+
+    &:not(.coming-soon):hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    &.coming-soon {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    mat-card-content {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .card-icon {
+      margin-bottom: 16px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #5a67d8;
+      }
+    }
+
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    p {
+      margin: 0 0 16px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .card-footer {
+      margin-top: 16px;
+
+      button {
+        mat-icon {
+          margin-left: 8px;
+          font-size: 18px;
+        }
+      }
+    }
+
+    .coming-soon-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background-color: #e0e0e0;
+      color: #666;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+  }
+}

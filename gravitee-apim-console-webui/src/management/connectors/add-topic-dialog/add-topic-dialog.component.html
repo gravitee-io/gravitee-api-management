@@ -1,0 +1,90 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<h2 mat-dialog-title>
+  <mat-icon>add</mat-icon>
+  Create Kafka Topic
+</h2>
+
+<mat-dialog-content>
+  <form class="topic-form">
+    <div class="form-section">
+      <h3>Basic Configuration</h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Topic Name</mat-label>
+        <input matInput [(ngModel)]="topicConfig.name" name="name" placeholder="e.g., orders.events" required />
+        <mat-icon matPrefix>topic</mat-icon>
+        <mat-hint>Only alphanumeric, dots, underscores, and hyphens allowed</mat-hint>
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Partitions</mat-label>
+          <input matInput type="number" [(ngModel)]="topicConfig.partitions" name="partitions" min="1" required />
+          <mat-icon matPrefix>view_module</mat-icon>
+          <mat-hint>Number of partitions</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Replication Factor</mat-label>
+          <input matInput type="number" [(ngModel)]="topicConfig.replicas" name="replicas" min="1" required />
+          <mat-icon matPrefix>content_copy</mat-icon>
+          <mat-hint>Number of replicas</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Advanced Settings</h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cleanup Policy</mat-label>
+        <mat-select [(ngModel)]="topicConfig.cleanupPolicy" name="cleanupPolicy">
+          <mat-option *ngFor="let policy of cleanupPolicies" [value]="policy">
+            {{ policy }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>cleaning_services</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Retention Period (days)</mat-label>
+        <input matInput type="number" [(ngModel)]="retentionDays" name="retentionDays" min="1" />
+        <mat-icon matPrefix>schedule</mat-icon>
+        <mat-hint>How long to keep messages (default: 7 days)</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="info-section">
+      <mat-icon>info</mat-icon>
+      <div class="info-content">
+        <strong>Note:</strong> Creating a topic in a production cluster should be done carefully. Make sure the
+        partition count and replication factor align with your cluster's capacity.
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onCreate()" [disabled]="!isFormValid">
+    <mat-icon>check</mat-icon>
+    Create Topic
+  </button>
+</mat-dialog-actions>

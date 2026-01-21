@@ -139,6 +139,12 @@
 			<artifactId>batik-transcoder</artifactId>
 		</dependency>
 
+		<!-- Kafka dependencies -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+		</dependency>
+
 		<!-- Unit testing -->
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>

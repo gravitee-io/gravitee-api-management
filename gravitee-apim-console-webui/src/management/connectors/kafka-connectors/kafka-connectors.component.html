@@ -1,0 +1,445 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="kafka-connectors-container">
+  <!-- CLUSTER SELECTION VIEW -->
+  <div *ngIf="!selectedCluster" class="cluster-selection-view">
+    <div class="selection-header">
+      <div class="header-left">
+        <h1>Kafka Clusters</h1>
+        <p class="subtitle">Select a cluster to manage</p>
+      </div>
+      <div class="header-right">
+        <button mat-raised-button color="primary" (click)="openConfigureClusterDialog()">
+          <mat-icon>add</mat-icon>
+          Configure New Cluster
+        </button>
+      </div>
+    </div>
+
+    <div class="clusters-grid">
+      <mat-card *ngFor="let cluster of clusters" class="cluster-card" (click)="onClusterSelected(cluster)">
+        <mat-card-content>
+          <div class="cluster-actions" *ngIf="cluster.isCustom">
+            <button
+              mat-icon-button
+              class="delete-button"
+              (click)="deleteCluster(cluster, $event)"
+              matTooltip="Remove cluster"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <div class="cluster-badge" *ngIf="cluster.isCustom">
+            <span class="custom-badge">Custom</span>
+          </div>
+          <div class="cluster-icon-wrapper">
+            <mat-icon class="cluster-icon">storage</mat-icon>
+          </div>
+          <h3 class="cluster-name">{{ cluster.name }}</h3>
+          <div class="cluster-details">
+            <div class="detail-row">
+              <mat-icon>dns</mat-icon>
+              <span>{{ cluster.configuration?.bootstrapServers || 'localhost:9091' }}</span>
+            </div>
+            <div class="detail-row">
+              <mat-icon>lock</mat-icon>
+              <span>{{ cluster.configuration?.security?.protocol || 'PLAINTEXT' }}</span>
+            </div>
+          </div>
+          <button mat-raised-button color="primary" class="connect-button">
+            <mat-icon>arrow_forward</mat-icon>
+            Connect
+          </button>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- No clusters state -->
+      <div *ngIf="clusters.length === 0 && !isLoading" class="empty-clusters">
+        <mat-icon>cloud_off</mat-icon>
+        <h3>No Kafka clusters configured</h3>
+        <p>Get started by configuring your first Kafka cluster</p>
+        <button mat-raised-button color="primary" (click)="openConfigureClusterDialog()">
+          <mat-icon>add</mat-icon>
+          Configure Kafka Cluster
+        </button>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="clusters.length === 0 && isLoading" class="empty-clusters">
+        <mat-spinner diameter="60"></mat-spinner>
+        <h3>Loading clusters...</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLUSTER DETAILS VIEW (Kafbat-style) -->
+  <div *ngIf="selectedCluster" class="cluster-details-view">
+    <div class="header">
+      <div class="header-left">
+        <button mat-icon-button (click)="backToClusterSelection()" class="back-button" matTooltip="Back to clusters">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="cluster-info">
+          <mat-icon class="cluster-icon">storage</mat-icon>
+          <div class="cluster-text">
+            <h2>{{ selectedCluster.name }}</h2>
+            <span class="cluster-address">{{ selectedCluster.configuration?.bootstrapServers || 'localhost:9091' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button mat-stroked-button (click)="backToClusterSelection()" class="disconnect-button">
+          <mat-icon>power_settings_new</mat-icon>
+          Disconnect
+        </button>
+      </div>
+    </div>
+
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="main-tabs" animationDuration="200ms">
+      <!-- Brokers Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">dns</mat-icon>
+          Brokers
+          <span class="tab-badge">{{ brokers.length }}</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="brokers-grid">
+            <mat-card *ngFor="let broker of brokers" class="broker-card">
+              <mat-card-content>
+                <div class="broker-header">
+                  <div class="broker-id">
+                    <mat-icon>dns</mat-icon>
+                    <span>Broker {{ broker.id }}</span>
+                  </div>
+                  <span class="broker-status" [class.online]="broker.status === 'online'" [class.offline]="broker.status === 'offline'">
+                    <mat-icon>{{ broker.status === 'online' ? 'check_circle' : 'cancel' }}</mat-icon>
+                    {{ broker.status }}
+                  </span>
+                </div>
+                <div class="broker-info">
+                  <div class="info-row">
+                    <span class="label">Host:</span>
+                    <span class="value">{{ broker.host }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Port:</span>
+                    <span class="value">{{ broker.port }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Endpoint:</span>
+                    <span class="value">{{ broker.host }}:{{ broker.port }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Topics Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">topic</mat-icon>
+          Topics
+          <span class="tab-badge">{{ topics.length }}</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="search-box">
+                <mat-icon>search</mat-icon>
+                <input type="text" [(ngModel)]="topicSearchTerm" placeholder="Search topics..." class="search-input" />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <button mat-raised-button color="primary" (click)="openCreateTopicDialog()">
+                <mat-icon>add</mat-icon>
+                Create Topic
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table mat-table [dataSource]="filteredTopics" class="topics-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Topic Name</th>
+                <td mat-cell *matCellDef="let topic">
+                  <div class="topic-name">
+                    <mat-icon class="topic-icon">topic</mat-icon>
+                    <span>{{ topic.name }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="partitions">
+                <th mat-header-cell *matHeaderCellDef>Partitions</th>
+                <td mat-cell *matCellDef="let topic">
+                  <span class="info-badge">{{ topic.partitions }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="replicas">
+                <th mat-header-cell *matHeaderCellDef>Replication</th>
+                <td mat-cell *matCellDef="let topic">
+                  <span class="info-badge">{{ topic.replicas }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="messages">
+                <th mat-header-cell *matHeaderCellDef>Messages</th>
+                <td mat-cell *matCellDef="let topic">
+                  <span class="message-count">{{ topic.messages }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let topic">
+                  <button mat-icon-button color="warn" (click)="deleteTopic(topic)" matTooltip="Delete topic">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedTopicColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedTopicColumns"></tr>
+            </table>
+
+            <div *ngIf="filteredTopics.length === 0" class="empty-state">
+              <mat-icon>topic</mat-icon>
+              <h3>No topics found</h3>
+              <p>Create your first topic to get started</p>
+              <button mat-raised-button color="primary" (click)="openCreateTopicDialog()">
+                <mat-icon>add</mat-icon>
+                Create Topic
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Consumers Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">groups</mat-icon>
+          Consumers
+          <span class="tab-badge">0</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="empty-state">
+            <mat-icon>groups</mat-icon>
+            <h3>No consumer groups</h3>
+            <p>Consumer groups will appear here</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Schema Registry Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">description</mat-icon>
+          Schema Registry
+          <span class="tab-badge">0</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="empty-state">
+            <mat-icon>description</mat-icon>
+            <h3>Schema Registry not configured</h3>
+            <p>Configure Schema Registry to manage schemas</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Kafka Connect Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">link</mat-icon>
+          Kafka Connect
+          <span class="tab-badge">{{ connectors.length }}</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="search-box">
+                <mat-icon>search</mat-icon>
+                <input type="text" [(ngModel)]="searchTerm" placeholder="Search connectors..." class="search-input" />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <button mat-raised-button color="primary">
+                <mat-icon>add</mat-icon>
+                Create Connector
+              </button>
+            </div>
+          </div>
+
+          <div class="stats-bar">
+            <div class="stat-item">
+              <div class="stat-icon running">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+              <div class="stat-text">
+                <div class="stat-value">{{ runningCount }}</div>
+                <div class="stat-label">Running</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon paused">
+                <mat-icon>pause_circle</mat-icon>
+              </div>
+              <div class="stat-text">
+                <div class="stat-value">{{ pausedCount }}</div>
+                <div class="stat-label">Paused</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon failed">
+                <mat-icon>error</mat-icon>
+              </div>
+              <div class="stat-text">
+                <div class="stat-value">{{ failedCount }}</div>
+                <div class="stat-label">Failed</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table mat-table [dataSource]="filteredConnectors" class="connectors-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let connector">
+                  <div class="connector-name">
+                    <mat-icon class="type-badge" [class.source]="connector.type === 'Source'" [class.sink]="connector.type === 'Sink'">
+                      {{ connector.type === 'Source' ? 'download' : 'upload' }}
+                    </mat-icon>
+                    <span class="name-text">{{ connector.name }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Type Column -->
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let connector">
+                  <span class="type-chip" [class]="connector.type.toLowerCase()">{{ connector.type }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let connector">
+                  <span class="status-badge" [class]="getStatusClass(connector.status)">
+                    <mat-icon>{{ getStatusIcon(connector.status) }}</mat-icon>
+                    {{ connector.status }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Class Column -->
+              <ng-container matColumnDef="class">
+                <th mat-header-cell *matHeaderCellDef>Connector Class</th>
+                <td mat-cell *matCellDef="let connector">
+                  <span class="connector-class" [matTooltip]="connector.class">{{
+                    connector.class.substring(connector.class.lastIndexOf('.') + 1)
+                  }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Tasks Column -->
+              <ng-container matColumnDef="tasks">
+                <th mat-header-cell *matHeaderCellDef>Tasks</th>
+                <td mat-cell *matCellDef="let connector">
+                  <span class="tasks-badge">{{ connector.tasks }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let connector">
+                  <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="viewConnectorDetails(connector)">
+                      <mat-icon>info</mat-icon>
+                      <span>View Details</span>
+                    </button>
+                    <button mat-menu-item *ngIf="connector.status !== 'Paused'" (click)="pauseConnector(connector)">
+                      <mat-icon>pause</mat-icon>
+                      <span>Pause</span>
+                    </button>
+                    <button mat-menu-item *ngIf="connector.status === 'Paused'" (click)="resumeConnector(connector)">
+                      <mat-icon>play_arrow</mat-icon>
+                      <span>Resume</span>
+                    </button>
+                    <button mat-menu-item (click)="restartConnector(connector)">
+                      <mat-icon>refresh</mat-icon>
+                      <span>Restart</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="deleteConnector(connector)" class="delete-action">
+                      <mat-icon color="warn">delete</mat-icon>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" (click)="viewConnectorDetails(row)" class="clickable-row"></tr>
+            </table>
+
+            <div *ngIf="filteredConnectors.length === 0 && !isLoading" class="empty-state">
+              <mat-icon>link_off</mat-icon>
+              <h3>No connectors found</h3>
+              <p>Create your first connector to get started</p>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ACLs Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">security</mat-icon>
+          ACLs
+          <span class="tab-badge">0</span>
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="empty-state">
+            <mat-icon>security</mat-icon>
+            <h3>No ACLs configured</h3>
+            <p>Access Control Lists will appear here</p>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
