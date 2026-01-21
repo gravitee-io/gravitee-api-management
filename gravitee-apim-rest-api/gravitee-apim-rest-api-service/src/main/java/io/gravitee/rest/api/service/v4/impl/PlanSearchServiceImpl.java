@@ -166,7 +166,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         try {
             Optional<Api> apiOptional = apiRepository.findById(query.getApiId());
             final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(query.getApiId()));
-            final GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false);
+            final GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false, false);
 
             return planRepository
                 .findByApi(query.getApiId())

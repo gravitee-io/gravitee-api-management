@@ -126,7 +126,7 @@ public class ApiMetadataResource extends AbstractResource {
         final ApiMetadataEntity apiMetadataEntity = apiMetadataService.create(executionContext, metadata);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
             executionContext,
-            apiSearchService.findGenericById(executionContext, api, false, false)
+            apiSearchService.findGenericById(executionContext, api, false, false, true)
         );
         searchEngineService.index(executionContext, genericApiEntity, false);
         return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();
@@ -164,7 +164,7 @@ public class ApiMetadataResource extends AbstractResource {
         apiMetadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
             GraviteeContext.getExecutionContext(),
-            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api, false, false)
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api, false, false, true)
         );
         searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
         return Response.noContent().build();
