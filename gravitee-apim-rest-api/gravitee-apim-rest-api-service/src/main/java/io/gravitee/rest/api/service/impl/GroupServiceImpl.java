@@ -429,7 +429,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (apiIds.isEmpty()) return;
 
         for (String apiId : apiIds) {
-            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             searchEngineService.index(executionContext, genericApiEntity, false);
         }
@@ -1158,7 +1158,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null, false);
         notifierService.trigger(
             executionContext,
             ApiHook.API_UPDATED,

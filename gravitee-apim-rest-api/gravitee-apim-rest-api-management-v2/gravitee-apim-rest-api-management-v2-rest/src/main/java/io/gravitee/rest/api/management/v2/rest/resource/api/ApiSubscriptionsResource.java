@@ -503,7 +503,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         if (expands.contains(EXPAND_API)) {
-            final BaseApi baseApi = apiMapper.map(apiSearchService.findGenericById(executionContext, apiId, false, false));
+            final BaseApi baseApi = apiMapper.map(apiSearchService.findGenericById(executionContext, apiId, false, false, false));
             subscriptions.forEach(subscription -> subscription.setApi(baseApi));
         }
 

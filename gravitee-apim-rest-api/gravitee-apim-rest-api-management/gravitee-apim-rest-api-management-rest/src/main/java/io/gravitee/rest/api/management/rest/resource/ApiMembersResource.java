@@ -101,6 +101,7 @@ public class ApiMembersResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             api,
             false,
+            false,
             false
         );
         Map<String, char[]> permissions = new HashMap<>();

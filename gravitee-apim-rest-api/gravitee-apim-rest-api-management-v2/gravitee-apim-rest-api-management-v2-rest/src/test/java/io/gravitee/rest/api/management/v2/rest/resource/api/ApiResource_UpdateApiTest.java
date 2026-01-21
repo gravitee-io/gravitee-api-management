@@ -86,7 +86,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     @Test
     public void should_return_404_if_not_found() {
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenThrow(
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenThrow(
             new ApiNotFoundException(API)
         );
 
@@ -130,7 +130,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
         ).thenReturn(apiEntity);
@@ -161,7 +161,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         final io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
         final UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -176,7 +176,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
         UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
         when(
             apiService.update(
                 eq(GraviteeContext.getExecutionContext()),
@@ -211,7 +211,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         final ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         final UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -271,7 +271,9 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         var existingApi = fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build();
 
         apiCrudService.initWith(List.of(existingApi));
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(existingEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(
+            existingEntity
+        );
 
         groupQueryServiceInMemory.initWith(
             List.of(
@@ -332,7 +334,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
         updateApiV4.setLabels(List.of(labelToAdd));
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(existingApi);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(existingApi);
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(existingApi))).thenReturn(true);
         when(
             apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))

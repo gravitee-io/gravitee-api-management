@@ -315,7 +315,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
         // Retrieve API name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
             try {
-                GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi(), false, false);
+                GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi(), false, false, false);
                 ticket.setApi(api.getName());
             } catch (ApiNotFoundException e) {
                 ticket.setApi(UNKNOWN_REFERENCE);

@@ -334,7 +334,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         // create Api Category Order entries
         apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
-        ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, true, true);
+        ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, true, true, true);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
 
         searchEngineService.index(executionContext, apiWithMetadata, false);
@@ -400,7 +400,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true);
+            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
 
             apiValidationService.validateAndSanitizeUpdateApi(
                 executionContext,
@@ -559,7 +559,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, updateApiEntity.getId(), existingApiLogging, updateApiLogging);
             }
 
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, existingApiEntity.getPrimaryOwner(), true, true);
+            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, existingApiEntity.getPrimaryOwner(), true, true, true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
@@ -589,7 +589,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiId);
             }
-            final ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, null, false, false);
+            final ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, null, false, false, false);
 
             Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiEntity, false);
             if (closePlans) {
