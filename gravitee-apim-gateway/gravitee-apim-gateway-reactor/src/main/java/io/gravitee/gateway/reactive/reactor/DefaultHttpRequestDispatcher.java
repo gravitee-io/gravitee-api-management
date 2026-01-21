@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 
@@ -145,7 +146,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
@@ -182,7 +183,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 return handleNotFoundCompletable;
             }
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
             mutableCtx.request().contextPath(httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
@@ -240,7 +241,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
     }
 
-    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
+    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
             idGenerator,
@@ -250,6 +251,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
         ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
+        ctx.setInternalAttribute(ATTR_INTERNAL_SERVER_ID, serverId);
 
         return ctx;
     }
