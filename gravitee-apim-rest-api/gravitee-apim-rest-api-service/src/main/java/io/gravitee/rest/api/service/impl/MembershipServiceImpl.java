@@ -107,7 +107,9 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -127,6 +129,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     private static final String DEFAULT_SOURCE = "system";
     private final Cache<String, Set<RoleEntity>> cachedRoles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
+    private final Cache<String, Map<String, char[]>> cachedPermissions = CacheBuilder.newBuilder()
+        .expireAfterWrite(10, TimeUnit.SECONDS)
+        .build();
 
     private final UserService userService;
 
@@ -1563,6 +1568,30 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .collect(Collectors.toSet());
                 Map<String, RoleEntity> rolesById = roleService.findByIds(roleIds);
 
+                // Pre-fetch primary owner for API reference type (used in mapApiPrimaryOwnerRoleToGroupRole)
+                PrimaryOwnerEntity primaryOwner = null;
+                if (MembershipReferenceType.API.equals(referenceType)) {
+                    primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), referenceId);
+                }
+
+                // Batch fetch groups that have API Primary Owner role
+                Set<String> groupIdsWithPrimaryOwnerRole = groupMemberships
+                    .stream()
+                    .filter(m -> {
+                        RoleEntity role = rolesById.get(m.getRoleId());
+                        return role != null && role.isApiPrimaryOwner();
+                    })
+                    .map(io.gravitee.repository.management.model.Membership::getReferenceId)
+                    .collect(Collectors.toSet());
+
+                Map<String, GroupEntity> groupsById = groupIdsWithPrimaryOwnerRole.isEmpty()
+                    ? Map.of()
+                    : groupService
+                        .findByIds(groupIdsWithPrimaryOwnerRole)
+                        .stream()
+                        .collect(Collectors.toMap(GroupEntity::getId, Function.identity()));
+
+                final PrimaryOwnerEntity finalPrimaryOwner = primaryOwner;
                 userRoles.addAll(
                     groupMemberships
                         .stream()
@@ -1573,9 +1602,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         .filter(entry -> entry.getValue() != null && entry.getValue().getScope().name().equals(referenceType.name()))
                         .map(entry -> {
                             RoleEntity role = entry.getValue();
-                            String group = entry.getKey();
+                            String groupId = entry.getKey();
                             return role.isApiPrimaryOwner()
-                                ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
+                                ? mapApiPrimaryOwnerRoleToGroupRole(
+                                    executionContext,
+                                    finalPrimaryOwner,
+                                    groupsById.get(groupId),
+                                    groupId,
+                                    role
+                                )
                                 : role;
                         })
                         .filter(Objects::nonNull)
@@ -1599,15 +1634,22 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(ExecutionContext executionContext, String apiId, String groupId, RoleEntity role) {
-        PrimaryOwnerEntity apiPrimaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiId);
-        if (apiPrimaryOwner.getId().equals(groupId)) {
+    private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(
+        ExecutionContext executionContext,
+        PrimaryOwnerEntity apiPrimaryOwner,
+        GroupEntity userGroup,
+        String groupId,
+        RoleEntity role
+    ) {
+        if (apiPrimaryOwner != null && apiPrimaryOwner.getId().equals(groupId)) {
             return role;
         }
 
-        GroupEntity userGroup = groupService.findById(executionContext, groupId);
-        String groupApiRole = userGroup.getRoles().get(RoleScope.API);
+        if (userGroup == null) {
+            return null;
+        }
 
+        String groupApiRole = userGroup.getRoles().get(RoleScope.API);
         return groupApiRole == null
             ? null
             : roleService.findByScopeAndName(RoleScope.API, groupApiRole, executionContext.getOrganizationId()).orElse(null);
@@ -1650,11 +1692,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String referenceId,
         String userId
     ) {
-        MemberEntity member = this.getUserMember(executionContext, referenceType, referenceId, userId);
-        if (member != null) {
-            return member.getPermissions();
+        String cacheKey = computeUserPermissionsCacheKey(referenceType.name(), referenceId, userId);
+        try {
+            return cachedPermissions.get(cacheKey, () -> {
+                MemberEntity member = this.getUserMember(executionContext, referenceType, referenceId, userId);
+                if (member != null) {
+                    return member.getPermissions();
+                }
+                return emptyMap();
+            });
+        } catch (ExecutionException e) {
+            LOGGER.error("Error getting user permissions from cache", e);
+            // Fallback: compute without cache
+            MemberEntity member = this.getUserMember(executionContext, referenceType, referenceId, userId);
+            return member != null ? member.getPermissions() : emptyMap();
         }
-        return emptyMap();
     }
 
     @Override
@@ -2117,6 +2169,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     public void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId) {
         String cachedRoleKey = computeCachedRoleKey(referenceType, referenceId, memberType, memberId);
         cachedRoles.invalidate(cachedRoleKey);
+
+        // Invalidate the permissions cache if it's a USER
+        if ("USER".equals(memberType)) {
+            String permissionsCacheKey = computeUserPermissionsCacheKey(referenceType, referenceId, memberId);
+            cachedPermissions.invalidate(permissionsCacheKey);
+        }
     }
 
     private static String computeCachedRoleKey(String referenceType, String referenceId, String memberType, String memberId) {
@@ -2128,5 +2186,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             cachedRoleKey = referenceType + memberType + memberId;
         }
         return cachedRoleKey;
+    }
+
+    private static String computeUserPermissionsCacheKey(String referenceType, String referenceId, String userId) {
+        return referenceType + "#" + referenceId + "#" + userId;
     }
 }
