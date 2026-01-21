@@ -470,6 +470,7 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedPage = page
                     .toBuilder()
                     .referenceId(API_ID)
+                    .crossId(API_ID)
                     .createdAt(Date.from(INSTANT_NOW))
                     .updatedAt(Date.from(INSTANT_NOW))
                     .build();
@@ -793,7 +794,7 @@ class ImportApiDefinitionUseCaseTest {
         @Test
         void should_create_a_new_api_with_a_page() {
             // Given
-            var page = PageFixtures.aPage().toBuilder().referenceId(null).build();
+            var page = PageFixtures.aPage().toBuilder().referenceId(null).crossId(API_CROSS_ID).build();
             var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -811,6 +812,7 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedPage = page
                     .toBuilder()
                     .referenceId(API_ID)
+                    .crossId(API_CROSS_ID)
                     .createdAt(Date.from(INSTANT_NOW))
                     .updatedAt(Date.from(INSTANT_NOW))
                     .build();
