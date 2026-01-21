@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     @Override
-    public List<Filter> buildFilters(MetricsContext context) {
+    public List<Filter> buildFilters(MetricsContext context, List<Filter> requestFilters) {
         var apiIds = context
             .apis()
             .map(apis -> apis.stream().map(Api::getId).collect(Collectors.toList()))

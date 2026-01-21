@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.domain_service;
+package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
-import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
-import java.util.List;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import java.util.UUID;
 
-/**
- * @author GraviteeSource Team
- */
-public interface FilterPreProcessor {
-    List<Filter> buildFilters(MetricsContext context, List<Filter> requestFilters);
+public class AbstractFilterProcessor {
+
+    AuditInfo auditInfo = buildAuditInfo(UUID.randomUUID().toString());
+
+    private static AuditInfo buildAuditInfo(String userId) {
+        var actor = AuditActor.builder().userId(userId).build();
+        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    }
 }

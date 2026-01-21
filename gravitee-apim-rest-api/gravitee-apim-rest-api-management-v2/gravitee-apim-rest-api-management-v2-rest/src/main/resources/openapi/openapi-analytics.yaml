@@ -173,6 +173,11 @@ paths:
                         type: "ENUM"
                         operators: [ "EQ", "IN" ]
                         enumValues: [ "1xx", "2xx", "3xx", "4xx", "5xx" ]
+                      - name: "API_NAME"
+                        label: "API name"
+                        type: "ENUM"
+                        operators: [ "EQ", "IN" ]
+                        enumValues: [ "HTTP_PROXY", "MESSAGE", "KAFKA", "LLM", "MCP" ]
         "400":
           description: Bad request - Invalid metric name for filters.
           content:
@@ -838,6 +843,7 @@ components:
             type: string
             enum:
                 - API
+                - API_NAME
                 - APPLICATION
                 - PLAN
                 - GATEWAY
