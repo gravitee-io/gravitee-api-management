@@ -121,9 +121,9 @@ public class VertxHttpServerResponse extends AbstractResponse {
                             CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES.contains(throwable.getMessage())
                         ) {
                             // Client has closed the connection, no need to log an error.
-                            log.debug("Client has closed the connection: {}", throwable.getMessage());
+                            ctx.withLogger(log).debug("Client has closed the connection: {}", throwable.getMessage());
                         } else {
-                            log.error("An error occurred while sending response chunks", throwable);
+                            ctx.withLogger(log).error("An error occurred while sending response chunks", throwable);
                         }
                         return Completable.complete();
                     })
