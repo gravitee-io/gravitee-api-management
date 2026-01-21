@@ -200,4 +200,9 @@ public interface ParameterService {
         String referenceId,
         ParameterReferenceType referenceType
     );
+
+    /**
+     * Invalidate cache for a specific parameter
+     */
+    void invalidateCache(String key, String referenceId, String referenceType);
 }
