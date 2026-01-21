@@ -15,19 +15,8 @@
     limitations under the License.
 
 -->
-<app-sidenav-layout [breadcrumbs]="breadcrumbs()">
-  <div sidenavContent class="documentation-folder__sidenav__content">
-    @if (tree() && tree()!.length > 0) {
-      <app-tree-component
-        class="documentation-folder__sidenav__tree"
-        [tree]="tree()"
-        [selectedId]="pageId$ | async"
-        (selectNode)="onSelect($event)" />
-    } @else {
-      <div class="documentation-folder__sidenav__empty-state" i18n="@@emptyItemsLabel">No items to show</div>
-    }
-  </div>
-  <div mainContent>
-    <app-navigation-item-content-viewer [pageContent]="folderData()?.selectedPageContent ?? null" />
-  </div>
-</app-sidenav-layout>
+<div class="subscriptions__empty-state">
+  <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
+  <h2 class="m3-title-large" i18n="@@subscriptionsEmptyStateTitle">No API subscriptions yet</h2>
+  <p i18n="@@subscriptionsEmptyStateDescription">Browse the catalog to discover available APIs and subscribe with an application.</p>
+</div>

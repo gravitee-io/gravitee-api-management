@@ -15,8 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { TreeNodeComponentHarness } from './tree-node.component.harness';
-import { DivHarness } from '../../../../../testing/div.harness';
+import { TreeNodeComponentHarness, TreeRowHarness } from './tree-node.component.harness';
 
 export class TreeComponentHarness extends ComponentHarness {
   static readonly hostSelector = 'app-tree-component';
@@ -24,8 +23,6 @@ export class TreeComponentHarness extends ComponentHarness {
   private readonly getTreeNodes = this.locatorForAll(TreeNodeComponentHarness);
 
   private readonly getTreeLabelButtons = this.locatorForAll('.tree__label');
-
-  private readonly getFolderItem = this.locatorForAll(DivHarness.with({ selector: '.tree__row.folder' }));
 
   async getTopLevelNodes(): Promise<TreeNodeComponentHarness[]> {
     const nodes = await this.getTreeNodes();
@@ -43,19 +40,16 @@ export class TreeComponentHarness extends ComponentHarness {
     label: string;
     expanded: boolean;
   } | null> {
-    const buttons = await this.getFolderItem();
+    const buttons = await this.locatorForAll(TreeRowHarness.with({ selector: '.tree__row.folder' }))();
 
     for (const button of buttons) {
-      const label = await button.childLocatorForOptional('.tree__label')();
-      const text = await label?.text();
+      const text = await button.getText();
+
       if (text?.trim() === title.trim()) {
-        const icon = await button.childLocatorForOptional('.tree__icon')();
-        if (icon) {
-          return {
-            label: text,
-            expanded: await icon.hasClass('expanded'),
-          };
-        }
+        return {
+          label: text,
+          expanded: await button.isExpanded(),
+        };
       }
     }
 

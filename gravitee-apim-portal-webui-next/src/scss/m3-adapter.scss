@@ -130,6 +130,11 @@ After migrating to Material 3, these classes can be deleted.
   line-height: 16px;
 }
 
+.m3-selected-nav-item {
+  color: theme.$primary-main-color;
+  font-weight: 600;
+}
+
 .on-surface-variant {
   color: var(--mat-form-field-outlined-label-text-color);
 }
