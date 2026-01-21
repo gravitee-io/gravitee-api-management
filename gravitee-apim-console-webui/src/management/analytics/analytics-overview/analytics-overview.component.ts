@@ -43,7 +43,7 @@ export class AnalyticsOverviewComponent {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'Proxy') {
-        this.router.navigate(['../dashboard-v4'], { relativeTo: this.activatedRoute });
+        this.router.navigate(['../dashboard-v4'], { relativeTo: this.activatedRoute, queryParams: { period: '1M' } });
       }
     });
   }
