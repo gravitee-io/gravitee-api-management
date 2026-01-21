@@ -102,3 +102,18 @@ mat-card {
 .secondary-button {
   @include mat.button-color(theme.$light-theme, $color-variant: secondary);
 }
+
+.nav-button {
+  @include mat.button-overrides(
+    (
+      outlined-outline-color: transparent,
+      outlined-label-text-color: #{theme.$nav-bar-link-color},
+      filled-label-text-color: #{theme.$nav-bar-link-active-color},
+      filled-container-color: #{theme.$nav-bar-link-active-background-color},
+      outlined-hover-state-layer-opacity: 7%,
+      filled-horizontal-padding: #{theme.$nav-bar-link-padding},
+      outlined-horizontal-padding: #{theme.$nav-bar-link-padding},
+      outlined-outline-width: 0,
+    )
+  );
+}

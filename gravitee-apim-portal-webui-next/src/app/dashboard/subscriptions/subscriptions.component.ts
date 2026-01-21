@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
 
-:host {
-  width: 100%;
-}
-
-app-sidenav-layout {
-  height: 100%;
-
-  .documentation-folder {
-    &__sidenav {
-      &__tree,
-      &__empty-state {
-        min-width: 250px;
-        height: 100%;
-      }
-    }
-  }
-}
+@Component({
+  selector: 'app-subscriptions',
+  imports: [],
+  templateUrl: './subscriptions.component.html',
+  styleUrl: './subscriptions.component.scss',
+})
+export default class SubscriptionsComponent {}

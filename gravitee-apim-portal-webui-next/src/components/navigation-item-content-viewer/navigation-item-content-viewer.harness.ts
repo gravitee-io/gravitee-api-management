@@ -34,8 +34,12 @@ export class NavigationItemContentViewerHarness extends ComponentHarness {
     return this.locateGMDViewer();
   }
 
+  public async getEmptyState(): Promise<DivHarness | null> {
+    return await this.locateEmptyState();
+  }
+
   public async isShowingEmptyState(): Promise<boolean> {
-    const emptyState = await this.locateEmptyState();
+    const emptyState = await this.getEmptyState();
     return emptyState !== null;
   }
 }

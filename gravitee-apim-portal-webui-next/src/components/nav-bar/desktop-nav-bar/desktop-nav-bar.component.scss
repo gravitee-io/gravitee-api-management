@@ -28,19 +28,6 @@
   align-items: center;
   gap: 16px;
 
-  @include mat.button-overrides(
-    (
-      outlined-outline-color: transparent,
-      outlined-label-text-color: app-theme.$nav-bar-link-color,
-      filled-label-text-color: app-theme.$nav-bar-link-active-color,
-      filled-container-color: app-theme.$nav-bar-link-active-background-color,
-      outlined-hover-state-layer-opacity: 7%,
-      filled-horizontal-padding: app-theme.$nav-bar-link-padding,
-      outlined-horizontal-padding: app-theme.$nav-bar-link-padding,
-      outlined-outline-width: 0,
-    )
-  );
-
   &__link {
     display: inline-flex;
     align-items: center;
