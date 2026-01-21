@@ -586,7 +586,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         MembershipReferenceType referenceType,
         Set<String> referenceIds
     ) throws TechnicalException {
-                log.debug(
+        log.debug(
             "JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds({}, {}, {}, {})",
             memberId,
             memberType,
