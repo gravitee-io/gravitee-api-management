@@ -80,6 +80,19 @@
                 </mat-select>
               </mat-form-field>
 
+              @if (canDisplayAllowInApiProduct) {
+                <gio-form-slide-toggle class="details-card__header__info-inputs__second-row__allow-in-api-products-field">
+                  Allow in API Products
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="allowInApiProduct"
+                    aria-label="Allow in API Products"
+                    name="allowInApiProduct"
+                    [disabled]="isInApiProduct"
+                  />
+                </gio-form-slide-toggle>
+              }
+
               @if (canDisplayV4EmulationEngineToggle) {
                 <gio-form-slide-toggle class="details-card__header__info-inputs__second-row__emulate-v4-engine-field">
                   Emulate v4 engine

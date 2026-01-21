@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -93,6 +94,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -327,6 +329,10 @@ public class ApisResource extends AbstractResource {
 
         if (CollectionUtils.isNotEmpty(apiSearchQuery.getVisibilities())) {
             apiQueryBuilder.addFilter(FIELD_VISIBILITY, apiSearchQuery.getVisibilities());
+        }
+
+        if (apiSearchQuery.getAllowInApiProduct() != null) {
+            apiQueryBuilder.addFilter(FIELD_ALLOW_IN_API_PRODUCT, List.of(apiSearchQuery.getAllowInApiProduct().toString()));
         }
 
         var selectedDefinitions = Stream.concat(

@@ -33,7 +33,9 @@ import fixtures.core.model.PlanWithFlowsFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.api.domain_service.AllowInApiProductDomainService;
 import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
@@ -114,6 +116,8 @@ class ImportApiDefinitionUseCaseTest {
     private static final Set<String> TAGS = Set.of("tag");
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
+    AllowInApiProductDomainService allowInApiProductDomainService = new AllowInApiProductDomainService();
 
     ImportApiDefinitionUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
@@ -134,7 +138,12 @@ class ImportApiDefinitionUseCaseTest {
     void setUp() {
         importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
 
-        useCase = new ImportApiDefinitionUseCase(apiCrudService, importDefinitionCreateDomainServiceTestInitializer.initialize());
+        useCase = new ImportApiDefinitionUseCase(
+            apiCrudService,
+            importDefinitionCreateDomainServiceTestInitializer.initialize(),
+            apiProductQueryService,
+            allowInApiProductDomainService
+        );
 
         importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
             List.of(
@@ -159,6 +168,7 @@ class ImportApiDefinitionUseCaseTest {
     void tearDown() {
         Stream.of(
             apiCrudService,
+            apiProductQueryService,
             importDefinitionCreateDomainServiceTestInitializer.auditCrudService,
             importDefinitionCreateDomainServiceTestInitializer.flowCrudService,
             importDefinitionCreateDomainServiceTestInitializer.groupQueryService,
@@ -611,6 +621,65 @@ class ImportApiDefinitionUseCaseTest {
             var expectedApi = expectedProxyApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
             verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMembers(members, API_ID);
+        }
+
+        @Test
+        void should_default_allowInApiProduct_true_when_missing_in_imported_proxy_api() {
+            // Given
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = EXISTING_API_ID;
+            importDefinition.getApiExport().setId(customId);
+            // allowInApiProduct is left null to simulate missing key in JSON
+
+            // When
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            // Then
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getApiDefinitionHttpV4().isAllowInApiProduct()).isTrue();
+        }
+
+        @Test
+        void should_keep_allowInApiProduct_false_when_explicitly_false_in_imported_proxy_api() {
+            // Given
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = EXISTING_API_ID;
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setAllowInApiProduct(false);
+
+            // When
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            // Then
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getApiDefinitionHttpV4().isAllowInApiProduct()).isFalse();
+        }
+
+        @Test
+        void should_force_allowInApiProduct_true_when_imported_proxy_api_is_already_in_product_and_flag_false() {
+            // Given
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = EXISTING_API_ID;
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setAllowInApiProduct(false);
+
+            // Simulate that this API is already referenced by an API Product
+            apiProductQueryService.initWith(
+                List.of(
+                    io.gravitee.apim.core.api_product.model.ApiProduct.builder()
+                        .id("product-id")
+                        .environmentId(ENVIRONMENT_ID)
+                        .apiIds(Set.of(customId))
+                        .build()
+                )
+            );
+
+            // When
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            // Then: flag is force-set to true
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getApiDefinitionHttpV4().isAllowInApiProduct()).isTrue();
         }
     }
 

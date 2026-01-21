@@ -110,6 +110,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_PORTAL_STATUS_SORTED = "portal_status_sorted";
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
+    public static final String FIELD_ALLOW_IN_API_PRODUCT = "allow_in_api_product";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -250,6 +251,13 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), NO));
         }
+
+        boolean allowInApiProduct = false;
+        if (api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity v4) {
+            Boolean val = v4.getAllowInApiProduct();
+            allowInApiProduct = Boolean.TRUE.equals(val);
+        }
+        doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCT, String.valueOf(allowInApiProduct), NO));
 
         return doc;
     }

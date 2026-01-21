@@ -108,6 +108,12 @@ export interface GenericApi extends BaseApi {
   properties?: Property[];
   primaryOwner?: PrimaryOwner;
   _links?: { [key: string]: string };
+  /**
+   * Indicates whether this API is allowed to be used in API Products.
+   *
+   * Present for V4 HTTP Proxy APIs; defaults to false when absent.
+   */
+  allowInApiProduct?: boolean;
 }
 
 export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPPING';

@@ -55,6 +55,8 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.AllowInApiProductDomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
@@ -305,6 +307,12 @@ public class ApiServiceImplTest {
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
+    @Mock
+    private ApiProductQueryService apiProductQueryService;
+
+    @Mock
+    private AllowInApiProductDomainService allowInApiProductDomainService;
+
     private ApiService apiService;
     private UpdateApiEntity updateApiEntity;
     private Api api;
@@ -368,7 +376,9 @@ public class ApiServiceImplTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
-            apiCategoryService
+            apiCategoryService,
+            apiProductQueryService,
+            allowInApiProductDomainService
         );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,

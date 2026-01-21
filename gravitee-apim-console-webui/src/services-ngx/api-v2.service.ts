@@ -22,6 +22,7 @@ import { isEqual } from 'lodash';
 import { Constants } from '../entities/Constants';
 import {
   Api,
+  ApiProductsResponse,
   ApiSearchQuery,
   ApiSortByParam,
   ApisResponse,
@@ -251,5 +252,9 @@ export class ApiV2Service {
         params: httpParams,
       },
     );
+  }
+
+  getApiProductsForApi(apiId: string): Observable<ApiProductsResponse> {
+    return this.http.get<ApiProductsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/api-products`);
   }
 }

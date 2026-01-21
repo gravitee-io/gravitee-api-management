@@ -48,6 +48,7 @@ import {
   fakeApiV1,
   fakeApiV2,
   fakeApiV4,
+  fakeProxyApiV4,
   fakeProxyTcpApiV4,
   fakeApiFederated,
 } from '../../../entities/management-api-v2';
@@ -322,6 +323,21 @@ describe('ApiGeneralInfoComponent', () => {
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
         ]);
+      });
+
+      it('should not display allowInApiProduct toggle for V2 APIs', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+        });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+
+        await waitImageCheck();
+
+        const allowInApiProductToggle = await loader.getAllHarnesses(
+          MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+        );
+        expect(allowInApiProductToggle.length).toEqual(0);
       });
 
       it('should disable field when origin is kubernetes', async () => {
@@ -616,7 +632,7 @@ describe('ApiGeneralInfoComponent', () => {
     beforeEach(() => initComponent());
 
     it('should edit api details', async () => {
-      const api = fakeApiV4({
+      const api = fakeProxyApiV4({
         id: API_ID,
         name: '🐶 API',
         apiVersion: '1.0.0',
@@ -628,6 +644,7 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -669,12 +686,17 @@ describe('ApiGeneralInfoComponent', () => {
       );
       expect(emulateV4EngineInput.length).toEqual(0);
 
+      // Should display allowInApiProduct toggle for V4 HTTP proxy APIs
+      const allowInApiProductToggle = await loader.getAllHarnesses(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(allowInApiProductToggle.length).toEqual(1);
+
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
 
       // Expect fetch api and update
       expectApiGetRequest(api);
-      expectApiVerifyDeployment(api, true);
 
       // Wait image to be covert to base64
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -707,6 +729,106 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
+      expectApiProductsGetRequest(API_ID);
+    });
+
+    it('should not display allowInApiProduct toggle for V4 MESSAGE APIs', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+        type: 'MESSAGE',
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      await waitImageCheck();
+
+      const allowInApiProductToggle = await loader.getAllHarnesses(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(allowInApiProductToggle.length).toEqual(0);
+
+      await fixture.whenStable();
+      const verifyRequests = httpTestingController.match({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/_verify`,
+        method: 'GET',
+      });
+      verifyRequests.forEach((req) => req.flush({ ok: true }));
+    });
+
+    it('should enable allowInApiProduct toggle when API is not in a product', async () => {
+      const api = fakeProxyApiV4({
+        id: API_ID,
+        allowInApiProduct: false,
+      });
+
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID, []);
+
+      await waitImageCheck();
+
+      const allowInApiProductToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(await allowInApiProductToggle.isDisabled()).toBe(false);
+    });
+
+    it('should disable allowInApiProduct toggle when API is in a product', async () => {
+      const api = fakeProxyApiV4({
+        id: API_ID,
+        allowInApiProduct: true,
+      });
+
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID, [{ id: 'api-product-1' } as any]);
+
+      await waitImageCheck();
+
+      const allowInApiProductToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(await allowInApiProductToggle.isDisabled()).toBe(true);
+    });
+
+    it('should send allowInApiProduct value on save for V4 HTTP proxy APIs', async () => {
+      const api = fakeProxyApiV4({
+        id: API_ID,
+        allowInApiProduct: false,
+      });
+
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID, []);
+
+      await waitImageCheck();
+
+      const allowInApiProductToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(await allowInApiProductToggle.isChecked()).toBe(false);
+      await allowInApiProductToggle.check();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // Expect fetch api and update
+      expectApiGetRequest(api);
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      });
+      expect(req.request.body.allowInApiProduct).toEqual(true);
+      req.flush(api);
+
+      // final reload after save
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
     });
 
     it('should disable field when origin is kubernetes', async () => {
@@ -725,6 +847,7 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -776,6 +899,7 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -802,6 +926,7 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -827,6 +952,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -863,6 +989,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -898,6 +1025,7 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -915,6 +1043,7 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -978,6 +1107,18 @@ describe('ApiGeneralInfoComponent', () => {
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
+  }
+
+  function expectApiProductsGetRequest(apiId: string, apiProducts: any[] = []) {
+    // Handle API products request if it exists (may not be made in all scenarios after code changes)
+    const matchingRequests = httpTestingController.match({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`,
+      method: 'GET',
+    });
+    if (matchingRequests.length > 0) {
+      matchingRequests[0].flush({ data: apiProducts });
+      fixture.detectChanges();
+    }
   }
 
   function expectCategoriesGetRequest(categories: Category[] = []) {

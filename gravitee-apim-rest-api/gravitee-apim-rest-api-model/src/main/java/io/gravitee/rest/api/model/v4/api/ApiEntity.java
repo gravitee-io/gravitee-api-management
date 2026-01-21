@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.v4.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -201,6 +202,20 @@ public class ApiEntity implements GenericApiEntity {
     private WorkflowState workflowState;
 
     private boolean disableMembershipNotifications;
+
+    @Schema(
+        description = "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
+        example = "false"
+    )
+    private Boolean allowInApiProduct;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Boolean getAllowInApiProduct() {
+        if (this.definitionVersion == DefinitionVersion.V4 && this.type == ApiType.PROXY) {
+            return allowInApiProduct;
+        }
+        return null;
+    }
 
     @Schema(description = "the API background encoded in base64")
     private String background;

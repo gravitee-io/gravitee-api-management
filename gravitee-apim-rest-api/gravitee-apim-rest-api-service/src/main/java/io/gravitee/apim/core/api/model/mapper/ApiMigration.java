@@ -125,7 +125,8 @@ class ApiMigration {
                     null,
                     null /* flows are managed in another place because is in a different collection */,
                     apiDefinitionV2.getResponseTemplates(),
-                    apiServices
+                    apiServices,
+                    false
                 );
                 api.setId(apiDefinitionV2.getId());
                 api.setName(apiDefinitionV2.getName());

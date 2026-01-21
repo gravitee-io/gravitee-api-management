@@ -25,6 +25,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.domain_service.AllowInApiProductDomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -166,6 +168,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+    private final ApiProductQueryService apiProductQueryService;
+    private final AllowInApiProductDomainService allowInApiProductDomainService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -200,7 +204,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
-        ApiCategoryService apiCategoryService
+        ApiCategoryService apiCategoryService,
+        ApiProductQueryService apiProductQueryService,
+        AllowInApiProductDomainService allowInApiProductDomainService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -232,6 +238,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
+        this.apiProductQueryService = apiProductQueryService;
+        this.allowInApiProductDomainService = allowInApiProductDomainService;
     }
 
     @Override
@@ -408,6 +416,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 existingApiEntity.getPrimaryOwner(),
                 existingApiEntity
             );
+
+            // Apply centralized business rule for allowInApiProduct for V4 Proxy APIs.
+            if (
+                updateApiEntity.getType() == io.gravitee.definition.model.v4.ApiType.PROXY &&
+                updateApiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4
+            ) {
+                boolean isAlreadyInProduct = !apiProductQueryService.findByApiId(apiId).isEmpty();
+                Boolean normalized = allowInApiProductDomainService.normalizeForUpdate(
+                    updateApiEntity.getAllowInApiProduct(),
+                    isAlreadyInProduct
+                );
+                updateApiEntity.setAllowInApiProduct(normalized);
+            }
 
             // TODO FCY
             // check HC inheritance

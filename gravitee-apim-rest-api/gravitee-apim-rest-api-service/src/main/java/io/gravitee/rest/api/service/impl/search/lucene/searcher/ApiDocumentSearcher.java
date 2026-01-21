@@ -114,6 +114,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_ORIGIN,
         FIELD_HAS_HEALTH_CHECK,
         FIELD_DEFINITION_VERSION,
+        ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCT,
     };
 
     public ApiDocumentSearcher(IndexWriter indexWriter) {
@@ -209,6 +210,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             );
             buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
             buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
+            if (isBlank(query.getQuery()) && baseFilterQuery.isPresent() && (query.getIds() == null || query.getIds().isEmpty())) {
+                apiQuery.add(buildApiQuery(executionContext, baseFilterQuery).build(), BooleanClause.Occur.MUST);
+            }
         } catch (ParseException pe) {
             log.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
@@ -399,7 +403,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             !FIELD_TAGS.equals(term.field()) &&
             !FIELD_ORIGIN.equals(term.field()) &&
             !FIELD_HAS_HEALTH_CHECK.equals(term.field()) &&
-            !FIELD_DEFINITION_VERSION.equals(term.field())
+            !FIELD_DEFINITION_VERSION.equals(term.field()) &&
+            !ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCT.equals(term.field())
         ) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");

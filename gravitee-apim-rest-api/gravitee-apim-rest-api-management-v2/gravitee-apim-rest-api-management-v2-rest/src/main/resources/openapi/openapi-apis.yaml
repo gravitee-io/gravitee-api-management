@@ -3354,6 +3354,10 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      allowInApiProduct:
+                          type: boolean
+                          description: Indicates whether the API can be included in API Products (V4 HTTP Proxy only).
+                          default: false
 
         ApiFederated:
             type: object
@@ -3785,6 +3789,10 @@ components:
                         - awesome
                     items:
                         type: string
+                allowInApiProduct:
+                    type: boolean
+                    description: Indicates whether the API can be included in API Products (V4 HTTP Proxy only).
+                    default: false
                 lifecycleState:
                     $ref: "#/components/schemas/ApiLifecycleState"
                 disableMembershipNotifications:
@@ -4008,6 +4016,9 @@ components:
                   type: array
                   items:
                     type: string
+                allowInApiProduct:
+                  type: boolean
+                  description: Filters APIs that can be added to API Products. Applies to V4 Proxy APIs only.
         ApiType:
             type: string
             description: API's type.

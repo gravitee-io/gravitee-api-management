@@ -94,12 +94,15 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   };
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
+  public canDisplayAllowInApiProduct = false;
 
   public isQualityEnabled = false;
   public isQualitySupported = false;
 
   public isReadOnly = false;
   public isKubernetesOrigin = false;
+
+  public isInApiProduct = false;
 
   public integrationName = '';
   public integrationId = '';
@@ -130,10 +133,19 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.apiId = params.apiId;
           return combineLatest([this.apiService.get(this.apiId), this.categoryService.list()]);
         }),
-        switchMap(([api, categories]) =>
-          combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
+        switchMap(([api, categories]) => {
+          const isV4HttpProxy = api.definitionVersion === 'V4' && (api as ApiV4).type === 'PROXY';
+          // Fetch API Products if this is a V4 Proxy API
+          const apiProducts$ = isV4HttpProxy
+            ? this.apiService.getApiProductsForApi(this.apiId).pipe(
+                map((response) => response.data?.length > 0),
+                catchError(() => of(false)), // If endpoint fails, default to false
+              )
+            : of(false);
+
+          return combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl']), apiProducts$]).pipe(
             map(
-              ([hasPictureImg, hasBackgroundImg]) =>
+              ([hasPictureImg, hasBackgroundImg, isInProduct]) =>
                 // FIXME:create type ApiVM?
                 [
                   {
@@ -145,21 +157,27 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
                     },
                   },
                   categories,
+                  isInProduct,
                 ] as const,
             ),
-          ),
-        ),
-        tap(([api, categories]) => {
+          );
+        }),
+        tap(([api, categories, isInProduct]) => {
           this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
 
           if (api.definitionVersion === 'V4') {
             this.apiType = (api as ApiV4).type;
           }
 
+          const isV4HttpProxy = api.definitionVersion === 'V4' && (api as ApiV4).type === 'PROXY';
+          this.canDisplayAllowInApiProduct = isV4HttpProxy;
+
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
 
           this.api = api;
+
+          this.isInApiProduct = isInProduct;
 
           this.apiCategories = categories;
           this.apiOwner = api.primaryOwner.displayName;
@@ -225,6 +243,15 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
+            // Only add allowInApiProduct control for V4 Proxy APIs
+            ...(this.canDisplayAllowInApiProduct
+              ? {
+                  allowInApiProduct: new UntypedFormControl({
+                    value: api.allowInApiProduct ?? true,
+                    disabled: this.isReadOnly || this.isInApiProduct,
+                  }),
+                }
+              : {}),
           });
           this.apiImagesForm = new UntypedFormGroup({
             picture: new UntypedFormControl({
@@ -285,6 +312,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               ...(this.canDisplayV4EmulationEngineToggle
                 ? { executionMode: apiDetailsFormValue.emulateV4Engine ? 'V4_EMULATION_ENGINE' : 'V3' }
                 : {}),
+              // Only include allowInApiProduct for V4 Proxy APIs
+              ...(this.canDisplayAllowInApiProduct && apiDetailsFormValue.allowInApiProduct !== undefined
+                ? { allowInApiProduct: apiDetailsFormValue.allowInApiProduct }
+                : {}),
             };
             return apiToUpdate;
           }
@@ -295,6 +326,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             description: apiDetailsFormValue.description,
             labels: apiDetailsFormValue.labels,
             categories: apiDetailsFormValue.categories,
+            // Only include allowInApiProduct for V4 Proxy APIs
+            ...(this.canDisplayAllowInApiProduct && apiDetailsFormValue.allowInApiProduct !== undefined
+              ? { allowInApiProduct: apiDetailsFormValue.allowInApiProduct }
+              : {}),
           };
           return apiToUpdate;
         }),

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -413,6 +414,41 @@ public class IndexableApiDocumentTransformerTest {
         // Assertions
         assertThat(sortedByBytesRef).isEqualTo(expectedSorted);
         assertThat(sortedByCollator).isEqualTo(expectedSorted);
+    }
+
+    @Test
+    void should_index_allowInApiProduct_true_for_v4_proxy() {
+        // Given
+        var api = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .type(io.gravitee.definition.model.v4.ApiType.PROXY)
+                    .allowInApiProduct(true)
+                    .build()
+            )
+            .build();
+
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When
+        var result = cut.transform(indexable);
+
+        // Then
+        assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCT).stringValue()).isEqualTo("true");
+    }
+
+    @Test
+    void should_index_allowInApiProduct_false_when_not_v4_proxy_or_flag_disabled() {
+        // Given: non proxy type -> should be indexed as false
+        var api = ApiFixtures.aNativeApi().toBuilder().build();
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When
+        var result = cut.transform(indexable);
+
+        // Then
+        assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCT).stringValue()).isEqualTo("false");
     }
 
     @Nested

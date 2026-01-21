@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.api;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.component.Lifecycle;
@@ -236,6 +237,19 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
+
+    @Schema(
+        description = "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
+        example = "false"
+    )
+    private Boolean allowInApiProduct;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Boolean getAllowInApiProduct() {
+        // V2 ApiEntity: always return null since allowInApiProduct is only for V4 Proxy APIs
+        // V4 APIs use io.gravitee.rest.api.model.v4.api.ApiEntity which has its own getter
+        return null;
+    }
 
     private List<ApiEntrypointEntity> entrypoints;
 

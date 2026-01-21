@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.AllowInApiProductDomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -209,6 +211,12 @@ public class ApiServiceImpl_findAllTest {
     @Mock
     private CategoryMapper categoryMapper;
 
+    @Mock
+    private ApiProductQueryService apiProductQueryService;
+
+    @Mock
+    private AllowInApiProductDomainService allowInApiProductDomainService;
+
     private ApiService apiService;
 
     @AfterClass
@@ -278,7 +286,9 @@ public class ApiServiceImpl_findAllTest {
             tagsValidationService,
             apiAuthorizationService,
             groupService,
-            apiCategoryService
+            apiCategoryService,
+            apiProductQueryService,
+            allowInApiProductDomainService
         );
     }
 

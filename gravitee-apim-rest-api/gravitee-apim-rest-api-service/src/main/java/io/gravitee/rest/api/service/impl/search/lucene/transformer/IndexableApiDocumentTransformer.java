@@ -158,6 +158,16 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), Field.Store.NO));
         }
 
+        boolean allowInApiProduct = false;
+        if (
+            api.getDefinitionVersion() == DefinitionVersion.V4 &&
+            api.getType() == ApiType.PROXY &&
+            api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Def
+        ) {
+            allowInApiProduct = v4Def.isAllowInApiProduct();
+        }
+        doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCT, String.valueOf(allowInApiProduct), Field.Store.NO));
+
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             transformV4Api(doc, indexableApi);
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {

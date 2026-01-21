@@ -24,4 +24,12 @@ public interface ApiProductQueryService {
     Set<ApiProduct> findByEnvironmentId(String environmentId);
     Optional<ApiProduct> findById(String apiProductId);
     Set<ApiProduct> findByApiId(String apiId);
+
+    /**
+     * Check for whether any API Product contains the given API.
+     * Prefer this over {@link #findByApiId(String)} when only existence is needed.
+     */
+    default boolean existsByApiId(String apiId) {
+        return apiId != null && !findByApiId(apiId).isEmpty();
+    }
 }

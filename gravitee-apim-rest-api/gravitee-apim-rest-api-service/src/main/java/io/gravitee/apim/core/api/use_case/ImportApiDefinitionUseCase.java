@@ -17,12 +17,15 @@ package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.AllowInApiProductDomainService;
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import lombok.CustomLog;
@@ -37,18 +40,25 @@ public class ImportApiDefinitionUseCase {
 
     private final ApiCrudService apiCrudService;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
+    private final ApiProductQueryService apiProductQueryService;
+    private final AllowInApiProductDomainService allowInApiProductDomainService;
 
     public ImportApiDefinitionUseCase(
         ApiCrudService apiCrudService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
+        ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
+        ApiProductQueryService apiProductQueryService,
+        AllowInApiProductDomainService allowInApiProductDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
+        this.apiProductQueryService = apiProductQueryService;
+        this.allowInApiProductDomainService = allowInApiProductDomainService;
     }
 
     public Output execute(Input input) {
         ensureIsV4Api(input.importDefinition().getApiExport());
         ensureApiDoesNotExist(input);
+        normalizeAllowInApiProduct(input.importDefinition().getApiExport());
 
         var createdApi = importDefinitionCreateDomainService.create(input.auditInfo, input.importDefinition);
         return new Output(createdApi);
@@ -68,5 +78,17 @@ public class ImportApiDefinitionUseCase {
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(api.getDefinitionVersion().getLabel());
         }
+    }
+
+    private void normalizeAllowInApiProduct(ApiExport apiExport) {
+        if (apiExport.getType() != ApiType.PROXY) {
+            return;
+        }
+
+        String targetApiId = apiExport.getId();
+        boolean isAlreadyInProduct = targetApiId != null && !apiProductQueryService.findByApiId(targetApiId).isEmpty();
+
+        Boolean normalized = allowInApiProductDomainService.normalizeForImport(apiExport.getAllowInApiProduct(), isAlreadyInProduct);
+        apiExport.setAllowInApiProduct(normalized);
     }
 }

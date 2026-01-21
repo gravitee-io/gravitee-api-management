@@ -46,6 +46,7 @@ public class ApiCriteria {
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private Boolean allowInApiProduct;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -62,6 +63,7 @@ public class ApiCriteria {
         this.crossId = builder.crossId;
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
+        this.allowInApiProduct = builder.allowInApiProduct;
     }
 
     public Collection<String> getIds() {
@@ -132,6 +134,14 @@ public class ApiCriteria {
         this.integrationId = integrationId;
     }
 
+    public Boolean getAllowInApiProduct() {
+        return allowInApiProduct;
+    }
+
+    public void setAllowInApiProduct(Boolean allowInApiProduct) {
+        this.allowInApiProduct = allowInApiProduct;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -151,7 +161,8 @@ public class ApiCriteria {
             Objects.equals(environments, that.environments) &&
             Objects.equals(crossId, that.crossId) &&
             Objects.equals(definitionVersion, that.definitionVersion) &&
-            Objects.equals(integrationId, that.integrationId)
+            Objects.equals(integrationId, that.integrationId) &&
+            Objects.equals(allowInApiProduct, that.allowInApiProduct)
         );
     }
 
@@ -171,7 +182,8 @@ public class ApiCriteria {
             environments,
             crossId,
             definitionVersion,
-            integrationId
+            integrationId,
+            allowInApiProduct
         );
     }
 
@@ -191,6 +203,7 @@ public class ApiCriteria {
         private String crossId;
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
+        private Boolean allowInApiProduct;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -269,6 +282,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder integrationId(final String integrationId) {
             this.integrationId = integrationId;
+            return this;
+        }
+
+        public ApiCriteria.Builder allowInApiProduct(final Boolean allowInApiProduct) {
+            this.allowInApiProduct = allowInApiProduct;
             return this;
         }
 

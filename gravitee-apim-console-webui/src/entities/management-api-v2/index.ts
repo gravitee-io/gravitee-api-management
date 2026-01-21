@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export * from './api';
+export * from './apiProduct';
 export * from './application';
 export * from './audit';
 export * from './plugin';

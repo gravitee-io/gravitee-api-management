@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -88,6 +89,28 @@ public class Api extends AbstractApi {
 
     private ApiServices services;
 
+    @JsonIgnore
+    @Builder.Default
+    private boolean allowInApiProduct = false;
+
+    /**
+     * Internal getter for boolean value (used by internal code).
+     * Returns the actual boolean value regardless of API type.
+     */
+    public boolean isAllowInApiProduct() {
+        return allowInApiProduct;
+    }
+
+    /**
+     * Custom getter that returns null for non-Proxy APIs to ensure the key is omitted from JSON.
+     * Jackson's @JsonInclude(NON_NULL) will skip serializing this field when null.
+     */
+    @JsonProperty("allowInApiProduct")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Boolean getAllowInApiProduct() {
+        return ApiType.PROXY.equals(getType()) ? allowInApiProduct : null;
+    }
+
     public Api(Api other) {
         super(other.id, other.name, other.type, other.apiVersion, other.definitionVersion, other.tags, other.properties, other.resources);
         this.listeners = other.listeners;
@@ -99,6 +122,7 @@ public class Api extends AbstractApi {
         this.flows = other.flows;
         this.responseTemplates = other.responseTemplates;
         this.services = other.services;
+        this.allowInApiProduct = other.allowInApiProduct;
     }
 
     public Plan getPlan(final String plan) {
