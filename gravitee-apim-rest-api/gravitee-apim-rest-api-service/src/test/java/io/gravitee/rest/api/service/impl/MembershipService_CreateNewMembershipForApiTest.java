@@ -244,8 +244,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
         lenient()
             .when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(role));
-        when(roleService.findByIds(Set.of("API_OWNER")))
-                        .thenReturn(Map.of("API_OWNER", role));
+        when(roleService.findByIds(Set.of("API_OWNER"))).thenReturn(Map.of("API_OWNER", role));
     }
 
     private static RoleEntity role(String roleId) {
