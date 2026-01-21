@@ -97,7 +97,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class), any())).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -178,7 +178,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class), any())).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -296,7 +296,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(MetricsContext.class), any())).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test

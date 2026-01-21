@@ -53,7 +53,7 @@ public class ManagementFilterPreProcessorTest {
         );
 
         MetricsContext context = new MetricsContext(auditInfo).withApis(adminApis);
-        var filters = filterPreProcessor.buildFilters(context);
+        var filters = filterPreProcessor.buildFilters(context, List.of());
 
         assertThat(filters).size().isEqualTo(1);
 

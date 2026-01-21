@@ -94,7 +94,9 @@ public class ComputeTimeSeriesUseCase {
 
         queryContext.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filterPreprocessors.forEach(filterPreprocessor -> filters.addAll(filterPreprocessor.buildFilters(metricsContext)));
+            filterPreprocessors.forEach(filterPreprocessor ->
+                filters.addAll(filterPreprocessor.buildFilters(metricsContext, request.filters()))
+            );
 
             responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
         });

@@ -23,5 +23,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface FilterPreProcessor {
-    List<Filter> buildFilters(MetricsContext context);
+    List<Filter> buildFilters(MetricsContext context, List<Filter> requestFilters);
 }
