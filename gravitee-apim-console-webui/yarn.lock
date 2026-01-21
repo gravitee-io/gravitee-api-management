@@ -561,32 +561,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/material-moment-adapter@npm:19.2.7":
-  version: 19.2.7
-  resolution: "@angular/material-moment-adapter@npm:19.2.7"
+"@angular/material-moment-adapter@npm:20.2.14":
+  version: 20.2.14
+  resolution: "@angular/material-moment-adapter@npm:20.2.14"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/core": ^19.0.0 || ^20.0.0
-    "@angular/material": 19.2.7
+    "@angular/core": ^20.0.0 || ^21.0.0
+    "@angular/material": 20.2.14
     moment: ^2.18.1
-  checksum: 10c0/53cb39034bbe9ed2d9e193495b59d8b610edd0293be91aad7b65badef14c5b9397d17c89257aeeeb58d9d2fb63ad71198892cb5f14b0352d0c272bb6ec1d332c
+  checksum: 10c0/c7d6c91dadfdca4a7e64ac5f4e0b339f63b976103226a3137d95f9f5958abafe1d4fb8c6c51c6b0adcb974935a76898013ab86c8f1b8dfcc780462c2d3798e46
   languageName: node
   linkType: hard
 
-"@angular/material@npm:19.2.7":
-  version: 19.2.7
-  resolution: "@angular/material@npm:19.2.7"
+"@angular/material@npm:20.2.14":
+  version: 20.2.14
+  resolution: "@angular/material@npm:20.2.14"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 19.2.7
-    "@angular/common": ^19.0.0 || ^20.0.0
-    "@angular/core": ^19.0.0 || ^20.0.0
-    "@angular/forms": ^19.0.0 || ^20.0.0
-    "@angular/platform-browser": ^19.0.0 || ^20.0.0
+    "@angular/cdk": 20.2.14
+    "@angular/common": ^20.0.0 || ^21.0.0
+    "@angular/core": ^20.0.0 || ^21.0.0
+    "@angular/forms": ^20.0.0 || ^21.0.0
+    "@angular/platform-browser": ^20.0.0 || ^21.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/b3395c2d2f1fb875dd91dcd565d52ad1730b8c224bfe3ff4f641563dc0d0fe911d7dff0b1c02d2715c3627f434f85163c261bf218ad4d46618a6f322972aa2cc
+  checksum: 10c0/6acfc033f7817f0237968fcc5e24500d949afecf88e3d6e20fcbcdeeac4747942a97e210475511d96db1157519df4e5089d8a36e2f1ad53fad5169bb452c0b40
   languageName: node
   linkType: hard
 
@@ -13426,8 +13426,8 @@ __metadata:
     "@angular/compiler-cli": "npm:20.3.16"
     "@angular/core": "npm:20.3.16"
     "@angular/forms": "npm:20.3.16"
-    "@angular/material": "npm:19.2.7"
-    "@angular/material-moment-adapter": "npm:19.2.7"
+    "@angular/material": "npm:20.2.14"
+    "@angular/material-moment-adapter": "npm:20.2.14"
     "@angular/platform-browser": "npm:20.3.16"
     "@angular/platform-browser-dynamic": "npm:20.3.16"
     "@angular/router": "npm:20.3.16"
