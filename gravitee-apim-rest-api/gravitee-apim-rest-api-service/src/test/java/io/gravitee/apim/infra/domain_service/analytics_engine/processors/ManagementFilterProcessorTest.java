@@ -20,11 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.List;
-import java.util.UUID;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -33,35 +31,34 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class ManagementFilterPreProcessorTest {
+public class ManagementFilterProcessorTest extends AbstractFilterProcessor {
 
-    private final FilterPreProcessor filterPreProcessor = new ManagementFilterPreProcessor();
+    static final String API_ID1 = "api-id1";
+    static final String API_ID2 = "api-id2";
 
-    AuditInfo buildAuditInfo(String userId) {
-        var actor = AuditActor.builder().userId(userId).build();
-        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    static final String API_NAME1 = "api1";
+    static final String API_NAME2 = "api2";
+
+    List<Api> apis = List.of(Api.builder().id(API_ID1).name(API_NAME1).build(), Api.builder().id(API_ID2).name(API_NAME2).build());
+
+    List<String> apiIds = List.of(API_ID1, API_ID2);
+
+    MetricsContext metricsContext;
+
+    private final FilterPreProcessor managementFilterPreProcessor = new ManagementFilterPreProcessor();
+
+    @BeforeEach
+    void setUp() {
+        metricsContext = new MetricsContext(auditInfo).withApis(apis);
     }
 
     @Test
     public void should_return_allowed_apis() {
-        var auditInfo = buildAuditInfo(UUID.randomUUID().toString());
-
-        List<Api> adminApis = List.of(
-            Api.builder().id("id1").name("api1").build(),
-            Api.builder().id("id2").name("api2").build(),
-            Api.builder().id("id3").name("api3").build()
-        );
-
-        MetricsContext context = new MetricsContext(auditInfo).withApis(adminApis);
-        var filters = filterPreProcessor.buildFilters(context, List.of());
+        var filters = managementFilterPreProcessor.buildFilters(metricsContext, List.of());
 
         assertThat(filters).size().isEqualTo(1);
 
         var value = filters.getFirst().value();
-        assertThat(value).asInstanceOf(InstanceOfAssertFactories.LIST).containsExactlyInAnyOrderElementsOf(apiIds(adminApis));
-    }
-
-    private static List<String> apiIds(List<Api> apis) {
-        return apis.stream().map(Api::getId).toList();
+        assertThat(value).asInstanceOf(InstanceOfAssertFactories.LIST).containsExactlyInAnyOrderElementsOf(apiIds);
     }
 }
