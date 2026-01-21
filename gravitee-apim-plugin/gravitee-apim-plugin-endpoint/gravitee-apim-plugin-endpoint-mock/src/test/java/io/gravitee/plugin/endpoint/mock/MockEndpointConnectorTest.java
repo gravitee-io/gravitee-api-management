@@ -100,6 +100,7 @@ class MockEndpointConnectorTest {
 
         // get Logback Logger
         Logger logger = (Logger) LoggerFactory.getLogger(MockEndpointConnector.class);
+        lenient().when(ctx.withLogger(any())).thenReturn(logger);
 
         // create and start a ListAppender
         listAppender = new ListAppender<>();
