@@ -12717,7 +12717,7 @@ __metadata:
     ng-file-upload: "npm:12.2.13"
     ng2-charts: "npm:8.0.0"
     ngclipboard: "npm:2.0.0"
-    ngx-file-helpers: "npm:12.0.0"
+    ngx-file-helpers: "npm:14.0.1"
     ngx-markdown: "npm:17.2.1"
     oidc-client-ts: "npm:2.4.1"
     openapi-types: "npm:12.1.3"
@@ -16375,15 +16375,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-file-helpers@npm:12.0.0":
-  version: 12.0.0
-  resolution: "ngx-file-helpers@npm:12.0.0"
+"ngx-file-helpers@npm:14.0.1":
+  version: 14.0.1
+  resolution: "ngx-file-helpers@npm:14.0.1"
   dependencies:
-    tslib: "npm:^2.6.3"
+    tslib: "npm:^2.8.1"
   peerDependencies:
-    "@angular/common": ^18.0.0
-    "@angular/core": ^18.0.0
-  checksum: 10c0/764789455105c76e996005202967b7404331592f5e613c7918978fc65639832eeac09a2a42c8fc9309366effde5fee5f1d4bd32b685697d778c13846a04a8f5d
+    "@angular/common": ^20.0.0
+    "@angular/core": ^20.0.0
+  checksum: 10c0/0a0a6c46374f1d5d1dfe6ab61c03ce193b7bc17e3633e28154c15121d0ac5a2e6452e5210dec8315925432ede74582cf11b40bc53972b4bf91c0b70d0c46109c
   languageName: node
   linkType: hard
 
