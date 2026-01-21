@@ -109,6 +109,7 @@ public class ApiExport {
     private ApiLifecycleState lifecycleState;
     private WorkflowState workflowState;
     private boolean disableMembershipNotifications;
+    private Boolean allowInApiProduct;
     private String background;
     private String backgroundUrl;
 
@@ -140,7 +141,7 @@ public class ApiExport {
         if (ApiType.NATIVE.equals(type)) {
             return null;
         }
-        return io.gravitee.definition.model.v4.Api.builder()
+        var builder = io.gravitee.definition.model.v4.Api.builder()
             .analytics(analytics)
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
@@ -156,6 +157,11 @@ public class ApiExport {
             .tags(tags)
             .type(type)
             .services((ApiServices) services);
+        // Only set allowInApiProduct for V4 Proxy APIs
+        if (type == ApiType.PROXY && allowInApiProduct != null) {
+            builder.allowInApiProduct(allowInApiProduct);
+        }
+        return builder;
     }
 
     public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {

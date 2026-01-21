@@ -107,6 +107,7 @@ public interface GraviteeDefinitionAdapter {
         expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
     )
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "allowInApiProduct", source = "apiEntity.apiDefinitionHttpV4.allowInApiProduct")
     @Mapping(target = "primaryOwner", source = "primaryOwner")
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")
