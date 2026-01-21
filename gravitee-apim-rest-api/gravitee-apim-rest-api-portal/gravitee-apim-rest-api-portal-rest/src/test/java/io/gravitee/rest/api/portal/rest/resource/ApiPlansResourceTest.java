@@ -61,7 +61,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setVisibility(Visibility.PUBLIC);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -166,7 +166,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
 
         final Response response = target(API).path("plans").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

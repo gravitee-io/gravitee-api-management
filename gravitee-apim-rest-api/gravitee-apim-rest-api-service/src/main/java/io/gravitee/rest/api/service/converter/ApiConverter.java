@@ -78,7 +78,7 @@ public class ApiConverter {
         this.workflowService = workflowService;
     }
 
-    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
+    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity, boolean withApiCategories) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -91,7 +91,9 @@ public class ApiConverter {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        }
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode(), api.getSyncFrom()));
 
         if (api.getDefinition() != null) {
@@ -166,9 +168,10 @@ public class ApiConverter {
         Api api,
         PrimaryOwnerEntity primaryOwner,
         boolean withApiFlows,
-        boolean withPlans
+        boolean withPlans,
+        boolean withApiCategories
     ) {
-        ApiEntity apiEntity = toApiEntity(api, primaryOwner);
+        ApiEntity apiEntity = toApiEntity(api, primaryOwner, withApiCategories);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
             apiEntity.setDefinitionContext(
@@ -186,7 +189,9 @@ public class ApiConverter {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        }
 
         if (
             parameterService.findAsBoolean(
