@@ -20,14 +20,24 @@ $indent-base: 4px;
 $folder-indent-step: 26px;
 $indent-step: 26px;
 
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .tree {
   &__row {
     position: relative;
     display: flex;
     overflow: hidden;
     align-items: center;
+    justify-content: flex-start;
     padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
+    border: none;
     border-radius: 5px;
+    background: none;
+    color: inherit;
     cursor: pointer;
 
     &.folder {
@@ -40,23 +50,8 @@ $indent-step: 26px;
 
     &.selected {
       color: #{theme.$primary-main-color};
-
-      .tree__button.more-actions {
-        opacity: 1;
-        visibility: visible;
-      }
+      font-weight: 600;
     }
-
-    &:hover {
-      background-color: #{theme.$primary-highlight-color};
-    }
-  }
-
-  &__button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
   }
 
   &__icon {
@@ -83,6 +78,8 @@ $indent-step: 26px;
     color: unset;
     gap: 6px;
     text-decoration: none;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
 
     &__icon {
       width: 14px;

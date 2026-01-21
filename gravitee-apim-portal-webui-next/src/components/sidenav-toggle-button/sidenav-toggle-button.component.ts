@@ -29,7 +29,7 @@ import { MatButton } from '@angular/material/button';
   `,
   styles: [
     `
-      @use '../../../../../scss/theme' as app-theme;
+      @use '../../scss/theme' as app-theme;
       @use '@angular/material' as mat;
 
       button {

@@ -59,6 +59,14 @@
       <a class="mobile-menu__link" i18n="@@applications" [routerLink]="['applications']" routerLinkActive="active" (click)="closeMenu()"
         >Applications</a
       >
+      <a
+        class="mobile-menu__link"
+        i18n="@@subscriptions"
+        [routerLink]="['dashboard', 'subscriptions']"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        >Subscriptions</a
+      >
       <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['log-out']" routerLinkActive="active" (click)="closeMenu()"
         >Log out</a
       >

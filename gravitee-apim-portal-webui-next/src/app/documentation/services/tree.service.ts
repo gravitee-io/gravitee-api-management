@@ -15,8 +15,8 @@
  */
 import { Injectable } from '@angular/core';
 
+import { Breadcrumb } from '../../../components/breadcrumbs/breadcrumbs.component';
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/portal-navigation/portal-navigation-item';
-import { Breadcrumb } from '../components/documentation-folder/breadcrumb/breadcrumbs.component';
 
 export interface TreeNode {
   id: string;
