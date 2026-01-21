@@ -2938,29 +2938,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@danielmoncada/angular-datetime-picker-moment-adapter@npm:6.0.2":
-  version: 6.0.2
-  resolution: "@danielmoncada/angular-datetime-picker-moment-adapter@npm:6.0.2"
+"@danielmoncada/angular-datetime-picker-moment-adapter@npm:7.0.1":
+  version: 7.0.1
+  resolution: "@danielmoncada/angular-datetime-picker-moment-adapter@npm:7.0.1"
   dependencies:
     tslib: "npm:^2.8.1"
   peerDependencies:
-    "@angular/common": ^19.0.0
-    "@angular/core": ^19.0.0
+    "@angular/common": ^20.0.0
+    "@angular/core": ^20.0.0
     moment: ^2.30.1
-  checksum: 10c0/0904b72a7d924c5598335ad301240eaeaeb5fe2e5cffa932d88a53df7a7b45250f9f5288b118a72287ff55308ffae8338441db120d5071cfda6ed8dcf0cc6593
+  checksum: 10c0/e89735202932b69961cb89354480c4ff79f9664204177fe3b7400b666831af95744d6a2a881f7cc52c68aba01162a8bca173fb04a639cb3273e8d687f8dacb4b
   languageName: node
   linkType: hard
 
-"@danielmoncada/angular-datetime-picker@npm:19.0.0":
-  version: 19.0.0
-  resolution: "@danielmoncada/angular-datetime-picker@npm:19.0.0"
+"@danielmoncada/angular-datetime-picker@npm:20.0.1":
+  version: 20.0.1
+  resolution: "@danielmoncada/angular-datetime-picker@npm:20.0.1"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@angular/cdk": ^19.0.0
-    "@angular/common": ^19.0.0
-    "@angular/core": ^19.0.0
-  checksum: 10c0/775f033c3ad72c5011d1a9a5f4c67df4036327fb6ba38c7ab8ce16590d779efead232cb41fda8f0d04808472bfd482223838b86a6538002bf179b24dcc51d07c
+    "@angular/cdk": ^19.0.0 || ^20.0.0
+    "@angular/common": ^19.0.0 || ^20.0.0
+    "@angular/core": ^19.0.0 || ^20.0.0
+  checksum: 10c0/3830b149c8b6264b4e2328682616c3f7e31bd92f6986d6c530e907c72a649df81fb72cba5d3d430a84f6aa6f6deca447cfef6130ab53dedbc48ef9cf09890731
   languageName: node
   linkType: hard
 
@@ -13434,8 +13434,8 @@ __metadata:
     "@angular/upgrade": "npm:20.3.16"
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:2.6.3"
-    "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
-    "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
+    "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
+    "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/gravitee-dashboard": "portal:dist-lib/gravitee-dashboard"
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
