@@ -244,12 +244,12 @@ public class SearchIndexInitializerTest {
                     );
             } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                 lenient()
-                    .when(apiConverter.toApiEntity(any(), any(), any(), eq(false), eq(false)))
+                    .when(apiConverter.toApiEntity(any(), any(), any(), eq(false), eq(false), eq(true)))
                     .thenReturn(
                         ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
                     );
                 lenient()
-                    .when(apiConverter.toApiEntity(any(), any()))
+                    .when(apiConverter.toApiEntity(any(), any(), eq(true)))
                     .thenReturn(
                         ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
                     );

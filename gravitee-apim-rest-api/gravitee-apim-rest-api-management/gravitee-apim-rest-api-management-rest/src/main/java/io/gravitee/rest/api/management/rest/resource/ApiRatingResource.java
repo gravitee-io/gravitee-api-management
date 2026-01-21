@@ -74,7 +74,7 @@ public class ApiRatingResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
         if (
             PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
@@ -99,7 +99,7 @@ public class ApiRatingResource extends AbstractResource {
             return null;
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
         if (
             PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
@@ -116,7 +116,7 @@ public class ApiRatingResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public RatingSummaryEntity getApiRatingSummaryByApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
         if (
             PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)

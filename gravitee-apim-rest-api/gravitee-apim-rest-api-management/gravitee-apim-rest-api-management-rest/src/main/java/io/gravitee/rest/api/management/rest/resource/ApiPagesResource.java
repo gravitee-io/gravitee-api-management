@@ -97,7 +97,7 @@ public class ApiPagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
 
         if (
             Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) ||

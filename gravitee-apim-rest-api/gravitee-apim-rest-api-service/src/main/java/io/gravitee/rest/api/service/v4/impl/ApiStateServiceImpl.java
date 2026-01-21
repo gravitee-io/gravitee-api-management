@@ -551,6 +551,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                             payloadEntity,
                             null,
                             false,
+                            false,
                             false
                         );
 
@@ -563,11 +564,18 @@ public class ApiStateServiceImpl implements ApiStateService {
                             apiEntity
                         );
                     } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
-                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false, false);
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false, false, false);
 
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
                     } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
-                        NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(executionContext, payloadEntity, null, false, false);
+                        NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(
+                            executionContext,
+                            payloadEntity,
+                            null,
+                            false,
+                            false,
+                            false
+                        );
 
                         sync = synchronizationService.checkSynchronization(NativeApiEntity.class, deployedApiEntity, nativeApiEntity);
                     }

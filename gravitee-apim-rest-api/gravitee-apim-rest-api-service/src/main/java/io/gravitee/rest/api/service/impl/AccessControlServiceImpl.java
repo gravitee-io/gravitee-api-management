@@ -82,7 +82,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
 
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId) {
-        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiId, false, false);
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
         return canAccessApiFromPortal(executionContext, genericApi);
     }
 
@@ -140,7 +140,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return false;
         }
         if (apiId != null) {
-            final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false);
+            final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
             return canAccessPage(executionContext, genericApiEntity, pageEntity);
         }
         return canAccessPage(executionContext, null, pageEntity);

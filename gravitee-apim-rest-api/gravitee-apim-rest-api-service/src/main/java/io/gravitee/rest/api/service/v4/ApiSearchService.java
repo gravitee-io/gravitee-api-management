@@ -41,7 +41,8 @@ public interface ApiSearchService {
         final ExecutionContext executionContext,
         final String apiId,
         final boolean withApiFlows,
-        final boolean withPlans
+        final boolean withPlans,
+        final boolean withApiCategories
     );
 
     Api findV4RepositoryApiById(ExecutionContext executionContext, String apiId);

@@ -66,7 +66,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
     @Override
     public GenericApiModel findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         return switch (genericApiEntity.getDefinitionVersion()) {
             case FEDERATED, FEDERATED_AGENT -> {
