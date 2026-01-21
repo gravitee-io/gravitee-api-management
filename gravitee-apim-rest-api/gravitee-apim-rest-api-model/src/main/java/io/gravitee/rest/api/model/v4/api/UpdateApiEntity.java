@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
@@ -190,6 +191,25 @@ public class UpdateApiEntity {
     private ApiLifecycleState lifecycleState;
 
     private boolean disableMembershipNotifications;
+
+    @Schema(
+        description = "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
+        example = "false"
+    )
+    private Boolean allowInApiProduct;
+
+    /**
+     * Custom getter that returns null for non-V4-Proxy APIs to ensure the key is omitted from JSON.
+     * Jackson's @JsonInclude(NON_NULL) will skip serializing this field when null.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Boolean getAllowInApiProduct() {
+        // Strict enforcement: if it's not V4 or not PROXY, return null so Jackson skips the key
+        if (this.definitionVersion == DefinitionVersion.V4 && this.type == ApiType.PROXY) {
+            return allowInApiProduct;
+        }
+        return null;
+    }
 
     @Schema(description = "the API background encoded in base64")
     private String background;

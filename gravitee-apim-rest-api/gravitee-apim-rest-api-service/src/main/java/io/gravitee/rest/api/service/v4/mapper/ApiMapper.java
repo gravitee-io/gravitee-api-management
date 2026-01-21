@@ -129,6 +129,15 @@ public class ApiMapper {
                 apiEntity.setFlows(apiDefinition.getFlows());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
+                // Only set allowInApiProduct for V4 Proxy APIs - the custom getter will return null for others
+                if (
+                    apiDefinition.getType() == ApiType.PROXY &&
+                    apiDefinition.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4
+                ) {
+                    apiEntity.setAllowInApiProduct(apiDefinition.isAllowInApiProduct());
+                } else {
+                    apiEntity.setAllowInApiProduct(null);
+                }
             } catch (IOException ioe) {
                 log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }
@@ -402,6 +411,13 @@ public class ApiMapper {
             apiDefinition.setFailover(newApiEntity.getFailover());
             apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
+            // Default allowInApiProduct to true for new V4 Proxy APIs
+            if (
+                newApiEntity.getType() == ApiType.PROXY &&
+                newApiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4
+            ) {
+                apiDefinition.setAllowInApiProduct(true);
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -483,6 +499,16 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
+            // Only set allowInApiProduct for V4 Proxy APIs - use the custom getter which returns null for others
+            if (
+                updateApiEntity.getType() == ApiType.PROXY &&
+                updateApiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4
+            ) {
+                Boolean allowInApiProduct = updateApiEntity.getAllowInApiProduct();
+                apiDefinition.setAllowInApiProduct(allowInApiProduct != null ? allowInApiProduct : false);
+            } else {
+                // Don't set it for non-V4-Proxy APIs (will default to false in definition model)
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -562,6 +588,16 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
+            // Only set allowInApiProduct for V4 Proxy APIs - use the custom getter which returns null for others
+            if (
+                apiEntity.getType() == ApiType.PROXY &&
+                apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4
+            ) {
+                Boolean allowInApiProduct = apiEntity.getAllowInApiProduct();
+                apiDefinition.setAllowInApiProduct(allowInApiProduct != null ? allowInApiProduct : false);
+            } else {
+                // Don't set it for non-V4-Proxy APIs (will default to false in definition model)
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
