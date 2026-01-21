@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, Input, OnDestroy, OnInit, DOCUMENT } from '@angular/core';
 import { flatten, sortBy } from 'lodash';
 import { fromEvent, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, shareReplay, takeUntil, tap } from 'rxjs/operators';
