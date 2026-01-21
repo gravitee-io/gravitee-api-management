@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
 import io.gravitee.apim.infra.domain_service.analytics_engine.MetricsContextManagerImpl;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypePreProcessor;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -55,7 +56,7 @@ public class RestManagementConfiguration {
 
     @Bean
     public List<FilterPreProcessor> filterPreProcessors() {
-        return List.of(new ManagementFilterPreProcessor());
+        return List.of(new ManagementFilterPreProcessor(), new ApiTypePreProcessor());
     }
 
     @Bean
