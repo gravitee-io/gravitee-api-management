@@ -2245,4 +2245,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private static String computeUserPermissionsCacheKey(String referenceType, String referenceId, String userId) {
         return referenceType + "#" + referenceId + "#" + userId;
     }
+
+    @Override
+    public void invalidateCacheForRole(String roleId) {
+        try {
+            Set<io.gravitee.repository.management.model.Membership> membershipsWithRole = membershipRepository.findByRoleId(roleId);
+            for (io.gravitee.repository.management.model.Membership membership : membershipsWithRole) {
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("Error invalidating cache for role {}", roleId, ex);
+        }
+    }
 }
