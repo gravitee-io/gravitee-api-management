@@ -121,8 +121,8 @@ describe('ApiPlanListComponent', () => {
       it('should display an empty table', fakeAsync(async () => {
         await initComponent([]);
 
-        const { headerCells, rowCells } = await computePlansTableCells();
-        expect(headerCells).toEqual([
+        const headerAndRowCells = await computePlansTableCells();
+        expect(headerAndRowCells.headerCells).toEqual([
           {
             'drag-icon': '',
             name: 'Name',
@@ -132,7 +132,10 @@ describe('ApiPlanListComponent', () => {
             actions: '',
           },
         ]);
-        expect(rowCells).toEqual([['There is no plan (yet).']]);
+
+        const table = await loader.getHarness(MatTableHarness);
+        const tableHost = await table.host();
+        expect(await tableHost.text()).toContain('There is no plan (yet).');
       }));
 
       it('should display a table with one row', fakeAsync(async () => {
@@ -216,8 +219,9 @@ describe('ApiPlanListComponent', () => {
 
         expectApiPlansListRequest([], 'STAGING');
 
-        const { rowCells } = await computePlansTableCells();
-        expect(rowCells).toEqual([['There is no plan (yet).']]);
+        const table = await loader.getHarness(MatTableHarness);
+        const tableHost = await table.host();
+        expect(await tableHost.text()).toContain('There is no plan (yet).');
       }));
     });
 
@@ -474,7 +478,7 @@ describe('ApiPlanListComponent', () => {
       it('should display an empty table', fakeAsync(async () => {
         await initComponent([], asyncApi);
 
-        const { headerCells, rowCells } = await computePlansTableCells();
+        const { headerCells } = await computePlansTableCells();
         expect(headerCells).toEqual([
           {
             'drag-icon': '',
@@ -485,7 +489,10 @@ describe('ApiPlanListComponent', () => {
             actions: '',
           },
         ]);
-        expect(rowCells).toEqual([['There is no plan (yet).']]);
+
+        const table = await loader.getHarness(MatTableHarness);
+        const tableHost = await table.host();
+        expect(await tableHost.text()).toContain('There is no plan (yet).');
       }));
 
       it('should display a table with one row', fakeAsync(async () => {
@@ -699,7 +706,7 @@ describe('ApiPlanListComponent', () => {
       it('should display an empty table', fakeAsync(async () => {
         await initComponent([], federatedApi);
 
-        const { headerCells, rowCells } = await computePlansTableCells();
+        const { headerCells } = await computePlansTableCells();
         expect(headerCells).toEqual([
           {
             'drag-icon': '',
@@ -710,7 +717,10 @@ describe('ApiPlanListComponent', () => {
             actions: '',
           },
         ]);
-        expect(rowCells).toEqual([['There is no plan (yet).']]);
+
+        const table = await loader.getHarness(MatTableHarness);
+        const tableHost = await table.host();
+        expect(await tableHost.text()).toContain('There is no plan (yet).');
       }));
 
       it('should display a table with plans', fakeAsync(async () => {

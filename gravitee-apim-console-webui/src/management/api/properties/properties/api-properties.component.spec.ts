@@ -82,11 +82,9 @@ describe('ApiPropertiesComponent', () => {
   it('should display properties', async () => {
     expect(component).toBeTruthy();
 
-    loader.getHarness(DivHarness.with({}));
     const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
-
-    const loadingRow = await table.getCellTextByIndex();
-    expect(loadingRow).toEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
 
     expectGetApi(
       fakeApiV4({

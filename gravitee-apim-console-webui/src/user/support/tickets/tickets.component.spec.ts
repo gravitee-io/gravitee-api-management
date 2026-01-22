@@ -51,7 +51,10 @@ describe('TicketsComponent', () => {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#ticketsTable' }));
     const rows = await table.getRows();
     const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
-    expect(rowCells).toStrictEqual([['There are no tickets (yet).']]);
+    expect(rowCells).toHaveLength(0);
+
+    const tableElement = await table.host();
+    expect(await tableElement.text()).toContain('There are no tickets (yet).');
   });
 
   it('should display tickets', async () => {

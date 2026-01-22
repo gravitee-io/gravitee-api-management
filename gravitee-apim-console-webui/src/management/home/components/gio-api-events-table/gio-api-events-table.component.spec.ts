@@ -24,7 +24,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { GioApiEventsTableModule } from './gio-api-events-table.module';
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';
-import { SEARCH_RESPONSE } from './gio-api-events-table.stories';
+import { MOCK_SEARCH_RESPONSE } from './gio-api-events-table.util';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
@@ -62,7 +62,7 @@ describe('GioApiEventsTableComponent', () => {
   it('should init', async () => {
     const tableHarness = await loader.getHarness(MatTableHarness);
     // Expect Loading state
-    expect((await tableHarness.getRows()).length).toEqual(1);
+    expect((await tableHarness.getRows()).length).toEqual(0);
 
     // Expect table with data
     expectSearchApiEventsRequest();
@@ -88,6 +88,6 @@ describe('GioApiEventsTableComponent', () => {
 
       url: `${CONSTANTS_TESTING.env.baseURL}/platform/events?type=START_API,STOP_API,PUBLISH_API,UNPUBLISH_API&query=&api_ids=&from=1691565599784&to=1694157599784&page=0&size=5`,
     });
-    req.flush(SEARCH_RESPONSE);
+    req.flush(MOCK_SEARCH_RESPONSE);
   }
 });
