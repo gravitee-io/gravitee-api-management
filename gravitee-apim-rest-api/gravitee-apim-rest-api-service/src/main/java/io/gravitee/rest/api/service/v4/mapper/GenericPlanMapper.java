@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -73,13 +74,15 @@ public class GenericPlanMapper {
     public GenericPlanEntity toGenericPlanWithFlow(final GenericApiEntity api, final Plan plan) {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
-            case V4 -> switch (((ApiEntity) api).getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(
-                    plan,
-                    flowService.findByReference(FlowReferenceType.PLAN, plan.getId())
-                );
-                case NATIVE -> planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
-            };
+            case V4 -> {
+                if (api instanceof NativeApiEntity) {
+                    yield planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
+                }
+                if (api instanceof ApiEntity) {
+                    yield planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+                }
+                throw new IllegalStateException("Unsupported GenericApiEntity type");
+            }
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
@@ -100,10 +103,15 @@ public class GenericPlanMapper {
     public GenericPlanEntity toGenericPlanWithoutFlow(final GenericApiEntity api, final Plan plan) {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
-            case V4 -> switch (((ApiEntity) api).getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
-                case NATIVE -> planMapper.toNativeEntity(plan, null);
-            };
+            case V4 -> {
+                if (api instanceof NativeApiEntity) {
+                    yield planMapper.toNativeEntity(plan, null);
+                }
+                if (api instanceof ApiEntity) {
+                    yield planMapper.toEntity(plan, null);
+                }
+                throw new IllegalStateException("Unsupported GenericApiEntity type");
+            }
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, null);
         };
