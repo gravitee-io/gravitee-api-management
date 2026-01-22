@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Arrays;
@@ -61,6 +62,9 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private MembershipService membershipService;
 
     @Test
     public void shouldCreateSystemRole() throws TechnicalException {
