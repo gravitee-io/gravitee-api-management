@@ -48,6 +48,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,6 +70,7 @@ class OAIToImportApiUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final ImportConfiguration importConfiguration = mock(ImportConfiguration.class);
     private OAIToImportApiUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -117,7 +119,8 @@ class OAIToImportApiUseCaseTest {
                 groupQueryService,
                 tagQueryService,
                 endpointConnectorPluginService,
-                policyPluginCrudService
+                policyPluginCrudService,
+                importConfiguration
             ),
             importDefinitionCreateDomainServiceTestInitializer.initialize()
         );

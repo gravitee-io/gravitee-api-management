@@ -52,16 +52,29 @@
       </div>
 
       <div class="import__row">
-        <h3>File</h3>
-        <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
-          <div class="import__file-picker">
-            <mat-icon svgIcon="gio:upload"></mat-icon>
-            <p class="mat-body-strong">Drag and drop a file</p>
-            <p class="mat-body">Supported file formats: yml, yaml, json</p>
-          </div>
-        </api-import-file-picker>
-        @if (form.hasError('mismatchFileFormat')) {
-          <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+        <h3>@if (form.controls.source.value === 'remote') { URL } @else { File }</h3>
+        @if (form.controls.source.value === 'remote') {
+          <mat-form-field appearance="outline" class="import__url-field">
+            <mat-label>API Definition URL</mat-label>
+            <input matInput type="url" formControlName="url" placeholder="https://example.com/api-definition.json" />
+            @if (form.controls.url.hasError('required') && form.controls.url.touched) {
+              <mat-error>URL is required</mat-error>
+            }
+            @if (form.controls.url.hasError('pattern') && form.controls.url.touched) {
+              <mat-error>Please enter a valid URL starting with http:// or https://</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
+            <div class="import__file-picker">
+              <mat-icon svgIcon="gio:upload"></mat-icon>
+              <p class="mat-body-strong">Drag and drop a file</p>
+              <p class="mat-body">Supported file formats: yml, yaml, json</p>
+            </div>
+          </api-import-file-picker>
+          @if (form.hasError('mismatchFileFormat')) {
+            <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+          }
         }
       </div>
 
@@ -97,7 +110,7 @@
           color="primary"
           class="import__save-button"
           aria-label="Import API"
-          [disabled]="form.invalid || !importType"
+          [disabled]="form.invalid || (form.controls.source.value === 'local' && !importType)"
           (click)="import()"
         >
           Import API

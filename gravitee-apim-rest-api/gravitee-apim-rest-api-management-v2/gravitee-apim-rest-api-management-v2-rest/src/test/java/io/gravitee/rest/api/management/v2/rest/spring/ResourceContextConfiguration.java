@@ -186,6 +186,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -199,6 +200,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -1059,5 +1061,39 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public HttpClientService httpClientService() {
+        return mock(HttpClientService.class);
+    }
+
+    @Bean
+    public ImportConfiguration importConfiguration() {
+        return mock(ImportConfiguration.class);
+    }
+
+    @Bean
+    public io.gravitee.apim.core.api.domain_service.FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService(
+        HttpClientService httpClientService
+    ) {
+        return new io.gravitee.apim.infra.domain_service.api.FetchApiDefinitionFromUrlDomainServiceImpl(httpClientService);
+    }
+
+    @Bean
+    public io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase importApiDefinitionFromUrlUseCase(
+        io.gravitee.apim.core.api.domain_service.FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService
+    ) {
+        return new io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase(fetchApiDefinitionFromUrlDomainService);
+    }
+
+    @Bean
+    public io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase importApiDefinitionUseCase() {
+        return mock(io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase.class);
+    }
+
+    @Bean
+    public com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
+        return new io.gravitee.definition.jackson.datatype.GraviteeMapper();
     }
 }

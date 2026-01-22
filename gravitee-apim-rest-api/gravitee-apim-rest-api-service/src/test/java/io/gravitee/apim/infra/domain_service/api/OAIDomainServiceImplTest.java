@@ -16,10 +16,15 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -27,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class OAIDomainServiceImplTest {
@@ -36,10 +42,14 @@ class OAIDomainServiceImplTest {
 
     private OAIDomainServiceImpl oaiDomainService;
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
+    private ImportConfiguration importConfiguration;
 
     @BeforeEach
     void setUp() {
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null);
+        importConfiguration = mock(ImportConfiguration.class);
+        when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null, importConfiguration);
     }
 
     @ParameterizedTest
@@ -66,5 +76,68 @@ class OAIDomainServiceImplTest {
         assertThatThrownBy(() ->
             oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
         ).isExactlyInstanceOf(SwaggerDescriptorException.class);
+    }
+
+    @Test
+    void should_validate_url_when_payload_is_a_url() {
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        String privateUrl = "http://localhost:8080/swagger.json";
+        importSwaggerDescriptor.setPayload(privateUrl);
+
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isExactlyInstanceOf(UrlForbiddenException.class);
+    }
+
+    @Test
+    void should_allow_private_url_when_configured() {
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        String privateUrl = "http://localhost:8080/swagger.json";
+        importSwaggerDescriptor.setPayload(privateUrl);
+
+        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+            .isInstanceOf(SwaggerDescriptorException.class)
+            .hasMessage("Malformed descriptor");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "https://example.com/swagger.json", "http://example.com/api.yaml", "https://api.example.com/openapi.json" })
+    void should_allow_public_urls(String publicUrl) {
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload(publicUrl);
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void should_allow_whitelisted_url() {
+        String whitelistedUrl = "http://localhost:8080/swagger.json";
+        when(importConfiguration.getImportWhitelist()).thenReturn(Collections.singletonList("http://localhost:8080"));
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload(whitelistedUrl);
+
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isInstanceOf(SwaggerDescriptorException.class);
+    }
+
+    @Test
+    void should_not_validate_url_when_payload_is_not_a_url() {
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        String jsonPayload = """
+            {
+              "openapi": "3.0.0",
+              "info": {
+                "title": "Test API",
+                "version": "1.0.0"
+              }
+            }
+            """;
+        importSwaggerDescriptor.setPayload(jsonPayload);
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isNotInstanceOf(UrlForbiddenException.class);
     }
 }

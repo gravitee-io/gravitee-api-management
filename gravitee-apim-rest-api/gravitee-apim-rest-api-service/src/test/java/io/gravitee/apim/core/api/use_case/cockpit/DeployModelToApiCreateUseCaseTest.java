@@ -60,6 +60,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.io.IOException;
 import java.net.URL;
@@ -95,6 +96,7 @@ public class DeployModelToApiCreateUseCaseTest {
 
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final ImportConfiguration importConfiguration = mock(ImportConfiguration.class);
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -199,7 +201,8 @@ public class DeployModelToApiCreateUseCaseTest {
             groupQueryService,
             tagQueryService,
             endpointConnectorPluginService,
-            policyPluginCrudService
+            policyPluginCrudService,
+            importConfiguration
         );
         final var importDefinitionCreateDomainService = importDefinitionCreateDomainServiceTestInitializer.initialize();
         final var updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);

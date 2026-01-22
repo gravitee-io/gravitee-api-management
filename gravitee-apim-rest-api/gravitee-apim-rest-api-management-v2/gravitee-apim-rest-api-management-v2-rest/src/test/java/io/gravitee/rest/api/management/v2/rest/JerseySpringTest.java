@@ -135,6 +135,10 @@ public abstract class JerseySpringTest {
                 @Override
                 protected void configure() {
                     bind(response).to(HttpServletResponse.class);
+                    // Bind ObjectMapper for Jersey @Inject to work
+                    bind(new io.gravitee.definition.jackson.datatype.GraviteeMapper()).to(
+                        com.fasterxml.jackson.databind.ObjectMapper.class
+                    );
                 }
             }
         );

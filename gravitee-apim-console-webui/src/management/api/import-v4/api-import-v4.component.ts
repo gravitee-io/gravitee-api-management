@@ -19,6 +19,8 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, 
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
@@ -40,6 +42,8 @@ import { PolicyV2Service } from '../../../services-ngx/policy-v2.service';
     GioIconsModule,
     MatButtonModule,
     MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatTooltipModule,
     ReactiveFormsModule,
     RouterModule,
@@ -68,12 +72,13 @@ export class ApiImportV4Component implements OnInit {
   ];
   protected sources = [
     { value: 'local', label: 'Local file', icon: 'gio:laptop', disabled: false },
-    { value: 'remote', label: 'Remote source', icon: 'gio:language', disabled: true },
+    { value: 'remote', label: 'Remote source', icon: 'gio:language', disabled: false },
   ];
   protected form = new FormGroup(
     {
       format: new FormControl('gravitee', [Validators.required]),
       source: new FormControl('local', [Validators.required]),
+      url: new FormControl('', [Validators.pattern(/^https?:\/\/.+/)]),
       withDocumentation: new FormControl({ value: false, disabled: true }),
       withOASValidationPolicy: new FormControl({ value: false, disabled: true }),
     },
@@ -96,6 +101,16 @@ export class ApiImportV4Component implements OnInit {
         this.form.get('withOASValidationPolicy').enable();
       }
     });
+
+    this.form.controls['source'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+      if (value === 'remote') {
+        this.form.get('url').setValidators([Validators.required, Validators.pattern(/^https?:\/\/.+/)]);
+      } else {
+        this.form.get('url').clearValidators();
+        this.form.get('url').setValue('');
+      }
+      this.form.get('url').updateValueAndValidity();
+    });
   }
 
   protected onImportFile({ importFileContent, importType }: { importFileContent: string; importType: string }) {
@@ -106,20 +121,27 @@ export class ApiImportV4Component implements OnInit {
 
   protected import() {
     let result: Observable<ApiV4>;
-    if (this.form.controls.source.value === 'local' && this.form.controls.format.value === 'gravitee' && this.importType === 'MAPI_V2') {
+    const isRemote = this.form.controls.source.value === 'remote';
+    const payload = isRemote ? this.form.controls.url.value : this.importFileContent;
+
+    if (isRemote && this.form.controls.format.value === 'gravitee') {
+      result = this.apiV2Service.importFromUrl(payload);
+    } else if (this.form.controls.source.value === 'local' && this.form.controls.format.value === 'gravitee' && this.importType === 'MAPI_V2') {
       result = this.apiV2Service.import(this.importFileContent);
-    } else if (
-      this.form.controls.source.value === 'local' &&
-      this.form.controls.format.value === 'openapi' &&
-      this.importType === 'SWAGGER'
-    ) {
-      result = this.apiV2Service.importSwaggerApi({
-        payload: this.importFileContent,
-        withDocumentation: this.form.value.withDocumentation,
-        withOASValidationPolicy: this.form.value.withOASValidationPolicy,
-      });
+    } else if (this.form.controls.format.value === 'openapi') {
+      if (isRemote || (this.form.controls.source.value === 'local' && this.importType === 'SWAGGER')) {
+        result = this.apiV2Service.importSwaggerApi({
+          payload: payload,
+          withDocumentation: this.form.value.withDocumentation,
+          withOASValidationPolicy: this.form.value.withOASValidationPolicy,
+        });
+      } else {
+        this.snackBarService.error('Unsupported type for V4 API import');
+        return;
+      }
     } else {
       this.snackBarService.error('Unsupported type for V4 API import');
+      return;
     }
 
     result

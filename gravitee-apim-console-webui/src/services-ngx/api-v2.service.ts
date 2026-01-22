@@ -139,6 +139,18 @@ export class ApiV2Service {
     });
   }
 
+  importFromUrl(url: string): Observable<ApiV4> {
+    return this.http.post<ApiV4>(
+      `${this.constants.env.v2BaseURL}/apis/_import/definition-url`,
+      url,
+      {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      },
+    );
+  }
+
   importSwaggerApi(descriptor: ImportSwaggerDescriptor) {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/swagger`, descriptor, {
       headers: {

@@ -40,6 +40,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.util.Collection;
@@ -62,6 +64,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
     private final TagQueryService tagsQueryService;
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService;
     private final PolicyPluginCrudService policyPluginCrudService;
+    private final ImportConfiguration importConfiguration;
 
     @Override
     public ImportDefinition convert(
@@ -96,6 +99,15 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             throw new SwaggerDescriptorException("Payload cannot be null");
         }
 
+        // Validate URL if payload is a URL
+        if (isUrl(payload)) {
+            UrlSanitizerUtils.checkAllowed(
+                payload,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate()
+            );
+        }
+
         var descriptor = new OAIParser().parse(payload, options);
         if (descriptor == null || descriptor.getSpecification() == null) {
             throw new SwaggerDescriptorException("The API specification is not valid");
@@ -106,6 +118,15 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         }
 
         return descriptor;
+    }
+
+    private boolean isUrl(String content) {
+        try {
+            java.net.URI.create(content).toURL();
+            return true;
+        } catch (java.net.MalformedURLException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private Collection<? extends OAIOperationVisitor> getVisitors(ImportSwaggerDescriptorEntity importSwaggerDescriptor) {
