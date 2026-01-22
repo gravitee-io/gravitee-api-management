@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.reporter.api.http.Metrics;
@@ -155,7 +156,12 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public SSLSession sslSession() {
-        return request.tlsSession();
+        // V3 policies, such as SSLEnforcedPolicy, expect null for the SSLSession when the incoming request is an HTTP (non-SSL) connection.
+        TlsSession tlsSession = request.tlsSession();
+        if (tlsSession != null && tlsSession.isSSLConnection()) {
+            return tlsSession;
+        }
+        return null;
     }
 
     @Override
