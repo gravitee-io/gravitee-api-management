@@ -27,6 +27,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.handlers.api.spring.ApiProductConfiguration;
 import io.gravitee.gateway.handlers.sharedpolicygroup.spring.SharedPolicyGroupConfiguration;
 import io.gravitee.gateway.opentelemetry.spring.OpenTelemetryConfiguration;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
@@ -60,6 +61,7 @@ import org.springframework.context.annotation.Primary;
         ApiHandlerConfiguration.class,
         AccessPointConfiguration.class,
         SharedPolicyGroupConfiguration.class,
+        ApiProductConfiguration.class,
         DictionaryConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,
