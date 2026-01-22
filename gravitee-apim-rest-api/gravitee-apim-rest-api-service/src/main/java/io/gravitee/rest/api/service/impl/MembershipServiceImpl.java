@@ -333,11 +333,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 membershipRepository.create(membership);
-                invalidateRoleCache(
+                invalidateRoleCacheAndSendCommand(
                     membership.getReferenceType().name(),
                     membership.getReferenceId(),
                     membership.getMemberType().name(),
-                    membership.getMemberId()
+                    membership.getMemberId(),
+                    executionContext
                 );
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
@@ -420,16 +421,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 membershipRepository.create(membership);
-                invalidateRoleCache(
+                invalidateRoleCacheAndSendCommand(
                     membership.getReferenceType().name(),
                     membership.getReferenceId(),
                     membership.getMemberType().name(),
-                    membership.getMemberId()
+                    membership.getMemberId(),
+                    executionContext
                 );
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
-
-            this.sendInvalidateRoleCacheCommand(reference, member, executionContext);
             return userMember;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to add member for {} {}", reference.getType(), reference.getId(), ex);
@@ -440,7 +440,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private void sendInvalidateRoleCacheCommand(MembershipReference reference, MembershipMember member, ExecutionContext context) {
+    private void sendInvalidateRoleCacheCommand(
+        String referenceType,
+        String referenceId,
+        String memberType,
+        String memberId,
+        ExecutionContext context
+    ) {
         Instant timestamp = Instant.now();
         Command command = Command.builder()
             .id(UUID.random().toString())
@@ -455,7 +461,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         if (context.hasEnvironmentId()) {
             command.setEnvironmentId(context.getEnvironmentId());
         }
-        InvalidateRoleCacheCommandEntity eventData = getEventData(reference, member);
+        InvalidateRoleCacheCommandEntity eventData = getEventData(referenceType, referenceId, memberType, memberId);
 
         try {
             String content = this.objectMapper.writeValueAsString(eventData);
@@ -472,12 +478,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private static @NotNull InvalidateRoleCacheCommandEntity getEventData(MembershipReference reference, MembershipMember member) {
+    private static @NotNull InvalidateRoleCacheCommandEntity getEventData(
+        String referenceType,
+        String referenceId,
+        String memberType,
+        String memberId
+    ) {
         return InvalidateRoleCacheCommandEntity.builder()
-            .referenceId(reference.getId())
-            .referenceType(reference.getType().name())
-            .memberType(member.getMemberType().name())
-            .memberId(member.getMemberId())
+            .referenceId(referenceId)
+            .referenceType(referenceType)
+            .memberType(memberType)
+            .memberId(memberId)
             .build();
     }
 
@@ -778,11 +789,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membershipRepository.delete(membershipId);
                 createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
 
-                invalidateRoleCache(
+                invalidateRoleCacheAndSendCommand(
                     membership.getReferenceType().name(),
                     membership.getReferenceId(),
                     membership.getMemberType().name(),
-                    membership.getMemberId()
+                    membership.getMemberId(),
+                    executionContext
                 );
             }
         } catch (TechnicalException ex) {
@@ -804,11 +816,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     log.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
-                    invalidateRoleCache(
+                    invalidateRoleCacheAndSendCommand(
                         membership.getReferenceType().name(),
                         membership.getReferenceId(),
                         membership.getMemberType().name(),
-                        membership.getMemberId()
+                        membership.getMemberId(),
+                        executionContext
                     );
                 }
             }
@@ -874,11 +887,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     log.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
-                    invalidateRoleCache(
+                    invalidateRoleCacheAndSendCommand(
                         membership.getReferenceType().name(),
                         membership.getReferenceId(),
                         membership.getMemberType().name(),
-                        membership.getMemberId()
+                        membership.getMemberId(),
+                        executionContext
                     );
                 }
 
@@ -1776,7 +1790,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             for (io.gravitee.repository.management.model.Membership m : membershipsToDelete) {
                 membershipRepository.delete(m.getId());
-                invalidateRoleCache(referenceType.name(), referenceId, memberType.name(), memberId);
+                invalidateRoleCacheAndSendCommand(
+                    referenceType.name(),
+                    referenceId,
+                    memberType.name(),
+                    memberId,
+                    GraviteeContext.getExecutionContext()
+                );
             }
         } catch (TechnicalException ex) {
             log.error(
@@ -1825,11 +1845,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.create(membership);
                 }
                 membershipRepository.delete(oldMembershipId);
-                invalidateRoleCache(
+                invalidateRoleCacheAndSendCommand(
                     membership.getReferenceType().name(),
                     membership.getReferenceId(),
                     membership.getMemberType().name(),
-                    membership.getMemberId()
+                    membership.getMemberId(),
+                    GraviteeContext.getExecutionContext()
                 );
             }
         } catch (TechnicalException ex) {
@@ -1855,11 +1876,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
                 membershipRepository.delete(membership.getId());
 
-                invalidateRoleCache(
+                invalidateRoleCacheAndSendCommand(
                     membership.getReferenceType().name(),
                     membership.getReferenceId(),
                     membership.getMemberType().name(),
-                    membership.getMemberId()
+                    membership.getMemberId(),
+                    executionContext
                 );
             }
 
@@ -2192,6 +2214,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return this.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
             .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
+    }
+
+    public void invalidateRoleCacheAndSendCommand(
+        String referenceType,
+        String referenceId,
+        String memberType,
+        String memberId,
+        ExecutionContext executionContext
+    ) {
+        this.invalidateRoleCache(referenceType, referenceId, memberType, memberId);
+        this.sendInvalidateRoleCacheCommand(referenceType, referenceId, memberType, memberId, executionContext);
     }
 
     public void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId) {
