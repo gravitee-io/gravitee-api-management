@@ -598,20 +598,19 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             if (referenceIds != null && referenceIds.isEmpty()) {
                 return Set.of();
             }
-
-            final StringBuilder queryBuilder = new StringBuilder("select m.* from " + this.tableName + " m")
+            final StringBuilder queryBuilder = new StringBuilder(getOrm().getSelectAllSql())
                 .append(WHERE_CLAUSE)
-                .append(" m.member_id = ? ")
+                .append(" member_id = ? ")
                 .append(AND_CLAUSE)
-                .append(" m.member_type = ? ")
+                .append(" member_type = ? ")
                 .append(AND_CLAUSE)
-                .append(" m.reference_type = ? ");
+                .append(" reference_type = ? ");
 
             final List<Membership> memberships;
 
             if (referenceIds == null) {
                 // Null set means query for reference_id IS NULL
-                queryBuilder.append(AND_CLAUSE).append(" m.reference_id is null");
+                queryBuilder.append(AND_CLAUSE).append(" reference_id is null");
                 memberships = jdbcTemplate.query(
                     queryBuilder.toString(),
                     getOrm().getRowMapper(),
@@ -621,7 +620,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                 );
             } else {
                 // Non-empty set means query with IN clause
-                getOrm().buildInCondition(false, queryBuilder, "m.reference_id", referenceIds);
+                getOrm().buildInCondition(false, queryBuilder, "reference_id", referenceIds);
                 memberships = jdbcTemplate.query(
                     queryBuilder.toString(),
                     (PreparedStatement ps) -> {
