@@ -48,7 +48,12 @@
           class="portal__form__card__form-field"
         >
           <gio-form-label>Keyless plans</gio-form-label>
-          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Keyless plans"></mat-slide-toggle>
+          <mat-slide-toggle
+            formControlName="enabled"
+            gioFormSlideToggle
+            aria-label="Keyless plans"
+            data-testid="keyless-plans-toggle"
+          ></mat-slide-toggle>
         </gio-form-slide-toggle>
         <gio-form-slide-toggle
           [matTooltip]="'Configuration provided by the system'"

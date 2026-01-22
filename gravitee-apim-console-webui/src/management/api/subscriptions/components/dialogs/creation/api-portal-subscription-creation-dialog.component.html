@@ -56,6 +56,7 @@
         arial-label="Select an plan"
         class="subscription-creation__content__plans"
         [disabled]="!form.get('selectedApplication').value?.id"
+        [class.disabled]="!form.get('selectedApplication').value?.id"
       >
         <mat-radio-button
           *ngFor="let plan of plans"
