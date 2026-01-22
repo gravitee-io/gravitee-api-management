@@ -63,8 +63,9 @@ public class GenericApiMapper {
                     api,
                     primaryOwner,
                     withApiFlows,
-                    withPlans
-                , withApiCategories);
+                    withPlans,
+                    withApiCategories
+                );
             };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);

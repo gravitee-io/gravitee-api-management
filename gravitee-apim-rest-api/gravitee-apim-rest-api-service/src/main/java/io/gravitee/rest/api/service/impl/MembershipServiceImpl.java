@@ -326,6 +326,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 membershipRepository.create(membership);
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
                 if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
@@ -407,6 +413,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 membershipRepository.create(membership);
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
 
