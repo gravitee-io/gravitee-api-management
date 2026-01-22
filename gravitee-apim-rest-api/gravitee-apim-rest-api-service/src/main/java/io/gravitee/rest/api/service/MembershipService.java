@@ -266,6 +266,14 @@ public interface MembershipService {
 
     void deleteMemberForIntegration(ExecutionContext executionContext, String integrationId, String memberId);
 
+    void invalidateRoleCacheAndSendCommand(
+        String referenceType,
+        String referenceId,
+        String memberType,
+        String memberId,
+        ExecutionContext executionContext
+    );
+
     void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
 
     class MembershipReference {
