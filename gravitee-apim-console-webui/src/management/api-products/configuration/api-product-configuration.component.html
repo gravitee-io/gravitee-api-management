@@ -24,13 +24,13 @@
       <mat-card-content>
         <div class="configuration-card__fields">
           <mat-form-field class="configuration-card__fields__name">
-            <mat-label>Name *</mat-label>
+            <mat-label>Name</mat-label>
             <input matInput formControlName="name" required />
             <mat-error *ngIf="form.controls.name.hasError('required')">Name is required.</mat-error>
           </mat-form-field>
 
           <mat-form-field class="configuration-card__fields__version">
-            <mat-label>Version *</mat-label>
+            <mat-label>Version</mat-label>
             <input matInput formControlName="version" required />
             <mat-error *ngIf="form.controls.version.hasError('required')">Version is required.</mat-error>
           </mat-form-field>
@@ -38,7 +38,8 @@
           <mat-form-field class="configuration-card__fields__description">
             <mat-label>Description</mat-label>
             <textarea matInput formControlName="description" [maxlength]="descriptionMaxLength"></textarea>
-            <mat-hint align="end">{{ getDescriptionLength() }}/{{ descriptionMaxLength }}</mat-hint>
+            <!--Check if we really need to show the number of characters allowed-->
+            <!-- <mat-hint align="end">{{ getDescriptionLength() }}/{{ descriptionMaxLength }}</mat-hint> -->
           </mat-form-field>
         </div>
       </mat-card-content>

@@ -108,7 +108,12 @@
 }
 
 // Table styles
-.mat-column-picture,
+.mat-column-picture {
+  padding: 0 8px;
+  width: 48px;
+  min-width: 48px;
+}
+
 .mat-column-apis,
 .mat-column-version,
 .mat-column-owner,

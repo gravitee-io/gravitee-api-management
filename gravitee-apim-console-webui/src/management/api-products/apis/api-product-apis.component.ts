@@ -383,8 +383,8 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: 'Remove API from API Product',
-          content: `Are you sure you want to remove "${api.name}" from this API Product?`,
+          title: 'Remove API',
+          content: 'Please note that once your API is removed from this API Product, consumers will lose access to this API.',
           confirmButton: 'Remove',
         },
         role: 'alertdialog',

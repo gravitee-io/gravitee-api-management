@@ -29,6 +29,42 @@
       </div>
     </div>
 
+    <!-- Selected APIs as Chips -->
+    @if (selectedApis.length > 0) {
+      <div class="selected-apis-section">
+        <h3 class="selected-apis-section__header">APIs added to this product</h3>
+        <div class="selected-apis-section__chips">
+          @for (api of selectedApis; track api.id) {
+            <div class="api-chip" data-testid="selected-api-chip">
+              <gio-avatar
+                class="api-chip__avatar"
+                [src]="api._links?.pictureUrl"
+                [name]="api.name + ' ' + api.apiVersion"
+                [size]="24"
+                [roundedBorder]="true"
+              ></gio-avatar>
+              <span class="api-chip__name">{{ api.name }}</span>
+              @if (getContextPath(api)) {
+                <span class="api-chip__path">{{ getContextPath(api) }}</span>
+              }
+              @if (api.lifecycleState === 'DEPRECATED') {
+                <span class="api-chip__badge deprecated-badge">Deprecated</span>
+              }
+              <button
+                type="button"
+                class="api-chip__remove"
+                (click)="removeApi(api)"
+                [attr.aria-label]="'Remove ' + api.name"
+                data-testid="remove-api-chip"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- API Selection Field -->
     <mat-form-field appearance="outline" class="form-field">
       <mat-label>Add APIs</mat-label>
@@ -66,11 +102,73 @@
         }
       </mat-autocomplete>
     </mat-form-field>
+
+    <!-- Recommended API list -->
+    <div class="recommended-apis">
+      <div class="recommended-apis__header-row">
+        <h3 class="recommended-apis__header">Recommended API</h3>
+        @if (recommendedApis$ | async; as recommendedApis) {
+          @if (recommendedApis.length > 0 && !isNonEmptyString(searchApiControl.getRawValue())) {
+            <button
+              type="button"
+              mat-stroked-button
+              class="recommended-apis__select-all"
+              (click)="selectAllRecommendedApis()"
+              data-testid="select-all-recommended-apis-button"
+            >
+              Select All
+            </button>
+          }
+        }
+      </div>
+      <div class="recommended-apis__list">
+        @if (recommendedApis$ | async; as recommendedApis) {
+          @if (recommendedApis.length > 0 && !isNonEmptyString(searchApiControl.getRawValue())) {
+            @for (api of recommendedApis; track api.id) {
+              <div class="recommended-api-item" (click)="selectRecommendedApi(api)" data-testid="recommended-api-item">
+                <div class="recommended-api-item__content">
+                  <div class="recommended-api-item__title-row">
+                    <div class="recommended-api-item__left">
+                      <gio-avatar
+                        class="autocompleteRow__avatar"
+                        [src]="api._links?.pictureUrl"
+                        [name]="api.name + ' ' + api.apiVersion"
+                        [size]="28"
+                        [roundedBorder]="true"
+                      ></gio-avatar>
+                      <span class="recommended-api-item__title">{{ api.name }} - {{ api.apiVersion }}</span>
+                    </div>
+                    @if (api.labels && api.labels.length > 0) {
+                      <div class="recommended-api-item__labels">
+                        @for (label of api.labels; track label) {
+                          <span class="recommended-api-item__label">{{ label }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                  @if (getContextPath(api)) {
+                    <span class="recommended-api-item__path">{{ getContextPath(api) }}</span>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="recommended-apis__empty">
+              @if (isNonEmptyString(searchApiControl.getRawValue())) {
+                <!-- Empty box when input has text -->
+              } @else {
+                No APIs available
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions [align]="'end'" class="form-actions">
     <button type="button" mat-flat-button (click)="onCancelClick()" [disabled]="isSubmitting" data-testid="cancel-button">Cancel</button>
-    <button type="submit" [disabled]="!isApiSelected || isSubmitting" mat-raised-button color="primary" data-testid="submit-button">
+    <button type="submit" [disabled]="selectedApis.length === 0 || isSubmitting" mat-raised-button color="primary" data-testid="submit-button">
       @if (isSubmitting) {
         Adding...
       } @else {
