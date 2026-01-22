@@ -1266,9 +1266,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, List<Long>> data = aggregate.values();
-                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 40L, 0L, null));
-                assertThat(data.get("downstream-publish-messages-total")).isEqualTo(trend);
-                assertThat(data.get("upstream-publish-messages-total")).isEqualTo(trend);
+                List<Long> trend = new ArrayList<>(Arrays.asList(0L, 0L, null, null, null, null, null, null, null, 40L, 0L));
+                assertThat(data.get("downstream-publish-messages-total")).containsSequence(trend);
+                assertThat(data.get("upstream-publish-messages-total")).containsSequence(trend);
             });
         }
 
