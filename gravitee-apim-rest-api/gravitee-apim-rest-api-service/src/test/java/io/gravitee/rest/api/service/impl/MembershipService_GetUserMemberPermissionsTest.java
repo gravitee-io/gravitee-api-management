@@ -20,12 +20,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,32 +45,46 @@ public class MembershipService_GetUserMemberPermissionsTest {
     private static final String USER_ID = "user-id";
     private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
 
-    @Spy
-    @InjectMocks
-    private MembershipServiceImpl membershipService = new MembershipServiceImpl(
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-    );
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
+    private MembershipServiceImpl membershipService;
+
+    @BeforeEach
+    public void init() {
+        membershipService = new MembershipServiceImpl(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            node,
+            objectMapper,
+            commandRepository,
+            null,
+            null
+        );
+        membershipService = spy(membershipService);
+
+        when(node.id()).thenReturn("node-id");
+    }
 
     @Test
     public void should_cached_user_permissions() {
@@ -98,6 +116,7 @@ public class MembershipService_GetUserMemberPermissionsTest {
         verify(membershipService, times(1)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
     }
 
+    @SneakyThrows
     @Test
     public void should_cached_invalidate_cache() {
         MemberEntity member = new MemberEntity();
@@ -109,11 +128,12 @@ public class MembershipService_GetUserMemberPermissionsTest {
         membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         // Invalidate cache
-        membershipService.invalidateRoleCache("API", REFERENCE_ID, "USER", USER_ID);
+        membershipService.invalidateRoleCacheAndSendCommand("API", REFERENCE_ID, "USER", USER_ID, EXECUTION_CONTEXT);
 
         // Second call - should call getUserMember again
         membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        verify(commandRepository).create(any());
     }
 }
