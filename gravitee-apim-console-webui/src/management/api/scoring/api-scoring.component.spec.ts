@@ -15,7 +15,7 @@
  */
 
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -87,7 +87,7 @@ describe('ApiScoringComponent', () => {
       await init();
       expect(await componentHarness.getLoaderPanel()).not.toBeNull();
 
-      discardPeriodicTasks();
+      fixture.destroy();
     }));
 
     it('should disable evaluate button when request is pending', fakeAsync(async () => {
@@ -98,7 +98,7 @@ describe('ApiScoringComponent', () => {
       expectApiScoreGetRequest(API_ID);
 
       expect(await componentHarness.evaluateButtonDisabled()).toBeTruthy();
-      discardPeriodicTasks();
+      fixture.destroy();
     }));
 
     it('should show result summary when loaded', fakeAsync(async () => {
