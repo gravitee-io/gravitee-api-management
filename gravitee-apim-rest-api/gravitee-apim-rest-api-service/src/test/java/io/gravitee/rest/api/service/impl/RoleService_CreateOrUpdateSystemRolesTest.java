@@ -72,14 +72,14 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
             eq(REFERENCE_TYPE)
         );
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(7)).create(any());
+        verify(mockRoleRepository, times(8)).create(any());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
@@ -138,7 +138,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
             )
         );
-        verify(mockRoleRepository, times(5)).create(
+        verify(mockRoleRepository, times(6)).create(
             argThat(
                 o ->
                     o.getScope().equals(RoleScope.API) ||
@@ -146,7 +146,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
                     o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION)
+                    o.getScope().equals(RoleScope.INTEGRATION) ||
+                    o.getScope().equals(RoleScope.API_PRODUCT)
             )
         );
     }
@@ -185,14 +186,14 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
             eq(REFERENCE_TYPE)
         );
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(5)).create(
+        verify(mockRoleRepository, times(6)).create(
             argThat(
                 o ->
                     o.getScope().equals(RoleScope.API) ||
@@ -200,7 +201,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
                     o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION)
+                    o.getScope().equals(RoleScope.INTEGRATION) ||
+                    o.getScope().equals(RoleScope.API_PRODUCT)
             )
         );
     }

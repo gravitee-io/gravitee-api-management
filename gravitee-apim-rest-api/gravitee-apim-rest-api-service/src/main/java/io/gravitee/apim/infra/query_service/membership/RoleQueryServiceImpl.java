@@ -111,6 +111,22 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     }
 
     @Override
+    public Optional<Role> findApiProductRole(String name, ReferenceContext referenceContext) {
+        try {
+            return roleRepository
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.API_PRODUCT,
+                    name,
+                    referenceContext.getReferenceId(),
+                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
+                )
+                .map(RoleAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find api product role", e);
+        }
+    }
+
+    @Override
     public Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId) {
         try {
             return roleRepository

@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
@@ -53,6 +54,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
             .put(
                 EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
                 new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
@@ -76,6 +78,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
             .build()
     );
@@ -203,6 +206,30 @@ public interface DefaultRoleEntityDefinition {
         Maps.<String, char[]>builder()
             .put(IntegrationPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(IntegrationPermission.MEMBER.getName(), new char[] { READ.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_API_PRODUCT_OWNER = new NewRoleEntity(
+        "OWNER",
+        "API Product Role. Created by Gravitee.io.",
+        API_PRODUCT,
+        false,
+        Maps.<String, char[]>builder()
+            .put(ApiProductPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(ApiProductPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_API_PRODUCT_USER = new NewRoleEntity(
+        "USER",
+        "Default API Product Role. Created by Gravitee.io.",
+        API_PRODUCT,
+        true,
+        Maps.<String, char[]>builder()
+            .put(ApiProductPermission.DEFINITION.getName(), new char[] { READ.getId() })
+            .put(ApiProductPermission.PLAN.getName(), new char[] { READ.getId() })
+            .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
             .build()
     );
 

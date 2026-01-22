@@ -58,7 +58,7 @@ public class ApiProductResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApiProductById(@PathParam("apiProductId") String apiProductId) {
         var executionContext = GraviteeContext.getExecutionContext();
         var input = GetApiProductsUseCase.Input.of(executionContext.getEnvironmentId(), apiProductId, executionContext.getOrganizationId());
@@ -74,7 +74,7 @@ public class ApiProductResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.DELETE }) })
     public Response deleteApiProductById(@PathParam("apiProductId") String apiProductId) {
         AuditInfo audit = getAuditInfo();
         deleteApiProductUseCase.execute(DeleteApiProductUseCase.Input.of(apiProductId, audit));
@@ -84,7 +84,7 @@ public class ApiProductResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response updateApiProductById(
         @PathParam("apiProductId") String apiProductId,
         @Valid @NotNull UpdateApiProduct updateApiProduct
@@ -99,7 +99,7 @@ public class ApiProductResource extends AbstractResource {
 
     @DELETE
     @Path("/apis")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response deleteAllApisFromApiProduct(@PathParam("apiProductId") String apiProductId) {
         log.debug("Delete all APIs from API Product: {}", apiProductId);
         AuditInfo audit = getAuditInfo();
@@ -111,7 +111,7 @@ public class ApiProductResource extends AbstractResource {
 
     @DELETE
     @Path("/apis/{apiId}")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response deleteApiFromApiProduct(@PathParam("apiProductId") String apiProductId, @PathParam("apiId") String apiId) {
         log.debug("Delete API {} from API Product: {}", apiId, apiProductId);
         AuditInfo audit = getAuditInfo();
