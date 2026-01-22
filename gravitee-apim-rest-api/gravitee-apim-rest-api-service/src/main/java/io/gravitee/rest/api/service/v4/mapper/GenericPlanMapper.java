@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,7 +81,7 @@ public class GenericPlanMapper {
 
                     yield plans
                         .stream()
-                        .map(plan -> planMapper.toEntity(plan, flowsByPlanId.get(plan.getId())))
+                        .map(plan -> planMapper.toEntity(plan, flowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
                         .collect(Collectors.toSet());
                 }
                 case NATIVE -> {
@@ -90,7 +91,9 @@ public class GenericPlanMapper {
 
                     yield plans
                         .stream()
-                        .map(plan -> planMapper.toNativeEntity(plan, nativeFlowsByPlanId.get(plan.getId())))
+                        .map(plan ->
+                            planMapper.toNativeEntity(plan, nativeFlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList()))
+                        )
                         .collect(Collectors.toSet());
                 }
             };
@@ -101,7 +104,7 @@ public class GenericPlanMapper {
                     : Map.of();
                 yield plans
                     .stream()
-                    .map(plan -> planConverter.toPlanEntity(plan, v2FlowsByPlanId.get(plan.getId())))
+                    .map(plan -> planConverter.toPlanEntity(plan, v2FlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
                     .collect(Collectors.toSet());
             }
         };
