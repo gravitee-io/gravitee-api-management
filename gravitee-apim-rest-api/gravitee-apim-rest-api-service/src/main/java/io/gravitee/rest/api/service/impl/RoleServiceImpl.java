@@ -273,6 +273,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             updatedRole.setReferenceId(role.getReferenceId());
             updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
+            // Invalidate the cache for all members with this role
+            membershipService.invalidateCacheForRole(roleEntity.getId());
             auditService.createOrganizationAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
@@ -646,6 +648,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 systemRole.setId(existingRole.get().getId());
                 systemRole.setUpdatedAt(new Date());
                 roleRepository.update(systemRole);
+                // Invalidate the cache for all members with this system role
+                membershipService.invalidateCacheForRole(systemRole.getId());
                 auditService.createOrganizationAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()

@@ -25,6 +25,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -82,8 +83,6 @@ public class MembershipService_GetUserMemberPermissionsTest {
             null
         );
         membershipService = spy(membershipService);
-
-        when(node.id()).thenReturn("node-id");
     }
 
     @Test
