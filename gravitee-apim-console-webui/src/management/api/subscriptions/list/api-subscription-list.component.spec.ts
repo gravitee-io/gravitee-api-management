@@ -230,7 +230,11 @@ describe('ApiSubscriptionListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['There is no subscription (yet).']]);
+      expect(rowCells).toHaveLength(0);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#subscriptionsTable' }));
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('There is no subscription (yet).');
     }));
 
     it('should display a table with one row and show view details button when user can create', fakeAsync(async () => {
@@ -388,7 +392,11 @@ describe('ApiSubscriptionListComponent', () => {
       expectApiSubscriptionsGetRequest([], ['REJECTED']);
 
       const { rowCells } = await computeSubscriptionsTableCells();
-      expect(rowCells).toEqual([['There is no subscription (yet).']]);
+      expect(rowCells).toHaveLength(0);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#subscriptionsTable' }));
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('There is no subscription (yet).');
     }));
   });
 

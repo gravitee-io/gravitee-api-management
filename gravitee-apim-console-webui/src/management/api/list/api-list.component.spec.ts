@@ -77,7 +77,12 @@ describe('ApisListComponent', () => {
             visibility: 'Portal Visibility',
           },
         ]);
-        expect(rowCells).toEqual([['There is no API (yet).']]);
+        expect(rowCells).toHaveLength(0);
+
+        const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
+        const tableElement = await table.host();
+
+        expect(await tableElement.text()).toContain('There is no API (yet).');
       }));
 
       it('should display a table with one row', fakeAsync(async () => {

@@ -89,8 +89,8 @@ describe('SharedPolicyGroupHistoryComponent', () => {
 
   it('should display resources table', async () => {
     const table = await componentHarness.getTable();
-
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
     expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID);
 
     expect(await table.getCellTextByIndex()).toStrictEqual([['', '1', 'Shared policy group', expect.any(String), 'codeeye']]);
@@ -100,11 +100,12 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const table = await componentHarness.getTable();
     const getTableWrapper = await componentHarness.getTableWrapper();
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
     expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID);
 
     await (await getTableWrapper.getPaginator()).setPageSize(50);
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    expect(await tableHost.text()).toContain('Loading...');
 
     expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID, '?page=1&perPage=50');
 
