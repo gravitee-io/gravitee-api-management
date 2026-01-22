@@ -13,34 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+package io.gravitee.gateway.services.sync.process.common.model;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Arpit Mishra (arpit.mishra at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
-public enum EventType {
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY,
-    ALERT_NOTIFICATION,
-    PUBLISH_ORGANIZATION,
-    PUBLISH_ORGANIZATION_LICENSE,
-    DEBUG_API,
-    DEPLOY_SHARED_POLICY_GROUP,
-    UNDEPLOY_SHARED_POLICY_GROUP,
-    DEPLOY_API_PRODUCT,
-    UNDEPLOY_API_PRODUCT,
+public interface ApiProductDeployable extends Deployable {
+    String apiProductId();
 }

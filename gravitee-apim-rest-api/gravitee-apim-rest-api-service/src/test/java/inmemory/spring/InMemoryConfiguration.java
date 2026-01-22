@@ -172,6 +172,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public EventLatestCrudInMemory eventLatestCrudService() {
+        return new EventLatestCrudInMemory();
+    }
+
+    @Bean
     public ParametersQueryServiceInMemory parametersQueryService() {
         return new ParametersQueryServiceInMemory();
     }

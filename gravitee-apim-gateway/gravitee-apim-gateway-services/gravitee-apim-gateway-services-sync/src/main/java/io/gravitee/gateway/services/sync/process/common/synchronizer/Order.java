@@ -37,10 +37,11 @@ public enum Order {
     ORGANIZATION(4),
     DICTIONARY(5),
     SHARED_POLICY_GROUP(6),
-    API(7),
-    SUBSCRIPTION(8),
-    API_KEY(9),
-    DEBUG(10);
+    API_PRODUCT(7),
+    API(8),
+    SUBSCRIPTION(9),
+    API_KEY(10),
+    DEBUG(11);
 
     static {
         Set<Integer> elements = new HashSet<>();
