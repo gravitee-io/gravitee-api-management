@@ -77,8 +77,8 @@ describe('CustomUserFieldsComponent', () => {
   });
 
   describe('CustomUserFields', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('should call for custom fields on init', () => {
