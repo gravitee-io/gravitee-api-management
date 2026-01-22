@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -140,5 +141,49 @@ public class GenericPlanMapperTest {
 
         genericPlanMapper.toGenericPlanWithFlow(api, plan);
         verify(planConverter).toPlanEntity(plan, v2Flows);
+    }
+
+    @Test
+    public void shouldCallV4PlanMapperWithEmptyFlowsWhenDefinitionVersionV4AndNoFlowsFound() {
+        Api api = new Api();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.MESSAGE);
+
+        Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        when(flowServiceV4.findByReferences(any(), anySet())).thenReturn(Map.of());
+
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
+        verify(planMapper).toEntity(plan, Collections.emptyList());
+    }
+
+    @Test
+    public void shouldCallV4PlanMapperWithEmptyFlowsWhenDefinitionVersionNativeV4AndNoFlowsFound() {
+        Api api = new Api();
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+
+        Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        when(flowCrudService.getNativePlanFlows(anySet())).thenReturn(Map.of());
+
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
+        verify(planMapper).toNativeEntity(plan, Collections.emptyList());
+    }
+
+    @Test
+    public void shouldCallV2ApiMapperWithEmptyFlowsWhenV2DefinitionVersionAndNoFlowsFound() {
+        Api api = new Api();
+        api.setDefinitionVersion(DefinitionVersion.V2);
+
+        Plan plan = new Plan();
+        plan.setId("plan-id");
+
+        when(flowCrudService.getPlanV2Flows(anySet())).thenReturn(Map.of());
+
+        genericPlanMapper.toGenericPlanWithFlow(api, plan);
+        verify(planConverter).toPlanEntity(plan, Collections.emptyList());
     }
 }
