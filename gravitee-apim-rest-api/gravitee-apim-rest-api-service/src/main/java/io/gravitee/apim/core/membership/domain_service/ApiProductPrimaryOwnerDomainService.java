@@ -128,7 +128,7 @@ public class ApiProductPrimaryOwnerDomainService {
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
-        return roleQueryService.findApiRole(
+        return roleQueryService.findApiProductRole(
             SystemRole.PRIMARY_OWNER.name(),
             ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
         );

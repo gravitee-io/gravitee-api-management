@@ -49,5 +49,6 @@ public class Role {
         PLATFORM,
         INTEGRATION,
         CLUSTER,
+        API_PRODUCT,
     }
 }

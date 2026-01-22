@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
-import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
+import static fixtures.core.model.RoleFixtures.apiProductPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -121,7 +121,7 @@ class ApiProductPrimaryOwnerDomainServiceTest {
                         .referenceId(API_PRODUCT_ID)
                         .memberType(Membership.Type.USER)
                         .memberId(MEMBER_ID)
-                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build()
                 )
             );
@@ -152,14 +152,14 @@ class ApiProductPrimaryOwnerDomainServiceTest {
                         .referenceId(API_PRODUCT_ID)
                         .memberType(Membership.Type.GROUP)
                         .memberId(GROUP_ID)
-                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build(),
                     Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
                         .memberId(MEMBER_ID)
-                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build()
                 )
             );
@@ -206,7 +206,7 @@ class ApiProductPrimaryOwnerDomainServiceTest {
                 assertThat(membershipCrudService.storage()).containsExactly(
                     Membership.builder()
                         .id("generated-id")
-                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .memberId(MEMBER_ID)
                         .memberType(Membership.Type.USER)
                         .referenceId(API_PRODUCT_ID)
@@ -257,7 +257,7 @@ class ApiProductPrimaryOwnerDomainServiceTest {
                 assertThat(membershipCrudService.storage()).containsExactly(
                     Membership.builder()
                         .id("generated-id")
-                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .memberId(GROUP_ID)
                         .memberType(Membership.Type.GROUP)
                         .referenceId(API_PRODUCT_ID)
