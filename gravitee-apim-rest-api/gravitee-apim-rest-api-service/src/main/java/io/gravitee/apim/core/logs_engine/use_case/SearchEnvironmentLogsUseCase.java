@@ -1,0 +1,235 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.logs_engine.use_case;
+
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.logs_engine.domain_service.FilterContext;
+import io.gravitee.apim.core.logs_engine.model.ApiLog;
+import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
+import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
+import io.gravitee.apim.core.logs_engine.model.BaseApplication;
+import io.gravitee.apim.core.logs_engine.model.BasePlan;
+import io.gravitee.apim.core.logs_engine.model.Filter;
+import io.gravitee.apim.core.logs_engine.model.FilterName;
+import io.gravitee.apim.core.logs_engine.model.HttpMethod;
+import io.gravitee.apim.core.logs_engine.model.Operator;
+import io.gravitee.apim.core.logs_engine.model.Pagination;
+import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
+import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
+import io.gravitee.apim.core.logs_engine.model.StringFilter;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@UseCase
+public class SearchEnvironmentLogsUseCase {
+
+    private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_PER_PAGE = 10;
+    private final ConnectionLogsCrudService connectionLogsCrudService;
+
+    public SearchEnvironmentLogsUseCase(ConnectionLogsCrudService connectionLogsCrudService) {
+        this.connectionLogsCrudService = connectionLogsCrudService;
+    }
+
+    public record Input(AuditInfo auditInfo, SearchLogsRequest request) {}
+
+    public record Output(SearchLogsResponse response) {}
+
+    public Output execute(Input input) {
+        var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
+        var pageable = buildPageable(input.request);
+        var searchFilters = buildFilters(input.request);
+        io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> searchLogResponse =
+            connectionLogsCrudService.searchApiConnectionLogs(executionContext, searchFilters, pageable, List.of(DefinitionVersion.V4));
+        return new Output(mapResponse(searchLogResponse, pageable));
+    }
+
+    private Pageable buildPageable(SearchLogsRequest request) {
+        var page = Optional.ofNullable(request.page()).orElse(DEFAULT_PAGE);
+        var perPage = Optional.ofNullable(request.perPage()).orElse(DEFAULT_PER_PAGE);
+        return new PageableImpl(page, perPage);
+    }
+
+    private SearchLogsFilters buildFilters(SearchLogsRequest request) {
+        var filterContext = new FilterContext();
+
+        if (request.filters() != null) {
+            for (Filter filter : request.filters()) {
+                var instance = filter.actualInstance();
+                if (instance instanceof StringFilter stringFilter) {
+                    applyStringFilter(stringFilter, filterContext);
+                } else if (instance instanceof ArrayFilter arrayFilter) {
+                    applyArrayFilter(arrayFilter, filterContext);
+                }
+            }
+        }
+
+        var builder = SearchLogsFilters.builder();
+        builder.apiIds(filterContext.apiIds().orElseGet(Collections::emptySet));
+        builder.applicationIds(filterContext.applicationIds().orElseGet(Collections::emptySet));
+        builder.planIds(filterContext.planIds().orElseGet(Collections::emptySet));
+        builder.methods(
+            filterContext
+                .methods()
+                .orElseGet(Collections::emptySet)
+                .stream()
+                .map(m -> io.gravitee.common.http.HttpMethod.valueOf(m.name()))
+                .collect(Collectors.toSet())
+        );
+        builder.statuses(filterContext.statuses().orElseGet(Collections::emptySet));
+        builder.entrypointIds(filterContext.entrypointIds().orElseGet(Collections::emptySet));
+
+        if (request.timeRange() != null) {
+            builder.from(toEpochMilli(request.timeRange().from()));
+            builder.to(toEpochMilli(request.timeRange().to()));
+        }
+        return builder.build();
+    }
+
+    private void applyStringFilter(StringFilter filter, FilterContext filterContext) {
+        if (filter.operator() == Operator.EQ) {
+            updateFilterIds(filter.name(), filterContext, Set.of(filter.value()));
+            return;
+        }
+
+        clearFilterIds(filter, filterContext);
+    }
+
+    private void clearFilterIds(StringFilter filter, FilterContext filterContext) {
+        updateFilterIds(filter.name(), filterContext, Collections.emptySet());
+    }
+
+    private void applyArrayFilter(ArrayFilter filter, FilterContext filterContext) {
+        if (filter.operator() == Operator.IN) {
+            updateFilterIds(filter.name(), filterContext, filter.value().stream().map(String::valueOf).collect(Collectors.toSet()));
+            return;
+        }
+
+        updateFilterIds(filter.name(), filterContext, Collections.emptySet());
+    }
+
+    private void updateFilterIds(FilterName name, FilterContext filterContext, Set<String> ids) {
+        switch (name) {
+            case API -> filterContext.limitByApiIds(ids);
+            case APPLICATION -> filterContext.limitByApplicationIds(ids);
+            case PLAN -> filterContext.limitByPlanIds(ids);
+            case HTTP_METHOD -> filterContext.limitByHttpMethods(ids.stream().map(this::httpMethod).collect(Collectors.toSet()));
+            case HTTP_STATUS -> filterContext.limitByHttpStatuses(ids.stream().map(Integer::valueOf).collect(Collectors.toSet()));
+            case ENTRYPOINT -> filterContext.limitByEntrypointIds(ids);
+            default -> throw new IllegalStateException("Unexpected value: " + name);
+        }
+    }
+
+    private io.gravitee.apim.core.logs_engine.model.HttpMethod httpMethod(String method) {
+        try {
+            return io.gravitee.apim.core.logs_engine.model.HttpMethod.valueOf(method);
+        } catch (IllegalArgumentException iae) {
+            return io.gravitee.apim.core.logs_engine.model.HttpMethod.OTHER;
+        }
+    }
+
+    private long toEpochMilli(OffsetDateTime odt) {
+        return odt.toInstant().toEpochMilli();
+    }
+
+    private SearchLogsResponse mapResponse(
+        io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> source,
+        Pageable pageable
+    ) {
+        var perPage = pageable.getPageSize();
+        var page = pageable.getPageNumber();
+        var data = source.logs() == null ? List.<ApiLog>of() : source.logs().stream().map(this::mapApiLog).toList();
+        var pageCount = perPage == 0 ? 0 : (int) Math.ceil((double) source.total() / perPage);
+        var pagination = new Pagination(page, perPage, pageCount, data.size(), source.total());
+        return new SearchLogsResponse(data, pagination, null);
+    }
+
+    private ApiLog mapApiLog(BaseConnectionLog item) {
+        return new ApiLog(
+            toOffsetDateTime(item.getTimestamp()),
+            item.getRequestId(),
+            item.getRequestId(),
+            mapHttpMethod(item.getMethod()),
+            item.getClientIdentifier(),
+            mapPlan(item.getPlanId()),
+            mapApplication(item.getApplicationId()),
+            item.getTransactionId(),
+            item.getStatus(),
+            item.isRequestEnded(),
+            safeToInteger(item.getGatewayResponseTime()),
+            item.getUri(),
+            item.getEndpoint(),
+            item.getMessage(),
+            item.getErrorKey(),
+            item.getErrorComponentName(),
+            item.getErrorComponentType(),
+            mapWarnings(item.getWarnings()),
+            item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of()
+        );
+    }
+
+    private OffsetDateTime toOffsetDateTime(String timestamp) {
+        return timestamp == null ? null : OffsetDateTime.parse(timestamp);
+    }
+
+    private HttpMethod mapHttpMethod(io.gravitee.common.http.HttpMethod method) {
+        return method == null ? null : HttpMethod.valueOf(method.name());
+    }
+
+    private BasePlan mapPlan(String planId) {
+        if (planId == null) {
+            return null;
+        }
+        return new BasePlan(planId, null, null, null, null, null);
+    }
+
+    private BaseApplication mapApplication(String applicationId) {
+        if (applicationId == null) {
+            return null;
+        }
+        return new BaseApplication(applicationId, null, null, null, null, null, null);
+    }
+
+    private Integer safeToInteger(long value) {
+        return (int) Math.min(Integer.MAX_VALUE, value);
+    }
+
+    private List<ApiLogDiagnostic> mapWarnings(List<ConnectionDiagnosticModel> warnings) {
+        if (warnings == null) {
+            return List.of();
+        }
+        return warnings
+            .stream()
+            .map(warning ->
+                new ApiLogDiagnostic(warning.getComponentType(), warning.getComponentName(), warning.getKey(), warning.getMessage())
+            )
+            .collect(Collectors.toList());
+    }
+}
