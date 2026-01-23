@@ -23,10 +23,20 @@ export interface MCPTool {
   gatewayMapping: MCPToolGatewayMapping;
 }
 
+export interface MCPToolAnnotations {
+  title?: string;
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+}
+
 export interface MCPToolDefinition {
   name: string;
   description?: string;
   inputSchema: unknown;
+  outputSchema?: unknown;
+  annotations?: MCPToolAnnotations;
 }
 
 export interface MCPToolGatewayMapping {
