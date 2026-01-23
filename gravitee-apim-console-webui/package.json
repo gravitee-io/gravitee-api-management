@@ -25,7 +25,7 @@
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown",
     "@gravitee/ui-analytics": "16.4.0",
     "@gravitee/ui-components": "4.4.0",
-    "@gravitee/ui-particles-angular": "16.4.0",
+    "@gravitee/ui-particles-angular": "17.0.0",
     "@gravitee/ui-policy-studio-angular": "16.4.0",
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.3.12",
