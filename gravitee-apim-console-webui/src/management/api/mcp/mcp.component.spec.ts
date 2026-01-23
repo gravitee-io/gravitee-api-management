@@ -287,6 +287,26 @@ describe('McpComponent', () => {
                       required: ['id'],
                       type: 'object',
                     },
+                    outputSchema: {
+                      properties: {
+                        bodySchema: {
+                          properties: {
+                            email: {
+                              type: 'string',
+                            },
+                            id: {
+                              type: 'string',
+                            },
+                            username: {
+                              type: 'string',
+                            },
+                          },
+                          type: 'object',
+                        },
+                      },
+                      required: [],
+                      type: 'object',
+                    },
                     name: 'getUser',
                   },
                 },
