@@ -59,7 +59,28 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
         ExecutionContext executionContext,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    ) {
+        return searchApiConnectionLogs(executionContext, logsFilters.apiIds(), logsFilters, pageable, definitionVersions);
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
         String apiId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    ) {
+        return searchApiConnectionLogs(executionContext, Set.of(apiId), logsFilters, pageable, definitionVersions);
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        Set<String> apiIds,
         SearchLogsFilters logsFilters,
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
@@ -67,14 +88,15 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         try {
             var response = getConnectionLogsResponse(
                 executionContext,
-                mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(Set.of(apiId)).build(),
+                mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds).build(),
                 pageable,
                 definitionVersions
             );
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search connection logs of api [apiId={}]", apiId, e);
-            throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
+            String joinedApiIds = apiIds.stream().collect(Collectors.joining(","));
+            log.error("An error occurs while trying to search connection logs of api [apiId={}]", joinedApiIds, e);
+            throw new TechnicalManagementException("Error while searching connection logs of api " + joinedApiIds, e);
         }
     }
 
