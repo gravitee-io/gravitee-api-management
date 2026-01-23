@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.PlanMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -157,5 +158,21 @@ public class MongoPlanRepository implements PlanRepository {
         } catch (Exception e) {
             throw new TechnicalException("Failed to update plans cross IDs", e);
         }
+    }
+
+    @Override
+    public Set<Plan> findByReferenceIdAndReferenceType(String apiProductId, PlanReferenceType planReferenceType) throws TechnicalException {
+        return internalPlanRepository
+            .findByReferenceIdAndReferenceType(apiProductId, planReferenceType.name())
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
+        return internalPlanRepository
+            .findByPlanIdAndReferenceIdAndReferenceType(plan, apiProductId, PlanReferenceType.API_PRODUCT.name())
+            .map(this::map);
     }
 }

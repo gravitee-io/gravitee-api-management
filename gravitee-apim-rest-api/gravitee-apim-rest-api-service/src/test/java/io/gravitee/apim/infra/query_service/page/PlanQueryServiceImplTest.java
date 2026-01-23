@@ -25,6 +25,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,6 +116,56 @@ class PlanQueryServiceImplTest {
             when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
 
             var res = service.findAllByApiId(API_ID);
+            assertThat(res).isEmpty();
+        }
+    }
+
+    @Nested
+    class FindAllForApiProduct {
+
+        String API_PRODUCT_ID = "api-product-id";
+
+        @Test
+        @SneakyThrows
+        void should_return_all_plans_of_an_api() {
+            Plan plan1 = Plan.builder()
+                .id("plan1")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(PlanReferenceType.API_PRODUCT)
+                .status(Plan.Status.PUBLISHED)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .build();
+            Plan plan2 = Plan.builder()
+                .id("plan2")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(PlanReferenceType.API_PRODUCT)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .status(Plan.Status.CLOSED)
+                .build();
+            Plan plan3 = Plan.builder()
+                .id("plan3")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(PlanReferenceType.API_PRODUCT)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .status(Plan.Status.STAGING)
+                .build();
+
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_PRODUCT_ID), eq(PlanReferenceType.API_PRODUCT))).thenReturn(
+                Set.of(plan1, plan2, plan3)
+            );
+
+            var res = service.findAllForApiProduct(API_PRODUCT_ID);
+            assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_if_no_results() {
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_PRODUCT_ID), eq(PlanReferenceType.API_PRODUCT))).thenReturn(
+                Set.of()
+            );
+
+            var res = service.findAllForApiProduct(API_PRODUCT_ID);
             assertThat(res).isEmpty();
         }
     }

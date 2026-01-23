@@ -17,8 +17,10 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -81,4 +83,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @param plans the plans to update.
      */
     void updateCrossIds(List<Plan> plans) throws TechnicalException;
+
+    Set<Plan> findByReferenceIdAndReferenceType(String apiProductId, PlanReferenceType planReferenceType) throws TechnicalException;
+
+    Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException;
 }

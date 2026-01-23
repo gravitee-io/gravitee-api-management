@@ -29,7 +29,8 @@ import lombok.RequiredArgsConstructor;
 @Schema(enumAsRef = true, name = "PlanTypeV4")
 public enum PlanType {
     API("api"),
-    CATALOG("catalog");
+    CATALOG("catalog"),
+    API_PRODUCT("api-product");
 
     @JsonValue
     private final String label;

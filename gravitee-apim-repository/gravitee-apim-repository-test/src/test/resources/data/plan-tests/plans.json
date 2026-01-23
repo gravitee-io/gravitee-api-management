@@ -11,6 +11,8 @@
       "apiType": "native",
       "mode": "STANDARD",
       "status": "PUBLISHED",
+      "referenceId": "api1",
+      "referenceType": "API",
       "order": 2,
       "createdAt": 1506964899000,
       "updatedAt": 1507032062000,
@@ -38,6 +40,8 @@
       "validation": "AUTO",
       "type": "API",
       "apiType": "proxy",
+     "referenceId": "api2",
+     "referenceType": "API",
       "mode": "STANDARD",
       "status": "PUBLISHED",
       "order": 0,
@@ -64,6 +68,8 @@
       "characteristics": [],
       "excludedGroups": [],
       "commentRequired": false,
+     "referenceId": "api1",
+     "referenceType": "API",
       "apiType": "message"
    },
    {
@@ -71,6 +77,8 @@
       "name":"Stores",
       "description": "Description for stores view",
       "api": "api3",
+     "referenceId": "api3",
+     "referenceType": "API",
       "environmentId" : "DEFAULT"
    },
    {
@@ -79,6 +87,8 @@
       "description": "Description of oauth2",
       "validation": "MANUAL",
       "security": "OAUTH2",
+     "referenceId": "oauth2",
+     "referenceType": "API",
       "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
       "definition": "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
       "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
@@ -102,6 +112,8 @@
      "name":"Stores",
      "description": "Description for stores view",
      "api": "api4",
+     "referenceId": "api4",
+     "referenceType": "API",
      "environmentId" : "ToBeDeleted"
    },
    {
@@ -110,5 +122,27 @@
      "description": "Description for stores view",
      "api": "api4",
      "environmentId" : "ToBeDeleted"
+   },
+   {
+      "id":"api-product-plan-1",
+      "name":"API Product plan 1",
+      "description":"Plan attached to an API product",
+      "definitionVersion":"4.0.0",
+      "api":"api-product-1",
+      "environmentId":"DEFAULT",
+      "referenceId":"api-product-1",
+      "referenceType":"API_PRODUCT",
+      "security":"API_KEY",
+      "validation":"AUTO",
+      "type":"API_PRODUCT",
+      "mode":"STANDARD",
+      "status":"PUBLISHED",
+      "order":1,
+      "apiType":"proxy",
+      "createdAt":1506964899000,
+      "characteristics": [],
+      "excludedGroups": [],
+      "commentRequired": false,
+      "tags": []
    }
 ]

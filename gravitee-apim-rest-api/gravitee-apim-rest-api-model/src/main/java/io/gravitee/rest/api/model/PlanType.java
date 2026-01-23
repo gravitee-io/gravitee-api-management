@@ -32,4 +32,6 @@ public enum PlanType {
      * A plan for a bunch of APIs.
      */
     CATALOG,
+
+    API_PRODUCT,
 }

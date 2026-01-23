@@ -19,6 +19,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +55,19 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
         return storage
             .stream()
             .filter(plan -> Objects.equals(apiId, plan.getApiId()))
+            .map(p -> (Plan) p)
+            .toList();
+    }
+
+    @Override
+    public List<Plan> findAllForApiProduct(String referenceId) {
+        return storage
+            .stream()
+            .filter(
+                plan ->
+                    Objects.equals(referenceId, plan.getReferenceId()) &&
+                    Objects.equals(GenericPlanEntity.ReferenceType.API_PRODUCT, plan.getReferenceType())
+            )
             .map(p -> (Plan) p)
             .toList();
     }

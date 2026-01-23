@@ -83,11 +83,13 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PlanOperationsDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -444,6 +446,16 @@ public class ResourceContextConfiguration {
     @Bean
     public PlanSearchService planSearchService() {
         return mock(PlanSearchService.class);
+    }
+
+    @Bean
+    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
+        return mock(ApiProductPlanSearchQueryService.class);
+    }
+
+    @Bean
+    public PlanOperationsDomainService planOperationsDomainService() {
+        return mock(PlanOperationsDomainService.class);
     }
 
     @Bean
