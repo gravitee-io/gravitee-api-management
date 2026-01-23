@@ -29,8 +29,11 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
@@ -61,6 +64,9 @@ public class PlanSearchServiceImpl_SearchTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private ApiProductsRepository apiProductRepository;
+
+    @Mock
     private GroupService groupService;
 
     @Mock
@@ -74,12 +80,15 @@ public class PlanSearchServiceImpl_SearchTest {
 
     private Api api;
 
+    private ApiProduct apiProduct;
+
     @Before
     public void before() throws TechnicalException {
         GraviteeContext.cleanContext();
         planSearchService = new PlanSearchServiceImpl(
             planRepository,
             apiRepository,
+            apiProductRepository,
             groupService,
             apiSearchService,
             objectMapper,
@@ -90,6 +99,11 @@ public class PlanSearchServiceImpl_SearchTest {
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiProduct = new ApiProduct();
+        apiProduct.setId(API_ID);
+        apiProduct.setDescription("description of an api product");
+        when(apiProductRepository.findById(API_ID)).thenReturn(Optional.of(apiProduct));
     }
 
     @Test
@@ -130,7 +144,6 @@ public class PlanSearchServiceImpl_SearchTest {
             USER,
             true
         );
-
         assertNotNull(plans);
         assertEquals(2, plans.size());
     }
@@ -253,6 +266,94 @@ public class PlanSearchServiceImpl_SearchTest {
 
         assertNotNull(plans);
         assertEquals(0, plans.size());
+    }
+
+    @Test
+    public void should_return_plans_for_api_product() throws TechnicalException {
+        Plan plan1 = createPlan("plan-1");
+        plan1.setType(Plan.PlanType.API_PRODUCT);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API_PRODUCT);
+        Plan plan2 = createPlan("plan-2");
+        plan2.setType(Plan.PlanType.API_PRODUCT);
+        plan2.setReferenceId(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API_PRODUCT);
+        Plan plan3 = createPlan("plan-3");
+        plan3.setType(Plan.PlanType.API_PRODUCT);
+        plan3.setReferenceId(API_ID);
+        plan3.setReferenceType(PlanReferenceType.API_PRODUCT);
+
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Set.of(plan1, plan2, plan3)
+        );
+
+        when(genericPlanMapper.toGenericApiProductPlan(plan1)).thenReturn(
+            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+        when(genericPlanMapper.toGenericApiProductPlan(plan2)).thenReturn(
+            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
+        );
+        when(genericPlanMapper.toGenericApiProductPlan(plan3)).thenReturn(
+            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+
+        var plan = planSearchService.findByApiProduct(GraviteeContext.getExecutionContext(), API_ID);
+        assertNotNull(plan);
+    }
+
+    @Test
+    public void should_return_plans_for_api_product_by_id() throws TechnicalException {
+        Plan plan1 = createPlan("plan-1");
+        plan1.setType(Plan.PlanType.API_PRODUCT);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API_PRODUCT);
+
+        when(planRepository.findById("plan-1")).thenReturn(Optional.of(plan1));
+        when(genericPlanMapper.toGenericApiProductPlan(plan1)).thenReturn(
+            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+
+        var plan = planSearchService.findByIdForApiProduct(GraviteeContext.getExecutionContext(), "plan-1", API_ID);
+
+        assertNotNull(plan);
+    }
+
+    @Test
+    public void should_return_list_plans_for_api_product() throws TechnicalException {
+        Plan plan1 = createPlan("plan-1");
+        plan1.setType(Plan.PlanType.API_PRODUCT);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API_PRODUCT);
+        Plan plan2 = createPlan("plan-2");
+        plan2.setType(Plan.PlanType.API_PRODUCT);
+        plan2.setReferenceId(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API_PRODUCT);
+        Plan plan3 = createPlan("plan-3");
+        plan3.setType(Plan.PlanType.API_PRODUCT);
+        plan3.setReferenceId(API_ID);
+        plan3.setReferenceType(PlanReferenceType.API_PRODUCT);
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Set.of(plan1, plan2, plan3)
+        );
+
+        when(genericPlanMapper.toGenericApiProductPlan(plan1)).thenReturn(
+            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+        when(genericPlanMapper.toGenericApiProductPlan(plan2)).thenReturn(
+            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
+        );
+        when(genericPlanMapper.toGenericApiProductPlan(plan3)).thenReturn(
+            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+
+        var plans = planSearchService.searchForApiProductPlans(
+            GraviteeContext.getExecutionContext(),
+            PlanQuery.builder().referenceId(API_ID).referenceType(PlanReferenceType.API_PRODUCT.name()).build(),
+            USER,
+            true
+        );
+        assertNotNull(plans);
+        assertEquals(3, plans.size());
     }
 
     private Plan createPlan(String id) {

@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.crud_service;
+package io.gravitee.repository.management.model;
 
-import io.gravitee.apim.core.plan.model.Plan;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-public interface PlanCrudService {
-    Plan getById(String planId);
-
-    Optional<Plan> findById(String planId);
-
-    Collection<Plan> findByApiId(String apiId);
-
-    Plan create(Plan plan);
-
-    Plan update(Plan plan);
-
-    void delete(String planId);
-
-    List<Plan> findByIds(List<String> planIds);
-
-    void updateCrossIds(List<Plan> plans);
-
-    Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId);
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum PlanReferenceType {
+    API,
+    API_PRODUCT,
 }

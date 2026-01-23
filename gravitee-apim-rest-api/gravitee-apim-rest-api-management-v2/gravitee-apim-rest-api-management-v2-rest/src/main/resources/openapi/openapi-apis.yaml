@@ -4991,6 +4991,7 @@ components:
             enum:
                 - API
                 - CATALOG
+                - API_PRODUCT
         PlanValidation:
             type: string
             description: Plan validation type.

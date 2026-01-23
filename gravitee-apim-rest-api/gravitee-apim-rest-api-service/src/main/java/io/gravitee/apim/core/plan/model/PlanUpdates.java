@@ -43,6 +43,8 @@ public class PlanUpdates {
     private String selectionRule;
     private String securityConfiguration;
     private Plan.PlanValidationType validation;
+    private String referenceId;
+    private String referenceType;
 
     public Plan applyTo(Plan oldPlan) {
         Plan result = oldPlan
@@ -58,10 +60,11 @@ public class PlanUpdates {
             .characteristics(characteristics)
             .order(order)
             .validation(validation)
+            .referenceId(referenceId)
+            .referenceType(referenceType)
             .build();
 
         result.setPlanTags(tags);
-
         var definition = result.getPlanDefinitionV4();
         definition.setSelectionRule(selectionRule);
         if (definition.getSecurity() != null) {

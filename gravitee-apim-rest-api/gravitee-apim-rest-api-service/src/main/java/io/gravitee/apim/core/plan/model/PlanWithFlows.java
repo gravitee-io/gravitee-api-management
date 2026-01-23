@@ -60,7 +60,9 @@ public class PlanWithFlows extends Plan {
             plan.getPlanDefinitionNativeV4(),
             plan.getPlanDefinitionV2(),
             plan.getFederatedPlanDefinition(),
-            plan.getApiType()
+            plan.getApiType(),
+            plan.getReferenceId(),
+            plan.getReferenceType()
         );
         this.flows = flows;
     }

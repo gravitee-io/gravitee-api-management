@@ -59,6 +59,8 @@ public class CreatePlanUseCase {
         if (plan.getPlanMode() == null) {
             plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
+        plan.setReferenceType(Plan.ReferenceType.API.name());
+        plan.setReferenceId(input.apiId);
 
         var flows = input.flowProvider.apply(api);
 

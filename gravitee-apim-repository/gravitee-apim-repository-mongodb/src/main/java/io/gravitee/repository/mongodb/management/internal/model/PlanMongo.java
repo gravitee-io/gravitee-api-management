@@ -111,4 +111,7 @@ public class PlanMongo extends Auditable {
     private String selectionRule;
 
     private String apiType;
+
+    private String referenceId;
+    private String referenceType;
 }

@@ -152,6 +152,12 @@ public class BasePlanEntity implements GenericPlanEntity {
     @JsonProperty("selection_rule")
     private String selectionRule;
 
+    @JsonIgnore
+    private String referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
     @Override
     @JsonIgnore
     public String getApiId() {

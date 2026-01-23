@@ -67,4 +67,8 @@ public class GenericPlanMapper {
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
     }
+
+    public GenericPlanEntity toGenericApiProductPlan(final Plan plan) {
+        return planMapper.toEntity(plan, null);
+    }
 }

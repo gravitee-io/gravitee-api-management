@@ -86,6 +86,16 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId) {
+        try {
+            log.debug("Get plan by id : {}", planId);
+            return planRepository.findByIdForApiProduct(planId, referenceId).map(PlanAdapter.INSTANCE::fromRepository);
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
+        }
+    }
+
+    @Override
     public Collection<Plan> findByApiId(String apiId) {
         try {
             log.debug("Find a plan by API id : {}", apiId);

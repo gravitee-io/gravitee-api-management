@@ -821,4 +821,65 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     private void validatePlanSecurity(String type, String configuration) {
         policyService.validatePolicyConfiguration(type, configuration);
     }
+
+    @Override
+    public GenericPlanEntity closePlanForApiProduct(final ExecutionContext executionContext, String planId) {
+        try {
+            log.debug("Close plan {}", planId);
+
+            Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
+
+            Plan previousPlan = new Plan(plan);
+
+            if (plan.getStatus() == Plan.Status.CLOSED) {
+                throw new PlanAlreadyClosedException(planId);
+            }
+
+            // Update plan status
+            plan.setStatus(Plan.Status.CLOSED);
+            plan.setClosedAt(new Date());
+            plan.setUpdatedAt(plan.getClosedAt());
+            plan.setNeedRedeployAt(plan.getClosedAt());
+
+            // TODO Close subscriptions. This needs to be changed for subscription API_PRODUCT key
+            var auditInfo = AuditInfo.builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(getAuthenticatedUserAsAuditActor())
+                .build();
+            subscriptionService
+                .findByPlan(executionContext, planId)
+                .forEach(subscription -> {
+                    try {
+                        closeSubscriptionDomainService.closeSubscriptionForApiProduct(subscription.getId(), auditInfo);
+                    } catch (SubscriptionNotClosableException snce) {
+                        // subscription status could not be closed (already closed or rejected)
+                        // ignore it
+                    }
+                });
+
+            // Save plan
+            plan = planRepository.update(plan);
+
+            // Audit
+            auditService.createApiProductAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_CLOSED)
+                    .createdAt(plan.getUpdatedAt())
+                    .oldValue(previousPlan)
+                    .newValue(plan)
+                    .build(),
+                plan.getReferenceId()
+            );
+
+            //reorder plan
+            reorderedAndSavePlansAfterRemove(plan);
+
+            return genericPlanMapper.toGenericApiProductPlan(plan);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);
+        }
+    }
 }

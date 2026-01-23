@@ -29,6 +29,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -67,6 +68,9 @@ public class PlanSearchServiceImplTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private ApiProductsRepository apiProductRepository;
+
+    @Mock
     private GroupService groupService;
 
     @Mock
@@ -87,6 +91,7 @@ public class PlanSearchServiceImplTest {
         planSearchService = new PlanSearchServiceImpl(
             planRepository,
             apiRepository,
+            apiProductRepository,
             groupService,
             apiSearchService,
             objectMapper,

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -71,6 +72,9 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
     String getDescription();
 
     int getOrder();
+
+    String getReferenceId();
+    String getReferenceType();
 
     @JsonIgnore
     default boolean isActive() {

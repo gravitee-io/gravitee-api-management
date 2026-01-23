@@ -21,4 +21,5 @@ public interface ApiProductCrudService {
     ApiProduct create(ApiProduct apiProduct);
     void delete(String id);
     ApiProduct update(ApiProduct updateApiProduct);
+    ApiProduct get(String id);
 }

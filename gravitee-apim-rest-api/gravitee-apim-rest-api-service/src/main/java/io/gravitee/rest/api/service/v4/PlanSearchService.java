@@ -41,4 +41,15 @@ public interface PlanSearchService {
     Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
 
     boolean exists(String planId);
+
+    GenericPlanEntity findByIdForApiProduct(final ExecutionContext executionContext, final String plan, final String apiProductId);
+
+    Set<GenericPlanEntity> findByApiProduct(final ExecutionContext executionContext, final String apiId);
+
+    List<GenericPlanEntity> searchForApiProductPlans(
+        final ExecutionContext executionContext,
+        final PlanQuery query,
+        String user,
+        boolean isAdmin
+    );
 }

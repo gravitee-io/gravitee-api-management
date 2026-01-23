@@ -102,6 +102,8 @@ public class PlanMapper {
         entity.setSelectionRule(plan.getSelectionRule());
         entity.setGeneralConditions(plan.getGeneralConditions());
         entity.setGeneralConditionsHrid(plan.getGeneralConditionsHrid());
+        entity.setReferenceId(plan.getReferenceId());
+        entity.setReferenceType(plan.getReferenceType().name());
         return entity;
     }
 

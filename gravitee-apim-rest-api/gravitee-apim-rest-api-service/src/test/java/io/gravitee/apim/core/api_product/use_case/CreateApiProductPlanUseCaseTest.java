@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case;
+package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
@@ -23,6 +23,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.definition.FlowFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -31,7 +32,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
-import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -41,7 +42,8 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
-import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
+import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -51,6 +53,8 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -64,23 +68,21 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class CreatePlanUseCaseTest {
+class CreateApiProductPlanUseCaseTest {
 
-    private static final Api API = ApiFixtures.aProxyApiV4();
+    private ApiProduct API_PRODUCT = BASE().build();
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String GENERATED_ID = "generated-id";
 
-    private static final Function<Api, List<? extends AbstractFlow>> EMPTY_FLOW_PROVIDER = _api -> Collections.emptyList();
-
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
-    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    ApiProductCrudServiceInMemory apiProductCrudServiceInMemory = new ApiProductCrudServiceInMemory();
     AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
         new UserCrudServiceInMemory(),
@@ -104,7 +106,7 @@ class CreatePlanUseCaseTest {
         auditDomainService
     );
 
-    CreatePlanUseCase createPlanUseCase = new CreatePlanUseCase(createPlanDomainService, apiCrudService);
+    CreateApiProductPlanUseCase createPlanUseCase = new CreateApiProductPlanUseCase(createPlanDomainService, apiProductCrudServiceInMemory);
 
     @BeforeAll
     static void beforeAll() {
@@ -128,18 +130,18 @@ class CreatePlanUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        apiCrudService.reset();
+        apiProductCrudServiceInMemory.reset();
         parametersQueryService.reset();
     }
 
     @Test
     void should_create_plan_with_default_values() {
         // Given
-        var api = givenExistingApi(API);
+        var api = givenExistingApi(API_PRODUCT);
 
         // When
         var result = createPlanUseCase.execute(
-            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
+            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), AUDIT_INFO)
         );
 
         // Then
@@ -147,25 +149,24 @@ class CreatePlanUseCaseTest {
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
             .extracting(
-                PlanWithFlows::getApiId,
                 createdPlan -> createdPlan.getPlanType().name(),
                 createdPlan -> createdPlan.getPlanMode().name(),
                 createdPlan -> createdPlan.getReferenceId(),
                 createdPlan -> createdPlan.getReferenceType()
             )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name(), api.getId(), Plan.ReferenceType.API.name());
+            .containsExactly(
+                Plan.PlanType.API_PRODUCT.name(),
+                PlanMode.STANDARD.name(),
+                api.getId(),
+                Plan.ReferenceType.API_PRODUCT.name()
+            );
     }
 
     @Test
     void should_not_allow_to_create_secured_plan() {
         // Given
-        var api = givenExistingApi(API);
-        var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
-            EMPTY_FLOW_PROVIDER,
-            AUDIT_INFO
-        );
+        var api = givenExistingApi(API_PRODUCT);
+        var input = new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -175,41 +176,11 @@ class CreatePlanUseCaseTest {
     }
 
     @Test
-    void should_throw_when_create_a_federated_plan() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aFederatedApi());
-
-        // When
-        var throwable = Assertions.catchThrowable(() ->
-            createPlanUseCase.execute(
-                new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
-            )
-        );
-
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Can't manually create Federated Plan");
-    }
-
-    @Test
-    void should_throw_when_creating_mtls_plan_for_tcp_api() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aTcpApiV4());
-        var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
-
-        // When
-        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
-
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Cannot create mTLS plan for TCP API");
-    }
-
-    @Test
     void should_create_mtls_plan_for_http_api() {
         // Given
-        var api = givenExistingApi(ApiFixtures.aProxyApiV4());
+        var api = givenExistingApi(API_PRODUCT);
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> mtlsPlan, AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -218,16 +189,16 @@ class CreatePlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(PlanWithFlows::getApiId, createdPlan -> createdPlan.getPlanSecurity().getType())
+            .extracting(Plan::getReferenceId, createdPlan -> createdPlan.getPlanSecurity().getType())
             .containsExactly(api.getId(), "mtls");
     }
 
     @Test
     void should_create_push_plan_with_null_security_type() {
         // Given
-        var api = givenExistingApi(ApiFixtures.aProxyApiV4());
+        var api = givenExistingApi(API_PRODUCT);
         var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> pushPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> pushPlan, AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -235,115 +206,22 @@ class CreatePlanUseCaseTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
-        assertThat(result.plan()).extracting(PlanWithFlows::getApiId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
+        assertThat(result.plan()).extracting(Plan::getReferenceId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
     }
 
-    @Test
-    void should_create_native_plan() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aNativeApi());
-        var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            EMPTY_FLOW_PROVIDER,
-            AUDIT_INFO
-        );
-
-        // When
-        var result = createPlanUseCase.execute(input);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(GENERATED_ID);
-        assertThat(result.plan())
-            .extracting(
-                PlanWithFlows::getApiId,
-                createdPlan -> createdPlan.getPlanType().name(),
-                creadedPlan -> creadedPlan.getPlanMode().name()
-            )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
-    }
-
-    @Test
-    void should_create_native_plan_with_flow() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aNativeApi());
-        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4());
-        var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            _api -> flows,
-            AUDIT_INFO
-        );
-
-        // When
-        var result = createPlanUseCase.execute(input);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(GENERATED_ID);
-        assertThat(result.plan())
-            .extracting(
-                PlanWithFlows::getApiId,
-                createdPlan -> createdPlan.getPlanType().name(),
-                creadedPlan -> creadedPlan.getPlanMode().name()
-            )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
-    }
-
-    @Test
-    void should_throw_when_native_plan_has_more_then_one_flow() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aNativeApi());
-        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4());
-        var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            _api -> flows,
-            AUDIT_INFO
-        );
-
-        // When
-        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
-
-        // Then
-        Assertions.assertThat(throwable)
-            .isInstanceOf(NativeApiWithMultipleFlowsException.class)
-            .hasMessage("Native APIs cannot have more than one flow");
-    }
-
-    @Test
-    void should_throw_when_creating_mtls_plan_for_native_api() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aNativeApi());
-        var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> mtlsPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
-
-        // When
-        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
-
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
-    }
-
-    @Test
-    void should_throw_when_creating_push_plan_for_native_api() {
-        // Given
-        var api = givenExistingApi(ApiFixtures.aNativeApi());
-        var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
-        var input = new Input(api.getId(), _api -> pushPlan, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
-
-        // When
-        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
-
-        // Then
-        Assertions.assertThat(throwable)
-            .isInstanceOf(PlanInvalidException.class)
-            .hasMessage("Plan mode 'Push' is forbidden for Native APIs");
-    }
-
-    private Api givenExistingApi(Api api) {
-        apiCrudService.initWith(List.of(api));
+    private ApiProduct givenExistingApi(ApiProduct api) {
+        apiProductCrudServiceInMemory.initWith(List.of(api));
         return api;
+    }
+
+    private io.gravitee.apim.core.api_product.model.ApiProduct.ApiProductBuilder BASE() {
+        return io.gravitee.apim.core.api_product.model.ApiProduct.builder()
+            .id("my-api-product")
+            .name("my-api-product")
+            .environmentId("environment-id")
+            .description("api-product-description")
+            .version("1.0.0")
+            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
     }
 }

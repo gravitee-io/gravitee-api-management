@@ -74,6 +74,12 @@ public interface AuditService {
         createAuditLog(executionContext, auditLogData);
     }
 
+    default void createApiProductAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiProductId) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.API_PRODUCT);
+        auditLogData.setReferenceId(apiProductId);
+        createAuditLog(executionContext, auditLogData);
+    }
+
     void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData);
 
     MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query);

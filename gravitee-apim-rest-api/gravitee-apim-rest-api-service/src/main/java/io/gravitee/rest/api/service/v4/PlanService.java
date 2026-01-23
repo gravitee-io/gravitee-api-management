@@ -51,4 +51,6 @@ public interface PlanService {
     boolean anyPlanMismatchWithApi(final List<String> planIds, final String apiId);
 
     Map<String, Object> findByIdAsMap(final String id) throws TechnicalException;
+
+    GenericPlanEntity closePlanForApiProduct(final ExecutionContext executionContext, final String plan);
 }
