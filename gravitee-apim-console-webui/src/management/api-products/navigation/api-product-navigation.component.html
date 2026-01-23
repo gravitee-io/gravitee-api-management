@@ -1,0 +1,68 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!--
+ *
+ *    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *            http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+-->
+<div *ngIf="currentApiProduct" class="api-product-navigation">
+  <div class="api-product-navigation__menu">
+    <gio-submenu class="api-product-navigation__submenu">
+      <div gioSubmenuTitle class="api-product-navigation__submenu__title">
+        <h2 class="api-product-navigation__submenu__title__name">{{ currentApiProduct.name }}</h2>
+      </div>
+      <ng-container *ngFor="let menuItem of subMenuItems">
+        <a [routerLink]="menuItem.routerLink">
+          <gio-submenu-item tabIndex="1" [active]="isActive(menuItem)">
+            <div class="api-product-navigation__submenu__item">
+              <mat-icon
+                *ngIf="menuItem.icon"
+                class="api-product-navigation__submenu__item__icon"
+                [matTooltip]="menuItem.displayName"
+                [svgIcon]="'gio:' + menuItem.icon"
+              >
+              </mat-icon>
+              {{ menuItem.displayName }}
+            </div>
+          </gio-submenu-item>
+        </a>
+      </ng-container>
+    </gio-submenu>
+  </div>
+  <div class="api-product-navigation__content">
+    <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-product-navigation__breadcrumb">
+      <span *gioBreadcrumbItem class="api-product-navigation__breadcrumb__item">API Products</span>
+      <span *gioBreadcrumbItem class="api-product-navigation__breadcrumb__item">{{ currentApiProduct.name }}</span>
+    </gio-breadcrumb>
+    <div class="api-product-navigation__content__view">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
