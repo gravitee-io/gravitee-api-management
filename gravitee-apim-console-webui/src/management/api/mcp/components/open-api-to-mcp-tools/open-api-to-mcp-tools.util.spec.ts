@@ -609,6 +609,524 @@ paths:
     });
   });
 
+  describe('outputSchema extraction', () => {
+    it('extracts schema from 200 response with application/json content', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              responses: {
+                '200': {
+                  description: 'Successful response',
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          name: { type: 'string' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          bodySchema: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+            },
+          },
+        },
+        required: [],
+      });
+    });
+
+    it('extracts schema from 201 response when 200 has no application/json body', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            post: {
+              operationId: 'createUser',
+              summary: 'Create user',
+              responses: {
+                '200': {
+                  description: 'No JSON response',
+                  content: {
+                    'text/plain': {
+                      schema: { type: 'string' },
+                    },
+                  },
+                },
+                '201': {
+                  description: 'User created',
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          bodySchema: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+            },
+          },
+        },
+        required: [],
+      });
+    });
+
+    it('picks first 2xx response with application/json body (200, 201, 202)', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/async': {
+            post: {
+              operationId: 'asyncOp',
+              summary: 'Async operation',
+              responses: {
+                '202': {
+                  description: 'Accepted',
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          taskId: { type: 'string' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          bodySchema: {
+            type: 'object',
+            properties: {
+              taskId: { type: 'string' },
+            },
+          },
+        },
+        required: [],
+      });
+    });
+
+    it('returns no outputSchema when no application/json response body exists', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/delete': {
+            delete: {
+              operationId: 'deleteItem',
+              summary: 'Delete item',
+              responses: {
+                '204': {
+                  description: 'No content',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.outputSchema).toBeUndefined();
+    });
+
+    it('ignores non-JSON content types (application/xml, text/plain)', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/xml': {
+            get: {
+              operationId: 'getXml',
+              summary: 'Get XML',
+              responses: {
+                '200': {
+                  description: 'XML response',
+                  content: {
+                    'application/xml': {
+                      schema: { type: 'string' },
+                    },
+                    'text/plain': {
+                      schema: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.outputSchema).toBeUndefined();
+    });
+
+    it('extracts response headers and includes them in outputSchema', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              responses: {
+                '200': {
+                  description: 'Successful response',
+                  headers: {
+                    'X-Rate-Limit': {
+                      description: 'Rate limit remaining',
+                      schema: { type: 'integer' },
+                    },
+                  },
+                  content: {
+                    'application/json': {
+                      schema: { type: 'object', properties: { id: { type: 'string' } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          'X-Rate-Limit': { type: 'integer', description: 'Rate limit remaining' },
+          bodySchema: { type: 'object', properties: { id: { type: 'string' } } },
+        },
+        required: [],
+      });
+    });
+
+    it('handles response with only headers (no body)', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/resource': {
+            delete: {
+              operationId: 'deleteResource',
+              summary: 'Delete resource',
+              responses: {
+                '200': {
+                  description: 'Deleted',
+                  headers: {
+                    'X-Deleted-At': {
+                      description: 'Deletion timestamp',
+                      schema: { type: 'string', format: 'date-time' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          'X-Deleted-At': { type: 'string', format: 'date-time', description: 'Deletion timestamp' },
+        },
+        required: [],
+      });
+    });
+
+    it('extracts multiple response headers', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/items': {
+            get: {
+              operationId: 'listItems',
+              summary: 'List items',
+              responses: {
+                '200': {
+                  description: 'Successful response',
+                  headers: {
+                    'X-Total-Count': {
+                      description: 'Total number of items',
+                      schema: { type: 'integer' },
+                    },
+                    'X-Page-Size': {
+                      description: 'Items per page',
+                      schema: { type: 'integer' },
+                    },
+                  },
+                  content: {
+                    'application/json': {
+                      schema: { type: 'array', items: { type: 'object' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result[0].toolDefinition.outputSchema).toEqual({
+        type: 'object',
+        properties: {
+          'X-Total-Count': { type: 'integer', description: 'Total number of items' },
+          'X-Page-Size': { type: 'integer', description: 'Items per page' },
+          bodySchema: { type: 'array', items: { type: 'object' } },
+        },
+        required: [],
+      });
+    });
+
+    it('does not include responseHeaders in gateway mapping when no headers defined', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              responses: {
+                '200': {
+                  description: 'Successful response',
+                  content: {
+                    'application/json': {
+                      schema: { type: 'object', properties: { id: { type: 'string' } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { errors } = await convertOpenApiToMcpTools(spec);
+      expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe('annotations extraction', () => {
+    it('extracts all annotation fields from x-mcp extensions', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              'x-mcp-title': 'Retrieve User Information',
+              'x-mcp-readOnlyHint': true,
+              'x-mcp-destructiveHint': false,
+              'x-mcp-idempotentHint': true,
+              'x-mcp-openWorldHint': false,
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.annotations).toEqual({
+        title: 'Retrieve User Information',
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
+    });
+
+    it('handles partial annotations (only some fields present)', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            delete: {
+              operationId: 'deleteUser',
+              summary: 'Delete user',
+              'x-mcp-destructiveHint': true,
+              'x-mcp-openWorldHint': true,
+              responses: {
+                '204': { description: 'No content' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.annotations).toEqual({
+        destructiveHint: true,
+        openWorldHint: true,
+      });
+    });
+
+    it('handles no annotations gracefully', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.annotations).toBeUndefined();
+    });
+
+    it('validates boolean types for hint fields (ignores non-boolean values)', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              'x-mcp-title': 'Valid Title',
+              'x-mcp-readOnlyHint': 'true', // String, not boolean - should be ignored
+              'x-mcp-destructiveHint': 1, // Number, not boolean - should be ignored
+              'x-mcp-idempotentHint': true, // Valid boolean
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.annotations).toEqual({
+        title: 'Valid Title',
+        idempotentHint: true,
+      });
+    });
+
+    it('ignores title if not a string', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/user': {
+            get: {
+              operationId: 'getUser',
+              summary: 'Get user',
+              'x-mcp-title': 123, // Number, not string - should be ignored
+              'x-mcp-readOnlyHint': true,
+              responses: {
+                '200': { description: 'OK' },
+              },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].toolDefinition.annotations).toEqual({
+        readOnlyHint: true,
+      });
+    });
+  });
+
   describe('Error cases', () => {
     it.each([
       [
