@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.api_product;
 
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -77,5 +78,18 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
         } catch (TechnicalException e) {
             throw TechnicalManagementException.ofTryingToUpdateWithId(ApiProduct.class, updateApiProduct.getId(), e);
         }
+    }
+
+    @Override
+    public ApiProduct get(String id) {
+        try {
+            var foundApi = apiProductsRepository.findById(id);
+            if (foundApi.isPresent()) {
+                return ApiProductAdapter.INSTANCE.toModel(foundApi.get());
+            }
+        } catch (TechnicalException e) {
+            log.error("An error occurred while finding Api Product by id {}", id, e);
+        }
+        throw new ApiNotFoundException(id);
     }
 }

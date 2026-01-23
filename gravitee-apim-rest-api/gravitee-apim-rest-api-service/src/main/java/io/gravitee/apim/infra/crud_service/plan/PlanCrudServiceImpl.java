@@ -16,15 +16,27 @@
 package io.gravitee.apim.infra.crud_service.plan;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -82,6 +94,16 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             planRepository.updateCrossIds(plans.stream().map(PlanAdapter.INSTANCE::toRepository).toList());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(String.format("An error occurred while trying to update plans cross IDs %s", plans), e);
+        }
+    }
+
+    @Override
+    public Optional<Plan> findByPlanIdAndReferenceId(String planId, String referenceId) {
+        try {
+            log.debug("Get plan by id : {}", planId);
+            return planRepository.findByIdForApiProduct(planId, referenceId).map(PlanAdapter.INSTANCE::fromRepository);
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
         }
     }
 

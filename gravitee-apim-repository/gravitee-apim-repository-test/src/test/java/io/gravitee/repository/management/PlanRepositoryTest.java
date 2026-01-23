@@ -27,6 +27,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -92,6 +93,8 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                     .security(Plan.PlanSecurityType.API_KEY)
                     .validation(Plan.PlanValidationType.AUTO)
                     .type(Plan.PlanType.API)
+                    .referenceId("api2")
+                    .referenceType(PlanReferenceType.API)
                     .mode(Plan.PlanMode.STANDARD)
                     .apiType(ApiType.PROXY)
                     .status(Plan.Status.PUBLISHED)
@@ -554,5 +557,32 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Plan> updatedPlanV4 = planRepository.findById("plan-v4");
         assertTrue(updatedPlanV4.isPresent());
         assertEquals("plan-v4-cross-id-updated", updatedPlanV4.get().getCrossId());
+    }
+
+    @Test
+    public void shouldFindByReferenceIdAndReferenceType_forApiProduct() throws Exception {
+        Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType("api-product-1", PlanReferenceType.API_PRODUCT);
+
+        assertThat(plans)
+            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+            .containsExactly(tuple("api-product-plan-1", "api-product-1", PlanReferenceType.API_PRODUCT));
+    }
+
+    @Test
+    public void shouldFindByIdForApiProduct() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdForApiProduct("api-product-plan-1", "api-product-1");
+
+        assertThat(plan)
+            .isPresent()
+            .get()
+            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+            .containsExactly("api-product-plan-1", "api-product-1", PlanReferenceType.API_PRODUCT);
+    }
+
+    @Test
+    public void shouldNotFindByIdForApiProduct_whenApiProductDoesNotMatch() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdForApiProduct("api-product-plan-1", "another-api-product");
+
+        assertThat(plan).isEmpty();
     }
 }

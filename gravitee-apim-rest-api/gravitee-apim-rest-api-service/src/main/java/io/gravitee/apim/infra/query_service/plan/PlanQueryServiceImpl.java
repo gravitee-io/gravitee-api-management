@@ -22,8 +22,10 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -66,6 +68,19 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         } catch (TechnicalException e) {
             log.error("An error occurred while finding plans by API ID {}", apiId, e);
             throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
+        }
+    }
+
+    @Override
+    public List<Plan> findAllForApiProduct(String referenceId) {
+        try {
+            return planRepository
+                .findByReferenceIdAndReferenceType(referenceId, PlanReferenceType.API_PRODUCT)
+                .stream()
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while trying to find plans by API Product ID: " + referenceId, e);
         }
     }
 }

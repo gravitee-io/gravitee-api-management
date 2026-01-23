@@ -22,7 +22,10 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -60,6 +63,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
 
     private final PlanRepository planRepository;
     private final ApiRepository apiRepository;
+    private final ApiProductsRepository apiProductsRepository;
     private final GroupService groupService;
     private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
@@ -69,6 +73,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
         @Lazy final ApiRepository apiRepository,
+        @Lazy final ApiProductsRepository apiProductsRepository,
         @Lazy final GroupService groupService,
         @Lazy final ApiSearchService apiSearchService,
         final ObjectMapper objectMapper,
@@ -77,6 +82,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     ) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
+        this.apiProductsRepository = apiProductsRepository;
         this.groupService = groupService;
         this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
@@ -241,5 +247,81 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + plan.getApi(), e);
         }
+    }
+
+    @Override
+    public GenericPlanEntity findByPlanIdIdForApiProduct(
+        final ExecutionContext executionContext,
+        final String plan,
+        final String apiProductId
+    ) {
+        try {
+            log.debug("Find plan by id : {}", plan);
+            return planRepository
+                .findByIdForApiProduct(plan, apiProductId)
+                .map(this::mapToGenericForApiProduct)
+                .orElseThrow(() -> new PlanNotFoundException(plan));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
+        }
+    }
+
+    @Override
+    public Set<GenericPlanEntity> findByApiProduct(final ExecutionContext executionContext, final String apiProductId) {
+        try {
+            log.debug("Find plan by api product : {}", apiProductId);
+            Optional<ApiProduct> apiOptional = apiProductsRepository.findById(apiProductId);
+            if (apiOptional.isPresent()) {
+                return planRepository
+                    .findByReferenceIdAndReferenceType(apiProductId, PlanReferenceType.API_PRODUCT)
+                    .stream()
+                    .map(plan -> genericPlanMapper.toGenericApiProductPlan(plan))
+                    .collect(Collectors.toSet());
+            } else {
+                return Set.of();
+            }
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find a plan by api product: %s", apiProductId),
+                ex
+            );
+        }
+    }
+
+    @Override
+    public List<GenericPlanEntity> searchForApiProductPlans(
+        final ExecutionContext executionContext,
+        final PlanQuery query,
+        String user,
+        boolean isAdmin
+    ) {
+        return findByApiProduct(executionContext, query.getReferenceId())
+            .stream()
+            .filter(p -> {
+                boolean filtered = true;
+                if (query.getName() != null) {
+                    filtered = query.getName().equals(p.getName());
+                }
+                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
+                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                        return false;
+                    }
+                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                    filtered = query.getSecurityType().contains(planSecurityType);
+                }
+                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
+                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                    filtered = query.getStatus().contains(planStatus);
+                }
+                if (filtered && query.getMode() != null) {
+                    filtered = query.getMode().equals(p.getPlanMode());
+                }
+                return filtered;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private GenericPlanEntity mapToGenericForApiProduct(final Plan plan) {
+        return genericPlanMapper.toGenericApiProductPlan(plan);
     }
 }

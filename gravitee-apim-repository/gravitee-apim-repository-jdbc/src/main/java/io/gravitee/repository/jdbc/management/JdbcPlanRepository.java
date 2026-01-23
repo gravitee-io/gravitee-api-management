@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -54,6 +55,8 @@ import org.springframework.stereotype.Repository;
 public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
     private final String APIS;
+    private final String API_PRODUCTS;
+
     private final String PLAN_TAGS;
     private final String PLAN_CHARACTERISTICS;
     private final String PLAN_EXCLUDED_GROUPS;
@@ -69,9 +72,18 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         }
     };
 
+    private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER_API_PROD = (Plan parent, ResultSet rs) -> {
+        parent.setDefinitionVersion(DefinitionVersion.V4);
+        var environmentId = rs.getString("environment_id");
+        if (environmentId != null) {
+            parent.setEnvironmentId(environmentId);
+        }
+    };
+
     JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "plans");
         APIS = getTableNameFor("apis");
+        API_PRODUCTS = getTableNameFor("api_products");
         PLAN_TAGS = getTableNameFor("plan_tags");
         PLAN_CHARACTERISTICS = getTableNameFor("plan_characteristics");
         PLAN_EXCLUDED_GROUPS = getTableNameFor("plan_excluded_groups");
@@ -105,6 +117,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("general_conditions", Types.NVARCHAR, String.class)
             .addColumn("general_conditions_hrid", Types.NVARCHAR, String.class)
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, PlanReferenceType.class)
             .build();
     }
 
@@ -443,6 +457,58 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             );
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update plans cross IDs", ex);
+        }
+    }
+
+    @Override
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, PlanReferenceType planReferenceType) throws TechnicalException {
+        log.debug("JdbcPlanRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, planReferenceType);
+        try {
+            String query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                API_PRODUCTS +
+                " api_product on api_product.id = p.reference_id" +
+                " where p.reference_id = ? and p.reference_type = ?";
+            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER_API_PROD,
+                "id"
+            );
+
+            jdbcTemplate.query(query, rowMapper, referenceId, planReferenceType.name());
+
+            List<Plan> plans = rowMapper.getRows();
+
+            return new HashSet<>(plans);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plans by referenceId", ex);
+        }
+    }
+
+    @Override
+    public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
+        log.debug("JdbcPlanRepository.findById({})", plan);
+        try {
+            String query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                API_PRODUCTS +
+                " api_product on api_product.id = p.reference_id" +
+                " where p.id = ? and p.reference_id = ? and p.reference_type = 'API_PRODUCT'";
+            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER_API_PROD,
+                "id"
+            );
+
+            jdbcTemplate.query(query, rowMapper, plan, apiProductId);
+
+            Optional<Plan> result = rowMapper.getRows().stream().findFirst();
+
+            return result;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plan by id", ex);
         }
     }
 

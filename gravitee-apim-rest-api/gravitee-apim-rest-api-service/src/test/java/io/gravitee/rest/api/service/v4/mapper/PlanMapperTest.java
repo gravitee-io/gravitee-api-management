@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -74,6 +75,8 @@ public class PlanMapperTest {
         plan.setMode(Plan.PlanMode.STANDARD);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("api1");
+        plan.setReferenceId("api1");
+        plan.setReferenceType(PlanReferenceType.API);
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
@@ -117,6 +120,8 @@ public class PlanMapperTest {
         plan.setMode(Plan.PlanMode.STANDARD);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("api1");
+        plan.setReferenceId("api1");
+        plan.setReferenceType(PlanReferenceType.API);
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
         plan.setApiType(ApiType.NATIVE);
@@ -148,6 +153,8 @@ public class PlanMapperTest {
         plan.setMode(Plan.PlanMode.PUSH);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("api1");
+        plan.setReferenceId("api1");
+        plan.setReferenceType(PlanReferenceType.API);
         plan.setGeneralConditions("general_conditions");
 
         List<Flow> flows = new ArrayList<>();

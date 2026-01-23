@@ -1764,8 +1764,9 @@ components:
       enum:
         - API
         - CATALOG
+        - API_PRODUCT
       default: API
-    PlanValidation: 
+    PlanValidation:
       type: string
       description: |
         Specifies if subscriptions must be manually validated by a human actor.

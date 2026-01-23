@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.plan;
 
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -31,4 +32,10 @@ public interface PlanMongoRepository extends MongoRepository<PlanMongo, String>,
 
     @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
     List<PlanMongo> deleteByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }")
+    List<PlanMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
+
+    @Query(value = "{ 'id': ?0, 'referenceId': ?1, 'referenceType': ?2 }")
+    Optional<PlanMongo> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType);
 }

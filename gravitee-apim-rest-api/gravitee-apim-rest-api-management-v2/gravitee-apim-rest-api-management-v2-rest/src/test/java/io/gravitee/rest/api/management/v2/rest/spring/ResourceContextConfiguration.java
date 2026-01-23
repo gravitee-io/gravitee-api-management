@@ -116,6 +116,10 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
+import io.gravitee.apim.core.plan.use_case.api_product.ApiProductPlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.api_product.UpdateApiProductPlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -892,6 +896,27 @@ public class ResourceContextConfiguration {
     @Bean
     public VerifyApiProductNameUseCase verifyApiProductNameUseCase() {
         return mock(VerifyApiProductNameUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public CreateApiProductPlanUseCase createApiProductPlanUseCase() {
+        return mock(CreateApiProductPlanUseCase.class);
+    }
+
+    @Bean
+    public GetApiProductPlansUseCase getApiProductPlansUseCase() {
+        return mock(GetApiProductPlansUseCase.class);
+    }
+
+    @Bean
+    public UpdateApiProductPlanUseCase updateApiProductPlanUseCase() {
+        return mock(UpdateApiProductPlanUseCase.class);
+    }
+
+    @Bean
+    public ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase() {
+        return mock(ApiProductPlanOperationsUseCase.class);
     }
 
     @Bean
