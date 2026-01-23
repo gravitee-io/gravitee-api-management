@@ -1,0 +1,61 @@
+<!--
+ *
+ *    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *            http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+-->
+<form *ngIf="form" [formGroup]="form" autocomplete="off" gioFormFocusInvalid>
+  <div class="configuration-section">
+    <h1 class="configuration-section__title">Configuration</h1>
+    <p class="configuration-section__subtitle">Manage general settings and user permissions.</p>
+
+    <mat-card class="configuration-card">
+      <mat-card-content>
+        <div class="configuration-card__fields">
+          <mat-form-field class="configuration-card__fields__name">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" required />
+            <mat-error *ngIf="form.controls.name.hasError('required')">Name is required.</mat-error>
+            <mat-error *ngIf="form.controls.name.hasError('unique')">API Product name must be unique</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="configuration-card__fields__version">
+            <mat-label>Version</mat-label>
+            <input matInput formControlName="version" required />
+            <mat-error *ngIf="form.controls.version.hasError('required')">Version is required.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="configuration-card__fields__description">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" [maxlength]="descriptionMaxLength"></textarea>
+            <!--Check if we really need to show the number of characters allowed-->
+            <!-- <mat-hint align="end">{{ getDescriptionLength() }}/{{ descriptionMaxLength }}</mat-hint> -->
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <api-product-danger-zone [apiProduct]="apiProduct" (reloadDetails)="ngOnInit()"></api-product-danger-zone>
+
+    <gio-save-bar
+      [form]="form"
+      data-testid="api_product_configuration_savebar"
+      [formInitialValues]="initialFormValue"
+      (resetClicked)="onReset()"
+      (submitted)="onSubmit()"
+    />
+  </div>
+</form>
+
+

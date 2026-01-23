@@ -1,0 +1,91 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$textColor: map.get(gio.$mat-dove-palette, default);
+
+.api-product-navigation {
+  height: 100%;
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: 'menu content';
+
+  a {
+    text-decoration: none;
+  }
+
+  &__menu {
+    grid-area: menu;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__submenu {
+    z-index: 70;
+    height: 100%;
+    color: $textColor;
+
+    &__title {
+      border-bottom: 1px solid #8a8383;
+      &__name {
+        margin: 0;
+        padding: 16px 20px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+    }
+
+    &__item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      &__icon {
+        margin-right: 8px;
+        color: $textColor;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  &__breadcrumb {
+    padding: 16px 32px 0 32px;
+
+    &__item {
+      display: contents;
+    }
+  }
+
+  &__content {
+    grid-area: content;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+
+    &__view {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      height: 100%;
+      margin: 12px 24px 0 24px;
+    }
+  }
+}
+
+

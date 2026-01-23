@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-import { ApiProduct } from './apiProduct';
-import { Links } from '../links';
-import { Pagination } from '../pagination';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
 
-export interface ApiProductsResponse {
-  /**
-   * List of API Products.
-   */
-  data?: ApiProduct[];
-  pagination?: Pagination;
-  links?: Links;
-}
+import { ApiProductCreateComponent } from './api-product-create.component';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: ApiProductCreateComponent,
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class ApiProductCreateRoutingModule {}
+

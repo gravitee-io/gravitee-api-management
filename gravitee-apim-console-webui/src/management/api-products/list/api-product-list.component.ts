@@ -69,6 +69,7 @@ function filtersToQueryParams(filters: ApiProductListTableWrapperFilters): Recor
   };
 }
 
+
 export type ApiProductTableDS = {
   id: string;
   name: string;
@@ -79,6 +80,7 @@ export type ApiProductTableDS = {
 }[];
 
 type ApiProductListTableWrapperFilters = GioTableWrapperFilters;
+
 
 @Component({
   selector: 'api-product-list',
@@ -162,6 +164,7 @@ export class ApiProductListComponent implements OnInit {
     }
     return fallback;
   }
+
 
   private toApiProductsTableDS(data: ApiProduct[]): ApiProductTableDS {
     if (!data || data.length === 0) {

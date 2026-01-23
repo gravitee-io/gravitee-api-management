@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { ApiProduct } from './apiProduct';
-import { Links } from '../links';
-import { Pagination } from '../pagination';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-export interface ApiProductsResponse {
-  /**
-   * List of API Products.
-   */
-  data?: ApiProduct[];
-  pagination?: Pagination;
-  links?: Links;
-}
+import { ApiProductDetailRoutingModule } from './api-product-detail-routing.module';
+import { ApiProductNavigationModule } from '../navigation/api-product-navigation.module';
+
+@NgModule({
+  imports: [CommonModule, ApiProductDetailRoutingModule, ApiProductNavigationModule],
+})
+export class ApiProductDetailModule {}
+
+

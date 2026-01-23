@@ -1,0 +1,128 @@
+@use 'sass:map';
+
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.api-product-create {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__title {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #424242;
+  }
+
+  &__instructions {
+    margin: 0 0 24px 0;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    font-size: 14px;
+  }
+
+  &__form-card {
+    flex: 1;
+    margin-bottom: 24px;
+    padding: 24px;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    gap: 16px;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+
+  &:hover {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker');
+    text-decoration: underline;
+  }
+}
+
+.form-section {
+  &__title {
+    margin: 0 0 24px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #424242;
+  }
+}
+
+.form-row {
+  margin-bottom: 16px;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  &--inline {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+
+    .form-field--name {
+      flex: 1;
+    }
+
+    .form-field--version {
+      flex: 0 0 200px;
+    }
+  }
+}
+
+.cancel-button {
+  color: #424242;
+  border-color: #e0e0e0;
+  background-color: white;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.create-button {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  font-weight: 500;
+  min-width: 180px;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e55a2b 0%, #e0841a 100%);
+  }
+
+  &:disabled {
+    background: #e0e0e0;
+    color: #9e9e9e;
+  }
+}
+
