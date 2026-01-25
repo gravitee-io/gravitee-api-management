@@ -94,15 +94,12 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   };
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
-  public canDisplayAllowInApiProduct = false;
 
   public isQualityEnabled = false;
   public isQualitySupported = false;
 
   public isReadOnly = false;
   public isKubernetesOrigin = false;
-
-  public isInApiProduct = false;
 
   public integrationName = '';
   public integrationId = '';
@@ -159,16 +156,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             this.apiType = (api as ApiV4).type;
           }
 
-          const isV4HttpProxy = api.definitionVersion === 'V4' && (api as ApiV4).type === 'PROXY';
-          this.canDisplayAllowInApiProduct = isV4HttpProxy;
-
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
 
           this.api = api;
-
-          const productIds = (api as { productIds?: string[] }).productIds;
-          this.isInApiProduct = Array.isArray(productIds) && productIds.length > 0;
 
           this.apiCategories = categories;
           this.apiOwner = api.primaryOwner.displayName;
@@ -234,15 +225,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
-            // Only add allowInApiProduct control for V4 Proxy APIs
-            ...(this.canDisplayAllowInApiProduct
-              ? {
-                  allowInApiProduct: new UntypedFormControl({
-                    value: api.allowInApiProduct ?? false,
-                    disabled: this.isReadOnly || this.isInApiProduct,
-                  }),
-                }
-              : {}),
           });
           this.apiImagesForm = new UntypedFormGroup({
             picture: new UntypedFormControl({
@@ -303,10 +285,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               ...(this.canDisplayV4EmulationEngineToggle
                 ? { executionMode: apiDetailsFormValue.emulateV4Engine ? 'V4_EMULATION_ENGINE' : 'V3' }
                 : {}),
-              // Only include allowInApiProduct for V4 Proxy APIs
-              ...(this.canDisplayAllowInApiProduct && apiDetailsFormValue.allowInApiProduct !== undefined
-                ? { allowInApiProduct: apiDetailsFormValue.allowInApiProduct }
-                : {}),
             };
             return apiToUpdate;
           }
@@ -317,10 +295,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             description: apiDetailsFormValue.description,
             labels: apiDetailsFormValue.labels,
             categories: apiDetailsFormValue.categories,
-            // Only include allowInApiProduct for V4 Proxy APIs
-            ...(this.canDisplayAllowInApiProduct && apiDetailsFormValue.allowInApiProduct !== undefined
-              ? { allowInApiProduct: apiDetailsFormValue.allowInApiProduct }
-              : {}),
           };
           return apiToUpdate;
         }),

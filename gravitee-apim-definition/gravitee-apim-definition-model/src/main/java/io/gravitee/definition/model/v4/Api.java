@@ -88,11 +88,6 @@ public class Api extends AbstractApi {
 
     private ApiServices services;
 
-    /**
-     * Indicates whether this API is allowed to be used in API Products.
-     */
-    private boolean allowInApiProduct;
-
     public Api(Api other) {
         super(other.id, other.name, other.type, other.apiVersion, other.definitionVersion, other.tags, other.properties, other.resources);
         this.listeners = other.listeners;
@@ -104,34 +99,6 @@ public class Api extends AbstractApi {
         this.flows = other.flows;
         this.responseTemplates = other.responseTemplates;
         this.services = other.services;
-        this.allowInApiProduct = other.allowInApiProduct;
-    }
-
-    /**
-     * Backward-compatible constructor kept for callers that don't know about {@code allowInApiProduct}.
-     * Defaults {@code allowInApiProduct} to {@code false}.
-     */
-    public Api(
-        List<@NotNull Listener> listeners,
-        List<EndpointGroup> endpointGroups,
-        Analytics analytics,
-        Failover failover,
-        Map<String, Plan> plans,
-        FlowExecution flowExecution,
-        List<Flow> flows,
-        Map<String, Map<String, ResponseTemplate>> responseTemplates,
-        ApiServices services
-    ) {
-        this.listeners = listeners;
-        this.endpointGroups = endpointGroups;
-        this.analytics = analytics;
-        this.failover = failover;
-        this.plans = plans;
-        this.flowExecution = flowExecution != null ? flowExecution : new FlowExecution();
-        this.flows = flows;
-        this.responseTemplates = responseTemplates;
-        this.services = services;
-        this.allowInApiProduct = false;
     }
 
     public Plan getPlan(final String plan) {

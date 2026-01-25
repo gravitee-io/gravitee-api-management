@@ -75,8 +75,4 @@ export interface UpdateBaseApi {
    */
   disableMembershipNotifications?: boolean;
   properties?: Property[];
-  /**
-   * @description Whether this API can be used in API Products.
-   */
-  allowInApiProduct?: boolean;
 }

@@ -3320,10 +3320,6 @@ components:
                           description: The list of path mappings associated with this API.
                           items:
                               type: string
-                      allowInApiProduct:
-                          type: boolean
-                          description: Indicates whether this API is allowed to be used in API Products.
-                          default: false
                       entrypoints:
                           type: array
                           description: The list of entrypoints associated with this API.
@@ -3358,10 +3354,6 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
-                      allowInApiProduct:
-                          type: boolean
-                          description: Indicates whether this API is allowed to be used in API Products.
-                          default: false
 
         ApiFederated:
             type: object
@@ -3793,10 +3785,6 @@ components:
                         - awesome
                     items:
                         type: string
-                allowInApiProduct:
-                    type: boolean
-                    description: Indicates whether this API is allowed to be used in API Products.
-                    default: false
                 lifecycleState:
                     $ref: "#/components/schemas/ApiLifecycleState"
                 disableMembershipNotifications:
