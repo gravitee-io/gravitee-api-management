@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.RabbitMQContainer;
@@ -62,7 +64,8 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
     @Container
     protected static final RabbitMQContainer rabbitmqContainer = new RabbitMQContainer("rabbitmq:3.11-management-alpine")
         .withUser(USER, PASSWORD, Set.of("administrator"))
-        .withPermission("/", USER, ".*", ".*", ".*");
+        .withPermission("/", USER, ".*", ".*", ".*")
+        .withStartupTimeout(Duration.ofMinutes(2));
 
     protected String exchange;
     protected String routingKey;
@@ -108,8 +111,32 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
 
     @BeforeEach
     public void prepareRabbitClient() {
+        waitForRabbitMQReady();
         initSenderAndReceiverForTest();
         log.info("RabbitMQ connected");
+    }
+
+    /**
+     * Wait for RabbitMQ to be fully ready to accept connections.
+     * Uses Awaitility with exponential backoff to retry connection attempts.
+     */
+    private void waitForRabbitMQReady() {
+        Awaitility.await()
+            .atMost(60, TimeUnit.SECONDS)
+            .pollInterval(1, TimeUnit.SECONDS)
+            .pollDelay(Duration.ZERO)
+            .ignoreExceptions()
+            .until(() -> {
+                ConnectionFactory testFactory = new ConnectionFactory();
+                testFactory.setHost(rabbitmqContainer.getHost());
+                testFactory.setPort(rabbitmqContainer.getAmqpPort());
+                testFactory.setUsername(USER);
+                testFactory.setPassword(PASSWORD);
+                try (var connection = testFactory.newConnection()) {
+                    return connection.isOpen();
+                }
+            });
+        log.info("RabbitMQ is ready to accept connections");
     }
 
     @AfterEach
