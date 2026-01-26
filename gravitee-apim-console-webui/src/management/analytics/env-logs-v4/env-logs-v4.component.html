@@ -33,6 +33,11 @@
     <div class="filters-section">Filters section coming soon</div>
 
     <!-- Table Section -->
-    <div class="table-section">Table section coming soon</div>
+    <env-logs-table
+      class="env-runtime-logs-v4__table"
+      [logs]="logs()"
+      [pagination]="pagination()"
+      (paginationUpdated)="onPaginationUpdated($event)"
+    ></env-logs-table>
   </mat-card>
 </div>
