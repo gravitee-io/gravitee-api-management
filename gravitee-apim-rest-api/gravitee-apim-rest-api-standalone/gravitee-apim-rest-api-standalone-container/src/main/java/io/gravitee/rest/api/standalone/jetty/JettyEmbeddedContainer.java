@@ -15,21 +15,33 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
+import io.gravitee.rest.api.management.v2.mcp.McpServerConfiguration;
 import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
 import io.gravitee.rest.api.management.v2.security.SecurityManagementV2Configuration;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
+import io.modelcontextprotocol.common.McpTransportContext;
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider;
 import jakarta.servlet.DispatcherType;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+
+import jakarta.servlet.http.Cookie;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
@@ -76,6 +88,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Value("${http.api.portal.entrypoint:${http.api.entrypoint:/}portal}")
     private String portalEntrypoint;
+
+    @Value("${http.api.management.mcp.enabled:false}")
+    private boolean startMcpServer;
 
     public JettyEmbeddedContainer(JettyServerFactory jettyServerFactory) {
         this.jettyServerFactory = jettyServerFactory;
@@ -131,6 +146,12 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementV2Configuration.class
             );
             contexts.add(managementV2ContextHandler);
+
+            // MCP Server configuration
+            if (startMcpServer) {
+                ServletContextHandler mcpContextHandler = configureMcpAPI(managementEntrypoint + "/ai");
+                contexts.add(mcpContextHandler);
+            }
         }
 
         if (contexts.isEmpty()) {
@@ -170,6 +191,68 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             EnumSet.allOf(DispatcherType.class)
         );
         return childContext;
+    }
+
+    private ServletContextHandler configureMcpAPI(String contextPath) {
+        final ServletContextHandler mcpContext = new ServletContextHandler(contextPath, ServletContextHandler.SESSIONS);
+
+        // Create transport provider directly (not via Spring)
+        HttpServletStreamableServerTransportProvider transport = HttpServletStreamableServerTransportProvider.builder()
+            .jsonMapper(new JacksonMcpJsonMapper(new ObjectMapper()))
+            .keepAliveInterval(Duration.ofSeconds(30))
+            .contextExtractor(request -> {
+                String authToken = request.getHeader("Authorization");
+
+                // Fallback to cookie if header not present (same logic as TokenAuthenticationFilter)
+                if ((authToken == null || authToken.isEmpty()) && request.getCookies() != null) {
+                    for (Cookie cookie : request.getCookies()) {
+                        if ("Auth-Graviteeio-APIM".equals(cookie.getName())) {
+                            try {
+                                authToken = URLDecoder.decode(
+                                    cookie.getValue(),
+                                    StandardCharsets.UTF_8
+                                );
+                                break;
+                            } catch (Exception e) {
+                                // Ignore decode errors
+                            }
+                        }
+                    }
+                }
+
+                if (authToken != null && !authToken.isEmpty()) {
+                    return McpTransportContext.create(Map.of("authorizationHeader", authToken));
+                }
+                return McpTransportContext.create(Map.of());
+            })
+            .build();
+
+        // Register servlet BEFORE context starts
+        ServletHolder mcpServlet = new ServletHolder("mcp", transport);
+        mcpServlet.setAsyncSupported(true);
+        mcpContext.addServlet(mcpServlet, "/*");
+
+        // Create Spring context for MCP (for tools and security only)
+        AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
+        webApplicationContext.register(McpServerConfiguration.class);
+        webApplicationContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
+        webApplicationContext.setParent(applicationContext);
+
+        // Register transport as a Spring singleton so McpServerConfiguration can use it
+        webApplicationContext.addBeanFactoryPostProcessor(beanFactory ->
+            beanFactory.registerSingleton("mcpTransportProvider", transport)
+        );
+
+        mcpContext.addEventListener(new ContextLoaderListener(webApplicationContext));
+
+        // Spring Security filter (same auth as v2)
+        mcpContext.addFilter(
+            new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
+            "/*",
+            EnumSet.allOf(DispatcherType.class)
+        );
+
+        return mcpContext;
     }
 
     @Override

@@ -37,5 +37,6 @@
     <modules>
         <module>gravitee-apim-rest-api-management-v2-rest</module>
         <module>gravitee-apim-rest-api-management-v2-security</module>
+        <module>gravitee-apim-rest-api-management-v2-mcp</module>
     </modules>
 </project>

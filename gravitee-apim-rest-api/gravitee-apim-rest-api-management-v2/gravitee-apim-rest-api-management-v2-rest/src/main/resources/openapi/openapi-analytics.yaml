@@ -40,6 +40,10 @@ paths:
   /environments/{envId}/analytics/definition/apis:
     get:
       operationId: queryApiSpecs
+      x-mcp:
+          enabled: true
+          name: query_api_specs
+          description: Use this first to discover which metrics are available for each API type.
       summary: Query available APIs for analytics
       description: |
         Returns a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
@@ -80,6 +84,9 @@ paths:
   /environments/{envId}/analytics/definition/apis/{apiName}/metrics:
     get:
       operationId: queryMetricSpecs
+      x-mcp:
+          enabled: true
+          name: query_metric_specs
       summary: Query available metrics for an API type
       description: |
         Returns a list of available metrics for a specific API type, including their supported measures, facets, and filters.
@@ -132,6 +139,9 @@ paths:
   /environments/{envId}/analytics/definition/metrics/{metricName}/filters:
     get:
       operationId: queryFilterSpecsForMetric
+      x-mcp:
+          enabled: true
+          name: query_filter_specs
       summary: Query available filters for a specific metric
       description: |
         Returns a list of available filters that can be applied to a specific metric within an API type, including their operators and value constraints.
@@ -195,6 +205,9 @@ paths:
   /environments/{envId}/analytics/definition/metrics/{metricName}/facets:
     get:
       operationId: queryFacetSpecsForMetric
+      x-mcp:
+          enabled: true
+          name: query_facet_specs
       summary: Query available facets for a specific metric
       description: |
         Returns a list of available facets that can be used to group data for a specific metric within an API type, including their data types.
@@ -242,6 +255,10 @@ paths:
   /environments/{envId}/analytics/measures:
     post:
       operationId: queryMeasures
+      x-mcp:
+          enabled: true
+          name: query_measures
+          description: Use query_metric_specs first to discover available metrics and measures.
       summary: Query measures analytics
       description: |
         Return aggregated values for specified metrics within a time range.
@@ -335,6 +352,10 @@ paths:
   /environments/{envId}/analytics/facets:
     post:
       operationId: queryFacets
+      x-mcp:
+          enabled: true
+          name: query_facets
+          description: Use query_facet_specs first to discover available facets for your metric.
       summary: Query facets analytics
       description: |
         Group data by facet values with optional ranging, sorting and limits.
@@ -520,6 +541,10 @@ paths:
   /environments/{envId}/analytics/time-series:
     post:
       operationId: queryTimeSeries
+      x-mcp:
+          enabled: true
+          name: query_time_series
+          description: Use query_metric_specs first to discover available metrics.
       summary: Query time series analytics
       description: |
         Return data points over time with optional grouping by facets.
