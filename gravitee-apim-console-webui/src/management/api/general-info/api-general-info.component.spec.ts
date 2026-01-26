@@ -627,7 +627,6 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -725,7 +724,6 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -777,7 +775,6 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -806,7 +803,6 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -832,7 +828,6 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -869,7 +864,6 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -905,7 +899,6 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -923,7 +916,6 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
-      expectApiProductsGetRequest(API_ID);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -987,18 +979,6 @@ describe('ApiGeneralInfoComponent', () => {
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
-  }
-
-  function expectApiProductsGetRequest(apiId: string, apiProducts: any[] = []) {
-    // Handle API products request if it exists (may not be made in all scenarios after code changes)
-    const matchingRequests = httpTestingController.match({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`,
-      method: 'GET',
-    });
-    if (matchingRequests.length > 0) {
-      matchingRequests[0].flush(apiProducts);
-      fixture.detectChanges();
-    }
   }
 
   function expectCategoriesGetRequest(categories: Category[] = []) {
