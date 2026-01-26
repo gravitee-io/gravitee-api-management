@@ -187,7 +187,7 @@ jobs:
           jobName: job-test-integration
       - store_test_results:
           path: ~/test-results
-    parallelism: 4
+    parallelism: 3
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable

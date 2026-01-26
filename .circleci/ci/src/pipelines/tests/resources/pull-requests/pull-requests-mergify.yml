@@ -368,7 +368,7 @@ jobs:
           jobName: job-test-integration
       - store_test_results:
           path: ~/test-results
-    parallelism: 4
+    parallelism: 3
   job-test-plugin:
     machine:
       image: ubuntu-2204:current
