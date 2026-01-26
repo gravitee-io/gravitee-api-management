@@ -491,21 +491,41 @@ class HttpDynamicPropertiesServiceTest {
             advanceTimeBy(5_000, cut, configuration);
 
             // Ensure first event has been published
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+                });
             eventObs.awaitCount(1);
 
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure second event has been published
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    wiremock.verify(2, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+                });
             eventObs.awaitCount(2);
 
             // Wait for the third http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure third event has been published
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    wiremock.verify(3, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+                });
             eventObs.awaitCount(3);
 
             // Wait for the fourth http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure fourth event has been published
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    wiremock.verify(4, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+                });
             eventObs.awaitCount(4);
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
