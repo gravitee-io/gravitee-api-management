@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer.TEST_POLICY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import io.github.jopenlibs.vault.VaultException;
 import io.github.jopenlibs.vault.api.Auth;
@@ -350,7 +350,9 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             Environment environment = getBean(Environment.class);
             assertThatCode(() -> environment.getProperty("missing")).isInstanceOf(Exception.class);
             assertThatCode(() -> environment.getProperty("missing2")).isInstanceOf(Exception.class);
-            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
+            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a
+            // secret does not
+            // return value
         }
     }
 }

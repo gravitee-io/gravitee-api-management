@@ -15,12 +15,10 @@
  */
 package io.gravitee.apim.integration.tests.messages.httppost;
 
-import static com.graviteesource.entrypoint.websocket.WebSocketCloseStatus.TRY_AGAIN_LATER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import com.hivemq.client.mqtt.datatypes.MqttQos;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -31,7 +29,6 @@ import io.gravitee.apim.gateway.tests.sdk.connector.fakes.PersistentMockEndpoint
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -43,15 +40,14 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpHeaders;
-import io.vertx.rxjava3.core.http.WebSocket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
