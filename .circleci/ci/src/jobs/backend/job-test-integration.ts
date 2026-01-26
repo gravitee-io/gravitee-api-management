@@ -74,7 +74,7 @@ find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-resu
     ];
 
     return new Job(TestIntegrationJob.jobName, UbuntuExecutor.create(), steps, {
-      parallelism: 4,
+      parallelism: 3,
     });
   }
 }
