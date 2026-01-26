@@ -15,30 +15,9 @@
  */
 package io.gravitee.apim.integration.tests.grpc.v4;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
-import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
-import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
-import io.grpc.stub.StreamObserver;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.client.GrpcClient;
-import io.vertx.grpc.client.GrpcClientChannel;
-import io.vertx.grpc.common.GrpcStatus;
-import io.vertx.grpc.server.GrpcServer;
-import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.client.GrpcIoClient;
-import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
