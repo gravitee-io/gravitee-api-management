@@ -2075,6 +2075,33 @@
                     </exclusions>
                 </dependency>
 
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-pii-filtering</artifactId>
+                    <version>${gravitee-policy-pii-filtering.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.resource</groupId>
+                    <artifactId>gravitee-resource-ai-model-token-classification</artifactId>
+                    <version>${gravitee-resource-ai-model-token-classification.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- Reporters -->
                 <dependency>
                     <groupId>com.graviteesource.reporter</groupId>
