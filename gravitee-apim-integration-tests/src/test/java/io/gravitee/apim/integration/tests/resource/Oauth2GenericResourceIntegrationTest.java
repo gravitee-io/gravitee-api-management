@@ -40,7 +40,6 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.policy.oauth2.Oauth2Policy;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
-import io.gravitee.policy.v3.oauth2.Oauth2PolicyV3;
 import io.gravitee.resource.oauth2.generic.OAuth2GenericResource;
 import io.gravitee.resource.oauth2.generic.configuration.OAuth2ResourceConfiguration;
 import io.vertx.core.http.HttpMethod;

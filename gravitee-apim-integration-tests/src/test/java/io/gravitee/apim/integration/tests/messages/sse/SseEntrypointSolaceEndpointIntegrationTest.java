@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
 import com.solace.messaging.publisher.OutboundMessageBuilder;
@@ -32,6 +33,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -78,8 +80,10 @@ class SseEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointI
             .test();
 
         // We expect 4 chunks, 1 retry message and 3 messages
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 4);
         obs
-            .awaitCount(4)
             .assertValueAt(0, chunk -> {
                 SseAssertions.assertRetry(chunk);
                 return true;

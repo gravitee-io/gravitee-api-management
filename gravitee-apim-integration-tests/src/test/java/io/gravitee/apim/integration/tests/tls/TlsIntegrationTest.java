@@ -17,9 +17,22 @@ package io.gravitee.apim.integration.tests.tls;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static io.gravitee.apim.integration.tests.tls.TestHelper.*;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.BRIGHT_SIDE_FQDN;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.DARK_SIDE_FQDN;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.GATEWAY_HTTP_API_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.GATEWAY_TCP_API_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.KeyStoreGenResult;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.PASSWORD;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.PemGenResult;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.RESPONSE_FROM_BACKEND;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.WIREMOCK_ENDPOINT_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.assertApiCall;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.assertHandshakeError;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createNewPEMs;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createNewPKCS12KeyStore;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createTrustedHttpClient;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -42,7 +55,11 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)

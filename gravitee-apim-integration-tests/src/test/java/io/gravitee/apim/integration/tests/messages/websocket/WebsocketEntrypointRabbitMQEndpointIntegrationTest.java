@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
 import com.rabbitmq.client.Delivery;
@@ -43,13 +44,16 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-subscriber-none.json" })
     void should_receive_all_messages_with_none_qos(HttpClient httpClient) {
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test-none")
             .flatMapPublisher(websocket ->
                 websocket.toFlowable().mergeWith(publishToRabbitMQ(exchange, routingKey, List.of("message"), 500).toFlowable())
             )
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;
@@ -60,13 +64,16 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-subscriber.json" })
     void should_receive_all_messages_with_auto_qos(HttpClient httpClient) {
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test-auto")
             .flatMapPublisher(websocket ->
                 websocket.toFlowable().mergeWith(publishToRabbitMQ(exchange, routingKey, List.of("message"), 1000).toFlowable())
             )
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;
@@ -87,22 +94,26 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
             .assertComplete()
             .assertNoErrors();
 
-        testSubscriber
-            .awaitCount(1)
-            .assertValue(frame -> {
-                assertThat(Buffer.buffer(frame.getBody())).hasToString("message pub");
-                return true;
-            });
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> testSubscriber.values().size() >= 1);
+        testSubscriber.assertValue(frame -> {
+            assertThat(Buffer.buffer(frame.getBody())).hasToString("message pub");
+            return true;
+        });
     }
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-publisher-subscriber.json" })
     void should_received_published_messages(HttpClient httpClient) {
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test")
             .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;
