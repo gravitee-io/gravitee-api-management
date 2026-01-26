@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.junit.jupiter.Container;
@@ -71,7 +72,8 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
         .withVpn(VPN)
         .withExposedPorts(Service.SMF.getPort())
         .withEnv("username_admin_globalaccesslevel", "admin")
-        .withEnv("username_admin_password", "admin");
+        .withEnv("username_admin_password", "admin")
+        .withStartupTimeout(java.time.Duration.ofMinutes(2));
 
     protected MessagingService messagingService;
 
@@ -104,9 +106,36 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
 
     @BeforeEach
     public void prepareSolaceClient() {
+        waitForSolaceReady();
         MessagingService createdMessageService = createMessageService();
         messagingService = createdMessageService.connect();
         log.info("solace connected");
+    }
+
+    /**
+     * Wait for Solace to be fully ready to accept connections.
+     * Uses Awaitility with exponential backoff to retry connection attempts.
+     */
+    private void waitForSolaceReady() {
+        Awaitility.await()
+            .atMost(60, TimeUnit.SECONDS)
+            .pollInterval(1, TimeUnit.SECONDS)
+            .pollDelay(java.time.Duration.ZERO)
+            .ignoreExceptions()
+            .until(() -> {
+                MessagingService testService = createMessageService();
+                try {
+                    testService.connect();
+                    boolean connected = testService.isConnected();
+                    if (connected) {
+                        testService.disconnect();
+                    }
+                    return connected;
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        log.info("Solace is ready to accept connections");
     }
 
     @AfterEach
