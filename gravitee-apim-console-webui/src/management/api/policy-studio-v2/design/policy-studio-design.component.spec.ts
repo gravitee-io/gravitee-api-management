@@ -46,7 +46,7 @@ describe('PolicyStudioDesignComponent', () => {
 
   const openDialog = jest.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, PolicyStudioDesignModule, GioLicenseTestingModule],
       providers: [
@@ -78,6 +78,8 @@ describe('PolicyStudioDesignComponent', () => {
     apiDefinition = toApiDefinition(api);
     policyStudioService.setApiDefinition(apiDefinition);
     fixture.detectChanges();
+
+    await fixture.whenStable();
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
 
