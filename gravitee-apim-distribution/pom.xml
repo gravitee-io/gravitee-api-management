@@ -2089,7 +2089,7 @@
                     </exclusions>
                 </dependency>
                 <dependency>
-                    <groupId>io.gravitee.resource</groupId>
+                    <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-ai-model-token-classification</artifactId>
                     <version>${gravitee-resource-ai-model-token-classification.version}</version>
                     <type>zip</type>
