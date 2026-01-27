@@ -1,0 +1,93 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="import-dialog">
+    <h2 mat-dialog-title>Import API</h2>
+
+    <mat-dialog-content>
+        <form [formGroup]="form">
+            <div class="import__row">
+                <h3>API format</h3>
+                <gio-form-selection-inline formControlName="format">
+                    @for (format of formats; track format.value) {
+                    <gio-form-selection-inline-card [value]="format.value">
+                        <gio-form-selection-inline-card-content [icon]="format.icon">
+                            <gio-card-content-title>{{ format.label }}</gio-card-content-title>
+                        </gio-form-selection-inline-card-content>
+                    </gio-form-selection-inline-card>
+                    }
+                </gio-form-selection-inline>
+            </div>
+
+            <div class="import__row">
+                <h3>File source</h3>
+                <gio-form-selection-inline formControlName="source">
+                    @for (source of sources; track source.value) {
+                    <gio-form-selection-inline-card [value]="source.value" [disabled]="source.disabled"
+                        [matTooltip]="source.disabled ? 'Coming soon' : null">
+                        <gio-form-selection-inline-card-content [icon]="source.icon">
+                            <gio-card-content-title>{{ source.label }}</gio-card-content-title>
+                        </gio-form-selection-inline-card-content>
+                    </gio-form-selection-inline-card>
+                    }
+                </gio-form-selection-inline>
+            </div>
+
+            <div class="import__row">
+                <h3>File</h3>
+                <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']"
+                    (onFilePicked)="onImportFile($event)">
+                    <div class="import__file-picker">
+                        <mat-icon svgIcon="gio:upload"></mat-icon>
+                        <p class="mat-body-strong">Drag and drop a file</p>
+                        <p class="mat-body">Supported file formats: yml, yaml, json</p>
+                    </div>
+                </api-import-file-picker>
+                @if (form.hasError('mismatchFileFormat')) {
+                <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+                }
+            </div>
+
+            <div class="import__row">
+                <h3>Options</h3>
+                <gio-form-slide-toggle><gio-form-label>Create documentation page from spec</gio-form-label>This will add
+                    a documentation page for this API using the
+                    OpenAPI spec used during the import. This page will be published automatically (you can change this
+                    later).<mat-slide-toggle gioFormSlideToggle formControlName="withDocumentation"
+                        aria-label="Toggle to create documentation page"
+                        name="withDocumentation"></mat-slide-toggle></gio-form-slide-toggle>
+
+                @if (hasOasValidationPolicy()) {
+                <gio-form-slide-toggle><gio-form-label>Add OpenAPI Specification Validation</gio-form-label>This will
+                    add an OpenAPI Specification validation policy
+                    with all options enabled (you can change this later).
+                    <mat-slide-toggle gioFormSlideToggle formControlName="withOASValidationPolicy"
+                        name="withOASValidationPolicy"
+                        aria-label="Toggle to add OpenAPI Specification Validation"></mat-slide-toggle></gio-form-slide-toggle>
+                }
+            </div>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button mat-raised-button color="primary" aria-label="Import API" [disabled]="form.invalid || !importType"
+            (click)="import()">
+            Import API
+        </button>
+    </mat-dialog-actions>
+</div>
