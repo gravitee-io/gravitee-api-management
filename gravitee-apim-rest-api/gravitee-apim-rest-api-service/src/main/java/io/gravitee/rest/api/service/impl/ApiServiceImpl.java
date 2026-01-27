@@ -1868,7 +1868,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     //  current one.
                     removeIdsFromFlows(api);
                     removeIdsFromFlows(deployedApi);
-
+                    removePlans(api, deployedApi);
                     sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
@@ -1898,6 +1898,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void removeIdsFromFlows(ApiEntity api) {
         api.getFlows().forEach(flow -> flow.setId(null));
         api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+    }
+
+    private static void removePlans(ApiEntity api, ApiEntity deployedApi) {
+        api.setPlans(null);
+        deployedApi.setPlans(null);
     }
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
