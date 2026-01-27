@@ -183,6 +183,8 @@ public class ApiServiceImplTest {
 
         boolean result = apiService.isSynchronized(executionContext, "api-id");
 
+        verify(currentApi, times(2)).setPlans(null);
+
         assertTrue(result);
     }
 
