@@ -54,7 +54,7 @@ export class ApiV2Service {
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  ) { }
 
   create(newApi: CreateApi): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis`, newApi);
@@ -147,6 +147,22 @@ export class ApiV2Service {
     });
   }
 
+  importUpdate(apiId: string, importApi: any): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  importSwaggerApiUpdate(apiId: string, descriptor: ImportSwaggerDescriptor): Observable<ApiV4> {
+    return this.http.put<ApiV4>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_import/swagger`, descriptor, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   exportCRD(apiId: string): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/crd`, {
       responseType: 'blob',
@@ -202,7 +218,7 @@ export class ApiV2Service {
 
   refreshLastApiFetch(): Observable<void> {
     if (this.lastApiFetch$.value && this.lastApiFetch$.value.id) {
-      return this.get(this.lastApiFetch$.value.id).pipe(map(() => {}));
+      return this.get(this.lastApiFetch$.value.id).pipe(map(() => { }));
     }
     return of(void 0);
   }
@@ -233,7 +249,7 @@ export class ApiV2Service {
   rollback(apiId: string, eventId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_rollback`, { eventId }).pipe(
       switchMap(() => this.get(apiId)),
-      map(() => {}),
+      map(() => { }),
     );
   }
 
