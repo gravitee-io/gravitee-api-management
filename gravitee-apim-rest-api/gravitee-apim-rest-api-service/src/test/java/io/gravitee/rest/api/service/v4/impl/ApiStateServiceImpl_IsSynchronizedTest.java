@@ -33,6 +33,7 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -244,7 +245,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ).thenReturn(List.of(event));
 
         ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false, false, false);
+        apiEntity.setPlans(Set.of(PlanEntity.builder().id("This plan should be ignored").build()));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
@@ -507,6 +510,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             false
         );
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        apiEntity.setPlans(Set.of(io.gravitee.rest.api.model.PlanEntity.builder().id("This plan should be ignored").build()));
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
