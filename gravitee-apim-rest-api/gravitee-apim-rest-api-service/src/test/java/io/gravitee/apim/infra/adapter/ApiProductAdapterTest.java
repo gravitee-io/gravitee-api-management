@@ -36,7 +36,7 @@ class ApiProductAdapterTest {
         void should_convert_from_v4_repository_to_core_model() {
             var repository = apiProduct().build();
 
-            var api = ApiProductAdapter.INSTANCE.toCoreModel(repository);
+            var api = ApiProductAdapter.INSTANCE.toModel(repository);
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(api.getId()).isEqualTo("my-id");

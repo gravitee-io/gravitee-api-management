@@ -250,7 +250,11 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public GenericPlanEntity findByIdForApiProduct(final ExecutionContext executionContext, final String plan, final String apiProductId) {
+    public GenericPlanEntity findByPlanIdIdForApiProduct(
+        final ExecutionContext executionContext,
+        final String plan,
+        final String apiProductId
+    ) {
         try {
             log.debug("Find plan by id : {}", plan);
             return planRepository

@@ -22,8 +22,10 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
-import io.gravitee.repository.management.model.PlanReferenceType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Map;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -35,19 +37,32 @@ public class UpdateApiProductPlanUseCase {
     private final UpdatePlanDomainService updatePlanDomainService;
     private final PlanCrudService planCrudService;
     private final ApiProductCrudService apiProductCrudService;
+    private final PlanSearchService planSearchService;
 
     public Output execute(Input input) {
-        final Plan planEntity = planCrudService
-            .findByIdAndReferenceIdAndReferenceType(input.planToUpdate.getId(), input.apiProductId)
-            .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
-
+        final GenericPlanEntity genericPlanEntity = planSearchService.findByPlanIdIdForApiProduct(
+            GraviteeContext.getExecutionContext(),
+            input.planToUpdate.getId(),
+            input.apiProductId
+        );
         if (
-            planEntity.getReferenceType().equals(Plan.ReferenceType.API_PRODUCT) && !planEntity.getReferenceId().equals(input.apiProductId)
+            genericPlanEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) &&
+            !genericPlanEntity.getReferenceId().equals(input.apiProductId)
         ) {
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
-        if (input.planToUpdate.getValidation() == null) {
-            input.planToUpdate.setValidation(planEntity.getValidation());
+        final Plan planEntity = planCrudService
+            .findByPlanIdAndReferenceId(input.planToUpdate.getId(), input.apiProductId)
+            .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
+
+        if (
+            planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) &&
+            !planEntity.getReferenceId().equals(input.apiProductId)
+        ) {
+            throw new PlanNotFoundException(input.planToUpdate.getId());
+        }
+        if (planEntity.getValidation() == null) {
+            planEntity.setValidation(input.planToUpdate.getValidation());
         }
         var updatedEntity = input.planToUpdate.applyTo(planEntity);
 

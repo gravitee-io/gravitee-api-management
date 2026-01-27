@@ -51,7 +51,7 @@ public interface PlanSearchService {
 
     boolean exists(String planId);
 
-    GenericPlanEntity findByIdForApiProduct(final ExecutionContext executionContext, final String plan, final String apiProductId);
+    GenericPlanEntity findByPlanIdIdForApiProduct(final ExecutionContext executionContext, final String plan, final String apiProductId);
 
     Set<GenericPlanEntity> findByApiProduct(final ExecutionContext executionContext, final String apiId);
 

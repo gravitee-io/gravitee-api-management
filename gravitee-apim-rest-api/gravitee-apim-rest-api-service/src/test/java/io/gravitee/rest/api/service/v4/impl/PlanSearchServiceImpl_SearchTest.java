@@ -31,8 +31,11 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -54,6 +57,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanSearchServiceImpl_SearchTest {
 
     private static final String API_ID = "my-api";
+    private static final String API_PRODUCT_ID = "my-api-product";
     private static final String USER = "my-user";
 
     private PlanSearchService planSearchService;
@@ -63,6 +67,9 @@ public class PlanSearchServiceImpl_SearchTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Mock
     private GroupService groupService;
@@ -87,16 +94,25 @@ public class PlanSearchServiceImpl_SearchTest {
 
     private Api api;
 
+    private GenericPlanMapper genericPlanMapper = null;
+
     @Before
     public void before() throws TechnicalException {
         GraviteeContext.cleanContext();
         planSearchService = new PlanSearchServiceImpl(
             planRepository,
             apiRepository,
+            apiProductsRepository,
             groupService,
             apiSearchService,
             objectMapper,
-            new GenericPlanMapper(new PlanMapper(), flowService, new PlanConverter(objectMapper), flowServiceV2, flowCrudService),
+            genericPlanMapper = new GenericPlanMapper(
+                new PlanMapper(),
+                flowService,
+                new PlanConverter(objectMapper),
+                flowServiceV2,
+                flowCrudService
+            ),
             genericApiMapper
         );
     }
@@ -133,8 +149,14 @@ public class PlanSearchServiceImpl_SearchTest {
         ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        plan2.setReferenceId(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API);
         var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        plan3.setReferenceId(API_ID);
+        plan3.setReferenceType(PlanReferenceType.API);
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
         List<GenericPlanEntity> plans = planSearchService.search(
@@ -203,8 +225,14 @@ public class PlanSearchServiceImpl_SearchTest {
         ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        plan2.setReferenceId(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API);
         var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        plan3.setReferenceId(API_ID);
+        plan3.setReferenceType(PlanReferenceType.API);
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
         when(groupService.isUserAuthorizedToAccessApiData(eq(apiEntity), any(), eq(USER))).thenReturn(false);
@@ -244,33 +272,6 @@ public class PlanSearchServiceImpl_SearchTest {
         return plan;
     }
 
-    private io.gravitee.rest.api.model.PlanEntity fakeV2PlanEntity(
-        String id,
-        Integer order,
-        io.gravitee.rest.api.model.PlanSecurityType planSecurityType,
-        String securityConfig,
-        io.gravitee.rest.api.model.PlanStatus planStatus,
-        List<Rule> rules
-    ) {
-        var plan = new io.gravitee.rest.api.model.PlanEntity();
-        plan.setId(id);
-        plan.setOrder(order);
-        plan.setApi(API_ID);
-
-        plan.setSecurity(planSecurityType);
-        plan.setSecurityDefinition(securityConfig);
-
-        plan.setStatus(planStatus);
-
-        if (Objects.nonNull(rules)) {
-            var paths = new HashMap<String, List<Rule>>();
-            paths.put("path", rules);
-            plan.setPaths(paths);
-        }
-
-        return plan;
-    }
-
     private io.gravitee.repository.management.model.Plan fakePlanRepository(
         String id,
         Integer order,
@@ -288,6 +289,72 @@ public class PlanSearchServiceImpl_SearchTest {
         plan.setSecurityDefinition(securityConfig);
         plan.setStatus(status);
 
+        return plan;
+    }
+
+    @Test
+    public void should_return_plans_for_api_product() throws TechnicalException {
+        Plan plan1 = createPlan("plan-1");
+        Plan plan2 = createPlan("plan-2");
+        Plan plan3 = createPlan("plan-3");
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(API_PRODUCT_ID);
+        apiProduct.setDescription("description");
+        when(apiProductsRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+        when(planRepository.findByReferenceIdAndReferenceType(API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Set.of(plan1, plan2, plan3)
+        );
+
+        var plan = planSearchService.findByApiProduct(GraviteeContext.getExecutionContext(), API_PRODUCT_ID);
+        assertNotNull(plan);
+    }
+
+    @Test
+    public void should_return_plans_for_api_product_by_id() throws TechnicalException {
+        Plan plan1 = createPlan("plan-1");
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(API_PRODUCT_ID);
+        apiProduct.setDescription("description");
+
+        when(planRepository.findByIdForApiProduct("plan-1", API_PRODUCT_ID)).thenReturn(Optional.of(plan1));
+
+        var plan = planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), "plan-1", API_PRODUCT_ID);
+
+        assertNotNull(plan);
+    }
+
+    @Test
+    public void should_return_list_plans_for_api_product() throws TechnicalException {
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(API_PRODUCT_ID);
+        apiProduct.setDescription("description");
+        when(apiProductsRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+        Plan plan1 = createPlan("plan-1");
+        Plan plan2 = createPlan("plan-2");
+        Plan plan3 = createPlan("plan-3");
+        when(planRepository.findByReferenceIdAndReferenceType(API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Set.of(plan1, plan2, plan3)
+        );
+
+        var plans = planSearchService.searchForApiProductPlans(
+            GraviteeContext.getExecutionContext(),
+            PlanQuery.builder().referenceId(API_PRODUCT_ID).referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT).build(),
+            USER,
+            true
+        );
+        assertNotNull(plans);
+        assertEquals(3, plans.size());
+    }
+
+    private Plan createPlan(String id) {
+        Plan plan = new Plan();
+        plan.setId(id);
+        plan.setApi(null);
+        plan.setType(Plan.PlanType.API_PRODUCT);
+        plan.setReferenceId(API_PRODUCT_ID);
+        plan.setSecurity(Plan.PlanSecurityType.API_KEY);
+        plan.setReferenceType(PlanReferenceType.API_PRODUCT);
+        plan.setValidation(Plan.PlanValidationType.AUTO);
         return plan;
     }
 }

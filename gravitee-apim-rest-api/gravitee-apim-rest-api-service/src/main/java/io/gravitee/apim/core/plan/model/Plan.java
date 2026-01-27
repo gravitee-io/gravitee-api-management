@@ -102,7 +102,7 @@ public class Plan implements GenericPlanEntity {
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
     private ApiType apiType;
     private String referenceId;
-    private String referenceType;
+    private ReferenceType referenceType;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
         this.setPlanDefinitionHttpV4(planDefinitionV4);
@@ -385,18 +385,5 @@ public class Plan implements GenericPlanEntity {
             }
             return self();
         }
-    }
-
-    public String getReferenceType() {
-        return this.referenceType;
-    }
-
-    public String getReferenceId() {
-        return this.referenceId;
-    }
-
-    public enum ReferenceType {
-        API,
-        API_PRODUCT,
     }
 }

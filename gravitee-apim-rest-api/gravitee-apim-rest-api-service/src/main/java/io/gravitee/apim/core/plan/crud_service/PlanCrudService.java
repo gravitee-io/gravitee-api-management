@@ -37,5 +37,5 @@ public interface PlanCrudService {
 
     void updateCrossIds(List<Plan> plans);
 
-    Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId);
+    Optional<Plan> findByPlanIdAndReferenceId(String planId, String referenceId);
 }

@@ -37,5 +37,5 @@ public interface PlanMongoRepository extends MongoRepository<PlanMongo, String>,
     List<PlanMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 
     @Query(value = "{ 'id': ?0, 'referenceId': ?1, 'referenceType': ?2 }")
-    Optional<PlanMongo> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType);
+    Optional<PlanMongo> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType);
 }

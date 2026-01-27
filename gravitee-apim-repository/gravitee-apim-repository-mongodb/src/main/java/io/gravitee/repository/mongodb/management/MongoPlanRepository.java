@@ -172,7 +172,7 @@ public class MongoPlanRepository implements PlanRepository {
     @Override
     public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
         PlanMongo planMongo = internalPlanRepository
-            .findByIdAndReferenceIdAndReferenceType(plan, apiProductId, PlanReferenceType.API_PRODUCT.name())
+            .findByPlanIdAndReferenceIdAndReferenceType(plan, apiProductId, PlanReferenceType.API_PRODUCT.name())
             .orElse(null);
         return Optional.ofNullable(map(planMongo));
     }

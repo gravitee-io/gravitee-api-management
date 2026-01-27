@@ -86,7 +86,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
-    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId) {
+    public Optional<Plan> findByPlanIdAndReferenceId(String planId, String referenceId) {
         try {
             log.debug("Get plan by id : {}", planId);
             return planRepository.findByIdForApiProduct(planId, referenceId).map(PlanAdapter.INSTANCE::fromRepository);

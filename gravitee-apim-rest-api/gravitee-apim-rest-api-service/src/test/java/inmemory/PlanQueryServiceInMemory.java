@@ -65,7 +65,8 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
             .stream()
             .filter(
                 plan ->
-                    Objects.equals(referenceId, plan.getReferenceId()) && Objects.equals(planReferenceType.name(), plan.getReferenceType())
+                    Objects.equals(referenceId, plan.getReferenceId()) &&
+                    Objects.equals(planReferenceType.name(), plan.getReferenceType() != null ? plan.getReferenceType().name() : null)
             )
             .map(p -> (Plan) p)
             .toList();

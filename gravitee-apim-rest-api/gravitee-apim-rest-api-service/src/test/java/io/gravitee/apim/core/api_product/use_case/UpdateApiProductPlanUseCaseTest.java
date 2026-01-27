@@ -17,11 +17,13 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import static assertions.CoreAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.FakePolicyValidationDomainService;
+import fixtures.PlanModelFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
@@ -65,8 +67,11 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -74,6 +79,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -82,7 +88,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import wiremock.org.checkerframework.checker.units.qual.A;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UpdateApiProductPlanUseCaseTest {
@@ -109,6 +114,7 @@ class UpdateApiProductPlanUseCaseTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     ApiProductCrudServiceInMemory apiProductCrudServiceInMemory = new ApiProductCrudServiceInMemory();
+    PlanSearchService planSearchService = mock(PlanSearchService.class);
     AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
         new UserCrudServiceInMemory(),
@@ -151,7 +157,8 @@ class UpdateApiProductPlanUseCaseTest {
     UpdateApiProductPlanUseCase updatePlanUseCase = new UpdateApiProductPlanUseCase(
         updatePlanDomainService,
         planCrudService,
-        apiProductCrudServiceInMemory
+        apiProductCrudServiceInMemory,
+        planSearchService
     );
 
     @BeforeEach
@@ -161,7 +168,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id(PLAN_ID)
             .apiId(API_PRODUCT_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(1)
             .build();
         var anotherPlan = PlanFixtures.aPlanHttpV4()
@@ -169,7 +176,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id("another-plan-id")
             .apiId(API_PRODUCT_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(2)
             .build();
         var deprecatedPlan = PlanFixtures.aPlanHttpV4()
@@ -177,7 +184,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id(DEPRECATED_PLAN_ID)
             .apiId(DEPRECATED_PLAN_API_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(1)
             .build();
         deprecatedPlan.getPlanDefinitionV4().setStatus(PlanStatus.DEPRECATED);
@@ -186,7 +193,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id(STAGING_PLAN_ID)
             .apiId(STAGING_PLAN_API_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(1)
             .build();
         stagingPlan.getPlanDefinitionV4().setStatus(PlanStatus.STAGING);
@@ -195,7 +202,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id(NATIVE_PLAN_ID)
             .apiId(NATIVE_API_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(3)
             .build();
         var newTestPlan = PlanFixtures.aPlanHttpV4()
@@ -203,7 +210,7 @@ class UpdateApiProductPlanUseCaseTest {
             .id(NEW_TEST_PLAN_ID)
             .apiId(NEW_TEST_PLAN_API_ID)
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(2)
             .build();
         newTestPlan.getPlanDefinitionV4().setSecurity(null);
@@ -227,6 +234,20 @@ class UpdateApiProductPlanUseCaseTest {
                 Parameter.builder().key(Key.PLAN_SECURITY_APIKEY_ENABLED.key()).value("true").build()
             )
         );
+
+        GraviteeContext.fromExecutionContext(new io.gravitee.rest.api.service.common.ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+        when(planSearchService.findByPlanIdIdForApiProduct(any(), any(), eq(API_PRODUCT_ID))).thenReturn(
+            PlanModelFixtures.aPlanEntityV4()
+                .toBuilder()
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build()
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @ParameterizedTest
@@ -282,9 +303,20 @@ class UpdateApiProductPlanUseCaseTest {
     void should_update_plan_when_security_is_null() {
         // Given
         PlanUpdates updatePlan = planMinimal().toBuilder().id(NEW_TEST_PLAN_ID).order(1).build();
+        updatePlan.setReferenceId(API_PRODUCT_ID);
+        updatePlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        when(planSearchService.findByPlanIdIdForApiProduct(any(), eq(NEW_TEST_PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(
+            PlanModelFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(NEW_TEST_PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .apiId(null)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build()
+        );
         var input = new UpdateApiProductPlanUseCase.Input(
             updatePlan,
-            NEW_TEST_PLAN_API_ID,
+            API_PRODUCT_ID,
             new AuditInfo("user-id", "user-name", AuditActor.builder().build())
         );
 
@@ -350,11 +382,21 @@ class UpdateApiProductPlanUseCaseTest {
             .toBuilder()
             .id(PLAN_ID)
             .apiId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .referenceId(API_PRODUCT_ID)
             .validation(Plan.PlanValidationType.AUTO)
             .build();
         planCrudService.initWith(List.of(existingPlan));
+        planQueryService.initWith(List.of(existingPlan));
+
+        when(planSearchService.findByPlanIdIdForApiProduct(any(), eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(
+            PlanModelFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build()
+        );
 
         var updatePlan = planMinimal()
             .toBuilder()
@@ -405,7 +447,7 @@ class UpdateApiProductPlanUseCaseTest {
             .tags(Set.of("tag1", "tag2"))
             .selectionRule("selection-rule")
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .build();
     }
 
@@ -416,7 +458,7 @@ class UpdateApiProductPlanUseCaseTest {
             .name("plan-name-changed")
             .description("plan-description-changed")
             .referenceId(API_PRODUCT_ID)
-            .referenceType(PlanReferenceType.API_PRODUCT.name())
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
             .order(2)
             .build();
     }

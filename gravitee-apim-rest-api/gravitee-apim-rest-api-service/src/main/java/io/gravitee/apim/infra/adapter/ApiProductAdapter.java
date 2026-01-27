@@ -35,8 +35,6 @@ public interface ApiProductAdapter {
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
     io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
 
-    io.gravitee.apim.core.api_product.model.ApiProduct toCoreModel(io.gravitee.repository.management.model.ApiProduct source);
-
     @Named("dateToZonedDateTime")
     default ZonedDateTime dateToZonedDateTime(Date date) {
         if (date == null) {

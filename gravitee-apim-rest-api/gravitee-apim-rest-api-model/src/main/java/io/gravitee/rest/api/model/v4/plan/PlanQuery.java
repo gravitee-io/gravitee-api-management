@@ -39,5 +39,5 @@ public class PlanQuery {
     private List<PlanSecurityType> securityType;
     private List<PlanStatus> status;
     private String referenceId;
-    private String referenceType;
+    private GenericPlanEntity.ReferenceType referenceType;
 }

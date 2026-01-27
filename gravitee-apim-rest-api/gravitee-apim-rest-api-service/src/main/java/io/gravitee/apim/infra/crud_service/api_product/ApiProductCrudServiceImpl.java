@@ -85,7 +85,7 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
         try {
             var foundApi = apiProductsRepository.findById(id);
             if (foundApi.isPresent()) {
-                return ApiProductAdapter.INSTANCE.toCoreModel(foundApi.get());
+                return ApiProductAdapter.INSTANCE.toModel(foundApi.get());
             }
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Api Product by id {}", id, e);

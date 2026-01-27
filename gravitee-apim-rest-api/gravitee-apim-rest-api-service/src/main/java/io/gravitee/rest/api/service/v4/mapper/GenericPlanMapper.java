@@ -180,4 +180,8 @@ public class GenericPlanMapper {
             default -> planConverter.toPlanEntity(plan, null);
         };
     }
+
+    public GenericPlanEntity toGenericApiProductPlan(final Plan plan) {
+        return planMapper.toEntity(plan, null);
+    }
 }

@@ -60,6 +60,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.sql.Date;
@@ -604,7 +605,7 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .apiId(API_PRODUCT_ID)
                     .build()
             );
@@ -654,7 +655,7 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .apiId(API_PRODUCT_ID)
                     .build()
                     .setPlanStatus(PlanStatus.CLOSED)
@@ -679,7 +680,7 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .apiId(API_PRODUCT_ID)
                     .build()
             );
@@ -703,7 +704,7 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .apiId(API_PRODUCT_ID)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED)
@@ -731,7 +732,7 @@ class UpdatePlanDomainServiceTest {
                     .order(1)
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     //  .apiId(API_PRODUCT_ID)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED),
@@ -741,7 +742,7 @@ class UpdatePlanDomainServiceTest {
                     .order(2)
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     //  .apiId(API_PRODUCT_ID)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED),
@@ -751,7 +752,7 @@ class UpdatePlanDomainServiceTest {
                     .order(3)
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     //  .apiId(API_PRODUCT_ID)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED)
@@ -776,7 +777,7 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .apiId(API_PRODUCT_ID)
                     .build()
             );
@@ -805,8 +806,8 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-1")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
-                    .apiId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(null)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED)
             );
@@ -816,8 +817,8 @@ class UpdatePlanDomainServiceTest {
                     .id("plan-2")
                     .type(Plan.PlanType.API_PRODUCT)
                     .referenceId(API_PRODUCT_ID)
-                    .referenceType(PlanReferenceType.API_PRODUCT.name())
-                    .apiId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(null)
                     .build()
                     .setPlanStatus(PlanStatus.STAGING)
             );

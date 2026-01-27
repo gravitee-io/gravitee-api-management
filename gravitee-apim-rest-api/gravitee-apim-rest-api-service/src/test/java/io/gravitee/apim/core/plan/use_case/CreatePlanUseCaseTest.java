@@ -50,6 +50,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.List;
@@ -139,7 +140,18 @@ class CreatePlanUseCaseTest {
 
         // When
         var result = createPlanUseCase.execute(
-            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
+            new Input(
+                api.getId(),
+                _api ->
+                    PlanFixtures.HttpV4.aKeyless()
+                        .toBuilder()
+                        .id(null)
+                        .referenceId(API.getId())
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .build(),
+                EMPTY_FLOW_PROVIDER,
+                AUDIT_INFO
+            )
         );
 
         // Then
@@ -153,7 +165,7 @@ class CreatePlanUseCaseTest {
                 createdPlan -> createdPlan.getReferenceId(),
                 createdPlan -> createdPlan.getReferenceType()
             )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name(), api.getId(), Plan.ReferenceType.API.name());
+            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name(), api.getId(), Plan.ReferenceType.API);
     }
 
     @Test

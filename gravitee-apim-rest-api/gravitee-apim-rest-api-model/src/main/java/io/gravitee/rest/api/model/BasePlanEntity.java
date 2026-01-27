@@ -153,7 +153,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private String selectionRule;
 
     @JsonIgnore
-    private String referenceType;
+    private ReferenceType referenceType;
 
     @JsonIgnore
     private String referenceId;

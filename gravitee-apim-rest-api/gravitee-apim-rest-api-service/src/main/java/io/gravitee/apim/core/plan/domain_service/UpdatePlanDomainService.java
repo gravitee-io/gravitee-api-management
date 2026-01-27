@@ -339,7 +339,7 @@ public class UpdatePlanDomainService {
             ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiProductId(newPlan.getApiId())
+                .apiProductId(newPlan.getReferenceId())
                 .event(PlanAuditEvent.PLAN_UPDATED)
                 .actor(auditInfo.actor())
                 .oldValue(oldPlan)

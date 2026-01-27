@@ -24,7 +24,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.management.model.PlanReferenceType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
@@ -41,9 +41,9 @@ public class CreateApiProductPlanUseCase {
         var plan = input.toPlan.apply(apiProduct);
 
         plan.setEnvironmentId(apiProduct.getEnvironmentId());
-        plan.setApiId(input.apiProductId);
+        plan.setApiId(null);
         plan.setType(Plan.PlanType.API_PRODUCT);
-        plan.setReferenceType(PlanReferenceType.API_PRODUCT.name());
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         plan.setReferenceId(input.apiProductId);
         plan.setPlanStatus(PlanStatus.STAGING);
         plan.setDefinitionVersion(V4);

@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.PlanReferenceType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -198,9 +199,9 @@ public class CreatePlanDomainService {
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
-                .apiId(apiProduct.getId())
+                .apiId(null)
                 .type(Plan.PlanType.API_PRODUCT)
-                .referenceType(PlanReferenceType.API_PRODUCT.name())
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .referenceId(apiProduct.getId())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -232,7 +233,7 @@ public class CreatePlanDomainService {
             ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiProductId(createdPlan.getApiId())
+                .apiProductId(createdPlan.getReferenceId())
                 .event(PlanAuditEvent.PLAN_CREATED)
                 .actor(auditInfo.actor())
                 .newValue(createdPlan)

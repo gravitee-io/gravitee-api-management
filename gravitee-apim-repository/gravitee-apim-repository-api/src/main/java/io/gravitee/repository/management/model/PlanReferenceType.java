@@ -15,10 +15,6 @@
  */
 package io.gravitee.repository.management.model;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
 public enum PlanReferenceType {
     API,
     API_PRODUCT,

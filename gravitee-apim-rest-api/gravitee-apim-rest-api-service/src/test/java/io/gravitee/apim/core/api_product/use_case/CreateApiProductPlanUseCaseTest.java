@@ -52,6 +52,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -154,12 +155,7 @@ class CreateApiProductPlanUseCaseTest {
                 createdPlan -> createdPlan.getReferenceId(),
                 createdPlan -> createdPlan.getReferenceType()
             )
-            .containsExactly(
-                Plan.PlanType.API_PRODUCT.name(),
-                PlanMode.STANDARD.name(),
-                api.getId(),
-                Plan.ReferenceType.API_PRODUCT.name()
-            );
+            .containsExactly(Plan.PlanType.API_PRODUCT, PlanMode.STANDARD.name(), api.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT);
     }
 
     @Test

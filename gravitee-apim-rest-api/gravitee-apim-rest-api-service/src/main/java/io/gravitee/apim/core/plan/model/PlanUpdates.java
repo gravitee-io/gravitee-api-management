@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.model;
 
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class PlanUpdates {
     private String securityConfiguration;
     private Plan.PlanValidationType validation;
     private String referenceId;
-    private String referenceType;
+    private GenericPlanEntity.ReferenceType referenceType;
 
     public Plan applyTo(Plan oldPlan) {
         Plan result = oldPlan
@@ -59,7 +60,7 @@ public class PlanUpdates {
             .excludedGroups(excludedGroups)
             .characteristics(characteristics)
             .order(order)
-            .validation(validation)
+            .validation(validation != null ? validation : oldPlan.getValidation())
             .referenceId(referenceId)
             .referenceType(referenceType)
             .build();
