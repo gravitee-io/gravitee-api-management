@@ -30,14 +30,11 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
@@ -152,7 +149,7 @@ public class HttpConnector implements ProxyConnector {
                     }
 
                     // Assign the response chunks from the endpoint's response to the gateway response.
-                    response.chunks(getEndpointResponseChunks(endpointResponse, response, absoluteUri));
+                    response.chunks(getEndpointResponseChunks(ctx, endpointResponse, response, absoluteUri));
 
                     ObservableHttpClientResponse observableHttpClientResponse = new ObservableHttpClientResponse(
                         endpointResponse.getDelegate()
@@ -180,6 +177,7 @@ public class HttpConnector implements ProxyConnector {
     }
 
     private @NonNull Flowable<Buffer> getEndpointResponseChunks(
+        HttpExecutionContext ctx,
         HttpClientResponse endpointResponse,
         HttpResponse response,
         String absoluteUri
@@ -194,20 +192,22 @@ public class HttpConnector implements ProxyConnector {
             .onErrorResumeNext(throwable -> {
                 if (throwable instanceof StreamResetException) {
                     // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
-                    log.debug("Stream reset to the backend [{}]", absoluteUri);
+                    ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
                 } else {
-                    log.error("Exception occurred while handling response chunk from upstream [{}]", absoluteUri, throwable);
+                    ctx
+                        .withLogger(log)
+                        .error("Exception occurred while handling response chunk from upstream [{}]", absoluteUri, throwable);
                 }
                 return Flowable.empty();
             })
             .doOnCancel(() -> {
                 try {
-                    log.debug("Downstream request has been cancelled, cancelling upstream request to [{}]", absoluteUri);
+                    ctx.withLogger(log).debug("Downstream request has been cancelled, cancelling upstream request to [{}]", absoluteUri);
 
                     // Reset forces the upstream connection to be closed and avoid consuming the response while downstream is already gone.
                     endpointResponse.request().reset();
                 } catch (Exception e) {
-                    log.debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
+                    ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
                 }
             });
     }

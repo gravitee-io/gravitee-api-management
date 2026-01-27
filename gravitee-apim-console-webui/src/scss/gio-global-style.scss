@@ -15,15 +15,15 @@ $success-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, default-
 $snackbar-button: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
 
 .gio-snack-bar-success {
-  --mdc-snackbar-container-color: #{$success-background-color};
-  --mdc-snackbar-supporting-text-color: #{$success-color};
+  --mat-snackbar-container-color: #{$success-background-color};
+  --mat-snackbar-supporting-text-color: #{$success-color};
   --mat-snack-bar-button-color: #{$snackbar-button};
   white-space: pre-wrap;
 }
 
 .gio-snack-bar-error {
-  --mdc-snackbar-container-color: #{$error-background-color};
-  --mdc-snackbar-supporting-text-color: #{$error-color};
+  --mat-snackbar-container-color: #{$error-background-color};
+  --mat-snackbar-supporting-text-color: #{$error-color};
   --mat-snack-bar-button-color: #{$snackbar-button};
   white-space: pre-wrap;
 }

@@ -43,19 +43,33 @@ public class GenericApiMapper {
             };
             case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(api, primaryOwner);
-            case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner);
+            case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner, true);
         };
     }
 
-    public GenericApiEntity toGenericApi(final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
+    public GenericApiEntity toGenericApi(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner,
+        final boolean withApiFlows,
+        final boolean withPlans,
+        final boolean withApiCategories
+    ) {
         return switch (getVersionOfDefault(api)) {
             case V4 -> switch (api.getType()) {
-                case NATIVE -> apiMapper.toNativeEntity(executionContext, api, primaryOwner, true);
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(executionContext, api, primaryOwner, true);
+                case NATIVE -> apiMapper.toNativeEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(
+                    executionContext,
+                    api,
+                    primaryOwner,
+                    withApiFlows,
+                    withPlans,
+                    withApiCategories
+                );
             };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);
-            case V1, V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
+            case V1, V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
         };
     }
 

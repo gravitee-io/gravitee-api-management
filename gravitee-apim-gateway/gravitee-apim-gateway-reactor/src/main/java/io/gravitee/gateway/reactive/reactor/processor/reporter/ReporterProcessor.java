@@ -95,7 +95,7 @@ public class ReporterProcessor implements Processor {
                 }
             }
         })
-            .doOnError(throwable -> log.error("An error occurs while reporting metrics", throwable))
+            .doOnError(throwable -> ctx.withLogger(log).error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
     }
 

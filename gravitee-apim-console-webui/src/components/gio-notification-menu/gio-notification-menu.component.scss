@@ -15,6 +15,10 @@
  */
 @use 'sass:map';
 
+:host {
+  display: inline-flex;
+}
+
 .gio-notification-menu {
   width: 450px;
 

@@ -20,6 +20,8 @@ import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface FlowService {
     String getConfigurationSchemaForm();
@@ -30,4 +32,6 @@ public interface FlowService {
 
     List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
     List<NativeFlow> findNativeFlowByReference(final FlowReferenceType flowReferenceType, final String referenceId);
+
+    Map<String, List<Flow>> findByReferences(final FlowReferenceType flowReferenceType, final Set<String> referenceIds);
 }

@@ -383,13 +383,24 @@ public class GroupMembersResource extends AbstractResource {
     ) {
         String roleName = roleEntity.getName();
         if (!hasPermission && isLocked.test(groupEntity)) {
-            if (groupEntity.getRoles() != null && !groupEntity.getRoles().isEmpty()) {
-                roleName = groupEntity.getRoles().get(scope);
-            } else {
+            String overrideRole = null;
+
+            // Try to get a role from a group configuration
+            if (groupEntity.getRoles() != null) {
+                overrideRole = groupEntity.getRoles().get(scope);
+            }
+
+            // If a group doesn't have this scope configured, try default roles
+            if (overrideRole == null) {
                 final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), scope);
                 if (defaultRoles != null && !defaultRoles.isEmpty()) {
-                    roleName = defaultRoles.get(0).getName();
+                    overrideRole = defaultRoles.getFirst().getName();
                 }
+            }
+
+            // Only override if we found a valid role
+            if (overrideRole != null) {
+                roleName = overrideRole;
             }
         }
         return roleName;

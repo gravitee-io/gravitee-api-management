@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -52,6 +53,18 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
         return this;
     }
 
+    /**
+     * Initializes the current instance with the specified HTTP execution context.
+     *
+     * @param ctx the HTTP execution context to associate with this instance.
+     * @return the current instance of FlowableProxyResponse.
+     */
+    @VisibleForTesting
+    protected FlowableProxyResponse initialize(HttpPlainExecutionContext ctx) {
+        this.ctx = ctx;
+        return this;
+    }
+
     public FlowableProxyResponse doOnComplete(Runnable onComplete) {
         this.onComplete = onComplete;
         return this;
@@ -69,7 +82,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             return;
         }
 
-        log.debug("Subscribing to proxy response");
+        ctx.withLogger(log).debug("Subscribing to proxy response");
 
         this.subscriber = subscriber;
         this.subscription = new ProxyResponseSubscription();
@@ -84,7 +97,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             // Finally, pass the subscription to the subscriber, so it can invoke onNext on it.
             subscriber.onSubscribe(subscription);
         } else {
-            log.debug("Proxy response not defined, completing without any value.");
+            ctx.withLogger(log).debug("Proxy response not defined, completing without any value.");
             EmptySubscription.complete(subscriber);
         }
     }
@@ -130,7 +143,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     private void cancelProxyResponse() {
         try {
             if (cancelled.compareAndSet(false, true)) {
-                log.debug("Cancelling proxy response");
+                ctx.withLogger(log).debug("Cancelling proxy response");
                 if (proxyResponse != null) {
                     proxyResponse.cancel();
                 }
@@ -143,7 +156,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
                 }
             }
         } catch (Exception e) {
-            log.warn("Unable to properly cancel the proxy response.", e);
+            ctx.withLogger(log).warn("Unable to properly cancel the proxy response.", e);
         }
     }
 

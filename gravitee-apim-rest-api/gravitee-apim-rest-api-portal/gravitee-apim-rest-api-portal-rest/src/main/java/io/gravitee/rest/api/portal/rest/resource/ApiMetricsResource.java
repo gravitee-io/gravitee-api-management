@@ -67,7 +67,7 @@ public class ApiMetricsResource extends AbstractResource {
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
+        GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
 
         if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
             throw new ApiNotFoundException(apiId);

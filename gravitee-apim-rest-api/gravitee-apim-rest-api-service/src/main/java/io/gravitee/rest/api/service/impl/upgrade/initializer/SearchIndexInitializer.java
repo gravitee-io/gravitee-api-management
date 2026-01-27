@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toList;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -200,7 +199,7 @@ public class SearchIndexInitializer implements Initializer {
         try {
             // V2 APIs have a null definitionVersion attribute in the Repository
             if (api.getDefinitionVersion() == null) {
-                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, false);
+                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, false, false, true);
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
 

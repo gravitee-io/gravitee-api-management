@@ -19,8 +19,10 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.*;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
@@ -30,6 +32,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -43,10 +46,13 @@ import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
+import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.failover.FailoverInvoker;
@@ -77,6 +83,8 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
+import io.gravitee.node.logging.LogEntry;
+import io.gravitee.node.logging.LogEntryFactory;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -88,6 +96,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.Getter;
@@ -99,6 +108,12 @@ import lombok.Getter;
  */
 @CustomLog
 public class DefaultApiReactor extends AbstractApiReactor {
+
+    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
+        LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
+        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
+        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_REQUEST_METHOD))
+    );
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
     private static final String ATTR_INTERNAL_TRACING_REQUEST_SPAN = "analytics.tracing.request.span";
@@ -240,11 +255,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected void prepareExecutionContext(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
-        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
+        ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {
@@ -353,7 +369,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 }
             }
         } catch (Exception e) {
-            log.warn("Unable to end {} tracing phase", executionPhase, e);
+            ctx.withLogger(log).warn("Unable to end {} tracing phase", executionPhase, e);
         }
     }
 
@@ -450,14 +466,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
             // In case of any error exception, log original exception, execute api error processor chain and resume the execution
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
     }
 
     protected Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(() -> {
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             computeEndpointResponseTimeMetric(ctx);
 
             ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());

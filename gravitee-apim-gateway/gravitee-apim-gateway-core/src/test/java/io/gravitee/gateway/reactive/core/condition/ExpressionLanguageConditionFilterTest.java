@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.core.condition;
 
 import static io.gravitee.gateway.reactive.core.condition.CompositeConditionFilterTest.MOCK_EXCEPTION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ConditionSupplier;
@@ -23,10 +25,12 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -43,6 +47,11 @@ class ExpressionLanguageConditionFilterTest {
 
     @Mock
     private TemplateEngine templateEngine;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(ctx.withLogger(any())).thenReturn(LoggerFactory.getLogger(ExpressionLanguageConditionFilter.class));
+    }
 
     @Test
     void shouldNotFilterWhenConditionEvaluatedToTrue() {

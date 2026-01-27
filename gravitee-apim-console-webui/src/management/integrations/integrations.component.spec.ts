@@ -33,7 +33,6 @@ import { IntegrationsModule } from './integrations.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { fakeIntegration } from '../../entities/integrations/integration.fixture';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
-import { ConsoleSettings } from '../../entities/consoleSettings';
 import { Constants } from '../../entities/Constants';
 
 describe('IntegrationsComponent', () => {
@@ -54,7 +53,6 @@ describe('IntegrationsComponent', () => {
       features: [''],
       isExpired: false,
     },
-    consoleSettings: ConsoleSettings = { federation: { enabled: true } },
   ) => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationsComponent],
@@ -93,8 +91,6 @@ describe('IntegrationsComponent', () => {
       searchTerm: '',
     };
     fixture.detectChanges();
-
-    expectConsoleSettingsGetRequest(consoleSettings);
   };
 
   afterEach(() => {
@@ -102,8 +98,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('create integration with permissions ', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('should allow create integration', async () => {
@@ -115,8 +111,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('without permissions ', () => {
-    beforeEach(() => {
-      init([]);
+    beforeEach(async () => {
+      await init([]);
     });
 
     it('should not allow create integration', async () => {
@@ -128,8 +124,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('table', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('should display correct number of rows', async () => {
@@ -143,8 +139,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('pagination', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('should request proper url', async () => {
@@ -168,8 +164,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('free tier info banners', (): void => {
-    beforeEach((): void => {
-      init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
+    beforeEach(async () => {
+      await init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
         tier: 'oss',
         packs: [],
         features: [],
@@ -188,8 +184,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('enterprise license info banners', (): void => {
-    beforeEach((): void => {
-      init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
+    beforeEach(async () => {
+      await init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
         tier: 'universe',
         packs: [],
         features: [],
@@ -205,17 +201,13 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('module not activated info banners', (): void => {
-    beforeEach((): void => {
-      init(
-        ['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'],
-        {
-          tier: 'universe',
-          packs: [],
-          features: [],
-          isExpired: false,
-        },
-        { federation: { enabled: false } },
-      );
+    beforeEach(async () => {
+      await init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
+        tier: 'universe',
+        packs: [],
+        features: [],
+        isExpired: false,
+      });
     });
 
     it('should not display license banner', async (): Promise<void> => {
@@ -226,8 +218,8 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('no-integrations-banner', (): void => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('should be visible when no integrations', async (): Promise<void> => {
@@ -257,12 +249,6 @@ describe('IntegrationsComponent', () => {
       `${CONSTANTS_TESTING.env.v2BaseURL}/integrations?page=${page}&perPage=${size}`,
     );
     req.flush(fakeIntegrationResponse);
-    expect(req.request.method).toEqual('GET');
-  }
-
-  function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
-    req.flush(consoleSettingsResponse);
     expect(req.request.method).toEqual('GET');
   }
 });

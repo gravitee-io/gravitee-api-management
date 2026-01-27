@@ -2,6 +2,11 @@
 
 When discussing Java exception handling, logging, or API Gateway diagnostics, adhere to the following best practices:
 
+### Logging
+
+1.  **Logger Injection:** Use `@CustomLog` to inject the appropriate logger into your classes.
+2.  **Reactive Logging (Gateway & Plugins):** In the gateway and plugins (reactive code), prefer using `ctx.withLogger(log)` whenever possible to ensure proper logging context within the reactive stream.
+
 ### Logging Exceptions
 
 1.  **Log Once Rule (Centralization):** Log exceptions only once, typically at the highest-level `catch` block (e.g., the REST layer) to avoid **redundant logging** (e.g., logging at the repository, service, and REST layers simultaneously). This reduces log noise and eases troubleshooting by providing a single, complete context.

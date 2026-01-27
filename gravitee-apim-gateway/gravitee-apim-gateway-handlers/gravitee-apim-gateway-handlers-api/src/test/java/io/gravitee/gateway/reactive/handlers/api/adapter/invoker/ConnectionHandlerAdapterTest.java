@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,7 +48,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -75,7 +79,7 @@ class ConnectionHandlerAdapterTest {
     @Mock
     private HttpResponse response;
 
-    @Mock
+    @Spy
     private FlowableProxyResponse flowableProxyResponse;
 
     @Captor
@@ -88,6 +92,8 @@ class ConnectionHandlerAdapterTest {
 
     @BeforeEach
     public void init() {
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+        flowableProxyResponse.initialize(ctx);
         cut = new ConnectionHandlerAdapter(ctx, nextEmitter);
     }
 
@@ -145,6 +151,7 @@ class ConnectionHandlerAdapterTest {
 
     @Test
     void shouldErrorWithInterruptionFailureExceptionWhenProxyResponseNotConnected() {
+        ReflectionTestUtils.setField(cut, "chunks", flowableProxyResponse);
         cut.handle(proxyConnection);
         verify(proxyConnection).responseHandler(handlerCaptor.capture());
 
@@ -169,6 +176,8 @@ class ConnectionHandlerAdapterTest {
 
     @Test
     void shouldErrorWithInterruptionFailureExceptionWhenProxyResponseIsAProcessorFailure() {
+        ReflectionTestUtils.setField(cut, "chunks", flowableProxyResponse);
+
         final ProxyResponse proxyResponse = mock(ProxyResponse.class, withSettings().extraInterfaces(ProcessorFailure.class));
         final ProcessorFailure processorFailure = (ProcessorFailure) proxyResponse;
 

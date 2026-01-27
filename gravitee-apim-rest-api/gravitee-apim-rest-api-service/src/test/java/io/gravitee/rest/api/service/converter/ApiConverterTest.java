@@ -76,7 +76,7 @@ public class ApiConverterTest {
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
         when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null, true);
 
         assertNotNull(apiEntity.getFlows());
         assertEquals(2, apiEntity.getFlows().size());
@@ -93,7 +93,7 @@ public class ApiConverterTest {
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
         when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null, true);
 
         assertNotNull(apiEntity.getFlows());
         assertEquals(0, apiEntity.getFlows().size());

@@ -49,7 +49,6 @@ public class LoggingArchitectureTest {
     @Test
     public void should_not_use_slf4j_logger_factory() {
         LoggingArchitectureRules.configure()
-            .allowIn(emptyList())
             .resideInAnyPackage(GRAVITEE_APIM_PACKAGES_TO_CHECK)
             .excludePackagesFromScan(PACKAGES_EXCLUDED_FROM_CHECK)
             .allowIn(ALLOW_LIST)

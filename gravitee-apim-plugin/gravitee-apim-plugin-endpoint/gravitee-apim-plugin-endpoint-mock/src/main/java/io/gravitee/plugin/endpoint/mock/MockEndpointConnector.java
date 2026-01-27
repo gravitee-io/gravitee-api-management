@@ -89,7 +89,9 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
 
             ctx
                 .response()
-                .messages(generateMessageFlow(messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId));
+                .messages(
+                    generateMessageFlow(ctx, messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
+                );
         });
     }
 
@@ -99,19 +101,20 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
             ctx
                 .request()
                 .onMessage(message -> {
-                    log.info("Received message: {}", message.content() != null ? message.content().toString() : null);
+                    ctx.withLogger(log).info("Received message: {}", message.content() != null ? message.content().toString() : null);
                     return Maybe.just(message);
                 })
         );
     }
 
     private Flowable<Message> generateMessageFlow(
+        HttpExecutionContext ctx,
         final Integer messagesLimitCount,
         final Integer maximumPublishedMessages,
         final Long messagesLimitDurationMs,
         final String lastId
     ) {
-        final long stateInitValue = getStateInitValue(lastId);
+        final long stateInitValue = getStateInitValue(ctx, lastId);
 
         Flowable<Message> messageFlow = Flowable.<Message, Long>generate(
             () -> stateInitValue,
@@ -165,13 +168,13 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
         return messageFlow;
     }
 
-    private long getStateInitValue(final String lastId) {
+    private long getStateInitValue(HttpExecutionContext ctx, final String lastId) {
         long stateInitValue = 0L;
         if (lastId != null) {
             try {
                 stateInitValue = Long.parseLong(lastId) + 1;
             } catch (NumberFormatException nfe) {
-                log.warn("Unable to parse lastId: {}. Setting to 0", lastId);
+                ctx.withLogger(log).warn("Unable to parse lastId: {}. Setting to 0", lastId);
             }
         }
 

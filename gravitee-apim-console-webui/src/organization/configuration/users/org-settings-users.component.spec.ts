@@ -81,7 +81,10 @@ describe('OrgSettingsUsersComponent', () => {
           userPicture: '',
         },
       ]);
-      expect(rowCells).toEqual([['No user']]);
+      expect(rowCells).toHaveLength(0);
+
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('No user');
     }));
 
     it('should display table with data', fakeAsync(async () => {

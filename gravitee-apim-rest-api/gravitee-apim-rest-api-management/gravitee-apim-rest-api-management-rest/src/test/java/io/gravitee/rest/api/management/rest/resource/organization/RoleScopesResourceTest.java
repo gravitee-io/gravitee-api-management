@@ -52,7 +52,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "ALERT",
             "API",
             "API_HEADER",
-            "API_PRODUCTS",
+            "API_PRODUCT",
             "APPLICATION",
             "AUDIT",
             "CATEGORY",
@@ -123,7 +123,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
 
         assertAll(
             () -> assertEquals(HttpStatusCode.OK_200, response.getStatus()),
-            () -> assertThat(resultRoleScopes.size()).isEqualTo(6),
+            () -> assertThat(resultRoleScopes.size()).isEqualTo(7),
             () ->
                 assertThat(resultRoleScopes.keySet()).containsExactlyInAnyOrder(
                     "ORGANIZATION",
@@ -131,7 +131,8 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
                     "API",
                     "APPLICATION",
                     "INTEGRATION",
-                    "CLUSTER"
+                    "CLUSTER",
+                    "API_PRODUCT"
                 ),
             () -> assertThat(resultRoleScopes.get("ORGANIZATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ORGANIZATION")),
             () -> assertThat(resultRoleScopes.get("ENVIRONMENT")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ENVIRONMENT")),

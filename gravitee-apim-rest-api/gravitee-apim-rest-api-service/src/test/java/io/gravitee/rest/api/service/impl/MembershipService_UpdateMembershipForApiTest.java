@@ -212,7 +212,7 @@ public class MembershipService_UpdateMembershipForApiTest {
         lenient()
             .when(roleService.findByScopeAndName(RoleScope.API, roleId, GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(role));
-        when(roleService.findById(roleId)).thenReturn(role);
+        when(roleService.findByIds(Set.of(roleId))).thenReturn(Map.of(roleId, role));
     }
 
     private void mockApi() throws TechnicalException {

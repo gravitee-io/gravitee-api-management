@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -99,6 +100,7 @@ public class PlanService_PublishTest {
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
         var plan = Plan.builder().status(Plan.Status.PUBLISHED).build();
+        plan.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -107,6 +109,7 @@ public class PlanService_PublishTest {
     @Test(expected = PlanAlreadyClosedException.class)
     public void shouldNotPublishBecauseAlreadyClose() throws TechnicalException {
         var plan = Plan.builder().status(Plan.Status.CLOSED).build();
+        plan.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -166,6 +169,7 @@ public class PlanService_PublishTest {
             .api(API_ID)
             .build();
 
+        plan.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
@@ -183,6 +187,7 @@ public class PlanService_PublishTest {
             .api(API_ID)
             .build();
 
+        plan.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
@@ -201,13 +206,14 @@ public class PlanService_PublishTest {
             .api(API_ID)
             .build();
 
+        plan.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
-        verify(flowCrudService, times(1)).getNativePlanFlows(any());
+        verify(flowCrudService, times(1)).getNativePlanFlows(nullable(String.class));
         verify(flowService, never()).findByReference(any(), any());
     }
 
@@ -229,6 +235,7 @@ public class PlanService_PublishTest {
             .security(Plan.PlanSecurityType.OAUTH2)
             .build();
 
+        apiKeyPlanToPublish.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(apiKeyPlanToPublish));
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(apiKeyPlanToPublish, publishedOAuthPlan));
         when(planRepository.update(apiKeyPlanToPublish)).thenAnswer(returnsFirstArg());
@@ -236,7 +243,7 @@ public class PlanService_PublishTest {
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(apiKeyPlanToPublish.toBuilder().status(Plan.Status.PUBLISHED).build());
-        verify(flowCrudService, times(1)).getNativePlanFlows(any());
+        verify(flowCrudService, times(1)).getNativePlanFlows(nullable(String.class));
         verify(flowService, never()).findByReference(any(), any());
     }
 

@@ -37,9 +37,13 @@ import java.util.Set;
 public interface ApiSearchService {
     ApiEntity findById(ExecutionContext executionContext, String apiId);
 
-    GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId);
-
-    Set<GenericApiEntity> findAllGenericByEnvironment(ExecutionContext executionContext);
+    GenericApiEntity findGenericById(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final boolean withApiFlows,
+        final boolean withPlans,
+        final boolean withApiCategories
+    );
 
     Api findV4RepositoryApiById(ExecutionContext executionContext, String apiId);
 

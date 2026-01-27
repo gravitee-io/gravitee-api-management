@@ -84,7 +84,7 @@ public class DebugCompletionProcessor implements Processor {
                         })
                         .ignoreElement()
                         .onErrorResumeNext(throwable -> {
-                            log.error("Error occurs while saving debug event", throwable);
+                            ctx.withLogger(log).error("Error occurs while saving debug event", throwable);
                             failEvent(event);
                             return Completable.complete();
                         });

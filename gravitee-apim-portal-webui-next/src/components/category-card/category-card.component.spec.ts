@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CategoryCardComponent } from './category-card.component';
 import { fakeCategory } from '../../entities/categories/categories.fixture';
 import { AppTestingModule } from '../../testing/app-testing.module';
+import { PictureHarness } from '../picture/picture.harness';
 
 describe('CategoryCardComponent', () => {
   let fixture: ComponentFixture<CategoryCardComponent>;
+  let harnessLoader: HarnessLoader;
 
   const CATEGORY = fakeCategory();
 
@@ -31,6 +35,8 @@ describe('CategoryCardComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryCardComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+
     fixture.componentRef.setInput('category', CATEGORY);
 
     fixture.detectChanges();
@@ -49,9 +55,8 @@ describe('CategoryCardComponent', () => {
     }
   });
 
-  it('should display the picture component with the correct inputs', () => {
-    const pictureComponent = fixture.nativeElement.querySelector('app-picture');
-    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(CATEGORY._links?.picture);
-    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${CATEGORY.name}`);
+  it('should display the picture component with the correct inputs', async () => {
+    const picture = await harnessLoader.getHarness(PictureHarness);
+    expect(await picture.getSource()).toBe(CATEGORY._links?.picture || '');
   });
 });

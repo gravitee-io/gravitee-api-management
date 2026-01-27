@@ -174,7 +174,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                     Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048/")).toString())
+                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
                         .inheritConfiguration(false)
                         .build()
                 );
@@ -210,7 +210,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                     Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048/")).toString())
+                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
                         .inheritConfiguration(true)
                         .build()
                 );
@@ -342,7 +342,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                     Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.2:8048/")).toString())
+                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.2:8048")).toString())
                         .build()
                 );
         }

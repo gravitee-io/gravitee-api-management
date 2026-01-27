@@ -101,7 +101,7 @@ public class FlowChain implements Hookable<ChainHook> {
 
         return flowable
             .doOnNext(flow -> {
-                log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+                ctx.withLogger(log).debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
                 ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
 
                 // Only deal with flow matching if required
@@ -185,7 +185,7 @@ public class FlowChain implements Hookable<ChainHook> {
         final HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
 
         return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
-            log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
+            ctx.withLogger(log).debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
         );
     }
 }

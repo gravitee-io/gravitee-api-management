@@ -202,9 +202,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       });
 
       it('should update existing endpoint configuration', async () => {
-        const inherit = await loader.getHarness(
-          MatSlideToggleHarness.with({ selector: '[ng-reflect-aria-label="Inherit configuration"]' }),
-        );
+        const inherit = await loader.getHarness(MatSlideToggleHarness.with({ name: 'enableEndpointConfiguration' }));
 
         expect((await loader.getAllHarnesses(EndpointHttpConfigHarness)).length).toEqual(0);
 

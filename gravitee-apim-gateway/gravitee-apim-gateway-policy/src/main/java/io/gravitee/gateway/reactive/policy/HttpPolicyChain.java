@@ -107,7 +107,7 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
     @Override
     protected Completable executePolicy(final BaseExecutionContext baseCtx, final HttpPolicy policy) {
         try {
-            log.debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
+            baseCtx.withLogger(log).debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
 
             HttpExecutionContext ctx = (HttpExecutionContext) baseCtx;
             return switch (phase) {

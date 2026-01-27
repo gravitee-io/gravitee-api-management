@@ -67,13 +67,13 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         user.setId(USER_NAME);
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(user);
         apiEntity.setPrimaryOwner(primaryOwner);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
     }
 
     @Test
     public void shouldNotFoundApiWhileGettingApiSubscribers() {
         // init
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(
             new io.gravitee.rest.api.model.v4.api.ApiEntity()
         );
         // test
@@ -220,7 +220,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         user.setId("ANOTHER_NAME");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(user);
         apiEntity.setPrimaryOwner(primaryOwner);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         TopHitsAnalytics mockAnalytics = new TopHitsAnalytics();
         Map<String, Long> mockedValues = new HashMap<>();

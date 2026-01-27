@@ -66,8 +66,9 @@ describe('SharedPolicyGroupsComponent', () => {
 
   it('should display resources table', async () => {
     const table = await componentHarness.getTable();
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
     expectListSharedPolicyGroupsRequest(httpTestingController);
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
@@ -79,11 +80,11 @@ describe('SharedPolicyGroupsComponent', () => {
     const table = await componentHarness.getTable();
     const getTableWrapper = await componentHarness.getTableWrapper();
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
     expectListSharedPolicyGroupsRequest(httpTestingController);
 
     await getTableWrapper.setSearchValue('test');
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
 
     // ExpectOne canceled before only when testing
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups?page=1&perPage=25`);

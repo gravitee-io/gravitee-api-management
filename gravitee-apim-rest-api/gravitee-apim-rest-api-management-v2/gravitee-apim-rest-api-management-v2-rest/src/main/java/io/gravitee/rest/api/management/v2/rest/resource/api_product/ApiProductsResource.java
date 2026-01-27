@@ -76,12 +76,7 @@ public class ApiProductsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
-        {
-            @Permission(
-                value = RolePermission.ENVIRONMENT_API_PRODUCTS,
-                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
-            ),
-        }
+        { @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
     )
     public Response verifyApiProductName(@Valid @NotNull final VerifyApiProduct verifyApiProduct) {
         var executionContext = GraviteeContext.getExecutionContext();
@@ -112,7 +107,7 @@ public class ApiProductsResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.CREATE }) })
     public Response createApiProduct(@Valid @NotNull final CreateApiProduct createApiProduct) throws TechnicalException {
         AuditInfo audit = getAuditInfo();
         var input = new CreateApiProductUseCase.Input(createApiProduct, audit);
@@ -127,7 +122,7 @@ public class ApiProductsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCTS, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
     public Response getApiProducts(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
         var output = getApiProductsUseCase.execute(

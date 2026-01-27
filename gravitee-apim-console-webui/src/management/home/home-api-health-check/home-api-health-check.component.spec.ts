@@ -68,8 +68,8 @@ describe('HomeApiHealthCheckComponent', () => {
     // For table
     await expectApisListRequest([]);
 
-    const { headerCells, rowCells } = await computeApisTableCells();
-    expect(headerCells).toEqual([
+    const tableCells = await computeApisTableCells();
+    expect(tableCells.headerCells).toEqual([
       {
         actions: '',
         name: 'Name',
@@ -78,7 +78,9 @@ describe('HomeApiHealthCheckComponent', () => {
         availability: 'API Availability',
       },
     ]);
-    expect(rowCells).toEqual([['No APIs to display.']]);
+    const table = await loader.getHarness(MatTableHarness);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('No APIs to display.');
   });
 
   it('should display a table with one row', async () => {

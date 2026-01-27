@@ -141,7 +141,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
+                rootTarget().request().get()
+            );
         }
     }
 
@@ -165,7 +167,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.DELETE, () ->
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.DELETE, () ->
                 rootTarget().request().delete()
             );
         }
@@ -240,7 +242,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.UPDATE, () ->
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().request().put(json(""))
             );
         }
@@ -273,7 +275,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.UPDATE, () ->
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().path("apis").request().delete()
             );
         }
@@ -330,7 +332,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.UPDATE, () ->
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().path("apis").path(API_ID).request().delete()
             );
         }

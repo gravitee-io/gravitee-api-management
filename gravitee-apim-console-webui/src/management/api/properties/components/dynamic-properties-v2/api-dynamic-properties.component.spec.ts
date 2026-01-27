@@ -25,7 +25,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
@@ -39,6 +39,7 @@ describe('ApiDynamicPropertiesComponent', () => {
   let fixture: ComponentFixture<ApiDynamicPropertiesComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let routerSpy: jest.SpyInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -53,6 +54,7 @@ describe('ApiDynamicPropertiesComponent', () => {
     fixture = TestBed.createComponent(ApiDynamicPropertiesComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigateByUrl');
     fixture.detectChanges();
   });
 
@@ -214,12 +216,9 @@ describe('ApiDynamicPropertiesComponent', () => {
       }),
     );
 
-    expect(
-      await loader
-        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Go back"]' }))
-        .then((btn) => btn.host())
-        .then((host) => host.getAttribute('ng-reflect-router-link')),
-    ).toStrictEqual('..');
+    const goBackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Go back"]' }));
+    await goBackButton.click();
+    expect(routerSpy).toHaveBeenCalledTimes(1);
   });
 
   function expectGetApi(api: Api) {

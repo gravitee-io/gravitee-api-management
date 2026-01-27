@@ -19,7 +19,14 @@ export class GioSelectionRadioListHarness extends MatRadioGroupHarness {
   static override hostSelector = '.gio-selection-list';
 
   async selectOptionById(id: string): Promise<void> {
-    await this.getRadioButtons({ selector: `[ng-reflect-value=${id}]` }).then((options) => options[0].check());
+    const radioButtons = await this.getRadioButtons({});
+    for (const radioButton of radioButtons) {
+      const value = await radioButton.getValue();
+      if (value === id) {
+        await radioButton.check();
+        return;
+      }
+    }
   }
   async getValue(): Promise<string> {
     return this.getCheckedValue();
@@ -27,7 +34,7 @@ export class GioSelectionRadioListHarness extends MatRadioGroupHarness {
 
   async getValues(): Promise<string[]> {
     const radioButtons = await this.getRadioButtons({});
-    const options = radioButtons.map(async (option) => await (await option.host()).getAttribute('ng-reflect-value'));
+    const options = radioButtons.map(async (option) => await option.getValue());
     return Promise.all(options);
   }
 }

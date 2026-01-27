@@ -137,7 +137,7 @@ public class HookHelper {
                     }
                 }
             )
-            .doOnError(error -> log.warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
+            .doOnError(error -> ctx.withLogger(log).warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
             .onErrorComplete();
     }
 }

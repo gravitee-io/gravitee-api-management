@@ -125,7 +125,7 @@ public abstract class AbstractSecurityChain<
                         return Completable.complete();
                     })
                     .doOnSubscribe(disposable -> {
-                        log.debug("Executing security chain");
+                        ctx.withLogger(log).debug("Executing security chain");
                         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
                     })
                     .doOnTerminate(() -> {
@@ -137,7 +137,7 @@ public abstract class AbstractSecurityChain<
                     });
             }
 
-            log.debug("Skipping security chain because it has been explicitly required");
+            ctx.withLogger(log).debug("Skipping security chain because it has been explicitly required");
             return Completable.complete();
         });
     }
@@ -146,7 +146,9 @@ public abstract class AbstractSecurityChain<
         return securityPlan
             .canExecute(ctx)
             .onErrorResumeNext(throwable -> {
-                log.error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
+                ctx
+                    .withLogger(log)
+                    .error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
                 ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
                 return FALSE;
             })

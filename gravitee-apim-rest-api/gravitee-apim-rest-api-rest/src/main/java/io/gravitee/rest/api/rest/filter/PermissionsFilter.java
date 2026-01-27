@@ -52,6 +52,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private static final String APPLICATION_ID_PARAM_V1 = "application";
     private static final String INTEGRATION_ID_PARAM = "integrationId";
     private static final String CLUSTER_ID_PARAM = "clusterId";
+    private static final String API_PRODUCT_ID_PARAM = "apiProductId";
 
     @Context
     protected ResourceInfo resourceInfo;
@@ -87,6 +88,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
             case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));
             case INTEGRATION -> hasPermission(executionContext, permission, getId(INTEGRATION_ID_PARAM, requestContext));
             case CLUSTER -> hasPermission(executionContext, permission, getId(CLUSTER_ID_PARAM, requestContext));
+            case API_PRODUCT -> hasPermission(executionContext, permission, getId(API_PRODUCT_ID_PARAM, requestContext));
             case PLATFORM -> false;
         };
     }

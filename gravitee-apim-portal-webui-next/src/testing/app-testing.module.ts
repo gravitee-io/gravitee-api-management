@@ -126,7 +126,7 @@ export class TestRouterModule {
     {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: {
-        dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS',
+        dateFormat: 'yyyy-MM-dd HH:mm:ss.SSS',
       },
     },
   ],

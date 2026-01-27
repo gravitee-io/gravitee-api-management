@@ -68,8 +68,8 @@ $nav-bar-link-external-icon-color: var(--gio-app-nav-bar-link-external-icon-colo
 $footer-border-color: var(--gio-app-footer-outline-color, $border-color);
 
 // -- Banner --
-$banner-background-color: var(--gio-app-banner-container-color, var(--mdc-list-list-item-leading-avatar-color));
-$banner-text-color: var(--gio-app-banner-text-color, var(--mdc-outlined-text-field-focus-label-text-color));
+$banner-background-color: var(--gio-app-banner-container-color, var(--mat-list-list-item-leading-avatar-color));
+$banner-text-color: var(--gio-app-banner-text-color, var(--mat-form-field-outlined-focus-label-text-color));
 $banner-error-background-color: color-mix(in srgb, $error-main-color 16%, $card-background-color);
 $banner-error-text-color: $error-main-color;
 

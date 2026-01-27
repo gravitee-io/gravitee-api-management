@@ -36,8 +36,12 @@ public class HttpProxyEndpointConfigurationFactory implements EndpointConfigurat
         var scheme = Boolean.parseBoolean(sslMetadata) ? "https" : "http";
         var host = service.getAddress() == null || service.getAddress().trim().isBlank() ? service.getNodeAddress() : service.getAddress();
         var port = (service.getPort() > 0 ? ":" + service.getPort() : "");
-        var path = pathMetadata != null ? pathMetadata : "/";
+        var path = removeTrailingSlash(pathMetadata != null ? pathMetadata : "");
 
         return scheme + "://" + host + port + path;
+    }
+
+    private String removeTrailingSlash(String path) {
+        return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 }

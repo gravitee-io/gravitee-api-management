@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Directive, ElementRef, Inject, NgZone, Optional, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, Inject, NgZone, Optional, ViewContainerRef, DOCUMENT } from '@angular/core';
 import { MAT_TOOLTIP_DEFAULT_OPTIONS, MAT_TOOLTIP_SCROLL_STRATEGY, MatTooltip, MatTooltipDefaultOptions } from '@angular/material/tooltip';
 import { Overlay, ScrollDispatcher } from '@angular/cdk/overlay';
 import { Platform } from '@angular/cdk/platform';
 import { AriaDescriber, FocusMonitor } from '@angular/cdk/a11y';
 import { Directionality } from '@angular/cdk/bidi';
-import { DOCUMENT } from '@angular/common';
 
 /**
  * This directive will enable and display tooltip if the element is formatted with ellipsis.

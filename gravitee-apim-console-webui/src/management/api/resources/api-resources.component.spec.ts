@@ -76,7 +76,8 @@ describe('ApiResourcesComponent', () => {
 
   it('should display resources table', async () => {
     const table = await componentHarness.getTable();
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
 
     expectApiGetRequest(
       fakeApiV4({

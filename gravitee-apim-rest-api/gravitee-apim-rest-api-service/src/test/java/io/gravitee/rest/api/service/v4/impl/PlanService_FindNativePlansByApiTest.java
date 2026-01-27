@@ -52,7 +52,7 @@ public class PlanService_FindNativePlansByApiTest {
         var plan1 = createNativePlanEntity("plan1");
         var plan2 = createNativePlanEntity("plan2");
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(plan1, plan2));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(Set.of(plan1, plan2));
 
         var plans = planService.findNativePlansByApi(GraviteeContext.getExecutionContext(), API_ID);
 

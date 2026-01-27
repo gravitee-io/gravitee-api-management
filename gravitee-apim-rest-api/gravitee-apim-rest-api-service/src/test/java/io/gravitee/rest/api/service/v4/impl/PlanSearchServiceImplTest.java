@@ -21,10 +21,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -39,7 +43,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
 import org.junit.Before;
@@ -79,6 +85,9 @@ public class PlanSearchServiceImplTest {
     @Mock
     private GenericPlanMapper genericPlanMapper;
 
+    @Mock
+    private GenericApiMapper genericApiMapper;
+
     private Plan plan;
 
     @Mock
@@ -95,7 +104,8 @@ public class PlanSearchServiceImplTest {
             groupService,
             apiSearchService,
             objectMapper,
-            genericPlanMapper
+            genericPlanMapper,
+            genericApiMapper
         );
 
         api = new Api();
@@ -113,7 +123,7 @@ public class PlanSearchServiceImplTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         PlanEntity planEntity = new PlanEntity();
-        when(genericPlanMapper.toGenericPlan(api, plan)).thenReturn(planEntity);
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
 
         final GenericPlanEntity resultPlanEntity = planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -131,11 +141,11 @@ public class PlanSearchServiceImplTest {
         apiRepository.findById(plan.getApi());
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(plan.getId());
-        when(genericPlanMapper.toGenericPlan(api, plan)).thenReturn(planEntity);
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
 
         PlanEntity planEntity2 = new PlanEntity();
         planEntity2.setId(plan2.getId());
-        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(planEntity2);
+        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(planEntity2);
 
         final Set<GenericPlanEntity> entities = planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), ids);
 
@@ -167,10 +177,9 @@ public class PlanSearchServiceImplTest {
         planEntity1.setId(plan1.getId());
         PlanEntity planEntity2 = new PlanEntity();
         planEntity2.setId(plan2.getId());
-        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(planEntity1);
-        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(planEntity2);
+        when(genericPlanMapper.toGenericPlansWithFlow(eq(api), eq(Set.of(plan1, plan2)))).thenReturn(Set.of(planEntity1, planEntity2));
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
-        Set<GenericPlanEntity> plans = planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        Set<GenericPlanEntity> plans = planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
 
         assertNotNull(plans);
         assertEquals(2, plans.size());
@@ -189,7 +198,7 @@ public class PlanSearchServiceImplTest {
     public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
 
-        planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
     }
 
     @Test

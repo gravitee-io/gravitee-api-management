@@ -71,7 +71,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
     public Completable invoke(HttpExecutionContext ctx) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
         return Completable.create(nextEmitter -> {
-            log.debug("Executing invoker {}", id);
+            ctx.withLogger(log).debug("Executing invoker {}", id);
 
             // Http status set to 0 to reflect the fact we are waiting for the backend http status.
             ctx.response().status(0);
@@ -108,7 +108,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
                 if (throwable instanceof InterruptionFailureException) {
                     return ctx.interruptWith(((InterruptionFailureException) throwable).getExecutionFailure());
                 } else {
-                    log.error("An error occurred when invoking the backend.", throwable);
+                    ctx.withLogger(log).error("An error occurred when invoking the backend.", throwable);
                     return ctx.interruptWith(
                         new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
                     );

@@ -3,7 +3,12 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "path": ["./node_modules/path-browserify"]
+      /* Used in v2 API markdown editor */
+      "@toast-ui/editor": ["./node_modules/@toast-ui/editor/types/index.d.ts"],
+      "@toast-ui/editor/types/ui": ["./node_modules/@toast-ui/editor/types/ui.d.ts"],
+
+      "path": ["./node_modules/path-browserify"],
+      "url": ["./node_modules/url"] // Ensure compatibility with ui-components library
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -20,7 +25,7 @@
     "target": "ES2022",
     "types": ["jest", "angular-mocks", "node"],
     "resolveJsonModule": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": false,

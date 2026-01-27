@@ -114,7 +114,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
                 .stream()
                 .map(SubscriptionEntity::getApi)
                 .distinct()
-                .map(api -> apiSearchService.findGenericById(executionContext, api))
+                .map(api -> apiSearchService.findGenericById(executionContext, api, false, false, true))
                 .map(api1 -> apiMapper.convert(executionContext, api1))
                 .peek(api -> {
                     String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());

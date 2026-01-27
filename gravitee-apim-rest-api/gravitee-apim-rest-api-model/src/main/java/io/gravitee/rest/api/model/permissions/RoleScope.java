@@ -31,4 +31,5 @@ public enum RoleScope {
     PLATFORM,
     INTEGRATION,
     CLUSTER,
+    API_PRODUCT,
 }

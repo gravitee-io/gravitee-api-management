@@ -45,6 +45,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
     public static final Map<RoleScope, MembershipReferenceType> ROLE_SCOPE_TO_REFERENCE_TYPE = Map.ofEntries(
         Pair.of(RoleScope.API, MembershipReferenceType.API),
+        Pair.of(RoleScope.API_PRODUCT, MembershipReferenceType.API_PRODUCT),
         Pair.of(RoleScope.APPLICATION, MembershipReferenceType.APPLICATION),
         Pair.of(RoleScope.ORGANIZATION, MembershipReferenceType.ORGANIZATION),
         Pair.of(RoleScope.ENVIRONMENT, MembershipReferenceType.ENVIRONMENT),

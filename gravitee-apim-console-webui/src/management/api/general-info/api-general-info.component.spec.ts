@@ -406,7 +406,8 @@ describe('ApiGeneralInfoComponent', () => {
         await waitImageCheck();
         const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#exportApiDialog' }));
 
-        const groupCheckbox = await confirmDialog.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="groups"]' }));
+        const checkboxes = await confirmDialog.getAllHarnesses(MatCheckboxHarness);
+        const groupCheckbox = checkboxes[0];
         await groupCheckbox.uncheck();
 
         const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Export' }));
@@ -788,9 +789,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expect(await apiGeneralInfoExportV4Dialog.getExportOptions()).toEqual(['Groups', 'Members', 'Pages', 'Plans', 'Metadata']);
 
-      await apiGeneralInfoExportV4Dialog.setExportOptions({
-        groups: false,
-      });
+      await apiGeneralInfoExportV4Dialog.setExportOptions(['Members', 'Pages', 'Plans', 'Metadata']);
 
       await apiGeneralInfoExportV4Dialog.export();
 

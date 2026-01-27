@@ -52,7 +52,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
@@ -73,7 +73,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setVisibility(Visibility.PUBLIC);
@@ -90,7 +90,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
@@ -100,7 +100,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
@@ -115,7 +115,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
@@ -125,7 +125,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(false);
         pageMock.setName(PAGE_NAME);
@@ -141,7 +141,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 

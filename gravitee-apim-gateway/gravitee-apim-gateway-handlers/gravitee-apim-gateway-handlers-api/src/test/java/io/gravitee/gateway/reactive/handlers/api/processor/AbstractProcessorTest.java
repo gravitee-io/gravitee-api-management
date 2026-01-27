@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,9 @@ public class AbstractProcessorTest {
     @Spy
     protected MutableResponse mockResponse;
 
+    @Mock
+    protected Node node;
+
     protected HttpHeaders spyResponseHeaders;
 
     protected DefaultExecutionContext spyCtx;
@@ -63,6 +67,7 @@ public class AbstractProcessorTest {
         api = new Api();
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, api);
+        componentProvider.add(Node.class, node);
         spyCtx = spy(new DefaultExecutionContext(mockRequest, mockResponse));
         spyCtx.componentProvider(componentProvider);
         spyCtx.metrics(Metrics.builder().timestamp(System.currentTimeMillis()).build());

@@ -399,7 +399,7 @@ public class TicketServiceTest {
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class))).thenReturn(
             new Page<>(ticketList, 0, 20, 20)
         );
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)).thenReturn(apiEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketQuery query = new TicketQuery();
@@ -467,7 +467,7 @@ public class TicketServiceTest {
         appEntity.setName("appName");
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)).thenReturn(apiEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
@@ -542,7 +542,9 @@ public class TicketServiceTest {
         appEntity.setName("appName");
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(new ApiNotFoundException(API_ID));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false)).thenThrow(
+            new ApiNotFoundException(API_ID)
+        );
 
         TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
 

@@ -23,6 +23,7 @@ import { of } from 'rxjs';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { CategoryCatalogComponent } from './category.component';
 import { CategoryHarness } from './category.harness';
@@ -191,8 +192,9 @@ describe('CategoryCatalogComponent', () => {
 
     it('should show empty APIs', async () => {
       expectGetCategoryApis(CAT_API_LIST.id);
-      const rows = await componentHarness.getTableRows(harnessLoader);
-      expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
+      const table = await harnessLoader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('There are no APIs for this category.');
     });
 
     it('should show API list', async () => {

@@ -486,11 +486,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId) {
+    public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, GenericApiEntity genericApiEntity) {
         boolean result = false;
         if (MARKDOWN.name().equals(page.getType())) {
             Optional<GenericPlanEntity> optPlan = planSearchService
-                .findByApi(executionContext, apiId)
+                .findByApi(executionContext, genericApiEntity, false)
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
                 .filter(p -> !(PlanStatus.CLOSED == p.getPlanStatus() || PlanStatus.STAGING == p.getPlanStatus()))
@@ -584,7 +584,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity) {
         if (pageEntity instanceof ApiPageEntity) {
             ApiPageEntity apiPageEntity = (ApiPageEntity) pageEntity;
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiPageEntity.getApi());
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
+                executionContext,
+                apiPageEntity.getApi(),
+                false,
+                false,
+                false
+            );
             transformSwagger(executionContext, pageEntity, genericApiEntity);
         } else {
             if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
@@ -1343,7 +1349,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (PageReferenceType.API.equals(pageToUpdate.getReferenceType())) {
                 if (updatePageEntity.isPublished() != null && !updatePageEntity.isPublished()) {
                     Optional<GenericPlanEntity> activePlan = planSearchService
-                        .findByApi(executionContext, pageToUpdate.getReferenceId())
+                        .findByApi(executionContext, pageToUpdate.getReferenceId(), false)
                         .stream()
                         .filter(plan -> plan.getGeneralConditions() != null)
                         .filter(plan -> pageToUpdate.getId().equals(plan.getGeneralConditions()))
@@ -2192,7 +2198,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // we can't remove it until the plan is closed
             if (page.getReferenceType() != null && page.getReferenceType().equals(PageReferenceType.API)) {
                 Optional<GenericPlanEntity> activePlan = planSearchService
-                    .findByApi(executionContext, page.getReferenceId())
+                    .findByApi(executionContext, page.getReferenceId(), false)
                     .stream()
                     .filter(plan -> plan.getGeneralConditions() != null)
                     .filter(

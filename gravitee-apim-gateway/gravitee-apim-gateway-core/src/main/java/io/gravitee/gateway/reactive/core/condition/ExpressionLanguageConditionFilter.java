@@ -47,7 +47,7 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
             .onErrorComplete(throwable -> {
                 if (throwable instanceof ExpressionEvaluationException elException) {
                     // Report the EL exception as a warning.
-                    log.warn("Error parsing condition {}", condition, throwable);
+                    ctx.withLogger(log).warn("Error parsing condition {}", condition, throwable);
                     ctx.warnWith(
                         new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
                             .message("Unable to execute EL condition " + condition)

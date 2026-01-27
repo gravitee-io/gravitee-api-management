@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.Collections;
@@ -63,6 +64,9 @@ public class RoleService_UpdateTest {
 
     @Mock
     private ConfigService configService;
+
+    @Mock
+    private MembershipService membershipService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {

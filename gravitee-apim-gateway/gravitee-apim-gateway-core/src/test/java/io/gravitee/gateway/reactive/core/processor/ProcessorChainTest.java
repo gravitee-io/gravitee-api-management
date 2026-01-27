@@ -19,13 +19,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -37,23 +40,31 @@ class ProcessorChainTest {
     @Mock
     private Processor mockProcessor;
 
+    @Mock
+    private HttpExecutionContextInternal mockExecutionContext = mock(MutableExecutionContext.class);
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(mockExecutionContext.withLogger(any())).thenReturn(LoggerFactory.getLogger(ProcessorChain.class));
+    }
+
     @Test
     public void shouldCompleteWithNullProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", null);
-        processorChain.execute(mock(MutableExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
     public void shouldCompleteWithEmptyProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", List.of());
-        processorChain.execute(mock(MutableExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
     public void shouldCompleteWithCompleteProcessor() {
         when(mockProcessor.execute(any())).thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor));
-        processorChain.execute(mock(MutableExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
@@ -63,7 +74,7 @@ class ProcessorChainTest {
             .thenReturn(Completable.complete())
             .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mock(MutableExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
         verify(mockProcessor, times(3)).execute(any());
     }
 
@@ -74,7 +85,7 @@ class ProcessorChainTest {
             .thenReturn(Completable.error(new RuntimeException()))
             .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mock(MutableExecutionContext.class), ExecutionPhase.REQUEST).test().assertError(RuntimeException.class);
+        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertError(RuntimeException.class);
 
         verify(mockProcessor, times(2)).execute(any());
     }

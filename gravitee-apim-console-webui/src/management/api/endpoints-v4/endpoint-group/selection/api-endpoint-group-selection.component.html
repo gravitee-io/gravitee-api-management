@@ -30,6 +30,7 @@
       [value]="endpoint.id"
       [class.gio-selection__selected]="endpointGroupTypeForm.get('endpointGroupType').value === endpoint.id"
       (change)="checkLicense(endpoint)"
+      [attr.data-testid]="endpoint.id"
       labelPosition="after"
     >
       <gio-selection-list-option-layout>

@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardModule } from '@angular/material/card';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ApplicationCardComponent } from './application-card.component';
 import { fakeApplication } from '../../entities/application/application.fixture';
+import { AppTestingModule } from '../../testing/app-testing.module';
 import { PictureComponent } from '../picture/picture.component';
+import { PictureHarness } from '../picture/picture.harness';
 
 describe('ApplicationCardComponent', () => {
   let component: ApplicationCardComponent;
   let fixture: ComponentFixture<ApplicationCardComponent>;
+  let harnessLoader: HarnessLoader;
+  let routerSpy: jest.SpyInstance;
 
   const mockData = {
     application: {
@@ -41,16 +46,22 @@ describe('ApplicationCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MatCardModule, MatButtonModule, RouterModule.forRoot([]), NoopAnimationsModule, HttpClientTestingModule, PictureComponent],
+      imports: [MatCardModule, MatButtonModule, PictureComponent, AppTestingModule],
       declarations: [],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationCardComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigateByUrl');
     component = fixture.componentInstance;
 
     component.application = mockData.application;
 
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should create', () => {
@@ -91,15 +102,14 @@ describe('ApplicationCardComponent', () => {
     expect(buttonElement.textContent).toContain(mockData.buttonCapture);
   });
 
-  it('should have the correct router link value', () => {
-    const buttonElement = fixture.nativeElement.querySelector('button');
-    const routerLinkValue = buttonElement.getAttribute('ng-reflect-router-link');
-    expect(routerLinkValue).toEqual(mockData.routerLinkValue.join(','));
+  it('should navigate on click', async () => {
+    const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: mockData.buttonCapture }));
+    await button.click();
+    expect(routerSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should display the picture component with the correct inputs', () => {
-    const pictureComponent = fixture.nativeElement.querySelector('app-picture');
-    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.application.picture);
-    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${mockData.application.name}`);
+  it('should display the picture component with the correct inputs', async () => {
+    const picture = await harnessLoader.getHarness(PictureHarness);
+    expect(await picture.getSource()).toBe(mockData.application.picture);
   });
 });

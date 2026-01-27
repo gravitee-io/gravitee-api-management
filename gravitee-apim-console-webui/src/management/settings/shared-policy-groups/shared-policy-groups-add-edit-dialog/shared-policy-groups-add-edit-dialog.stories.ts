@@ -17,7 +17,7 @@ import { Meta, StoryObj } from '@storybook/angular';
 import { Component } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 
 import {
   SharedPolicyGroupsAddEditDialogComponent,

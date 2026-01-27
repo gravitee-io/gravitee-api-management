@@ -47,6 +47,7 @@ import org.junit.platform.commons.util.ReflectionUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -77,6 +78,7 @@ class InvokerAdapterTest {
 
     @BeforeEach
     public void init() {
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         cut = new InvokerAdapter(invoker);
     }
 

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -108,6 +109,62 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     @Override
     public List<NativeFlow> getNativePlanFlows(String planId) {
         return getNativeV4(FlowReferenceType.PLAN, planId);
+    }
+
+    @Override
+    public Map<String, List<NativeFlow>> getNativePlanFlows(Set<String> planIds) {
+        if (planIds == null || planIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
+                FlowReferenceType.PLAN,
+                planIds
+            );
+            return repoFlows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        e.getValue().stream().map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList())
+                    )
+                );
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to get native plan flows";
+            log.error(error, ex);
+            throw new TechnicalDomainException(error, ex);
+        }
+    }
+
+    @Override
+    public Map<String, List<io.gravitee.definition.model.flow.Flow>> getPlanV2Flows(Set<String> planIds) {
+        if (planIds == null || planIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
+                FlowReferenceType.PLAN,
+                planIds
+            );
+            return repoFlows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        e.getValue().stream().map(FlowAdapter.INSTANCE::toFlowV2).collect(Collectors.toList())
+                    )
+                );
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to get v2 plan flows";
+            log.error(error, ex);
+            throw new TechnicalDomainException(error, ex);
+        }
     }
 
     private List<io.gravitee.repository.management.model.flow.Flow> save(

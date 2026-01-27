@@ -100,5 +100,35 @@
     "source": "system",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
+  },
+  {
+    "id": "group1_user_batch",
+    "memberId": "user_batch",
+    "memberType": "USER",
+    "referenceType": "GROUP",
+    "referenceId": "group1",
+    "roleId": "GROUP_MEMBER",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
+  },
+  {
+    "id": "group2_user_batch",
+    "memberId": "user_batch",
+    "memberType": "USER",
+    "referenceType": "GROUP",
+    "referenceId": "group2",
+    "roleId": "GROUP_ADMIN",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
+  },
+  {
+    "id": "group3_user_batch",
+    "memberId": "user_batch",
+    "memberType": "USER",
+    "referenceType": "GROUP",
+    "referenceId": "group3",
+    "roleId": "GROUP_MEMBER",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
   }
 ]

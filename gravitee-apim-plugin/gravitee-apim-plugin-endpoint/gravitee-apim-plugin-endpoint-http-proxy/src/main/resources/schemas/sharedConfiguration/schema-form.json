@@ -51,5 +51,63 @@
         "ssl": {
             "$ref": "#/definitions/ssl"
         }
+    },
+    "gioExternalDefinitions": {
+      "clearTextUpgrade": {
+        "title": "Allow h2c Clear Text Upgrade",
+        "type": "boolean",
+        "default": false,
+        "gioConfig": {
+          "banner": {
+            "title": "HTTP/2 Cleartext (H2C)",
+            "text": "If enabled, an h2c connection is established using an HTTP/1.1 upgrade request. When disabled (recommended), h2c connection is established directly with prior knowledge. Disabled by default. ⚠️ Enabling clear text upgrade can cause failures when upgrading chunked HTTP/1.1 requests to HTTP/2."
+          }
+        }
+      },
+      "maxConcurrentConnections": {
+        "type": "integer",
+        "title": "Max Concurrent Connections",
+        "description": "Maximum pool size for connections.",
+        "default": 20,
+        "gioConfig": {
+          "banner": {
+            "title": "Max concurrent HTTP/2 connections",
+            "text": "HTTP/2 connections are multiplexed, so a single connection can handle multiple requests concurrently. However, to optimize performance and resource utilization, it's beneficial to establish multiple concurrent connections to the upstream server. This setting defines the maximum number of concurrent HTTP/2 connections that can be established to the upstream server. The default value is 20 connections. Total of (max concurrent stream) x (max concurrent connections) gives the maximum number of concurrent requests to the upstream. A new connection will be created if all existing connections have reached the maximum concurrent streams limit."
+          }
+        }
+      },
+      "http2MultiplexingLimit": {
+        "type": "integer",
+        "title": "Max concurrent stream for an HTTP/2 connection",
+        "default": 25,
+        "gioConfig": {
+          "banner": {
+            "title": "Max concurrent stream for an HTTP/2 connection",
+            "text": "The maximum number of concurrent streams allowed for each HTTP/2 connection. The actual number of streams per connection is the minimum of this value and the server's initial settings. For example, if set to 10 and the server's initial setting is 1000, the max number of streams will be 10. 25 is the default. Total of (max concurrent stream) x (max concurrent connections) gives the maximum number of concurrent requests to the upstream."
+          }
+        }
+      },
+      "http2ConnectionWindowSize": {
+        "type": "integer",
+        "title": "Connection Window Size for an HTTP/2 connection",
+        "default": 1048576,
+        "gioConfig": {
+          "banner": {
+            "title": "Connection Window Size for an HTTP/2 connection",
+            "text": "Connection Window Size in bytes can be increased to a larger value such as 5MB (5242880 bytes) to improve throughput. Default is 1MB (1048576 bytes)."
+          }
+        }
+      },
+      "http2StreamWindowSize": {
+        "type": "integer",
+        "title": "Stream initial window size for each HTTP/2 stream",
+        "default": 262144,
+        "gioConfig": {
+          "banner": {
+            "title": "Stream initial window size for each HTTP/2 stream",
+            "text": "Stream Window Size in bytes can be increased to a larger value such as 1MB (1048576 bytes) to improve throughput (initial settings). 256KB (262144) is the default."
+          }
+        }
+      }
     }
 }

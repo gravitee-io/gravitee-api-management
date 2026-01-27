@@ -106,13 +106,12 @@ public interface PageService {
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
      *
-     *
      * @param executionContext
      * @param page
-     * @param apiId
+     * @param genericApiEntity
      * @return
      */
-    boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId);
+    boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, GenericApiEntity genericApiEntity);
 
     boolean shouldHaveRevision(String pageType);
 

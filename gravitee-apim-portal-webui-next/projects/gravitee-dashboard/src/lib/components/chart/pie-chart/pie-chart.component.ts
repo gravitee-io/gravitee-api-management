@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
@@ -31,7 +31,7 @@ export type PieType = 'doughnut' | 'pie' | 'polarArea';
 })
 export class PieChartComponent {
   type = input.required<PieType>();
-  option = input<ChartConfiguration<PieType>['options']>(this.getDefaultOptions());
+  option: InputSignal<ChartConfiguration<PieType>['options']> = input(this.getDefaultOptions());
   data = input.required<FacetsResponse>();
 
   converter = inject(PieConverterService);

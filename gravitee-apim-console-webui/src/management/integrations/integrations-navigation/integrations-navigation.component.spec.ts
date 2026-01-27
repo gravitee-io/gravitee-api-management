@@ -16,11 +16,11 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestElement } from '@angular/cdk/testing';
 import { of } from 'rxjs';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { IntegrationsNavigationComponent } from './integrations-navigation.component';
 import { IntegrationsNavigationHarness } from './integrations-navigation.harness';
@@ -39,7 +39,7 @@ describe('IntegrationsNavigationComponent', () => {
   const init = async (hasAnyMatching): Promise<void> => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationsNavigationComponent],
-      imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
+      imports: [GioTestingModule, IntegrationsModule],
       providers: [
         {
           provide: IntegrationsService,
@@ -52,6 +52,12 @@ describe('IntegrationsNavigationComponent', () => {
           provide: GioPermissionService,
           useValue: {
             hasAnyMatching: () => hasAnyMatching,
+          },
+        },
+        {
+          provide: GioLicenseService,
+          useValue: {
+            getLicense$: () => of(),
           },
         },
       ],

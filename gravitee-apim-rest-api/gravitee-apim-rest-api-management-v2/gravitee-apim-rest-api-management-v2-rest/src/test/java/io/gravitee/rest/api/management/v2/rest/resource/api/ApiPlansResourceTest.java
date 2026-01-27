@@ -60,14 +60,12 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
-import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PlanType;
-import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -173,9 +171,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_empty_page_if_no_plans() {
             var planQuery = PlanQuery.builder().apiId(API).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                new ArrayList<>()
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(new ArrayList<>());
 
             final Response response = target.request().get();
 
@@ -193,9 +191,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             PlanEntity plan3 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").order(1).build();
 
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan3)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan3));
 
             final Response response = target.request().get();
 
@@ -225,9 +223,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             var plan2 = PlanFixtures.aNativePlanEntityV4().toBuilder().id("plan-3").order(1).build();
 
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan2)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan2));
 
             final Response response = target.request().get();
 
@@ -278,9 +276,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .status(List.of(PlanStatus.DEPRECATED))
                 .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
                 .build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan3)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan3));
 
             target = target
                 .queryParam("securities", "JWT")
@@ -327,9 +325,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .security(null)
                 .build();
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan2, plan3)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan2, plan3));
 
             var plan1Subscription = SubscriptionEntity.builder()
                 .apiId(API)
@@ -383,9 +381,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .build();
             var plan2 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-2").apiId(API).build();
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan2)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan2));
 
             var subscription = SubscriptionEntity.builder()
                 .apiId(API)
@@ -427,9 +425,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             var plan4 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-4").apiId(API).build();
             var plan5 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-5").apiId(API).build();
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
-            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true))).thenReturn(
-                List.of(plan1, plan2, plan3, plan4, plan5)
-            );
+            when(
+                planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true), eq(true))
+            ).thenReturn(List.of(plan1, plan2, plan3, plan4, plan5));
 
             subscriptionQueryService.initWith(
                 List.of(

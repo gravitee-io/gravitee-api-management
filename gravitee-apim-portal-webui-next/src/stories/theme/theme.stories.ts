@@ -16,9 +16,9 @@
 import { MatButtonModule } from '@angular/material/button';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
-import { action } from '@storybook/addon-actions';
 import { Args, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { of } from 'rxjs/internal/observable/of';
+import { action } from 'storybook/actions';
 import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { computeAndInjectThemeForStory } from './theme.util';

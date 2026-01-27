@@ -29,7 +29,7 @@
 
   &__tab-details-info {
     &__card {
-      --mdc-elevated-card-container-color: #{m3-adapter.$surface-variant};
+      --mat-card-elevated-container-color: #{m3-adapter.$surface-variant};
 
       display: flex;
       min-width: 324px;

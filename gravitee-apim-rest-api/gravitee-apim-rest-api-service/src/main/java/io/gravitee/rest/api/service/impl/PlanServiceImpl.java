@@ -161,7 +161,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().flatMap(this::map).collect(Collectors.toSet());
+        return planSearchService.findByApi(executionContext, api, true).stream().flatMap(this::map).collect(Collectors.toSet());
     }
 
     @Override

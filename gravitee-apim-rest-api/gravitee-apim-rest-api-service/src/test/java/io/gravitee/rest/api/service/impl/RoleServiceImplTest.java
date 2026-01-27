@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
@@ -34,14 +35,18 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleDeletionForbiddenException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -299,6 +304,122 @@ class RoleServiceImplTest {
 
             // Then
             assertThat(roles).isNotPresent();
+        }
+    }
+
+    @Nested
+    class FindByIds {
+
+        @BeforeEach
+        void setUp() {
+            GraviteeContext.getCurrentRoles().clear();
+        }
+
+        @AfterEach
+        void tearDown() {
+            GraviteeContext.getCurrentRoles().clear();
+        }
+
+        @Test
+        void should_return_empty_map_when_roleIds_is_null() {
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(null);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_map_when_roleIds_is_empty() {
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(Set.of());
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_roles_from_cache_when_all_present() {
+            // Given
+            RoleEntity cachedRole1 = RoleEntity.builder().id("role1").name("Role1").build();
+            RoleEntity cachedRole2 = RoleEntity.builder().id("role2").name("Role2").build();
+            GraviteeContext.getCurrentRoles().put("role1", cachedRole1);
+            GraviteeContext.getCurrentRoles().put("role2", cachedRole2);
+
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(Set.of("role1", "role2"));
+
+            // Then
+            assertThat(result).hasSize(2);
+            assertThat(result).containsEntry("role1", cachedRole1);
+            assertThat(result).containsEntry("role2", cachedRole2);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_fetch_missing_roles_from_repository() {
+            // Given
+            RoleEntity cachedRole = RoleEntity.builder().id("role1").name("CachedRole").build();
+            GraviteeContext.getCurrentRoles().put("role1", cachedRole);
+
+            Role repoRole = Role.builder().id("role2").name("RepoRole").build();
+            when(roleRepository.findAllByIdIn(Set.of("role2"))).thenReturn(Set.of(repoRole));
+
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(Set.of("role1", "role2"));
+
+            // Then
+            assertThat(result).hasSize(2);
+            assertThat(result.get("role1").getName()).isEqualTo("CachedRole");
+            assertThat(result.get("role2").getName()).isEqualTo("RepoRole");
+            // Verify role2 was added to cache
+            assertThat(GraviteeContext.getCurrentRoles()).containsKey("role2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_fetch_all_roles_from_repository_when_cache_empty() {
+            // Given
+            Role role1 = Role.builder().id("role1").name("Role1").build();
+            Role role2 = Role.builder().id("role2").name("Role2").build();
+            when(roleRepository.findAllByIdIn(Set.of("role1", "role2"))).thenReturn(Set.of(role1, role2));
+
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(Set.of("role1", "role2"));
+
+            // Then
+            assertThat(result).hasSize(2);
+            assertThat(result.get("role1").getName()).isEqualTo("Role1");
+            assertThat(result.get("role2").getName()).isEqualTo("Role2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_repository_fails() {
+            // Given
+            when(roleRepository.findAllByIdIn(any())).thenThrow(new TechnicalException("DB error"));
+
+            // When
+            Throwable throwable = catchThrowable(() -> sut.findByIds(Set.of("role1")));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_only_found_roles_when_some_not_exist() {
+            // Given
+            Role role1 = Role.builder().id("role1").name("Role1").build();
+            when(roleRepository.findAllByIdIn(Set.of("role1", "role2"))).thenReturn(Set.of(role1));
+
+            // When
+            Map<String, RoleEntity> result = sut.findByIds(Set.of("role1", "role2"));
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result).containsKey("role1");
+            assertThat(result).doesNotContainKey("role2");
         }
     }
 }

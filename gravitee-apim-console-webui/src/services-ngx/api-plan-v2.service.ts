@@ -33,6 +33,7 @@ export class ApiPlanV2Service {
     securities?: string[],
     statuses?: PlanStatus[],
     mode?: PlanMode,
+    fields?: ('flow' | '-flow')[],
     page = 1,
     perPage = 10,
   ): Observable<ApiPlansResponse> {
@@ -43,6 +44,7 @@ export class ApiPlanV2Service {
         ...(securities ? { securities: securities.join(',') } : {}),
         ...(statuses ? { statuses: statuses.join(',') } : {}),
         ...(mode ? { mode } : {}),
+        ...(fields ? { fields: fields.join(',') } : {}),
       },
     });
   }

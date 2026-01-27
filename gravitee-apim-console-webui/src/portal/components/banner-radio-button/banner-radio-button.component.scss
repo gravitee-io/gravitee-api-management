@@ -18,8 +18,8 @@ $selected-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'defaul
   color: $selected-color;
 
   mat-radio-button {
-    --mdc-radio-selected-icon-color: #{$selected-color};
-    --mdc-radio-selected-focus-icon-color: #{$selected-color};
-    --mdc-radio-selected-hover-icon-color: #{$selected-color};
+    --mat-radio-selected-icon-color: #{$selected-color};
+    --mat-radio-selected-focus-icon-color: #{$selected-color};
+    --mat-radio-selected-hover-icon-color: #{$selected-color};
   }
 }

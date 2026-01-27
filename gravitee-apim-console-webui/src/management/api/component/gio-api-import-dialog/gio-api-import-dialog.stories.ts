@@ -17,7 +17,7 @@ import { Component, Input } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { of } from 'rxjs';

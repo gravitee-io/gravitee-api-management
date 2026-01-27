@@ -275,8 +275,10 @@ describe('CategoryComponent', () => {
     });
     it('should show empty APIs', async () => {
       expectGetCategoryApis(CAT_API_LIST.id);
-      const rows = await getTableRows();
-      expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
+
+      const table = await harnessLoader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('There are no APIs for this category.');
     });
     it('should show API list', async () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);

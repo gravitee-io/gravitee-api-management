@@ -650,8 +650,8 @@ describe('OrgSettingsUserDetailComponent', () => {
     const generateTokenButton = await tokensCard.getHarness(MatButtonHarness);
     const tokensTable = await tokensCard.getHarness(MatTableHarness);
 
-    const cellTextByIndex = await tokensTable.getCellTextByIndex();
-    expect(cellTextByIndex).toEqual([['No tokens']]);
+    const tokensTableHost = await tokensTable.host();
+    expect(await tokensTableHost.text()).toContain('No tokens');
 
     await generateTokenButton.click();
 

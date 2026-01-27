@@ -63,10 +63,10 @@ describe('SignUpComponent', () => {
     const emailInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
     await emailInput.setValue('email@email.com');
 
-    const customUserFieldKey1Input = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="key1"]' }));
+    const customUserFieldKey1Input = await loader.getHarness(MatInputHarness.with({ label: 'label1' }));
     await customUserFieldKey1Input.setValue('value1');
 
-    const customUserFieldKey2Input = await loader.getHarness(MatSelectHarness.with({ selector: '[ng-reflect-name="key2"]' }));
+    const customUserFieldKey2Input = await loader.getHarness(MatSelectHarness.with({ label: 'label2' }));
     await customUserFieldKey2Input.clickOptions({ text: 'value1' });
 
     const signUpButton = await loader.getHarness(MatButtonHarness.with({ selector: '[type="submit"]' }));

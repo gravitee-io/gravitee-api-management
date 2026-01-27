@@ -101,7 +101,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
     expect(await addAssertionButton.isDisabled()).toEqual(true);
 
-    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    const assertion = await loader.getHarness(MatInputHarness.with({ ancestor: '.health-check-card__assertions__assertion__form-field' }));
     expect(await assertion.isDisabled()).toEqual(true);
 
     expect(component.healthCheckForm.value).toEqual({
@@ -150,7 +150,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await addAssertionButton.isDisabled()).toEqual(false);
     await addAssertionButton.click();
 
-    const assertion_1 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="1"]' }));
+    const assertion_1 = await getAssertionInputAtIndex(1);
     await assertion_1.setValue('new assertion');
 
     expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual({
@@ -238,7 +238,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await (await headersInput.getHeaderRows())[0].valueInput.getValue()).toEqual('inherit');
 
     // Assertion
-    const assertion_0 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    const assertion_0 = await getAssertionInputAtIndex(0);
     expect(await assertion_0.isDisabled()).toEqual(true);
     expect(await assertion_0.getValue()).toEqual('inherit');
 
@@ -402,7 +402,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await (await headersInput.getHeaderRows())[0].valueInput.getValue()).toEqual('inherit');
 
     // Assertion
-    const assertion_0 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    const assertion_0 = await getAssertionInputAtIndex(0);
     expect(await assertion_0.isDisabled()).toEqual(true);
     expect(await assertion_0.getValue()).toEqual('inherit');
 
@@ -467,7 +467,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
     expect(await addAssertionButton.isDisabled()).toEqual(false);
 
-    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    const assertion = await getAssertionInputAtIndex(0);
     expect(await assertion.isDisabled()).toEqual(false);
     expect(await assertion.getValue()).toEqual('#response.status == 400');
 
@@ -504,9 +504,14 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
     expect(await addAssertionButton.isDisabled()).toEqual(true);
 
-    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    const assertion = await getAssertionInputAtIndex(0);
     expect(await assertion.isDisabled()).toEqual(true);
 
     expect(component.healthCheckForm.value.enabled).toEqual(false);
   });
+
+  async function getAssertionInputAtIndex(index: number): Promise<MatInputHarness> {
+    const assertionInputs = await loader.getAllHarnesses(MatInputHarness.with({ ancestor: '.health-check-card__assertions__assertion' }));
+    return assertionInputs[index];
+  }
 });

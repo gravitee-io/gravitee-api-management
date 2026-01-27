@@ -170,7 +170,7 @@ public class MessageHookHelper {
                     }
                 }
             )
-            .doOnError(error -> log.warn("Unable to execute '{}' message hook on '{}'", phase.name(), componentId, error))
+            .doOnError(error -> ctx.withLogger(log).warn("Unable to execute '{}' message hook on '{}'", phase.name(), componentId, error))
             .onErrorComplete();
     }
 }

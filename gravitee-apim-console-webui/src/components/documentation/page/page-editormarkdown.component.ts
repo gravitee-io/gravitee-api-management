@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { EditorOptions, Editor } from '@toast-ui/editor';
-// eslint-disable-next-line import/no-unresolved
 import { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
 import codeSyntaxHighlightPlugin from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';

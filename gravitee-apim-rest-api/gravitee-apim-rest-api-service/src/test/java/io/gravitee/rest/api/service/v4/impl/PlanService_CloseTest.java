@@ -139,7 +139,7 @@ public class PlanService_CloseTest {
         var planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setApiId(API_ID);
-        when(genericPlanMapper.toGenericPlan(eq(api), eq(plan))).thenReturn(planEntity);
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan))).thenReturn(planEntity);
 
         GenericPlanEntity genericPlanEntity = planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -174,7 +174,7 @@ public class PlanService_CloseTest {
         var planEntity = new io.gravitee.rest.api.model.PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setApi(API_ID);
-        when(genericPlanMapper.toGenericPlan(eq(api), eq(plan))).thenReturn(planEntity);
+        when(genericPlanMapper.toGenericPlanWithFlow(eq(api), eq(plan))).thenReturn(planEntity);
 
         GenericPlanEntity genericPlanEntity = planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 

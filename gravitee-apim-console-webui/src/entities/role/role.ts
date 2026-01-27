@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type RoleScope = 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM' | 'INTEGRATION' | 'CLUSTER';
+export type RoleScope =
+  | 'API'
+  | 'APPLICATION'
+  | 'GROUP'
+  | 'ENVIRONMENT'
+  | 'ORGANIZATION'
+  | 'PLATFORM'
+  | 'INTEGRATION'
+  | 'CLUSTER'
+  | 'API_PRODUCT';
 
 export interface Role {
   id: string;

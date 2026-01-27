@@ -216,15 +216,40 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @param memberId the member
      * @param memberType the member type. Can be USER or GROUP.
      * @param referenceType the referenceType
-     * @param referenceId the referenceId
+     * @param referenceId the referenceId (can be null to find memberships where reference_id IS NULL)
      * @return a list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+    default Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         String referenceId
+    ) throws TechnicalException {
+        return findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+            memberId,
+            memberType,
+            referenceType,
+            referenceId == null ? null : Set.of(referenceId)
+        );
+    }
+
+    /**
+     * find all memberships for a member, a referenceType and multiple referenceIds
+     * => get all the role of a member on multiple references
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @param referenceIds the referenceIds. If null, finds memberships where reference_id IS NULL.
+     *                     If empty, returns an empty set.
+     * @return a list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Set<String> referenceIds
     ) throws TechnicalException;
 
     /**

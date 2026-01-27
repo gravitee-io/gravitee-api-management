@@ -19,12 +19,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
@@ -39,17 +41,20 @@ import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeP
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.StandardEnvironment;
 
 /**
@@ -74,6 +79,17 @@ class NotFoundProcessorChainFactoryTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    @Mock
+    private ComponentProvider componentProvider;
+
+    @Mock
+    private Node node;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(componentProvider.getComponent(Node.class)).thenReturn(node);
+    }
+
     @Test
     void should_have_notFoundProcessors() {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
@@ -96,7 +112,9 @@ class NotFoundProcessorChainFactoryTest {
     @Test
     void should_execute_not_found_processor_chain() {
         // Given
-        DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response);
+        DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response).componentProvider(
+            componentProvider
+        );
 
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
             transactionPreProcessorFactory,

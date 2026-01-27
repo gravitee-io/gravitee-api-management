@@ -54,8 +54,8 @@ describe('ApiNgEventsComponent', () => {
     it('should display an empty table', fakeAsync(async () => {
       await initComponent([]);
 
-      const { headerCells, rowCells } = await computeEventsTableCells();
-      expect(headerCells).toEqual([
+      const tableCells = await computeEventsTableCells();
+      expect(tableCells.headerCells).toEqual([
         {
           icon: '',
           type: 'Type',
@@ -63,7 +63,10 @@ describe('ApiNgEventsComponent', () => {
           user: 'User',
         },
       ]);
-      expect(rowCells).toEqual([['There is no event (yet).']]);
+
+      const table = await loader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('There is no event (yet).');
     }));
 
     it('should display a table with events', fakeAsync(async () => {

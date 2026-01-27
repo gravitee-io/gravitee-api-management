@@ -104,15 +104,17 @@ describe('ApiPathMappingsComponent', () => {
       expectApiGetRequest(api);
       expectApiPagesGetRequest(api, []);
 
-      const { headerCells, rowCells } = await computeApisTableCells();
-      expect(headerCells).toEqual([
+      const tableCells = await computeApisTableCells();
+      expect(tableCells.headerCells).toEqual([
         {
           path: 'Path',
           actions: '',
         },
       ]);
 
-      expect(rowCells).toEqual([['No Path Mappings']]);
+      const table = await loader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('No Path Mappings');
     });
   });
 

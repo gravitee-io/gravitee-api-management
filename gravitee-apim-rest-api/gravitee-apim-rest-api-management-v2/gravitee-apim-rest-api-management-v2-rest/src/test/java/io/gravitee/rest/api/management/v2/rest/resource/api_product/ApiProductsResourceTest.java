@@ -130,7 +130,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.CREATE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.CREATE, () ->
                 rootTarget().path("_verify").request().post(json(new VerifyApiProduct()))
             );
         }
@@ -185,7 +185,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.CREATE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.CREATE, () ->
                 rootTarget().request().post(json(new CreateApiProduct()))
             );
         }
@@ -248,7 +248,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCTS, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
         }
     }
 }

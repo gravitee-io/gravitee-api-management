@@ -126,9 +126,7 @@ describe('PortalSettingsComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
-      const keylessPlansToggle = await loader.getHarness(
-        MatSlideToggleHarness.with({ selector: '[ng-reflect-aria-label="Keyless plans"]' }),
-      );
+      const keylessPlansToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid="keyless-plans-toggle"]' }));
       expect(await keylessPlansToggle.isChecked()).toBe(false);
 
       await keylessPlansToggle.toggle();

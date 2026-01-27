@@ -63,7 +63,7 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
     this.form = new UntypedFormGroup({ selectedPlanId: new UntypedFormControl('', { validators: Validators.required }) });
 
     this.apiPlanService
-      .list(this.data.apiId, [this.data.securityType], ['PUBLISHED'], this.data.mode, 1, 9999)
+      .list(this.data.apiId, [this.data.securityType], ['PUBLISHED'], this.data.mode, undefined, 1, 9999)
       .pipe(
         map((response) => response.data.filter((plan) => plan.id !== this.data.currentPlanId)),
 

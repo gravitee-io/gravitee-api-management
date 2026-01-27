@@ -78,7 +78,7 @@ public class ApiConverter {
         this.workflowService = workflowService;
     }
 
-    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
+    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity, boolean withApiCategories) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -91,7 +91,9 @@ public class ApiConverter {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        }
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode(), api.getSyncFrom()));
 
         if (api.getDefinition() != null) {
@@ -161,8 +163,15 @@ public class ApiConverter {
         return apiEntity;
     }
 
-    public ApiEntity toApiEntity(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner, boolean readDatabaseFlows) {
-        ApiEntity apiEntity = toApiEntity(api, primaryOwner);
+    public ApiEntity toApiEntity(
+        ExecutionContext executionContext,
+        Api api,
+        PrimaryOwnerEntity primaryOwner,
+        boolean withApiFlows,
+        boolean withPlans,
+        boolean withApiCategories
+    ) {
+        ApiEntity apiEntity = toApiEntity(api, primaryOwner, withApiCategories);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
             apiEntity.setDefinitionContext(
@@ -170,15 +179,19 @@ public class ApiConverter {
             );
         }
 
-        var plans = planService.findByApi(executionContext, api.getId());
-        apiEntity.setPlans(plans);
+        if (withPlans) {
+            var plans = planService.findByApi(executionContext, api.getId());
+            apiEntity.setPlans(plans);
+        }
 
-        if (readDatabaseFlows) {
+        if (withApiFlows) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        if (withApiCategories) {
+            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        }
 
         if (
             parameterService.findAsBoolean(

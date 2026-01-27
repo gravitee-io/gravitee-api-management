@@ -60,15 +60,13 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
   }
 
   private getListenerRowInputHostDomain = (rowIndex: number): AsyncFactoryFn<SpanHarness> =>
-    this.locatorFor(SpanHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '.gio-form-listeners__table__field__host' }));
+    this.locatorFor(SpanHarness.with({ ancestor: `.row-${rowIndex}`, selector: '.gio-form-listeners__table__field__host' }));
 
   private getListenerRowInputHostSubDomain = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
-    this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=_hostSubDomain]' }));
+    this.locatorFor(MatInputHarness.with({ ancestor: `.row-${rowIndex}`, selector: '[formControlName=_hostSubDomain]' }));
 
   private getListenerRowInputOverrideAccess = (rowIndex: number): AsyncFactoryFn<MatSlideToggleHarness> =>
-    this.locatorFor(
-      MatSlideToggleHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=overrideAccess]' }),
-    );
+    this.locatorFor(MatSlideToggleHarness.with({ ancestor: `.row-${rowIndex}`, selector: '[formControlName=overrideAccess]' }));
 
   public override async getLastListenerRow(): Promise<{
     hostDomainInput: SpanHarness;

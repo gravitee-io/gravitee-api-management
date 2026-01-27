@@ -132,15 +132,15 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
       fixture.detectChanges();
     }));
 
-    it('should display timeline', () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => ({
-        content: card.querySelector('.debug-mode-timeline-card__content').textContent,
-        state: card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
-          ? 'ERROR'
-          : card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
-            ? 'SKIPPED'
-            : undefined,
-      }));
+    it('should display timeline', async () => {
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => {
+        const content = card.querySelector('.debug-mode-timeline-card__content').textContent;
+        const state = card.querySelector('mat-icon.error') ? 'ERROR' : card.querySelector('mat-icon.skipped') ? 'SKIPPED' : undefined;
+        return {
+          content,
+          ...(state ? { state } : {}),
+        };
+      });
       expect(timeLineCards).toEqual([
         {
           content: ' Client APP ',
@@ -159,6 +159,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
         },
         {
           content: ' Api > Header  Transform Headers ',
+          state: 'SKIPPED',
         },
         {
           content: ' Api > Header  Transform Headers ',
@@ -354,14 +355,14 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
     }));
 
     it('should display timeline', () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => ({
-        content: card.querySelector('.debug-mode-timeline-card__content').textContent,
-        state: card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
-          ? 'ERROR'
-          : card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
-            ? 'SKIPPED'
-            : undefined,
-      }));
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => {
+        const content = card.querySelector('.debug-mode-timeline-card__content').textContent;
+        const state = card.querySelector('mat-icon.error') ? 'ERROR' : card.querySelector('mat-icon.skipped') ? 'SKIPPED' : undefined;
+        return {
+          content,
+          ...(state ? { state } : {}),
+        };
+      });
       expect(timeLineCards).toEqual([
         {
           content: ' Client APP ',
@@ -380,6 +381,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
         },
         {
           content: ' Api > Header  Transform Headers ',
+          state: 'SKIPPED',
         },
         {
           content: ' Api > Header  Transform Headers ',

@@ -16,10 +16,12 @@
 package io.gravitee.gateway.reactive.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.reactor.handler.TcpAcceptorResolver;
@@ -66,6 +68,8 @@ public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
                 ctx.componentProvider(componentProvider);
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, tcpReactor.api());
                 ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.TCP);
+                ctx.setInternalAttribute(ATTR_INTERNAL_SERVER_ID, serverId);
+                ctx.setAttribute(ContextAttributes.ATTR_SNI, sni);
                 // TODO execute specific platform chain factory that will initialize the MetricsReporter
                 return tcpReactor.handle(ctx);
                 // TODO execute processor

@@ -73,7 +73,7 @@ public class GenericApiMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V2);
 
         genericApiMapper.toGenericApi(api, null);
-        verify(apiConverter).toApiEntity(api, null);
+        verify(apiConverter).toApiEntity(api, null, true);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class GenericApiMapperTest {
         api.setDefinitionVersion(DefinitionVersion.V1);
 
         genericApiMapper.toGenericApi(api, null);
-        verify(apiConverter).toApiEntity(api, null);
+        verify(apiConverter).toApiEntity(api, null, true);
     }
 
     @Test
@@ -90,6 +90,6 @@ public class GenericApiMapperTest {
         Api api = new Api();
 
         genericApiMapper.toGenericApi(api, null);
-        verify(apiConverter).toApiEntity(api, null);
+        verify(apiConverter).toApiEntity(api, null, true);
     }
 }

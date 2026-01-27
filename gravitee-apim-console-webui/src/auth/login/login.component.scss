@@ -24,20 +24,20 @@
 
       // Default color for all providers
       &--graviteeio_am {
-        --mdc-protected-button-label-text-color: #1b1d3c;
-        --mdc-protected-button-container-color: #86c3d0;
+        --mat-button-protected-label-text-color: #1b1d3c;
+        --mat-button-protected-container-color: #86c3d0;
       }
       &--google {
-        --mdc-protected-button-label-text-color: #fff;
-        --mdc-protected-button-container-color: #4285f4;
+        --mat-button-protected-label-text-color: #fff;
+        --mat-button-protected-container-color: #4285f4;
       }
       &--github {
-        --mdc-protected-button-label-text-color: #fff;
-        --mdc-protected-button-container-color: #444;
+        --mat-button-protected-label-text-color: #fff;
+        --mat-button-protected-container-color: #444;
       }
       &--oidc {
-        --mdc-protected-button-label-text-color: #fff;
-        --mdc-protected-button-container-color: #000000;
+        --mat-button-protected-label-text-color: #fff;
+        --mat-button-protected-container-color: #000000;
       }
 
       & + & {

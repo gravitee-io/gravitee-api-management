@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import 'chartjs-adapter-date-fns';
@@ -32,7 +32,7 @@ export type BarType = 'bar';
 })
 export class BarChartComponent {
   type = input<BarType>('bar');
-  option = input<ChartConfiguration<BarType>['options']>(this.getDefaultOptions());
+  option: InputSignal<ChartConfiguration<BarType>['options']> = input(this.getDefaultOptions());
   data = input.required<TimeSeriesResponse>();
 
   public readonly dataFormatted = computed(() => {

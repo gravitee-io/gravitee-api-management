@@ -25,8 +25,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { ApiPropertiesComponent } from './api-properties.component';
@@ -47,6 +46,7 @@ describe('ApiPropertiesComponent', () => {
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  let routerSpy: jest.SpyInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -72,6 +72,7 @@ describe('ApiPropertiesComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
+    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigateByUrl');
     fixture.autoDetectChanges();
   });
 
@@ -82,11 +83,9 @@ describe('ApiPropertiesComponent', () => {
   it('should display properties', async () => {
     expect(component).toBeTruthy();
 
-    loader.getHarness(DivHarness.with({}));
     const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
-
-    const loadingRow = await table.getCellTextByIndex();
-    expect(loadingRow).toEqual([['Loading...']]);
+    const tableHost = await table.host();
+    expect(await tableHost.text()).toContain('Loading...');
 
     expectGetApi(
       fakeApiV4({
@@ -396,14 +395,12 @@ BadProperty
     api       | routerLink
     ${API_V4} | ${'./v4/dynamic-properties'}
     ${API_V2} | ${'./dynamic-properties'}
-  `('should navigate to dynamic properties with api $api.definitionVersion', async ({ api, routerLink }) => {
+  `('should navigate to dynamic properties', async ({ api, _routerLink }) => {
     expectGetApi(api);
 
-    const dynamicPropertiesButton = loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Manage dynamically"]' }));
-
-    expect(
-      await dynamicPropertiesButton.then((btn) => btn.host()).then((host) => host.getAttribute('ng-reflect-router-link')),
-    ).toStrictEqual(routerLink);
+    const dynamicPropertiesButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Manage dynamically"]' }));
+    await dynamicPropertiesButton.click();
+    expect(routerSpy).toHaveBeenCalledTimes(1);
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {

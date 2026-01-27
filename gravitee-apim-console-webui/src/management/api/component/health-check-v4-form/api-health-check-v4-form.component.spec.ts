@@ -36,12 +36,10 @@ class TestComponent {
       value: false,
       disabled: false,
     }),
-    configuration: new FormControl(
-      {
-        value: {},
-        disabled: false,
-      } ?? {},
-    ),
+    configuration: new FormControl({
+      value: {},
+      disabled: false,
+    }),
   });
 }
 

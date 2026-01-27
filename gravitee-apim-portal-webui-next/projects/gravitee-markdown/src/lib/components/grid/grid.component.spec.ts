@@ -105,8 +105,8 @@ describe('GridComponent', () => {
     const container = await harness.getGridContainer();
     expect(container).toBeTruthy();
 
-    const display = await container.getAttribute('ng-reflect-ng-class');
-    expect(display).toBe('grid-cols-2');
+    const displaysGridStyling = await container.hasClass('grid-cols-2');
+    expect(displaysGridStyling).toBeTruthy();
   });
 
   it('should handle multiple items with different column counts', async () => {

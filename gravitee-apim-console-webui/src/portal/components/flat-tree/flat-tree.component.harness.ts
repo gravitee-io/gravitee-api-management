@@ -33,7 +33,7 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     MatMenuItemHarness.with({ selector: '[data-testid="edit-node-button"]' }),
   );
   protected getMoreActionsButtonById = (id: string) =>
-    this.locatorFor(MatButtonHarness.with({ selector: `[data-testid="more-actions-${id}"]` }));
+    this.locatorForOptional(MatButtonHarness.with({ selector: `[data-testid="more-actions-${id}"]` }));
 
   private async getSelectedNode(): Promise<MatTreeNodeHarness | null> {
     const tree = await this.getTree();
@@ -149,5 +149,13 @@ export class FlatTreeComponentHarness extends ComponentHarness {
       MatMenuItemHarness.with({ selector: `[data-testid="unpublish-node-button"]` }),
     )();
     await unpublishButton.click();
+  }
+
+  async getMenuItemByText(text: string): Promise<MatMenuItemHarness | null> {
+    return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ text }))();
+  }
+
+  async getMenuItemByTestId(testId: string): Promise<MatMenuItemHarness | null> {
+    return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ selector: `[data-testid="${testId}"]` }))();
   }
 }

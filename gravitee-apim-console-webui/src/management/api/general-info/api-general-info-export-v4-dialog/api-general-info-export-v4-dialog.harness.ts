@@ -26,13 +26,22 @@ export class ApiGeneralInfoExportV4DialogHarness extends ComponentHarness {
     return parallel(() => checkboxes.map(async (checkbox) => checkbox.getLabelText()));
   }
 
-  public async setExportOptions(options: { groups?: boolean; members?: boolean; pages?: boolean; plans?: boolean; metadata?: boolean }) {
-    await parallel(() =>
-      Object.entries(options).map(async ([key, value]) => {
-        const checkbox = await this.locatorFor(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${key}"]` }))();
-        value ? await checkbox.check() : await checkbox.uncheck();
-      }),
-    );
+  public async setExportOptions(options: string[]): Promise<void> {
+    const checkboxes = await this.locatorForAll(MatCheckboxHarness.with({ selector: '.content__options__option' }))();
+    for (const checkbox of checkboxes) {
+      const label = await checkbox.getLabelText();
+      if (options.includes(label)) {
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          await checkbox.check();
+        }
+      } else {
+        const isChecked = await checkbox.isChecked();
+        if (isChecked) {
+          await checkbox.uncheck();
+        }
+      }
+    }
   }
 
   public async selectCRDTab(): Promise<void> {

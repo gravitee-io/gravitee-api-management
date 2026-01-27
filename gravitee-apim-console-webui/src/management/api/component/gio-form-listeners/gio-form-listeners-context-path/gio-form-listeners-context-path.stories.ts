@@ -16,7 +16,7 @@
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { of } from 'rxjs';
 import { HttpClientModule } from '@angular/common/http';
 

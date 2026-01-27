@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
-import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
+import static fixtures.core.model.RoleFixtures.apiProductPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -86,7 +86,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                     .memberType(Membership.Type.USER)
                     .referenceType(Membership.ReferenceType.API_PRODUCT)
                     .referenceId("api-product-id")
-                    .roleId(apiPrimaryOwnerRoleId(ORG_ID))
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
                     .source("system")
                     .build()
             )
@@ -117,7 +117,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                     .memberType(Membership.Type.USER)
                     .referenceType(Membership.ReferenceType.API_PRODUCT)
                     .referenceId("id1")
-                    .roleId(apiPrimaryOwnerRoleId(ORG_ID))
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
                     .source("system")
                     .build(),
                 Membership.builder()
@@ -126,7 +126,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                     .memberType(Membership.Type.USER)
                     .referenceType(Membership.ReferenceType.API_PRODUCT)
                     .referenceId("id2")
-                    .roleId(apiPrimaryOwnerRoleId(ORG_ID))
+                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
                     .source("system")
                     .build()
             )

@@ -66,9 +66,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -186,10 +188,12 @@ public class HttpHealthCheckService implements ApiService {
         );
         final CronTrigger cron = new CronTrigger(hcConfiguration.getSchedule());
         final AtomicLong errorCount = new AtomicLong(0);
+        final AtomicReference<HttpHealthCheckExecutionContext> lastCtx = new AtomicReference<>();
 
         return Observable.defer(() -> Observable.timer(cron.nextExecutionIn(), TimeUnit.MILLISECONDS))
             .switchMapCompletable(aLong -> {
                 final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
+                lastCtx.set(ctx);
 
                 if (endpoint.getDefinition().getType().startsWith("http")) {
                     return checkUsingEndpointConnector(hcConfiguration, hcManagedEndpoint, ctx);
@@ -197,15 +201,20 @@ public class HttpHealthCheckService implements ApiService {
                     return checkUsingHttpClient(hcConfiguration, hcManagedEndpoint, ctx);
                 }
             })
-            .onErrorResumeNext(throwable -> continueOnError(endpoint, errorCount, throwable))
+            .onErrorResumeNext(throwable -> continueOnError(lastCtx, endpoint, errorCount, throwable))
             .repeat()
             .subscribe(
                 () -> {},
                 throwable -> {
-                    log.error("Unable to run health check for API {}", api.getId(), throwable);
+                    logFromNullableExecutionContext(lastCtx).error("Unable to run health check for API {}", api.getId(), throwable);
                     jobs.remove(endpoint);
                 }
             );
+    }
+
+    private static Logger logFromNullableExecutionContext(AtomicReference<HttpHealthCheckExecutionContext> ctxRef) {
+        var context = ctxRef.get();
+        return context != null ? context.withLogger(log) : log;
     }
 
     private Completable checkUsingEndpointConnector(
@@ -254,7 +263,7 @@ public class HttpHealthCheckService implements ApiService {
 
     private CompletableSource ignoreConnectionError(HttpHealthCheckExecutionContext ctx, Throwable err) {
         if (err instanceof UnknownHostException || err instanceof SocketException) {
-            log.debug("HealthCheck failed for API {}, unable to connect to the Service", api.getId(), err);
+            ctx.withLogger(log).debug("HealthCheck failed for API {}, unable to connect to the Service", api.getId(), err);
             final Response response = ctx.response();
             response.status(UNREACHABLE_SERVICE);
             if (!Strings.isNullOrEmpty(err.getMessage())) {
@@ -265,16 +274,21 @@ public class HttpHealthCheckService implements ApiService {
         return Completable.error(err);
     }
 
-    private Completable continueOnError(ManagedEndpoint endpoint, AtomicLong errorCount, Throwable throwable) {
+    private Completable continueOnError(
+        AtomicReference<HttpHealthCheckExecutionContext> ctxRef,
+        ManagedEndpoint endpoint,
+        AtomicLong errorCount,
+        Throwable throwable
+    ) {
         if (errorCount.incrementAndGet() == 1) {
-            log.warn(
+            logFromNullableExecutionContext(ctxRef).warn(
                 "Unable to run health check for api [{}] and endpoint [{}].",
                 api.getId(),
                 endpoint.getDefinition().getName(),
                 throwable
             );
         } else if ((errorCount.get() % LOG_ERROR_COUNT == 0)) {
-            log.warn(
+            logFromNullableExecutionContext(ctxRef).warn(
                 "Unable to run health check for api [{}] and endpoint [{}] (times: {}, see previous log report for details).",
                 api.getId(),
                 endpoint.getDefinition().getName(),

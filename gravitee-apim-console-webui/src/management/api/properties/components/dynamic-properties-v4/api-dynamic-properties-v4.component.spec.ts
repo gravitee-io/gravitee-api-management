@@ -17,7 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
@@ -48,6 +48,7 @@ describe('ApiDynamicPropertiesV4Component', () => {
   let fixture: ComponentFixture<ApiDynamicPropertiesV4Component>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiDynamicPropertiesV4Harness;
+  let routerSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -57,6 +58,7 @@ describe('ApiDynamicPropertiesV4Component', () => {
 
     fixture = TestBed.createComponent(ApiDynamicPropertiesV4Component);
     httpTestingController = TestBed.inject(HttpTestingController);
+    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigateByUrl');
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDynamicPropertiesV4Harness);
   });
 
@@ -68,12 +70,9 @@ describe('ApiDynamicPropertiesV4Component', () => {
     expectGetApi(API_V4);
     expectDynamicPropertiesConfigurationSchemaGet();
 
-    expect(
-      await componentHarness
-        .getGoBackButton()
-        .then((btn) => btn.host())
-        .then((host) => host.getAttribute('ng-reflect-router-link')),
-    ).toStrictEqual('../..');
+    const goBackButton = await componentHarness.getGoBackButton();
+    await goBackButton.click();
+    expect(routerSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should fill and save the configuration form', async () => {

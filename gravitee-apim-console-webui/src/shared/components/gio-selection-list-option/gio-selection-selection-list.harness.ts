@@ -13,25 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ListOptionHarnessFilters, MatSelectionListHarness } from '@angular/material/list/testing';
+import { MatSelectionListHarness } from '@angular/material/list/testing';
+import { MatIconHarness } from '@angular/material/icon/testing';
 
 export class GioSelectionSelectionListHarness extends MatSelectionListHarness {
   static override hostSelector = '.gio-selection-list';
 
   async selectOptionsByIds(ids: string[]): Promise<void> {
-    const filters: ListOptionHarnessFilters[] = ids.map((id) => ({ selector: `[ng-reflect-value=${id}]` }));
-    await this.selectItems(...filters);
+    // Select list options by their mat icon name value
+    const options = await this.getItems();
+    for (const option of options) {
+      const icon = await option.getHarness(MatIconHarness);
+      const iconName = await icon.getName();
+      if (ids.includes(iconName)) {
+        await option.select();
+      }
+    }
   }
 
   async deselectOptionByValue(value: string): Promise<void> {
-    return this.deselectItems({ selector: `[ng-reflect-value=${value}]` });
+    const options = await this.getItems();
+    for (const option of options) {
+      const icon = await option.getHarness(MatIconHarness);
+      const iconName = await icon.getName();
+      if (value === iconName) {
+        await option.deselect();
+      }
+    }
   }
 
   async getListValues(filters?: { selected?: boolean }): Promise<string[]> {
-    const options = (await this.getItems(filters?.selected !== undefined ? { selected: filters.selected } : {})).map(
-      async (option) => await (await option.host()).getAttribute('ng-reflect-value'),
-    );
+    const items = await this.getItems(filters?.selected !== undefined ? { selected: filters.selected } : {});
 
-    return Promise.all(options);
+    return Promise.all(
+      items.map(async (item) => {
+        const icon = await item.getHarness(MatIconHarness);
+        return await icon.getName();
+      }),
+    );
   }
 }

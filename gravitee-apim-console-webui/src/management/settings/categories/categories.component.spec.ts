@@ -125,8 +125,9 @@ describe('CategoriesComponent', () => {
       expectGetCategoriesList();
     });
     it('should display empty message', async () => {
-      const tableRows = await getTableRows();
-      expect(await tableRows[0].host().then((host) => host.text())).toContain('There are no categories for this environment.');
+      const table = await harnessLoader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('There are no categories for this environment.');
     });
   });
 

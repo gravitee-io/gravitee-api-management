@@ -186,7 +186,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         }
 
         // check if the groups sent belong to the API
-        GenericApiEntity theAPI = apiSearchService.findGenericById(executionContext, api);
+        GenericApiEntity theAPI = apiSearchService.findGenericById(executionContext, api, false, false, false);
         if (!theAPI.getGroups().containsAll(notificationEntity.getGroups())) {
             throw new InvalidDataException(
                 "One of the groups is not a member of this API, got [%s] expected one of [%s]".formatted(

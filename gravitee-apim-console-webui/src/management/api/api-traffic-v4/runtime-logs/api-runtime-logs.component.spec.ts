@@ -17,6 +17,7 @@ import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed, tick } from
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import moment from 'moment';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
@@ -139,23 +140,27 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should display the empty panel', async () => {
       const logsListHarness = await componentHarness.listHarness();
-      expect(await logsListHarness.countRows()).toStrictEqual(1);
-      expect(await logsListHarness.computeTableCells()).toStrictEqual({
-        headerCells: [
-          {
-            URI: 'URI',
-            actions: '',
-            application: 'Application',
-            plan: 'Plan',
-            method: 'Method',
-            responseTime: 'Response time',
-            status: 'Status',
-            timestamp: 'Timestamp',
-            issues: 'Issues',
-          },
-        ],
-        rowCells: [['No data to displayMore data may be available. Try widening your timeframe or adjusting your filters.']],
-      });
+      expect(await logsListHarness.countRows()).toStrictEqual(0);
+      const tableCells = await logsListHarness.computeTableCells();
+      expect(tableCells.headerCells).toEqual([
+        {
+          URI: 'URI',
+          actions: '',
+          application: 'Application',
+          plan: 'Plan',
+          method: 'Method',
+          responseTime: 'Response time',
+          status: 'Status',
+          timestamp: 'Timestamp',
+          issues: 'Issues',
+        },
+      ]);
+      expect(tableCells.rowCells).toHaveLength(0);
+
+      const table = await TestbedHarnessEnvironment.loader(fixture).getHarness(MatTableHarness);
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('No data to display');
+      expect(await tableElement.text()).toContain('More data may be available. Try widening your timeframe or adjusting your filters.');
     });
   });
 

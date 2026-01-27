@@ -22,6 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { ApplicationSubscriptionListModule } from './application-subscription-list.module';
 import { ApplicationSubscriptionListComponent } from './application-subscription-list.component';
@@ -156,7 +157,11 @@ describe('ApplicationSubscriptionListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['There is no subscription (yet).']]);
+      expect(rowCells).toHaveLength(0);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#subscriptionsTable' }));
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('There is no subscription (yet).');
     }));
 
     it('should display a table with one row', fakeAsync(async () => {

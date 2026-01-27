@@ -105,11 +105,11 @@
           <span i18n="@@applicatonLogsNoFiltersApplied">None</span>
         } @else {
           @if (filters().from) {
-            <mat-chip><span i18n="@@applicationLogsFrom">From</span>: {{ filters().from | date: 'YYYY-MM-dd' }}</mat-chip>
+            <mat-chip><span i18n="@@applicationLogsFrom">From</span>: {{ filters().from | date: 'yyyy-MM-dd' }}</mat-chip>
           }
 
           @if (filters().to) {
-            <mat-chip><span i18n="@@applicationLogsTo">To</span>: {{ filters().to | date: 'YYYY-MM-dd' }}</mat-chip>
+            <mat-chip><span i18n="@@applicationLogsTo">To</span>: {{ filters().to | date: 'yyyy-MM-dd' }}</mat-chip>
           }
 
           @if (filters().apis) {

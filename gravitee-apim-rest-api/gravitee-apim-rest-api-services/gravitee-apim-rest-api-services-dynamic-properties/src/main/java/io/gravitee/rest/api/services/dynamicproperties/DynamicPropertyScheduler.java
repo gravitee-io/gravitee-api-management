@@ -175,7 +175,7 @@ public class DynamicPropertyScheduler {
             // Update API
             try {
                 log.debug("[{}] Updating API", latestApi.getId());
-                apiService.update(executionContext, latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi), false, false);
+                apiService.update(executionContext, latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi), false, false, true);
                 log.debug("[{}] API has been updated", latestApi.getId());
             } catch (TechnicalManagementException e) {
                 log.error("An error occurred while updating the API with new values of dynamic properties, deployment will be skipped.", e);
