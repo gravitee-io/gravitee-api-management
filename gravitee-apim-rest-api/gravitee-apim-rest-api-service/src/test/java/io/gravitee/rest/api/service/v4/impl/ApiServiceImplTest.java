@@ -720,6 +720,33 @@ public class ApiServiceImplTest {
         verify(flowCrudService).saveApiFlows(API_ID, apiEntity.getFlows());
         verify(apiMetadataService).fetchMetadataForApi(eq(executionContext), any(ApiEntity.class));
         verify(searchEngineService).index(eq(executionContext), any(GenericApiEntity.class), eq(false));
+
+        // V4 PROXY APIs imported should have allowInApiProduct=true set on the input entity
+        assertTrue(Boolean.TRUE.equals(apiEntity.getAllowInApiProduct()));
+    }
+
+    @Test
+    public void should_not_set_allowInApiProduct_for_non_proxy_v4_imports() throws TechnicalException {
+        ApiEntity apiEntity = fakeApiEntityV4();
+        apiEntity.setType(ApiType.MESSAGE);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        doReturn(Optional.empty()).when(apiRepository).findById(anyString());
+        doReturn(apiEntity.getPrimaryOwner())
+            .when(primaryOwnerService)
+            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+        doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
+        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+
+        Api createdApi = new Api();
+        createdApi.setId(API_ID);
+        createdApi.setCreatedAt(new Date());
+        doReturn(createdApi).when(apiRepository).create(any());
+
+        apiService.createWithImport(executionContext, apiEntity, USER_NAME);
+
+        // For non‑PROXY V4 APIs, allowInApiProduct should be cleared (null)
+        assertNull(apiEntity.getAllowInApiProduct());
     }
 
     private void testRepositoryApi(Api api) {

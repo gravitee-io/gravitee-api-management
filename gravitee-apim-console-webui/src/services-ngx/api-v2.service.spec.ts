@@ -375,6 +375,25 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('getApiProductsForApi', () => {
+    it('should call the API and return data wrapper', (done) => {
+      const apiId = 'apiId';
+      const apiProductsResponse = { data: [{ id: 'apip1' }] };
+
+      apiV2Service.getApiProductsForApi(apiId).subscribe((response) => {
+        expect(response).toEqual(apiProductsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`,
+        method: 'GET',
+      });
+
+      req.flush(apiProductsResponse);
+    });
+  });
+
   describe('transfer ownership', () => {
     it('should call the API', (done) => {
       const apiId = 'apiId';

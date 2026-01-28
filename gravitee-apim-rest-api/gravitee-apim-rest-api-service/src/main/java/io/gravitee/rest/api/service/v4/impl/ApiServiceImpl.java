@@ -28,7 +28,9 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Origin;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -254,6 +256,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
+
+        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
+            if (apiEntity.getType() == ApiType.PROXY) {
+                apiEntity.setAllowInApiProduct(true);
+            } else {
+                apiEntity.setAllowInApiProduct(null);
+            }
+        }
 
         Api repositoryApi = apiMapper.toRepository(executionContext, apiEntity);
         repositoryApi.setEnvironmentId(executionContext.getEnvironmentId());
