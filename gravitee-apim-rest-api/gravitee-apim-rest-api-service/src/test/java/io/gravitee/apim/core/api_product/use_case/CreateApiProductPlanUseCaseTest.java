@@ -138,7 +138,7 @@ class CreateApiProductPlanUseCaseTest {
     @Test
     void should_create_plan_with_default_values() {
         // Given
-        var api = givenExistingApi(API_PRODUCT);
+        var api = givenExistingApiProduct(API_PRODUCT);
 
         // When
         var result = createPlanUseCase.execute(
@@ -155,13 +155,18 @@ class CreateApiProductPlanUseCaseTest {
                 createdPlan -> createdPlan.getReferenceId(),
                 createdPlan -> createdPlan.getReferenceType()
             )
-            .containsExactly(Plan.PlanType.API_PRODUCT, PlanMode.STANDARD.name(), api.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT);
+            .containsExactly(
+                Plan.PlanType.API_PRODUCT.name(),
+                PlanMode.STANDARD.name(),
+                api.getId(),
+                GenericPlanEntity.ReferenceType.API_PRODUCT
+            );
     }
 
     @Test
     void should_not_allow_to_create_secured_plan() {
         // Given
-        var api = givenExistingApi(API_PRODUCT);
+        var api = givenExistingApiProduct(API_PRODUCT);
         var input = new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), AUDIT_INFO);
 
         // When
@@ -174,7 +179,7 @@ class CreateApiProductPlanUseCaseTest {
     @Test
     void should_create_mtls_plan_for_http_api() {
         // Given
-        var api = givenExistingApi(API_PRODUCT);
+        var api = givenExistingApiProduct(API_PRODUCT);
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
         var input = new Input(api.getId(), _api -> mtlsPlan, AUDIT_INFO);
 
@@ -192,7 +197,7 @@ class CreateApiProductPlanUseCaseTest {
     @Test
     void should_create_push_plan_with_null_security_type() {
         // Given
-        var api = givenExistingApi(API_PRODUCT);
+        var api = givenExistingApiProduct(API_PRODUCT);
         var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
         var input = new Input(api.getId(), _api -> pushPlan, AUDIT_INFO);
 
@@ -205,7 +210,7 @@ class CreateApiProductPlanUseCaseTest {
         assertThat(result.plan()).extracting(Plan::getReferenceId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
     }
 
-    private ApiProduct givenExistingApi(ApiProduct api) {
+    private ApiProduct givenExistingApiProduct(ApiProduct api) {
         apiProductCrudServiceInMemory.initWith(List.of(api));
         return api;
     }

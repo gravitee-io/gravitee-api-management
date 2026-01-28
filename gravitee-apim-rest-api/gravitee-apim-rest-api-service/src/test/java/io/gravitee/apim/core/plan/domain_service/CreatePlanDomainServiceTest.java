@@ -333,7 +333,7 @@ class CreatePlanDomainServiceTest {
             assertThat(planCrudService.storage()).hasSize(1);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(result.getApiId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(result.getReferenceId()).isEqualTo(API_PRODUCT_ID);
                 soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
