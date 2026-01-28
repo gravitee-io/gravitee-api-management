@@ -19,7 +19,17 @@
 @use './m3-adapter';
 
 mat-chip {
-  --mat-chip-elevated-container-color: #{theme.$chip-background};
+  --mdc-chip-elevated-container-color: #{theme.$chip-background};
+
+  &.label-chip {
+    --mdc-chip-elevated-container-color: #e1e5ed;
+    --mdc-chip-outline-width: 0 ;
+    --mdc-chip-outline-color: transparent ;
+    background-color: #e1e5ed;
+    border: none;
+    outline: none;
+    border-radius: 16px;
+  }
 }
 
 mat-dialog-container {
