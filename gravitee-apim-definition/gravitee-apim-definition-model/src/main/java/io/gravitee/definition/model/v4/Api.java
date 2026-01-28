@@ -88,6 +88,13 @@ public class Api extends AbstractApi {
 
     private ApiServices services;
 
+    /**
+     * Indicates whether this API is allowed to be used in API Products.
+     * Only applicable for V4 HTTP Proxy APIs. For non-Proxy APIs, this field should be null (not present in JSON).
+     * Defaults to true for new V4 Proxy APIs. For existing V4 Proxy APIs (created before this change), defaults to false if not present.
+     */
+    private Boolean allowedInApiProducts;
+
     public Api(Api other) {
         super(other.id, other.name, other.type, other.apiVersion, other.definitionVersion, other.tags, other.properties, other.resources);
         this.listeners = other.listeners;
@@ -99,6 +106,7 @@ public class Api extends AbstractApi {
         this.flows = other.flows;
         this.responseTemplates = other.responseTemplates;
         this.services = other.services;
+        this.allowedInApiProducts = other.allowedInApiProducts;
     }
 
     public Plan getPlan(final String plan) {

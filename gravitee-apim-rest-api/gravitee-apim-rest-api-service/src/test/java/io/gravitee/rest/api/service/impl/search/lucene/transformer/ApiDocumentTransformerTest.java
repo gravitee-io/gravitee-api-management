@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
@@ -194,6 +195,19 @@ class ApiDocumentTransformerTest {
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
         assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_HTTP_PROXY");
+    }
+
+    @Test
+    void transform_api_entity_v4_http_proxy_should_index_allow_in_api_products_flag() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setAllowedInApiProducts(true);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get(FIELD_ALLOW_IN_API_PRODUCTS)).isEqualTo("true");
     }
 
     @Test

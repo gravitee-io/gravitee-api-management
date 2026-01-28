@@ -29,6 +29,7 @@ public interface ApiProductAdapter {
 
     @Mapping(target = "createdAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "updatedAt", qualifiedByName = "dateToZonedDateTime")
+    @Mapping(target = "primaryOwner", ignore = true)
     io.gravitee.apim.core.api_product.model.ApiProduct toModel(ApiProduct repositoryApiProduct);
 
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")

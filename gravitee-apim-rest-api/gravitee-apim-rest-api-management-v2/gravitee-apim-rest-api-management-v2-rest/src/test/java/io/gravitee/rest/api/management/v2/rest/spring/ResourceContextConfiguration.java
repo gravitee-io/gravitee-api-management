@@ -68,7 +68,6 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
-import io.gravitee.apim.core.api_product.use_case.DeleteApiFromApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
@@ -882,11 +881,6 @@ public class ResourceContextConfiguration {
     @Bean
     public DeleteApiProductUseCase deleteApiProductUseCase() {
         return mock(DeleteApiProductUseCase.class);
-    }
-
-    @Bean
-    public DeleteApiFromApiProductUseCase deleteApiFromApiProductUseCase() {
-        return mock(DeleteApiFromApiProductUseCase.class);
     }
 
     @Bean

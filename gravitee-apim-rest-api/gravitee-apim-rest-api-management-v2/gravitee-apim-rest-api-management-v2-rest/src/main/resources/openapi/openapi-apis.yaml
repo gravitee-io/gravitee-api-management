@@ -3354,6 +3354,11 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: false
+                          example: false
 
         ApiFederated:
             type: object
@@ -3613,6 +3618,11 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: true
+                          example: true
                   required: [listeners, endpointGroups, type]
 
         DuplicateApiOptions:
@@ -3859,6 +3869,11 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: false
+                          example: false
                   required: [listeners, endpointGroups, type]
 
         UpdateApiFederated:

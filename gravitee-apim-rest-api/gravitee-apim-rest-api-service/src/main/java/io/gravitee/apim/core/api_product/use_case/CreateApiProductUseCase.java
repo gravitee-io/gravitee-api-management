@@ -64,13 +64,17 @@ public class CreateApiProductUseCase {
         var payload = input.createApiProduct;
         var now = ZonedDateTime.now();
 
+        Set<String> validApiIds = payload.getApiIds() != null && !payload.getApiIds().isEmpty()
+            ? validateApiProductService.filterApiIdsAllowedInProduct(auditInfo.environmentId(), payload.getApiIds())
+            : Set.of();
+
         ApiProduct apiProduct = ApiProduct.builder()
             .id(UuidString.generateRandom())
             .environmentId(auditInfo.environmentId())
             .name(payload.getName())
             .description(payload.getDescription())
             .version(payload.getVersion())
-            .apiIds(payload.getApiIds() == null ? Set.of() : Set.copyOf(payload.getApiIds()))
+            .apiIds(validApiIds)
             .createdAt(now)
             .updatedAt(now)
             .build();

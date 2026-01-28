@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.use_case.DeleteApiFromApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
@@ -67,9 +66,6 @@ class ApiProductResourceTest extends AbstractResourceTest {
     @Inject
     private UpdateApiProductUseCase updateApiProductUseCase;
 
-    @Inject
-    private DeleteApiFromApiProductUseCase deleteApiFromApiProductUseCase;
-
     @Override
     protected String contextPath() {
         return "/environments/" + ENV_ID + "/api-products/" + API_PRODUCT_ID;
@@ -94,7 +90,7 @@ class ApiProductResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductByIdUseCase, deleteApiProductUseCase, updateApiProductUseCase, deleteApiFromApiProductUseCase);
+        reset(getApiProductByIdUseCase, deleteApiProductUseCase, updateApiProductUseCase);
     }
 
     @Nested
@@ -244,96 +240,6 @@ class ApiProductResourceTest extends AbstractResourceTest {
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().request().put(json(""))
-            );
-        }
-    }
-
-    @Nested
-    class DeleteAllApisTest {
-
-        @Test
-        void should_delete_all_apis_from_api_product() {
-            when(deleteApiFromApiProductUseCase.execute(any())).thenReturn(
-                new DeleteApiFromApiProductUseCase.Output(
-                    ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("My API Product").apiIds(Set.of()).build()
-                )
-            );
-
-            final Response response = rootTarget().path("apis").request().delete();
-
-            MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
-
-            var captor = ArgumentCaptor.forClass(DeleteApiFromApiProductUseCase.Input.class);
-            verify(deleteApiFromApiProductUseCase).execute(captor.capture());
-            SoftAssertions.assertSoftly(soft -> {
-                var input = captor.getValue();
-                soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
-                soft.assertThat(input.apiId()).isNull();
-                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
-            });
-        }
-
-        @Test
-        public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("apis").request().delete()
-            );
-        }
-    }
-
-    @Nested
-    class DeleteSingleApiTest {
-
-        private static final String API_ID = "api-1";
-
-        @Test
-        void should_delete_single_api_from_api_product() {
-            when(deleteApiFromApiProductUseCase.execute(any())).thenReturn(
-                new DeleteApiFromApiProductUseCase.Output(
-                    ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("My API Product").apiIds(Set.of("api-2")).build()
-                )
-            );
-
-            final Response response = rootTarget().path("apis").path(API_ID).request().delete();
-
-            MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
-
-            var captor = ArgumentCaptor.forClass(DeleteApiFromApiProductUseCase.Input.class);
-            verify(deleteApiFromApiProductUseCase).execute(captor.capture());
-            SoftAssertions.assertSoftly(soft -> {
-                var input = captor.getValue();
-                soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
-                soft.assertThat(input.apiId()).isEqualTo(API_ID);
-                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
-            });
-        }
-
-        @Test
-        void should_return_404_when_api_product_not_found() {
-            when(deleteApiFromApiProductUseCase.execute(any())).thenThrow(
-                new io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException(API_PRODUCT_ID)
-            );
-
-            final Response response = rootTarget().path("apis").path(API_ID).request().delete();
-
-            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
-        }
-
-        @Test
-        void should_return_404_when_api_not_in_api_product() {
-            when(deleteApiFromApiProductUseCase.execute(any())).thenThrow(
-                new io.gravitee.apim.core.api.exception.ApiNotFoundException(API_ID)
-            );
-
-            final Response response = rootTarget().path("apis").path(API_ID).request().delete();
-
-            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
-        }
-
-        @Test
-        public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("apis").path(API_ID).request().delete()
             );
         }
     }
