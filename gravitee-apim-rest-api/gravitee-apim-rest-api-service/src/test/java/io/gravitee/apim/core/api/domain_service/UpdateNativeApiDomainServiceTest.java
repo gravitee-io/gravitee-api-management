@@ -46,6 +46,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -201,7 +202,7 @@ class UpdateNativeApiDomainServiceTest {
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
-            assertThat(updatedApi.getApiDefinitionNativeV4()).isNotNull();
+            assertThat(updatedApi.getApiDefinitionValue()).isNotNull();
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
             assertThat(updatedApi.getCategories()).containsExactly(categoryKey);
@@ -358,7 +359,7 @@ class UpdateNativeApiDomainServiceTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aNativeApi();
         var nativeFlow = NativeFlow.builder().id("native-flow").build();
-        apiToUpdate.setApiDefinitionValue(apiToUpdate.getApiDefinitionNativeV4().toBuilder().flows(List.of(nativeFlow)).build());
+        apiToUpdate.setApiDefinitionValue(((NativeApi) apiToUpdate.getApiDefinitionValue()).toBuilder().flows(List.of(nativeFlow)).build());
         var ownerEntity = buildPrimaryOwnerEntity();
 
         var updatedApi = cut.update(
@@ -371,7 +372,7 @@ class UpdateNativeApiDomainServiceTest {
         );
 
         assertThat(flowCrudService.storage()).isNotEmpty().containsExactly(nativeFlow);
-        assertThat(updatedApi.getApiDefinitionNativeV4().getFlows()).containsExactly(nativeFlow);
+        assertThat(((NativeApi) updatedApi.getApiDefinitionValue()).getFlows()).containsExactly(nativeFlow);
     }
 
     @Test

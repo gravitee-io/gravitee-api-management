@@ -67,6 +67,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -290,10 +291,8 @@ public class UpdateNativeApiUseCaseTest {
             .categories(Set.of("new"))
             .groups(Set.of("new"))
             .disableMembershipNotifications(true)
-            .apiDefinitionNativeV4(
-                existingApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
+            .apiDefinitionValue(
+                ((NativeApi) existingApi.getApiDefinitionValue()).toBuilder()
                     .name("new")
                     .apiVersion("new")
                     .tags(Set.of("new"))
@@ -338,8 +337,9 @@ public class UpdateNativeApiUseCaseTest {
                 assertThat(api.getGroups()).containsExactly("new");
                 assertThat(api.isDisableMembershipNotifications()).isEqualTo(true);
             })
-            .extracting(Api::getApiDefinitionNativeV4)
-            .satisfies(definition -> {
+            .extracting(Api::getApiDefinitionValue)
+            .satisfies(def -> {
+                NativeApi definition = (NativeApi) def;
                 assertThat(definition.getName()).isEqualTo("new");
                 assertThat(definition.getApiVersion()).isEqualTo("new");
                 assertThat(definition.getTags()).containsExactly("new");

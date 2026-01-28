@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
@@ -63,7 +64,6 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
-import jakarta.annotation.Nullable;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -193,19 +194,18 @@ public interface ApiMapper {
     ApiV4 mapToV4(NativeApiEntity apiEntity);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
-        if (ApiType.NATIVE.equals(source.getType())) {
-            return mapToNativeV4(source, uriInfo, deploymentState);
-        }
-        return mapToHttpV4(source, uriInfo, deploymentState);
+        return source.getApiDefinitionValue() instanceof NativeApi nativeApi
+            ? mapToNativeV4(source, nativeApi, uriInfo, deploymentState)
+            : mapToHttpV4(source, uriInfo, deploymentState);
     }
 
+    @Nullable
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
-        if (genericApiEntity instanceof ApiEntity asApiEntity) {
-            return mapToV4(asApiEntity);
-        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
-            return mapToV4(asNativeApiEntity);
-        }
-        return null;
+        return switch (genericApiEntity) {
+            case ApiEntity asApiEntity -> mapToV4(asApiEntity);
+            case NativeApiEntity asNativeApiEntity -> mapToV4(asNativeApiEntity);
+            case null, default -> null;
+        };
     }
 
     @Mapping(target = "definitionContext", source = "source.originContext")
@@ -224,14 +224,24 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "deploymentState", source = "deploymentState")
-    @Mapping(target = "endpointGroups", source = "source.apiDefinitionNativeV4.endpointGroups")
-    @Mapping(target = "flows", source = "source.apiDefinitionNativeV4.flows")
+    @Mapping(target = "endpointGroups", source = "definition.endpointGroups")
+    @Mapping(target = "flows", source = "definition.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "listeners", source = "definition.listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
-    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    @Mapping(target = "analytics", source = "definition.analytics")
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "tags", source = "source.tags")
+    @Mapping(target = "type", source = "source.type")
+    ApiV4 mapToNativeV4(
+        io.gravitee.apim.core.api.model.Api source,
+        NativeApi definition,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")

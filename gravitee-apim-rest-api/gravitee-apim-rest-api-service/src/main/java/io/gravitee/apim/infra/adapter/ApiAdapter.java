@@ -113,7 +113,7 @@ public interface ApiAdapter {
     ApiEntity toApiEntity(Api api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    @Mapping(source = "version", target = "apiVersion")
+    @Mapping(target = "apiVersion", source = "api.version")
     @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "tags", source = "apiDefinitionNativeV4.tags")
     @Mapping(target = "listeners", source = "apiDefinitionNativeV4.listeners")
@@ -122,9 +122,13 @@ public interface ApiAdapter {
     @Mapping(target = "resources", source = "apiDefinitionNativeV4.resources")
     @Mapping(target = "services", source = "apiDefinitionNativeV4.services")
     @Mapping(target = "properties", source = "apiDefinitionNativeV4.properties")
-    @Mapping(target = "state", source = "lifecycleState")
-    @Mapping(target = "lifecycleState", source = "apiLifecycleState")
-    NativeApiEntity toNativeApiEntity(Api api);
+    @Mapping(target = "state", source = "api.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "api.apiLifecycleState")
+    @Mapping(target = "id", source = "api.id")
+    @Mapping(target = "name", source = "api.name")
+    @Mapping(target = "type", source = "api.type")
+    @Mapping(target = "definitionVersion", source = "api.definitionVersion")
+    NativeApiEntity toNativeApiEntity(Api api, NativeApi apiDefinitionNativeV4);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "source.version", target = "apiVersion")

@@ -203,15 +203,6 @@ public class Api {
      * @return the api definition value or null.
      */
     @Deprecated
-    public NativeApi getApiDefinitionNativeV4() {
-        return apiDefinitionValue instanceof NativeApi api ? api : null;
-    }
-
-    /**
-     * @deprecated use {@link #getApiDefinitionValue()} instead.
-     * @return the api definition value or null.
-     */
-    @Deprecated
     public io.gravitee.definition.model.Api getApiDefinition() {
         return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
     }

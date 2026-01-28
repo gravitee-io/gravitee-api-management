@@ -41,6 +41,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -222,10 +223,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             var api = ApiFixtures.aNativeApi()
                 .toBuilder()
                 .description("sani<img src=\"../../../image.png\">tized")
-                .apiDefinitionNativeV4(
-                    ApiFixtures.aNativeApi()
-                        .getApiDefinitionNativeV4()
-                        .toBuilder()
+                .apiDefinitionValue(
+                    ((NativeApi) ApiFixtures.aNativeApi().getApiDefinitionValue()).toBuilder()
                         .services(
                             NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
@@ -289,8 +288,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasOnlyCategories(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
+                NativeApi apiDefinitionNativeV4 = (NativeApi) result.getApiDefinitionValue();
                 soft
-                    .assertThat(result.getApiDefinitionNativeV4().getListeners())
+                    .assertThat(apiDefinitionNativeV4.getListeners())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(KafkaListener.class)
@@ -298,7 +298,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft
-                    .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
+                    .assertThat(apiDefinitionNativeV4.getEndpointGroups())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
@@ -307,11 +307,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .isInstanceOf(NativeEndpoint.class)
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
-                soft.assertThat(result.getApiDefinitionNativeV4().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
-                    .isEqualTo("sanitized");
-                soft.assertThat(result.getApiDefinitionNativeV4().getAnalytics().isEnabled()).isTrue();
+                soft.assertThat(apiDefinitionNativeV4.getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
+                soft.assertThat(apiDefinitionNativeV4.getServices().getDynamicProperty().getConfiguration()).isEqualTo("sanitized");
+                soft.assertThat(apiDefinitionNativeV4.getAnalytics().isEnabled()).isTrue();
             });
         }
 
@@ -319,16 +317,14 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         void should_throw_when_multiple_api_flows() {
             var nativeApi = ApiFixtures.aNativeApi();
             nativeApi.setApiDefinitionValue(
-                nativeApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
+                ((NativeApi) nativeApi.getApiDefinitionValue()).toBuilder()
                     .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
                     .build()
             );
 
             doThrow(new NativeApiWithMultipleFlowsException())
                 .when(flowValidationDomainService)
-                .validateAndSanitizeNativeV4(eq(nativeApi.getApiDefinitionNativeV4().getFlows()));
+                .validateAndSanitizeNativeV4(eq(((NativeApi) nativeApi.getApiDefinitionValue()).getFlows()));
 
             var throwable = Assertions.catchThrowable(() ->
                 service.validateAndSanitizeForCreation(nativeApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
@@ -357,9 +353,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
                 .description("old description")
                 .apiDefinitionNativeV4(
-                    ApiFixtures.aNativeApi()
-                        .getApiDefinitionNativeV4()
-                        .toBuilder()
+                    ((NativeApi) ApiFixtures.aNativeApi().getApiDefinitionValue()).toBuilder()
                         .services(
                             NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
@@ -374,9 +368,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
                 .description("sani<img src=\"../../../image.png\">tized")
                 .apiDefinitionNativeV4(
-                    ApiFixtures.aNativeApi()
-                        .getApiDefinitionNativeV4()
-                        .toBuilder()
+                    ((NativeApi) ApiFixtures.aNativeApi().getApiDefinitionValue()).toBuilder()
                         .services(
                             NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
@@ -445,8 +437,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasOnlyTags(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
+                NativeApi apiDefinitionNativeV4 = (NativeApi) result.getApiDefinitionValue();
                 soft
-                    .assertThat(result.getApiDefinitionNativeV4().getListeners())
+                    .assertThat(apiDefinitionNativeV4.getListeners())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(KafkaListener.class)
@@ -454,7 +447,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft
-                    .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
+                    .assertThat(apiDefinitionNativeV4.getEndpointGroups())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
@@ -463,11 +456,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .isInstanceOf(NativeEndpoint.class)
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
-                soft.assertThat(result.getApiDefinitionNativeV4().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
-                    .isEqualTo("sanitized");
-                soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
+                soft.assertThat(apiDefinitionNativeV4.getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
+                soft.assertThat(apiDefinitionNativeV4.getServices().getDynamicProperty().getConfiguration()).isEqualTo("sanitized");
+                soft.assertThat(apiDefinitionNativeV4.getResources()).isEqualTo(sanitizedResources);
             });
         }
 
@@ -475,16 +466,14 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         void should_throw_when_multiple_api_flows() {
             var nativeApi = ApiFixtures.aNativeApi();
             nativeApi.setApiDefinitionValue(
-                nativeApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
+                ((NativeApi) nativeApi.getApiDefinitionValue()).toBuilder()
                     .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
                     .build()
             );
 
             doThrow(new NativeApiWithMultipleFlowsException())
                 .when(flowValidationDomainService)
-                .validateAndSanitizeNativeV4(eq(nativeApi.getApiDefinitionNativeV4().getFlows()));
+                .validateAndSanitizeNativeV4(eq(((NativeApi) nativeApi.getApiDefinitionValue()).getFlows()));
 
             var throwable = Assertions.catchThrowable(() ->
                 service.validateAndSanitizeForUpdate(ApiFixtures.aNativeApi(), nativeApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
