@@ -295,3 +295,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/00_add_api_products_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/01_add_api_product_apis_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/03_add_reference_fields_to_subscriptions_table.yml

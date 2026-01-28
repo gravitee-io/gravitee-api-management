@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -83,6 +84,16 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                     ).contains(subscription.getStatus()) &&
                     apiId.equals(subscription.getApiId()) &&
                     applicationId.equals(subscription.getApplicationId())
+            )
+            .toList();
+    }
+
+    @Override
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
+        return storage
+            .stream()
+            .filter(
+                subscription -> referenceId.equals(subscription.getReferenceId()) && referenceType.equals(subscription.getReferenceType())
             )
             .toList();
     }

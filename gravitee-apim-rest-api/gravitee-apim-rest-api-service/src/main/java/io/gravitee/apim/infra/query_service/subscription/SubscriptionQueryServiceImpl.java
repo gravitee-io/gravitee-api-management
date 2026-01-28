@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.subscription;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -91,6 +92,22 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
+        try {
+            // Convert core enum to repository enum
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            return subscriptionRepository
+                .findByReferenceIdAndReferenceType(referenceId, repoReferenceType)
+                .stream()
+                .map(subscriptionAdapter::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions by reference", e);
         }
     }
 }

@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -111,6 +112,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
             .addColumn("origin", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
             .build();
     }
 
@@ -444,6 +447,60 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                     }
                 }
             );
+        }
+    }
+
+    @Override
+    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
+        throws TechnicalException {
+        log.debug("JdbcSubscriptionRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                METADATA_ADDER,
+                "id"
+            );
+            jdbcTemplate.query(
+                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
+                    this.tableName +
+                    " s left join " +
+                    this.metadataTableName +
+                    " sm on s.id = sm.subscription_id where s.reference_id = ? and s.reference_type = ?",
+                rowMapper,
+                referenceId,
+                referenceType.name()
+            );
+            return new HashSet<>(rowMapper.getRows());
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find subscriptions by reference", ex);
+        }
+    }
+
+    @Override
+    public Optional<Subscription> findByIdForApiProduct(String subscriptionId, String apiProductId) throws TechnicalException {
+        log.debug("JdbcSubscriptionRepository.findByIdForApiProduct({}, {})", subscriptionId, apiProductId);
+        try {
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                METADATA_ADDER,
+                "id"
+            );
+            jdbcTemplate.query(
+                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
+                    this.tableName +
+                    " s left join " +
+                    this.metadataTableName +
+                    " sm on s.id = sm.subscription_id where s.id = ? and s.reference_id = ? and s.reference_type = ?",
+                rowMapper,
+                subscriptionId,
+                apiProductId,
+                SubscriptionReferenceType.API_PRODUCT.name()
+            );
+            Optional<Subscription> result = rowMapper.getRows().stream().findFirst();
+            log.debug("JdbcSubscriptionRepository.findByIdForApiProduct({}, {}) = {}", subscriptionId, apiProductId, result);
+            return result;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find subscription by id for api product", ex);
         }
     }
 }

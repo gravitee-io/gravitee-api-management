@@ -37,12 +37,17 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ApiProductResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private GetApiProductsUseCase getApiProductByIdUseCase;
@@ -119,5 +124,10 @@ public class ApiProductResource extends AbstractResource {
         deleteApiFromApiProductUseCase.execute(input);
         log.debug("API {} removed from API Product {}", apiId, apiProductId);
         return Response.noContent().build();
+    }
+
+    @Path("/subscriptions")
+    public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
+        return resourceContext.getResource(ApiProductSubscriptionsResource.class);
     }
 }

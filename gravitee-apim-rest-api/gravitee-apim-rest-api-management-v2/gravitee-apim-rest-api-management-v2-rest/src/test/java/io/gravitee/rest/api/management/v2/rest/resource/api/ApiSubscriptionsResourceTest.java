@@ -131,8 +131,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
-                .customApiKey(null)
-                .apiKeyMode(ApiKeyMode.EXCLUSIVE);
+                .customApiKey(null);
 
             when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
                 SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).application(APPLICATION).plan(PLAN).build()

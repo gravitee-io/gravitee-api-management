@@ -72,6 +72,10 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
 
     int getOrder();
 
+    String getReferenceId();
+
+    ReferenceType getReferenceType();
+
     @JsonIgnore
     default boolean isActive() {
         return !(isClosed() || isStaging());
@@ -95,5 +99,10 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
     @JsonIgnore
     default boolean isDeprecated() {
         return PlanStatus.DEPRECATED.equals(getPlanStatus());
+    }
+
+    enum ReferenceType {
+        API,
+        API_PRODUCT,
     }
 }
