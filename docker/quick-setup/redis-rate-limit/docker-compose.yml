@@ -71,13 +71,11 @@ services:
         networks:
             - storage
 
-    redis-rate-limit:
-        image: docker.io/bitnami/redis:7.4.3
+    redis_rate_limit:
+        image: redis:7.4-alpine
         container_name: gio_redis_ratelimit
         restart: always
-        environment:
-            - ALLOW_EMPTY_PASSWORD=true
-            - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+        command: redis-server --rename-command FLUSHDB "" --rename-command FLUSHALL ""
         ports:
             - "6379:6379"
         volumes:
@@ -87,10 +85,11 @@ services:
 
     redis_client:
         image: redislabs/redisinsight:latest
+        container_name: gio_redis_client
         ports:
             - "5540:5540"
         depends_on:
-            - redis-rate-limit
+            - redis_rate_limit
         volumes:
             - data-redis-client:/db
         networks:
@@ -107,7 +106,7 @@ services:
                 condition: service_started
             elasticsearch:
                 condition: service_healthy
-            redis-rate-limit:
+            redis_rate_limit:
                 condition: service_started
         volumes:
             - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
