@@ -18,6 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuItemHarness } from '@angular/material/menu/testing';
 import { MatTreeHarness, MatTreeNodeHarness } from '@angular/material/tree/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
+import { MatDividerHarness } from '@angular/material/divider/testing';
 
 import { EmptyStateComponentHarness } from '../../../shared/components/empty-state/empty-state.component.harness';
 
@@ -157,5 +158,9 @@ export class FlatTreeComponentHarness extends ComponentHarness {
 
   async getMenuItemByTestId(testId: string): Promise<MatMenuItemHarness | null> {
     return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ selector: `[data-testid="${testId}"]` }))();
+  }
+
+  async hasDivider(): Promise<boolean> {
+    return (await this._documentRootLocator.locatorForOptional(MatDividerHarness)()) !== null;
   }
 }
