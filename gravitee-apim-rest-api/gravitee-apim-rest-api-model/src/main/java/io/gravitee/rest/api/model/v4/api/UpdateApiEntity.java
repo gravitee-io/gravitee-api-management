@@ -191,6 +191,12 @@ public class UpdateApiEntity {
 
     private boolean disableMembershipNotifications;
 
+    @Schema(
+        description = "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
+        example = "false"
+    )
+    private Boolean allowedInApiProducts;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 

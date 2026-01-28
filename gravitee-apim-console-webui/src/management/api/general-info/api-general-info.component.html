@@ -91,6 +91,26 @@
                   />
                 </gio-form-slide-toggle>
               }
+
+              @if (canDisplayAllowInApiProduct) {
+                <gio-form-slide-toggle class="details-card__header__info-inputs__second-row__allow-in-api-products-field">
+                  <span
+                    matTooltip="API is currently used in API Products"
+                    [matTooltipDisabled]="
+                      !isApiUsedInProducts ||
+                      !apiDetailsForm.get('allowedInApiProducts')?.disabled ||
+                      !apiDetailsForm.get('allowedInApiProducts')?.value
+                    "
+                    >Allow in API Products</span
+                  >
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="allowedInApiProducts"
+                    aria-label="Allow in API Products"
+                    name="allowedInApiProducts"
+                  />
+                </gio-form-slide-toggle>
+              }
             </div>
           </div>
           <div class="details-card__header__right-coll">

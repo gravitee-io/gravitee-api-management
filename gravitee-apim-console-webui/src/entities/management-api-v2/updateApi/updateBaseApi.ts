@@ -74,5 +74,9 @@ export interface UpdateBaseApi {
    * @default false
    */
   disableMembershipNotifications?: boolean;
+  /**
+   * Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+   */
+  allowedInApiProducts?: boolean;
   properties?: Property[];
 }

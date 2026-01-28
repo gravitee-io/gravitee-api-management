@@ -219,7 +219,10 @@ paths:
       tags:
         - API Products
       summary: Update an API Product by ID
-      description: Update an existing API Product in the environment.
+      description: |
+        Update an existing API Product in the environment.
+        The `apiIds` field should be managed through this endpoint, similar to how groups are managed in APIs.
+        When `apiIds` is provided, it will REPLACE the entire list of APIs (not merge).
       operationId: updateApiProduct
       requestBody:
         required: true
@@ -258,68 +261,6 @@ paths:
       responses:
         '204':
           description: API Product successfully deleted
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /environments/{envId}/api-products/{apiProductId}/apis:
-    parameters:
-      - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiProductIdParam"
-    delete:
-      tags:
-        - API Products
-      summary: Delete all APIs from an API Product
-      description: Remove all APIs from the specified API Product in the environment.
-      operationId: deleteAllApisFromApiProduct
-      responses:
-        '204':
-          description: All APIs successfully deleted from the API Product
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /environments/{envId}/api-products/{apiProductId}/apis/{apiId}:
-    parameters:
-      - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiProductIdParam"
-      - name: apiId
-        in: path
-        description: The ID of the API to remove from the product
-        required: true
-        schema:
-          type: string
-    delete:
-      tags:
-        - API Products
-      summary: Delete a specific API from an API Product
-      description: Remove a single API from the specified API Product in the environment.
-      operationId: deleteApiFromApiProduct
-      responses:
-        '204':
-          description: API successfully deleted from the API Product
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -438,7 +379,11 @@ components:
           example: "1.0.1"
         apiIds:
           type: array
-          description: List of API IDs included in the product
+          description: |
+            List of API IDs included in the product. 
+            When provided in PUT request, this will REPLACE the entire list of APIs (not merge).
+            APIs are managed as part of the API Product payload, similar to how groups are managed in APIs.
+            To add or remove APIs, update the entire list via PUT.
           items:
             type: string
           example:

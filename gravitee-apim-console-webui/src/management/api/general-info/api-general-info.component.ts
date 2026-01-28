@@ -94,6 +94,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   };
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
+  public canDisplayAllowInApiProduct = false;
+  public isApiUsedInProducts = false;
 
   public isQualityEnabled = false;
   public isQualitySupported = false;
@@ -154,6 +156,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           if (api.definitionVersion === 'V4') {
             this.apiType = (api as ApiV4).type;
+            this.canDisplayAllowInApiProduct = this.apiType === 'PROXY';
           }
 
           this.isReadOnly =
@@ -225,6 +228,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
+            allowedInApiProducts: new UntypedFormControl({
+              value: this.canDisplayAllowInApiProduct && (api.allowedInApiProducts ?? false),
+              disabled: this.isReadOnly || !this.canDisplayAllowInApiProduct || this.isApiUsedInProducts,
+            }),
           });
           this.apiImagesForm = new UntypedFormGroup({
             picture: new UntypedFormControl({
@@ -243,6 +250,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
           this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
+
+          this.loadApiProductsUsageAndUpdateControl();
         }),
         switchMap(([api]) => {
           if ('integrationId' in api.originContext) {
@@ -264,6 +273,28 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  private loadApiProductsUsageAndUpdateControl(): void {
+    if (!this.canDisplayAllowInApiProduct) {
+      return;
+    }
+    this.apiService
+      .getApiProductsForApi(this.apiId)
+      .pipe(
+        map((response) => response.data && response.data.length > 0),
+        catchError(() => of(false)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((isUsedInProducts) => {
+        this.isApiUsedInProducts = isUsedInProducts;
+        const allowedInApiProductsControl = this.apiDetailsForm.get('allowedInApiProducts');
+        if (!allowedInApiProductsControl) return;
+        const shouldDisable = isUsedInProducts || this.isReadOnly;
+        shouldDisable
+          ? allowedInApiProductsControl.disable({ emitEvent: false })
+          : allowedInApiProductsControl.enable({ emitEvent: false });
+      });
   }
 
   onSubmit() {
@@ -295,6 +326,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             description: apiDetailsFormValue.description,
             labels: apiDetailsFormValue.labels,
             categories: apiDetailsFormValue.categories,
+            ...(this.canDisplayAllowInApiProduct ? { allowedInApiProducts: apiDetailsFormValue.allowedInApiProducts } : {}),
           };
           return apiToUpdate;
         }),

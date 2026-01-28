@@ -118,6 +118,8 @@ public class ApiExport {
 
     PrimaryOwnerEntity primaryOwner;
 
+    private Boolean allowedInApiProducts;
+
     public ApiBuilder toApiBuilder() {
         return Api.builder()
             .id(id)
@@ -155,7 +157,8 @@ public class ApiExport {
             .responseTemplates(responseTemplates)
             .tags(tags)
             .type(type)
-            .services((ApiServices) services);
+            .services((ApiServices) services)
+            .allowedInApiProducts(allowedInApiProducts);
     }
 
     public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
