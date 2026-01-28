@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, effect, inject, input, OnInit, output } from '@angular/core';
+import { Component, DestroyRef, effect, ElementRef, HostListener, inject, input, OnInit, output, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,6 +33,8 @@ export class SearchBarComponent implements OnInit {
   searchTerm = output<string>();
   searchControl: FormControl<string> = new FormControl<string>(``, { nonNullable: true });
 
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
+
   private destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -45,5 +47,13 @@ export class SearchBarComponent implements OnInit {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(term => {
       this.searchTerm.emit(term);
     });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault();
+      this.searchInput?.nativeElement.focus();
+    }
   }
 }

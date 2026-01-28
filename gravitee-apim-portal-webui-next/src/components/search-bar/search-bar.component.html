@@ -17,13 +17,20 @@
 -->
 <div class="search-input">
   <mat-form-field appearance="outline" class="search-input__form">
+    <div class="search-input__wrapper">
+      <input matInput [formControl]="searchControl" placeholder="Search" #searchInput />
+      @if (!searchControl.value) {
+        <span class="search-input__shortcut">
+          <kbd class="search-input__key">Cmd</kbd>
+          <span class="search-input__separator">+</span>
+          <kbd class="search-input__key">k</kbd>
+        </span>
+      }
+    </div>
     @if (searchControl.value) {
-      <button matPrefix mat-icon-button aria-label="Clear" (click)="searchControl.reset()">
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.reset()">
         <mat-icon>close</mat-icon>
       </button>
-    } @else {
-      <mat-icon matPrefix>search</mat-icon>
     }
-    <input matInput [formControl]="searchControl" placeholder="Search..." i18n-placeholder="@@searchPlaceholder" />
   </mat-form-field>
 </div>
