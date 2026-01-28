@@ -21,7 +21,12 @@ import { mdBlockConfiguration } from './block/gmd-md.suggestions';
 import { buttonConfiguration } from './button/gmd-button.suggestions';
 import { cardTitleConfiguration } from './card/components/card-title/gmd-card-title.suggestions';
 import { cardConfiguration } from './card/gmd-card.suggestions';
+import { checkboxConfiguration } from './checkbox/gmd-checkbox.suggestions';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
+import { inputConfiguration } from './input/gmd-input.suggestions';
+import { radioConfiguration } from './radio/gmd-radio.suggestions';
+import { selectConfiguration } from './select/gmd-select.suggestions';
+import { textareaConfiguration } from './textarea/gmd-textarea.suggestions';
 
 type ComponentSuggestionMap = {
   [Key in ComponentSelector]: ComponentSuggestionConfiguration;
@@ -35,4 +40,9 @@ export const componentSuggestionMap: ComponentSuggestionMap = {
   [ComponentSelector.CARD_SUBTITLE]: cardSubtitleConfiguration,
   [ComponentSelector.MD_BLOCK]: mdBlockConfiguration,
   [ComponentSelector.BUTTON]: buttonConfiguration,
+  [ComponentSelector.INPUT]: inputConfiguration,
+  [ComponentSelector.TEXTAREA]: textareaConfiguration,
+  [ComponentSelector.SELECT]: selectConfiguration,
+  [ComponentSelector.CHECKBOX]: checkboxConfiguration,
+  [ComponentSelector.RADIO]: radioConfiguration,
 };

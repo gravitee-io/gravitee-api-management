@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+@use './overrides' as overrides;
+
+$token-mapping: overrides.tokens();
+
+.gmd-input {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  gap: 0.5rem;
+
+  &__label {
+    color: token-utils.slot(label-text-color, $token-mapping);
+    font-size: token-utils.slot(label-text-size, $token-mapping);
+    font-weight: token-utils.slot(label-text-weight, $token-mapping);
+  }
+
+  &__required {
+    color: token-utils.slot(required-text-color, $token-mapping);
+  }
+
+  &__field {
+    padding: 0.5rem;
+    border: token-utils.slot(field-outline-width, $token-mapping) solid token-utils.slot(field-outline-color, $token-mapping);
+    border-radius: token-utils.slot(field-outline-radius, $token-mapping);
+    background-color: token-utils.slot(field-background-color, $token-mapping);
+    color: token-utils.slot(field-text-color, $token-mapping);
+    font-size: token-utils.slot(field-text-size, $token-mapping);
+
+    &:focus {
+      border-color: token-utils.slot(field-focus-outline-color, $token-mapping);
+      outline: none;
+    }
+  }
+
+  &__errors {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__error {
+    color: token-utils.slot(error-text-color, $token-mapping);
+    font-size: token-utils.slot(error-text-size, $token-mapping);
+  }
+}

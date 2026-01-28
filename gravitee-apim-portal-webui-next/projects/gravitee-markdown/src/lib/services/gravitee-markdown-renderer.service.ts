@@ -99,7 +99,12 @@ export class GraviteeMarkdownRendererService {
 
   public render(content: string): string {
     marked.use({ renderer: this.getRenderer() });
-    const processed = this.preprocessGmdBlocks(content);
+
+    // Minimal normalization: DOMParser (and HTML parsing in general) is flaky with self-closing custom elements.
+    // Convert ONLY known self-closing form components to opening/closing format.
+    const normalizedContent = this.normalizeSelfClosingFormComponents(content);
+
+    const processed = this.preprocessGmdBlocks(normalizedContent);
     const parsed = new DOMParser().parseFromString(processed, 'text/html');
     const decoded = this.decodeMarkdown(parsed.body.innerHTML);
     return marked(decoded) as string;
@@ -120,10 +125,30 @@ export class GraviteeMarkdownRendererService {
   }
 
   /**
+   * Convert self-closing form component tags to opening/closing format.
+   * This keeps the renderer stable when content contains `<gmd-xxx />` for custom elements.
+   *
+   * Examples:
+   *  - <gmd-input ... />
+   *  - <gmd-textarea .../>
+   */
+  private normalizeSelfClosingFormComponents(content: string): string {
+    const formComponents = ['input', 'textarea', 'select', 'checkbox', 'radio'];
+    let result = content;
+
+    for (const componentName of formComponents) {
+      // NOTE: use [^>]* so we never "jump" across multiple tags until a later "/>"
+      const re = new RegExp(`<gmd-${componentName}\\b([^>]*)\\/\\s*>`, 'gi');
+      result = result.replace(re, `<gmd-${componentName}$1></gmd-${componentName}>`);
+    }
+
+    return result;
+  }
+
+  /**
    * Extract attributes from a gmd-md opening tag
    * @param tag The opening tag string (e.g., '<gmd-md style="color: red;" class="my-class">')
    * @returns The attributes string with leading space, or empty string if no attributes
-   * @private
    */
   private extractAttributesFromGmdMdTag(tag: string): string {
     const attributesMatch = tag.match(/<gmd-md\s+(.+?)>/);
