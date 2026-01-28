@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
@@ -40,16 +41,20 @@ public class ComputeMeasuresUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final FilterPreProcessor filterPreprocessor;
+    private final List<FilterPreProcessor> filterPreprocessors;
+
+    private final MetricsContextManager metricsContextManager;
 
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
-        FilterPreProcessor filterPreprocessor
+        List<FilterPreProcessor> filterPreprocessors,
+        MetricsContextManager metricsContextManager
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
-        this.filterPreprocessor = filterPreprocessor;
+        this.filterPreprocessors = filterPreprocessors;
+        this.metricsContextManager = metricsContextManager;
     }
 
     public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
@@ -61,11 +66,12 @@ public class ComputeMeasuresUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
+        MetricsContext metricsContext = new MetricsContext(input.auditInfo);
+        metricsContext = metricsContextManager.loadApis(metricsContext);
 
         var queryContext = queryContextProvider.resolve(input.request);
 
-        var responses = executeQueries(executionContext, metricsContextWithPermissions, queryContext);
+        var responses = executeQueries(executionContext, metricsContext, queryContext);
 
         return new Output(MeasuresResponse.merge(responses));
     }
@@ -79,7 +85,7 @@ public class ComputeMeasuresUseCase {
 
         queryExecutions.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filterPreprocessors.forEach(filterPreprocessor -> filters.addAll(filterPreprocessor.buildFilters(metricsContext)));
 
             responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });

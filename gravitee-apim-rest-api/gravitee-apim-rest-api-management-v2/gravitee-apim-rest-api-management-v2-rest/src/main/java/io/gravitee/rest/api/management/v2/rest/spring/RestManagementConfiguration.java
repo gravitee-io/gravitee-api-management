@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.MetricsContextManager;
+import io.gravitee.apim.infra.domain_service.analytics_engine.MetricsContextManagerImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -25,6 +27,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -51,10 +54,12 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public FilterPreProcessor managementFilterPreProcessor(
-        ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository
-    ) {
-        return new ManagementFilterPreProcessor(apiAuthorizationService, apiRepository);
+    public List<FilterPreProcessor> filterPreProcessors() {
+        return List.of(new ManagementFilterPreProcessor());
+    }
+
+    @Bean
+    public MetricsContextManager metricsContextManager(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
+        return new MetricsContextManagerImpl(apiAuthorizationService, apiRepository);
     }
 }

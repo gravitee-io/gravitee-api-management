@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.domain_service;
+package io.gravitee.apim.infra.domain_service.analytics_engine.mapper;
 
-import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.api.model.Api;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author GraviteeSource Team
- */
-public interface FilterPreProcessor {
-    List<Filter> buildFilters(MetricsContext context);
+@Mapper
+public interface ApiMapper {
+    ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
+
+    List<Api> map(List<io.gravitee.repository.management.model.Api> api);
 }
