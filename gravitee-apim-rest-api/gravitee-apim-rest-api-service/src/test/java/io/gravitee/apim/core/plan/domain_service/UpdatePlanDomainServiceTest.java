@@ -38,6 +38,7 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -57,7 +58,9 @@ import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.sql.Date;
@@ -65,6 +68,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,6 +89,7 @@ class UpdatePlanDomainServiceTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String API_ID = "my-api";
+    private static final String API_PRODUCT_ID = "my-api-product";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -575,5 +580,271 @@ class UpdatePlanDomainServiceTest {
         var list = Arrays.asList(plans);
         planQueryService.initWith(list);
         return list;
+    }
+
+    @Nested
+    class ApiProductPlan {
+
+        private static final ApiProduct API_PRODUCT = ApiProduct.builder()
+            .id(API_PRODUCT_ID)
+            .name("My API Product")
+            .description("API Product Description")
+            .version("1.0.0")
+            .environmentId(ENVIRONMENT_ID)
+            .apiIds(Set.of("api-1", "api-2"))
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+
+        @Test
+        void should_update_plan_attributes_for_api_product() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(API_PRODUCT_ID)
+                    .build()
+            );
+
+            // When
+            var result = service.updatePlanForApiProduct(
+                plan
+                    .toBuilder()
+                    .name("updated name")
+                    .description("updated description")
+                    .commentRequired(true)
+                    .commentMessage("updated comment")
+                    .characteristics(List.of("updated characteristic"))
+                    .build(),
+                Map.of(),
+                API_PRODUCT,
+                AUDIT_INFO
+            );
+
+            // Then
+            CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
+                .isEqualTo(result)
+                .extracting(
+                    Plan::getName,
+                    Plan::getDescription,
+                    Plan::getCharacteristics,
+                    Plan::getCommentMessage,
+                    Plan::isCommentRequired,
+                    Plan::getUpdatedAt
+                )
+                .contains(
+                    "updated name",
+                    "updated description",
+                    List.of("updated characteristic"),
+                    "updated comment",
+                    true,
+                    INSTANT_NOW.atZone(ZoneId.systemDefault())
+                );
+        }
+
+        @Test
+        void should_throw_when_invalid_status_change_detected() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(API_PRODUCT_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.CLOSED)
+            );
+            HashMap statusMap = new HashMap();
+            statusMap.put("plan-1", PlanStatus.CLOSED);
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.updatePlanForApiProduct(plan.copy().setPlanStatus(PlanStatus.DEPRECATED), statusMap, API_PRODUCT, AUDIT_INFO)
+            );
+
+            // Then
+            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("Invalid status for plan");
+        }
+
+        @Test
+        void should_throw_when_security_type_is_not_allowed() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(API_PRODUCT_ID)
+                    .build()
+            );
+            parametersQueryService.initWith(
+                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
+            );
+
+            // When
+            var throwable = Assertions.catchThrowable(() -> service.updatePlanForApiProduct(plan, Map.of(), API_PRODUCT, AUDIT_INFO));
+
+            // Then
+            assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
+        }
+
+        @Test
+        void should_throw_when_general_conditions_page_is_not_published() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(API_PRODUCT_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+            );
+            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.updatePlanForApiProduct(plan.toBuilder().generalConditions("page-id").build(), Map.of(), API_PRODUCT, AUDIT_INFO)
+            );
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan references a non published page as general conditions");
+        }
+
+        @Test
+        void should_reorder_all_plans_when_order_is_updated() {
+            // Given
+            var plans = givenExistingApiProductPlans(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan11")
+                    .order(1)
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    //  .apiId(API_PRODUCT_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED),
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan12")
+                    .order(2)
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    //  .apiId(API_PRODUCT_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED),
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan13")
+                    .order(3)
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    //  .apiId(API_PRODUCT_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+            );
+            HashMap statusMap = new HashMap();
+            // When
+            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            service.updatePlanForApiProduct(toUpdate, statusMap, API_PRODUCT, AUDIT_INFO);
+
+            // Then
+            Assertions.assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .contains(tuple("plan12", 1), tuple("plan11", 2), tuple("plan13", 3));
+        }
+
+        @Test
+        void should_create_an_audit_log() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(API_PRODUCT_ID)
+                    .build()
+            );
+
+            // When
+            service.updatePlanForApiProduct(plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
+
+            // Then
+            assertThat(auditCrudService.storage())
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .anyMatch(
+                    audit ->
+                        audit.getReferenceType() == AuditEntity.AuditReferenceType.API_PRODUCT &&
+                        audit.getReferenceId().equals(API_PRODUCT_ID) &&
+                        audit.getEvent().equals(PlanAuditEvent.PLAN_UPDATED.name()) &&
+                        audit.getProperties().containsValue("plan-1")
+                );
+        }
+
+        @Test
+        void should_get_plan_status_map_when_null_is_passed() {
+            // Given
+            var plan1 = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(null)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+            );
+            var plan2 = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-2")
+                    .type(Plan.PlanType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .apiId(null)
+                    .build()
+                    .setPlanStatus(PlanStatus.STAGING)
+            );
+
+            // When
+            var result = service.updatePlanForApiProduct(
+                plan1.toBuilder().name("updated name").build(),
+                null, // null existingPlanStatuses should trigger getPlanStatusMapForApiProduct
+                API_PRODUCT,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getName()).isEqualTo("updated name");
+        }
+
+        Plan givenExistingApiProductPlan(Plan plan) {
+            planQueryService.initWith(List.of(plan));
+            return plan;
+        }
+
+        List<Plan> givenExistingApiProductPlans(Plan... plans) {
+            var list = Arrays.asList(plans);
+            planQueryService.initWith(list);
+            return list;
+        }
     }
 }

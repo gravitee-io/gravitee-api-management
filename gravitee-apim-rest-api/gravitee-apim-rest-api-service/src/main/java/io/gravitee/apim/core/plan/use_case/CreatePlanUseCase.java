@@ -28,6 +28,7 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
@@ -59,6 +60,8 @@ public class CreatePlanUseCase {
         if (plan.getPlanMode() == null) {
             plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        plan.setReferenceId(input.apiId);
 
         var flows = input.flowProvider.apply(api);
 

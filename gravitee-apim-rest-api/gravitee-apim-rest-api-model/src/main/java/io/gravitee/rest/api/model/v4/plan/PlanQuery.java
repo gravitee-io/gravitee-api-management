@@ -38,4 +38,6 @@ public class PlanQuery {
     private PlanMode mode;
     private List<PlanSecurityType> securityType;
     private List<PlanStatus> status;
+    private String referenceId;
+    private GenericPlanEntity.ReferenceType referenceType;
 }

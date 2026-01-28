@@ -17,10 +17,12 @@ package io.gravitee.apim.core.plan.query_service;
 
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.List;
 
 public interface PlanQueryService {
     List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId);
 
     List<Plan> findAllByApiId(String apiId);
+    List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, PlanReferenceType planReferenceType);
 }

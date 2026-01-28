@@ -53,6 +53,7 @@ public interface PlanAdapter {
 
     @Mapping(source = "api", target = "apiId")
     @Mapping(target = "definitionVersion", defaultValue = "V2")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapRepositoryPlanType")
     @Mapping(target = "planDefinitionHttpV4", expression = "java(deserializeDefinitionHttpV4(plan))")
     @Mapping(target = "planDefinitionNativeV4", expression = "java(deserializeDefinitionNativeV4(plan))")
     @Mapping(target = "planDefinitionV2", expression = "java(deserializeDefinitionV2(plan))")
@@ -60,6 +61,7 @@ public interface PlanAdapter {
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(source = "apiId", target = "api")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapCorePlanType")
     @Mapping(target = "security", source = "planSecurity", qualifiedByName = "computeRepositorySecurityType")
     @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
     @Mapping(target = "definition", expression = "java(serializeDefinition(source))")
@@ -279,6 +281,30 @@ public interface PlanAdapter {
             return io.gravitee.repository.management.model.Plan.PlanSecurityType.valueOf(planSecurityType.name());
         }
         return null;
+    }
+
+    @Named("mapRepositoryPlanType")
+    default Plan.PlanType mapRepositoryPlanType(io.gravitee.repository.management.model.Plan.PlanType planType) {
+        if (planType == null) {
+            return Plan.PlanType.API;
+        }
+        return switch (planType) {
+            case API -> Plan.PlanType.API;
+            case CATALOG -> Plan.PlanType.CATALOG;
+            case API_PRODUCT -> Plan.PlanType.API_PRODUCT;
+        };
+    }
+
+    @Named("mapCorePlanType")
+    default io.gravitee.repository.management.model.Plan.PlanType mapCorePlanType(Plan.PlanType planType) {
+        if (planType == null) {
+            return io.gravitee.repository.management.model.Plan.PlanType.API;
+        }
+        return switch (planType) {
+            case API -> io.gravitee.repository.management.model.Plan.PlanType.API;
+            case CATALOG -> io.gravitee.repository.management.model.Plan.PlanType.CATALOG;
+            case API_PRODUCT -> io.gravitee.repository.management.model.Plan.PlanType.API_PRODUCT;
+        };
     }
 
     default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {

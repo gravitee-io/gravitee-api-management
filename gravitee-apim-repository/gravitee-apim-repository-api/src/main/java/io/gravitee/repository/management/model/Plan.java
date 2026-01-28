@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -147,6 +148,12 @@ public class Plan {
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 
+    @EqualsAndHashCode.Include
+    private String referenceId;
+
+    @EqualsAndHashCode.Include
+    private PlanReferenceType referenceType;
+
     /**
      * The type of V4 API of this plan.
      */
@@ -182,6 +189,8 @@ public class Plan {
         this.commentRequired = cloned.commentRequired;
         this.securityDefinition = cloned.securityDefinition;
         this.apiType = cloned.apiType;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
     }
 
     @Override
@@ -247,6 +256,8 @@ public class Plan {
          * A plan for a bunch of APIs.
          */
         CATALOG,
+
+        API_PRODUCT,
     }
 
     public enum PlanMode {

@@ -39,6 +39,7 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -88,6 +89,7 @@ class CreatePlanDomainServiceTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String API_ID = "my-api";
+    private static final String API_PRODUCT_ID = "my-api-product";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -321,6 +323,24 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
+        @MethodSource("apiProductPlans")
+        void should_create_api_product_plan(ApiProduct api, Plan plan, List<Flow> flows) {
+            // When
+            var result = service.createApiProductPlan(plan, api, AUDIT_INFO);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(planCrudService.storage()).hasSize(1);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getReferenceId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
+            });
+        }
+
+        @ParameterizedTest
         @MethodSource("plans")
         void should_create_plan_with_generated_id_when_no_id_provided(Api api, Plan plan, List<Flow> flows) {
             // Given
@@ -469,6 +489,52 @@ class CreatePlanDomainServiceTest {
                     List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
                 )
             );
+        }
+
+        static Stream<Arguments> apiProductPlans() {
+            return Stream.of(
+                Arguments.of(
+                    BASE().build(),
+                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
+                    List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
+                ),
+                Arguments.of(
+                    BASE().build(),
+                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
+                    List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
+                ),
+                Arguments.of(
+                    BASE().build(),
+                    fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
+                        .toBuilder()
+                        .apiId(API_ID)
+                        .build()
+                        .setPlanStatus(PlanStatus.STAGING)
+                        .setPlanTags(Set.of(TAG)),
+                    List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
+                )
+            );
+        }
+
+        private static io.gravitee.apim.core.api_product.model.ApiProduct.ApiProductBuilder BASE() {
+            return io.gravitee.apim.core.api_product.model.ApiProduct.builder()
+                .id("my-api-product")
+                .name("my-api-product")
+                .environmentId("environment-id")
+                .description("api-product-description")
+                .version("1.0.0")
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
         }
 
         static Stream<Arguments> httpPlans() {

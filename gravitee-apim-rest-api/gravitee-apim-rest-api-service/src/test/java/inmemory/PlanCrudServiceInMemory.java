@@ -75,6 +75,14 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
+    public Optional<Plan> findByPlanIdAndReferenceId(String planId, String referenceId) {
+        return storage
+            .stream()
+            .filter(plan -> planId.equals(plan.getId()) && plan.getReferenceId().equals(referenceId))
+            .findFirst();
+    }
+
+    @Override
     public Collection<Plan> findByApiId(String apiId) {
         return storage
             .stream()

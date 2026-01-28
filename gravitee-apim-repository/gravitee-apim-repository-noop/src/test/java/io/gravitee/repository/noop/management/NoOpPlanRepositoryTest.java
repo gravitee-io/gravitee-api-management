@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,14 @@ public class NoOpPlanRepositoryTest extends AbstractNoOpRepositoryTest {
     @Test
     public void findByIdIn() throws TechnicalException {
         Set<Plan> plans = cut.findByIdIn(List.of("test_id"));
+
+        assertNotNull(plans);
+        assertTrue(plans.isEmpty());
+    }
+
+    @Test
+    public void findByReferenceIdAndReferenceType() throws TechnicalException {
+        Set<Plan> plans = cut.findByReferenceIdAndReferenceType("test_id", PlanReferenceType.API_PRODUCT);
 
         assertNotNull(plans);
         assertTrue(plans.isEmpty());
