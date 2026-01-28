@@ -20,6 +20,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -30,18 +31,39 @@ import org.springframework.web.filter.GenericFilterBean;
 @RequiredArgsConstructor
 public class ContextualLoggingFilter extends GenericFilterBean {
 
+    private static final String ORG_ID_KEY = "orgId";
+    private static final String ENV_ID_KEY = "envId";
+    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
+    private static final String CORRELATION_ID_KEY = "correlationId";
+    private static final String TRACE_PARENT_KEY = "traceParent";
+    private static final String TRACE_PARENT_HEADER = "traceparent";
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         MDC.clear();
         String organization = GraviteeContext.getCurrentOrganization();
 
         if (organization != null) {
-            MDC.put("orgId", organization);
+            MDC.put(ORG_ID_KEY, organization);
         }
         String environment = GraviteeContext.getCurrentEnvironment();
 
         if (environment != null) {
-            MDC.put("envId", environment);
+            MDC.put(ENV_ID_KEY, environment);
+        }
+
+        if (request instanceof HttpServletRequest httpServletRequest) {
+            // the de-facto standard for distributed tracing
+            var correlationId = httpServletRequest.getHeader(CORRELATION_ID_HEADER);
+            if (correlationId != null) {
+                MDC.put(CORRELATION_ID_KEY, correlationId);
+            }
+
+            // the trace context standard header (see https://www.w3.org/TR/trace-context)
+            var traceParent = httpServletRequest.getHeader(TRACE_PARENT_HEADER);
+            if (traceParent != null) {
+                MDC.put(TRACE_PARENT_KEY, traceParent);
+            }
         }
 
         log.debug("Contextual logging is on for organization: [{}] and environment: [{}]", organization, environment);
