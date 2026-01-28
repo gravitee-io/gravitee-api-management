@@ -31,13 +31,15 @@ import {
   fakeConnectionLogDetailResponse,
 } from '../../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
-import { ApiMetricsDetailResponse, BaseInstance } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+import { ApiMetricsDetailResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 import { fakeApiMetricResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
   const INSTANCE_ID = 'instance-id';
   const REQUEST_ID = 'a-request-id';
+  const HOST_NAME = 'hostname.example.com';
+  const GATEWAY_IP = 'ip.example';
 
   let fixture: ComponentFixture<ApiRuntimeLogsProxyComponent>;
   let httpTestingController: HttpTestingController;
@@ -85,7 +87,15 @@ describe('ApiRuntimeLogsProxyComponent', () => {
   it('should display the component with all metrics and logs detail', async () => {
     await initComponent();
 
-    expectApiMetric(fakeApiMetricResponse({ apiId: API_ID, requestId: REQUEST_ID, gateway: INSTANCE_ID }));
+    expectApiMetric(
+      fakeApiMetricResponse({
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+        gateway: INSTANCE_ID,
+        gatewayHostname: HOST_NAME,
+        gatewayIp: GATEWAY_IP,
+      }),
+    );
     expectApiWithConnectionLog(
       fakeConnectionLogDetail({
         apiId: API_ID,
@@ -96,7 +106,6 @@ describe('ApiRuntimeLogsProxyComponent', () => {
         endpointResponse: fakeConnectionLogDetailResponse({ body: 'endpointResponseBody', headers: {} }),
       }),
     );
-    expectGatewayDetails({ id: INSTANCE_ID, hostname: 'hostname.example.com', ip: 'ip.example' });
 
     const metricsHarness = await loader.getHarness(ApiProxyRequestMetricOverviewHarness);
     expect(await metricsHarness.getAllKeyValues()).toEqual([
@@ -146,9 +155,16 @@ describe('ApiRuntimeLogsProxyComponent', () => {
   it('should display nothing when connection log is not found', async () => {
     await initComponent();
 
-    expectApiMetric(fakeApiMetricResponse({ apiId: API_ID, requestId: REQUEST_ID, gateway: INSTANCE_ID }));
+    expectApiMetric(
+      fakeApiMetricResponse({
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+        gateway: INSTANCE_ID,
+        gatewayHostname: HOST_NAME,
+        gatewayIp: GATEWAY_IP,
+      }),
+    );
     expectApiConnectionLogNotFound();
-    expectGatewayDetails({ id: INSTANCE_ID, hostname: 'hostname.example.com', ip: 'ip.example' });
 
     const logHarness = await loader.getHarness(ApiProxyRequestLogOverviewHarness);
     expect(await logHarness.getAllKeyValues()).toEqual([]);
@@ -158,16 +174,6 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/${REQUEST_ID}`,
-        method: 'GET',
-      })
-      .flush(data);
-    fixture.detectChanges();
-  }
-
-  function expectGatewayDetails(data: BaseInstance) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/instances/${INSTANCE_ID}`,
         method: 'GET',
       })
       .flush(data);

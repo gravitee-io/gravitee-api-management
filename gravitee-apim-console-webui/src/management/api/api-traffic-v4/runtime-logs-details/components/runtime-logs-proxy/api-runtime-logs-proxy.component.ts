@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, DestroyRef, inject } from '@angular/core';
-import { catchError, share, switchMap } from 'rxjs/operators';
+import { catchError, map, share } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,7 +31,6 @@ import { ApiProxyRequestMetricOverviewComponent } from './components/api-proxy-r
 import { ApiRuntimeLogsConnectionLogDetailsModule, ApiRuntimeLogsDetailsEmptyStateModule } from '../components';
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
-import { InstanceService } from '../../../../../../services-ngx/instance.service';
 
 @Component({
   selector: 'api-runtime-logs-proxy',
@@ -55,7 +54,6 @@ export class ApiRuntimeLogsProxyComponent {
   private readonly apiLogsService = inject(ApiLogsV2Service);
   private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
   private readonly matSnackBar = inject(MatSnackBar);
-  private readonly instanceService = inject(InstanceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly apiId = this.activatedRoute.snapshot.params.apiId;
   private readonly requestId = this.activatedRoute.snapshot.params.requestId;
@@ -67,7 +65,16 @@ export class ApiRuntimeLogsProxyComponent {
   public apiMetricsDetail = toSignal(this.metric$);
   public gatewayInstanceDetail = toSignal(
     this.metric$.pipe(
-      switchMap((metric) => this.instanceService.getByGatewayId(metric.gateway)),
+      map((metric) => {
+        if (metric?.gatewayHostname && metric?.gatewayIp) {
+          return {
+            id: metric.gateway,
+            hostname: metric.gatewayHostname,
+            ip: metric.gatewayIp,
+          };
+        }
+        return undefined;
+      }),
       takeUntilDestroyed(this.destroyRef),
     ),
   );
