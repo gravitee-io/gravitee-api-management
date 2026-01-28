@@ -15,59 +15,108 @@
  */
 :host {
   display: flex;
-  min-width: 0;
-  min-height: 256px;
+  width: 316px;
+  min-height: 138px;
   flex-flow: column;
+
+  @media (max-width: 1200px) {
+    width: 556px;
+  }
+
+  @media (max-width: 880px) {
+    width: 396px;
+  }
+
+  @media (max-width: 640px) {
+    width: 556px;
+  }
+
+  @media (max-width: 480px) {
+    width: 396px;
+  }
 }
 
 .api-card {
-  display: flex;
-  height: 100%;
-  flex-flow: column;
-  justify-content: space-between;
+  --gmd-card-outline-color: #e0e0e0;
+  --gmd-card-outline-width: 1px;
+  --gmd-card-container-shape: 16px;
+
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  ::ng-deep .gmd-card {
+    border-radius: 16px;
+  }
 
   &__header {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
 
     &__content {
       display: flex;
       flex: 1;
       flex-flow: column;
-      gap: 4px;
-    }
-  }
+      gap: 2px;
 
-  &__header-picture {
-    border-radius: 50%;
+      .m3-title-medium {
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 21px;
+        letter-spacing: 0;
+      }
+    }
   }
 
   &__content {
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     flex-direction: column;
-    gap: 28px;
-
-    mat-chip {
-      width: fit-content;
-      align-self: flex-start;
-    }
+    gap: 12px;
   }
 
   &__description {
     display: -webkit-box;
     overflow: hidden;
-    max-height: 98px;
+    max-height: 54px;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     text-overflow: ellipsis;
     word-wrap: break-word;
-  }
-
-  &__actions {
-    margin: 8px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 27px;
+    letter-spacing: 0;
+    color: #465055;
   }
 }
+
+.mcp-chip__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 27px;
+  padding: 0 10px;
+
+  border-radius: 4px;
+  background-color: #275cf62b;
+  color: #0436c8;
+
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 27px;
+}
+
