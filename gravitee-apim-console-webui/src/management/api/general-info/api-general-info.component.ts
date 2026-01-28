@@ -49,6 +49,10 @@ import { GioApiImportDialogComponent, GioApiImportDialogData } from '../componen
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import {
+  ApiImportV4DialogComponent,
+  ApiImportV4DialogData,
+} from '../import-v4-dialog/api-import-v4-dialog.component';
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -115,7 +119,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly integrationsService: IntegrationsService,
     @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  ) { }
 
   private refresh$ = new Subject<void>();
 
@@ -340,7 +344,30 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+
+
   importApi() {
+    if (this.api.definitionVersion === 'V4') {
+      this.matDialog
+        .open<ApiImportV4DialogComponent, ApiImportV4DialogData>(ApiImportV4DialogComponent, {
+          data: {
+            apiId: this.apiId,
+          },
+          role: 'alertdialog',
+          id: 'importApiDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((api) => !!api),
+          tap(() => {
+            this.refresh$.next();
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+      return;
+    }
+
     this.policyService
       .listSwaggerPolicies()
       .pipe(
@@ -391,26 +418,26 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     const exportDialog$ =
       this.api.definitionVersion === 'V4'
         ? this.matDialog
-            .open<ApiGeneralInfoExportV4DialogComponent, ApiGeneralDetailsExportV4DialogData, ApiGeneralDetailsExportV4DialogResult>(
-              ApiGeneralInfoExportV4DialogComponent,
-              {
-                data: {
-                  api: this.api,
-                },
-                role: 'alertdialog',
-                id: 'exportApiDialog',
-              },
-            )
-            .afterClosed()
-        : this.matDialog
-            .open<ApiGeneralInfoExportV2DialogComponent, ApiPortalDetailsExportV2DialogData>(ApiGeneralInfoExportV2DialogComponent, {
+          .open<ApiGeneralInfoExportV4DialogComponent, ApiGeneralDetailsExportV4DialogData, ApiGeneralDetailsExportV4DialogResult>(
+            ApiGeneralInfoExportV4DialogComponent,
+            {
               data: {
                 api: this.api,
               },
               role: 'alertdialog',
               id: 'exportApiDialog',
-            })
-            .afterClosed();
+            },
+          )
+          .afterClosed()
+        : this.matDialog
+          .open<ApiGeneralInfoExportV2DialogComponent, ApiPortalDetailsExportV2DialogData>(ApiGeneralInfoExportV2DialogComponent, {
+            data: {
+              api: this.api,
+            },
+            role: 'alertdialog',
+            id: 'exportApiDialog',
+          })
+          .afterClosed();
 
     exportDialog$.pipe(takeUntil(this.unsubscribe$)).subscribe();
   }
