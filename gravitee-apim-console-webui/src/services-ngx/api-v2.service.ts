@@ -252,4 +252,8 @@ export class ApiV2Service {
       },
     );
   }
+
+  getApiProductsForApi(apiId: string): Observable<{ data: unknown[] }> {
+    return this.http.get<{ data: unknown[] }>(`${this.constants.env.v2BaseURL}/apis/${apiId}/api-products`);
+  }
 }

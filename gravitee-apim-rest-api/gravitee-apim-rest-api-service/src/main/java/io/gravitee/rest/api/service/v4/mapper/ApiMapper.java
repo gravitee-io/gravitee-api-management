@@ -24,6 +24,7 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -129,6 +130,17 @@ public class ApiMapper {
                 apiEntity.setFlows(apiDefinition.getFlows());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
+
+                if (apiDefinition.getDefinitionVersion() == DefinitionVersion.V4 && apiDefinition.getType() == ApiType.PROXY) {
+                    var jsonNode = objectMapper.readTree(api.getDefinition());
+                    boolean hasAllowInApiProductField = jsonNode.has("allowInApiProduct");
+
+                    if (hasAllowInApiProductField) {
+                        apiEntity.setAllowInApiProduct(apiDefinition.getAllowInApiProduct());
+                    } else {
+                        apiEntity.setAllowInApiProduct(false);
+                    }
+                }
             } catch (IOException ioe) {
                 log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }
@@ -402,6 +414,9 @@ public class ApiMapper {
             apiDefinition.setFailover(newApiEntity.getFailover());
             apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
+            if (newApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && newApiEntity.getType() == ApiType.PROXY) {
+                apiDefinition.setAllowInApiProduct(true);
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -483,6 +498,11 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
+            if (updateApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && updateApiEntity.getType() == ApiType.PROXY) {
+                if (updateApiEntity.getAllowInApiProduct() != null) {
+                    apiDefinition.setAllowInApiProduct(updateApiEntity.getAllowInApiProduct());
+                }
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -562,6 +582,9 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
+            if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4 && apiEntity.getType() == ApiType.PROXY) {
+                apiDefinition.setAllowInApiProduct(apiEntity.getAllowInApiProduct() != null ? apiEntity.getAllowInApiProduct() : false);
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {

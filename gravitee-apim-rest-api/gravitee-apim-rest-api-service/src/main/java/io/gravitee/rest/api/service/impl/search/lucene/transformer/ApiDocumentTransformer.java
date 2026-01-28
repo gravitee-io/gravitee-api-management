@@ -110,6 +110,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_PORTAL_STATUS_SORTED = "portal_status_sorted";
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
+    public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -198,6 +199,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         // FIELD_HAS_HEALTH_CHECK
         doc.add(new StringField(FIELD_HAS_HEALTH_CHECK, Boolean.toString(hasHealthCheckEnabled(api)), NO));
 
+        // FIELD_ALLOW_IN_API_PRODUCTS
+        doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCTS, Boolean.toString(isAllowedInApiProduct(api)), NO));
+
         // FIELD_LABELS*
         for (String label : safeIterate(api.getLabels())) {
             doc.add(new StringField(FIELD_LABELS, label, YES));
@@ -264,6 +268,13 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                     stream(eg.getEndpoints()).anyMatch(e -> hasHealthCheckEnabled(e.getServices(), EndpointServices::getHealthCheck))
             );
             case ApiEntity v2 -> apiService.hasHealthCheckEnabled(v2, false);
+            default -> false;
+        };
+    }
+
+    private boolean isAllowedInApiProduct(GenericApiEntity api) {
+        return switch (api) {
+            case io.gravitee.rest.api.model.v4.api.ApiEntity v4 -> v4.getAllowInApiProduct() != null && v4.getAllowInApiProduct();
             default -> false;
         };
     }

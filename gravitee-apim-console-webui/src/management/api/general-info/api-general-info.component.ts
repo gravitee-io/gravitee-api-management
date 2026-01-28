@@ -94,6 +94,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   };
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
+  public canDisplayAllowInApiProduct = false;
+  public isApiUsedInProducts = false;
 
   public isQualityEnabled = false;
   public isQualitySupported = false;
@@ -155,6 +157,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V4') {
             this.apiType = (api as ApiV4).type;
           }
+
+          const isV4HttpProxy = api.definitionVersion === 'V4' && (api as ApiV4).type === 'PROXY';
+          this.canDisplayAllowInApiProduct = isV4HttpProxy;
 
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
@@ -225,6 +230,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
+            allowInApiProduct: new UntypedFormControl({
+              value: this.canDisplayAllowInApiProduct ? (api.allowInApiProduct ?? false) : false,
+              disabled: this.isReadOnly || !this.canDisplayAllowInApiProduct || this.isApiUsedInProducts,
+            }),
           });
           this.apiImagesForm = new UntypedFormGroup({
             picture: new UntypedFormControl({
@@ -243,6 +252,28 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
           this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
+
+          // Check if API is in any products (only for V4 Proxy APIs)
+          if (this.canDisplayAllowInApiProduct) {
+            this.apiService
+              .getApiProductsForApi(this.apiId)
+              .pipe(
+                map((response: any) => response.data && response.data.length > 0),
+                catchError(() => of(false)),
+                takeUntil(this.unsubscribe$),
+              )
+              .subscribe((isUsedInProducts) => {
+                this.isApiUsedInProducts = isUsedInProducts;
+                const allowInApiProductControl = this.apiDetailsForm.get('allowInApiProduct');
+                if (allowInApiProductControl) {
+                  if (isUsedInProducts) {
+                    allowInApiProductControl.disable({ emitEvent: false });
+                  } else if (!this.isReadOnly) {
+                    allowInApiProductControl.enable({ emitEvent: false });
+                  }
+                }
+              });
+          }
         }),
         switchMap(([api]) => {
           if ('integrationId' in api.originContext) {
@@ -295,6 +326,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             description: apiDetailsFormValue.description,
             labels: apiDetailsFormValue.labels,
             categories: apiDetailsFormValue.categories,
+            ...(this.canDisplayAllowInApiProduct
+              ? { allowInApiProduct: apiDetailsFormValue.allowInApiProduct }
+              : {}),
           };
           return apiToUpdate;
         }),

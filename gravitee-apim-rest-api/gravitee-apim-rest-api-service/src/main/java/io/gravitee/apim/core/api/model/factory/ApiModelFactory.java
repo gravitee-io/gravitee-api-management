@@ -129,7 +129,12 @@ public class ApiModelFactory {
             return apiExport.apiDefinitionNativeV4(api.toNativeApiDefinitionBuilder().id(id).build()).build();
         }
 
-        return apiExport.apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build()).build();
+        var apiDefinitionBuilder = api.toApiDefinitionBuilder();
+        if (api.getDefinitionVersion() == DefinitionVersion.V4 && api.getType() == ApiType.PROXY) {
+            apiDefinitionBuilder.allowInApiProduct(true);
+        }
+
+        return apiExport.apiDefinitionHttpV4(apiDefinitionBuilder.id(id).build()).build();
     }
 
     public static Api fromIntegration(IntegrationApi integrationApi, Integration integration) {
