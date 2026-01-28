@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../scss/theme/index' as app-theme;
+@use '../../../scss/m3-adapter';
+@use '../../../scss/helper';
 
 :host {
-  width: 100%;
+  height: 100%;
 }
 
-app-sidenav-layout {
-  height: 100%;
+.subscriptions {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 100px;
 
-  .documentation-folder {
-    &__sidenav {
-      &__tree,
-      &__empty-state {
-        min-width: 250px;
-        height: 100%;
-      }
+    h2 {
+      margin-bottom: 0;
+    }
+
+    p {
+      text-align: center;
     }
   }
 }

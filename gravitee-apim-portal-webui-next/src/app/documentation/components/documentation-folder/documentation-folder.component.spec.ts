@@ -206,20 +206,4 @@ describe('DocumentationFolderComponent', () => {
       expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
     });
   });
-
-  it('should collapse sidenav on toggle click', async () => {
-    await init();
-
-    let isSidenavCollapsed = await harness.getSidenavCollapsedState();
-    expect(isSidenavCollapsed).toBeDefined();
-    expect(isSidenavCollapsed).toEqual(false);
-
-    const toggleButton = await harness.getSidenavToggleButton().then(toggle => toggle?.getButton());
-    expect(toggleButton).toBeDefined();
-    await toggleButton!.click();
-
-    isSidenavCollapsed = await harness.getSidenavCollapsedState();
-    expect(isSidenavCollapsed).toBeDefined();
-    expect(isSidenavCollapsed).toEqual(true);
-  });
 });

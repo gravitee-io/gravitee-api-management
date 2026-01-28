@@ -16,11 +16,11 @@
 
 -->
 <div class="menu-items">
-  <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
+  <app-nav-bar-button class="nav-button" i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
   @for (navigationItem of topBarNavigationItems(); track navigationItem.id) {
     @switch (navigationItem.type) {
       @case ('LINK') {
-        <a [href]="navigationItem.url" target="_blank" mat-stroked-button color="primary" class="menu-items__custom_link">
+        <a [href]="navigationItem.url" target="_blank" mat-stroked-button color="primary" class="menu-items__custom_link nav-button">
           <span class="menu-items__link">
             {{ navigationItem.title }}
             <mat-icon aria-hidden="true">open_in_new</mat-icon>
@@ -29,7 +29,9 @@
         </a>
       }
       @default {
-        <app-nav-bar-button [path]="['/documentation', navigationItem.id]">{{ navigationItem.title }}</app-nav-bar-button>
+        <app-nav-bar-button class="nav-button" [path]="['/documentation', navigationItem.id]">{{
+          navigationItem.title
+        }}</app-nav-bar-button>
       }
     }
   }
