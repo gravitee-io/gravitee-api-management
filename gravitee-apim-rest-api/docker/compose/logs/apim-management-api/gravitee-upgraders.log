@@ -1,0 +1,33 @@
+13:41:33.817 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.DefaultEnvironmentUpgrader -     No environment found. Add default one.
+13:41:33.824 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.DefaultOrganizationUpgrader -     No organization found. Add default one.
+13:41:33.968 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.DefaultSharedPolicyGroupRolesUpgrader - Update default role API_PUBLISHER for environment DEFAULT
+13:41:33.977 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.DefaultSharedPolicyGroupRolesUpgrader - Update default role USER for environment DEFAULT
+13:41:34.000 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.MetadataDefaultReferenceUpgrader - Migrating metadata: 0 for environments [Environment(id=DEFAULT, cockpitId=null, hrids=[default], name=Default environment, description=Default environment, organizationId=DEFAULT)]
+13:41:34.005 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.PortalNotificationConfigUpgrader - Migrating portalNotificationConfig: 0 for environments [Environment(id=DEFAULT, cockpitId=null, hrids=[default], name=Default environment, description=Default environment, organizationId=DEFAULT)]
+13:41:34.006 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.GenericNotificationConfigUpgrader - Migrating genericNotificationConfig: 0 for environments [Environment(id=DEFAULT, cockpitId=null, hrids=[default], name=Default environment, description=Default environment, organizationId=DEFAULT)]
+13:41:34.017 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.PlansDataFixUpgrader - No plan data anomaly found
+13:41:34.029 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - Starting migrating latest event for APIs
+13:41:34.030 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - 0 events regarding 0 APIs have been migrated
+13:41:34.030 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - Starting migrating latest event for dictionaries
+13:41:34.031 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - 0 events regarding 0 dictionaries have been migrated
+13:41:34.031 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - Starting migrating latest event for organizations
+13:41:34.033 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.EventsLatestUpgrader - 0 events regarding 1 organizations have been migrated
+13:41:34.034 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.ExecutionModeUpgrader - Starting migrating execution mode for APIs
+13:41:34.034 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.ExecutionModeUpgrader - 0 jupiter APIs have been migrated to use v4-emulation-engine execution mode
+13:41:34.035 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.QualityRulesScopingUpgrader - Start scoping existing quality rules at the environment level
+13:41:34.036 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.QualityRulesScopingUpgrader - Found 0 quality rules with no reference
+13:41:34.037 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.QualityRulesScopingUpgrader - Default environment is [DEFAULT]
+13:41:34.037 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.QualityRulesScopingUpgrader - Other environments are []
+13:41:34.072 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.IntegrationPrimaryOwnerUpgrader - Start to set primary owners for integrations
+13:41:34.074 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.IntegrationPrimaryOwnerUpgrader - Migrating page: 0 of integrations
+13:41:34.074 [graviteeio-node] INFO  i.g.r.a.s.i.u.u.IntegrationPrimaryOwnerUpgrader - Finish to set primary owners for integrations
+13:41:34.154 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.DefaultMetadataInitializer - Create default env metadata for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional[DEFAULT]}
+13:41:34.169 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.EnvironmentInitializer - Starting DocumentationSystemFolderInitializer for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional[DEFAULT]}
+13:41:34.172 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.DocumentationSystemFolderInitializer - No system folders found. Add system folders in documentation, for portal and each API.
+13:41:34.193 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.OrganizationInitializer - Starting DefaultOrganizationAdminRoleInitializer for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional.empty}
+13:41:34.199 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.DefaultPageRevisionInitializer - No page revisions found. Create a default revision based on pages.
+13:41:34.209 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.OrganizationInitializer - Starting DefaultUserStatusInitializer for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional.empty}
+13:41:34.217 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.EnvironmentInitializer - Starting DefaultApiHeaderInitializer for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional[DEFAULT]}
+13:41:34.218 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.DefaultApiHeaderInitializer - Create default API Headers configuration for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional[DEFAULT]}
+13:41:34.226 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.EnvironmentInitializer - Starting DefaultThemeInitializer for ExecutionContext{organizationId='Optional[DEFAULT]', environmentId=Optional[DEFAULT]}
+13:41:34.233 [graviteeio-node] INFO  i.g.r.a.s.i.u.i.IdentityProviderActivationInitializer -     No activation found. Active all idp on all target by default if enabled.
