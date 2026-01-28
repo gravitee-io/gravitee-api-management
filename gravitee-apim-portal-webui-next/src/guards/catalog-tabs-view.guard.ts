@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-
-import { ConfigService } from '../services/config.service';
+import { CanActivateFn } from '@angular/router';
 
 export const catalogTabsViewGuard: CanActivateFn = (_r, _s) => {
-  const viewMode = inject(ConfigService).configuration?.portalNext?.catalog?.viewMode;
-  const router = inject(Router);
-
-  if (viewMode === 'CATEGORIES') {
-    router.navigate(['catalog', 'categories']);
-    return false;
-  }
-
+  // Always allow access to catalog tabs view
   return true;
 };
