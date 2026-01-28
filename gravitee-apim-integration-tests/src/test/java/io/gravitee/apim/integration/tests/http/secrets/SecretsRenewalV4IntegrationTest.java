@@ -78,7 +78,8 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
                 " value1='initial value1'" +
                 " value2='initial value2'" +
                 " value3='initial value3'" +
-                " value4='initial value4'"
+                " value4='initial value4'",
+            "kv put secret/test2 value1='initial testValue1'"
         );
 
     @Override
@@ -167,7 +168,7 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         wiremock.verify(
             1,
             getRequestedFor(urlPathEqualTo("/echo"))
-                .withHeader("X-Secret-URI", equalTo("initial value1"))
+                .withHeader("X-Secret-URI", equalTo("initial value1 initial testValue1"))
                 .withHeader("X-Secret-URI-renewable", equalTo("initial value2"))
                 .withHeader("X-Secret-URI-reloadOnChange", equalTo("initial value3"))
                 .withHeader("X-Secret-Dictionary", equalTo("initial value4"))
@@ -205,7 +206,7 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
                 wiremock.verify(
                     1,
                     getRequestedFor(urlPathEqualTo("/echo"))
-                        .withHeader("X-Secret-URI", equalTo("initial value1"))
+                        .withHeader("X-Secret-URI", equalTo("updated value1 initial testValue1")) // As the full secret is refreshed, all values are updated and benefit to all specs.
                         .withHeader("X-Secret-URI-renewable", equalTo("updated value2"))
                         .withHeader("X-Secret-URI-reloadOnChange", equalTo("updated value3"))
                         .withHeader("X-Secret-Dictionary", equalTo("updated value4"))
