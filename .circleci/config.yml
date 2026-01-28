@@ -97,7 +97,7 @@ jobs:
                                     # If the branch name is not empty, then the matching branch has been found
                                     if [ -n "$branch" ]; then
                                       BASE_REF=$branch
-                                      echo "Base branch is $branch (common ancestor is commit: $hash)"
+                                      COMMON_COMMIT=$hash
                                       break
                                     fi
                                   done
@@ -105,7 +105,10 @@ jobs:
                                 # else use the pull request info
                                 else
                                   PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
-                                  BASE_REF=origin/$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
+                                  PULL_REQUEST_RESPONSE_CONTENT=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL})
+
+                                  BASE_REF=origin/$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.ref // "master"')
+                                  COMMON_COMMIT=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.sha // ""')
                                 fi;
 
                                 # if BASE_REF is empty just stop
@@ -116,6 +119,9 @@ jobs:
 
                                 echo "export GIT_BASE_BRANCH=${BASE_REF}" >> $BASH_ENV
                                 echo "The base branch is ${BASE_REF}"
+
+                                echo "export GIT_COMMON_COMMIT_HASH=${COMMON_COMMIT}" >> $BASH_ENV
+                                echo "The common commit hash is ${COMMON_COMMIT}"
 
             - node/install-packages:
                   app-dir: .circleci/ci

@@ -319,9 +319,9 @@ export class CreateApplicationComponent {
 
           return {
             oauth: {
-              application_type: selectedType.id || selectedType.name || undefined,
-              grant_types: grantTypes.length > 0 ? grantTypes : undefined,
-              redirect_uris: redirectUris.length > 0 ? redirectUris : undefined,
+              application_type: selectedType.id || selectedType.name,
+              grant_types: grantTypes,
+              redirect_uris: redirectUris,
               additional_client_metadata: metadata && Object.keys(metadata).length > 0 ? metadata : undefined,
             },
           };

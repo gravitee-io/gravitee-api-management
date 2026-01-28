@@ -543,6 +543,31 @@ describe('CreateApplicationComponent', () => {
       expect(routerNavigateSpy).toHaveBeenCalledWith(['/applications', 'new-oauth-app-id']);
     });
 
+    it('should send correct data to API for backend to backend type', async () => {
+      const radioButtons = await harnessLoader.getAllHarnesses(MatRadioButtonHarness);
+      await radioButtons[2].check(); // Backend to backend type
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const nameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      await nameInput.setValue('Test OAuth App');
+
+      const createButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: /Create/ }));
+      await createButton.click();
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body.settings.oauth).toBeDefined();
+      expect(req.request.body.settings.oauth.application_type).toEqual('backend_to_backend');
+      expect(req.request.body.settings.oauth.redirect_uris).toEqual([]);
+      expect(req.request.body.settings.oauth.grant_types).toEqual(['client_credentials']);
+
+      const createdApplication = fakeApplication({ id: 'new-oauth-app-id', name: 'Test OAuth App' });
+      req.flush(createdApplication);
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['/applications', 'new-oauth-app-id']);
+    });
+
     it('should include TLS settings when client certificate is provided', async () => {
       const nameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
       await nameInput.setValue('Test App with TLS');

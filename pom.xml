@@ -297,7 +297,7 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>9.0.0</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>4.3.2</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>5.0.0</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.0.1</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>1.1.0</gravitee-reactor-llm-proxy.version>
         <gravitee-resource-ai-vector-store-redis.version>1.0.0-alpha.2</gravitee-resource-ai-vector-store-redis.version>
@@ -317,6 +317,8 @@
         <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
         <gravitee-policy-token-ratelimit.version>1.0.0</gravitee-policy-token-ratelimit.version>
         <gravitee-policy-mcp-acl.version>1.0.2</gravitee-policy-mcp-acl.version>
+        <gravitee-policy-pii-filtering.version>1.0.0-alpha.1</gravitee-policy-pii-filtering.version>
+        <gravitee-resource-ai-model-token-classification.version>1.0.0-alpha.1</gravitee-resource-ai-model-token-classification.version>
     </properties>
 
     <scm>

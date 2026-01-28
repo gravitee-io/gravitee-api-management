@@ -28,6 +28,7 @@ const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
 const CI_DOCKER_TAG_AS_LATEST: string | undefined = process.env.CI_DOCKER_TAG_AS_LATEST;
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
+const GIT_COMMON_COMMIT_HASH: string = process.env.GIT_COMMON_COMMIT_HASH ?? '';
 const APIM_VERSION_PATH: string | undefined = process.env.APIM_VERSION_PATH;
 
 if (isBlank(CIRCLE_SHA1)) {
@@ -40,7 +41,7 @@ if (isBlank(CIRCLE_SHA1)) {
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
  */
-const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(GIT_BASE_BRANCH);
+const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH);
 
 changed
   .then(
