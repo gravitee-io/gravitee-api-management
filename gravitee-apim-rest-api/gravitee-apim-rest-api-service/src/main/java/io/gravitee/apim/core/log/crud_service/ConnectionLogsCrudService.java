@@ -24,11 +24,34 @@ import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ConnectionLogsCrudService {
+    /**
+     * Search logs using the filters provided in logsFilters
+     */
+    SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    );
+    /**
+     * Search logs using the filters provided in logsFilters but overrider the API Ids with the value in @apiId
+     */
     SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
         ExecutionContext executionContext,
         String apiId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    );
+    /**
+     * Search logs using the filters provided in logsFilters but overrider the API Ids with the values in @apiIds
+     */
+    SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        Set<String> apiIds,
         SearchLogsFilters logsFilters,
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
