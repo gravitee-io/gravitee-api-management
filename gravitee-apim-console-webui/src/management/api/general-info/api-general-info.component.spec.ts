@@ -133,6 +133,10 @@ describe('ApiGeneralInfoComponent', () => {
   });
 
   afterEach(() => {
+    // Drain any pending API products requests that may be triggered when loading V4 APIs
+    const apiProductsRequests = httpTestingController.match((req) => req.url.includes('/apis/') && req.url.endsWith('/api-products'));
+    apiProductsRequests.forEach((req) => req.flush({ data: [] }));
+
     httpTestingController.verify({ ignoreCancelled: true });
     jest.resetAllMocks();
   });
@@ -614,6 +618,135 @@ describe('ApiGeneralInfoComponent', () => {
 
   describe('API V4', () => {
     beforeEach(() => initComponent());
+
+    it('should display Allow in API Products toggle only for V4 PROXY', async () => {
+      const apiProxy = fakeApiV4({ id: API_ID, type: 'PROXY' });
+      expectApiGetRequest(apiProxy);
+      expectCategoriesGetRequest();
+
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      const productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush({ data: [] });
+      fixture.detectChanges();
+
+      let allowInProductToggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(allowInProductToggle).not.toBeNull();
+
+      const apiNative = fakeApiV4({ id: API_ID, type: 'NATIVE' });
+      fixture.componentInstance['refresh$']?.next?.();
+      expectApiGetRequest(apiNative);
+      expectCategoriesGetRequest();
+
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      allowInProductToggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }),
+      );
+      expect(allowInProductToggle).toBeNull();
+    });
+
+    it('should set allowInApiProduct default value from API or false when undefined', async () => {
+      // Case true
+      let api = fakeApiV4({ id: API_ID, type: 'PROXY', allowInApiProduct: true });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      fixture.detectChanges();
+      let productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush({ data: [] });
+      fixture.detectChanges();
+      let toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }));
+      expect(await toggle.isChecked()).toBe(true);
+
+      // Case false
+      api = fakeApiV4({ id: API_ID, type: 'PROXY', allowInApiProduct: false });
+      fixture.componentInstance['refresh$']?.next?.();
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      fixture.detectChanges();
+      productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush({ data: [] });
+      fixture.detectChanges();
+      toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }));
+      expect(await toggle.isChecked()).toBe(false);
+
+      // Case undefined -> default false
+      api = fakeApiV4({ id: API_ID, type: 'PROXY' });
+      delete (api as any).allowInApiProduct;
+      fixture.componentInstance['refresh$']?.next?.();
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      fixture.detectChanges();
+      productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush({ data: [] });
+      fixture.detectChanges();
+      toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }));
+      expect(await toggle.isChecked()).toBe(false);
+    });
+
+    it('should disable allowInApiProduct toggle when API is used in products', async () => {
+      const api = fakeApiV4({ id: API_ID, type: 'PROXY' });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      // Simulate API is used in products (non-empty data)
+      const productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush({ data: [{ id: 'apip1' }] });
+      fixture.detectChanges();
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }));
+      expect(await toggle.isDisabled()).toBe(true);
+    });
+
+    it('should keep allowInApiProduct enabled when api-products call fails', async () => {
+      const api = fakeApiV4({ id: API_ID, type: 'PROXY', allowInApiProduct: false });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      const productsReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
+        method: 'GET',
+      });
+      productsReq.flush(
+        { message: 'error' },
+        {
+          status: 500,
+          statusText: 'Server Error',
+        },
+      );
+      fixture.detectChanges();
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowInApiProduct"]' }));
+      expect(await toggle.isDisabled()).toBe(false);
+    });
 
     it('should edit api details', async () => {
       const api = fakeApiV4({

@@ -74,6 +74,14 @@ public class ApiDocumentSearcherTest {
     }
 
     @Test
+    public void should_complete_query_with_allow_in_api_products() {
+        var query = QueryBuilder.create(ApiEntity.class).setQuery("allow_in_api_products:true").build();
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
+        assertThat(builder.build()).hasToString("#(allow_in_api_products:\"true\" allow_in_api_products:true)");
+    }
+
+    @Test
     public void should_convert_description_to_lowercase() {
         var query = QueryBuilder.create(ApiEntity.class).setQuery("description:TestValue").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();

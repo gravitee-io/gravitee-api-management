@@ -1002,6 +1002,7 @@ class ImportApiDefinitionUseCaseTest {
                     .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
                     .tags(Set.of("tag"))
                     .flowExecution(new FlowExecution())
+                    .allowInApiProduct(true)
                     .build()
             )
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)

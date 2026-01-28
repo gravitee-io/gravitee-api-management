@@ -114,6 +114,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_ORIGIN,
         FIELD_HAS_HEALTH_CHECK,
         FIELD_DEFINITION_VERSION,
+        FIELD_ALLOW_IN_API_PRODUCTS,
     };
 
     public ApiDocumentSearcher(IndexWriter indexWriter) {
@@ -399,7 +400,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             !FIELD_TAGS.equals(term.field()) &&
             !FIELD_ORIGIN.equals(term.field()) &&
             !FIELD_HAS_HEALTH_CHECK.equals(term.field()) &&
-            !FIELD_DEFINITION_VERSION.equals(term.field())
+            !FIELD_DEFINITION_VERSION.equals(term.field()) &&
+            !FIELD_ALLOW_IN_API_PRODUCTS.equals(term.field())
         ) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");
