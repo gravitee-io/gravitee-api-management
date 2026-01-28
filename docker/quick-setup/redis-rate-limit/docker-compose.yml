@@ -72,12 +72,10 @@ services:
       - storage
 
   redis-rate-limit:
-    image: docker.io/bitnami/redis:7.4.3
+    image: redis:7.4-alpine
     container_name: gio_redis_ratelimit
     restart: always
-    environment:
-      - ALLOW_EMPTY_PASSWORD=true
-      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    command: redis-server --rename-command FLUSHDB "" --rename-command FLUSHALL ""
     ports:
       - "6379:6379"
     volumes:
