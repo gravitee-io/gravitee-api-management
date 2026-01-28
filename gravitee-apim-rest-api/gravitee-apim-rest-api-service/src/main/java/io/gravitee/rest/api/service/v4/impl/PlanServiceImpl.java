@@ -748,20 +748,25 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void validateNoConflictingAuthenticationForNativePlan(final Plan nativePlanToPublish, final Set<Plan> apiPlans) {
-        boolean planToPublishIsKeyless = nativePlanToPublish.getSecurity() == Plan.PlanSecurityType.KEY_LESS;
+        Plan.PlanSecurityType planToPublishType = nativePlanToPublish.getSecurity();
 
-        long conflictingPublishedPlansCount = apiPlans
+        boolean hasConflict = apiPlans
             .stream()
             .filter(existingPlan -> existingPlan.getStatus() == Plan.Status.PUBLISHED)
-            .filter(existingPlan ->
-                planToPublishIsKeyless
-                    ? existingPlan.getSecurity() != Plan.PlanSecurityType.KEY_LESS
-                    : existingPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS
-            )
-            .count();
+            .anyMatch(existingPlan -> {
+                Plan.PlanSecurityType existingType = existingPlan.getSecurity();
+                // Keyless, MTLS, and other authentication types are mutually exclusive
+                if (planToPublishType == Plan.PlanSecurityType.KEY_LESS) {
+                    return existingType != Plan.PlanSecurityType.KEY_LESS;
+                } else if (planToPublishType == Plan.PlanSecurityType.MTLS) {
+                    return existingType != Plan.PlanSecurityType.MTLS;
+                } else {
+                    return existingType == Plan.PlanSecurityType.KEY_LESS || existingType == Plan.PlanSecurityType.MTLS;
+                }
+            });
 
-        if (conflictingPublishedPlansCount > 0) {
-            throw new NativePlanAuthenticationConflictException(planToPublishIsKeyless);
+        if (hasConflict) {
+            throw new NativePlanAuthenticationConflictException(planToPublishType);
         }
     }
 

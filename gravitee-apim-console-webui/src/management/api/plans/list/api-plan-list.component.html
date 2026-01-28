@@ -90,7 +90,7 @@
   <ng-container matColumnDef="type">
     <th mat-header-cell *matHeaderCellDef id="type">Type</th>
     <td mat-cell *matCellDef="let element">
-      {{ element.security?.type || element.mode }}
+      {{ element.securityTypeLabel || element.mode }}
     </td>
   </ng-container>
 

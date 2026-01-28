@@ -147,13 +147,5 @@ public class PlanValidatorDomainService {
         ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }
-
-        if (
-            listenerTypes.contains(ListenerType.KAFKA) &&
-            planSecurity != null &&
-            PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
-        ) {
-            throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
-        }
     }
 }
