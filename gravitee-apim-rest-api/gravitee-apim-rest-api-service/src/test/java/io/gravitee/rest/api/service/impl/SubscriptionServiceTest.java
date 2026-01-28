@@ -66,6 +66,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -512,13 +513,61 @@ public class SubscriptionServiceTest {
         );
 
         // Verify
-        verify(subscriptionRepository, times(1)).create(any(Subscription.class));
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository, times(1)).create(subscriptionCaptor.capture());
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verifyNoInteractions(rejectSubscriptionDomainService, acceptSubscriptionDomainService);
         verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
+
+        // Verify referenceId and referenceType are set (fallback to API_ID and API type for legacy plans)
+        Subscription createdSubscription = subscriptionCaptor.getValue();
+        assertEquals(API_ID, createdSubscription.getReferenceId());
+        assertEquals(SubscriptionReferenceType.API, createdSubscription.getReferenceType());
+    }
+
+    @Test
+    public void shouldCreateWithReferenceIdAndReferenceTypeForApiProductPlan() throws Exception {
+        // Prepare data - API Product plan with referenceId and referenceType
+        String apiProductId = "api-product-id";
+
+        // Use planEntityV4 which supports referenceId and referenceType
+        planEntityV4.setValidation(MANUAL);
+        planEntityV4.setReferenceId(apiProductId);
+        planEntityV4.setReferenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT);
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository, times(1)).create(subscriptionCaptor.capture());
+        verify(subscriptionRepository, never()).update(any(Subscription.class));
+        verifyNoInteractions(rejectSubscriptionDomainService, acceptSubscriptionDomainService);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
+
+        // Verify referenceId and referenceType are set from plan
+        Subscription createdSubscription = subscriptionCaptor.getValue();
+        assertEquals(apiProductId, createdSubscription.getReferenceId());
+        assertEquals(SubscriptionReferenceType.API_PRODUCT, createdSubscription.getReferenceType());
     }
 
     @Test

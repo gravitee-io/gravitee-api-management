@@ -23,6 +23,7 @@ import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -66,6 +67,7 @@ public abstract class SubscriptionAdapter {
     @Mapping(source = "request", target = "requestMessage")
     @Mapping(source = "reason", target = "reasonMessage")
     @Mapping(target = "configuration", expression = "java(deserializeConfiguration(subscription.getConfiguration()))")
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "mapReferenceTypeFromRepository")
     public abstract SubscriptionEntity toEntity(Subscription subscription);
 
     @Mapping(source = "apiId", target = "api")
@@ -74,6 +76,7 @@ public abstract class SubscriptionAdapter {
     @Mapping(source = "requestMessage", target = "request")
     @Mapping(source = "reasonMessage", target = "reason")
     @Mapping(target = "configuration", expression = "java(serializeConfiguration(subscription.getConfiguration()))")
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "mapReferenceTypeToRepository")
     public abstract Subscription fromEntity(SubscriptionEntity subscription);
 
     @Mapping(source = "apiId", target = "api")
@@ -148,6 +151,26 @@ public abstract class SubscriptionAdapter {
             log.error("Unexpected error while deserializing Subscription configuration", e);
             return null;
         }
+    }
+
+    @Named("mapReferenceTypeFromRepository")
+    protected SubscriptionReferenceType mapReferenceTypeFromRepository(
+        io.gravitee.repository.management.model.SubscriptionReferenceType repoType
+    ) {
+        if (repoType == null) {
+            return null;
+        }
+        return SubscriptionReferenceType.valueOf(repoType.name());
+    }
+
+    @Named("mapReferenceTypeToRepository")
+    protected io.gravitee.repository.management.model.SubscriptionReferenceType mapReferenceTypeToRepository(
+        SubscriptionReferenceType coreType
+    ) {
+        if (coreType == null) {
+            return null;
+        }
+        return io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(coreType.name());
     }
 
     @Named("serializeConfiguration")

@@ -130,6 +130,12 @@ import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDoma
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.AcceptApiProductSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.CloseApiProductSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.CreateApiProductSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.GetApiProductSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.RejectApiProductSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.api_product.UpdateApiProductSubscriptionUseCase;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -759,6 +765,36 @@ public class ResourceContextConfiguration {
     @Primary
     public AcceptSubscriptionUseCase spiedAcceptSubscriptionUseCase(AcceptSubscriptionUseCase usecase) {
         return spy(usecase);
+    }
+
+    @Bean
+    public CreateApiProductSubscriptionUseCase createApiProductSubscriptionUseCase() {
+        return mock(CreateApiProductSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public UpdateApiProductSubscriptionUseCase updateApiProductSubscriptionUseCase() {
+        return mock(UpdateApiProductSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public GetApiProductSubscriptionsUseCase getApiProductSubscriptionsUseCase() {
+        return mock(GetApiProductSubscriptionsUseCase.class);
+    }
+
+    @Bean
+    public AcceptApiProductSubscriptionUseCase acceptApiProductSubscriptionUseCase() {
+        return mock(AcceptApiProductSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public RejectApiProductSubscriptionUseCase rejectApiProductSubscriptionUseCase() {
+        return mock(RejectApiProductSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public CloseApiProductSubscriptionUseCase closeApiProductSubscriptionUseCase() {
+        return mock(CloseApiProductSubscriptionUseCase.class);
     }
 
     @Bean

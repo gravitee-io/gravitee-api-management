@@ -76,6 +76,7 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
     int getOrder();
 
     String getReferenceId();
+
     ReferenceType getReferenceType();
 
     @JsonIgnore

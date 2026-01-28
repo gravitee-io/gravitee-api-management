@@ -24,7 +24,6 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -105,6 +104,9 @@ public class Plan implements GenericPlanEntity {
     private ApiType apiType;
     private String referenceId;
     private ReferenceType referenceType;
+
+    private String referenceId;
+    private GenericPlanEntity.ReferenceType referenceType;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
         this.setPlanDefinitionHttpV4(planDefinitionV4);
@@ -239,6 +241,7 @@ public class Plan implements GenericPlanEntity {
     public enum PlanType {
         API,
         CATALOG,
+        API_PRODUCT,
     }
 
     public boolean isFederated() {

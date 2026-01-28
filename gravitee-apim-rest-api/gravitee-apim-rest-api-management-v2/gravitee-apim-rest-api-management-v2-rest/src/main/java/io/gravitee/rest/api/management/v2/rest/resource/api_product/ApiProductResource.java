@@ -46,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApiProductResource extends AbstractResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private GetApiProductsUseCase getApiProductByIdUseCase;
 
@@ -102,5 +105,10 @@ public class ApiProductResource extends AbstractResource {
     @Path("/plans")
     public ApiProductPlansResource getApiProductPlansResource() {
         return resourceContext.getResource(ApiProductPlansResource.class);
+    }
+
+    @Path("/subscriptions")
+    public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
+        return resourceContext.getResource(ApiProductSubscriptionsResource.class);
     }
 }

@@ -58,6 +58,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -532,6 +533,21 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             String apiId = genericPlanEntity.getApiId();
             subscription.setApi(apiId);
+
+            // Set referenceId and referenceType based on plan's reference
+            if (genericPlanEntity.getReferenceId() != null && genericPlanEntity.getReferenceType() != null) {
+                subscription.setReferenceId(genericPlanEntity.getReferenceId());
+                subscription.setReferenceType(
+                    genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                        ? SubscriptionReferenceType.API_PRODUCT
+                        : SubscriptionReferenceType.API
+                );
+            } else {
+                // Fallback: if plan doesn't have reference info, use API (backward compatibility)
+                subscription.setReferenceId(apiId);
+                subscription.setReferenceType(SubscriptionReferenceType.API);
+            }
+
             subscription.setGeneralConditionsAccepted(newSubscriptionEntity.getGeneralConditionsAccepted());
             if (newSubscriptionEntity.getGeneralConditionsContentRevision() != null) {
                 subscription.setGeneralConditionsContentRevision(newSubscriptionEntity.getGeneralConditionsContentRevision().getRevision());
