@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -70,12 +72,48 @@ class CRDMembersDomainServiceImplTest {
     }
 
     @Nested
+    class ApiAndNoDefaultRole {
+
+        private static final String API_ID = "api-id-that-should-fail";
+
+        @BeforeEach
+        void setUp() {
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(null);
+        }
+
+        @Test
+        void should_throw_error_when_no_default_role_and_member_with_no_role() {
+            Assertions.assertThrows(ValidationDomainException.class, () -> {
+                cut.updateApiMembers(
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(MemberCRD.builder().role(null).id("id-2").sourceId("source-id-2").source("test").build())
+                );
+            });
+        }
+
+        @Test
+        void should_throw_error_when_no_default_role_and_member_with_unknown_role() {
+            when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
+
+            Assertions.assertThrows(ValidationDomainException.class, () -> {
+                cut.updateApiMembers(
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build())
+                );
+            });
+        }
+    }
+
+    @Nested
     class Api {
 
         private static final String API_ID = "api-id";
 
         @BeforeEach
         void setUp() {
+            reset(membershipService, roleService);
             when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
                 List.of(RoleEntity.builder().id("default-api-role").build())
             );
