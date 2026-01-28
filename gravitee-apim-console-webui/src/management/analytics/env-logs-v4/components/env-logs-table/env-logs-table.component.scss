@@ -1,0 +1,27 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.table-wrapper {
+  border-top: 0;
+}
+
+.table {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+  }
+}
+
+.log-timestamp-link {
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, default);
+}

@@ -25,7 +25,8 @@ import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-das
 import { PlatformLogsComponent } from './logs/platform-logs.component';
 import { PlatformLogComponent } from './logs/platform-log.component';
 import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
-import { EnvRuntimeLogsV4Component } from './env-runtime-logs-v4/env-runtime-logs-v4.component';
+import { EnvLogsV4Component } from './env-logs-v4/env-logs-v4.component';
+import { EnvLogsTableComponent } from './env-logs-v4/components/env-logs-table/env-logs-table.component';
 
 const routes: Routes = [
   {
@@ -61,7 +62,7 @@ const routes: Routes = [
       },
       {
         path: 'logs-v4',
-        component: EnvRuntimeLogsV4Component,
+        component: EnvLogsV4Component,
         data: {
           docs: {
             page: 'management-environment-logs-v4',
@@ -84,14 +85,17 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    EnvAnalyticsLayoutComponent,
-    AnalyticsDashboardComponent,
-    PlatformLogsComponent,
-    PlatformLogComponent,
-    EnvRuntimeLogsV4Component,
+  declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
+  imports: [
+    RouterModule.forChild(routes),
+    MatTabsModule,
+    MatCardModule,
+    MatIconModule,
+    GioIconsModule,
+    GioBannerModule,
+    EnvLogsTableComponent,
+    EnvLogsV4Component,
   ],
-  imports: [RouterModule.forChild(routes), MatTabsModule, MatCardModule, MatIconModule, GioIconsModule, GioBannerModule],
   exports: [RouterModule],
 })
 export class EnvAnalyticsModule {}
