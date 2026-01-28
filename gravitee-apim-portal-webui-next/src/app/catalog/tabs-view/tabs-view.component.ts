@@ -14,77 +14,41 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, input, InputSignal, OnInit, signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable, tap } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { Category } from '../../../entities/categories/categories';
-import { ConfigService } from '../../../services/config.service';
 import { ApisListComponent } from '../components/apis-list/apis-list.component';
-import { CatalogBannerComponent } from '../components/catalog-banner/catalog-banner.component';
 
 @Component({
   selector: 'app-tabs-view',
   standalone: true,
-  imports: [AsyncPipe, MatTabsModule, MatCardModule, ApisListComponent, CatalogBannerComponent],
+  imports: [AsyncPipe, MatCardModule, ApisListComponent],
   templateUrl: './tabs-view.component.html',
   styleUrl: './tabs-view.component.scss',
 })
 export class TabsViewComponent implements OnInit {
-  categories: InputSignal<Category[]> = input.required<Category[]>();
-  showBanner: boolean;
-
-  query: string = '';
-  filter = signal('');
-  filterAsCategory = computed(() => this.categories().find(cat => cat.id === this.filter()));
-  selectedFilterIndex = computed(() => {
-    const foundCategory = this.filterAsCategory();
-    return foundCategory ? this.categories().indexOf(foundCategory) + 1 : 0;
-  });
-
-  filterAndQuery$: Observable<{ filter: string; query: string }> = of();
+  filterAndQuery$: Observable<{ query: string }> = of();
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly configService: ConfigService,
-  ) {
-    this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
-  }
+  ) {}
 
   ngOnInit() {
     this.filterAndQuery$ = this.route.queryParams.pipe(
       map(queryParams => ({
         query: queryParams['query'] ?? '',
-        filter: queryParams['filter'] ?? '',
       })),
-      tap(({ query, filter }) => {
-        this.filter.set(filter);
-        this.query = query;
-      }),
     );
-  }
-
-  onFilterSelection($event: MatTabChangeEvent) {
-    const categoryId = this.categories().find(cat => cat.name === $event.tab.textLabel)?.id ?? '';
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        filter: categoryId,
-        query: this.query,
-      },
-    });
   }
 
   onSearchResults(searchInput: string) {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
-        filter: this.filter(),
         query: searchInput,
       },
     });

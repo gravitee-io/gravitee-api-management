@@ -16,24 +16,7 @@
 
 -->
 <div class="content">
-  @if (showBanner) {
-    <app-catalog-banner />
-  }
-
-  @if (categories(); as categoryList) {
-    <div class="catalog__filters">
-      @if (categoryList.length) {
-        <mat-tab-group (selectedTabChange)="onFilterSelection($event)" [selectedIndex]="selectedFilterIndex()" [mat-stretch-tabs]="false">
-          <mat-tab label="All" />
-          @for (f of categoryList; track f.id) {
-            <mat-tab [label]="f.name ?? ''" />
-          }
-        </mat-tab-group>
-      }
-    </div>
-  }
-
   @if (filterAndQuery$ | async; as filterAndQuery) {
-    <app-apis-list [currentCategory]="filterAsCategory() ?? {}" [query]="filterAndQuery.query" (searchTerm)="onSearchResults($event)" />
+    <app-apis-list [currentCategory]="{}" [query]="filterAndQuery.query" (searchTerm)="onSearchResults($event)" />
   }
 </div>
