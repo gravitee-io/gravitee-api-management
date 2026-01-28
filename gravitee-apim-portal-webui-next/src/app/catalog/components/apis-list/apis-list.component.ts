@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 import { AsyncPipe, NgClass } from '@angular/common';
-import { Component, computed, effect, inject, input, InputSignal, output } from '@angular/core';
+import { Component, computed, effect, inject, input, InputSignal, output, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { isEqual } from 'lodash';
-import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
-import { BehaviorSubject, catchError, distinctUntilChanged, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../../../components/api-card/api-card.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { PaginationComponent } from '../../../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { ApisResponse } from '../../../../entities/api/apis-response';
 import { Category } from '../../../../entities/categories/categories';
@@ -36,18 +43,19 @@ interface ApiVM {
   content: string;
   isEnabledMcpServer: boolean;
   picture?: string;
+  labels?: string[];
 }
 
 interface ApiPaginatorVM {
   data: ApiVM[];
   page: number;
-  hasNextPage: boolean;
+  totalResults: number;
 }
 
 @Component({
   selector: 'app-apis-list',
   standalone: true,
-  imports: [AsyncPipe, MatCardModule, ApiCardComponent, InfiniteScrollDirective, LoaderComponent, SearchBarComponent, NgClass],
+  imports: [AsyncPipe, MatCardModule, ApiCardComponent, LoaderComponent, SearchBarComponent, NgClass, PaginationComponent, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule, MatChipsModule, RouterModule],
   templateUrl: './apis-list.component.html',
   styleUrl: './apis-list.component.scss',
 })
@@ -60,13 +68,18 @@ export class ApisListComponent {
 
   apiPaginator$: Observable<ApiPaginatorVM> = of();
   loadingPage: boolean = true;
+  pageSize = 20;
+  pageSizeOptions = [8, 20, 40, 80];
+  viewMode = signal<'grid' | 'list'>('grid');
 
   apiListContainerClasses = computed(() => ({
     'api-list__container--mobile': this.isMobile(),
+    'api-list__container--list': this.viewMode() === 'list',
   }));
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   private readonly page$ = new BehaviorSubject<number>(1);
+  private readonly pageSize$ = new BehaviorSubject<number>(20);
 
   constructor(private readonly apiService: ApiService) {
     effect(() => {
@@ -81,12 +94,14 @@ export class ApisListComponent {
     this.apiPaginator$ = this.loadApis$();
   }
 
-  loadMoreApis(paginator: ApiPaginatorVM) {
-    if (!paginator.hasNextPage) {
-      return;
-    }
+  onPageChange(page: number) {
+    this.page$.next(page);
+  }
 
-    this.page$.next(paginator.page + 1);
+  onPageSizeChange(newPageSize: number) {
+    this.pageSize = newPageSize;
+    this.pageSize$.next(newPageSize);
+    this.page$.next(1);
   }
 
   onSearchResults(searchInput: string) {
@@ -95,22 +110,20 @@ export class ApisListComponent {
     }
   }
 
+  toggleViewMode() {
+    this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
+  }
+
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
-      map(currentPage => ({ currentPage, category: this.categoryId(), query: this.query() })),
+      switchMap(currentPage =>
+        this.pageSize$.pipe(
+          map(pageSize => ({ currentPage, pageSize, category: this.categoryId(), query: this.query() }))
+        )
+      ),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       tap(_ => (this.loadingPage = true)),
-      switchMap(({ currentPage, category, query }) => {
-        if (currentPage === 1) {
-          return of({ page: currentPage, size: 18, category, query });
-        } else if (currentPage === 2) {
-          this.page$.next(3);
-          return EMPTY;
-        } else {
-          return of({ page: currentPage, size: 9, category, query });
-        }
-      }),
-      switchMap(({ page, size, category, query }) => this.searchApis$(page, size, category, query)),
+      switchMap(({ currentPage, pageSize, category, query }) => this.searchApis$(currentPage, pageSize, category, query)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
@@ -120,35 +133,23 @@ export class ApisListComponent {
               title: api.name,
               picture: api._links?.picture,
               isEnabledMcpServer: !!api.mcp,
+              labels: api.labels,
             }))
           : [];
 
         const page = resp.metadata?.pagination?.current_page ?? 1;
-        const hasNextPage = resp.metadata?.pagination?.total_pages ? page < resp.metadata.pagination.total_pages : false;
+        const totalResults = resp.metadata?.pagination?.total ?? 0;
         return {
           data,
           page,
-          hasNextPage,
+          totalResults,
         };
       }),
-      scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
       tap(_ => (this.loadingPage = false)),
     );
   }
 
   private searchApis$(page: number, size: number, category: string, query?: string): Observable<ApisResponse> {
     return this.apiService.search(page, category, query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
-  }
-
-  private updatePaginator(accumulator: ApiPaginatorVM, value: ApiPaginatorVM): ApiPaginatorVM {
-    if (value.page === 1) {
-      return value;
-    }
-
-    accumulator.data.push(...value.data);
-    accumulator.page = value.page;
-    accumulator.hasNextPage = value.hasNextPage;
-
-    return accumulator;
   }
 }
