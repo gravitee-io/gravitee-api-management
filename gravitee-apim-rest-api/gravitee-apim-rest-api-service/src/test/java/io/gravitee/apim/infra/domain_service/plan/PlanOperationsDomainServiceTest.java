@@ -30,6 +30,7 @@ import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.exception.InvalidPlanStatusForDeprecationException;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -59,7 +60,7 @@ class PlanOperationsDomainServiceTest {
 
     private static final String PLAN_ID = "plan-id";
     private static final String API_ID = "api-id";
-    private static final String API_PRODUCT_ID = "api-product-id";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     @Mock
     PlanRepository planRepository;
@@ -82,6 +83,9 @@ class PlanOperationsDomainServiceTest {
     @Mock
     ExecutionContext executionContext;
 
+    @Mock
+    CloseSubscriptionDomainService closeSubscriptionDomainService;
+
     PublishPlanDomainServiceImpl publicationsService;
     ClosePlanDomainService closePlanDomainService;
     DeprecatePlanDomainService deprecatePlanDomainService;
@@ -89,7 +93,12 @@ class PlanOperationsDomainServiceTest {
     @BeforeEach
     void setUp() {
         publicationsService = new PublishPlanDomainServiceImpl(planRepository, auditService);
-        closePlanDomainService = new ClosePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+        closePlanDomainService = new ClosePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            auditDomainService
+        );
         deprecatePlanDomainService = new DeprecatePlanDomainService(planCrudService, auditDomainService);
     }
 

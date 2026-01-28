@@ -18,6 +18,7 @@ package fixtures.core.model;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.function.Supplier;
@@ -39,7 +40,9 @@ public class PlanFixtures {
             .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .crossId("my-plan-crossId")
             .type(Plan.PlanType.API)
-            .validation(Plan.PlanValidationType.AUTO);
+            .validation(Plan.PlanValidationType.AUTO)
+            .referenceId("my-api")
+            .referenceType(GenericPlanEntity.ReferenceType.API);
 
     public static Plan aPlanHttpV4() {
         return BASE.get()

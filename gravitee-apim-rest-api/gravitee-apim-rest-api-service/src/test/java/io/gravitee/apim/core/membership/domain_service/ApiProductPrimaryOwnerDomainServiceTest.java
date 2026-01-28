@@ -62,7 +62,7 @@ class ApiProductPrimaryOwnerDomainServiceTest {
     private static final String MEMBER_ID = "member-id";
     private static final String GROUP_ID = "group-id";
     private static final String USER_ID = "user-id";
-    private static final String API_PRODUCT_ID = "my-api-product";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();

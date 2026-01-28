@@ -133,7 +133,7 @@
      "description":"Plan attached to an API product",
      "definitionVersion":"4.0.0",
      "environmentId":"DEFAULT",
-     "referenceId":"api-product-1",
+     "referenceId":"c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
      "referenceType":"API_PRODUCT",
      "security":"API_KEY",
      "validation":"AUTO",

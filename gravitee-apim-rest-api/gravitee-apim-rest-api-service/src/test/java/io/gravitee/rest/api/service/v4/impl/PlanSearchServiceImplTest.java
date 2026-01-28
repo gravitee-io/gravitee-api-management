@@ -66,7 +66,7 @@ public class PlanSearchServiceImplTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
-    private static final String API_PRODUCT_ID = "my-api-product";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     private PlanSearchService planSearchService;
 

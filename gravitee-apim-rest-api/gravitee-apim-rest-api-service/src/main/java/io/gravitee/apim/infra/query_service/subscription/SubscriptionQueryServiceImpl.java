@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.subscription;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -110,6 +112,61 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions by plan security types", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
+        String applicationId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        try {
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            var criteria = SubscriptionCriteria.builder()
+                .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+                .referenceIds(List.of(referenceId))
+                .referenceType(repoReferenceType)
+                .applications(List.of(applicationId))
+                .build();
+
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
+        try {
+            // Convert core enum to repository enum
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            return subscriptionRepository
+                .findByReferenceIdAndReferenceType(referenceId, repoReferenceType)
+                .stream()
+                .map(subscriptionAdapter::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions by reference", e);
+        }
+    }
+
+    @Override
+    public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        try {
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            return subscriptionRepository
+                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, repoReferenceType)
+                .map(subscriptionAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscription by id and reference", e);
         }
     }
 }

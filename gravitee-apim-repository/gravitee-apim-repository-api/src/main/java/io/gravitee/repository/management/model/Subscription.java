@@ -22,6 +22,7 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -51,10 +52,15 @@ public class Subscription implements Serializable {
      * Subscription ID.
      */
     private String id;
+
     /**
      * The subscribed {@link Api}.
+     *
+     * @deprecated since 4.11.0. Use referenceId and referenceType instead.
      */
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String api;
+
     /**
      * The environment related to this subscription
      */
@@ -141,6 +147,12 @@ public class Subscription implements Serializable {
 
     private String origin;
 
+    @EqualsAndHashCode.Include
+    private String referenceId;
+
+    @EqualsAndHashCode.Include
+    private SubscriptionReferenceType referenceType;
+
     public Subscription(Subscription cloned) {
         this.id = cloned.id;
         this.api = cloned.api;
@@ -173,6 +185,8 @@ public class Subscription implements Serializable {
         this.type = cloned.type;
         this.failureCause = cloned.failureCause;
         this.origin = cloned.origin;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
     }
 
     /**

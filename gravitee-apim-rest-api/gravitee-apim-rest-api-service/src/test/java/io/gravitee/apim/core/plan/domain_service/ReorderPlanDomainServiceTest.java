@@ -38,7 +38,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class ReorderPlanDomainServiceTest {
 
     private static final String API_ID = "my-api";
-    private static final String API_PRODUCT_ID = "my-api-product";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);

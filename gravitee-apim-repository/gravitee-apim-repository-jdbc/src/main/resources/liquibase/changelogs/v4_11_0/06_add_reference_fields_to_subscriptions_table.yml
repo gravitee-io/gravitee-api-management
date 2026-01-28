@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_06_add_reference_fields_to_subscriptions_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - createIndex:
+            indexName: idx_${gravitee_prefix}subscriptions_reference_type_reference_id
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: reference_type
+              - column:
+                  name: reference_id
+        - sql:
+            sql: UPDATE ${gravitee_prefix}subscriptions SET reference_type = 'API', reference_id = api WHERE api IS NOT NULL AND reference_type IS NULL
+

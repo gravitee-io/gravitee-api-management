@@ -73,7 +73,7 @@ public class ApiProductPlanResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.READ }) })
     public Response getApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Getting Plan {} for API Product {}", planId, apiProductId);
-        var output = getApiProductPlansUseCase.execute(new GetApiProductPlansUseCase.Input(apiProductId, null, false, null, planId));
+        var output = getApiProductPlansUseCase.execute(new GetApiProductPlansUseCase.Input(apiProductId, null, false, null, planId, null));
         var planOpt = output.apiProductPlan();
         var planEntity = planOpt.orElse(null);
         if (

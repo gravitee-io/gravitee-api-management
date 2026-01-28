@@ -22,6 +22,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.ZonedDateTime;
@@ -45,10 +46,11 @@ public class AcceptSubscriptionUseCase {
     }
 
     public Output execute(Input input) {
-        var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (!input.apiId.equalsIgnoreCase(subscription.getApiId())) {
-            throw new SubscriptionNotFoundException(input.subscriptionId);
+        if (input == null) {
+            throw new IllegalArgumentException("Input cannot be null");
         }
+        var subscription = subscriptionCrudService.get(input.subscriptionId);
+        validateSubscription(subscription, input.referenceId, input.referenceType);
 
         checkSubscriptionStatus(subscription);
         var plan = checkPlanStatus(subscription);
@@ -64,6 +66,12 @@ public class AcceptSubscriptionUseCase {
                 input.auditInfo
             )
         );
+    }
+
+    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+            throw new SubscriptionNotFoundException(subscription.getId());
+        }
     }
 
     private void checkSubscriptionStatus(SubscriptionEntity subscriptionEntity) {
@@ -82,7 +90,8 @@ public class AcceptSubscriptionUseCase {
 
     @Builder
     public record Input(
-        String apiId,
+        String referenceId,
+        SubscriptionReferenceType referenceType,
         String subscriptionId,
         ZonedDateTime startingAt,
         ZonedDateTime endingAt,

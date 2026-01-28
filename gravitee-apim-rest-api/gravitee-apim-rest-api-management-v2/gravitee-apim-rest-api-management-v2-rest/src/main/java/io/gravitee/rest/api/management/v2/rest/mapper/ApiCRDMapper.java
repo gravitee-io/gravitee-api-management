@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -52,6 +54,7 @@ import org.mapstruct.factory.Mappers;
         EntrypointMapper.class,
         FlowMapper.class,
         ListenerMapper.class,
+        PlanMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
@@ -68,6 +71,7 @@ public interface ApiCRDMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanCRD map(io.gravitee.apim.core.api.model.crd.PlanCRD plan);
 
     @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
@@ -83,6 +87,14 @@ public interface ApiCRDMapper {
     @Named("mapLifecycleState")
     default ApiLifecycleState mapLifecycleState(String lifecycleState) {
         return ApiLifecycleState.PUBLISHED.name().equals(lifecycleState) ? ApiLifecycleState.PUBLISHED : ApiLifecycleState.UNPUBLISHED;
+    }
+
+    @Named("mapPlanTypeCoreToRest")
+    default PlanType mapPlanTypeCoreToRest(Plan.PlanType planType) {
+        if (planType == null) {
+            return null;
+        }
+        return PlanType.valueOf(planType.name());
     }
 
     default List<Listener> mapAbstractListeners(List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners) {

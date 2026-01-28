@@ -28,13 +28,16 @@ import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.CustomLog;
@@ -134,27 +137,44 @@ public class GenerateApiKeyDomainService {
     }
 
     private void createAuditLog(ApiKeyEntity createdApiKeyEntity, SubscriptionEntity subscription, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(subscription.getApiId())
-                .event(ApiKeyAuditEvent.APIKEY_CREATED)
-                .actor(auditInfo.actor())
-                .oldValue(null)
-                .newValue(createdApiKeyEntity)
-                .createdAt(createdApiKeyEntity.getCreatedAt())
-                .properties(
-                    Map.of(
-                        AuditProperties.API_KEY,
-                        createdApiKeyEntity.getKey(),
-                        AuditProperties.API,
-                        subscription.getApiId(),
-                        AuditProperties.APPLICATION,
-                        subscription.getApplicationId()
-                    )
-                )
-                .build()
-        );
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
+        String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
+
+        Map<AuditProperties, String> properties = new HashMap<>();
+        properties.put(AuditProperties.API_KEY, createdApiKeyEntity.getKey());
+        if (referenceId != null) {
+            properties.put(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId);
+        }
+        properties.put(AuditProperties.APPLICATION, subscription.getApplicationId());
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_CREATED)
+                    .actor(auditInfo.actor())
+                    .oldValue(null)
+                    .newValue(createdApiKeyEntity)
+                    .createdAt(createdApiKeyEntity.getCreatedAt())
+                    .properties(properties)
+                    .build()
+            );
+        } else {
+            auditService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_CREATED)
+                    .actor(auditInfo.actor())
+                    .oldValue(null)
+                    .newValue(createdApiKeyEntity)
+                    .createdAt(createdApiKeyEntity.getCreatedAt())
+                    .properties(properties)
+                    .build()
+            );
+        }
     }
 }

@@ -103,4 +103,9 @@ public class ApiProductResource extends AbstractResource {
     public ApiProductPlansResource getApiProductPlansResource() {
         return resourceContext.getResource(ApiProductPlansResource.class);
     }
+
+    @Path("/subscriptions")
+    public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
+        return resourceContext.getResource(ApiProductSubscriptionsResource.class);
+    }
 }

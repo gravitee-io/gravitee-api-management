@@ -145,4 +145,8 @@ public class SubscriptionMongo extends DeprecatedAuditable {
     private String type;
 
     private String origin;
+
+    private String referenceId;
+
+    private String referenceType;
 }

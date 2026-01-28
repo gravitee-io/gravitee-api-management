@@ -560,18 +560,21 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceIdAndReferenceType_forApiProduct() throws Exception {
-        Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType("api-product-1", Plan.PlanReferenceType.API_PRODUCT);
+        Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(
+            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+            Plan.PlanReferenceType.API_PRODUCT
+        );
 
         assertThat(plans)
             .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
-            .containsExactly(tuple("api-product-plan-1", "api-product-1", Plan.PlanReferenceType.API_PRODUCT));
+            .containsExactly(tuple("api-product-plan-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT));
     }
 
     @Test
     public void shouldFindByIdAndReferenceIdAndReferenceType() throws Exception {
         Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
             "api-product-plan-1",
-            "api-product-1",
+            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
             Plan.PlanReferenceType.API_PRODUCT
         );
 
@@ -579,7 +582,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
             .isPresent()
             .get()
             .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
-            .containsExactly("api-product-plan-1", "api-product-1", Plan.PlanReferenceType.API_PRODUCT);
+            .containsExactly("api-product-plan-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT);
     }
 
     @Test

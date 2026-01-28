@@ -16,6 +16,7 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
@@ -29,6 +30,8 @@ public class SubscriptionFixtures {
         SubscriptionEntity.builder()
             .id("subscription-id")
             .apiId("api-id")
+            .referenceId("api-id")
+            .referenceType(SubscriptionReferenceType.API)
             .planId("plan-id")
             .applicationId("application-id")
             .clientId("client-id")

@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
@@ -158,24 +159,37 @@ public class ApiSubscriptionResource extends AbstractResource {
         if (processSubscriptionEntity.isAccepted()) {
             result = acceptSubscriptionUsecase
                 .execute(
-                    new AcceptSubscriptionUseCase.Input(
-                        api,
-                        subscription,
-                        processSubscriptionEntity.getStartingAt() != null
-                            ? processSubscriptionEntity.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
-                            : null,
-                        processSubscriptionEntity.getEndingAt() != null
-                            ? processSubscriptionEntity.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
-                            : null,
-                        processSubscriptionEntity.getReason(),
-                        processSubscriptionEntity.getCustomApiKey(),
-                        auditInfo
-                    )
+                    AcceptSubscriptionUseCase.Input.builder()
+                        .referenceId(api)
+                        .referenceType(SubscriptionReferenceType.API)
+                        .subscriptionId(subscription)
+                        .startingAt(
+                            processSubscriptionEntity.getStartingAt() != null
+                                ? processSubscriptionEntity.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
+                                : null
+                        )
+                        .endingAt(
+                            processSubscriptionEntity.getEndingAt() != null
+                                ? processSubscriptionEntity.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
+                                : null
+                        )
+                        .reasonMessage(processSubscriptionEntity.getReason())
+                        .customKey(processSubscriptionEntity.getCustomApiKey())
+                        .auditInfo(auditInfo)
+                        .build()
                 )
                 .subscription();
         } else {
             result = rejectSubscriptionUsecase
-                .execute(new RejectSubscriptionUseCase.Input(api, subscription, processSubscriptionEntity.getReason(), auditInfo))
+                .execute(
+                    RejectSubscriptionUseCase.Input.builder()
+                        .referenceId(api)
+                        .referenceType(SubscriptionReferenceType.API)
+                        .subscriptionId(subscription)
+                        .reasonMessage(processSubscriptionEntity.getReason())
+                        .auditInfo(auditInfo)
+                        .build()
+                )
                 .subscription();
         }
 
@@ -244,7 +258,8 @@ public class ApiSubscriptionResource extends AbstractResource {
             var result = closeSubscriptionUsecase.execute(
                 CloseSubscriptionUseCase.Input.builder()
                     .subscriptionId(subscription)
-                    .apiId(api)
+                    .referenceId(api)
+                    .referenceType(SubscriptionReferenceType.API)
                     .auditInfo(
                         AuditInfo.builder()
                             .organizationId(executionContext.getOrganizationId())

@@ -21,6 +21,7 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
@@ -43,15 +44,22 @@ public class RejectSubscriptionUseCase {
     }
 
     public Output execute(Input input) {
-        var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (!input.apiId.equalsIgnoreCase(subscription.getApiId())) {
-            throw new SubscriptionNotFoundException(input.subscriptionId);
+        if (input == null) {
+            throw new IllegalArgumentException("Input cannot be null");
         }
+        var subscription = subscriptionCrudService.get(input.subscriptionId);
+        validateSubscription(subscription, input.referenceId, input.referenceType);
 
         checkSubscriptionStatus(subscription);
         checkPlanStatus(subscription);
 
         return new Output(rejectSubscriptionDomainService.reject(subscription, input.reasonMessage, input.auditInfo));
+    }
+
+    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+            throw new SubscriptionNotFoundException(subscription.getId());
+        }
     }
 
     private void checkSubscriptionStatus(SubscriptionEntity subscriptionEntity) {
@@ -68,7 +76,13 @@ public class RejectSubscriptionUseCase {
     }
 
     @Builder
-    public record Input(String apiId, String subscriptionId, String reasonMessage, AuditInfo auditInfo) {}
+    public record Input(
+        String referenceId,
+        SubscriptionReferenceType referenceType,
+        String subscriptionId,
+        String reasonMessage,
+        AuditInfo auditInfo
+    ) {}
 
     public record Output(SubscriptionEntity subscription) {}
 }

@@ -93,6 +93,12 @@ public class SubscriptionEntity {
     @Builder.Default
     private OriginContext.Origin origin = OriginContext.Origin.MANAGEMENT;
 
+    /** The reference ID (API ID or API Product ID) */
+    private String referenceId;
+
+    /** The reference type (API or API_PRODUCT) */
+    private SubscriptionReferenceType referenceType;
+
     /**
      * Consumer can start subscription only if its consumer status is {@link this#consumerStatus} is {@link ConsumerStatus#STOPPED} or {@link ConsumerStatus#STARTED}
      * @return true when consumer can start the subscription

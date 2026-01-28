@@ -21,12 +21,15 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,28 +50,59 @@ public class ValidateApiProductService {
         }
     }
 
-    public Set<String> filterApiIdsAllowedInProduct(String environmentId, @Nonnull List<String> apiIds) {
+    public void validateApiIdsForProduct(String environmentId, @Nonnull List<String> apiIds) {
         if (apiIds.isEmpty()) {
-            log.debug("Filtered API IDs for environment {}: input={}, output=0 (empty list)", environmentId, apiIds.size());
-            return Set.of();
+            return;
         }
 
         ApiSearchCriteria criteria = ApiSearchCriteria.builder().ids(apiIds).environmentId(environmentId).build();
         ApiFieldFilter fieldFilter = ApiFieldFilter.builder().definitionExcluded(false).pictureExcluded(true).build();
 
-        Set<String> allowedApiIds = apiQueryService
-            .search(criteria, null, fieldFilter)
-            .filter(
-                api ->
-                    api.getDefinitionVersion() == DefinitionVersion.V4 &&
-                    api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api &&
-                    Boolean.TRUE.equals(v4Api.getAllowedInApiProducts())
-            )
-            .map(Api::getId)
-            .collect(Collectors.toSet());
+        Map<String, Api> foundApis = apiQueryService.search(criteria, null, fieldFilter).collect(Collectors.toMap(Api::getId, api -> api));
 
-        log.debug("Filtered API IDs for environment {}: input={}, output={}", environmentId, apiIds.size(), allowedApiIds.size());
+        List<String> nonExistentApiIds = apiIds
+            .stream()
+            .filter(id -> !foundApis.containsKey(id))
+            .collect(Collectors.toList());
+        List<String> invalidApiIds = new ArrayList<>();
+        List<String> notAllowedApiIds = new ArrayList<>();
 
-        return allowedApiIds;
+        for (Api api : foundApis.values()) {
+            if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+                invalidApiIds.add(api.getId());
+            } else if (
+                api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api &&
+                !Boolean.TRUE.equals(v4Api.getAllowedInApiProducts())
+            ) {
+                notAllowedApiIds.add(api.getId());
+            }
+        }
+
+        if (nonExistentApiIds.isEmpty() && invalidApiIds.isEmpty() && notAllowedApiIds.isEmpty()) {
+            return;
+        }
+
+        var messages = new ArrayList<String>();
+        var parameters = new HashMap<String, String>();
+
+        addError(nonExistentApiIds, "These APIs [%s] do not exist", "nonExistentApiIds", messages, parameters);
+        addError(invalidApiIds, "Only V4 API definition is supported. These APIs [%s] are not V4", "invalidApiIds", messages, parameters);
+        addError(notAllowedApiIds, "These APIs [%s] are not allowed in API Products", "notAllowedApiIds", messages, parameters);
+
+        throw new ValidationDomainException(String.join(". ", messages), parameters);
+    }
+
+    private void addError(
+        List<String> apiIds,
+        String messageFormat,
+        String parameterKey,
+        List<String> messages,
+        Map<String, String> parameters
+    ) {
+        if (!apiIds.isEmpty()) {
+            String joined = String.join(", ", apiIds);
+            messages.add(String.format(messageFormat, joined));
+            parameters.put(parameterKey, joined);
+        }
     }
 }

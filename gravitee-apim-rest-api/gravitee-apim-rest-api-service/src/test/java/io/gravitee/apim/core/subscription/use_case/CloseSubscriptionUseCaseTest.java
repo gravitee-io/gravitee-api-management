@@ -54,6 +54,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase.Input;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -183,7 +184,14 @@ class CloseSubscriptionUseCaseTest {
 
         // When
         Throwable throwable = catchThrowable(() ->
-            usecase.execute(Input.builder().subscriptionId(subscription.getId()).apiId("another-api").auditInfo(AUDIT_INFO).build())
+            usecase.execute(
+                Input.builder()
+                    .subscriptionId(subscription.getId())
+                    .referenceId("another-api")
+                    .referenceType(SubscriptionReferenceType.API)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            )
         );
 
         // Then
@@ -223,7 +231,13 @@ class CloseSubscriptionUseCaseTest {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(api.getId()).status(status).build()
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
+                .status(status)
+                .build()
         );
 
         // When
@@ -242,7 +256,8 @@ class CloseSubscriptionUseCaseTest {
             SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
@@ -267,7 +282,8 @@ class CloseSubscriptionUseCaseTest {
             SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
                 .build()
@@ -293,7 +309,8 @@ class CloseSubscriptionUseCaseTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .applicationId(application.getId())
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .planId("plan-id")
                 .status(status)
                 .build()
@@ -321,7 +338,8 @@ class CloseSubscriptionUseCaseTest {
             SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
                 .build()
@@ -373,7 +391,8 @@ class CloseSubscriptionUseCaseTest {
             SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
                 .build()
@@ -412,7 +431,8 @@ class CloseSubscriptionUseCaseTest {
             SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
-                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
                 .metadata(Map.of("api-key-provider-id", "value"))
