@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: Gravitee.io APIM - Management API - Logs
+  description: |
+    This API allows to query logs data from the Gravitee.io APIM.
+
+    The API provides access to:
+    - **API Logs**: Detailed records of API connections at environment level.
+
+  contact:
+    name: DevX team
+    email: team-gko@graviteesource.com
+    url: https://www.gravitee.io/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+
+servers:
+  - url: "/management/v2"
+    description: APIM Management API v2 - Default base URL
+  - url: "/management/v2/organizations/{orgId}"
+    description: APIM Management API v2 - Base URL to target specific organizations
+    variables:
+      orgId:
+        description: The unique ID of your organization
+        default: DEFAULT
+
+paths:
+  /environments/{envId}/logs/search:
+    post:
+      operationId: searchApiLogs
+      summary: Search API logs
+      description: |
+        Retrieve API logs across the environment.
+        Current implementation supports searching for v4 Proxy APIs logs.
+      tags:
+        - logs
+      parameters:
+        - $ref: "./openapi-analytics.yaml#/components/parameters/EnvId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchLogsRequest"
+            examples:
+              filter-by-api-and-http-status:
+                summary: Logs for a specific API and HTTP statuses
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  filters:
+                    - name: "API"
+                      operator: "EQ"
+                      value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+                    - name: "HTTP_STATUS"
+                      operator: "IN"
+                      value:
+                        - "200"
+                        - "404"
+              filter-by-entrypoint:
+                summary: Page 2 of logs filtered by entrypoint
+                value:
+                  timeRange:
+                    from: "2025-09-01T00:00:00Z"
+                    to: "2026-01-31T23:59:59Z"
+                  filters:
+                    - name: "ENTRYPOINT"
+                      operator: "IN"
+                      value:
+                        - "native-kafka"
+                        - "websocket"
+                        - "tcp-proxy"
+                        - "sse"
+                        - "agent-to-agent"
+                        - "mcp-proxy"
+                        - "mcp"
+                        - "http-post"
+                        - "http-proxy"
+                        - "webhook"
+                        - "llm-proxy"
+                        - "http-get"
+                  page: 2
+                  perPage: 25
+
+      responses:
+        "200":
+          description: List of connection logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchLogsResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-analytics.yaml#/components/schemas/Error"
+
+components:
+  schemas:
+    SearchLogsRequest:
+      type: object
+      required:
+        - timeRange
+      properties:
+        timeRange:
+          $ref: "./openapi-analytics.yaml#/components/schemas/TimeRange"
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Filter"
+          description: Top-level filters
+        page:
+          description: The page number for pagination.
+          type: integer
+          default: 1
+          minimum: 1
+        perPage:
+          description: The number of items per page for pagination.
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+
+    SearchLogsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/ApiLog"
+        pagination:
+          $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+        links:
+          $ref: "./openapi-apis.yaml#/components/schemas/Links"
+
+    Filter:
+      description: |
+        Filter specification for analytics queries.
+        Filters can be used at the top level of a request to refine the analytics results, 
+        or nested within a metrics to refine specific measures.
+      oneOf:
+        - $ref: "#/components/schemas/StringFilter"
+        - $ref: "#/components/schemas/ArrayFilter"
+      discriminator:
+        propertyName: operator
+        mapping:
+          EQ: "#/components/schemas/StringFilter"
+          IN: "#/components/schemas/ArrayFilter"
+      example:
+        name: "API"
+        operator: "EQ"
+        value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+
+    StringFilter:
+      description: Filter specification for string values
+      type: object
+      required: [name, operator, value]
+      properties:
+        name:
+          $ref: "#/components/schemas/FilterName"
+        operator:
+          $ref: "#/components/schemas/Operator"
+        value:
+          type: string
+          description: Filter value (string for EQ)
+      example: { name: "API", operator: "EQ", value: "api-id" }
+
+    ArrayFilter:
+      description: Filter specification for array values.
+      type: object
+      required: [name, operator, value]
+      properties:
+        name:
+          $ref: "#/components/schemas/FilterName"
+        operator:
+          $ref: "#/components/schemas/Operator"
+        value:
+          type: array
+          items:
+            type: string
+          description: Filter value (array for IN operator)
+      example: { name: "HTTP_STATUS_CODE_GROUP", operator: "IN", value: ["2xx", "3xx"] }
+
+    FilterName:
+      type: string
+      enum:
+        - API
+        - APPLICATION
+        - ENTRYPOINT
+        - PLAN
+        - HTTP_METHOD
+        - HTTP_STATUS
+      description: Available filter names for filtering analytics data
+
+    Operator:
+      type: string
+      enum:
+        - EQ
+        - IN
+      description: Filter operator
