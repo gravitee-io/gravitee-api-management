@@ -17,10 +17,12 @@ package io.gravitee.apim.infra.domain_service.member;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.infra.adapter.GroupCRDAdapter;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -33,6 +35,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -91,12 +94,21 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     ) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
-        var defaultRole = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), mapRoleScope(roleScope)).iterator().next();
+        var defaultRoles = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), mapRoleScope(roleScope));
+
+        var defaultRole = CollectionUtils.isNotEmpty(defaultRoles) ? defaultRoles.getFirst() : null;
 
         for (var member : members) {
             if (StringUtils.isEmpty(member.getRole())) {
+                assertDefaultRoleForScope(defaultRole, roleScope);
                 log.warn("There is no role associated with member [{}]. Default role will be applied", member.getSourceId());
             }
+
+            var memberRoleEntity = StringUtils.isEmpty(member.getRole())
+                ? defaultRole
+                : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
+
+            Objects.requireNonNull(memberRoleEntity, "Unable to find role for member [" + member.getSourceId() + "]");
 
             membershipService
                 .getRoles(referenceType, referenceId, MembershipMemberType.USER, member.getId())
@@ -106,10 +118,6 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
                 .ifPresent(role ->
                     membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, member.getId(), role.getId())
                 );
-
-            var memberRoleEntity = StringUtils.isEmpty(member.getRole())
-                ? defaultRole
-                : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
 
             membershipService.addRoleToMemberOnReference(
                 executionContext,
@@ -183,6 +191,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
                 .findByScopeAndName(mapRoleScope(roleScope), roleNameOrId, organizationId)
                 .orElseGet(() -> roleService.findById(roleNameOrId));
         } catch (RoleNotFoundException e) {
+            assertDefaultRoleForScope(defaultRole, roleScope);
             log.warn("Unable to find role [{}]. Using default role [{}]", roleNameOrId, defaultRole);
             return defaultRole;
         }
@@ -190,5 +199,13 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     private io.gravitee.rest.api.model.permissions.RoleScope mapRoleScope(RoleScope roleScope) {
         return roleScope == null ? null : io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name());
+    }
+
+    private void assertDefaultRoleForScope(RoleEntity defaultRole, RoleScope roleScope) {
+        if (defaultRole == null) {
+            var explanation =
+                "If an existing member role has not been explicitly set, a default role must be set for the role scope in your organization settings.";
+            throw new ValidationDomainException(String.format("Unable to set role for scope [%s]. %s", roleScope, explanation));
+        }
     }
 }
