@@ -338,8 +338,8 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
         tap(() => {
           this.snackBarService.success(`Subscription successfully created`);
         }),
-        catchError(() => {
-          this.snackBarService.error('An error occured during subscription creation');
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occured during subscription creation');
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
