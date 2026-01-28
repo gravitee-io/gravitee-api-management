@@ -22,8 +22,10 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -51,4 +53,13 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
+        throws TechnicalException;
+
+    Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException;
 }

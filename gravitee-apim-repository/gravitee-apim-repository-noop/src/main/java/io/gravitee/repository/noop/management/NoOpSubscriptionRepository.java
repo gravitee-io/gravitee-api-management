@@ -25,8 +25,10 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -63,5 +65,20 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         return List.of();
+    }
+
+    @Override
+    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
+        throws TechnicalException {
+        return Set.of();
+    }
+
+    @Override
+    public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException {
+        return Optional.empty();
     }
 }

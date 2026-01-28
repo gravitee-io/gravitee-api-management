@@ -45,6 +45,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplica
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -487,6 +488,8 @@ class AcceptSubscriptionUseCaseTest {
                 .toBuilder()
                 .subscribedBy(subscriber.getId())
                 .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
                 .planId(plan.getId())
                 .applicationId(application.getId())
                 .status(SubscriptionEntity.Status.PENDING)
@@ -517,7 +520,14 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_throw_when_subscription_does_not_belong_to_API() {
         // Given
-        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder().apiId("other-id").build());
+        var subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .apiId("other-id")
+                .referenceId("other-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .build()
+        );
 
         // When
         var throwable = catchThrowable(() -> accept(subscription.getId()));
@@ -630,6 +640,8 @@ class AcceptSubscriptionUseCaseTest {
             .toBuilder()
             .subscribedBy("subscriber")
             .apiId(api.getId())
+            .referenceId(api.getId())
+            .referenceType(SubscriptionReferenceType.API)
             .planId(plan.getId())
             .applicationId(application.getId())
             .status(SubscriptionEntity.Status.PENDING)
@@ -663,7 +675,16 @@ class AcceptSubscriptionUseCaseTest {
         String customKey
     ) {
         return useCase.execute(
-            new AcceptSubscriptionUseCase.Input(API_ID, subscriptionId, startingAt, endingAt, REASON, customKey, AUDIT_INFO)
+            AcceptSubscriptionUseCase.Input.builder()
+                .referenceId(API_ID)
+                .referenceType(SubscriptionReferenceType.API)
+                .subscriptionId(subscriptionId)
+                .startingAt(startingAt)
+                .endingAt(endingAt)
+                .reasonMessage(REASON)
+                .customKey(customKey)
+                .auditInfo(AUDIT_INFO)
+                .build()
         );
     }
 }

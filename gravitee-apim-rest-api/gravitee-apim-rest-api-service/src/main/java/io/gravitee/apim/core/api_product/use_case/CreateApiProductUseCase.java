@@ -38,6 +38,7 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -64,9 +65,12 @@ public class CreateApiProductUseCase {
         var payload = input.createApiProduct;
         var now = ZonedDateTime.now();
 
-        Set<String> validApiIds = payload.getApiIds() != null && !payload.getApiIds().isEmpty()
-            ? validateApiProductService.filterApiIdsAllowedInProduct(auditInfo.environmentId(), payload.getApiIds())
-            : Set.of();
+        List<String> apiIdsList = payload.getApiIds();
+        if (apiIdsList != null && !apiIdsList.isEmpty()) {
+            validateApiProductService.validateApiIdsForProduct(auditInfo.environmentId(), apiIdsList);
+        }
+
+        Set<String> apiIds = apiIdsList == null || apiIdsList.isEmpty() ? Set.of() : Set.copyOf(apiIdsList);
 
         ApiProduct apiProduct = ApiProduct.builder()
             .id(UuidString.generateRandom())
@@ -74,7 +78,7 @@ public class CreateApiProductUseCase {
             .name(payload.getName())
             .description(payload.getDescription())
             .version(payload.getVersion())
-            .apiIds(validApiIds)
+            .apiIds(apiIds)
             .createdAt(now)
             .updatedAt(now)
             .build();

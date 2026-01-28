@@ -31,6 +31,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.*;
@@ -73,11 +74,12 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
-            if (criteria.getApis().size() == 1) {
-                dataPipeline.add(match(eq("api", criteria.getApis().iterator().next())));
+        if (criteria.getReferenceType() != null && criteria.getReferenceIds() != null && !criteria.getReferenceIds().isEmpty()) {
+            dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+            if (criteria.getReferenceIds().size() == 1) {
+                dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
             } else {
-                dataPipeline.add(match(in("api", criteria.getApis())));
+                dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
             }
         }
 
@@ -142,7 +144,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         if (!isEmpty(criteria.getExcludedApis())) {
-            dataPipeline.add(match(nin("api", criteria.getExcludedApis())));
+            dataPipeline.add(match(nin("referenceId", criteria.getExcludedApis())));
         }
 
         // set sortable
@@ -186,8 +188,14 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             aggregations.add(match(in("application", criteria.getApplications())));
             group = "$application";
-        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
-            aggregations.add(match(in("api", criteria.getApis())));
+        } else if (
+            criteria.getReferenceType() != null &&
+            criteria.getReferenceType() == SubscriptionReferenceType.API &&
+            criteria.getReferenceIds() != null &&
+            !criteria.getReferenceIds().isEmpty()
+        ) {
+            aggregations.add(match(in("referenceId", criteria.getReferenceIds())));
+            aggregations.add(match(eq("referenceType", SubscriptionReferenceType.API.name())));
         } else {
             aggregations.add(match(ne("api", null)));
         }

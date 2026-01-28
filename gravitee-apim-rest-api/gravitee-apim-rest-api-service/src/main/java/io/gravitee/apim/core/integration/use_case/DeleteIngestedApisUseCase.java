@@ -111,7 +111,9 @@ public class DeleteIngestedApisUseCase {
                 //Close active Subscriptions
                 subscriptionQueryService
                     .findActiveSubscriptionsByPlan(plan.getId())
-                    .forEach(activeSubscription -> closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), auditInfo));
+                    .forEach(activeSubscription ->
+                        closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), api, auditInfo)
+                    );
 
                 //Delete all subscriptions
                 subscriptionQueryService

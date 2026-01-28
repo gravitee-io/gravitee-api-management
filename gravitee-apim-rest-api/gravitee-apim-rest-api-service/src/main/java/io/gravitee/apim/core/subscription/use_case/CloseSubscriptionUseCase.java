@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
 
@@ -38,23 +39,44 @@ public class CloseSubscriptionUseCase {
     }
 
     public Output execute(Input input) {
+        if (input == null) {
+            throw new IllegalArgumentException("Input cannot be null");
+        }
         var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (input.apiId != null && !subscription.getApiId().equals(input.apiId)) {
-            throw new SubscriptionNotFoundException(input.subscriptionId);
+
+        if (input.referenceId != null && input.referenceType != null) {
+            validateSubscription(subscription, input.referenceId, input.referenceType);
         }
 
         if (input.applicationId != null && !subscription.getApplicationId().equals(input.applicationId)) {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
 
-        var closedSubscription = closeSubscriptionDomainService.closeSubscription(input.subscriptionId, input.auditInfo);
+        SubscriptionEntity closedSubscription = closeSubscriptionDomainService.closeSubscription(input.subscriptionId, input.auditInfo);
         return new Output(closedSubscription);
     }
 
+    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (
+            subscription.getReferenceType() == null ||
+            !referenceType.equals(subscription.getReferenceType()) ||
+            subscription.getReferenceId() == null ||
+            !referenceId.equals(subscription.getReferenceId())
+        ) {
+            throw new SubscriptionNotFoundException(subscription.getId());
+        }
+    }
+
     @Builder
-    public record Input(String subscriptionId, String apiId, String applicationId, AuditInfo auditInfo) {
+    public record Input(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType,
+        String applicationId,
+        AuditInfo auditInfo
+    ) {
         public Input(String subscriptionId, AuditInfo auditInfo) {
-            this(subscriptionId, null, null, auditInfo);
+            this(subscriptionId, null, null, null, auditInfo);
         }
     }
 

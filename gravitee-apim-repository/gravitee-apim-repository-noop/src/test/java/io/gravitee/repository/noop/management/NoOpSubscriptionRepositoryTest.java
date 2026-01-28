@@ -26,8 +26,10 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,19 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
     @Test
     public void search() throws TechnicalException {
         List<Subscription> subscriptions = cut.search(SubscriptionCriteria.builder().build());
+
+        assertNotNull(subscriptions);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void searchWithReferenceIdsAndReferenceTypeCriteria() throws TechnicalException {
+        List<Subscription> subscriptions = cut.search(
+            SubscriptionCriteria.builder()
+                .referenceIds(List.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .build()
+        );
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -84,5 +99,28 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void findByReferenceIdAndReferenceType() throws TechnicalException {
+        Set<Subscription> subscriptions = cut.findByReferenceIdAndReferenceType(
+            "test-api-product-id",
+            SubscriptionReferenceType.API_PRODUCT
+        );
+
+        assertNotNull(subscriptions);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
+        Optional<Subscription> subscription = cut.findByIdAndReferenceIdAndReferenceType(
+            "test-subscription-id",
+            "test-api-product-id",
+            SubscriptionReferenceType.API_PRODUCT
+        );
+
+        assertNotNull(subscription);
+        assertFalse(subscription.isPresent());
     }
 }

@@ -70,10 +70,14 @@ public interface SubscriptionMapper {
 
     @Mapping(target = "application", source = "applicationId")
     @Mapping(target = "plan", source = "planId")
-    @Mapping(target = "configuration", source = "consumerConfiguration")
+    @Mapping(target = "configuration", source = "consumerConfiguration", qualifiedByName = "mapConsumerConfigurationToEntity")
     NewSubscriptionEntity map(CreateSubscription createSubscription);
 
-    @Mapping(target = "configuration", source = "updateSubscription.consumerConfiguration")
+    @Mapping(
+        target = "configuration",
+        source = "updateSubscription.consumerConfiguration",
+        qualifiedByName = "mapConsumerConfigurationToEntity"
+    )
     @Mapping(target = "id", expression = "java(subscriptionId)")
     UpdateSubscriptionEntity map(UpdateSubscription updateSubscription, String subscriptionId);
 
@@ -100,7 +104,27 @@ public interface SubscriptionMapper {
     @Mapping(source = "subscriptions", target = "subscriptions", qualifiedByName = "toBaseSubscriptionsList")
     ApiKey mapToApiKey(io.gravitee.apim.core.api_key.model.ApiKeyEntity apiKeyEntity);
 
+    @Named("mapConsumerConfigurationToEntity")
+    default SubscriptionConfigurationEntity mapConsumerConfigurationToEntity(Object consumerConfiguration) {
+        if (consumerConfiguration == null) {
+            return null;
+        }
+        if (consumerConfiguration instanceof SubscriptionConsumerConfiguration) {
+            return map((SubscriptionConsumerConfiguration) consumerConfiguration);
+        }
+        // If it's already a SubscriptionConfigurationEntity, return as-is
+        if (consumerConfiguration instanceof SubscriptionConfigurationEntity) {
+            return (SubscriptionConfigurationEntity) consumerConfiguration;
+        }
+        // For other types, return null (shouldn't happen in normal flow)
+        return null;
+    }
+
     default Subscription.OriginEnum mapOrigin(OriginContext.Origin origin) {
-        return OriginContext.Origin.KUBERNETES == origin ? Subscription.OriginEnum.KUBERNETES : Subscription.OriginEnum.MANAGEMENT;
+        return origin == null
+            ? null
+            : OriginContext.Origin.KUBERNETES == origin
+                ? Subscription.OriginEnum.KUBERNETES
+                : Subscription.OriginEnum.MANAGEMENT;
     }
 }

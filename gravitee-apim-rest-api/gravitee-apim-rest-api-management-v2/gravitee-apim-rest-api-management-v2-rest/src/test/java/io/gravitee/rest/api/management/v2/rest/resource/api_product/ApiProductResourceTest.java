@@ -55,7 +55,7 @@ import org.mockito.ArgumentCaptor;
 class ApiProductResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "my-env";
-    private static final String API_PRODUCT_ID = "api-product-id";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     @Inject
     private GetApiProductsUseCase getApiProductByIdUseCase;

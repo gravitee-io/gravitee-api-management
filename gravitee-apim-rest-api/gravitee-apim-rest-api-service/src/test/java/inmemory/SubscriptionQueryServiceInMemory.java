@@ -18,12 +18,14 @@ package inmemory;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
@@ -136,6 +138,55 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                 }
             })
             .toList();
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
+        String applicationId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        return storage
+            .stream()
+            .filter(
+                subscription ->
+                    List.of(
+                        SubscriptionEntity.Status.ACCEPTED,
+                        SubscriptionEntity.Status.PENDING,
+                        SubscriptionEntity.Status.PAUSED
+                    ).contains(subscription.getStatus()) &&
+                    referenceId.equals(subscription.getReferenceId()) &&
+                    referenceType.equals(subscription.getReferenceType()) &&
+                    applicationId.equals(subscription.getApplicationId())
+            )
+            .toList();
+    }
+
+    @Override
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
+        return storage
+            .stream()
+            .filter(
+                subscription -> referenceId.equals(subscription.getReferenceId()) && referenceType.equals(subscription.getReferenceType())
+            )
+            .toList();
+    }
+
+    @Override
+    public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        return storage
+            .stream()
+            .filter(
+                sub ->
+                    sub.getId().equals(subscriptionId) &&
+                    referenceId.equals(sub.getReferenceId()) &&
+                    referenceType.equals(sub.getReferenceType())
+            )
+            .findFirst();
     }
 
     @Override

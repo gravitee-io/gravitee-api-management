@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -141,5 +142,34 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     private Subscription map(SubscriptionMongo subscriptionMongo) {
         return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo);
+    }
+
+    @Override
+    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
+        throws TechnicalException {
+        try {
+            return internalSubscriptionRepository
+                .findByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred trying to find subscriptions by reference", e);
+        }
+    }
+
+    @Override
+    public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException {
+        try {
+            return internalSubscriptionRepository
+                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, referenceType.name())
+                .map(this::map);
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred trying to find subscription by id and reference", e);
+        }
     }
 }

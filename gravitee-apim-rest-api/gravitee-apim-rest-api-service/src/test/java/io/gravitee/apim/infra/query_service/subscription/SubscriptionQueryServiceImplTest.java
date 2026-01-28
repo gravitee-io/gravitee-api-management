@@ -32,11 +32,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -326,6 +328,70 @@ public class SubscriptionQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to find plan's subscription");
+        }
+    }
+
+    @Nested
+    class FindByIdAndReferenceIdAndReferenceType {
+
+        @Test
+        void should_return_subscription_when_found() throws TechnicalException {
+            var subscriptionId = "sub-1";
+            var referenceId = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
+            var repoSubscription = aSubscription(subscriptionId)
+                .referenceId(referenceId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .build();
+            when(
+                subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+                    subscriptionId,
+                    referenceId,
+                    io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT
+                )
+            ).thenReturn(Optional.of(repoSubscription));
+
+            var result = service.findByIdAndReferenceIdAndReferenceType(
+                subscriptionId,
+                referenceId,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
+            );
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getId()).isEqualTo(subscriptionId);
+            assertThat(result.get().getReferenceId()).isEqualTo(referenceId);
+            assertThat(result.get().getReferenceType()).isEqualTo(
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
+            );
+        }
+
+        @Test
+        void should_return_empty_when_not_found() throws TechnicalException {
+            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any())).thenReturn(Optional.empty());
+
+            var result = service.findByIdAndReferenceIdAndReferenceType(
+                "sub-1",
+                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
+            );
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any())).thenThrow(TechnicalException.class);
+
+            var throwable = catchThrowable(() ->
+                service.findByIdAndReferenceIdAndReferenceType(
+                    "sub-1",
+                    "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                    io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
+                )
+            );
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find subscription by id and reference");
         }
     }
 

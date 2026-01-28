@@ -43,8 +43,7 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
             storage.set(index.getAsInt(), subscriptionEntity);
             return subscriptionEntity;
         }
-
-        throw new IllegalStateException("Subscription not found");
+        throw new IllegalStateException("Subscription not found.");
     }
 
     @Override

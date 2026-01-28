@@ -158,9 +158,13 @@ import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -912,6 +916,27 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiProductPlanOperationsUseCase apiProductPlanOperationsUseCase() {
         return mock(ApiProductPlanOperationsUseCase.class);
+    }
+
+    @Bean
+    public CreateSubscriptionUseCase createSubscriptionUseCase() {
+        return mock(CreateSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public UpdateSubscriptionUseCase updateSubscriptionUseCase() {
+        return mock(UpdateSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public GetSubscriptionsUseCase getSubscriptionsUseCase() {
+        return mock(GetSubscriptionsUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public CloseSubscriptionUseCase spiedCloseSubscriptionUseCase(CloseSubscriptionUseCase usecase) {
+        return spy(usecase);
     }
 
     @Bean

@@ -54,7 +54,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanSearchServiceImpl_SearchTest {
 
     private static final String API_ID = "my-api";
-    private static final String API_PRODUCT_ID = "my-api-product";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
     private static final String USER = "my-user";
 
     private PlanSearchService planSearchService;

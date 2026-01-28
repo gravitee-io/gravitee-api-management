@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
@@ -98,6 +99,8 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
                 SubscriptionEntity.builder()
                     .id(SUBSCRIPTION)
                     .apiId("ANOTHER_API")
+                    .referenceId("ANOTHER_API")
+                    .referenceType(SubscriptionReferenceType.API)
                     .planId(PLAN)
                     .applicationId(APPLICATION)
                     .status(SubscriptionEntity.Status.ACCEPTED)
@@ -131,6 +134,8 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
                 SubscriptionEntity.builder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(SubscriptionReferenceType.API)
                     .planId(PLAN)
                     .applicationId(APPLICATION)
                     .status(SubscriptionEntity.Status.ACCEPTED)

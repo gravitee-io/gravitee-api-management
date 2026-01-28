@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Collection;
 import java.util.Set;
 import lombok.Builder;
@@ -39,6 +40,10 @@ public class SubscriptionCriteria {
     private final Collection<String> excludedApis;
 
     private final Collection<String> apis;
+
+    private final Collection<String> referenceIds;
+
+    private final SubscriptionReferenceType referenceType;
 
     private final Collection<String> plans;
 

@@ -280,6 +280,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setTags(updatePlan.getTags());
             newPlan.setSelectionRule(updatePlan.getSelectionRule());
             newPlan.setGeneralConditions(updatePlan.getGeneralConditions());
+
             if (Plan.Status.PUBLISHED.equals(newPlan.getStatus()) || Plan.Status.DEPRECATED.equals(newPlan.getStatus())) {
                 checkStatusOfGeneralConditions(newPlan);
             }
@@ -412,17 +413,22 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             plan = planRepository.update(plan);
 
             // Audit
-            auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
-                    .event(PLAN_CLOSED)
-                    .createdAt(plan.getUpdatedAt())
-                    .oldValue(previousPlan)
-                    .newValue(plan)
-                    .build(),
-                plan.getReferenceId()
-            );
+            String referenceId = plan.getReferenceId();
+            Plan.PlanReferenceType referenceType = plan.getReferenceType();
+            var auditLogData = AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                .event(PLAN_CLOSED)
+                .createdAt(plan.getUpdatedAt())
+                .oldValue(previousPlan)
+                .newValue(plan)
+                .build();
+
+            if (referenceType == Plan.PlanReferenceType.API_PRODUCT) {
+                auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+            } else {
+                String apiId = plan.getApi() != null ? plan.getApi() : referenceId;
+                auditService.createApiAuditLog(executionContext, auditLogData, apiId);
+            }
 
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);

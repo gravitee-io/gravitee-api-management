@@ -331,6 +331,7 @@ class DeleteIngestedApisUseCaseTest {
         var activeSubscription = SubscriptionFixtures.aSubscription()
             .toBuilder()
             .apiId(MY_API)
+            .referenceId(MY_API)
             .planId("federated")
             .status(subscriptionStatus)
             .build();
@@ -368,7 +369,15 @@ class DeleteIngestedApisUseCaseTest {
     public void should_delete_all_subscriptions() {
         var api = givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build());
         var allSubscriptions = Stream.of(SubscriptionEntity.Status.values())
-            .map(value -> SubscriptionFixtures.aSubscription().toBuilder().apiId(api.getId()).planId("federated").status(value).build())
+            .map(value ->
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .apiId(api.getId())
+                    .referenceId(api.getId())
+                    .planId("federated")
+                    .status(value)
+                    .build()
+            )
             .toList();
         subscriptionCrudService.initWith(allSubscriptions);
         planCrudService.initWith(List.of(PlanFixtures.aFederatedPlan()));

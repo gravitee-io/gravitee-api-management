@@ -31,6 +31,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -49,9 +50,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class ClosePlanDomainServiceTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
@@ -64,6 +69,9 @@ class ClosePlanDomainServiceTest {
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+
+    @Mock
+    CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     ClosePlanDomainService service;
 
@@ -84,6 +92,7 @@ class ClosePlanDomainServiceTest {
         service = new ClosePlanDomainService(
             planCrudService,
             subscriptionQueryService,
+            closeSubscriptionDomainService,
             new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
         );
     }

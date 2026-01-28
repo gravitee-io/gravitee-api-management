@@ -20,7 +20,11 @@ import static java.util.Comparator.comparingInt;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GetApiProductPlansUseCase {
 
     private final ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;
+    private final SubscriptionQueryService subscriptionQueryService;
 
     public Output execute(Input input) {
         log.debug("Getting API Product plans for API Product {} (planId={})", input.apiProductId, input.planId);
@@ -50,7 +55,23 @@ public class GetApiProductPlansUseCase {
                 .sorted(comparingInt(Plan::getOrder));
             //TODO ask if need API_GATEWAY_DEFINITION and API_PRODUCT_PLAN filtersensitiveData is needed like api plans
 
-            //TODO filter based on subscriptions
+            if (input.subscribableBy != null) {
+                var subscriptions = subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
+                    input.subscribableBy,
+                    input.apiProductId,
+                    SubscriptionReferenceType.API_PRODUCT
+                );
+                var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
+
+                plansStream = plansStream.filter(
+                    plan ->
+                        (plan.getPlanSecurity() == null ||
+                            !List.of(PlanSecurityType.KEY_LESS.getLabel(), PlanSecurityType.KEY_LESS.name()).contains(
+                                plan.getPlanSecurity().getType()
+                            )) &&
+                        (subscribedPlans.isEmpty() || !subscribedPlans.contains(plan.getId()))
+                );
+            }
 
             List<Plan> plans = plansStream.toList();
             log.debug("Found {} API Product plans for API Product {}", plans.size(), input.apiProductId);
@@ -63,21 +84,29 @@ public class GetApiProductPlansUseCase {
         }
     }
 
-    public record Input(String apiProductId, String authenticatedUser, boolean isAdmin, PlanQuery query, String planId) {
-        public static Input of(String apiProductId, String authenticatedUser, boolean isAdmin, PlanQuery query) {
+    public record Input(
+        String apiProductId,
+        String authenticatedUser,
+        boolean isAdmin,
+        PlanQuery query,
+        String planId,
+        String subscribableBy
+    ) {
+        public static Input of(String apiProductId, String authenticatedUser, boolean isAdmin, PlanQuery query, String subscribableBy) {
             log.debug(
-                "Building GetApiProductPlansUseCase.Input (apiProductId={}, user={}, isAdmin={}, query={})",
+                "Building GetApiProductPlansUseCase.Input (apiProductId={}, user={}, isAdmin={}, query={}, subscribableBy={})",
                 apiProductId,
                 authenticatedUser,
                 isAdmin,
-                query
+                query,
+                subscribableBy
             );
-            return new Input(apiProductId, authenticatedUser, isAdmin, query, null);
+            return new Input(apiProductId, authenticatedUser, isAdmin, query, null, subscribableBy);
         }
 
         public static Input of(String apiProductId, String planId) {
             log.debug("Building GetApiProductPlansUseCase.Input (apiProductId={}, planId={})", apiProductId, planId);
-            return new Input(apiProductId, null, false, null, planId);
+            return new Input(apiProductId, null, false, null, planId, null);
         }
     }
 

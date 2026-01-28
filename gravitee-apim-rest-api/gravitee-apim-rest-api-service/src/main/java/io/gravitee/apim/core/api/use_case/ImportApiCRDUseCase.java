@@ -377,7 +377,7 @@ public class ImportApiCRDUseCase {
         plansToDelete.forEach(plan -> {
             subscriptionQueryService
                 .findActiveSubscriptionsByPlan(plan.getId())
-                .forEach(subscription -> closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo));
+                .forEach(subscription -> closeSubscriptionDomainService.closeSubscription(subscription.getId(), api, auditInfo));
 
             deletePlanDomainService.delete(plan, auditInfo);
         });

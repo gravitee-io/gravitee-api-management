@@ -233,6 +233,15 @@
 					<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
 				</configuration>
 				<executions>
+                    <execution>
+                        <id>model-api-products</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-api-products.yaml</inputSpec>
+                        </configuration>
+                    </execution>
 					<execution>
 						<id>model-management</id>
 						<goals>
@@ -322,15 +331,6 @@
                                 <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
                                 <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
                             </configOptions>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>model-api-products</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-api-products.yaml</inputSpec>
                         </configuration>
                     </execution>
                 </executions>

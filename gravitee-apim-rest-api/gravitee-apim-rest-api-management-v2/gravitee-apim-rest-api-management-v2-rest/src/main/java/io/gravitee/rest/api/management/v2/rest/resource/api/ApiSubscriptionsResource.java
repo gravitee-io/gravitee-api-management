@@ -20,12 +20,16 @@ import static java.lang.String.format;
 import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
+import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.*;
@@ -273,8 +277,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
         if (created.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
             var result = acceptSubscriptionUsecase.execute(
                 AcceptSubscriptionUseCase.Input.builder()
+                    .referenceId(apiId)
+                    .referenceType(SubscriptionReferenceType.API)
                     .subscriptionId(created.getId())
-                    .apiId(apiId)
                     .auditInfo(getAuditInfo())
                     .customKey(getCustomApiKey(createSubscription))
                     .build()
@@ -384,15 +389,16 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull AcceptSubscription acceptSubscription
     ) {
-        var input = new AcceptSubscriptionUseCase.Input(
-            apiId,
-            subscriptionId,
-            acceptSubscription.getStartingAt() != null ? acceptSubscription.getStartingAt().toZonedDateTime() : null,
-            acceptSubscription.getEndingAt() != null ? acceptSubscription.getEndingAt().toZonedDateTime() : null,
-            acceptSubscription.getReason(),
-            acceptSubscription.getCustomApiKey(),
-            getAuditInfo()
-        );
+        var input = AcceptSubscriptionUseCase.Input.builder()
+            .referenceId(apiId)
+            .referenceType(SubscriptionReferenceType.API)
+            .subscriptionId(subscriptionId)
+            .startingAt(acceptSubscription.getStartingAt() != null ? acceptSubscription.getStartingAt().toZonedDateTime() : null)
+            .endingAt(acceptSubscription.getEndingAt() != null ? acceptSubscription.getEndingAt().toZonedDateTime() : null)
+            .reasonMessage(acceptSubscription.getReason())
+            .customKey(acceptSubscription.getCustomApiKey())
+            .auditInfo(getAuditInfo())
+            .build();
 
         return Response.ok().entity(subscriptionMapper.map(acceptSubscriptionUsecase.execute(input).subscription())).build();
     }
@@ -406,7 +412,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull RejectSubscription rejectSubscription
     ) {
-        var input = new RejectSubscriptionUseCase.Input(apiId, subscriptionId, rejectSubscription.getReason(), getAuditInfo());
+        var input = RejectSubscriptionUseCase.Input.builder()
+            .referenceId(apiId)
+            .referenceType(SubscriptionReferenceType.API)
+            .subscriptionId(subscriptionId)
+            .reasonMessage(rejectSubscription.getReason())
+            .auditInfo(getAuditInfo())
+            .build();
         return Response.ok().entity(subscriptionMapper.map(rejectSubscriptionUseCase.execute(input).subscription())).build();
     }
 
@@ -421,7 +433,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
         var result = closeSubscriptionUsecase.execute(
             CloseSubscriptionUseCase.Input.builder()
                 .subscriptionId(subscriptionId)
-                .apiId(apiId)
+                .referenceId(apiId)
+                .referenceType(SubscriptionReferenceType.API)
                 .auditInfo(
                     AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())

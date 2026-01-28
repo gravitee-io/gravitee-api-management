@@ -201,7 +201,7 @@ public class IngestFederatedApisUseCase {
                     subscriptionQueryService
                         .findActiveSubscriptionsByPlan(existing.getId())
                         .forEach(activeSubscription ->
-                            closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), auditInfo)
+                            closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), federatedApi, auditInfo)
                         );
 
                     //Delete all subscriptions

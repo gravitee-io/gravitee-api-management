@@ -376,7 +376,9 @@ class PlanAdapterTest {
                 .commentRequired(true)
                 .commentMessage("comment-message")
                 .generalConditions("general-conditions")
-                .tags(Set.of("tag-1"));
+                .tags(Set.of("tag-1"))
+                .referenceId("my-api")
+                .referenceType(Plan.PlanReferenceType.API);
         }
 
         private Plan.PlanBuilder planNativeV4() {
@@ -406,7 +408,9 @@ class PlanAdapterTest {
                 .commentRequired(true)
                 .commentMessage("comment-message")
                 .generalConditions("general-conditions")
-                .tags(Set.of("tag-1"));
+                .tags(Set.of("tag-1"))
+                .referenceId("my-api")
+                .referenceType(Plan.PlanReferenceType.API);
         }
 
         private Plan.PlanBuilder federatedPlan() {
@@ -431,7 +435,9 @@ class PlanAdapterTest {
                 .generalConditions("general-conditions")
                 .definition(
                     "{\"id\":\"my-id\",\"providerId\":\"provider-id\",\"security\":{\"type\":\"api-key\"},\"mode\":\"standard\",\"status\":\"published\"}"
-                );
+                )
+                .referenceId("my-api")
+                .referenceType(Plan.PlanReferenceType.API);
         }
 
         private Plan.PlanBuilder planV2() {
@@ -460,7 +466,9 @@ class PlanAdapterTest {
                 .commentRequired(true)
                 .commentMessage("comment-message")
                 .generalConditions("general-conditions")
-                .tags(Set.of("tag-1"));
+                .tags(Set.of("tag-1"))
+                .referenceId("my-api")
+                .referenceType(Plan.PlanReferenceType.API);
         }
     }
 

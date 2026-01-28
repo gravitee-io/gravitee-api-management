@@ -18,6 +18,7 @@ package io.gravitee.apim.core.subscription.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
@@ -29,6 +30,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHook
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.util.Collections;
@@ -62,7 +64,11 @@ public class RejectSubscriptionDomainService {
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
-        createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
+        if (SubscriptionReferenceType.API_PRODUCT.equals(subscriptionEntity.getReferenceType())) {
+            createApiProductAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
+        } else {
+            createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
+        }
 
         return rejectedSubscriptionEntity;
     }
@@ -131,6 +137,39 @@ public class RejectSubscriptionDomainService {
                 .newValue(rejectedSubscriptionEntity)
                 .createdAt(rejectedSubscriptionEntity.getClosedAt())
                 .properties(Collections.singletonMap(AuditProperties.API, subscriptionEntity.getApiId()))
+                .build()
+        );
+    }
+
+    private void createApiProductAudit(
+        SubscriptionEntity subscriptionEntity,
+        SubscriptionEntity rejectedSubscriptionEntity,
+        AuditInfo auditInfo
+    ) {
+        auditDomainService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .actor(auditInfo.actor())
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiProductId(subscriptionEntity.getReferenceId())
+                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                .oldValue(subscriptionEntity)
+                .newValue(rejectedSubscriptionEntity)
+                .createdAt(rejectedSubscriptionEntity.getClosedAt())
+                .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                .build()
+        );
+        auditDomainService.createApplicationAuditLog(
+            ApplicationAuditLogEntity.builder()
+                .actor(auditInfo.actor())
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .applicationId(subscriptionEntity.getApplicationId())
+                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                .oldValue(subscriptionEntity)
+                .newValue(rejectedSubscriptionEntity)
+                .createdAt(rejectedSubscriptionEntity.getClosedAt())
+                .properties(Collections.singletonMap(AuditProperties.API_PRODUCT, subscriptionEntity.getReferenceId()))
                 .build()
         );
     }

@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import fixtures.SubscriptionFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,13 +70,12 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         assertEquals(createSubscription.getPlanId(), newSubscriptionEntity.getPlan());
         assertEquals(createSubscription.getApplicationId(), newSubscriptionEntity.getApplication());
         assertEquals(createSubscription.getMetadata(), newSubscriptionEntity.getMetadata());
-        assertEquals(
-            createSubscription.getConsumerConfiguration().getEntrypointId(),
-            newSubscriptionEntity.getConfiguration().getEntrypointId()
-        );
-        assertEquals(createSubscription.getConsumerConfiguration().getChannel(), newSubscriptionEntity.getConfiguration().getChannel());
+        SubscriptionConsumerConfiguration consumerConfig =
+            (SubscriptionConsumerConfiguration) createSubscription.getConsumerConfiguration();
+        assertEquals(consumerConfig.getEntrypointId(), newSubscriptionEntity.getConfiguration().getEntrypointId());
+        assertEquals(consumerConfig.getChannel(), newSubscriptionEntity.getConfiguration().getChannel());
         assertConfigurationEquals(
-            createSubscription.getConsumerConfiguration().getEntrypointConfiguration(),
+            consumerConfig.getEntrypointConfiguration(),
             newSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
         );
     }
@@ -87,13 +87,12 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertEquals("subscriptionId", updateSubscriptionEntity.getId());
         assertEquals(updateSubscription.getMetadata(), updateSubscriptionEntity.getMetadata());
-        assertEquals(
-            updateSubscription.getConsumerConfiguration().getEntrypointId(),
-            updateSubscriptionEntity.getConfiguration().getEntrypointId()
-        );
-        assertEquals(updateSubscription.getConsumerConfiguration().getChannel(), updateSubscriptionEntity.getConfiguration().getChannel());
+        SubscriptionConsumerConfiguration consumerConfig =
+            (SubscriptionConsumerConfiguration) updateSubscription.getConsumerConfiguration();
+        assertEquals(consumerConfig.getEntrypointId(), updateSubscriptionEntity.getConfiguration().getEntrypointId());
+        assertEquals(consumerConfig.getChannel(), updateSubscriptionEntity.getConfiguration().getChannel());
         assertConfigurationEquals(
-            updateSubscription.getConsumerConfiguration().getEntrypointConfiguration(),
+            consumerConfig.getEntrypointConfiguration(),
             updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
         );
     }
@@ -118,6 +117,36 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertEquals("subscriptionId", transferSubscriptionEntity.getId());
         assertEquals(transferSubscription.getPlanId(), transferSubscriptionEntity.getPlan());
+    }
+
+    @Test
+    void should_map_core_SubscriptionEntity_to_Subscription() {
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity coreEntity =
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                .id("sub-1")
+                .apiId("api-1")
+                .planId("plan-1")
+                .applicationId("app-1")
+                .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                .requestMessage("request")
+                .reasonMessage("reason")
+                .subscribedBy("user-1")
+                .processedBy("admin-1")
+                .createdAt(java.time.ZonedDateTime.now())
+                .updatedAt(java.time.ZonedDateTime.now())
+                .build();
+
+        final var subscription = subscriptionMapper.map(coreEntity);
+
+        assertNotNull(subscription);
+        assertEquals("sub-1", subscription.getId());
+        assertEquals("api-1", subscription.getApi().getId());
+        assertEquals("plan-1", subscription.getPlan().getId());
+        assertEquals("app-1", subscription.getApplication().getId());
+        assertEquals("request", subscription.getConsumerMessage());
+        assertEquals("reason", subscription.getPublisherMessage());
+        assertEquals("user-1", subscription.getSubscribedBy().getId());
+        assertEquals("admin-1", subscription.getProcessedBy().getId());
     }
 
     @Test

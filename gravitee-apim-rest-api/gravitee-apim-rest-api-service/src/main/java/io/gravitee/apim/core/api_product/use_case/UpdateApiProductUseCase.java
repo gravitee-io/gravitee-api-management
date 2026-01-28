@@ -63,12 +63,12 @@ public class UpdateApiProductUseCase {
             .build();
 
         UpdateApiProduct updateApiProduct = input.updateApiProduct();
-        if (updateApiProduct.getApiIds() != null) {
-            Set<String> allowedApiIds = validateApiProductService.filterApiIdsAllowedInProduct(
-                input.auditInfo().environmentId(),
-                updateApiProduct.getApiIds().stream().toList()
-            );
-            updateApiProduct.setApiIds(allowedApiIds);
+        Set<String> apiIds = updateApiProduct.getApiIds();
+        if (apiIds != null) {
+            if (!apiIds.isEmpty()) {
+                validateApiProductService.validateApiIdsForProduct(input.auditInfo().environmentId(), apiIds.stream().toList());
+            }
+            updateApiProduct.setApiIds(apiIds.isEmpty() ? Set.of() : Set.copyOf(apiIds));
         }
 
         existingApiProduct.update(updateApiProduct);

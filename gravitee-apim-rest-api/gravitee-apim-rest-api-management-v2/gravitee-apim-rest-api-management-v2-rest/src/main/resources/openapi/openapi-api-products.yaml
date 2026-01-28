@@ -149,6 +149,12 @@ paths:
       description: |-
         Create a new API Product in the given environment.
         The API Product name must be unique within the environment.
+        
+        **API ID Validation:**
+        - All provided API IDs must exist in the environment
+        - All APIs must be V4 definition version
+        - All APIs must have `allowedInApiProducts` flag set to `true`
+        - If any API ID is invalid, a 400 error will be returned with details
       operationId: createApiProduct
       requestBody:
         required: true
@@ -165,7 +171,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiProduct"
         "400":
-          $ref: "#/components/responses/BadRequestError"
+          description: Bad Request - Invalid request body, invalid API IDs, or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidApiIds:
+                  summary: Invalid API IDs provided
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1, api-2] do not exist. Only V4 API definition is supported. These APIs [api-3] are not V4"
+                    parameters:
+                      nonExistentApiIds: "api-1, api-2"
+                      invalidApiIds: "api-3"
+                apisNotAllowed:
+                  summary: APIs not allowed in API Products
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-4] are not allowed in API Products"
+                    parameters:
+                      notAllowedApiIds: "api-4"
+                multipleErrors:
+                  summary: Multiple validation errors
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1] do not exist. Only V4 API definition is supported. These APIs [api-2] are not V4. These APIs [api-3] are not allowed in API Products"
+                    parameters:
+                      nonExistentApiIds: "api-1"
+                      invalidApiIds: "api-2"
+                      notAllowedApiIds: "api-3"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
@@ -223,6 +258,12 @@ paths:
         Update an existing API Product in the environment.
         The `apiIds` field should be managed through this endpoint, similar to how groups are managed in APIs.
         When `apiIds` is provided, it will REPLACE the entire list of APIs (not merge).
+        
+        **API ID Validation:**
+        - All provided API IDs must exist in the environment
+        - All APIs must be V4 definition version
+        - All APIs must have `allowedInApiProducts` flag set to `true`
+        - If any API ID is invalid, a 400 error will be returned with details
       operationId: updateApiProduct
       requestBody:
         required: true
@@ -239,7 +280,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiProduct'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          description: Bad Request - Invalid request body, invalid API IDs, or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidApiIds:
+                  summary: Invalid API IDs provided
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1, api-2] do not exist. Only V4 API definition is supported. These APIs [api-3] are not V4"
+                    parameters:
+                      nonExistentApiIds: "api-1, api-2"
+                      invalidApiIds: "api-3"
+                apisNotAllowed:
+                  summary: APIs not allowed in API Products
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-4] are not allowed in API Products"
+                    parameters:
+                      notAllowedApiIds: "api-4"
+                multipleErrors:
+                  summary: Multiple validation errors
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1] do not exist. Only V4 API definition is supported. These APIs [api-2] are not V4. These APIs [api-3] are not allowed in API Products"
+                    parameters:
+                      nonExistentApiIds: "api-1"
+                      invalidApiIds: "api-2"
+                      notAllowedApiIds: "api-3"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -263,6 +333,275 @@ paths:
           description: API Product successfully deleted
         '400':
           $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Products
+      summary: List subscriptions for the API Product
+      description: List all subscriptions for the specified API Product. User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      operationId: getApiProductSubscriptions
+      parameters:
+        - name: page
+          in: query
+          description: Page number (starting from 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: perPage
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Paged list of API Product subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - API Products
+      summary: Create a subscription to an API Product plan
+      description: Subscribe an application to an API Product plan. User must have API_PRODUCT_SUBSCRIPTION[CREATE] permission.
+      operationId: createApiProductSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscription'
+      responses:
+        '201':
+          description: Subscription successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        description: The ID of the subscription
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - API Products
+      summary: Get an API Product subscription by ID
+      description: User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      operationId: getApiProductSubscription
+      responses:
+        '200':
+          description: The API Product subscription
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - API Products
+      summary: Update an API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: updateApiProductSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubscription'
+      responses:
+        '200':
+          description: Subscription successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_accept:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Products
+      summary: Accept an API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: acceptApiProductSubscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptSubscription'
+      responses:
+        '200':
+          description: Subscription accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_reject:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Products
+      summary: Reject an API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: rejectApiProductSubscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectSubscription'
+      responses:
+        '200':
+          description: Subscription rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_close:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Products
+      summary: Close an API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: closeApiProductSubscription
+      responses:
+        '200':
+          description: Subscription closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -823,25 +1162,6 @@ components:
           $ref: "#/components/schemas/ProductPlanValidation"
 
 
-
-    UpdateApiProductPlan:
-      type: object
-      title: "UpdateProductPlan"
-      allOf:
-        - $ref: "#/components/schemas/UpdateGenericApiProductPlan"
-        - properties:
-            selectionRule:
-              type: string
-              description: An optional EL expression that will be evaluated at request time to select this plan.
-            tags:
-              type: array
-              description: The list of sharding tags associated with this plan.
-              example:
-                - public
-                - private
-              items:
-                type: string
-
     Links:
       description: List of links for pagination
       properties:
@@ -860,6 +1180,82 @@ components:
         next:
           type: string
           description: In a paginated response, link to the next page. Maybe null if current is the last page
+
+    Subscription:
+      type: object
+      description: Subscription representation (same structure as API subscription)
+      properties:
+        id:
+          type: string
+          description: Subscription's uuid.
+          example: 34f8c9e7-68fd-4922-b8c9-e778fc790777
+    CreateSubscription:
+      type: object
+      description: Request to create a subscription (applicationId, planId, etc.)
+      properties:
+        applicationId:
+          type: string
+        planId:
+          type: string
+        customApiKey:
+          type: string
+        consumerConfiguration:
+          type: object
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - applicationId
+        - planId
+    UpdateSubscription:
+      type: object
+      description: Request to update a subscription
+      properties:
+        consumerConfiguration:
+          type: object
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        startingAt:
+          type: string
+          format: date-time
+        endingAt:
+          type: string
+          format: date-time
+    AcceptSubscription:
+      type: object
+      description: Request to accept a subscription
+      properties:
+        startingAt:
+          type: string
+          format: date-time
+        endingAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        customApiKey:
+          type: string
+    RejectSubscription:
+      type: object
+      description: Request to reject a subscription
+      properties:
+        reason:
+          type: string
+    SubscriptionsResponse:
+      type: object
+      description: Paged list of subscriptions
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        pagination:
+          type: object
+        links:
+          type: object
 
   responses:
     VerifyApiProductResponse:

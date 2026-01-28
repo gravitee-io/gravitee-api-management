@@ -114,9 +114,8 @@ public class ApiProductsResource extends AbstractResource {
         log.debug("Creating API Product [{}]", createApiProduct.getName());
         var output = createApiProductUseCase.execute(input);
         log.debug("API Product [{}] created with id [{}]", output.apiProduct().getName(), output.apiProduct().getId());
-        var mappedApiProduct = ApiProductMapper.INSTANCE.map(output.apiProduct());
         return Response.created(uriInfo.getAbsolutePathBuilder().path(output.apiProduct().getId()).build())
-            .entity(mappedApiProduct)
+            .entity(output.apiProduct())
             .build();
     }
 

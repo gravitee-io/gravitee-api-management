@@ -82,6 +82,7 @@ public class ApiProductPlansResource extends AbstractResource {
         @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
         @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
         @QueryParam("mode") PlanMode planMode,
+        @QueryParam("subscribableBy") String subscribableBy,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
         log.debug(
@@ -114,10 +115,8 @@ public class ApiProductPlansResource extends AbstractResource {
             .mode(planMode);
 
         var output = getApiProductPlansUseCase.execute(
-            new GetApiProductPlansUseCase.Input(apiProductId, getAuthenticatedUser(), isAdmin(), planQuery.build(), null)
+            GetApiProductPlansUseCase.Input.of(apiProductId, getAuthenticatedUser(), isAdmin(), planQuery.build(), subscribableBy)
         );
-
-        //TODO filter based on subscriptions
 
         log.debug("Found {} Plans for API Product {} (before pagination)", output.apiProductPlans().size(), apiProductId);
         List<Plan> paginationData = computePaginationData(output.apiProductPlans(), paginationParam);

@@ -47,6 +47,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplica
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -298,7 +299,14 @@ class RejectSubscriptionUseCaseTest {
     @Test
     void should_throw_when_subscription_does_not_belong_to_API() {
         // Given
-        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder().apiId("other-id").build());
+        var subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .apiId("other-id")
+                .referenceId("other-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .build()
+        );
 
         // When
         var throwable = catchThrowable(() -> reject(subscription.getId()));
@@ -339,6 +347,14 @@ class RejectSubscriptionUseCaseTest {
     }
 
     private RejectSubscriptionUseCase.Output reject(String subscriptionId) {
-        return useCase.execute(new RejectSubscriptionUseCase.Input(API_ID, subscriptionId, REASON_MESSAGE, AUDIT_INFO));
+        return useCase.execute(
+            RejectSubscriptionUseCase.Input.builder()
+                .referenceId(API_ID)
+                .referenceType(SubscriptionReferenceType.API)
+                .subscriptionId(subscriptionId)
+                .reasonMessage(REASON_MESSAGE)
+                .auditInfo(AUDIT_INFO)
+                .build()
+        );
     }
 }

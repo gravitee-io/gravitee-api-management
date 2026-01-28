@@ -32,6 +32,7 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -148,6 +149,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_NAME)
+                .referenceId(API_NAME)
+                .referenceType(SubscriptionReferenceType.API)
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
@@ -178,6 +181,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_NAME)
+                .referenceId(API_NAME)
+                .referenceType(SubscriptionReferenceType.API)
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
