@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltip } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
-
-import { PictureComponent } from '../picture/picture.component';
+import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, MatChipsModule, MatTooltip],
+  imports: [GmdCardModule, RouterModule, MatTooltip],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
