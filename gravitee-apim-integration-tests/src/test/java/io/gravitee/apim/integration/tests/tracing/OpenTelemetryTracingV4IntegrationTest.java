@@ -21,7 +21,7 @@ import static io.gravitee.apim.integration.tests.messages.sse.SseAssertions.asse
 import static io.gravitee.apim.integration.tests.messages.sse.SseAssertions.assertRetry;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
@@ -56,6 +56,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -177,9 +178,12 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
     @Test
     @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint-tracing.json")
     void should_get_messages_with_default_configuration(HttpClient httpClient) {
-        startSseStream(httpClient)
-            // expect 3 chunks: retry, two messages
-            .awaitCount(3)
+        var obs = startSseStream(httpClient);
+        // expect 3 chunks: retry, two messages
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 3);
+        obs
             .assertValueAt(0, chunk -> {
                 assertRetry(chunk);
                 return true;

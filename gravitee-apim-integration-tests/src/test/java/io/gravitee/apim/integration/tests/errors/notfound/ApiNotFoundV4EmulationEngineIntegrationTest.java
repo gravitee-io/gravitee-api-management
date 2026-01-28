@@ -16,7 +16,6 @@
 package io.gravitee.apim.integration.tests.errors.notfound;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import org.junit.jupiter.api.Nested;
 
 /**

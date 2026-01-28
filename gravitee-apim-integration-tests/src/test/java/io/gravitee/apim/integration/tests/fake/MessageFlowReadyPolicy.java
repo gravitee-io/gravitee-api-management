@@ -16,7 +16,9 @@
 package io.gravitee.apim.integration.tests.fake;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.reactive.api.context.*;
+import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;

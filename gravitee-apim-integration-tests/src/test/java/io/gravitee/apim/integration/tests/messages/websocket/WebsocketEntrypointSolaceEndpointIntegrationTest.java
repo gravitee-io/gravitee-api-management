@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
 import com.solace.messaging.publisher.OutboundMessageBuilder;
@@ -52,15 +53,18 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber-none.json" })
     void should_receive_all_messages_with_none_qos(HttpClient httpClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test-none")
             .flatMapPublisher(websocket ->
                 websocket
                     .toFlowable()
                     .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 500).toFlowable())
             )
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;
@@ -72,15 +76,18 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber.json" })
     void should_receive_all_messages_with_auto_qos(HttpClient httpClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test-auto")
             .flatMapPublisher(websocket ->
                 websocket
                     .toFlowable()
                     .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 1000).toFlowable())
             )
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;
@@ -101,22 +108,26 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
             .assertComplete()
             .assertNoErrors();
 
-        testSubscriber
-            .awaitCount(1)
-            .assertValue(frame -> {
-                assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
-                return true;
-            });
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> testSubscriber.values().size() >= 1);
+        testSubscriber.assertValue(frame -> {
+            assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
+            return true;
+        });
     }
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher-subscriber.json" })
     void should_received_published_messages(HttpClient httpClient) {
-        httpClient
+        var obs = httpClient
             .rxWebSocket("/test")
             .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
-            .test()
-            .awaitCount(1)
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 1);
+        obs
             .assertValue(frame -> {
                 assertThat(frame).hasToString("message");
                 return true;

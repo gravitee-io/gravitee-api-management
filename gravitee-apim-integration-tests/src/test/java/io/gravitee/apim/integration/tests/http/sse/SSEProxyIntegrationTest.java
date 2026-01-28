@@ -16,7 +16,7 @@
 package io.gravitee.apim.integration.tests.http.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;

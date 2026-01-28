@@ -17,10 +17,23 @@ package io.gravitee.apim.integration.tests.tls;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static io.gravitee.apim.integration.tests.tls.TestHelper.*;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.BRIGHT_SIDE_FQDN;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.CLIENT_CN;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.GATEWAY_HTTP_API_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.GATEWAY_TCP_API_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.KeyStoreGenResult;
 import static io.gravitee.apim.integration.tests.tls.TestHelper.PASSWORD;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.PemGenResult;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.RESPONSE_FROM_BACKEND;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.WIREMOCK_ENDPOINT_URI;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.assertApiCall;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.assertHandshakeError;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.certFileName;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createNewPEMs;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createNewPKCS12KeyStore;
+import static io.gravitee.apim.integration.tests.tls.TestHelper.createTrustedHttpClient;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -71,7 +84,8 @@ public class MutualTLSIntegrationTest {
         @SneakyThrows
         protected void configureGateway(GatewayConfigurationBuilder config) {
             /*
-             * standard TLS config, we want to be able to call API without trustall options so we keep the server certs
+             * standard TLS config, we want to be able to call API without trustall options
+             * so we keep the server certs
              */
             TestHelper.KeyStoreGenResult http = createNewPKCS12KeyStore(BRIGHT_SIDE_FQDN);
             this.httpCert = http.certs().get(BRIGHT_SIDE_FQDN).toPem();
@@ -290,7 +304,7 @@ public class MutualTLSIntegrationTest {
             PemGenResult clientKeyPair2 = createNewPEMs(CLIENT_CN);
             Files.copy(clientKeyPair2.certificates().get(CLIENT_CN).certPath(), certNumber2Path);
 
-            //#1 still work
+            // #1 still work
             assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             // #2 works too
@@ -342,7 +356,7 @@ public class MutualTLSIntegrationTest {
             PemGenResult clientKeyPair2 = createNewPEMs(CLIENT_CN);
             Files.copy(clientKeyPair2.certificates().get(CLIENT_CN).certPath(), certNumber2Path);
 
-            //#1 still work
+            // #1 still work
             assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             // #2 works too

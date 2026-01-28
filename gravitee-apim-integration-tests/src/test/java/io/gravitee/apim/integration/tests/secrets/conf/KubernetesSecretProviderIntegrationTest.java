@@ -19,7 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.dajudge.kindcontainer.KindContainer;
 import com.dajudge.kindcontainer.KindContainerVersion;
@@ -155,7 +155,8 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            // this allows to test if the plugin can be configured with or the other method -D... or gravitee.yml
+            // this allows to test if the plugin can be configured with or the other method
+            // -D... or gravitee.yml
             if (useSystemProperties()) {
                 configurationBuilder.setSystemProperty("secrets.kubernetes.enabled", true);
                 configurationBuilder.setSystemProperty("secrets.kubernetes.kubeConfigFile", kubeConfigFile.toString());
@@ -269,7 +270,9 @@ class KubernetesSecretProviderIntegrationTest {
             assertThatCode(() -> environment.getProperty("missing2"))
                 .isInstanceOf(SecretManagerException.class)
                 .hasMessageContaining("secret not found");
-            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
+            assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a
+            // secret does not
+            // return value
         }
     }
 
