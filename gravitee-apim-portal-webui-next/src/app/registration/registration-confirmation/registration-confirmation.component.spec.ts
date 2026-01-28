@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
-import { MatErrorHarness, MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatErrorHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -27,6 +27,7 @@ import { RegistrationConfirmationComponent } from './registration-confirmation.c
 import { TokenService } from '../../../services/token.service';
 import { UsersService } from '../../../services/users.service';
 import { AppTestingModule } from '../../../testing/app-testing.module';
+import { DivHarness } from '../../../testing/div.harness';
 
 describe('RegistrationConfirmationComponent', () => {
   let fixture: ComponentFixture<RegistrationConfirmationComponent>;
@@ -65,7 +66,6 @@ describe('RegistrationConfirmationComponent', () => {
     fixture.detectChanges();
     fixture.detectChanges();
     return {
-      component: fixture.componentInstance,
       tokenServiceMock,
       usersServiceMock,
     };
@@ -92,19 +92,17 @@ describe('RegistrationConfirmationComponent', () => {
     expect(tokenServiceMock.parseToken).toHaveBeenCalledWith('token-abc');
 
     const card = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration-confirmation__form__container' }));
-    expect(await card.getTitleText()).toContain('Confirm registration');
+    expect(await card.getTitleText()).toContain('Confirm your registration');
 
-    const firstnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
-    const lastnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
-    const emailInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
-
-    expect(await firstnameInput.isDisabled()).toBe(true);
-    expect(await lastnameInput.isDisabled()).toBe(true);
-    expect(await emailInput.isDisabled()).toBe(true);
-
-    expect(await firstnameInput.getValue()).toBe('John');
-    expect(await lastnameInput.getValue()).toBe('Doe');
-    expect(await emailInput.getValue()).toBe('john@doe.com');
+    const detailEls = await harnessLoader.getAllHarnesses(DivHarness.with({ selector: '.registration-confirmation__form__detail' }));
+    expect(detailEls.length).toBe(3);
+    const detailTexts = await Promise.all(detailEls.map(detail => detail.getText()));
+    expect(detailTexts.join(' ')).toContain('First name:');
+    expect(detailTexts.join(' ')).toContain('John');
+    expect(detailTexts.join(' ')).toContain('Last name:');
+    expect(detailTexts.join(' ')).toContain('Doe');
+    expect(detailTexts.join(' ')).toContain('Email:');
+    expect(detailTexts.join(' ')).toContain('john@doe.com');
 
     const submitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ selector: 'button.registration-confirmation__form__submit' }));
     expect(await submitBtn.isDisabled()).toBe(true);
@@ -116,15 +114,13 @@ describe('RegistrationConfirmationComponent', () => {
       parsedToken: defaultParsed,
     });
 
-    const passwordField = await harnessLoader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Choose a password' }));
-    const passwordInput = await passwordField.getControl(MatInputHarness);
-    await passwordInput!.setValue('P@ssw0rd!');
+    const passwordInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="password"]' }));
+    const confirmInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="confirmedPassword"]' }));
 
-    const confirmField = await harnessLoader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Confirm your password' }));
-    const confirmInput = await confirmField.getControl(MatInputHarness);
-    await confirmInput!.setValue('P@ssw0rd!');
+    await passwordInput.setValue('P@ssw0rd!');
+    await confirmInput.setValue('P@ssw0rd!');
 
-    const submitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ selector: 'button.registration-confirmation__form__submit' }));
+    const submitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Complete registration' }));
     await submitBtn.click();
 
     fixture.detectChanges();
@@ -138,13 +134,10 @@ describe('RegistrationConfirmationComponent', () => {
     });
 
     const card = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration-confirmation__form__container' }));
-    expect(await card.getTitleText()).toContain('Account created');
-
-    const successContent = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid="confirm-btn"]' }));
-    expect(successContent).not.toBeNull();
+    expect(await card.getTitleText()).toContain('Registration confirmed');
 
     const cardText = await card.getText();
-    expect(cardText).toContain('Your account has been successfully created');
-    expect(cardText).toContain('Back to portal');
+    expect(cardText).toContain('Your account has been successfully activated.');
+    expect(cardText).toContain('Back to login');
   });
 });
