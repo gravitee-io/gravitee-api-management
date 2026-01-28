@@ -72,10 +72,10 @@ services:
             - storage
 
     redis_rate_limit:
-        image: redis:6.2.17
-        command: ["redis-server", "--appendonly", "yes"]
+        image: redis:7.4-alpine
         container_name: gio_redis_ratelimit
         restart: always
+        command: redis-server --rename-command FLUSHDB "" --rename-command FLUSHALL ""
         ports:
             - "6379:6379"
         volumes:

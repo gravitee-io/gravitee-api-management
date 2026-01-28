@@ -93,10 +93,10 @@ Since we have a keyless plan, no subscription is required, and we can use the `k
 
 Execute the following commands to produce and consume messages.
 ```bash
-docker exec -it gio_apim_kafka-client bash -c "kafka-console-producer.sh --bootstrap-server foo.kafka.local:9092 --producer.config config/kafka-keyless-plan-ssl.properties --topic client-topic-1"`
+docker exec -it gio_apim_kafka-client bash -c "/opt/kafka/bin/kafka-console-producer.sh --bootstrap-server foo.kafka.local:9092 --producer.config config/kafka-keyless-plan-ssl.properties --topic client-topic-1"`
 ```
 ```bash
-docker exec -it gio_apim_kafka-client bash -c "kafka-console-consumer.sh --bootstrap-server foo.kafka.local:9092 --consumer.config config/kafka-keyless-plan-ssl.properties --topic client-topic-1"`
+docker exec -it gio_apim_kafka-client bash -c "/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server foo.kafka.local:9092 --consumer.config config/kafka-keyless-plan-ssl.properties --topic client-topic-1"`
 ```
 
 ### See the API in the portal (next)
