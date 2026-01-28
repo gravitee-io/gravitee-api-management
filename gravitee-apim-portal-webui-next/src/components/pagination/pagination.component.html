@@ -15,15 +15,9 @@
     limitations under the License.
 
 -->
-<button
-  mat-button
-  [disabled]="!pagination().hasPreviousPage"
-  (click)="goToPreviousPage()"
-  aria-label="Previous page of results"
-  class="pagination__nav-button"
->
+<button mat-button [disabled]="!pagination().hasPreviousPage" (click)="goToPreviousPage()" aria-label="Previous page of results" class="nav-button">
   <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
-  <span i18n="@@paginationPrevious">Previous</span>
+  <span>Previous</span>
 </button>
 
 @if (pagination().hasPreviousPage) {
@@ -59,13 +53,7 @@
   <button mat-button (click)="goToPage(pagination().totalPages)" aria-label="Last page of results">{{ pagination().totalPages }}</button>
 }
 
-<button
-  mat-button
-  [disabled]="!pagination().hasNextPage"
-  (click)="goToNextPage()"
-  aria-label="Next page of results"
-  class="pagination__nav-button pagination__nav-button--next"
->
-  <span i18n="@@paginationNext">Next</span>
+<button mat-button [disabled]="!pagination().hasNextPage" (click)="goToNextPage()" aria-label="Next page of results" class="nav-button">
+  <span>Next</span>
   <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
 </button>

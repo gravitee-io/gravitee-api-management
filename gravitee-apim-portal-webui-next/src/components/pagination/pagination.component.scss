@@ -13,55 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '@angular/material' as mat;
-@use '../../scss/theme' as theme;
+:host {
+  --mat-button-filled-container-shape: 50%;
+  --mat-button-filled-horizontal-padding: 18px;
+  --mat-button-text-horizontal-padding: 18px;
+  --mdc-filled-button-container-shape: 4px;
+  --mat-filled-button-horizontal-padding: 18px;
+  --mat-text-button-horizontal-padding: 18px;
+}
 
 :host {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-button[mat-stroked-button] {
-  @include mat.button-overrides(
-    (
-      outlined-container-shape: #{theme.$container-shape},
-      outlined-horizontal-padding: 12px,
-      outlined-label-text-color: black,
-      outlined-label-text-weight: 700,
-    )
-  );
-  min-width: 40px;
-}
-
-button[mat-button] {
-  @include mat.button-overrides(
-    (
-      text-horizontal-padding: 18px,
-    )
-  );
+button[mat-flat-button],
+button[mat-button]:not(.nav-button),
+button[mat-icon-button] {
+  width: 44px;
   min-width: auto;
+  border-radius: 4px;
 }
 
-button.pagination__nav-button {
-  @include mat.button-overrides(
-    (
-      text-container-shape: 4px,
-      text-horizontal-padding: 8px,
-    )
-  );
-  display: inline-flex;
+button[mat-flat-button] {
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+}
+
+button.nav-button {
+  min-width: auto;
+  border-radius: 4px;
+  display: flex;
   align-items: center;
-  min-width: auto;
-
-  &.pagination__nav-button--next {
-    span {
-      order: 1;
-    }
-
-    .breadcrumb-icon {
-      order: 2;
-      margin-left: 8px;
-    }
-  }
+  gap: 4px;
+  padding: 0 12px;
 }
