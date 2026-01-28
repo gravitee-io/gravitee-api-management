@@ -1,0 +1,129 @@
+<!--
+ *
+ *    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *            http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+-->
+<div class="api-product-apis">
+  <div class="api-product-apis__header">
+    <div>
+      <h1>APIs</h1>
+      <p class="subtitle">Manage APIs grouped together in your API Product.</p>
+    </div>
+    <button
+      (click)="onAddApi()"
+      mat-raised-button
+      color="primary"
+      class="add-api-button"
+      aria-label="add-api"
+      data-testid="api_product_apis_add_api_button"
+      *gioPermission="{ anyOf: ['environment-api_products-c'] }"
+    >
+      Add API
+    </button>
+  </div>
+
+  <!-- Table View -->
+  <gio-table-wrapper
+    [searchLabel]="searchLabel"
+    [length]="apisTableDSUnpaginatedLength"
+    [filters]="filters"
+    (filtersChange)="onFiltersChanged($event)"
+    [paginationPageSizeOptions]="[10, 25, 50, 100]"
+  >
+    <table mat-table matSort [dataSource]="apisTableDS" id="apiProductApisTable" aria-label="APIs table">
+      <!-- Picture Column -->
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef id="picture"></th>
+        <td mat-cell *matCellDef="let element">
+          <gio-avatar
+            class="api-product-apis__avatar"
+            [name]="element.name + ' ' + element.version"
+            [size]="32"
+            [roundedBorder]="true"
+          ></gio-avatar>
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
+        <td mat-cell *matCellDef="let element" title="{{ element.name }}">
+          {{ element.name }}
+        </td>
+      </ng-container>
+
+      <!-- Context Path Column -->
+      <ng-container matColumnDef="contextPath">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="contextPath">Context Path</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.contextPath }}
+        </td>
+      </ng-container>
+
+      <!-- Definition Column -->
+      <ng-container matColumnDef="definition">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="definition">Definition</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.definition }}
+        </td>
+      </ng-container>
+
+      <!-- Version Column -->
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="version">Version</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="version__badge gio-badge-neutral">v{{ element.version }}</span>
+          <span *ngIf="element.lifecycleState === 'DEPRECATED'" class="deprecated__badge gio-badge-warning">Deprecated</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="actions__delete">
+            <button
+              (click)="onDeleteApi(element)"
+              mat-icon-button
+              aria-label="Button to remove API from API Product"
+              matTooltip="Remove API from API Product"
+              data-testid="api_product_apis_delete_button"
+              *gioPermission="{ anyOf: ['environment-api_products-u'] }"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="api_product_apis_table_header"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="api_product_apis_table_row"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td
+          *ngIf="!isLoadingData && apisTableDS.length === 0"
+          class="mat-mdc-cell mdc-data-table__cell"
+          [attr.colspan]="displayedColumns.length"
+        >
+          There are no APIs in this API Product (yet).
+        </td>
+        <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+          Loading...
+        </td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+</div>
