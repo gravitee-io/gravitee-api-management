@@ -16,10 +16,6 @@
 
 -->
 <div class="content">
-  @if (showBanner) {
-    <app-catalog-banner />
-  }
-
   <app-breadcrumb-navigation />
 
   @if (query$ | async; as query) {
