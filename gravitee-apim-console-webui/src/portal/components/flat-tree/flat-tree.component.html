@@ -139,7 +139,9 @@
             <mat-icon svgIcon="gio:link"></mat-icon>
             Add Link
           </button>
-          <mat-divider></mat-divider>
+          @if (canUpdate || canDelete) {
+            <mat-divider></mat-divider>
+          }
         }
       }
 

@@ -590,6 +590,44 @@ describe('FlatTreeComponent', () => {
       expect(deleteButton).toBeNull();
     });
 
+    const testCases = [
+      {
+        description: 'should NOT show divider if user has only create permission',
+        permissions: ['environment-documentation-c'],
+        expected: false,
+      },
+      {
+        description: 'should show divider if user has create and update permission',
+        permissions: ['environment-documentation-c', 'environment-documentation-u'],
+        expected: true,
+      },
+      {
+        description: 'should show divider if user has create and delete permission',
+        permissions: ['environment-documentation-c', 'environment-documentation-d'],
+        expected: true,
+      },
+    ];
+
+    testCases.forEach(({ description, permissions, expected }) => {
+      it(description, async () => {
+        setupPermissions(permissions);
+        fixture = TestBed.createComponent(FlatTreeComponent);
+        component = fixture.componentInstance;
+        harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+        const links = [makeItem('f2', 'FOLDER', 'Folder 2', 0)];
+        fixture.componentRef.setInput('links', links);
+
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const moreActionsButton = await harness['getMoreActionsButtonById']('f2')();
+        await moreActionsButton.click();
+
+        expect(await harness.hasDivider()).toBe(expected);
+      });
+    });
+
     it('should show only "Edit" and publishing options if user has only update permission', async () => {
       setupPermissions(['environment-documentation-u']);
       fixture = TestBed.createComponent(FlatTreeComponent);
