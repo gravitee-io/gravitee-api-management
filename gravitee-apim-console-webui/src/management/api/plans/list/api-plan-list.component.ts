@@ -35,6 +35,8 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
+type PlanDS = Plan & { securityTypeLabel: string };
+
 @Component({
   selector: 'api-plan-list',
   templateUrl: './api-plan-list.component.html',
@@ -45,7 +47,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public api: Api;
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
-  public plansTableDS: Plan[] = [];
+  public plansTableDS: PlanDS[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map((status) => ({ name: status, number: null }));
   public status: PlanStatus;
@@ -114,6 +116,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
 
     const movedPlan = this.plansTableDS[event.currentIndex];
     movedPlan.order = event.currentIndex + 1;
+    delete movedPlan.securityTypeLabel;
 
     this.plansService
       .update(this.api.id, movedPlan.id, movedPlan)
@@ -262,12 +265,19 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     return this.plansService.list(this.api.id, undefined, ['PUBLISHED'], undefined, ['-flow'], 1, 9999).pipe(
       switchMap((plansResponse) => {
         const publishedKeylessPlan = plansResponse.data.filter((plan) => plan.security.type === 'KEY_LESS');
-        const publishedAuthPlans = plansResponse.data.filter((plan) => plan.security.type !== 'KEY_LESS');
+        const publishedMtlsPlan = plansResponse.data.filter((plan) => plan.security.type === 'MTLS');
+        const publishedAuthPlans = plansResponse.data.filter((plan) => plan.security.type !== 'KEY_LESS' && plan.security.type !== 'MTLS');
 
-        if (plan.security?.type === 'KEY_LESS' && publishedAuthPlans.length) {
-          return this.nativeKafkaDialog$(plan, publishedAuthPlans);
-        } else if (plan.security?.type !== 'KEY_LESS' && publishedKeylessPlan.length) {
-          return this.nativeKafkaDialog$(plan, publishedKeylessPlan);
+        if (plan.security?.type === 'KEY_LESS' && (publishedMtlsPlan.length || publishedAuthPlans.length)) {
+          return this.nativeKafkaDialog$(plan, [...publishedMtlsPlan, ...publishedAuthPlans]);
+        } else if (plan.security?.type === 'MTLS' && (publishedKeylessPlan.length || publishedAuthPlans.length)) {
+          return this.nativeKafkaDialog$(plan, [...publishedKeylessPlan, ...publishedAuthPlans]);
+        } else if (
+          plan.security?.type !== 'KEY_LESS' &&
+          plan.security?.type !== 'MTLS' &&
+          (publishedKeylessPlan.length || publishedMtlsPlan.length)
+        ) {
+          return this.nativeKafkaDialog$(plan, [...publishedKeylessPlan, ...publishedMtlsPlan]);
         } else {
           return this.httpPlanDialog$(plan);
         }
@@ -277,17 +287,44 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   }
 
   private nativeKafkaDialog$(plan: Plan, plansToClose: Plan[]): Observable<Plan> {
-    const plansWithAuthentication = `plan${plansToClose.length > 1 ? 's' : ''} with authentication`;
-    const ifSubscriptionContent = '<b>If there are subscriptions associated to this plan, they will be closed!</b>';
+    const hasMtls = plansToClose.some((p) => p.security.type === 'MTLS');
+    const hasAuth = plansToClose.some((p) => p.security.type !== 'KEY_LESS' && p.security.type !== 'MTLS');
 
-    const content = `Kafka APIs cannot have both plans with and without authentication published. Are you sure you want to publish the plan ${plan.name}? <br />
-Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : 'Keyless plan'} will be closed automatically. ${plan.security.type === 'KEY_LESS' ? ifSubscriptionContent : ''}
-`;
+    let planTypeToPublish: string;
+    let ifSubscriptionContent = '';
+
+    const plansList = plansToClose.map((p) => `- <strong>${p.name}</strong> (${this.getSecurityTypeLabel(p.security.type)})`).join('\n');
+
+    if (plan.security.type === 'KEY_LESS') {
+      planTypeToPublish = 'Keyless';
+      if (hasMtls || hasAuth) {
+        ifSubscriptionContent = '<b>If there are subscriptions associated to these plans, they will be closed!</b>';
+      }
+    } else if (plan.security.type === 'MTLS') {
+      planTypeToPublish = 'mTLS';
+      if (hasAuth) {
+        ifSubscriptionContent = '<b>If there are subscriptions associated to these plans, they will be closed!</b>';
+      }
+    } else {
+      planTypeToPublish = 'authentication';
+      if (hasMtls) {
+        ifSubscriptionContent = '<b>If there are subscriptions associated to these plans, they will be closed!</b>';
+      }
+    }
+
+    const content = `Kafka APIs cannot have Keyless, mTLS, and authentication (OAuth2, JWT, API Key) plans published together.
+Are you sure you want to publish the <b>${planTypeToPublish}</b> plan <b>${plan.name}</b>?
+
+The following ${plansToClose.length > 1 ? 'plans' : 'plan'} will be closed automatically:
+${plansList}
+
+${ifSubscriptionContent}`;
+
     return this.matDialog
       .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
         width: '500px',
         data: {
-          title: `Publish plan and close current one`,
+          title: `Publish plan and close current one${plansToClose.length > 1 ? 's' : ''}`,
           warning: `This operation is irreversible.`,
           validationMessage: `Please, type in the name of the plan <code>${plan.name}</code> to confirm.`,
           validationValue: plan.name,
@@ -303,6 +340,17 @@ Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : '
         switchMap(() => forkJoin(plansToClose.map((p) => this.plansService.close(this.api.id, p.id)))),
         switchMap(() => this.plansService.publish(this.api.id, plan.id)),
       );
+  }
+
+  private getSecurityTypeLabel(type?: string): string {
+    const labels: Record<string, string> = {
+      KEY_LESS: 'Keyless',
+      MTLS: 'mTLS',
+      API_KEY: 'API Key',
+      OAUTH2: 'OAuth2',
+      JWT: 'JWT',
+    };
+    return labels[type] || type;
   }
 
   private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {
@@ -334,6 +382,12 @@ Your published ${plan.security.type === 'KEY_LESS' ? plansWithAuthentication : '
 
     getApiPlans$
       .pipe(
+        map((plans) =>
+          plans.map((plan) => ({
+            ...plan,
+            securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
+          })),
+        ),
         tap((plans) => {
           this.router.navigate(['../plans'], {
             relativeTo: this.activatedRoute,

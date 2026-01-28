@@ -273,6 +273,56 @@ public class PlanService_PublishTest {
     }
 
     @Test(expected = NativePlanAuthenticationConflictException.class)
+    public void shouldNotPublishMtlsNativePlanIfKeylessPlanPublished() throws TechnicalException {
+        var stagedMtlsPlan = Plan.builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.MTLS)
+            .apiType(ApiType.NATIVE)
+            .build();
+
+        var publishedKeylessPlan = Plan.builder()
+            .id("published-keyless")
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.KEY_LESS)
+            .status(Plan.Status.PUBLISHED)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedMtlsPlan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedMtlsPlan, publishedKeylessPlan));
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+    }
+
+    @Test(expected = NativePlanAuthenticationConflictException.class)
+    public void shouldNotPublishAuthNativePlanIfMtlsPlanPublished() throws TechnicalException {
+        var stagedApiKeyPlan = Plan.builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .apiType(ApiType.NATIVE)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .apiType(ApiType.NATIVE)
+            .build();
+
+        var publishedMtlsPlan = Plan.builder()
+            .id("published-mtls")
+            .api(API_ID)
+            .security(Plan.PlanSecurityType.MTLS)
+            .status(Plan.Status.PUBLISHED)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedApiKeyPlan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedApiKeyPlan, publishedMtlsPlan));
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+    }
+
+    @Test(expected = NativePlanAuthenticationConflictException.class)
     public void shouldNotPublishAuthNativePlanIfKeylessPlanPublished() throws TechnicalException {
         var stagedApiKeyPlan = Plan.builder()
             .status(Plan.Status.STAGING)

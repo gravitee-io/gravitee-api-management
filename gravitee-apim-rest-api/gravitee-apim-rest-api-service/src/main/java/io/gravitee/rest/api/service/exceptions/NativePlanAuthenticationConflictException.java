@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.exceptions;
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.Plan;
 import java.util.Map;
 
 /**
@@ -25,17 +26,21 @@ import java.util.Map;
  */
 public class NativePlanAuthenticationConflictException extends AbstractManagementException {
 
-    private final boolean planToPublishIsKeyless;
+    private final Plan.PlanSecurityType planToPublishType;
 
-    public NativePlanAuthenticationConflictException(boolean planToPublishIsKeyless) {
-        this.planToPublishIsKeyless = planToPublishIsKeyless;
+    public NativePlanAuthenticationConflictException(Plan.PlanSecurityType planToPublishType) {
+        this.planToPublishType = planToPublishType;
     }
 
     @Override
     public String getMessage() {
-        return planToPublishIsKeyless
-            ? "A plan with authentication is already published for the Native API."
-            : "A Keyless plan for the Native API is already published.";
+        if (planToPublishType == Plan.PlanSecurityType.KEY_LESS) {
+            return "A plan with mTLS or authentication is already published for the Native API. Keyless plans cannot be combined with mTLS or authentication plans.";
+        } else if (planToPublishType == Plan.PlanSecurityType.MTLS) {
+            return "A Keyless or authentication plan is already published for the Native API. mTLS plans cannot be combined with Keyless or authentication plans.";
+        } else {
+            return "A Keyless or mTLS plan is already published for the Native API. Authentication plans cannot be combined with Keyless or mTLS plans.";
+        }
     }
 
     @Override
@@ -50,6 +55,6 @@ public class NativePlanAuthenticationConflictException extends AbstractManagemen
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("planToPublishIsKeyless", Boolean.valueOf(planToPublishIsKeyless).toString());
+        return singletonMap("planToPublishType", planToPublishType.name());
     }
 }

@@ -94,9 +94,7 @@ export class ConstantsService {
     }
 
     if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'KAFKA')) {
-      return availablePlanMenuItems
-        .filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH')
-        .filter((planMenuItem) => planMenuItem.planFormType !== 'MTLS');
+      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
     }
 
     if (definitionVersion !== 'V4') {

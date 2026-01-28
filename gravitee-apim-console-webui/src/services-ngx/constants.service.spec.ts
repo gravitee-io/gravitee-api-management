@@ -195,10 +195,15 @@ describe('ConstantsService', () => {
         ]);
       });
 
-      it('should filter PUSH plan and mTLS menu items when API definition version is V4 and Kafka Listeners selected', () => {
+      it('should filter PUSH plan when API definition version is V4 and Kafka Listeners selected', () => {
         const result = constantsService.getPlanMenuItems('V4', ['KAFKA']);
 
         expect(result).toMatchObject([
+          {
+            planFormType: 'MTLS',
+            name: 'mTLS',
+            policy: 'mtls',
+          },
           {
             planFormType: 'OAUTH2',
             name: 'OAuth2',
