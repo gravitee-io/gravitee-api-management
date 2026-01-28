@@ -21,6 +21,7 @@ networks:
         name: storage
     kafka:
         name: kafka
+        driver: bridge
     email:
         name: email
     gateway:
@@ -31,7 +32,7 @@ networks:
 volumes:
     data-elasticsearch:
     data-mongo:
-    data-kafka: null
+    data-kafka:
 
 services:
     mongodb:
@@ -179,7 +180,7 @@ services:
             - email
 
     kafkaConsole:
-        image: ${APIM_REGISTRY:-graviteeio}/apim-kafka-console:${APIM_KAFKA_CONSOLE_VERSION:-latest}
+        image: ${APIM_REGISTRY:-graviteeio.azurecr.io}/apim-kafka-console:${APIM_KAFKA_CONSOLE_VERSION:-latest}
         container_name: gio_apim_kafka_console
         networks:
             - kafkaConsole
@@ -193,62 +194,50 @@ services:
             - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME=admin
             - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
-    kafka:
-        image: docker.io/bitnamilegacy/kafka:3.9
-        container_name: gio_apim_kafka
+    kafka-init:
+        image: apache/kafka:3.9.1
+        container_name: kafka-init
         volumes:
-            - data-kafka:/bitnami/kafka
-            - "./.ssl/server.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
-            - "./.ssl/server.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
+            - data-kafka:/var/lib/kafka/data
+            - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
+        command: >
+            bash -c "
+            if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+              echo 'Formatting Kafka storage...';
+              /opt/kafka/bin/kafka-storage.sh format -t my-static-cluster-id -c /opt/kafka/config/kraft/server.properties;
+            else
+              echo 'Kafka storage already formatted.';
+            fi
+            "
+
+    kafka:
+        image: apache/kafka:3.9.1
+        container_name: gio_apim_kafka
+        hostname: kafka
+        networks:
+            - kafka
+            - kafkaConsole
+        depends_on:
+            - kafka-init
+
         ports:
             - "9091:9091"
             - "9093:9093"
             - "9094:9094"
             - "9095:9095"
             - "9096:9096"
-            - "9097:9097"
-        networks:
-            - kafka
-            - kafkaConsole
+
+        volumes:
+            - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
+            - ./.ssl:/etc/kafka/secrets
+            - data-kafka:/var/lib/kafka/data
+
         environment:
-            - BITNAMI_DEBUG=true
-            - ALLOW_PLAINTEXT_LISTENER=yes
-            - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
-            - KAFKA_CFG_NODE_ID=0
-            - KAFKA_CFG_PROCESS_ROLES=controller,broker
-            - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9091,CONTROLLER://:9093,SSL://:9094,SASL_PLAINTEXT://:9095,SASL_SSL://:9096,KAFDROP://:9097
-            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9091,SSL://kafka:9094,SASL_PLAINTEXT://kafka:9095,SASL_SSL://kafka:9096,KAFDROP://kafka:9097
-            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,KAFDROP:PLAINTEXT,CONTROLLER:PLAINTEXT
-            - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
-            - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN,SCRAM-SHA-256,SCRAM-SHA-512,OAUTHBEARER
-            - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
-            - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
-            - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
-            - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
-            - KAFKA_CFG_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL=https://am.gateway.master.gravitee.dev/test-jh/oidc/.well-known/jwks.json
-            - KAFKA_CFG_SASL_OAUTHBEARER_EXPECTED_AUDIENCE=kafka-client
-            - KAFKA_NUM_PARTITIONS=1
-            - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-            # SASL settings
-            - KAFKA_CLIENT_USERS=gravitee_user
-            - KAFKA_CLIENT_PASSWORDS=gravitee_password
-            - KAFKA_CONTROLLER_USER=controller_user
-            - KAFKA_CONTROLLER_PASSWORD=controller_password
-            - KAFKA_INTER_BROKER_USER=inter_broker_user
-            - KAFKA_INTER_BROKER_PASSWORD=inter_broker_password
-            # Certificate credentials
-            - KAFKA_CFG_SSL_KEYSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.keystore.jks
-            - KAFKA_CFG_SSL_KEYSTORE_PASSWORD=gravitee
-            - KAFKA_CFG_SSL_TRUSTSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.truststore.jks
-            - KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD=gravitee
-            - KAFKA_TLS_CLIENT_AUTH=requested
-            - KAFKA_CERTIFICATE_PASSWORD=gravitee
-            - KAFKA_TLS_TYPE=JKS
-            - KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
-        healthcheck:
-            test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9097"]
-            interval: 5s # Check every 10 seconds
-            timeout: 10s # Timeout after 10 seconds
-            retries: 5 # Retry up to 5 times
-            start_period: 10s # Wait 30 seconds before starting health checks
+            SSL_KEYSTORE_PASSWORD: gravitee
+            SSL_KEY_PASSWORD: gravitee
+            SSL_TRUSTSTORE_PASSWORD: gravitee
+            KAFKA_OPTS: >
+                -Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf
+
+        command: >
+            /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
