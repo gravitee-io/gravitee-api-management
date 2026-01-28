@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -166,9 +167,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+    private final ApiMetadataQueryService apiMetadataQueryService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
+    private static final String EXPAND_METADATA = "metadata";
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -200,7 +203,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
-        ApiCategoryService apiCategoryService
+        final ApiCategoryService apiCategoryService,
+        final ApiMetadataQueryService apiMetadataQueryService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -232,6 +236,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
+        this.apiMetadataQueryService = apiMetadataQueryService;
     }
 
     @Override
@@ -715,7 +720,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             new ApiFieldFilter.Builder().excludePicture().build()
         );
 
-        return apis
+        List<GenericApiEntity> apiEntityList = apis
             .getContent()
             .stream()
             .map(api -> {
@@ -727,11 +732,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 return genericApiMapper.toGenericApi(api, primaryOwner);
             })
-            .collect(
-                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
-                )
-            );
+            .collect(Collectors.toList());
+
+        // Fetch metadata if requested
+        if (expands != null && expands.contains(EXPAND_METADATA) && !apiEntityList.isEmpty()) {
+            fetchAndSetMetadata(executionContext, apiEntityList);
+        }
+
+        return new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements());
     }
 
     @Override
@@ -803,6 +811,35 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             String errorMsg = String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);
             log.error(errorMsg, apiId, ex);
             throw new TechnicalManagementException(errorMsg, ex);
+        }
+    }
+
+    private void fetchAndSetMetadata(ExecutionContext executionContext, List<GenericApiEntity> apiEntityList) {
+        try {
+            Set<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).collect(Collectors.toSet());
+            Map<String, Map<String, io.gravitee.apim.core.api.model.ApiMetadata>> allMetadata = apiMetadataQueryService.findApisMetadata(
+                executionContext.getEnvironmentId(),
+                apiIds
+            );
+
+            apiEntityList.forEach(apiEntity -> {
+                Map<String, io.gravitee.apim.core.api.model.ApiMetadata> apiMetadataMap = allMetadata.get(apiEntity.getId());
+                if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
+                    Map<String, Object> metadataMap = apiMetadataMap
+                        .values()
+                        .stream()
+                        .collect(
+                            Collectors.toMap(
+                                io.gravitee.apim.core.api.model.ApiMetadata::getKey,
+                                metadata -> metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue(),
+                                (existing, replacement) -> replacement
+                            )
+                        );
+                    apiEntity.setMetadata(metadataMap);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Failed to fetch metadata for APIs: {}", e.getMessage(), e);
         }
     }
 }
