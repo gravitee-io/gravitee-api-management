@@ -17,16 +17,20 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApiMembership;
+import io.gravitee.rest.api.management.rest.model.TransferOwnership;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,5 +92,24 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         assertEquals(API, memberShipRefCaptor.getValue().getId());
         assertEquals("my-api-membership-role", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
+    }
+
+    @Test
+    public void shouldNotTransferOwnershipToPrimaryOwner() {
+        TransferOwnership transferOwnership = new TransferOwnership();
+        transferOwnership.setId(MEMBER_1);
+        transferOwnership.setReference("USER");
+        transferOwnership.setPoRole("PRIMARY_OWNER");
+
+        Response response = envTarget(API).path("members").path("transfer_ownership").request().post(Entity.json(transferOwnership));
+
+        Map<String, Object> error = response.readEntity(new GenericType<>() {});
+
+        assertAll(
+            () -> assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus()),
+            () -> assertEquals("The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner.", error.get("message")),
+            () -> assertEquals("role.transferNotAllowed", error.get("technicalCode")),
+            () -> assertEquals("PRIMARY_OWNER", ((Map<?, ?>) error.get("parameters")).get("role"))
+        );
     }
 }
