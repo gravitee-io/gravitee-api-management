@@ -51,7 +51,7 @@ public class DebugSyncApiReactorTest {
         public void path_with_subpath_and_trailing_slash() {
             MutableRequest request = new AbstractRequest() {
                 {
-                    MultiMap multiMap = HeadersMultiMap.headers();
+                    MultiMap multiMap = HeadersMultiMap.httpHeaders();
                     this.headers = new VertxHttpHeaders(multiMap);
                     this.path = "/uuid-12345-test/v1/";
                     this.contextPath = "/uuid-12345-test/";
@@ -72,7 +72,7 @@ public class DebugSyncApiReactorTest {
         public void path_with_subpath_and_without_trailing_slash() {
             MutableRequest request = new AbstractRequest() {
                 {
-                    MultiMap multiMap = HeadersMultiMap.headers();
+                    MultiMap multiMap = HeadersMultiMap.httpHeaders();
                     this.headers = new VertxHttpHeaders(multiMap);
                     this.path = "/uuid-12345-test/v1";
                     this.contextPath = "/uuid-12345-test/";

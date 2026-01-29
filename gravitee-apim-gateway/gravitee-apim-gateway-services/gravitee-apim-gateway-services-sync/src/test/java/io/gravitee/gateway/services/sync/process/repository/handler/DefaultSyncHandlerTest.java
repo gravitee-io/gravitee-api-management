@@ -21,11 +21,11 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxExtension;
@@ -69,20 +69,21 @@ class DefaultSyncHandlerTest {
 
         client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
 
-        vertx.deployVerticle(
-            new AbstractVerticle() {
-                @Override
-                public void start() {
-                    vertx.createHttpServer().requestHandler(router).listen(port);
+        vertx
+            .deployVerticle(
+                new AbstractVerticle() {
+                    @Override
+                    public void start() {
+                        vertx.createHttpServer().requestHandler(router).listen(port);
+                    }
                 }
-            },
-            testContext.succeedingThenComplete()
-        );
+            )
+            .onComplete(testContext.succeedingThenComplete());
     }
 
     @AfterEach
     public void afterEach(Vertx vertx, VertxTestContext testContext) {
-        vertx.close(testContext.succeedingThenComplete());
+        vertx.close().onComplete(testContext.succeedingThenComplete());
     }
 
     @Test
@@ -96,10 +97,10 @@ class DefaultSyncHandlerTest {
 
         client
             .post("/path")
-            .expect(ResponsePredicate.SC_OK)
-            .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonObject())
             .send()
+            .expecting(HttpResponseExpectation.SC_OK)
+            .expecting(HttpResponseExpectation.JSON)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> {
@@ -128,10 +129,10 @@ class DefaultSyncHandlerTest {
 
         client
             .post("/path")
-            .expect(ResponsePredicate.SC_SERVICE_UNAVAILABLE)
-            .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonObject())
             .send()
+            .expecting(HttpResponseExpectation.SC_SERVICE_UNAVAILABLE)
+            .expecting(HttpResponseExpectation.JSON)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> {

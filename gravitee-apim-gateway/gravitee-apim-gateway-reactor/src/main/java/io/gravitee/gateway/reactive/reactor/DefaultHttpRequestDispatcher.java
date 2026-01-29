@@ -141,9 +141,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
-        log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
+        log.debug("Dispatching request on host {} and path {}", httpServerRequest.authority().host(), httpServerRequest.path());
 
-        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(
+            httpServerRequest.authority().host(),
+            httpServerRequest.path(),
+            serverId
+        );
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);

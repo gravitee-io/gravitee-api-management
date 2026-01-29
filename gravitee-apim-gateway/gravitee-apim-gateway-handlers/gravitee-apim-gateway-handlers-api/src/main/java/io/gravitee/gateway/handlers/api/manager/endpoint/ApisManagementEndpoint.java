@@ -74,9 +74,12 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
                 })
                 .collect(Collectors.toList());
 
-            final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
-            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            response.write(objectMapper.writeValueAsString(apis));
+            response.write(
+                DatabindCodec.mapper()
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(apis)
+            );
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             log.error("Unable to transform data object to JSON", jpe);

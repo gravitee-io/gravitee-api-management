@@ -84,7 +84,7 @@ class VertxHttpServerResponseTest {
     private Metrics metrics;
 
     @Captor
-    private ArgumentCaptor<Flowable<io.vertx.rxjava3.core.buffer.Buffer>> chunksCaptor;
+    private ArgumentCaptor<Flowable<io.vertx.core.buffer.Buffer>> chunksCaptor;
 
     private AtomicInteger subscriptionCount;
     private VertxHttpServerResponse cut;
@@ -118,7 +118,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -136,7 +136,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -150,7 +150,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
 
             // Existing chunks are not consumed at all (not subscribed).
@@ -165,7 +165,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
 
             // Existing chunks are not consumed at all (not subscribed).
@@ -188,7 +188,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -210,7 +210,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -232,7 +232,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -254,7 +254,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -365,7 +365,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -383,7 +383,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -458,7 +458,7 @@ class VertxHttpServerResponseTest {
 
             verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            final TestSubscriber<io.vertx.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
 

@@ -33,6 +33,7 @@ import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.*;
 import java.net.URL;
@@ -54,6 +55,19 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
+    protected PoolOptions createPoolOptions(T endpoint, URL requestUrl) throws Exception {
+        PoolOptions poolOptions = new PoolOptions();
+        // The queue size can contain only a single inflight request for HC
+        poolOptions.setMaxWaitQueueSize(1).setHttp1MaxSize(1);
+
+        if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {
+            poolOptions.setHttp2MaxSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
+        }
+
+        return poolOptions;
+    }
+
+    @Override
     protected RequestOptions prepareHttpClientRequest(URL request, HealthCheckStep step) {
         RequestOptions options = super.prepareHttpClientRequest(request, step);
 
@@ -68,9 +82,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     @Override
     protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl) throws Exception {
         // Prepare HTTP client
-        HttpClientOptions httpClientOptions = new HttpClientOptions() // The queue size can contain only a single inflight request for HC
-            .setMaxWaitQueueSize(1)
-            .setMaxPoolSize(1);
+        HttpClientOptions httpClientOptions = new HttpClientOptions();
 
         if (endpoint.getHttpClientOptions() != null) {
             if (environment.getProperty("http.ssl.openssl", Boolean.class, false)) {
@@ -85,12 +97,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
                 .setMaxHeaderSize(endpoint.getHttpClientOptions().getMaxHeaderSize())
                 .setMaxChunkSize(endpoint.getHttpClientOptions().getMaxChunkSize())
-                .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
+                .setDecompressionSupported(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {
                 httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2);
                 httpClientOptions.setHttp2ClearTextUpgrade(endpoint.getHttpClientOptions().isClearTextUpgrade());
-                httpClientOptions.setHttp2MaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
             }
         }
 
@@ -137,7 +148,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else {
                                 throw new EndpointException("Missing PEM certificate value for endpoint " + endpoint.getName());
                             }
-                            httpClientOptions.setPemTrustOptions(pemTrustOptions);
+                            httpClientOptions.setTrustOptions(pemTrustOptions);
                             break;
                         case PKCS12:
                             PKCS12TrustStore pkcs12TrustStore = (PKCS12TrustStore) sslOptions.getTrustStore();
@@ -150,7 +161,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else {
                                 throw new EndpointException("Missing PKCS12 value for endpoint " + endpoint.getName());
                             }
-                            httpClientOptions.setPfxTrustOptions(pfxOptions);
+                            httpClientOptions.setTrustOptions(pfxOptions);
                             break;
                         case JKS:
                             JKSTrustStore jksTrustStore = (JKSTrustStore) sslOptions.getTrustStore();
@@ -163,7 +174,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else {
                                 throw new EndpointException("Missing JKS value for endpoint " + endpoint.getName());
                             }
-                            httpClientOptions.setTrustStoreOptions(jksOptions);
+                            httpClientOptions.setTrustOptions(jksOptions);
                             break;
                     }
                 }
@@ -184,7 +195,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
                                 pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
                             }
-                            httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+                            httpClientOptions.setKeyCertOptions(pemKeyCertOptions);
                             break;
                         case PKCS12:
                             PKCS12KeyStore pkcs12KeyStore = (PKCS12KeyStore) sslOptions.getKeyStore();
@@ -195,7 +206,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12KeyStore.getContent()));
                             }
-                            httpClientOptions.setPfxKeyCertOptions(pfxOptions);
+                            httpClientOptions.setKeyCertOptions(pfxOptions);
                             break;
                         case JKS:
                             JKSKeyStore jksKeyStore = (JKSKeyStore) sslOptions.getKeyStore();
@@ -206,7 +217,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksKeyStore.getContent()));
                             }
-                            httpClientOptions.setKeyStoreOptions(jksOptions);
+                            httpClientOptions.setKeyCertOptions(jksOptions);
                             break;
                     }
                 }

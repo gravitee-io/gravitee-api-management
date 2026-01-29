@@ -97,7 +97,7 @@ class LogEndpointRequestTest {
 
     @Test
     void should_log_headers() {
-        final HttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        final HttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
         existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
@@ -117,7 +117,7 @@ class LogEndpointRequestTest {
     @Test
     void should_log_headers_including_all_headers_added_by_the_endpoint() {
         final HttpHeaders backendHeaders = HttpHeaders.create().set("X-To-Backend1", "Backend1").set("X-To-Backend2", "Backend2");
-        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
         existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));

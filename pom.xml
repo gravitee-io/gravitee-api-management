@@ -43,28 +43,28 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
              in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
              along with the grpc libs to create test clients and servers -->
-        <vertx.version>4.5.21</vertx.version>
+        <vertx.version>5.0.7</vertx.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- While waiting fot the new version of lombok-plugin, we use this workaround
              https://github.com/awhitford/lombok.maven/issues/179 -->
         <maven-lombok.version>1.18.36</maven-lombok.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.3.47</gravitee-bom.version>
+        <gravitee-bom.version>9.0.0-alpha-vertx5-SNAPSHOT</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.11.0</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.3.0</gravitee-cloud-initializer.version>
-        <gravitee-common.version>4.8.0</gravitee-common.version>
+        <gravitee-common.version>5.0.0-feat-upgrade-vertx5-SNAPSHOT</gravitee-common.version>
         <gravitee-common-mcp.version>1.0.0</gravitee-common-mcp.version>
-        <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
+        <gravitee-connector-api.version>2.0.0-feat-upgrade-vertx5-SNAPSHOT</gravitee-connector-api.version>
         <gravitee-exchange.version>1.10.0</gravitee-exchange.version>
         <gravitee-expression-language.version>4.2.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>4.3.0-alpha.2</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>5.0.0-feat-upgrade-vertx5-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.1.0</gravitee-json-validation.version>
-        <gravitee-kubernetes.version>3.7.1</gravitee-kubernetes.version>
-        <gravitee-node.version>8.0.0-alpha.3</gravitee-node.version>
+        <gravitee-kubernetes.version>4.0.0-feat-migrate-vertx5-SNAPSHOT</gravitee-kubernetes.version>
+        <gravitee-node.version>8.0.0-feat-vertx5-upgrade-SNAPSHOT</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.10.0</gravitee-plugin.version>
@@ -172,7 +172,7 @@
 
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
+        <gravitee-alert-engine-connectors-ws.version>3.0.0-feat-upgrade-vertx5-SNAPSHOT</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>5.0.8</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>5.2.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.1.0</gravitee-policy-assign-attributes.version>

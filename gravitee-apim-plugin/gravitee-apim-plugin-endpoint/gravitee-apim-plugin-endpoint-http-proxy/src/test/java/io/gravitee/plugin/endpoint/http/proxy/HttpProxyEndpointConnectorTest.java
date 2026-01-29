@@ -44,6 +44,7 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailur
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
@@ -56,6 +57,7 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -279,9 +281,13 @@ class HttpProxyEndpointConnectorTest {
 
         private HttpClientFactory spyHttpClientFactory;
         private GrpcHttpClientFactory spyGrpcHttpClientFactory;
+        private WebSocketClientFactory spyWebSocketClientFactory;
 
         @Mock
         private HttpClient mockHttpClient;
+
+        @Mock
+        private WebSocketClient mockWebSocketClient;
 
         @BeforeEach
         public void init() {
@@ -296,6 +302,9 @@ class HttpProxyEndpointConnectorTest {
             spyGrpcHttpClientFactory = spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "grpcHttpClientFactory", spyGrpcHttpClientFactory);
+            spyWebSocketClientFactory = spy((WebSocketClientFactory) ReflectionTestUtils.getField(cut, "webSocketClientFactory"));
+            lenient().doReturn(mockWebSocketClient).when(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
+            ReflectionTestUtils.setField(cut, "webSocketClientFactory", spyWebSocketClientFactory);
         }
 
         @Test
@@ -358,9 +367,9 @@ class HttpProxyEndpointConnectorTest {
         }
 
         @Test
-        void should_use_http_client_factory_with_ws() {
+        void should_use_websocket_client_factory_with_ws() {
             // We don't want to test the request itself just that the correct factory is used
-            when(mockHttpClient.rxWebSocket(any(WebSocketConnectOptions.class))).thenThrow(new IllegalStateException());
+            when(mockWebSocketClient.rxConnect(any(WebSocketConnectOptions.class))).thenThrow(new IllegalStateException());
             when(request.isWebSocket()).thenReturn(true);
 
             // connect will throw an exception

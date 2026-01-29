@@ -109,46 +109,28 @@ public class HttpProvider implements Provider {
                         @Override
                         public void handle(HttpClientRequest request) {
                             request
-                                .response(
-                                    new Handler<AsyncResult<HttpClientResponse>>() {
-                                        @Override
-                                        public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
-                                            if (asyncResponse.failed()) {
-                                                promise.fail(asyncResponse.cause());
-
-                                                // Close client
-                                                httpClient.close();
-                                            } else {
-                                                final HttpClientResponse response = asyncResponse.result();
-
-                                                if (response.statusCode() == HttpStatusCode.OK_200) {
-                                                    response.bodyHandler(buffer -> {
-                                                        promise.complete(buffer);
-
-                                                        // Close client
-                                                        httpClient.close();
-                                                    });
-                                                } else {
-                                                    promise.complete(null);
-
-                                                    // Close client
-                                                    httpClient.close();
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                                .exceptionHandler(
-                                    new Handler<Throwable>() {
-                                        @Override
-                                        public void handle(Throwable throwable) {
-                                            promise.fail(throwable);
+                                .response()
+                                .onSuccess(response -> {
+                                    if (response.statusCode() == HttpStatusCode.OK_200) {
+                                        response.bodyHandler(buffer -> {
+                                            promise.complete(buffer);
 
                                             // Close client
                                             httpClient.close();
-                                        }
+                                        });
+                                    } else {
+                                        promise.complete(null);
+
+                                        // Close client
+                                        httpClient.close();
                                     }
-                                );
+                                })
+                                .onFailure(throwable -> {
+                                    promise.fail(throwable);
+
+                                    // Close client
+                                    httpClient.close();
+                                });
 
                             if (!StringUtils.isEmpty(configuration.getBody())) {
                                 request.end(configuration.getBody());

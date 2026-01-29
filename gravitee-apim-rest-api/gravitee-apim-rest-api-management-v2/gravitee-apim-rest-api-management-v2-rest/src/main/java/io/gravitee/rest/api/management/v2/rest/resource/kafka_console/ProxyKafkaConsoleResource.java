@@ -191,80 +191,71 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                 request.putHeader("Host", kafbatServerHost);
                 log.debug("Request headers:\n{}", formatHeaders(request.headers()));
                 request
-                    .response(asyncResponse -> {
-                        if (asyncResponse.failed()) {
-                            log.error("Error on url '{}'", kafbatURI, asyncResponse.cause());
-                            finalResponse.resume(asyncResponse.cause());
+                    .response()
+                    .onSuccess(response -> {
+                        log.debug("Response status code: {}", response.statusCode());
+                        log.debug("Response headers:\n{}", formatHeaders(response.headers()));
+
+                        response.bodyHandler(buffer -> {
+                            Response.ResponseBuilder responseBuilder;
+                            if (
+                                response.headers().get(HttpHeaderNames.CONTENT_TYPE) != null &&
+                                response.headers().get(HttpHeaderNames.CONTENT_TYPE).startsWith("image")
+                            ) {
+                                responseBuilder = Response.ok(buffer.getBytes());
+                                response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
+                            } else {
+                                String payload = buffer.toString(StandardCharsets.UTF_8);
+                                payload = payload.replace(
+                                    """
+                                    href="/""",
+                                    """
+                                    href="%s/""".formatted(baseURI)
+                                );
+
+                                payload = payload.replace(
+                                    """
+                                    src="/""",
+                                    """
+                                    src="%s/""".formatted(baseURI)
+                                );
+
+                                payload = payload.replace(
+                                    """
+                                    src: url('/""",
+                                    """
+                                    src: url('%s/""".formatted(baseURI)
+                                );
+
+                                payload = payload.replace(
+                                    """
+                                    window.basePath = '';""",
+                                    """
+                                    window.basePath = '%s';""".formatted(baseURI)
+                                );
+
+                                log.trace("Response body: {}", payload);
+
+                                responseBuilder = Response.status(response.statusCode()).entity(payload);
+                                response
+                                    .headers()
+                                    .forEach(header -> {
+                                        if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
+                                            responseBuilder.header(header.getKey(), header.getValue());
+                                        }
+                                    });
+                                responseBuilder.header(
+                                    HttpHeaders.CONTENT_LENGTH.toString(),
+                                    payload.getBytes(StandardCharsets.UTF_8).length
+                                );
+                            }
+                            finalResponse.resume(responseBuilder.build());
 
                             // Close client
                             httpClient.close();
-                        } else {
-                            HttpClientResponse response = asyncResponse.result();
-
-                            log.debug("Response status code: {}", response.statusCode());
-                            log.debug("Response headers:\n{}", formatHeaders(response.headers()));
-
-                            response.bodyHandler(buffer -> {
-                                Response.ResponseBuilder responseBuilder;
-                                if (
-                                    response.headers().get(HttpHeaderNames.CONTENT_TYPE) != null &&
-                                    response.headers().get(HttpHeaderNames.CONTENT_TYPE).startsWith("image")
-                                ) {
-                                    responseBuilder = Response.ok(buffer.getBytes());
-                                    response.headers().forEach(header -> responseBuilder.header(header.getKey(), header.getValue()));
-                                } else {
-                                    String payload = buffer.toString(StandardCharsets.UTF_8);
-                                    payload = payload.replace(
-                                        """
-                                        href="/""",
-                                        """
-                                        href="%s/""".formatted(baseURI)
-                                    );
-
-                                    payload = payload.replace(
-                                        """
-                                        src="/""",
-                                        """
-                                        src="%s/""".formatted(baseURI)
-                                    );
-
-                                    payload = payload.replace(
-                                        """
-                                        src: url('/""",
-                                        """
-                                        src: url('%s/""".formatted(baseURI)
-                                    );
-
-                                    payload = payload.replace(
-                                        """
-                                        window.basePath = '';""",
-                                        """
-                                        window.basePath = '%s';""".formatted(baseURI)
-                                    );
-
-                                    log.trace("Response body: {}", payload);
-
-                                    responseBuilder = Response.status(response.statusCode()).entity(payload);
-                                    response
-                                        .headers()
-                                        .forEach(header -> {
-                                            if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
-                                                responseBuilder.header(header.getKey(), header.getValue());
-                                            }
-                                        });
-                                    responseBuilder.header(
-                                        HttpHeaders.CONTENT_LENGTH.toString(),
-                                        payload.getBytes(StandardCharsets.UTF_8).length
-                                    );
-                                }
-                                finalResponse.resume(responseBuilder.build());
-
-                                // Close client
-                                httpClient.close();
-                            });
-                        }
+                        });
                     })
-                    .exceptionHandler(throwable -> {
+                    .onFailure(throwable -> {
                         log.error("Error on url '{}'", kafbatURI, throwable);
                         finalResponse.resume(throwable);
 

@@ -67,9 +67,12 @@ public class ApiManagementEndpoint implements Handler<RoutingContext>, Managemen
                 response.setStatusCode(HttpStatusCode.OK_200);
                 response.setChunked(true);
 
-                final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
-                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(objectMapper.writeValueAsString(api));
+                response.write(
+                    DatabindCodec.mapper()
+                        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(api)
+                );
             }
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);

@@ -17,7 +17,7 @@ package io.gravitee.apim.reporter.common.bulk.compressor;
 
 import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import io.reactivex.rxjava3.annotations.NonNull;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;

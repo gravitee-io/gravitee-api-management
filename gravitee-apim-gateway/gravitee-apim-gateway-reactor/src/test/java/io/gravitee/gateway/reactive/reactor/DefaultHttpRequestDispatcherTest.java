@@ -65,11 +65,11 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.HttpServerConnection;
-import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
@@ -165,7 +165,7 @@ class DefaultHttpRequestDispatcherTest {
     @BeforeEach
     public void init() {
         // Mock vertx request behavior.
-        lenient().when(rxRequest.host()).thenReturn(HOST);
+        lenient().when(rxRequest.authority().host()).thenReturn(HOST);
         lenient().when(rxRequest.path()).thenReturn(PATH);
         lenient().when(rxRequest.version()).thenReturn(HttpVersion.HTTP_2);
         lenient().when(rxRequest.method()).thenReturn(HttpMethod.GET);
@@ -174,7 +174,7 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(rxRequest.response()).thenReturn(rxResponse);
         lenient().when(rxRequest.getDelegate()).thenReturn(request);
 
-        lenient().when(request.host()).thenReturn(HOST);
+        lenient().when(request.authority().host()).thenReturn(HOST);
         lenient().when(request.path()).thenReturn(PATH);
         lenient().when(request.method()).thenReturn(HttpMethod.GET);
         lenient().when(request.headers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
@@ -227,7 +227,7 @@ class DefaultHttpRequestDispatcherTest {
 
         lenient().when(rxRequest.connection()).thenReturn(httpConnection);
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
-        lenient().when(httpServerConnection.channel()).thenReturn(channel);
+        lenient().when(httpServerConnection.channelHandlerContext().channel()).thenReturn(channel);
         lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
