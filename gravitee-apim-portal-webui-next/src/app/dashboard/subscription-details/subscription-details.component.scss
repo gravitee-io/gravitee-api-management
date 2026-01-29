@@ -1,0 +1,169 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  padding: 30px 10px 0;
+  gap: 24px;
+  max-width: 1200px; // Optional: constrain width for large screens
+}
+
+.subscription-details {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    h1 {
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  &__info {
+    dl {
+      display: grid;
+      grid-template-columns: min-content 1fr;
+      row-gap: 18px;
+      column-gap: 40px;
+      margin: 0;
+    }
+
+    &__row {
+      display: contents;
+    }
+
+    dt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #666; // Muted text for labels
+      font-weight: 500;
+      white-space: nowrap;
+
+      .material-icons {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #757575;
+      }
+    }
+
+    dd {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      color: #000;
+      font-weight: 400;
+
+      &.id-value {
+        font-family: monospace; // IDs often look better in monospace
+      }
+
+      .link-primary {
+        color: #3f51b5; // Material Primary Blue
+        text-decoration: none;
+        &:hover { text-decoration: underline; }
+      }
+
+      .copy-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #666;
+      }
+    }
+  }
+}
+
+
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 { margin: 0; }
+  }
+
+  .card-title {
+    margin: 0;
+  }
+}
+
+.usage-card {
+  .usage-note {
+    color: #666;
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+
+  .usage-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .usage-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    mat-progress-bar {
+      height: 8px;
+      border-radius: 4px;
+    }
+
+    .usage-remaining {
+      font-size: 12px;
+      color: #666;
+    }
+  }
+}
+
+.api-card {
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .field-with-copy {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px 4px 4px 12px;
+      background: #f9f9f9;
+
+      input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-family: monospace;
+        color: #333;
+        font-size: 13px;
+      }
+
+      // Make the copy button slightly smaller
+      button {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        mat-icon { font-size: 18px; }
+      }
+    }
+  }
+}

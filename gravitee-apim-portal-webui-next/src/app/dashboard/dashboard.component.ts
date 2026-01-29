@@ -46,6 +46,7 @@ export class DashboardComponent {
       map(() => {
         const segments = this.router.url.split('/').filter(Boolean);
         const segment = segments[segments.length - 1];
+        console.log('segment', segment);
         const label = MENU_ITEMS.find(mi => mi.path === segment)?.title ?? '';
         return [{ id: segment, label }];
       }),

@@ -198,6 +198,10 @@ export const routes: Routes = [
         path: 'subscriptions',
         loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
       },
+      {
+        path: 'subscriptions/:subscriptionId',
+        loadComponent: () => import('./dashboard/subscription-details/subscription-details.component'),
+      },
     ],
   },
   {
