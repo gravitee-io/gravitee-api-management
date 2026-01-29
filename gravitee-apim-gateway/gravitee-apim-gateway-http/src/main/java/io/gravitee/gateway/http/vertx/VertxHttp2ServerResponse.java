@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.internal.buffer.BufferInternal;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,7 +33,7 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        serverResponse.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getNativeBuffer()));
+        serverResponse.writeCustomFrame(frame.type(), frame.flags(), BufferInternal.buffer(frame.payload().getNativeBuffer()));
 
         return this;
     }

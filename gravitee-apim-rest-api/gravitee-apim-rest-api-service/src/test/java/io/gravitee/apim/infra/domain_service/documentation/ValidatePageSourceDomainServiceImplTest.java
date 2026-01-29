@@ -26,7 +26,7 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDoma
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientAgent;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.List;
@@ -54,7 +54,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            HttpClient httpClient = mock(HttpClient.class);
+            HttpClientAgent httpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient()).thenReturn(httpClient);
 
             HttpClientRequest request = mock(HttpClientRequest.class);

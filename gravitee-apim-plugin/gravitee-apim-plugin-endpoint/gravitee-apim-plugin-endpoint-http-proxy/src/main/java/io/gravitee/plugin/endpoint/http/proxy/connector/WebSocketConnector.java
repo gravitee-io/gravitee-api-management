@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -53,12 +54,20 @@ public class WebSocketConnector extends HttpConnector {
     private static final String HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE = "HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE";
     private static final String HTTP_PROXY_WEBSOCKET_FAILURE = "HTTP_PROXY_WEBSOCKET_FAILURE";
 
+    protected final HttpProxyEndpointConnectorConfiguration configuration;
+    protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    protected final WebSocketClientFactory webSocketClientFactory;
+
     public WebSocketConnector(
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
-        final HttpClientFactory httpClient
+        final HttpClientFactory httpClientFactory,
+        final WebSocketClientFactory webSocketClientFactory
     ) {
-        super(configuration, sharedConfiguration, httpClient);
+        super(configuration, sharedConfiguration, httpClientFactory);
+        this.configuration = configuration;
+        this.sharedConfiguration = sharedConfiguration;
+        this.webSocketClientFactory = webSocketClientFactory;
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
@@ -79,9 +88,9 @@ public class WebSocketConnector extends HttpConnector {
                 webSocketConnectOptions.setSubProtocols(parseSubProtocols(request));
             }
 
-            return httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
-                .rxWebSocket(webSocketConnectOptions)
+            return webSocketClientFactory
+                .getOrBuildWebSocketClient(ctx, configuration, sharedConfiguration)
+                .rxConnect(webSocketConnectOptions)
                 .flatMap(endpointWebSocket -> {
                     endpointWebSocket.pause();
 

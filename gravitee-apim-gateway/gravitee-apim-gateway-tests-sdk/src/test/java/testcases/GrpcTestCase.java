@@ -27,10 +27,10 @@ import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
 import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.common.GrpcReadStream;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.client.GrpcIoClient;
+import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
     @Test
     void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // configure gRPC server
-        GrpcServer grpcServer = GrpcServer.server(vertx);
+        GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request -> {
             request.handler(hello -> {
                 GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
@@ -58,7 +58,7 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
 
         // prep for test
         CountDownLatch latch = new CountDownLatch(1);
-        GrpcClient client = GrpcClient.client(vertx);
+        GrpcIoClient client = GrpcIoClient.client(vertx);
 
         // Create the backend HTTP Server handling gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
