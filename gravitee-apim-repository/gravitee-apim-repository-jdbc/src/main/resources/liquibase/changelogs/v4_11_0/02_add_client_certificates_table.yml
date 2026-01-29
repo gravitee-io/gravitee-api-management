@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_00_add_client_certificates_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}client_certificates
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: cross_id, type: nvarchar(64) , constraints: { nullable: false }}
+              - column: { name: application_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: starts_at, type: timestamp }
+              - column: { name: ends_at, type: timestamp }
+              - column: { name: created_at, type: timestamp, constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: updated_at, type: timestamp, constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: certificate, type: nclob, constraints: { nullable: false } }
+              - column: { name: certificate_expiration, type: timestamp }
+              - column: { name: subject, type: nvarchar(1024) }
+              - column: { name: issuer, type: nvarchar(1024) }
+              - column: { name: fingerprint, type: nvarchar(256) }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: status, type: nvarchar(32), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}client_certificates
+            columnNames: id
+            tableName: ${gravitee_prefix}client_certificates
+        - createIndex:
+            tableName: ${gravitee_prefix}client_certificates
+            indexName: idx_${gravitee_prefix}client_certificates_application_id
+            columns:
+              - column:
+                  name: application_id
+                  type: nvarchar(64)
+        - createIndex:
+            tableName: ${gravitee_prefix}client_certificates
+            indexName: idx_${gravitee_prefix}client_certificates_environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+        - createIndex:
+            tableName: ${gravitee_prefix}client_certificates
+            indexName: idx_${gravitee_prefix}client_certificates_app_id_status
+            columns:
+              - column:
+                  name: application_id
+                  type: nvarchar(64)
+              - column:
+                  name: status
+                  type: nvarchar(32)
