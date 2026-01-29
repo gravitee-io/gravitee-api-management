@@ -39,10 +39,10 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.URL;
 import java.util.List;
@@ -179,7 +179,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
             );
         }
         final RequestOptions requestOptions = new RequestOptions();
-        final MultiMap headers = new HeadersMultiMap();
+        final MultiMap headers = HeadersMultiMap.httpHeaders();
         configuration.getHeaders().forEach(header -> headers.add(header.getName(), header.getValue()));
         requestOptions.setHeaders(headers);
         final URL target = HttpClientFactory.buildUrl(configuration.getUrl());

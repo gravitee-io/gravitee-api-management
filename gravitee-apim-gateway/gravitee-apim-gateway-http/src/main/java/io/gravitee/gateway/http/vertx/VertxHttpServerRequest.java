@@ -30,6 +30,7 @@ import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
 
@@ -67,7 +68,7 @@ public class VertxHttpServerRequest implements Request {
         this.metrics.setHttpMethod(method());
         this.metrics.setLocalAddress(localAddress());
         this.metrics.setRemoteAddress(remoteAddress());
-        this.metrics.setHost(serverRequest.host());
+        this.metrics.setHost(hostWithPort(this.serverRequest.authority()));
         this.metrics.setUri(uri());
         this.metrics.setUserAgent(serverRequest.getHeader(io.vertx.core.http.HttpHeaders.USER_AGENT));
     }
@@ -248,7 +249,19 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String host() {
-        return this.serverRequest.host();
+        return hostWithPort(this.serverRequest.authority());
+    }
+
+    /**
+     * Reconstructs the host with its port from a {@link HostAndPort}, replicating the behavior of Vert.x 4's
+     * {@code HttpServerRequest.host()} which returned the raw {@code Host} header value (e.g. {@code localhost:8082}).
+     * In Vert.x 5, {@code authority().host()} returns only the hostname without the port, which would cause the port
+     * to be silently dropped in URLs built from {@code originalHost()} (e.g. in {@code XForwardProcessor} when
+     * computing {@code ContextAttributes.ATTR_REQUEST_ORIGINAL_URL}).
+     */
+    private static String hostWithPort(HostAndPort authority) {
+        int port = authority.port();
+        return port > 0 ? authority.host() + ":" + port : authority.host();
     }
 
     @Override

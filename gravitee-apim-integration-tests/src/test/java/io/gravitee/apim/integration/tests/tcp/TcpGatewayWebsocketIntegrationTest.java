@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.tcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -24,17 +25,21 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
+import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.vertx.client.http.VertxWebSocketClientFactory;
+import io.gravitee.node.vertx.client.ssl.SslOptions;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.tcp.proxy.TcpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.tcp.proxy.TcpProxyEntrypointConnectorFactory;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.Vertx;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -60,25 +65,10 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
         gatewayConfigurationBuilder.enableTcpGateway().set("tcp.ssl.keystore.type", "self-signed");
     }
 
-    @Override
-    protected void configureHttpClient(
-        HttpClientOptions options,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
-        // we are doing a websocket anyway, so we need an HTTP Client, but we use the TCP port
-        options
-            .setDefaultHost("localhost")
-            .setDefaultPort(gatewayConfig.tcpPort())
-            .setForceSni(true)
-            .setSsl(true)
-            .setVerifyHost(false)
-            .setTrustAll(true);
-    }
-
     @Test
-    @DeployApi({ "/apis/v4/tcp/api.json" })
-    void should_call_websocket_backend_via_TCP_port(VertxTestContext testContext, HttpClient httpClient) {
+    @DeployApi({ "/apis/v4/tcp/api-websocket.json" })
+    @SneakyThrows
+    void should_call_websocket_backend_via_TCP_port(VertxTestContext testContext, GatewayDynamicConfig.TcpConfig tcpConfig) {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -87,31 +77,67 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
         websocketServerHandler = serverWebSocket -> {
             serverConnected.flag();
             serverWebSocket.exceptionHandler(testContext::failNow);
-            serverWebSocket.accept();
             serverWebSocket.frameHandler(frame -> {
-                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                serverWebSocket.writeTextMessage("PONG").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
+                if (frame.isText()) {
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    serverWebSocket
+                        .writeTextMessage("PONG")
+                        .doOnComplete(serverMessageSent::flag)
+                        .doOnError(testContext::failNow)
+                        .subscribe();
+                }
             });
         };
 
-        // Given that a websocket is deployed
-        // When calling the TCP proxy with an Api pointing to the websocket
-        // Then we should expect a normal bidirectional websocket call
-        httpClient
-            // path is not used by the TCP api, so it can be whatever we want
-            .webSocket("/a-random-path")
-            .doOnSuccess(webSocket -> {
-                webSocket.exceptionHandler(testContext::failNow);
-                webSocket.frameHandler(frame -> {
-                    if (frame.isText()) {
-                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
-                        serverMessageChecked.flag();
-                    }
-                });
-                webSocket.writeTextMessage("PING").doOnError(testContext::failNow).subscribe();
-            })
-            .doOnError(testContext::failNow)
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS);
+        //Use EtcHostConfigurer to use a valid hostname for SNI as Netty is checking it with this method SslUtils.isValidHostNameForSNI
+        try (var etcHostsConfigurer = new EtcHostsConfigurer()) {
+            etcHostsConfigurer.addHost("127.0.0.1", "myapi.tcp.local");
+
+            // Configure hosts
+            AddressResolverOptions resolverOptions = new AddressResolverOptions()
+                .setHostsPath(etcHostsConfigurer.generateHostsFile())
+                .setOptResourceEnabled(true)
+                .setCacheMinTimeToLive(0)
+                .setQueryTimeout(5000);
+
+            VertxOptions vertxOptions = new VertxOptions().setAddressResolverOptions(resolverOptions);
+
+            Vertx clientVertx = Vertx.vertx(vertxOptions);
+            try {
+                VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder builder = VertxWebSocketClientFactory.builder()
+                    .vertx(clientVertx)
+                    .nodeConfiguration(mock(Configuration.class))
+                    .defaultTarget("wss://localhost:" + tcpConfig.tcpPort())
+                    .sslOptions(SslOptions.builder().hostnameVerifier(false).trustAll(true).build());
+
+                var webSocketClient = builder.build().createWebSocketClient();
+
+                // Given that a websocket is deployed
+                // When calling the TCP proxy with an Api pointing to the websocket
+                // Then we should expect a normal bidirectional websocket call
+                webSocketClient
+                    // path is not used by the TCP api, so it can be whatever we want
+                    .connect("myapi.tcp.local", "/a-random-path")
+                    .doOnSuccess(webSocket -> {
+                        webSocket.exceptionHandler(testContext::failNow);
+                        webSocket.frameHandler(frame -> {
+                            if (frame.isText()) {
+                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
+                                serverMessageChecked.flag();
+                            }
+                        });
+                        webSocket.writeTextMessage("PING").doOnError(testContext::failNow).subscribe();
+                    })
+                    .doOnError(testContext::failNow)
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS);
+
+                // Wait for the full PING-PONG exchange to complete before closing the Vert.x instance.
+                // awaitDone() only waits for the connect() Single to emit; the frame exchange is async.
+                testContext.awaitCompletion(5, TimeUnit.SECONDS);
+            } finally {
+                clientVertx.close().blockingAwait();
+            }
+        }
     }
 }

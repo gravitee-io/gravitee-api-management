@@ -41,6 +41,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.tcp.proxy.TcpProxyEntrypointConnectorFactory;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
@@ -208,6 +209,7 @@ public class TcpSecuredBackendIntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {

@@ -22,7 +22,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Promise;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -30,7 +30,7 @@ public class WebsocketCloseV4EmulationIntegrationTest extends AbstractWebsocketG
 
     @Test
     @DeployApi({ "/apis/http/api.json" })
-    public void websocket_closed_request(VertxTestContext testContext, HttpClient httpClient) throws Throwable {
+    public void websocket_closed_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverClosed = testContext.checkpoint();
         var clientClosed = testContext.checkpoint();
@@ -41,7 +41,6 @@ public class WebsocketCloseV4EmulationIntegrationTest extends AbstractWebsocketG
             Completable.fromRunnable(() -> {
                 serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
 
                 clientReady
                     .future()
@@ -50,8 +49,8 @@ public class WebsocketCloseV4EmulationIntegrationTest extends AbstractWebsocketG
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
-        httpClient
-            .webSocket("/test")
+        webSocketClient
+            .connect("/test")
             .doOnSuccess(webSocket -> {
                 webSocket.exceptionHandler(testContext::failNow);
                 webSocket.closeHandler(__ -> clientClosed.flag());

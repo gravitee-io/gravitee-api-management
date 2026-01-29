@@ -202,7 +202,7 @@ public class RedisConnectionFactory {
                         throw new IllegalArgumentException("Missing PEM truststore value");
                     }
 
-                    netClientOptions.setPemTrustOptions(pemTrustOptions);
+                    netClientOptions.setTrustOptions(pemTrustOptions);
                     break;
                 case STORE_FORMAT_PKCS12:
                     final PfxOptions pfxOptions = new PfxOptions();
@@ -215,7 +215,7 @@ public class RedisConnectionFactory {
 
                     pfxOptions.setAlias(truststoreAlias);
                     pfxOptions.setPassword(truststorePassword);
-                    netClientOptions.setPfxTrustOptions(pfxOptions);
+                    netClientOptions.setTrustOptions(pfxOptions);
                     break;
                 case STORE_FORMAT_JKS:
                     final JksOptions jksOptions = new JksOptions();
@@ -228,7 +228,7 @@ public class RedisConnectionFactory {
 
                     jksOptions.setAlias(truststoreAlias);
                     jksOptions.setPassword(truststorePassword);
-                    netClientOptions.setTrustStoreOptions(jksOptions);
+                    netClientOptions.setTrustOptions(jksOptions);
                     break;
                 default:
                     log.error("Unknown type of Truststore provided {}", truststoreType);
@@ -267,7 +267,7 @@ public class RedisConnectionFactory {
                         throw new IllegalArgumentException("Missing PEM keystore value");
                     }
 
-                    netClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+                    netClientOptions.setKeyCertOptions(pemKeyCertOptions);
                     break;
                 case STORE_FORMAT_PKCS12:
                     final PfxOptions pfxOptions = new PfxOptions();
@@ -281,7 +281,7 @@ public class RedisConnectionFactory {
                     pfxOptions.setAlias(keystoreAlias);
                     pfxOptions.setAliasPassword(keyPassword);
                     pfxOptions.setPassword(keystorePassword);
-                    netClientOptions.setPfxKeyCertOptions(pfxOptions);
+                    netClientOptions.setKeyCertOptions(pfxOptions);
                     break;
                 case STORE_FORMAT_JKS:
                     final JksOptions jksOptions = new JksOptions();
@@ -295,7 +295,7 @@ public class RedisConnectionFactory {
                     jksOptions.setAlias(keystoreAlias);
                     jksOptions.setAliasPassword(keyPassword);
                     jksOptions.setPassword(keystorePassword);
-                    netClientOptions.setKeyStoreOptions(jksOptions);
+                    netClientOptions.setKeyCertOptions(jksOptions);
                     break;
                 default:
                     log.error("Unknown type of Keystore provided {}", keystoreType);

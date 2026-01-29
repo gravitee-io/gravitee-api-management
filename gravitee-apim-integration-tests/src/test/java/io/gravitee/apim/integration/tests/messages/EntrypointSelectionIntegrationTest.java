@@ -41,6 +41,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -158,9 +159,9 @@ class EntrypointSelectionIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_select_websocket_entrypoint_on_websocket_request(HttpClient client) {
+    void should_select_websocket_entrypoint_on_websocket_request(WebSocketClient client) {
         var obs = client
-            .rxWebSocket("/test")
+            .connect("/test")
             .flatMapPublisher(response -> {
                 assertThat(response.headers().contains("sec-websocket-accept")).isTrue();
                 return response.toFlowable();

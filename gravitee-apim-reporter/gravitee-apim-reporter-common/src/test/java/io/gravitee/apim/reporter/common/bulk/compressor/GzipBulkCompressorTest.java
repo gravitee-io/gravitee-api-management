@@ -17,13 +17,11 @@ package io.gravitee.apim.reporter.common.bulk.compressor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.apim.reporter.common.bulk.compressor.CompressedBulk;
-import io.gravitee.apim.reporter.common.bulk.compressor.GzipBulkCompressor;
 import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

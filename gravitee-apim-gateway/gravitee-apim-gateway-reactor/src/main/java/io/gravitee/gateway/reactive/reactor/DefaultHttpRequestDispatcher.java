@@ -55,11 +55,11 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerRequest;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerResponse;
+import io.gravitee.node.opentelemetry.tracer.vertx.VertxContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.smallrye.common.vertx.VertxContext;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
@@ -141,16 +141,16 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
-        log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
+        //Keep same behavior as in Vertx4 when host was also returning the port
+        final String host = httpServerRequest.authority().port() > 0
+            ? httpServerRequest.authority().host() + ":" + httpServerRequest.authority().port()
+            : httpServerRequest.authority().host();
+        log.debug("Dispatching request on host {} and path {}", host, httpServerRequest.path());
 
-        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(host, httpServerRequest.path(), serverId);
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
-            log.debug(
-                "No acceptor found for host {} and path {}, handling as not found",
-                httpServerRequest.host(),
-                httpServerRequest.path()
-            );
+            log.debug("No acceptor found for host {} and path {}, handling as not found", host, httpServerRequest.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())

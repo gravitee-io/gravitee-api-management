@@ -43,7 +43,7 @@ public class VertxHttpHeadersTest {
 
     @Before
     public void setUp() {
-        cut = new VertxHttpHeaders(HeadersMultiMap.headers());
+        cut = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         cut.add(FIRST_HEADER, FIRST_HEADER_VALUE_1);
         cut.add(FIRST_HEADER, FIRST_HEADER_VALUE_2);
         cut.add(SECOND_HEADER, SECOND_HEADER_VALUE);
