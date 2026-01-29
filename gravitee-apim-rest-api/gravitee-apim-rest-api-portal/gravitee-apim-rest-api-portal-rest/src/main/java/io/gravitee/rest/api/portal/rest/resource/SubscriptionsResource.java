@@ -133,7 +133,8 @@ public class SubscriptionsResource extends AbstractResource {
             }
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
-            // For consumer convenience, fetch the keys just after the subscription has been created.
+            // For consumer convenience, fetch the keys just after the subscription has been
+            // created.
             List<Key> keys = apiKeyService
                 .findBySubscription(executionContext, createdSubscription.getId())
                 .stream()
@@ -192,7 +193,7 @@ public class SubscriptionsResource extends AbstractResource {
             subscriptions
         )
             .withApis(true)
-            .withApplications(applicationId == null)
+            .withApplications(true)
             .withPlans(true)
             .withSubscribers(true)
             .includeDetails()

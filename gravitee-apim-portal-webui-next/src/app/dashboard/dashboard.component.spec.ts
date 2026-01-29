@@ -17,10 +17,13 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router, Routes } from '@angular/router';
+import { of } from 'rxjs/internal/observable/of';
 
 import { routes } from '../app.routes';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardComponentHarness } from './dashboard.component.harness';
+import { ApplicationService } from '../../services/application.service';
+import { SubscriptionService } from '../../services/subscription.service';
 
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
@@ -40,6 +43,25 @@ describe('DashboardComponent', () => {
             children: dashboardRoute?.children ?? [],
           },
         ]),
+
+        {
+          provide: SubscriptionService,
+          useValue: {
+            list: () =>
+              of({
+                rows: [],
+                totalElements: 0,
+              }),
+          },
+        },
+
+        {
+          provide: ApplicationService,
+          useValue: {
+            list: () => of([]),
+          },
+        },
+
         {
           provide: ActivatedRoute,
           useValue: {

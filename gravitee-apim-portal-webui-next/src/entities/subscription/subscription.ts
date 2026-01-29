@@ -47,7 +47,7 @@ export const SubscriptionStatusEnum = {
   CLOSED: 'CLOSED',
   REJECTED: 'REJECTED',
   PAUSED: 'PAUSED',
-};
+} as const;
 
 export interface SubscriptionDataKeys {
   key?: string;
