@@ -15,26 +15,40 @@
  */
 import * as jsYAML from 'js-yaml';
 
-import { Buffer } from 'buffer';
+function base64ToUtf8(base64: string): string {
+  const binaryString = atob(base64);
+  const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function utf8ToBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+  return btoa(binaryString);
+}
+
+function isValidBase64(data: string): boolean {
+  try {
+    atob(data);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const binaryType = new jsYAML.Type('tag:yaml.org,2002:binary', {
   kind: 'scalar',
   resolve(data: any) {
     // Ensure data is a valid Base64 string
     if (typeof data !== 'string') return false;
-    try {
-      Buffer.from(data, 'base64');
-      return true;
-    } catch {
-      return false;
-    }
+    return isValidBase64(data);
   },
   construct(data: string) {
-    return Buffer.from(data, 'base64').toString('utf-8');
+    return base64ToUtf8(data);
   },
   instanceOf: String,
   represent(value: any) {
-    return Buffer.from(String(value), 'utf-8').toString('base64');
+    return utf8ToBase64(String(value));
   },
 });
 
