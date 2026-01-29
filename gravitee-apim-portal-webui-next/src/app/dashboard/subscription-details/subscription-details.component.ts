@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, DestroyRef, inject, input} from '@angular/core';
+import {Component, DestroyRef, effect, inject, input, signal} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -35,7 +35,7 @@ import {PermissionsService} from "../../../services/permissions.service";
 import {PlanService} from "../../../services/plan.service";
 import {MatDialog} from "@angular/material/dialog";
 import {UserApiPermissions} from "../../../entities/permission/permission";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 
 interface SubscriptionDetailsData {
   applicationName: string;
@@ -74,13 +74,19 @@ export default class SubscriptionDetailsComponent {
   // public dialog: MatDialog;
 
   apiId!: string;
-  subscriptionId!: string;
+  subscriptionId = input.required<string>();
 
   private route = inject(ActivatedRoute);
 
   _subscriptionDetails = new BehaviorSubject<boolean>(true);
 
-  subscription = input.required<Subscription>();
+  subscription = signal<Subscription | null>(null);
+
+  constructor(dialog: MatDialog) {
+    effect(() => {
+      console.log('subscriptionId', this.subscriptionId());
+    });
+  }
 
   /**
    * status +
@@ -91,21 +97,25 @@ export default class SubscriptionDetailsComponent {
    * id +
    */
 
-  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(this.loadDetails());
+  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscriptionId).pipe(switchMap(this.loadDetails.bind(this))));
 
 
   // Get the ID from the URL
   // subscriptionId = this.route.snapshot.paramMap.get('subscriptionId');
 
   copyToClipboard() {
-    navigator.clipboard.writeText(this.subscriptionId!);
+    navigator.clipboard.writeText(this.subscriptionId());
     alert('copied!')
     // Optional: Show a snackbar "Copied!"
   }
 
-  private loadDetails(): Observable<SubscriptionDetailsData | null> {
-        return forkJoin({
-          subscription: this.subscriptionService.get(this.subscriptionId),
+  private loadDetails(subscriptionId: string): Observable<SubscriptionDetailsData | null> {
+    return this.subscriptionService.get(subscriptionId).pipe(
+      tap(subscription => this.subscription.set(subscription)),
+      tap(subscription => this.apiId = subscription.api),
+      switchMap(subscription =>
+        forkJoin({
+          subscription: of(subscription),
           permissions: this.permissionsService.getApiPermissions(this.apiId),
         }).pipe(
           switchMap(({ subscription, permissions }) =>
@@ -139,21 +149,21 @@ export default class SubscriptionDetailsComponent {
                 const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
 
                 return {
-                    ...subscriptionDetails,
-                    apiKey,
-                    apiKeyConfigUsername,
+                  ...subscriptionDetails,
+                  apiKey,
+                  apiKeyConfigUsername,
                 };
               } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
                 if (application.settings.oauth) {
                   return {
-                      ...subscriptionDetails,
-                      clientId: application.settings.oauth.client_id,
-                      clientSecret: application.settings.oauth.client_secret,
+                    ...subscriptionDetails,
+                    clientId: application.settings.oauth.client_id,
+                    clientSecret: application.settings.oauth.client_secret,
                   };
                 } else if (application.settings.app) {
                   return {
-                      ...subscriptionDetails,
-                      clientId: application.settings.app.client_id,
+                    ...subscriptionDetails,
+                    clientId: application.settings.app.client_id,
                   };
                 }
               }
@@ -161,13 +171,15 @@ export default class SubscriptionDetailsComponent {
 
             if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
               return {
-                  ...subscriptionDetails,
-                  consumerConfiguration: subscription.consumerConfiguration,
+                ...subscriptionDetails,
+                consumerConfiguration: subscription.consumerConfiguration,
               };
             }
             return subscriptionDetails;
           }),
           catchError(_ => of(null)),
+        )
+      ),
     )
   }
 

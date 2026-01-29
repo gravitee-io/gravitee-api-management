@@ -109,7 +109,7 @@
               mat-row
               class="subscriptions__table-row"
               *matRowDef="let subscription; columns: displayedColumns"
-              [routerLink]="['/subscriptions', subscription.id]"></tr>
+              [routerLink]="[subscription.id]"></tr>
           </table>
         </div>
 
