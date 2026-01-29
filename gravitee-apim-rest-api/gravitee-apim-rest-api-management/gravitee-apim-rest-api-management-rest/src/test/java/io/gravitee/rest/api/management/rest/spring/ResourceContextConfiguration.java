@@ -160,6 +160,7 @@ import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ClientCertificateService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -394,6 +395,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CategoryService categoryService() {
         return mock(CategoryService.class);
+    }
+
+    @Bean
+    public ClientCertificateService clientCertificateService() {
+        return mock(ClientCertificateService.class);
     }
 
     @Bean

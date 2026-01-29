@@ -164,6 +164,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected CategoryService categoryService;
 
     @Autowired
+    protected ClientCertificateService clientCertificateService;
+
+    @Autowired
     protected PolicyOperationVisitorManager policyOperationVisitorManager;
 
     @Autowired
