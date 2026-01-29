@@ -19,7 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.repository.ConnectionLogFixtures;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
@@ -32,6 +35,8 @@ import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
 import io.gravitee.apim.core.logs_engine.model.TimeRange;
 import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase.Input;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -43,6 +48,8 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,14 +66,22 @@ import org.mockito.ArgumentCaptor;
 class SearchEnvironmentLogsUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo("org-id", "env-id", "user-id");
+    private static final Api API1 = ApiFixtures.aProxyApiV4();
+    private static final BaseConnectionLog LOG1 = new ConnectionLogFixtures(
+        API1.getId(),
+        "1",
+        UUID.randomUUID().toString()
+    ).aConnectionLog();
 
     private ConnectionLogsCrudService connectionLogsCrudService;
+    private UserContextLoader userContextLoader;
     private SearchEnvironmentLogsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         connectionLogsCrudService = mock(ConnectionLogsCrudService.class);
-        useCase = new SearchEnvironmentLogsUseCase(connectionLogsCrudService);
+        userContextLoader = mock(UserContextLoader.class);
+        useCase = new SearchEnvironmentLogsUseCase(connectionLogsCrudService, userContextLoader);
     }
 
     @Nested
@@ -80,7 +95,7 @@ class SearchEnvironmentLogsUseCaseTest {
             );
             var request = new SearchLogsRequest(timeRange, null, 1, 10);
 
-            when_searching(request);
+            var response = when_searching(request);
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
@@ -88,20 +103,24 @@ class SearchEnvironmentLogsUseCaseTest {
             assertThat(filtersCaptor.getValue())
                 .extracting(SearchLogsFilters::from, SearchLogsFilters::to)
                 .containsExactly(timeRange.from().toInstant().toEpochMilli(), timeRange.to().toInstant().toEpochMilli());
+
+            assertThat(response.response().pagination().totalCount()).isEqualTo(1);
         }
 
         @Test
         void should_handle_null_filters_and_time_range() {
             var request = new SearchLogsRequest(null, null, 1, 10);
 
-            when_searching(request);
+            var response = when_searching(request);
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
             assertThat(filtersCaptor.getValue().from()).isNull();
             assertThat(filtersCaptor.getValue().to()).isNull();
-            assertThat(filtersCaptor.getValue().apiIds()).isEmpty();
+            assertThat(filtersCaptor.getValue().apiIds()).containsExactly(API1.getId());
+
+            assertThat(response.response().pagination().totalCount()).isEqualTo(1);
         }
 
         @Test
@@ -109,7 +128,7 @@ class SearchEnvironmentLogsUseCaseTest {
             var request = new SearchLogsRequest(
                 null,
                 List.of(
-                    new Filter(new StringFilter(FilterName.API, Operator.EQ, "api-1")),
+                    new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
                     new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-A", "app-B"))),
                     new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "http")),
                     new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("premium"))),
@@ -119,17 +138,19 @@ class SearchEnvironmentLogsUseCaseTest {
                 10
             );
 
-            when_searching(request);
+            var response = when_searching(request);
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
             var filters = filtersCaptor.getValue();
-            assertThat(filters.apiIds()).containsExactly("api-1");
+            assertThat(filters.apiIds()).containsExactly(API1.getId());
             assertThat(filters.applicationIds()).containsExactlyInAnyOrder("app-A", "app-B");
             assertThat(filters.entrypointIds()).containsExactly("http");
             assertThat(filters.planIds()).containsExactly("premium");
             assertThat(filters.statuses()).containsExactlyInAnyOrder(200);
+
+            assertThat(response.response().pagination().totalCount()).isEqualTo(1);
         }
 
         @Test
@@ -137,17 +158,14 @@ class SearchEnvironmentLogsUseCaseTest {
             // StringFilter only supports EQ
             var request = new SearchLogsRequest(
                 null,
-                List.of(new Filter(new StringFilter(FilterName.API, Operator.IN, "api-1"))), // Should be ignored
+                List.of(new Filter(new StringFilter(FilterName.API, Operator.IN, API1.getId()))), // Should be ignored
                 1,
                 10
             );
 
-            when_searching(request);
+            var response = when_searching(request);
 
-            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
-            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
-
-            assertThat(filtersCaptor.getValue().apiIds()).isEmpty();
+            assertThat(response.response().pagination().totalCount()).isEqualTo(0);
         }
 
         @Test
@@ -162,12 +180,14 @@ class SearchEnvironmentLogsUseCaseTest {
                 10
             );
 
-            when_searching(request);
+            var response = when_searching(request);
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
             assertThat(filtersCaptor.getValue().applicationIds()).isEmpty();
+
+            assertThat(response.response().pagination().totalCount()).isEqualTo(1);
         }
 
         @ParameterizedTest
@@ -251,28 +271,21 @@ class SearchEnvironmentLogsUseCaseTest {
             return Stream.of(
                 Arguments.of(
                     List.of(
-                        new Filter(new StringFilter(FilterName.API, Operator.EQ, "api-1")),
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of("api-1", "api-2")))
+                        new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
+                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2")))
                     ),
-                    new String[] { "api-1" }
+                    new String[] { API1.getId() }
                 ),
                 Arguments.of(
                     List.of(
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of("api-1", "api-2"))),
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of("api-2", "api-3")))
+                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2"))),
+                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-3")))
                     ),
-                    new String[] { "api-2" }
+                    new String[] { API1.getId() }
                 ),
                 Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.API, Operator.EQ, "api-1")),
-                        new Filter(new StringFilter(FilterName.API, Operator.EQ, "api-2"))
-                    ),
-                    new String[] {}
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of("api-1", "api-2", "api-3")))),
-                    new String[] { "api-1", "api-2", "api-3" }
+                    List.of(new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2", "api-3")))),
+                    new String[] { API1.getId() }
                 )
             );
         }
@@ -486,6 +499,9 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_return_empty_response_when_service_returns_no_logs() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
             );
@@ -528,6 +544,9 @@ class SearchEnvironmentLogsUseCaseTest {
                 .additionalMetrics(Map.of("custom", "metric"))
                 .build();
 
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
             );
@@ -565,6 +584,9 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_cap_gateway_response_time_to_integer_max() {
             var log = BaseConnectionLog.builder().timestamp(OffsetDateTime.now().toString()).gatewayResponseTime(Long.MAX_VALUE).build();
 
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
             );
@@ -586,6 +608,9 @@ class SearchEnvironmentLogsUseCaseTest {
                 .additionalMetrics(null)
                 .build();
 
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
             );
@@ -604,6 +629,9 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_calculate_pagination_metadata_correctly() {
             // Case 1: Total 11, PerPage 10 -> 2 pages
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(11, Collections.emptyList())
             );
@@ -623,10 +651,13 @@ class SearchEnvironmentLogsUseCaseTest {
         }
     }
 
-    private void when_searching(SearchLogsRequest request) {
+    private SearchEnvironmentLogsUseCase.Output when_searching(SearchLogsRequest request) {
         when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
+            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
         );
-        useCase.execute(new Input(AUDIT_INFO, request));
+        when(userContextLoader.loadApis(any())).thenReturn(
+            new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+        );
+        return useCase.execute(new Input(AUDIT_INFO, request));
     }
 }
