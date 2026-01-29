@@ -17,7 +17,7 @@ package io.gravitee.apim.gateway.tests.sdk.utils;
 
 import static org.mockito.Mockito.when;
 
-import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.core.MultiMap;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Map;
 import org.assertj.core.api.Assertions;

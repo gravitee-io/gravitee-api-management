@@ -52,6 +52,15 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
             final Handler<Buffer> bodyHandler = requestAdapter.getBodyHandler();
             final Handler<Void> endHandler = requestAdapter.getEndHandler();
 
+            if (delegateRequest.ended() && delegateRequest.isWebSocket()) {
+                // In Vert.x 5, a WebSocket upgrade marks the HTTP request as ended before the onResume
+                // callback fires. Subscribing to the native request Flowable at this point would throw
+                // IllegalStateException ("Request has already been read"), so we skip it and fire the
+                // end handler directly.
+                endHandler.handle(null);
+                return;
+            }
+
             delegateRequest
                 .chunks()
                 .doOnNext(bodyHandler::handle)

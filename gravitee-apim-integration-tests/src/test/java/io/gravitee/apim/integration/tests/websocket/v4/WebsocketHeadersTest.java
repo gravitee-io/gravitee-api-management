@@ -25,7 +25,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -33,7 +33,7 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     @DeployApi({ "/apis/v4/http/api.json" })
-    public void websocket_header_request(VertxTestContext testContext, HttpClient httpClient) throws Throwable {
+    public void websocket_header_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -48,7 +48,6 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
         websocketServerHandler = serverWebSocket ->
             Completable.fromRunnable(() -> {
                 serverConnected.flag();
-                serverWebSocket.accept();
 
                 String customHeader = serverWebSocket.headers().get(customHeaderName);
                 testContext.verify(() -> assertThat(customHeader).isNotNull());
@@ -67,8 +66,8 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
-        httpClient
-            .webSocket(options)
+        webSocketClient
+            .connect(options)
             .doOnSuccess(webSocket -> {
                 webSocket.exceptionHandler(testContext::failNow);
                 webSocket.frameHandler(frame -> {

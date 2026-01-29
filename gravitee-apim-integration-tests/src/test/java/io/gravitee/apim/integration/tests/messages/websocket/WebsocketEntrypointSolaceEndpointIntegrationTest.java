@@ -28,7 +28,7 @@ import io.gravitee.apim.integration.tests.messages.AbstractSolaceEndpointIntegra
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -51,10 +51,10 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber-none.json" })
-    void should_receive_all_messages_with_none_qos(HttpClient httpClient) {
+    void should_receive_all_messages_with_none_qos(WebSocketClient webSocketClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-        var obs = httpClient
-            .rxWebSocket("/test-none")
+        var obs = webSocketClient
+            .rxConnect("/test-none")
             .flatMapPublisher(websocket ->
                 websocket
                     .toFlowable()
@@ -74,10 +74,10 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber.json" })
-    void should_receive_all_messages_with_auto_qos(HttpClient httpClient) {
+    void should_receive_all_messages_with_auto_qos(WebSocketClient webSocketClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-        var obs = httpClient
-            .rxWebSocket("/test-auto")
+        var obs = webSocketClient
+            .rxConnect("/test-auto")
             .flatMapPublisher(websocket ->
                 websocket
                     .toFlowable()
@@ -97,11 +97,11 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher.json" })
-    void should_publish_messages(HttpClient httpClient) {
+    void should_publish_messages(WebSocketClient webSocketClient) {
         TestSubscriber<InboundMessage> testSubscriber = subscribeToSolace(topic).test();
 
-        httpClient
-            .rxWebSocket("/test")
+        webSocketClient
+            .rxConnect("/test")
             .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
@@ -119,9 +119,9 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher-subscriber.json" })
-    void should_received_published_messages(HttpClient httpClient) {
-        var obs = httpClient
-            .rxWebSocket("/test")
+    void should_received_published_messages(WebSocketClient webSocketClient) {
+        var obs = webSocketClient
+            .rxConnect("/test")
             .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
             .test();
         await()

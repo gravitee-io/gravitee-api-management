@@ -65,7 +65,9 @@ class HttpProtocolVerticleTest {
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
-        vertx.deployVerticle(new HttpProtocolVerticle(serverManager, mockRequestDispatcher), testContext.succeedingThenComplete());
+        vertx
+            .deployVerticle(new HttpProtocolVerticle(serverManager, mockRequestDispatcher))
+            .onComplete(testContext.succeedingThenComplete());
     }
 
     @AfterEach

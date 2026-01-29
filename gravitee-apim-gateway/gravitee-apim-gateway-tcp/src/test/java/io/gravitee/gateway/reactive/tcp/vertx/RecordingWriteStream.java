@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.tcp.vertx;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -56,18 +55,8 @@ public class RecordingWriteStream implements WriteStream<Buffer> {
     }
 
     @Override
-    public void write(Buffer data, Handler<AsyncResult<Void>> handler) {
-        handler.handle(write(data));
-    }
-
-    @Override
     public Future<Void> end() {
         return Future.succeededFuture();
-    }
-
-    @Override
-    public void end(Handler<AsyncResult<Void>> handler) {
-        handler.handle(end());
     }
 
     @Override

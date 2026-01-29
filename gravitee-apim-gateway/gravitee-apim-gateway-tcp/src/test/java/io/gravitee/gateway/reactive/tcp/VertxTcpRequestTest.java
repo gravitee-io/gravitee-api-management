@@ -22,8 +22,8 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactive.tcp.VertxTcpRequest;
 import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.net.NetSocket;
-import io.vertx.rxjava3.core.net.SocketAddress;
 import java.time.Instant;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -48,7 +48,7 @@ class VertxTcpRequestTest {
 
     @Test
     void should_create_a_request() {
-        when(socket.toFlowable()).thenReturn(Flowable.just(io.vertx.rxjava3.core.buffer.Buffer.buffer("foo")));
+        when(socket.toFlowable()).thenReturn(Flowable.just(io.vertx.core.buffer.Buffer.buffer("foo")));
         when(socket.remoteAddress()).thenReturn(SocketAddress.inetSocketAddress(4092, "www.acme.com"));
         when(socket.localAddress()).thenReturn(SocketAddress.inetSocketAddress(55468, "127.0.0.1"));
         when(socket.indicatedServerName()).thenReturn("www.acme.com");

@@ -66,7 +66,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 @ExtendWith(value = { MockitoExtension.class, VertxExtension.class })
@@ -80,9 +80,7 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     private static final String HTTP_PROXY = "http-proxy";
     private static final String SERVICE_NAME = "my-service";
 
-    static DockerComposeContainer<?> consulEnvironment = new DockerComposeContainer<>(
-        new File("src/test/resources/docker/consul_with_tls.yml")
-    )
+    static ComposeContainer consulEnvironment = new ComposeContainer(new File("src/test/resources/docker/consul_with_tls.yml"))
         .withExposedService(CONSUL_SERVICE, CONSUL_SERVICE_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)))
         .withExposedService(
             CONSUL_SERVICE,

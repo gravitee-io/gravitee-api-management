@@ -23,10 +23,12 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
+import io.vertx.rxjava3.core.http.ServerWebSocketHandshake;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ParameterContext;
 
@@ -37,6 +39,7 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     protected int websocketPort;
 
     protected Handler<ServerWebSocket> websocketServerHandler;
+    protected Handler<ServerWebSocketHandshake> websocketHandshakeHandler;
     private Disposable serverDispose;
 
     @BeforeAll
@@ -46,9 +49,20 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
         httpServerOptions.setPort(serverPort);
         serverDispose = vertx
             .createHttpServer(httpServerOptions)
-            .webSocketHandler(serverWebSocket -> {
-                if (null != websocketServerHandler) {
-                    websocketServerHandler.handle(serverWebSocket);
+            .webSocketHandshakeHandler(handshake -> {
+                if (null != websocketHandshakeHandler) {
+                    websocketHandshakeHandler.handle(handshake);
+                } else {
+                    handshake
+                        .rxAccept()
+                        .subscribe(
+                            serverWebSocket -> {
+                                if (null != websocketServerHandler) {
+                                    websocketServerHandler.handle(serverWebSocket);
+                                }
+                            },
+                            context::failNow
+                        );
                 }
             })
             .listen(serverPort)
@@ -88,8 +102,8 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    protected void configureHttpClient(
-        HttpClientOptions options,
+    protected void configureWebSocketClient(
+        io.vertx.core.http.WebSocketClientOptions options,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {
