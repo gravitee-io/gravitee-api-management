@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.model.permissions.SystemRole.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -98,6 +99,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -1149,7 +1151,7 @@ public class ApiResource extends AbstractResource {
     }
 
     private void assertNoPrimaryOwnerReassignment(String poRole) {
-        if ("PRIMARY_OWNER".equals(poRole)) {
+        if (PRIMARY_OWNER.name().equals(poRole)) {
             throw new TransferOwnershipNotAllowedException(poRole);
         }
     }
