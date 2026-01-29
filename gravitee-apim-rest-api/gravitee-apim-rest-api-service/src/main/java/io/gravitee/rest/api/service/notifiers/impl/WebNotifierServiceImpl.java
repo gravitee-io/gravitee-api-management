@@ -29,6 +29,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
@@ -73,10 +74,11 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         final HttpClientOptions clientOptions = new HttpClientOptions()
             .setSsl(ssl)
             .setTrustAll(true)
-            .setMaxPoolSize(1)
             .setKeepAlive(false)
             .setTcpKeepAlive(false)
             .setConnectTimeout(httpClientTimeout());
+
+        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
 
         if (useSystemProxy) {
             ProxyOptions proxyOptions = new ProxyOptions();
@@ -95,7 +97,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             clientOptions.setProxyOptions(proxyOptions);
         }
 
-        final HttpClient httpClient = vertx.createHttpClient(clientOptions);
+        final HttpClient httpClient = vertx.createHttpClient(clientOptions, poolOptions);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
@@ -123,7 +125,8 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             })
             .onSuccess(request -> {
                 request
-                    .response(asyncResponse -> {
+                    .response()
+                    .onComplete(asyncResponse -> {
                         if (asyncResponse.failed()) {
                             future.completeExceptionally(asyncResponse.cause());
 
@@ -154,12 +157,6 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                                 );
                             }
                         }
-                    })
-                    .exceptionHandler(throwable -> {
-                        future.completeExceptionally(throwable);
-
-                        // Close client
-                        httpClient.close();
                     });
 
                 request.end(body);

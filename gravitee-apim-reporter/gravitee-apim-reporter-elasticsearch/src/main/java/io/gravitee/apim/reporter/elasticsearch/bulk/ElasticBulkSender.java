@@ -37,7 +37,7 @@ public class ElasticBulkSender extends AbstractService<BulkSender> implements Bu
     @Override
     public Completable send(final CompressedBulk bulk) {
         return elasticClient
-            .bulk(bulk.compressed().getDelegate())
+            .bulk(bulk.compressed())
             .flatMapCompletable(bulkResponse -> {
                 if (bulkResponse.getErrors()) {
                     return Completable.error(buildException(bulkResponse.getError().getReason(), null));

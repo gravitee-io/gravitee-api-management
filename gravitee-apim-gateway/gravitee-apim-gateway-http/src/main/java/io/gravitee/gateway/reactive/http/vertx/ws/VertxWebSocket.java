@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.reactive.http.vertx.ws;
 
-import static io.vertx.rxjava3.core.http.WebSocketFrame.binaryFrame;
-import static io.vertx.rxjava3.core.http.WebSocketFrame.continuationFrame;
-import static io.vertx.rxjava3.core.http.WebSocketFrame.pingFrame;
-import static io.vertx.rxjava3.core.http.WebSocketFrame.pongFrame;
-import static io.vertx.rxjava3.core.http.WebSocketFrame.textFrame;
+import static io.vertx.core.http.WebSocketFrame.binaryFrame;
+import static io.vertx.core.http.WebSocketFrame.continuationFrame;
+import static io.vertx.core.http.WebSocketFrame.pingFrame;
+import static io.vertx.core.http.WebSocketFrame.pongFrame;
+import static io.vertx.core.http.WebSocketFrame.textFrame;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
@@ -28,9 +28,10 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpClosedException;
+import io.vertx.core.http.WebSocketFrame;
+import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
-import io.vertx.rxjava3.core.http.WebSocketFrame;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -71,7 +72,7 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public Completable write(Buffer buffer) {
         if (isValid()) {
-            return webSocket.rxWrite(io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+            return webSocket.rxWrite(BufferInternal.buffer(buffer.getNativeBuffer()));
         }
 
         return Completable.complete();
@@ -80,7 +81,7 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public Completable writePing() {
         if (isValid()) {
-            return webSocket.writePing(io.vertx.rxjava3.core.buffer.Buffer.buffer("ping_pong"));
+            return webSocket.writePing(BufferInternal.buffer("ping_pong"));
         }
         return Completable.complete();
     }
@@ -171,18 +172,18 @@ public class VertxWebSocket implements WebSocket {
         return upgraded && !webSocket.isClosed();
     }
 
-    private io.vertx.rxjava3.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
+    private io.vertx.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         switch (frame.type()) {
             case BINARY:
-                return binaryFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
+                return binaryFrame(BufferInternal.buffer(frame.data().getNativeBuffer()), frame.isFinal());
             case TEXT:
                 return textFrame(frame.data().toString(), frame.isFinal());
             case CONTINUATION:
-                return continuationFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()), frame.isFinal());
+                return continuationFrame(BufferInternal.buffer(frame.data().toString()), frame.isFinal());
             case PING:
-                return pingFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()));
+                return pingFrame(BufferInternal.buffer(frame.data().toString()));
             case PONG:
-                return pongFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()));
+                return pongFrame(BufferInternal.buffer(frame.data().toString()));
             default:
                 return null;
         }

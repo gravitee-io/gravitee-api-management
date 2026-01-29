@@ -109,7 +109,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             URL url = createRequest(rule.endpoint(), rule.steps().get(0));
 
             HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), url);
-            httpClient = vertx.createHttpClient(clientOptions);
+            PoolOptions poolOptions = createPoolOptions(rule.endpoint(), url);
+            httpClient = vertx.createHttpClient(clientOptions, poolOptions);
         } else {
             httpClient = null;
         }
@@ -130,6 +131,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URL requestUrl) throws Exception;
+
+    protected abstract PoolOptions createPoolOptions(final T endpoint, final URL requestUrl) throws Exception;
 
     protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
         log.debug("Health-check Request for API '{}' host {}", rule.api().getId(), request.getHost());
@@ -223,45 +226,47 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     rescheduleHandler.handle(null);
                     reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
                 } else {
-                    healthRequest.response(healthRequestEvent -> {
-                        if (healthRequestEvent.succeeded()) {
-                            HttpClientResponse response = healthRequestEvent.result();
-                            response.bodyHandler(buffer -> {
-                                long endTime = currentTimeMillis();
-                                log.debug(
-                                    "Health-check endpoint for API '{}' returns a response with a {} status code",
-                                    rule.api().getId(),
-                                    response.statusCode()
-                                );
+                    healthRequest
+                        .response()
+                        .onComplete(healthRequestEvent -> {
+                            if (healthRequestEvent.succeeded()) {
+                                HttpClientResponse response = healthRequestEvent.result();
+                                response.bodyHandler(buffer -> {
+                                    long endTime = currentTimeMillis();
+                                    log.debug(
+                                        "Health-check endpoint for API '{}' returns a response with a {} status code",
+                                        rule.api().getId(),
+                                        response.statusCode()
+                                    );
 
-                                String body = buffer.toString();
+                                    String body = buffer.toString();
 
-                                Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
+                                    Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
 
-                                // Append step stepBuilder
-                                healthBuilder.step(healthCheckStep);
+                                    // Append step stepBuilder
+                                    healthBuilder.step(healthCheckStep);
 
-                                rescheduleHandler.handle(null);
-                                report(healthBuilder.build());
-                            });
-                            response.exceptionHandler(throwable -> {
+                                    rescheduleHandler.handle(null);
+                                    report(healthBuilder.build());
+                                });
+                                response.exceptionHandler(throwable -> {
+                                    log.error(
+                                        "An error has occurred during Health check response handler for API '{}'",
+                                        rule.api().getId(),
+                                        throwable
+                                    );
+                                    rescheduleHandler.handle(null);
+                                });
+                            } else {
                                 log.error(
-                                    "An error has occurred during Health check response handler for API '{}'",
+                                    "An error has occurred during Health check request for API '{}'",
                                     rule.api().getId(),
-                                    throwable
+                                    healthRequestEvent.cause()
                                 );
                                 rescheduleHandler.handle(null);
-                            });
-                        } else {
-                            log.error(
-                                "An error has occurred during Health check request for API '{}'",
-                                rule.api().getId(),
-                                healthRequestEvent.cause()
-                            );
-                            rescheduleHandler.handle(null);
-                            reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
-                        }
-                    });
+                                reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
+                            }
+                        });
 
                     healthRequest.exceptionHandler(throwable -> {
                         rescheduleHandler.handle(null);

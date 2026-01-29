@@ -68,13 +68,13 @@ public class ConsulOptionsBuilder {
         if (sslOptions.getKeyStore() != null) {
             switch (sslOptions.getKeyStore().getType()) {
                 case PEM:
-                    options.setPemKeyCertOptions(buildPemKeyCertOptions(sslOptions));
+                    options.setKeyCertOptions(buildPemKeyCertOptions(sslOptions));
                     break;
                 case PKCS12:
-                    options.setPfxKeyCertOptions(buildPfxKeyCertOptions(sslOptions));
+                    options.setKeyCertOptions(buildPfxKeyCertOptions(sslOptions));
                     break;
                 case JKS:
-                    options.setKeyStoreOptions(buildJksKeyCertOptions(sslOptions));
+                    options.setKeyCertOptions(buildJksKeyCertOptions(sslOptions));
             }
         }
     }
@@ -83,14 +83,14 @@ public class ConsulOptionsBuilder {
         if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
             switch (sslOptions.getTrustStore().getType()) {
                 case PEM:
-                    options.setPemTrustOptions(buildPemTrustOptions(sslOptions));
+                    options.setTrustOptions(buildPemTrustOptions(sslOptions));
                     break;
                 case PKCS12:
-                    options.setPfxTrustOptions(buildPfxTrustOptions(sslOptions));
+                    options.setTrustOptions(buildPfxTrustOptions(sslOptions));
                     break;
                 case JKS:
                     JksOptions jksOptions = buildJksTrustOptions(sslOptions);
-                    options.setTrustStoreOptions(jksOptions);
+                    options.setTrustOptions(jksOptions);
             }
         }
     }
