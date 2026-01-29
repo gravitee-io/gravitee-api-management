@@ -33,6 +33,21 @@ $snackbar-button: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
 }
 
 /**
+ * Override Material min-height: fit-content applied to svgIcons inside buttons and links
+ */
+button,
+a {
+  &[mat-button],
+  &[mat-stroked-button],
+  &[mat-flat-button],
+  &[mat-raised-button] {
+    .mat-icon[svgicon] {
+      min-height: auto;
+    }
+  }
+}
+
+/**
  * Reset `box-sizing` for all elements
  */
 *,
