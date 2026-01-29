@@ -40,7 +40,7 @@ export class ConnectorPluginsV2Service {
     return this.listEndpointPlugins().pipe(
       map((endpointPlugins) =>
         endpointPlugins
-          .filter((endpoint) => endpoint.supportedApiType === apiType)
+          .filter((endpoint) => (endpoint.supportedApiType ?? '').toUpperCase() === apiType.toUpperCase())
           .sort((endpoint1, endpoint2) => {
             const name1 = endpoint1.name.toUpperCase();
             const name2 = endpoint2.name.toUpperCase();

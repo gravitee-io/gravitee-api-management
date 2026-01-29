@@ -65,7 +65,11 @@
           <ng-container matColumnDef="costInput">
             <th mat-header-cell *matHeaderCellDef id="costInput">Cost per 1m tokens (input) ($)</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.inputPrice | number: '1.2' }}
+              @if (element?.inputPrice !== null && element?.inputPrice !== undefined) {
+                {{ element.inputPrice | number: '1.2' }}
+              } @else {
+                N/A
+              }
             </td>
           </ng-container>
 
@@ -73,7 +77,11 @@
           <ng-container matColumnDef="costOutput">
             <th mat-header-cell *matHeaderCellDef id="costOutput">Cost per 1m tokens (output) ($)</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.outputPrice | number: '1.2' }}
+              @if (element?.outputPrice !== null && element?.outputPrice !== undefined) {
+                {{ element.outputPrice | number: '1.2' }}
+              } @else {
+                N/A
+              }
             </td>
           </ng-container>
 

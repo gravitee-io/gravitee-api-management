@@ -60,7 +60,10 @@ export class ApiEndpointGroupsLlmComponent {
     .listEndpointPlugins()
     .pipe(map((plugins: ConnectorPlugin[]) => this.transformPluginsToMap(plugins)));
   public shouldUpgrade$ = combineLatest([this.plugins$, toObservable(this.providersTableData)]).pipe(
-    map(([plugins, providers]): boolean => providers.length > 0 && !plugins.get('llm-proxy')?.deployed),
+    map(
+      ([plugins, providers]): boolean =>
+        providers.length > 0 && providers.some((provider) => !plugins.get(provider.type)?.deployed),
+    ),
   );
   public isReadOnly = computed(() => {
     const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
@@ -130,6 +133,9 @@ export class ApiEndpointGroupsLlmComponent {
   }
 
   public getProviderTypeDisplayName(providerType: string): string {
+    if (!providerType) {
+      return 'Other';
+    }
     switch (providerType) {
       case 'OPEN_AI_COMPATIBLE':
         return 'OpenAI Compatible';

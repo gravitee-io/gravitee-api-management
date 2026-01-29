@@ -241,6 +241,28 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
     const apiType: ApiType = selectedEntrypoint.id === AGENT_TO_AGENT.id ? 'MESSAGE' : selectedEntrypoint.supportedApiType;
 
+    if (apiType === 'LLM_PROXY') {
+      this.stepService.validStep((previousPayload) => ({
+        ...previousPayload,
+        type: apiType,
+        selectedEntrypoints: [
+          {
+            id: selectedEntrypoint.id,
+            name: selectedEntrypoint.name,
+            icon: this.iconService.registerSvg(selectedEntrypoint.id, selectedEntrypoint.icon),
+            supportedListenerType: selectedEntrypoint.supportedListenerType,
+            deployed: selectedEntrypoint.deployed,
+            selectedQos: 'NONE',
+          },
+        ],
+        selectedEndpoints: [],
+      }));
+      return this.stepService.goToNextStep({
+        groupNumber: 2,
+        component: Step2Entrypoints2ConfigComponent,
+      });
+    }
+
     this.connectorPluginsV2Service
       .getEndpointPlugin(selectedEntrypoint.id)
       .pipe(
