@@ -17,7 +17,6 @@
 -->
 <header class="subscription-details__header">
   <h1 class="m3-headline-medium">Subscription details</h1>
-  <button mat-stroked-button color="warn">Close subscription</button>
 </header>
 <section class="subscription-details__info">
   <dl>
@@ -75,38 +74,3 @@
     </div>
   </dl>
 </section>
-
-<div class="card usage-card">
-  <div class="card-header">
-    <h3 class="mat-title-medium">Subscription usage</h3>
-    <button mat-stroked-button>Refresh</button>
-  </div>
-  <div class="card-content">
-    <p class="usage-note">Subscription quota resets on 1st of Jan, 2026</p>
-    <div class="usage-stats">
-      <div class="usage-labels">
-        <strong>Total calls sent</strong>
-        <span>20 of 10,000 (1% used)</span>
-      </div>
-      <mat-progress-bar mode="determinate" value="1" />
-      <div class="usage-remaining">9,980 (99%) remaining</div>
-    </div>
-  </div>
-</div>
-
-<div class="card api-card">
-  <h3 class="mat-title-medium card-title">Calling the API</h3>
-  <div class="input-group">
-    <label>Base URL</label>
-    <div class="field-with-copy">
-      <input readonly type="text" value="https://apim-master-gateway.team-apim.gravitee.dev/cardapi/getuserstatus" />
-      <button mat-icon-button><mat-icon>content_copy</mat-icon></button>
-    </div>
-  </div>
-  <div class="input-group">
-    <div class="field-with-copy">
-      <input readonly type="text" value='curl --header "X-Gravitee-Api-Key: f4312..." ...' />
-      <button mat-icon-button><mat-icon>content_copy</mat-icon></button>
-    </div>
-  </div>
-</div>
