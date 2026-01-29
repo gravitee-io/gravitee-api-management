@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.apim.core.metric.domain_service;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.metric.model.Filter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.Getter;
+import lombok.Builder;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
 public record MetricsContext(
-    @Getter AuditInfo auditInfo,
+    AuditInfo auditInfo,
     Optional<Map<String, String>> apiNameById,
     Optional<Map<String, String>> applicationNameById,
-    List<Filter> filters
+    List<io.gravitee.apim.core.metric.model.Filter> filters
 ) {
     public MetricsContext(AuditInfo auditInfo) {
         this(auditInfo, Optional.empty(), Optional.empty(), List.of());
