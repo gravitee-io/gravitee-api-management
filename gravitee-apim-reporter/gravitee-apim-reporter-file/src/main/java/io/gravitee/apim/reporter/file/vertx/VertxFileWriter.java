@@ -20,7 +20,6 @@ import io.gravitee.apim.reporter.common.formatter.Formatter;
 import io.gravitee.apim.reporter.file.config.FileReporterConfiguration;
 import io.gravitee.reporter.api.Reportable;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -45,7 +44,9 @@ public class VertxFileWriter<T extends Reportable> {
     /**
      * {@code \u000a} linefeed LF ('\n').
      *
-     * @see <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.10.6">JLF: Escape Sequences
+     * @see <a href=
+     *      "http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.10.6">JLF:
+     *      Escape Sequences
      *      for Character and String Literals</a>
      * @since 2.2
      */
@@ -54,7 +55,9 @@ public class VertxFileWriter<T extends Reportable> {
     /**
      * {@code \u000d} carriage return CR ('\r').
      *
-     * @see <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.10.6">JLF: Escape Sequences
+     * @see <a href=
+     *      "http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.10.6">JLF:
+     *      Escape Sequences
      *      for Character and String Literals</a>
      * @since 2.2
      */
@@ -127,17 +130,20 @@ public class VertxFileWriter<T extends Reportable> {
             log.debug("Flush the content to file");
 
             if (asyncFile != null) {
-                asyncFile.flush(event1 -> {
-                    if (event1.failed()) {
-                        log.error("An error occurs while flushing the content of the file", event1.cause());
-                    }
-                });
+                asyncFile
+                    .flush()
+                    .onComplete(event1 -> {
+                        if (event1.failed()) {
+                            log.error("An error occurs while flushing the content of the file", event1.cause());
+                        }
+                    });
             }
         });
     }
 
     public Future<Void> initialize() {
-        // Calculate Today's Midnight, based on Configured TimeZone (will be in past, even if by a few milliseconds)
+        // Calculate Today's Midnight, based on Configured TimeZone (will be in past,
+        // even if by a few milliseconds)
         ZonedDateTime now = ZonedDateTime.now(TimeZone.getDefault().toZoneId());
 
         // This will schedule the rollover event to the next midnight
@@ -188,7 +194,8 @@ public class VertxFileWriter<T extends Reportable> {
 
                 vertx
                     .fileSystem()
-                    .open(filename, options, event -> {
+                    .open(filename, options)
+                    .onComplete(event -> {
                         if (event.succeeded()) {
                             asyncFile = event.result();
 
@@ -217,18 +224,20 @@ public class VertxFileWriter<T extends Reportable> {
 
     public void write(T data) {
         if (asyncFile != null && !asyncFile.writeQueueFull()) {
-            vertx.executeBlocking((Handler<Promise<Buffer>>) event -> {
-                Buffer buffer = formatter.format(data);
-                if (buffer != null) {
-                    event.complete(buffer);
-                } else {
-                    event.fail("Invalid data");
-                }
-            }, event -> {
-                if (event.succeeded() && !asyncFile.writeQueueFull()) {
-                    asyncFile.write(event.result().appendBytes(END_OF_LINE));
-                }
-            });
+            vertx
+                .<Buffer>executeBlocking(() -> {
+                    Buffer buffer = formatter.format(data);
+                    if (buffer != null) {
+                        return buffer;
+                    } else {
+                        throw new RuntimeException("Invalid data");
+                    }
+                })
+                .onComplete(event -> {
+                    if (event.succeeded() && !asyncFile.writeQueueFull()) {
+                        asyncFile.write(event.result().appendBytes(END_OF_LINE));
+                    }
+                });
         }
     }
 
@@ -261,17 +270,21 @@ public class VertxFileWriter<T extends Reportable> {
 
         if (asyncFile != null) {
             // Ensure everything has been flushed before closing the file
-            asyncFile.flush(flushEvent ->
-                asyncFile.close(event -> {
-                    if (event.succeeded()) {
-                        log.info("File writer is now closed for type [{}]", this.type);
-                        promise.complete();
-                    } else {
-                        log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                        promise.fail(event.cause());
-                    }
-                })
-            );
+            asyncFile
+                .flush()
+                .onComplete(flushEvent ->
+                    asyncFile
+                        .close()
+                        .onComplete(event -> {
+                            if (event.succeeded()) {
+                                log.info("File writer is now closed for type [{}]", this.type);
+                                promise.complete();
+                            } else {
+                                log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                                promise.fail(event.cause());
+                            }
+                        })
+                );
         } else {
             promise.complete();
         }
@@ -285,7 +298,8 @@ public class VertxFileWriter<T extends Reportable> {
         // Get tomorrow's midnight based on Configured TimeZone
         ZonedDateTime midnight = toMidnight(now);
 
-        // Schedule next rollover event to occur, based on local machine's Unix Epoch milliseconds
+        // Schedule next rollover event to occur, based on local machine's Unix Epoch
+        // milliseconds
         long delay = midnight.toInstant().toEpochMilli() - now.toInstant().toEpochMilli();
         synchronized (VertxFileWriter.class) {
             rollover.schedule(rollTask, delay);
@@ -339,9 +353,10 @@ public class VertxFileWriter<T extends Reportable> {
     }
 
     /**
-     * File should be deleted if its last modification date is older than configured retainDays.
+     * File should be deleted if its last modification date is older than configured
+     * retainDays.
      *
-     * @param file file
+     * @param file            file
      * @param currentTimeInMs current time in milliseconds
      * @return true if file should be deleted, false elsewhere
      */

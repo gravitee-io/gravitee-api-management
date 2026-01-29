@@ -40,7 +40,8 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
- * Main Vertx Verticle in charge of starting the Vertx http server and to listen and dispatch all incoming http requests.
+ * Main Vertx Verticle in charge of starting the Vertx http server and to listen
+ * and dispatch all incoming http requests.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -64,7 +65,8 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        // Set global error handler to catch everything that has not been properly caught.
+        // Set global error handler to catch everything that has not been properly
+        // caught.
         RxJavaPlugins.setErrorHandler(this::logGlobalErrors);
 
         // Reconfigure RxJava to use Vertx schedulers.
@@ -74,8 +76,10 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
         final List<VertxHttpServer> servers = this.serverManager.servers(VertxHttpServer.class);
 
-        // Some exceptions can be raised at the Vertx context level (outside the request flow). This is the case when the client
-        // closes the connection before the response is fully written. This one can be ignored as it's properly handled at the request level.
+        // Some exceptions can be raised at the Vertx context level (outside the request
+        // flow). This is the case when the client
+        // closes the connection before the response is fully written. This one can be
+        // ignored as it's properly handled at the request level.
         Vertx.currentContext().exceptionHandler(this::logGlobalErrors);
 
         return Flowable.fromIterable(servers)
@@ -85,9 +89,15 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
                 // Listen and dispatch http requests.
                 return rxHttpServer
+                    // In Vert.x 5, channel() was removed; use channelHandlerContext().channel()
+                    // instead
                     .connectionHandler(connection -> {
                         HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
-                        delegate.channel().attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)).set(System.currentTimeMillis());
+                        delegate
+                            .channelHandlerContext()
+                            .channel()
+                            .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+                            .set(System.currentTimeMillis());
                     })
                     .requestHandler(request -> dispatchRequest(request, gioServer.id()))
                     .rxListen()
@@ -109,12 +119,16 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     }
 
     /**
-     * Dispatches the incoming request to the request dispatcher and completes once the dispatch completes.
-     * To avoid any interruption in the request flow, this method makes sure that <b>no error can be emitted by logging the error and completing normally</b>.
+     * Dispatches the incoming request to the request dispatcher and completes once
+     * the dispatch completes.
+     * To avoid any interruption in the request flow, this method makes sure that
+     * <b>no error can be emitted by logging the error and completing normally</b>.
      *
-     * Eventually, in case of unexpected error during the request dispatch, tries to end the response if not already ended (but it's an exceptional case that should not occur).
+     * Eventually, in case of unexpected error during the request dispatch, tries to
+     * end the response if not already ended (but it's an exceptional case that
+     * should not occur).
      *
-     * @param request the current request to dispatch.
+     * @param request  the current request to dispatch.
      * @param serverId the id of the server handling the request.
      */
     private void dispatchRequest(HttpServerRequest request, String serverId) {
@@ -130,7 +144,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
      * Logs the given {@link Throwable} and try ending the response.
      *
      * @param throwable the {@link Throwable} to log in error.
-     * @param response the response to end.
+     * @param response  the response to end.
      *
      * @return a completed {@link Completable} in any circumstances.
      */
@@ -141,10 +155,12 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     }
 
     /**
-     * Try to end the response if not already ended and completes normally in case of error.
+     * Try to end the response if not already ended and completes normally in case
+     * of error.
      *
      * @param response the response to end.
-     * @return a completed {@link Completable} even in case of error trying to end the response.
+     * @return a completed {@link Completable} even in case of error trying to end
+     *         the response.
      */
     private Completable tryEndResponse(HttpServerResponse response) {
         try {
@@ -170,7 +186,8 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     private void configureConnectionHandlers(HttpServerRequest request, Disposable dispatchDisposable) {
         request
             .connection()
-            // Must be added to ensure closed connection or error disposes underlying subscription.
+            // Must be added to ensure closed connection or error disposes underlying
+            // subscription.
             .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
             .closeHandler(event -> gracefulDispose(dispatchDisposable));
     }

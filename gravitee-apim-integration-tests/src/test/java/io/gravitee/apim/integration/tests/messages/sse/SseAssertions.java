@@ -17,7 +17,7 @@ package io.gravitee.apim.integration.tests.messages.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;

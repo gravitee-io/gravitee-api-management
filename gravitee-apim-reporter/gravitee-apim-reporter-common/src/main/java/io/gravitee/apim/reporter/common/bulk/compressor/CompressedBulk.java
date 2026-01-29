@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.reporter.common.bulk.compressor;
 
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.util.Map;
 import java.util.Objects;
 

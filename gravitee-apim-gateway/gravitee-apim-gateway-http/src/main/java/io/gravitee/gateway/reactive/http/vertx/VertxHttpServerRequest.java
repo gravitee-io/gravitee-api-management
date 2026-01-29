@@ -34,8 +34,8 @@ import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
-import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -56,14 +56,16 @@ public class VertxHttpServerRequest extends AbstractRequest {
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.nativeRequest = nativeRequest;
-        this.originalHost = this.nativeRequest.host();
+        this.originalHost = this.nativeRequest.authority().host();
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
-        this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
+        this.headers = new VertxHttpHeaders(nativeRequest.headers());
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
         this.messageFlow = null;
         this.options = options;
-        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channel()
+        // In Vert.x 5, channel() was removed; use channelHandlerContext().channel() instead
+        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channelHandlerContext()
+            .channel()
             .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
             .get();
     }
@@ -163,7 +165,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
 
     private String extractAddress(SocketAddress address) {
         if (address != null) {
-            //TODO Could be improve to a better compatibility with geoIP
+            // TODO Could be improve to a better compatibility with geoIP
             int ipv6Idx = address.host().indexOf("%");
             return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
         }
@@ -194,7 +196,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
 
     @Override
     public String host() {
-        return this.nativeRequest.host();
+        return this.nativeRequest.authority().host();
     }
 
     /**

@@ -98,7 +98,7 @@ class LogEndpointResponseTest {
 
     @Test
     void should_log_headers() {
-        final HttpHeaders backendHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        final HttpHeaders backendHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         backendHeaders.set("X-Test1", "Value1");
         backendHeaders.set("X-Test2", "Value2");
         backendHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
@@ -118,7 +118,7 @@ class LogEndpointResponseTest {
 
     @Test
     void should_log_no_headers_when_using_log_headers_captor_and_no_headers_has_been_return_by_the_backend() {
-        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
         existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
@@ -139,7 +139,7 @@ class LogEndpointResponseTest {
     @Test
     void should_log_only_headers_returned_by_the_backend_and_ignore_headers_set_by_the_gateway() {
         final HttpHeaders backendHeaders = HttpHeaders.create().set("X-From-Backend1", "Backend1").set("X-From-Backend2", "Backend2");
-        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
         existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));

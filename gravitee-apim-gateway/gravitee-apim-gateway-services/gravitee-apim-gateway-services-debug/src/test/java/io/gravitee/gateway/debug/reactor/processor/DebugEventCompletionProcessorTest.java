@@ -49,6 +49,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.PromiseImpl;
 import java.util.*;
+import java.util.concurrent.Callable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,7 +99,7 @@ class DebugEventCompletionProcessorTest {
                 return null;
             })
             .when(vertx)
-            .executeBlocking(any(Handler.class), any());
+            .executeBlocking(any(Callable.class));
 
         io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
         definition.setPlans(

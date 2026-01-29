@@ -24,8 +24,9 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.vertx.core.buffer.impl.BufferImpl;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.io.IOException;
 import java.util.Set;
@@ -49,8 +50,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         this.nativeResponse = vertxHttpServerRequest.nativeRequest.response();
         this.vertxHttpServerRequest = vertxHttpServerRequest;
-        this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
-        this.trailers = new VertxHttpHeaders(nativeResponse.trailers().getDelegate());
+        this.headers = new VertxHttpHeaders(nativeResponse.headers());
+        this.trailers = new VertxHttpHeaders(nativeResponse.trailers());
     }
 
     public HttpServerResponse getNativeResponse() {
@@ -109,7 +110,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
                     .rxSend(
                         chunks()
                             .doOnSubscribe(subscriptionRef::set)
-                            .map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
+                            .map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer()))
+                            .cast(Buffer.class)
                             .doOnNext(buffer ->
                                 ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
                             )
@@ -129,7 +131,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
                     })
                     .doOnDispose(() -> {
                         if (!nativeResponse.ended()) {
-                            // If the response is disposed before being ended, we need to cancel the subscription so cancellation is propagated to the endpoint connector.
+                            // If the response is disposed before being ended, we need to cancel the
+                            // subscription so cancellation is propagated to the endpoint connector.
                             subscriptionRef.get().cancel();
                         }
                     });
@@ -143,7 +146,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
     public void messages(final Flowable<Message> messages) {
         super.messages(messages);
 
-        // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
+        // If message flow is set up, make sure any access to chunk buffers will not be
+        // possible anymore and returns empty.
         chunks(Flowable.empty());
     }
 
@@ -154,7 +158,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
                     headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
                     headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
                 ) {
-                    // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
+                    // 'Connection: goAway' is a special header indicating the native connection
+                    // should be shutdown because of the node itself will shutdown.
                     vertxHttpServerRequest.nativeRequest.connection().shutdown();
                 }
 

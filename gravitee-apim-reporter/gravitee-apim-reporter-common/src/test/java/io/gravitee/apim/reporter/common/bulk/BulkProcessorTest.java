@@ -45,7 +45,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -266,7 +266,7 @@ public class BulkProcessorTest {
 
         when(bulkCompressor.compress(ArgumentMatchers.any()))
             .thenThrow(new IOException("Exception during compression"))
-            .thenReturn(new CompressedBulk(io.vertx.rxjava3.core.buffer.Buffer.buffer("data"), Collections.emptyMap()));
+            .thenReturn(new CompressedBulk(io.vertx.core.buffer.Buffer.buffer("data"), Collections.emptyMap()));
 
         initBulkProcessor();
         cut.process(buildMetrics()); // expect exception
