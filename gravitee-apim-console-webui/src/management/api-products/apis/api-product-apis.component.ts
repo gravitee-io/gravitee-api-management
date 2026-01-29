@@ -21,10 +21,6 @@ import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, t
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import {
-  ApiProductAddApiDialogComponent,
-  ApiProductAddApiDialogData,
-} from './add-api-dialog/api-product-add-api-dialog.component';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -339,42 +335,12 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Add API to this API Product.
+   * Placeholder for future work: no-op for current scope. Button remains visible for UX.
+   */
   onAddApi(): void {
-    this.apiProductV2Service
-      .get(this.apiProductId)
-      .pipe(
-        catchError((error) => {
-          this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
-          return of(null);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe((apiProduct) => {
-        if (apiProduct) {
-          this.matDialog
-            .open<ApiProductAddApiDialogComponent, ApiProductAddApiDialogData, boolean>(
-              ApiProductAddApiDialogComponent,
-              {
-                width: '600px',
-                data: {
-                  apiProductId: this.apiProductId,
-                  existingApiIds: apiProduct.apiIds || [],
-                },
-                role: 'dialog',
-                id: 'addApiDialog',
-              },
-            )
-            .afterClosed()
-            .pipe(takeUntil(this.unsubscribe$))
-            .subscribe((success) => {
-              // If dialog closed with success (true), reload the table
-              if (success) {
-                // Reload the table by calling GET /api-products/{apiProductId}
-                this.reloadTable();
-              }
-            });
-        }
-      });
+    // Functionality to be implemented in a future iteration.
   }
 
 
