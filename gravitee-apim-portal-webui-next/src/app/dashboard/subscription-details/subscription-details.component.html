@@ -25,7 +25,8 @@
         <span class="material-icons">check_circle</span>
         <span>Status</span>
       </dt>
-      <dd>Active</dd>
+<!--      <dd>Active</dd>-->
+      <dd>{{ subscription()!.status }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>
@@ -33,7 +34,8 @@
         <span>Subscribed API</span>
       </dt>
       <dd>
-        <a class="link-primary" routerLink="#">Payments API</a>
+        <a class="link-primary" [routerLink]="['/catalog/api/' + subscription().api]">{{ subscriptionDetails()?.apiName }}</a>
+<!--        <a class="link-primary" [routerLink]="['/catalog/api/9ae0fe68-48f0-44d4-a0fe-6848f0d4d4b1/details']">{{ subscriptionDetails()?.applicationName }}</a>-->
       </dd>
     </div>
     <div class="subscription-details__info__row">
@@ -42,6 +44,7 @@
         <span>Plan</span>
       </dt>
       <dd>Standard</dd>
+      <dd>{{ subscriptionDetails()!.planName }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>
@@ -49,7 +52,8 @@
         <span>Application</span>
       </dt>
       <dd>
-        <a class="link-primary" routerLink="#">Checkout integration</a>
+        <a class="link-primary" [routerLink]="['/applications/' + subscription()!.application]">{{ subscriptionDetails()?.applicationName }}</a>
+<!--        <a class="link-primary" [routerLink]="['/applications/73d9bd60-4740-46d0-99bd-60474056d06a']">Checkout integration</a>-->
       </dd>
     </div>
     <div class="subscription-details__info__row">
@@ -57,8 +61,8 @@
         <span class="material-icons">access_time_filled</span>
         <span>Created</span>
       </dt>
-      <dd>2020-12-12</dd>
-<!--      <dd>{{ subscription().result!.createdAt }}</dd>-->
+      <dd>{{ subscription()!.created_at }}</dd>
+<!--      <dd>2020-12-12</dd>-->
     </div>
     <div class="subscription-details__info__row">
       <dt>
@@ -66,7 +70,7 @@
         <span>ID</span>
       </dt>
       <dd class="id-value">
-        {{ subscriptionId }}
+        {{ subscription()!.id }}
         <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">
           <span class="material-icons copy-icon" aria-label="Copy ID">content_copy</span>
         </button>
