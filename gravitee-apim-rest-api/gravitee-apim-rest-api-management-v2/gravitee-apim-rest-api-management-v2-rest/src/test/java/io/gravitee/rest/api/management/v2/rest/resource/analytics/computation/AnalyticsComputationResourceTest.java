@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.result.*;

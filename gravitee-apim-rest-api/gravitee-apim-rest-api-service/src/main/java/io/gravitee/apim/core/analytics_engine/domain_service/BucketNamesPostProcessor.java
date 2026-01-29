@@ -17,8 +17,8 @@ package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
 import java.util.List;
 
 /**

@@ -20,10 +20,11 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
+import io.gravitee.apim.core.metric.mapper.FilterMapper;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,7 @@ public class ComputeMeasuresUseCase {
 
         queryExecutions.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filters.addAll(FilterMapper.INSTANCE.toAnalyticsFilters(metricsContext.filters()));
 
             responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });

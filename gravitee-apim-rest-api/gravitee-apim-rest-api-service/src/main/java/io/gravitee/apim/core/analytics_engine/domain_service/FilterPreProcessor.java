@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
 
 /**
  * @author GraviteeSource Team

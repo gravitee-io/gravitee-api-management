@@ -19,9 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
+import io.gravitee.apim.core.metric.mapper.FilterMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -115,7 +116,7 @@ class ManagementFilterPreProcessorTest {
 
         assertThat(contextWithFilters.filters()).size().isEqualTo(1);
 
-        var value = contextWithFilters.filters().getFirst().value();
+        var value = FilterMapper.INSTANCE.toAnalyticsFilter(contextWithFilters.filters().getFirst()).value();
         assertThat(value)
             .isInstanceOf(Set.class)
             .asInstanceOf(InstanceOfAssertFactories.SET)

@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.service.ApplicationService;

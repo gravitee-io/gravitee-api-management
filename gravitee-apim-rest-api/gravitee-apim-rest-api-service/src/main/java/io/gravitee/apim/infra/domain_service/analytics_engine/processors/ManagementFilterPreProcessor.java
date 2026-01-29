@@ -15,12 +15,11 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name.API;
-import static io.gravitee.apim.core.analytics_engine.model.FilterSpec.Operator.IN;
-
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
+import io.gravitee.apim.core.metric.mapper.FilterMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -60,9 +59,9 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
         var userApisIds = userApis.keySet();
 
-        var permissionsFilter = new Filter(API, IN, userApisIds);
+        var permissionsFilters = List.of(new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, userApisIds));
 
-        return context.withFilters(List.of(permissionsFilter)).withApiNamesById(userApis);
+        return context.withFilters(FilterMapper.INSTANCE.toFilters(permissionsFilters)).withApiNamesById(userApis);
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {

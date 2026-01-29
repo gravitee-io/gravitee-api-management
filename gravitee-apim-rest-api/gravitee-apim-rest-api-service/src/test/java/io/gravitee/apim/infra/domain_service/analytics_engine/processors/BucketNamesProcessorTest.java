@@ -20,11 +20,20 @@ import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Measure.CO
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.model.*;
+import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.Measure;
+import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.metric.domain_service.MetricsContext;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
