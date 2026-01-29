@@ -240,7 +240,7 @@ public class ApplicationMembersResource extends AbstractResource {
     }
 
     private void assertNoPrimaryOwnerReassignment(String poRole) {
-        if ("PRIMARY_OWNER".equals(poRole)) {
+        if (PRIMARY_OWNER.name().equals(poRole)) {
             throw new TransferOwnershipNotAllowedException(poRole);
         }
     }
