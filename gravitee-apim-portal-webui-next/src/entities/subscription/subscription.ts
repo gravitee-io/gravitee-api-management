@@ -33,7 +33,7 @@ export interface Subscription {
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
-export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
+export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED' | 'PENDING_ACTIVATION' | 'RESUMED';
 
 export enum SubscriptionConsumerStatusEnum {
   STARTED = 'STARTED',
@@ -47,7 +47,9 @@ export const SubscriptionStatusEnum = {
   CLOSED: 'CLOSED',
   REJECTED: 'REJECTED',
   PAUSED: 'PAUSED',
-};
+  PENDING_ACTIVATION: 'PENDING_ACTIVATION',
+  RESUMED: 'RESUMED',
+} as const;
 
 export interface SubscriptionDataKeys {
   key?: string;

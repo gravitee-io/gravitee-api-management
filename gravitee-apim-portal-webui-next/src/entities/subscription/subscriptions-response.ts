@@ -36,6 +36,7 @@ export interface SubscriptionMetadataContent {
   planMode?: PlanMode;
   securityType?: PlanSecurityEnum;
   apiVersion?: string;
+  totalElements?: number;
 }
 
 export interface SubscriptionMetadataEntrypointsTarget {

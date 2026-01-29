@@ -35,12 +35,14 @@ export class SubscriptionService {
     applicationId?: string;
     statuses: SubscriptionStatusEnum[] | null;
     size?: number;
+    page?: number;
   }): Observable<SubscriptionsResponse> {
     const params = {
       ...(queryParams.apiId ? { apiId: queryParams.apiId } : {}),
       ...(queryParams.applicationId ? { applicationId: queryParams.applicationId } : {}),
       ...(queryParams.statuses ? { statuses: queryParams.statuses } : { statuses: [] }),
       ...(queryParams.size ? { size: queryParams.size } : {}),
+      ...(queryParams.page ? { page: queryParams.page } : {}),
     };
     return this.http.get<SubscriptionsResponse>(`${this.configService.baseURL}/subscriptions`, {
       params,
