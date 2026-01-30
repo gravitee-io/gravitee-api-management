@@ -163,12 +163,18 @@ public class SearchEnvironmentLogsUseCase {
         io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> source,
         Pageable pageable
     ) {
-        var perPage = pageable.getPageSize();
-        var page = pageable.getPageNumber();
-        var data = source.logs() == null ? List.<ApiLog>of() : source.logs().stream().map(this::mapApiLog).toList();
-        var pageCount = perPage == 0 ? 0 : (int) Math.ceil((double) source.total() / perPage);
-        var pagination = new Pagination(page, perPage, pageCount, data.size(), source.total());
-        return new SearchLogsResponse(data, pagination, null);
+        final List<ApiLog> apiLogs = source.logs() == null ? List.of() : source.logs().stream().map(this::mapApiLog).toList();
+        return new SearchLogsResponse(
+            apiLogs,
+            new Pagination(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getPageSize() == 0 ? 0 : (int) Math.ceil((double) source.total() / pageable.getPageSize()),
+                apiLogs.size(),
+                source.total()
+            ),
+            null
+        );
     }
 
     private ApiLog mapApiLog(BaseConnectionLog item) {
