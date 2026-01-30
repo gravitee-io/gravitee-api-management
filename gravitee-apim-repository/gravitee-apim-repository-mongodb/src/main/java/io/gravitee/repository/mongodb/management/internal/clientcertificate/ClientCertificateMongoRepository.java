@@ -36,4 +36,6 @@ public interface ClientCertificateMongoRepository extends MongoRepository<Client
 
     @Query("{ applicationId: ?0, status: { $in: ?1 } }")
     List<ClientCertificateMongo> findByApplicationIdAndStatuses(String applicationId, Collection<String> statuses);
+
+    void deleteByApplicationId(String applicationId);
 }

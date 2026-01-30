@@ -60,4 +60,10 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @throws TechnicalException if an error occurs
      */
     boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException;
+
+    /**
+     * Delete all client certificates for a given application.
+     * @param applicationId the application ID
+     */
+    void deleteByApplicationId(String applicationId);
 }

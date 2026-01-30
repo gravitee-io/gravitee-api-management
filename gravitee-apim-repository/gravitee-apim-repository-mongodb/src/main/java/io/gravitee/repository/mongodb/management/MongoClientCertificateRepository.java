@@ -173,4 +173,10 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
             throw new TechnicalException("Failed to check if client certificate exists for active application", ex);
         }
     }
+
+    @Override
+    public void deleteByApplicationId(String applicationId) {
+        log.debug("Delete client certificates by application ID [{}]", applicationId);
+        internalRepository.deleteByApplicationId(applicationId);
+    }
 }

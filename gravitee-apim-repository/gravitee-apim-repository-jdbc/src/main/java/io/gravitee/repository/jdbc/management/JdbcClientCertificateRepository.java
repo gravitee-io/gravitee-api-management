@@ -145,4 +145,10 @@ public class JdbcClientCertificateRepository
             throw new TechnicalException("Failed to check if client certificate exists for active application", ex);
         }
     }
+
+    @Override
+    public void deleteByApplicationId(String applicationId) {
+        LOGGER.debug("JdbcClientCertificateRepository.deleteByApplicationId({})", applicationId);
+        jdbcTemplate.update("DELETE FROM " + tableName + " WHERE application_id = ?", applicationId);
+    }
 }

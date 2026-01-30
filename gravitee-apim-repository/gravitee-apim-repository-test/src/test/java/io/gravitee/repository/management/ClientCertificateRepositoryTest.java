@@ -261,4 +261,22 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
         assertThat(exists).isFalse();
     }
+
+    @Test
+    public void should_delete_by_application_id() throws Exception {
+        // app-1 has 2 certificates: cert-1 and cert-2
+        Page<ClientCertificate> beforeDelete = clientCertificateRepository.findByApplicationId(
+            "app-1",
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+        assertThat(beforeDelete.getTotalElements()).isEqualTo(2);
+
+        clientCertificateRepository.deleteByApplicationId("app-1");
+
+        Page<ClientCertificate> afterDelete = clientCertificateRepository.findByApplicationId(
+            "app-1",
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+        assertThat(afterDelete.getTotalElements()).isZero();
+    }
 }

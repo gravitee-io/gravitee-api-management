@@ -31,11 +31,6 @@ import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedExcep
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.xml.bind.DatatypeConverter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -43,9 +38,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.provider.digest.SHA256;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
  * Implementation of the ClientCertificateService.

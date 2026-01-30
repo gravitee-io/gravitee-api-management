@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Date;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,8 +23,6 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.Date;
 
 /**
  * Mongo object model for client certificate.
