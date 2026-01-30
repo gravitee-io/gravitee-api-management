@@ -59,6 +59,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.junit5.Timeout;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
@@ -129,6 +130,7 @@ public class PlanMutualTLSClientAuthRequestIntegrationTest extends AbstractGatew
     @Override
     protected void configureHttpClient(
         HttpClientOptions options,
+        PoolOptions poolOptions,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {

@@ -103,7 +103,7 @@ public class TlsCertKeySelectionIntegrationTest {
                 new HttpClientOptions()
                     .setSsl(true)
                     .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                    .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
             );
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
@@ -114,7 +114,7 @@ public class TlsCertKeySelectionIntegrationTest {
                 new HttpClientOptions()
                     .setSsl(true)
                     .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                    .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
             );
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }

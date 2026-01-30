@@ -44,6 +44,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.Collections;
@@ -169,6 +170,16 @@ public abstract class AbstractGatewayTest
      */
     protected void configureHttpClient(
         HttpClientOptions options,
+        PoolOptions poolOptions,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {}
+
+    /**
+     * Override this method if you want to pass some specific configuration to the WebSocketClient.
+     */
+    protected void configureWebSocketClient(
+        io.vertx.core.http.WebSocketClientOptions options,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {}

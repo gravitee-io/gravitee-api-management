@@ -15,15 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
-import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
-import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_MESSAGE;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,7 +67,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -378,7 +374,8 @@ class HttpProxyEndpointConnectorTest {
                 .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
                 .test()
                 .assertComplete();
-            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            verify(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
+            verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(request).isWebSocket();
         }
@@ -394,6 +391,7 @@ class HttpProxyEndpointConnectorTest {
                 .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+            verify(spyWebSocketClientFactory, never()).getOrBuildWebSocketClient(any(), any(), any());
         }
     }
 }

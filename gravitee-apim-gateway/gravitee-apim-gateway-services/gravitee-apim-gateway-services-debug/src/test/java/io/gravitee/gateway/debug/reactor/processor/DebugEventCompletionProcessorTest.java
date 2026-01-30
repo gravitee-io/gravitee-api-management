@@ -44,6 +44,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -95,8 +96,8 @@ class DebugEventCompletionProcessorTest {
         lenient().when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
         lenient()
             .doAnswer(i -> {
-                ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
-                return null;
+                ((Callable) i.getArgument(0)).call();
+                return Future.succeededFuture();
             })
             .when(vertx)
             .executeBlocking(any(Callable.class));

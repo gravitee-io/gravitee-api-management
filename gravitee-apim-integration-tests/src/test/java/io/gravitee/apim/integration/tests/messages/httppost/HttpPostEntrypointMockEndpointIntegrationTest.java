@@ -37,6 +37,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpHeaders;
@@ -78,13 +79,12 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
     @Override
     protected void configureHttpClient(
         HttpClientOptions options,
+        PoolOptions poolOptions,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {
-        super.configureHttpClient(options, gatewayConfig, parameterContext);
-
-        // Force pool to 1 connection. This allows to ease the connection drain test.
-        options.setMaxPoolSize(1);
+        super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
+        // Pool is already configured to 1 connection by default, which eases the connection drain test.
     }
 
     private MessageStorage messageStorage;

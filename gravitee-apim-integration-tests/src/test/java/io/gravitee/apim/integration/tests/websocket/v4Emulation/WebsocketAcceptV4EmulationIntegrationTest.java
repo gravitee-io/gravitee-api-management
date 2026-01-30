@@ -24,7 +24,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Promise;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -34,7 +34,7 @@ public class WebsocketAcceptV4EmulationIntegrationTest extends AbstractWebsocket
 
     @Test
     @DeployApi({ "/apis/http/api.json" })
-    public void websocket_accepted_request(VertxTestContext testContext, HttpClient httpClient) throws Throwable {
+    public void websocket_accepted_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -45,7 +45,6 @@ public class WebsocketAcceptV4EmulationIntegrationTest extends AbstractWebsocket
             Completable.fromRunnable(() -> {
                 serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
 
                 clientReady
                     .future()
@@ -60,8 +59,8 @@ public class WebsocketAcceptV4EmulationIntegrationTest extends AbstractWebsocket
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
-        httpClient
-            .webSocket("/test")
+        webSocketClient
+            .connect("/test")
             .doOnSuccess(webSocket -> {
                 webSocket.exceptionHandler(testContext::failNow);
                 webSocket.frameHandler(frame -> {

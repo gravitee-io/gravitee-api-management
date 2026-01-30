@@ -27,8 +27,8 @@ import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.WebSocket;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
 import java.util.Map;
@@ -60,7 +60,7 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
             "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber.json",
         }
     )
-    void should_receive_all_messages_with_qos(Qos qos, HttpClient httpClient, Vertx vertx) {
+    void should_receive_all_messages_with_qos(Qos qos, WebSocketClient webSocketClient, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through entrypoint.
         KafkaProducer<String, byte[]> producer = getKafkaProducer(vertx);
@@ -69,7 +69,7 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
         blockingPublishToKafka(producer, "message3");
         producer.close();
 
-        final var obs = httpClient.rxWebSocket("/test-" + qos.getLabel()).flatMapPublisher(WebSocket::toFlowable).test();
+        final var obs = webSocketClient.rxConnect("/test-" + qos.getLabel()).flatMapPublisher(WebSocket::toFlowable).test();
 
         // We expect 3 binary frame, for 3 messages
         await()
@@ -93,9 +93,9 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher.json" })
-    void should_publish_messages(HttpClient httpClient, Vertx vertx) {
-        httpClient
-            .rxWebSocket("/test")
+    void should_publish_messages(WebSocketClient webSocketClient, Vertx vertx) {
+        webSocketClient
+            .rxConnect("/test")
             .flatMapCompletable(websocket ->
                 // Write text frame
                 websocket
@@ -135,9 +135,9 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher-subscriber.json" })
-    void should_received_published_messages(HttpClient httpClient, Vertx vertx) {
-        var obs = httpClient
-            .rxWebSocket("/test")
+    void should_received_published_messages(WebSocketClient webSocketClient, Vertx vertx) {
+        var obs = webSocketClient
+            .rxConnect("/test")
             .flatMapPublisher(websocket ->
                 // Write text frame
                 websocket
