@@ -17,7 +17,7 @@ import {Component, DestroyRef, effect, inject, input, signal} from '@angular/cor
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import {ActivatedRoute, RouterModule} from '@angular/router';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import { LoadingValueComponent } from './loading-value.component';
 import {PlanMode, PlanSecurityEnum, PlanUsageConfiguration} from "../../../entities/plan/plan";
 import {
@@ -26,7 +26,7 @@ import {
   SubscriptionConsumerStatusEnum, SubscriptionsResponse,
   SubscriptionStatusEnum
 } from "../../../entities/subscription";
-import {ApiType} from "../../../entities/api/api";
+import {Api, ApiType} from "../../../entities/api/api";
 import {BehaviorSubject, catchError, defer, delay, forkJoin, map, Observable, switchMap, tap} from "rxjs";
 import {of} from "rxjs/internal/observable/of";
 import {SubscriptionService} from "../../../services/subscription.service";
@@ -56,7 +56,7 @@ interface SubscriptionDetailsData {
 
 @Component({
   selector: 'app-subscription-details',
-  imports: [MatProgressBar, MatIcon, MatButton, RouterModule, LoadingValueComponent],
+  imports: [MatButton, RouterModule, LoadingValueComponent],
   templateUrl: './subscription-details.component.html',
   styleUrl: './subscription-details.component.scss',
   standalone: true,
@@ -68,22 +68,28 @@ export default class SubscriptionDetailsComponent {
   private readonly planService = inject(PlanService);
   private readonly apiService = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   subscriptionId = input.required<string>();
-  subscription = toSignal(toObservable(this.subscriptionId).pipe(switchMap(subscriptionId => this.subscriptionService.get(subscriptionId))));
-  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscription).pipe(switchMap(sub => sub ? this.loadDetails(sub) : of(null))));
-  api = toSignal(toObservable(this.subscription).pipe(switchMap(sub => sub ? this.apiService.details(sub.api) : of(null))));
+  subscription = toSignal(toObservable(this.subscriptionId).pipe(switchMap(this.loadSubscriptionOrRedirect.bind(this))));
+  api = toSignal(toObservable(this.subscription).pipe(switchMap(this.loadApi.bind(this))));
+  subscriptionDetails = toSignal(toObservable(this.subscription).pipe(switchMap(this.loadDetails.bind(this))));
 
-  /**
-   * status +
-   * api -
-   * plan -
-   * application -
-   * created +
-   * id +
-   */
+  private loadSubscriptionOrRedirect(subscriptionId: string) {
+    return this.subscriptionService.get(subscriptionId).pipe(catchError(_ => {
+      this.router.navigate(['404']);
+      return of();
+    }))
+  }
+
+  private loadApi(subscription?: Subscription): Observable<Api | null> {
+    if (!subscription) {
+      return of(null);
+    }
+    return this.apiService.details(subscription.api);
+  }
+
   private loadDetails(subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
-    // TODO handle subscription null or error
     if (!subscription) {
       return of(null);
     }
