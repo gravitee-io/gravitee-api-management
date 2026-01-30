@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiProductCrudServiceInMemory;
@@ -28,6 +32,8 @@ import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Role;
@@ -52,6 +58,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final EventCrudService eventCrudService = mock(EventCrudService.class);
+    private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
 
     private CreateApiProductUseCase createApiProductUseCase;
 
@@ -97,7 +105,9 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             validateApiProductService,
             auditService,
             apiProductPrimaryOwnerDomainService,
-            apiProductPrimaryOwnerFactory
+            apiProductPrimaryOwnerFactory,
+            eventCrudService,
+            eventLatestCrudService
         );
 
         initRoles();
@@ -137,6 +147,10 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         assertThat(output.apiProduct().getCreatedAt()).isNotNull();
         assertThat(output.apiProduct().getUpdatedAt()).isNotNull();
+
+        // Verify DEPLOY event was published
+        verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
+        verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(GENERATED_UUID), any());
     }
 
     @Test

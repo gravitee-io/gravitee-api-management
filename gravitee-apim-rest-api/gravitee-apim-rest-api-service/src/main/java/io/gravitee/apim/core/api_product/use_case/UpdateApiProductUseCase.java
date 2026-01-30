@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static java.util.Map.entry;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -26,9 +28,14 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -38,6 +45,8 @@ public class UpdateApiProductUseCase {
     private final ApiProductCrudService apiProductCrudService;
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
+    private final EventCrudService eventCrudService;
+    private final EventLatestCrudService eventLatestCrudService;
 
     public Output execute(Input input) {
         Optional<ApiProduct> existingApiProductOpt = apiProductQueryService.findById(input.apiProductId());
@@ -54,8 +63,25 @@ public class UpdateApiProductUseCase {
         existingApiProduct.update(input.updateApiProduct());
 
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
+        publishDeployEvent(input.auditInfo(), updated);
         createAuditLog(beforeUpdate, updated, input.auditInfo());
         return new Output(updated);
+    }
+
+    private void publishDeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
+        final Event event = eventCrudService.createEvent(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            Set.of(auditInfo.environmentId()),
+            EventType.DEPLOY_API_PRODUCT,
+            apiProduct,
+            Map.ofEntries(
+                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
+            )
+        );
+
+        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     public record Input(String apiProductId, UpdateApiProduct updateApiProduct, AuditInfo auditInfo) {

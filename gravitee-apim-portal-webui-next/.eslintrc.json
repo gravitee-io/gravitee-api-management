@@ -38,7 +38,27 @@
             "style": "kebab-case"
           }
         ],
-        "@typescript-eslint/member-ordering": "error",
+        "@angular-eslint/prefer-inject": "off", // TODO: enable this rule when all constructor injections are replaced by Angular injection
+        "@typescript-eslint/member-ordering": [
+          "error",
+          {
+            "default": [
+              "signature",
+              "call-signature",
+              "public-static-field",
+              "protected-static-field",
+              "private-static-field",
+              "instance-field",
+              "constructor",
+              "public-static-method",
+              "protected-static-method",
+              "private-static-method",
+              "public-instance-method",
+              "protected-instance-method",
+              "private-instance-method"
+            ]
+          }
+        ],
         "@typescript-eslint/no-unused-vars": "off",
         "unused-imports/no-unused-imports": "error",
         "unused-imports/no-unused-vars": [

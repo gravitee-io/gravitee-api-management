@@ -13,27 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 
 import { DivHarness } from '../../../../../testing/div.harness';
+
+export class TreeRowHarness extends ComponentHarness {
+  static readonly hostSelector = '.tree__row';
+
+  public static with(options: BaseHarnessFilters & { text?: string | RegExp }): HarnessPredicate<TreeRowHarness> {
+    return new HarnessPredicate(TreeRowHarness, options).addOption('text', options.text, (harness, text) =>
+      HarnessPredicate.stringMatches(harness.getText(), text),
+    );
+  }
+
+  async getText() {
+    const label = await this.locatorForOptional('.tree__label')();
+    if (label) {
+      return label.text();
+    }
+
+    const host = await this.host();
+    return host.text();
+  }
+  async isExpanded(): Promise<boolean> {
+    const icon = await this.locatorForOptional('.tree__icon')();
+    return icon ? icon.hasClass('expanded') : false;
+  }
+}
 
 export class TreeNodeComponentHarness extends ComponentHarness {
   static readonly hostSelector = 'app-tree-node';
 
-  readonly contentContainer = this.locatorForOptional(DivHarness.with({ selector: '.tree__row' }));
+  readonly contentContainer = this.locatorForOptional(TreeRowHarness);
 
   readonly childrenContainer = this.locatorForOptional(DivHarness.with({ selector: '.tree__children' }));
 
   async getText() {
     const container = await this.contentContainer();
-    const label = await container?.childLocatorForOptional('.tree__label')();
-    if (label) {
-      return label?.text();
-    } else {
-      const link = await container?.childLocatorForOptional('.tree__link')();
-      const child = await link?.getProperty<ChildNode>('firstChild');
-      return child?.textContent;
-    }
+    return container?.getText();
   }
 
   async getChildren() {
@@ -52,6 +69,7 @@ export class TreeNodeComponentHarness extends ComponentHarness {
   async isSelected() {
     const container = await this.contentContainer();
     const host = await container?.host();
-    return host?.hasClass('selected');
+    const selected = await host?.getAttribute('aria-selected');
+    return selected === 'true';
   }
 }

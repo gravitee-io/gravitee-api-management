@@ -28,7 +28,7 @@ export class ApiEndpointGroupSelectionHarness extends ComponentHarness {
   async selectEndpoint(id: string) {
     const radioGroup = (await this.getEndpointsRadioGroup()) as MatRadioGroupHarness;
     return await radioGroup.checkRadioButton({
-      selector: `[ng-reflect-value=${id}]`,
+      selector: `[data-testid="${id}"]`,
     });
   }
 

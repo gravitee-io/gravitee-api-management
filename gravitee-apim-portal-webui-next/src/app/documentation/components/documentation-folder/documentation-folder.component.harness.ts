@@ -17,45 +17,32 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
-import { BreadcrumbsComponentHarness } from './breadcrumb/breadcrumbs.component.harness';
-import { SidenavToggleButtonComponentHarness } from './sidenav-toggle-button/sidenav-toggle-button.component.harness';
 import { TreeComponentHarness } from './tree/tree.component.harness';
+import { BreadcrumbsComponentHarness } from '../../../../components/breadcrumbs/breadcrumbs.component.harness';
+import { NavigationItemContentViewerHarness } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.harness';
+import { SidenavLayoutComponentHarness } from '../../../../components/sidenav-layout/sidenav-layout.component.harness';
+import { SidenavToggleButtonComponentHarness } from '../../../../components/sidenav-toggle-button/sidenav-toggle-button.component.harness';
 import { DivHarness } from '../../../../testing/div.harness';
 
 export class DocumentationFolderComponentHarness extends ComponentHarness {
   static readonly hostSelector = 'app-documentation-folder';
 
-  private readonly getSidenavHarness = this.locatorForOptional(DivHarness.with({ selector: '.documentation-folder__sidenav' }));
-
-  private readonly getSidenavToggleButtonHarness = this.locatorForOptional(SidenavToggleButtonComponentHarness);
-
+  private readonly getSidenavLayoutHarness = this.locatorFor(SidenavLayoutComponentHarness);
   private readonly getTree = this.locatorForOptional(TreeComponentHarness);
-
   private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
-
-  private readonly getContentEmptyStateHarness = this.locatorForOptional(
-    DivHarness.with({ selector: '.documentation-folder__container .empty-state' }),
+  private readonly getSidenavEmptyStateHarness = this.locatorForOptional(
+    DivHarness.with({ selector: '.documentation-folder__sidenav__empty-state' }),
   );
+  private readonly getNavigationItemContentViewerHarness = this.locatorForOptional(NavigationItemContentViewerHarness);
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
 
-  async getSidenav(): Promise<DivHarness | null> {
-    return this.getSidenavHarness();
-  }
-
-  async getSidenavCollapsedState(): Promise<boolean | null> {
-    return this.getSidenav()
-      .then(sidenav => sidenav?.host())
-      .then(host => host?.hasClass('collapsed') ?? null);
+  async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
+    const sidenav = await this.getSidenavLayoutHarness();
+    return sidenav.getSidenavToggleButton();
   }
 
   async getSidenavEmptyState(): Promise<DivHarness | null> {
-    return this.getSidenavHarness().then(sidenav =>
-      sidenav ? sidenav.childLocatorForOptional(DivHarness.with({ selector: '.documentation-folder__sidenav__empty-state' }))() : null,
-    );
-  }
-
-  async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
-    return this.getSidenavToggleButtonHarness();
+    return this.getSidenavEmptyStateHarness();
   }
 
   async getTreeHarness(): Promise<TreeComponentHarness | null> {
@@ -67,7 +54,8 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   }
 
   async getContentEmptyState(): Promise<DivHarness | null> {
-    return this.getContentEmptyStateHarness();
+    const harness = await this.getNavigationItemContentViewerHarness();
+    return harness ? harness.getEmptyState() : null;
   }
 
   async getGmdViewer(): Promise<GraviteeMarkdownViewerHarness | null> {

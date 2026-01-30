@@ -149,7 +149,13 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .stream()
             .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
             .forEach(subscription -> {
-                GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), subscription.getApi());
+                GenericApiEntity api = apiSearchService.findGenericById(
+                    GraviteeContext.getExecutionContext(),
+                    subscription.getApi(),
+                    false,
+                    false,
+                    false
+                );
                 GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
                 findEmailsToNotify(subscription, application).forEach(email ->

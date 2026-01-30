@@ -110,71 +110,79 @@
       <mat-icon class="tree__icon tree__icon__status" svgIcon="gio:eye-off" aria-hidden="true" [attr.data-test-icon]="'eye-off'"></mat-icon>
     }
 
-    <button
-      type="button"
-      mat-icon-button
-      class="tree__button more-actions"
-      aria-label="More actions"
-      [attr.data-testid]="'more-actions-' + node.id"
-      [matMenuTriggerFor]="moreMenu"
-      (click)="$event.stopPropagation()"
-      *gioPermission="{ anyOf: ['environment-documentation-u', 'environment-documentation-d'] }"
-    >
-      <mat-icon svgIcon="gio:more-vertical"></mat-icon>
-    </button>
+    @if (canShowMoreActions(node)) {
+      <button
+        type="button"
+        mat-icon-button
+        class="tree__button more-actions"
+        aria-label="More actions"
+        [attr.data-testid]="'more-actions-' + node.id"
+        [matMenuTriggerFor]="moreMenu"
+        (click)="$event.stopPropagation()"
+      >
+        <mat-icon svgIcon="gio:more-vertical"></mat-icon>
+      </button>
+    }
 
     <mat-menu #moreMenu="matMenu">
       @if (node.type === 'FOLDER') {
-        <button mat-menu-item (click)="onCreate(node, 'PAGE')">
-          <mat-icon svgIcon="gio:page"></mat-icon>
-          Add Page
-        </button>
-        <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
-          <mat-icon svgIcon="gio:folder"></mat-icon>
-          Add Folder
-        </button>
-        <button mat-menu-item (click)="onCreate(node, 'LINK')">
-          <mat-icon svgIcon="gio:link"></mat-icon>
-          Add Link
-        </button>
-        <mat-divider></mat-divider>
+        @if (canCreate) {
+          <button mat-menu-item (click)="onCreate(node, 'PAGE')">
+            <mat-icon svgIcon="gio:page"></mat-icon>
+            Add Page
+          </button>
+          <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
+            <mat-icon svgIcon="gio:folder"></mat-icon>
+            Add Folder
+          </button>
+          <button mat-menu-item (click)="onCreate(node, 'LINK')">
+            <mat-icon svgIcon="gio:link"></mat-icon>
+            Add Link
+          </button>
+          @if (canUpdate || canDelete) {
+            <mat-divider></mat-divider>
+          }
+        }
       }
 
-      <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
-        <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        Edit
-      </button>
+      @if (canUpdate) {
+        <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
+          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          Edit
+        </button>
 
-      @if (isUnpublished(node)) {
-        <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-          <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-          Publish
-        </button>
-      } @else {
-        <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-          <mat-icon svgIcon="gio:eye-off"></mat-icon>
-          Unpublish
-        </button>
+        @if (isUnpublished(node)) {
+          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            Publish
+          </button>
+        } @else {
+          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+            <mat-icon svgIcon="gio:eye-off"></mat-icon>
+            Unpublish
+          </button>
+        }
       }
 
-      <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
-        <button
-          mat-menu-item
-          *gioPermission="{ anyOf: ['environment-documentation-d'] }"
-          [disabled]="hasChildren(node)"
-          [attr.aria-disabled]="hasChildren(node)"
-          [attr.tabindex]="hasChildren(node) ? -1 : null"
-          [class.tree__menu-item-delete]="!hasChildren(node)"
-          [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-          (click)="onDelete(node)"
-          data-testid="delete-node-button"
-        >
-          <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-            >delete</mat-icon
+      @if (canDelete) {
+        <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
+          <button
+            mat-menu-item
+            [disabled]="hasChildren(node)"
+            [attr.aria-disabled]="hasChildren(node)"
+            [attr.tabindex]="hasChildren(node) ? -1 : null"
+            [class.tree__menu-item-delete]="!hasChildren(node)"
+            [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+            (click)="onDelete(node)"
+            data-testid="delete-node-button"
           >
-          Delete
-        </button>
-      </span>
+            <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
+              >delete</mat-icon
+            >
+            Delete
+          </button>
+        </span>
+      }
     </mat-menu>
   </ng-template>
 } @else {

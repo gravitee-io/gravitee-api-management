@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.errors.notfound;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;

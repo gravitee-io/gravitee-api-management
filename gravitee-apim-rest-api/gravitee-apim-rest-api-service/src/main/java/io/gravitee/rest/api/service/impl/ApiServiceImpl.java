@@ -754,7 +754,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
             //TODO add membership log
-            ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner);
+            ApiEntity apiEntity = convertWithApiFlowsAndPlansAndApiCategories(executionContext, createdApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             // Create default alerts
@@ -872,7 +872,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(ExecutionContext executionContext, String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api));
+        ApiEntity apiEntity = convertWithApiFlowsAndPlansAndApiCategories(executionContext, api, getPrimaryOwner(executionContext, api));
 
         // Compute entrypoints
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiEntity);
@@ -884,7 +884,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId) {
         try {
-            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(api -> apiConverter.toApiEntity(api, null));
+            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(api -> apiConverter.toApiEntity(api, null, false));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
@@ -907,7 +907,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDefinitionVersion(DefinitionVersion.V2);
         }
         var apiEntity = switch (api.getDefinitionVersion()) {
-            case V1, V2 -> convert(executionContext, api, getPrimaryOwner(executionContext, api));
+            case V1, V2 -> convertWithApiFlowsAndPlansAndApiCategories(executionContext, api, getPrimaryOwner(executionContext, api));
             case V4 -> apiSearchService.findById(executionContext, id);
             default -> throw new BadNotificationConfigException();
         };
@@ -1154,6 +1154,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean checkPlans,
         boolean updatePlansAndFlows
     ) {
+        return update(executionContext, apiId, updateApiEntity, checkPlans, updatePlansAndFlows, false);
+    }
+
+    @Override
+    public ApiEntity update(
+        ExecutionContext executionContext,
+        String apiId,
+        UpdateApiEntity updateApiEntity,
+        boolean checkPlans,
+        boolean updatePlansAndFlows,
+        boolean skipSearchEngineIndex
+    ) {
         try {
             log.debug("Update API {}", apiId);
 
@@ -1221,7 +1233,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check resource configurations.
             checkResourceConfigurations(updateApiEntity);
 
-            final ApiEntity apiToCheck = convert(executionContext, apiToUpdate);
+            final ApiEntity apiToCheck = convert(executionContext, apiToUpdate, true, true, true);
 
             // if user changes definition version, then check if he is allowed to do it
             checkDefinitionVersion(updateApiEntity, apiToCheck);
@@ -1420,12 +1432,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, apiToUpdate, updatedApi);
             }
 
-            ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner);
+            ApiEntity apiEntity = convertWithApiFlowsAndPlansAndApiCategories(executionContext, updatedApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
-            searchEngineService.index(executionContext, apiWithMetadata, false);
+            if (!skipSearchEngineIndex) {
+                searchEngineService.index(executionContext, apiWithMetadata, false);
+            }
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
@@ -1763,7 +1777,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiId
             );
             // remove from search engine
-            searchEngineService.delete(executionContext, convert(executionContext, api));
+            searchEngineService.delete(executionContext, convert(executionContext, api, false, false, false));
 
             mediaService.deleteAllByApi(apiId);
 
@@ -1843,7 +1857,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         return false;
                     }
 
-                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
+                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false, false, false);
                     // Remove policy description from sync check
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
@@ -1854,7 +1868,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     //  current one.
                     removeIdsFromFlows(api);
                     removeIdsFromFlows(deployedApi);
-
+                    removePlans(api, deployedApi);
                     sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
@@ -1884,6 +1898,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void removeIdsFromFlows(ApiEntity api) {
         api.getFlows().forEach(flow -> flow.setId(null));
         api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+    }
+
+    private static void removePlans(ApiEntity api, ApiEntity deployedApi) {
+        api.setPlans(null);
+        deployedApi.setPlans(null);
     }
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
@@ -2610,7 +2629,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(executionContext, apiRepository.update(api), getPrimaryOwner(executionContext, api));
+            ApiEntity apiEntity = convertWithApiFlowsAndPlansAndApiCategories(
+                executionContext,
+                apiRepository.update(api),
+                getPrimaryOwner(executionContext, api)
+            );
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -2728,20 +2751,28 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
-            .map(publicApi -> this.convert(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
+            .map(publicApi ->
+                this.convertWithApiFlowsAndPlansAndApiCategories(executionContext, publicApi, primaryOwners.get(publicApi.getId()))
+            )
             .collect(toList());
     }
 
-    private ApiEntity convert(ExecutionContext executionContext, Api api) {
-        return convert(executionContext, api, true);
+    public ApiEntity convert(
+        ExecutionContext executionContext,
+        Api api,
+        boolean withApiFlows,
+        boolean withPlans,
+        boolean withApiCategories
+    ) {
+        return apiConverter.toApiEntity(executionContext, api, null, withApiFlows, withPlans, withApiCategories);
     }
 
-    public ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
-        return apiConverter.toApiEntity(executionContext, api, null, readDatabaseFlows);
-    }
-
-    public ApiEntity convert(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
-        return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
+    public ApiEntity convertWithApiFlowsAndPlansAndApiCategories(
+        ExecutionContext executionContext,
+        Api api,
+        PrimaryOwnerEntity primaryOwner
+    ) {
+        return apiConverter.toApiEntity(executionContext, api, primaryOwner, true, true, true);
     }
 
     private Api convert(ExecutionContext executionContext, String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {

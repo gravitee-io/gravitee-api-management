@@ -89,7 +89,7 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   public async isPlanRadioGroupEnabled() {
     const matRadioGroupHarness = await this.getPlansRadioGroup();
     const group = await matRadioGroupHarness.host();
-    return (await group.getAttribute('ng-reflect-disabled')) !== 'true';
+    return !(await group.hasClass('disabled'));
   }
 
   // Custom API Key

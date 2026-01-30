@@ -17,12 +17,14 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.HttpMethod;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -31,13 +33,16 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
+import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +53,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PlanSearchServiceImpl_SearchTest {
 
-    private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
     private static final String USER = "my-user";
 
@@ -67,7 +71,16 @@ public class PlanSearchServiceImpl_SearchTest {
     private ApiSearchService apiSearchService;
 
     @Mock
-    private GenericPlanMapper genericPlanMapper;
+    private FlowService flowService;
+
+    @Mock
+    private io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2;
+
+    @Mock
+    private FlowCrudService flowCrudService;
+
+    @Mock
+    private GenericApiMapper genericApiMapper;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -83,13 +96,9 @@ public class PlanSearchServiceImpl_SearchTest {
             groupService,
             apiSearchService,
             objectMapper,
-            genericPlanMapper
+            new GenericPlanMapper(new PlanMapper(), flowService, new PlanConverter(objectMapper), flowServiceV2, flowCrudService),
+            genericApiMapper
         );
-
-        api = new Api();
-        api.setId(API_ID);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
     }
 
     @Test
@@ -110,20 +119,23 @@ public class PlanSearchServiceImpl_SearchTest {
 
     @Test
     public void should_return_list_if_only_api_id_specified_v4() throws TechnicalException {
-        Plan plan1 = createPlan("plan-1");
-        Plan plan2 = createPlan("plan-2");
-        Plan plan3 = createPlan("plan-3");
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
+        api = new Api();
+        api.setId(API_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
-            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
-            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
-            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
-        );
+        var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+
+        var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -139,73 +151,24 @@ public class PlanSearchServiceImpl_SearchTest {
 
     @Test
     public void should_return_list_with_params_specified_v2() throws TechnicalException {
-        Plan plan1 = createPlan("plan-1");
-        Plan plan2 = createPlan("plan-2");
-        Plan plan3 = createPlan("plan-3");
-        Plan plan4 = createPlan("plan-4");
-        Plan plan5 = createPlan("plan-5");
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3, plan4, plan5));
-
-        var rule = new Rule();
-        rule.setMethods(Set.of(HttpMethod.GET));
-        rule.setDescription("description of a rule");
-        rule.setEnabled(true);
-        var rules = List.of(rule);
-
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
-            fakeV2PlanEntity(
-                "plan-1",
-                1,
-                io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                "{\"nice\": \"config\"}",
-                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                rules
-            )
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
-            fakeV2PlanEntity(
-                "plan-2",
-                2,
-                io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                "{\"nice\": \"config\"}",
-                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                null
-            )
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
-            fakeV2PlanEntity(
-                "plan-3",
-                3,
-                io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                "{\"nice\": \"config\"}",
-                io.gravitee.rest.api.model.PlanStatus.STAGING,
-                null
-            )
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan4)).thenReturn(
-            fakeV2PlanEntity(
-                "plan-4",
-                4,
-                io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
-                "{\"nice\": \"config\"}",
-                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                rules
-            )
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan5)).thenReturn(
-            fakeV2PlanEntity(
-                "plan-5",
-                5,
-                io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
-                "{\"nice\": \"config\"}",
-                io.gravitee.rest.api.model.PlanStatus.STAGING,
-                rules
-            )
-        );
-
-        GenericApiEntity api = new io.gravitee.rest.api.model.api.ApiEntity();
+        api = new Api();
         api.setId(API_ID);
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(api);
+        api.setDefinitionVersion(DefinitionVersion.V2);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+
+        var plan1 = fakePlanRepository("plan-1", 1, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        var plan3 = fakePlanRepository("plan-3", 3, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        var plan4 = fakePlanRepository("plan-4", 4, Plan.PlanSecurityType.OAUTH2, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        var plan5 = fakePlanRepository("plan-5", 5, Plan.PlanSecurityType.OAUTH2, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3, plan4, plan5));
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -226,26 +189,25 @@ public class PlanSearchServiceImpl_SearchTest {
 
     @Test
     public void should_return_empty_list_if_not_admin_and_no_access() throws TechnicalException {
-        Plan plan1 = createPlan("plan-1");
-        Plan plan2 = createPlan("plan-2");
-        Plan plan3 = createPlan("plan-3");
+        api = new Api();
+        api.setId(API_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        when(
+            genericApiMapper.toGenericApi(eq(GraviteeContext.getExecutionContext()), eq(api), eq(null), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+
+        var plan1 = fakePlanRepository("plan-1", 3, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
+        var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan1)).thenReturn(
-            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan2)).thenReturn(
-            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
-        );
-        when(genericPlanMapper.toGenericPlanWithFlow(api, plan3)).thenReturn(
-            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
-        );
-
-        GenericApiEntity api = new io.gravitee.rest.api.model.api.ApiEntity();
-        api.setId(API_ID);
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(api);
-
-        when(groupService.isUserAuthorizedToAccessApiData(eq(api), any(), eq(USER))).thenReturn(false);
+        when(groupService.isUserAuthorizedToAccessApiData(eq(apiEntity), any(), eq(USER))).thenReturn(false);
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -257,15 +219,6 @@ public class PlanSearchServiceImpl_SearchTest {
 
         assertNotNull(plans);
         assertEquals(0, plans.size());
-    }
-
-    private Plan createPlan(String id) {
-        Plan plan = new Plan();
-        plan.setId(id);
-        plan.setApi(API_ID);
-        plan.setType(Plan.PlanType.API);
-        plan.setValidation(Plan.PlanValidationType.AUTO);
-        return plan;
     }
 
     private PlanEntity fakeV4PlanEntity(
@@ -314,6 +267,26 @@ public class PlanSearchServiceImpl_SearchTest {
             paths.put("path", rules);
             plan.setPaths(paths);
         }
+
+        return plan;
+    }
+
+    private io.gravitee.repository.management.model.Plan fakePlanRepository(
+        String id,
+        Integer order,
+        Plan.PlanSecurityType securityType,
+        String securityConfig,
+        Plan.Status status
+    ) {
+        var plan = new io.gravitee.repository.management.model.Plan();
+        plan.setId(id);
+        plan.setApi(API_ID);
+        plan.setType(Plan.PlanType.API);
+        plan.setValidation(Plan.PlanValidationType.AUTO);
+        plan.setOrder(order);
+        plan.setSecurity(securityType);
+        plan.setSecurityDefinition(securityConfig);
+        plan.setStatus(status);
 
         return plan;
     }

@@ -135,7 +135,7 @@ public class ApiMetadataServiceTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
-        when(apiSearchService.findGenericById(any(), any())).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(true))).thenReturn(apiEntity);
         GraviteeContext.setCurrentEnvironment(ENV_ID);
     }
 

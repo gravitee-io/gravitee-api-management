@@ -17,6 +17,10 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiProductCrudServiceInMemory;
@@ -25,6 +29,8 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.util.List;
 import java.util.Set;
@@ -36,12 +42,20 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
+    private final EventCrudService eventCrudService = mock(EventCrudService.class);
+    private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        updateApiProductUseCase = new UpdateApiProductUseCase(apiProductCrudService, auditService, apiProductQueryService);
+        updateApiProductUseCase = new UpdateApiProductUseCase(
+            apiProductCrudService,
+            auditService,
+            apiProductQueryService,
+            eventCrudService,
+            eventLatestCrudService
+        );
     }
 
     @Test
@@ -69,6 +83,10 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(output.apiProduct().getDescription()).isEqualTo("new desc"),
             () -> assertThat(output.apiProduct().getApiIds()).containsExactly("api-2")
         );
+
+        // Verify DEPLOY event was published
+        verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
+        verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq("api-product-id"), any());
     }
 
     @Test

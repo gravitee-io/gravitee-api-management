@@ -72,7 +72,7 @@ describe('TreeComponent', () => {
     expect(topLevelItems.length).toBe(4);
 
     const topLevelLabels = await Promise.all(topLevelItems?.map(node => node.getText()) || []);
-    expect(topLevelLabels).toEqual(['Page 1', 'Folder 1', ' External Link 1 ', 'Folder 2']);
+    expect(topLevelLabels).toEqual(['Page 1', 'Folder 1', 'open_in_new External Link 1', 'Folder 2']);
 
     expect(await topLevelItems[0].getChildren()).toHaveLength(0);
     expect(await topLevelItems[1].getChildren()).toHaveLength(0);
@@ -82,7 +82,7 @@ describe('TreeComponent', () => {
     expect(nestedItems).toHaveLength(3);
 
     const nestedLabels = await Promise.all(nestedItems?.map(node => node.getText()) || []);
-    expect(nestedLabels).toEqual(['Page 2', 'Folder 3', ' External Link 2 ']);
+    expect(nestedLabels).toEqual(['Page 2', 'Folder 3', 'open_in_new External Link 2']);
   });
 
   it('should scroll into view on page load', () => {

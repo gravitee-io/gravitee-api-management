@@ -15,13 +15,21 @@
  */
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
+import io.gravitee.gateway.reactive.core.HttpTlsSession;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
+import javax.net.ssl.SSLSession;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -79,5 +87,69 @@ class RequestAdapterTest {
         }
 
         verify(request, times(10)).pause();
+    }
+
+    @Nested
+    @DisplayName("SSL Session tests")
+    class SslSessionTests {
+
+        @Mock
+        private SSLSession sslSession;
+
+        @Test
+        @DisplayName("Should return null sslSession for HTTP request (non-SSL connection)")
+        void shouldReturnNullSSLSessionForHttpRequest() {
+            // HttpTlsSession with null delegate represents HTTP request
+            TlsSession httpTlsSession = new HttpTlsSession(null, HttpHeaders.create(), null);
+            when(request.tlsSession()).thenReturn(httpTlsSession);
+
+            SSLSession result = cut.sslSession();
+
+            assertThat(result).isNull();
+            verify(request).tlsSession();
+        }
+
+        @Test
+        @DisplayName("Should return TlsSession for HTTPS request (SSL connection)")
+        void shouldReturnTlsSessionForHttpsRequest() {
+            // Given: HTTPS request with TlsSession that is an SSL connection
+            TlsSession httpsTlsSession = new HttpTlsSession(sslSession, HttpHeaders.create(), null);
+            when(request.tlsSession()).thenReturn(httpsTlsSession);
+
+            SSLSession result = cut.sslSession();
+
+            assertThat(result).isNotNull();
+            assertThat(result).isSameAs(httpsTlsSession);
+            // Verify it's actually a TlsSession and is an SSL connection
+            assertThat(result).isInstanceOf(TlsSession.class);
+            assertThat(((TlsSession) result).isSSLConnection()).isTrue();
+            verify(request).tlsSession();
+        }
+
+        @Test
+        @DisplayName("Should return null when tlsSession() returns null")
+        void shouldReturnNullWhenTlsSessionIsNull() {
+            // Given: Request with no TlsSession
+            when(request.tlsSession()).thenReturn(null);
+
+            SSLSession result = cut.sslSession();
+
+            assertThat(result).isNull();
+            verify(request).tlsSession();
+        }
+
+        @Test
+        @DisplayName("Should return null when TlsSession exists but isSSLConnection() returns false")
+        void shouldReturnNullWhenTlsSessionIsNotSslConnection() {
+            // Given: TlsSession that exists but isSSLConnection() returns false
+            // This simulates an edge case where TlsSession is not null but not an SSL connection
+            TlsSession nonSslTlsSession = new HttpTlsSession(null, HttpHeaders.create(), null);
+            when(request.tlsSession()).thenReturn(nonSslTlsSession);
+            assertThat(nonSslTlsSession.isSSLConnection()).isFalse();
+
+            SSLSession result = cut.sslSession();
+            assertThat(result).isNull();
+            verify(request).tlsSession();
+        }
     }
 }

@@ -104,9 +104,9 @@ describe('GroupsComponent', () => {
     });
 
     it('should display message when there are no groups', async () => {
-      const tableRows = await getTableRows();
-
-      expect(await tableRows[0].host().then((host) => host.text())).toContain('No groups available to display.');
+      const table = await harnessLoader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('No groups available to display.');
     });
   });
 

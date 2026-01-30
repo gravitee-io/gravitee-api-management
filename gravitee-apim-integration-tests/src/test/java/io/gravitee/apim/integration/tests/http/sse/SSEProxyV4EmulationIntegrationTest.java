@@ -15,36 +15,9 @@
  */
 package io.gravitee.apim.integration.tests.http.sse;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
-
-import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
-import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
-import io.gravitee.apim.plugin.reactor.ReactorPlugin;
-import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
-import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
-import io.micrometer.core.instrument.search.MeterNotFoundException;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.micrometer.backends.BackendRegistries;
 import io.vertx.rxjava3.core.http.HttpClient;
-import io.vertx.rxjava3.core.http.HttpClientRequest;
-import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 /**

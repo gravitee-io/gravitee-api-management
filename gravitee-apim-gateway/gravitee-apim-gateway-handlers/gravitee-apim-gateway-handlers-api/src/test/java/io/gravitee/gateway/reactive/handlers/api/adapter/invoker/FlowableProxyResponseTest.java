@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.lenient;
@@ -41,6 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -79,6 +81,7 @@ class FlowableProxyResponseTest {
     public void init() {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         lenient().when(response.ended()).thenReturn(false);
         lenient().when(proxyResponse.bodyHandler(bodyHandlerCaptor.capture())).thenReturn(proxyResponse);
         lenient().when(proxyResponse.endHandler(endHandlerCaptor.capture())).thenReturn(proxyResponse);
@@ -101,6 +104,7 @@ class FlowableProxyResponseTest {
     @Test
     public void shouldErrorImmediatelyWhenNoProxyResponse() {
         cut = new FlowableProxyResponse();
+        cut.initialize(ctx);
 
         final TestSubscriber<Buffer> obs = cut.test();
 

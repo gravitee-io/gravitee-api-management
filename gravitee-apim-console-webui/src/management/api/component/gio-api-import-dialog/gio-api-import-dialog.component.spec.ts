@@ -122,10 +122,11 @@ describe('GioApiImportDialogComponent', () => {
       );
       await importPathMappingInput.check();
 
+      const policyCheckboxes = await loader.getAllHarnesses(MatCheckboxHarness.with({ ancestor: '[formgroupname="importPolicies"]' }));
+
       await parallel(() =>
-        policies.map(async (policy) => {
-          const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
-          expect(await policyCheckbox.isDisabled()).toBeTruthy();
+        policyCheckboxes.map(async (policy) => {
+          expect(await policy.isDisabled()).toBeTruthy();
         }),
       );
 
@@ -136,14 +137,12 @@ describe('GioApiImportDialogComponent', () => {
 
       // Can select policies if "Create flows on path is not selected"
       await parallel(() =>
-        policies.map(async (policy) => {
-          const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
-
-          expect(await policyCheckbox.isDisabled()).toBeFalsy();
+        policyCheckboxes.map(async (policy) => {
+          expect(await policy.isDisabled()).toBeFalsy();
         }),
       );
 
-      const jsonValidationInput = await loader.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="json-validation"]' }));
+      const jsonValidationInput = policyCheckboxes[0];
       await jsonValidationInput.check();
 
       const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));

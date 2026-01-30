@@ -40,7 +40,7 @@
     <tr
       *ngFor="let control of listenerFormArray.controls; index as controlIndex"
       [formGroupName]="controlIndex"
-      class="gio-form-listeners__table__row"
+      class="gio-form-listeners__table__row row-{{ controlIndex }}"
     >
       <td class="gio-form-listeners__table__row__td">
         <mat-form-field class="gio-form-listeners__table__field">

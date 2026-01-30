@@ -546,35 +546,32 @@ public class ApiStateServiceImpl implements ApiStateService {
                     ) {
                         io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
 
-                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(
-                            executionContext,
-                            payloadEntity,
-                            null,
-                            false
-                        );
+                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(payloadEntity, null, false);
 
                         removePathsRuleDescriptionFromApiV1(deployedApiEntity);
                         removePathsRuleDescriptionFromApiV1(apiEntity);
 
+                        removePlans(apiEntity, deployedApiEntity);
                         sync = synchronizationService.checkSynchronization(
                             io.gravitee.rest.api.model.api.ApiEntity.class,
                             deployedApiEntity,
                             apiEntity
                         );
                     } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
-                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false);
-
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(payloadEntity, null);
+                        removePlans(httpApiEntity, deployedApiEntity);
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
                     } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
-                        NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(executionContext, payloadEntity, null, false);
+                        NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(payloadEntity, null);
 
+                        removePlans(nativeApiEntity, deployedApiEntity);
                         sync = synchronizationService.checkSynchronization(NativeApiEntity.class, deployedApiEntity, nativeApiEntity);
                     }
 
                     // 2 - If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
                     if (sync) {
-                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity.getId(), false);
+                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity, false);
                         sync = plans
                             .stream()
                             .noneMatch(
@@ -615,5 +612,18 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     private DefinitionVersion getOrV2(Supplier<DefinitionVersion> getDefinitionVersion) {
         return getDefinitionVersion.get() != null ? getDefinitionVersion.get() : DefinitionVersion.V2;
+    }
+
+    private static void removePlans(GenericApiEntity api, GenericApiEntity deployedApi) {
+        if (api instanceof ApiEntity apiEntity) {
+            apiEntity.setPlans(null);
+            ((ApiEntity) deployedApi).setPlans(null);
+        } else if (api instanceof NativeApiEntity nativeApiEntity) {
+            (nativeApiEntity).setPlans(null);
+            ((NativeApiEntity) deployedApi).setPlans(null);
+        } else if (api instanceof io.gravitee.rest.api.model.api.ApiEntity apiV2Entity) {
+            (apiV2Entity).setPlans(null);
+            ((io.gravitee.rest.api.model.api.ApiEntity) deployedApi).setPlans(null);
+        }
     }
 }

@@ -37,6 +37,7 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -71,6 +72,9 @@ class DebugCompletionProcessorTest {
     @Mock
     private MutableResponse mockResponse;
 
+    @Mock
+    private Node node;
+
     private HttpHeaders spyResponseHeaders;
     private DebugApiV2 debugApi;
     private CustomComponentProvider componentProvider;
@@ -94,6 +98,7 @@ class DebugCompletionProcessorTest {
         this.debugApi = new DebugApiV2("event-id", debugApi);
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, this.debugApi);
+        componentProvider.add(Node.class, this.node);
         debugCtx = new DebugExecutionContext(mockRequest, mockResponse);
         debugCtx.componentProvider(componentProvider);
 

@@ -61,7 +61,7 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
     }
 
     private Completable executeNext(final HttpExecutionContextInternal ctx, final Processor processor, final ExecutionPhase phase) {
-        log.debug("Executing processor {} in processor chain {}", processor.getId(), id);
+        ctx.withLogger(log).debug("Executing processor {} in processor chain {}", processor.getId(), id);
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }
 

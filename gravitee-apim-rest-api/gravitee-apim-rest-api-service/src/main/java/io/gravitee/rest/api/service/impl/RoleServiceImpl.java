@@ -31,6 +31,8 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DE
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ENVIRONMENT_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ORGANIZATION_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_APPLICATION_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_API_PUBLISHER;
@@ -50,6 +52,7 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
@@ -83,7 +86,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.ArrayUtils;
@@ -111,6 +116,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map.entry("<APPLICATION> OWNER", ROLE_APPLICATION_OWNER),
         Map.entry("<INTEGRATION> OWNER", ROLE_INTEGRATION_OWNER),
         Map.entry("<INTEGRATION> USER", ROLE_INTEGRATION_USER),
+        Map.entry("<API_PRODUCT> OWNER", ROLE_API_PRODUCT_OWNER),
+        Map.entry("<API_PRODUCT> USER", ROLE_API_PRODUCT_USER),
         Map.entry("<CLUSTER> USER", CLUSTER_ROLE_USER),
         Map.entry("<CLUSTER> OWNER", CLUSTER_ROLE_OWNER)
     );
@@ -147,6 +154,36 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
             }
         });
+    }
+
+    @Override
+    public Map<String, RoleEntity> findByIds(Set<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Map.of();
+        }
+
+        log.debug("Find Roles by ids: {}", roleIds);
+
+        Map<String, RoleEntity> cache = GraviteeContext.getCurrentRoles();
+
+        // Filter out IDs already in cache
+        Set<String> missingRoleIds = roleIds
+            .stream()
+            .filter(id -> !cache.containsKey(id))
+            .collect(Collectors.toSet());
+
+        // Fetch missing roles and add to cache
+        if (!missingRoleIds.isEmpty()) {
+            try {
+                roleRepository.findAllByIdIn(missingRoleIds).forEach(role -> cache.put(role.getId(), convert(role)));
+            } catch (TechnicalException ex) {
+                log.error("An error occurs while trying to find roles by ids: {}", missingRoleIds, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find roles by ids", ex);
+            }
+        }
+
+        // Return requested roles from cache
+        return roleIds.stream().filter(cache::containsKey).collect(Collectors.toMap(id -> id, cache::get));
     }
 
     @Override
@@ -241,6 +278,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             updatedRole.setReferenceId(role.getReferenceId());
             updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
+            // Invalidate the cache for all members with this role
+            membershipService.invalidateCacheForRole(roleEntity.getId());
             auditService.createOrganizationAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
@@ -558,6 +597,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 IntegrationPermission.values(),
                 organizationId
             );
+            //API_PRODUCT - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.API_PRODUCT,
+                ApiProductPermission.values(),
+                organizationId
+            );
             //GROUP - ADMINISTRATOR
             createOrUpdateSystemRole(executionContext, SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
             // CLUSTER - PRIMARY_OWNER
@@ -614,6 +661,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 systemRole.setId(existingRole.get().getId());
                 systemRole.setUpdatedAt(new Date());
                 roleRepository.update(systemRole);
+                // Invalidate the cache for all members with this system role
+                membershipService.invalidateCacheForRole(systemRole.getId());
                 auditService.createOrganizationAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()

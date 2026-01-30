@@ -113,7 +113,7 @@ public class PlatformEventsResource extends AbstractResource {
                     // Retrieve additional data
                     String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
                     try {
-                        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+                        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
                         properties1.put("api_name", genericApiEntity.getName());
                         properties1.put("api_version", genericApiEntity.getApiVersion());
                     } catch (ApiNotFoundException anfe) {

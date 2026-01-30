@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -36,6 +37,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
     private final GenericPlanMapper genericPlanMapper;
+    private final GenericApiMapper genericApiMapper;
 
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
@@ -69,7 +72,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         @Lazy final GroupService groupService,
         @Lazy final ApiSearchService apiSearchService,
         final ObjectMapper objectMapper,
-        final GenericPlanMapper genericPlanMapper
+        final GenericPlanMapper genericPlanMapper,
+        GenericApiMapper genericApiMapper
     ) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
@@ -77,6 +81,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
         this.genericPlanMapper = genericPlanMapper;
+        this.genericApiMapper = genericApiMapper;
     }
 
     @Override
@@ -108,20 +113,40 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             Optional<Api> apiOptional = apiRepository.findById(apiId);
             if (apiOptional.isPresent()) {
                 final Api api = apiOptional.get();
-                return planRepository
-                    .findByApi(apiId)
-                    .stream()
-                    .map(plan ->
-                        withFlow
-                            ? genericPlanMapper.toGenericPlanWithFlow(api, plan)
-                            : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
-                    )
-                    .collect(Collectors.toSet());
+                final var plans = planRepository.findByApi(apiId);
+                if (plans == null || plans.isEmpty()) {
+                    return Set.of();
+                }
+
+                return withFlow
+                    ? genericPlanMapper.toGenericPlansWithFlow(api, plans)
+                    : genericPlanMapper.toGenericPlansWithoutFlow(api, plans);
             } else {
                 return Set.of();
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by api: %s", apiId), ex);
+        }
+    }
+
+    @Override
+    public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final GenericApiEntity genericApi, boolean withFlow) {
+        try {
+            log.debug("Find plan by api : {}", genericApi.getId());
+            return planRepository
+                .findByApi(genericApi.getId())
+                .stream()
+                .map(plan ->
+                    withFlow
+                        ? genericPlanMapper.toGenericPlanWithFlow(genericApi, plan)
+                        : genericPlanMapper.toGenericPlanWithoutFlow(genericApi, plan)
+                )
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find a plan by api: %s", genericApi.getId()),
+                ex
+            );
         }
     }
 
@@ -137,33 +162,46 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             return emptyList();
         }
 
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
+        try {
+            Optional<Api> apiOptional = apiRepository.findById(query.getApiId());
+            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(query.getApiId()));
+            final GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false, false);
 
-        return findByApi(executionContext, query.getApiId(), withFlow)
-            .stream()
-            .filter(p -> {
-                boolean filtered = true;
-                if (query.getName() != null) {
-                    filtered = query.getName().equals(p.getName());
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
-                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
-                        return false;
+            return planRepository
+                .findByApi(query.getApiId())
+                .stream()
+                .map(plan ->
+                    withFlow ? genericPlanMapper.toGenericPlanWithFlow(api, plan) : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
+                )
+                .filter(p -> {
+                    boolean filtered = true;
+                    if (query.getName() != null) {
+                        filtered = query.getName().equals(p.getName());
                     }
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = query.getSecurityType().contains(planSecurityType);
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
-                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
-                    filtered = query.getStatus().contains(planStatus);
-                }
-                if (filtered && query.getMode() != null) {
-                    filtered = query.getMode().equals(p.getPlanMode());
-                }
-                return filtered;
-            })
-            .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
-            .collect(Collectors.toList());
+                    if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
+                        if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                            return false;
+                        }
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                        filtered = query.getSecurityType().contains(planSecurityType);
+                    }
+                    if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
+                        PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                        filtered = query.getStatus().contains(planStatus);
+                    }
+                    if (filtered && query.getMode() != null) {
+                        filtered = query.getMode().equals(p.getPlanMode());
+                    }
+                    return filtered;
+                })
+                .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying search plans by api: %s", query.getApiId()),
+                ex
+            );
+        }
     }
 
     @Override

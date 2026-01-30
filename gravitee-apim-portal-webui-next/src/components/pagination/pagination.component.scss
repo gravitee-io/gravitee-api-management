@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 :host {
-  --mdc-filled-button-container-shape: 50%;
-  --mat-filled-button-horizontal-padding: 18px;
-  --mat-text-button-horizontal-padding: 18px;
+  --mat-button-filled-container-shape: 50%;
+  --mat-button-filled-horizontal-padding: 18px;
+  --mat-button-text-horizontal-padding: 18px;
 
   display: flex;
   align-items: center;

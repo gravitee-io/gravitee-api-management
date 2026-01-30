@@ -16,13 +16,17 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
 import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
 import { PlatformLogsComponent } from './logs/platform-logs.component';
 import { PlatformLogComponent } from './logs/platform-log.component';
 import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
+import { EnvLogsV4Component } from './env-logs-v4/env-logs-v4.component';
+import { EnvLogsTableComponent } from './env-logs-v4/components/env-logs-table/env-logs-table.component';
 
 const routes: Routes = [
   {
@@ -57,6 +61,16 @@ const routes: Routes = [
         },
       },
       {
+        path: 'logs-v4',
+        component: EnvLogsV4Component,
+        data: {
+          docs: {
+            page: 'management-environment-logs-v4',
+          },
+        },
+      },
+
+      {
         path: 'dashboard-v4',
         component: AnalyticsViewerComponent,
       },
@@ -72,7 +86,16 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
-  imports: [RouterModule.forChild(routes), MatTabsModule, GioIconsModule, MatTabsModule],
+  imports: [
+    RouterModule.forChild(routes),
+    MatTabsModule,
+    MatCardModule,
+    MatIconModule,
+    GioIconsModule,
+    GioBannerModule,
+    EnvLogsTableComponent,
+    EnvLogsV4Component,
+  ],
   exports: [RouterModule],
 })
 export class EnvAnalyticsModule {}

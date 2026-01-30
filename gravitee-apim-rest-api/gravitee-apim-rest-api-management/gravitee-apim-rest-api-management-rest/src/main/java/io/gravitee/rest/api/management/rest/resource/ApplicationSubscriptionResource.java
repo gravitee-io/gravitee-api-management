@@ -331,7 +331,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     }
 
     private Subscription.Api fetchApi(ExecutionContext executionContext, String apiId) {
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
         return new Subscription.Api(
             genericApiEntity.getId(),
             genericApiEntity.getName(),

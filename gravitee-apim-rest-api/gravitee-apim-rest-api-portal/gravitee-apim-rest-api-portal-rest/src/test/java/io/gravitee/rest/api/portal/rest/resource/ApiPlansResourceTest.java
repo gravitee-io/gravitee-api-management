@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -60,7 +61,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setVisibility(Visibility.PUBLIC);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -80,7 +81,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API, true)).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), isA(GenericApiEntity.class), eq(true))).thenReturn(
             Set.of(plan1, plan2, planWrongStatus)
         );
 
@@ -165,7 +166,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
 
         final Response response = target(API).path("plans").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

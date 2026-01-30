@@ -60,6 +60,8 @@ export class DebugModeResponseComponent implements OnChanges {
     this.inspectorVM = undefined;
 
     if (this.debugResponse && !this.debugResponse.isLoading) {
+      const debugResponseMethod: string | undefined = this.debugResponse?.request?.method?.toLowerCase();
+
       this.responseDisplayableVM = {
         statusCode: this.debugResponse.response?.statusCode,
         statusCodeDescription: this.debugResponse.response?.statusCode
@@ -68,7 +70,7 @@ export class DebugModeResponseComponent implements OnChanges {
         successfulRequest: 200 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 300,
         errorRequest: 400 <= this.debugResponse.response?.statusCode && this.debugResponse.response?.statusCode < 600,
         timelineSteps: this.toTimelineSteps(this.debugResponse),
-        methodBadgeCSSClass: `gio-method-badge-${this.debugResponse?.request?.method?.toLowerCase()}` ?? '',
+        methodBadgeCSSClass: debugResponseMethod ? `gio-method-badge-${debugResponseMethod}` : '',
       };
     }
   }

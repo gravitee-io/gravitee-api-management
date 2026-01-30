@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
@@ -158,15 +159,16 @@ class EntrypointSelectionIntegrationTest extends AbstractGatewayTest {
 
     @Test
     void should_select_websocket_entrypoint_on_websocket_request(HttpClient client) {
-        client
+        var obs = client
             .rxWebSocket("/test")
             .flatMapPublisher(response -> {
                 assertThat(response.headers().contains("sec-websocket-accept")).isTrue();
                 return response.toFlowable();
             })
-            .test()
-            .awaitCount(15)
-            .assertNoErrors()
-            .cancel();
+            .test();
+        await()
+            .atMost(30, TimeUnit.SECONDS)
+            .until(() -> obs.values().size() >= 15);
+        obs.assertNoErrors().cancel();
     }
 }

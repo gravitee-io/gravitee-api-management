@@ -17,7 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -112,7 +112,12 @@ describe('ApiHistoryV4Component', () => {
       );
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
-      expect(await table.getCellTextByIndex().then((value) => value[0])).toEqual(['There is no published API (yet).']);
+      const rows = await table.getRows();
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+      expect(rowCells).toHaveLength(0);
+
+      const tableElement = await table.host();
+      expect(await tableElement.text()).toContain('There is no published API (yet).');
     });
 
     describe('pagination', () => {
