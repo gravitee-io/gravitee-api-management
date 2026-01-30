@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -66,6 +67,9 @@ class SubscriptionCacheServiceTest {
     @Mock
     private ApiManager apiManager;
 
+    @Mock
+    private ApiProductRegistry apiProductRegistry;
+
     private SubscriptionCacheService subscriptionService;
     private Map<String, Subscription> cacheByApiClientId;
     private Map<String, Subscription> cacheByApiClientCertificate;
@@ -74,7 +78,8 @@ class SubscriptionCacheServiceTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        subscriptionService = new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
+        subscriptionService =
+            new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
         cacheByApiClientId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
         cacheByApiClientCertificate = (Map<String, Subscription>) ReflectionTestUtils.getField(
             subscriptionService,
