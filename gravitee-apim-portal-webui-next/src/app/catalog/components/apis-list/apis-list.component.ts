@@ -16,7 +16,6 @@
 import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, input, InputSignal, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -55,7 +54,21 @@ interface ApiPaginatorVM {
 @Component({
   selector: 'app-apis-list',
   standalone: true,
-  imports: [AsyncPipe, MatCardModule, ApiCardComponent, LoaderComponent, SearchBarComponent, NgClass, PaginationComponent, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule, MatChipsModule, RouterModule],
+  imports: [
+    AsyncPipe,
+    ApiCardComponent,
+    LoaderComponent,
+    SearchBarComponent,
+    NgClass,
+    PaginationComponent,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatChipsModule,
+    RouterModule,
+  ],
   templateUrl: './apis-list.component.html',
   styleUrl: './apis-list.component.scss',
 })
@@ -117,9 +130,7 @@ export class ApisListComponent {
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
       switchMap(currentPage =>
-        this.pageSize$.pipe(
-          map(pageSize => ({ currentPage, pageSize, category: this.categoryId(), query: this.query() }))
-        )
+        this.pageSize$.pipe(map(pageSize => ({ currentPage, pageSize, category: this.categoryId(), query: this.query() }))),
       ),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       tap(_ => (this.loadingPage = true)),
