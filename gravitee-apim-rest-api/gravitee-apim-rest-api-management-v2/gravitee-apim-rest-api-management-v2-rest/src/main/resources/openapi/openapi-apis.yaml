@@ -8868,6 +8868,14 @@ components:
                     type: string
                     description: The id of the gateway.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  gatewayHostname:
+                    type: string
+                    description: The hostname of the gateway instance.
+                    example: gateway-1.example.com
+                  gatewayIp:
+                    type: string
+                    description: The IP address of the gateway instance.
+                    example: 192.168.1.100
                   uri:
                     type: string
                     description: URI of the request.

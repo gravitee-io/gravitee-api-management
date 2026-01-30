@@ -35,6 +35,8 @@ public class ApiMetricsDetail {
     BaseApplicationEntity application;
     GenericPlanEntity plan;
     String gateway;
+    String gatewayHostname;
+    String gatewayIp;
     String uri;
     int status;
     long requestContentLength;

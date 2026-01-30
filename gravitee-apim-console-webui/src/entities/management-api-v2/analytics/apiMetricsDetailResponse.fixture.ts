@@ -39,6 +39,8 @@ export const fakeApiMetricResponse = (modifier?: Partial<ApiMetricsDetailRespons
       apiKeyMode: 'UNSPECIFIED',
     },
     gateway: 'b504bb7b-8b6e-426f-84bb-7b8b6e626f3f',
+    gatewayHostname: 'hostname.example.com',
+    gatewayIp: 'ip.example',
     uri: '/v4/echo',
     status: 202,
     requestContentLength: 0,
