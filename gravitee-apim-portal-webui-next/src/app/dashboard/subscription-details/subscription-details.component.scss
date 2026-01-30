@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../scss/theme';
+@use '../../../scss/helper';
+
 :host {
   display: flex;
   flex-direction: column;
-  padding: 30px 10px 0;
+  padding: 25px 0px 0;
   gap: 24px;
   max-width: 1200px; // Optional: constrain width for large screens
 }
@@ -26,11 +29,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
 
     h1 {
-      margin: 0;
-      font-weight: 500;
+      margin: 0 0 5px;
     }
   }
 
@@ -51,47 +52,15 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      color: #465055;
-      font-weight: 500;
+      color: #{theme.$dl-label-color};
       white-space: nowrap;
-
-      .material-icons {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-        color: #465055;
-      }
     }
 
     dd {
       margin: 0;
       display: flex;
       align-items: center;
-      color: #000;
-      font-weight: 400;
-
-      &.id-value {
-        font-family: monospace; // IDs often look better in monospace
-      }
-
-      .link-primary {
-        color: #3f51b5;
-        text-decoration: none;
-        &:hover { text-decoration: underline; }
-      }
-
-      button {
-        height: 24px;
-        width: 25px;
-        padding: 0;
-      }
-
-      .copy-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        color: #666;
-      }
+      gap: 8px;
     }
   }
 }

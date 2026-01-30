@@ -16,7 +16,7 @@
 
 -->
 <header class="subscription-details__header">
-  <h1 class="m3-headline-medium" i18n="@@subscriptionDetailsHeader">Subscription details</h1>
+  <h1 class="m3-headline-small-new" i18n="@@subscriptionDetailsHeader">Subscription details</h1>
 </header>
 <section class="subscription-details__info">
   <dl>
@@ -33,7 +33,7 @@
         <span i18n="@@subscriptionDetailsSubscribedApi">Subscribed API</span>
       </dt>
       <dd [appLoadingValue]="api.hasValue()">
-        <a class="link-primary" [routerLink]="['/catalog/api/' + api.value()?.id]">{{ api.value()?.name }}</a>
+        <a class="internal-link" [routerLink]="['/catalog/api/' + api.value()?.id]">{{ api.value()?.name }}</a>
       </dd>
     </div>
     <div class="subscription-details__info__row">
@@ -51,7 +51,7 @@
         <span i18n="@@subscriptionDetailsApplication">Application</span>
       </dt>
       <dd [appLoadingValue]="application.hasValue()">
-        <a class="link-primary" [routerLink]="['/applications/' + application.value()?.id]">{{ application.value()?.name }}</a>
+        <a class="internal-link" [routerLink]="['/applications/' + application.value()?.id]">{{ application.value()?.name }}</a>
       </dd>
     </div>
     <div class="subscription-details__info__row">
@@ -66,11 +66,17 @@
         <span class="material-icons">tag</span>
         <span i18n="@@subscriptionDetailsId">ID</span>
       </dt>
-      <dd class="id-value" [appLoadingValue]="subscription.hasValue()">
+      <dd class="m3-code-text" [appLoadingValue]="subscription.hasValue()">
         {{ subscription.value()?.id }}
-        <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">
-          <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>
-        </button>
+<!--        TODO create a new component based on signals -->
+        <app-copy-code-icon
+          matSuffix
+          (click)="$event.stopPropagation()"
+          [contentToCopy]="subscriptionId()"
+          [label]="subscriptionId()" />
+<!--        <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">-->
+<!--          <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>-->
+<!--        </button>-->
       </dd>
     </div>
   </dl>

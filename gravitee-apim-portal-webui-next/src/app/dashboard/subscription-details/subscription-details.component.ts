@@ -48,10 +48,13 @@ import {PlanService} from "../../../services/plan.service";
 import {MatDialog} from "@angular/material/dialog";
 import {UserApiPermissions} from "../../../entities/permission/permission";
 import {rxResource, toObservable, toSignal} from "@angular/core/rxjs-interop";
+import {
+  CopyCodeIconComponent
+} from "../../../components/copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component";
 
 @Component({
   selector: 'app-subscription-details',
-  imports: [MatButton, RouterModule, LoadingValueComponent],
+  imports: [MatButton, RouterModule, LoadingValueComponent, CopyCodeIconComponent],
   templateUrl: './subscription-details.component.html',
   styleUrl: './subscription-details.component.scss',
   standalone: true,
@@ -127,12 +130,6 @@ export default class SubscriptionDetailsComponent {
         return { name: planMetadata?.name };
       }),
     );
-  }
-
-  copyToClipboard() {
-    navigator.clipboard.writeText(this.subscriptionId());
-    alert('copied!')
-    // Optional: Show a snackbar "Copied!"
   }
 
   /**

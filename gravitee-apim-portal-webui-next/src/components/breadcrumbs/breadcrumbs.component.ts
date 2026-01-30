@@ -27,11 +27,11 @@ export interface Breadcrumb {
   template: `
     @for (breadcrumb of breadcrumbs(); track breadcrumb.id; let i = $index) {
       @if (i > 0) {
-        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-separator m3-label-medium-new">/</span>
       } @if (breadcrumb.url) {
-        <a class="internal-link" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
+        <a class="internal-link m3-label-medium-new" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
       } @else {
-        <span class="breadcrumb-item">{{ breadcrumb.label }}</span>
+        <span class="breadcrumb-item m3-label-medium-new">{{ breadcrumb.label }}</span>
       }
     }
   `,
