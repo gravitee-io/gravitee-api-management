@@ -16,7 +16,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 
 import { Breadcrumb } from '../../components/breadcrumbs/breadcrumbs.component';
@@ -37,18 +37,34 @@ const MENU_ITEMS: MenuItem[] = [{ path: 'subscriptions', title: $localize`:@@sub
 })
 export class DashboardComponent {
   router = inject(Router);
+  activatedRoute = inject(ActivatedRoute);
   menuItems = signal<MenuItem[]>(MENU_ITEMS);
 
   breadcrumbs = toSignal<Breadcrumb[]>(
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
-      startWith(null),
       map(() => {
         const segments = this.router.url.split('/').filter(Boolean);
-        const segment = segments[segments.length - 1];
-        console.log('segment', segment);
-        const label = MENU_ITEMS.find(mi => mi.path === segment)?.title ?? '';
-        return [{ id: segment, label }];
+        const relevantSegments = segments.filter(s => s !== 'dashboard');
+        const breadcrumbs: Breadcrumb[] = [];
+        relevantSegments.forEach((segment, index) => {
+          const isLast = index === relevantSegments.length - 1;
+          const menuItem = MENU_ITEMS.find(mi => mi.path === segment);
+          let label = '';
+          let url;
+          if (menuItem) {
+            label = menuItem.title;
+            if (!isLast) {
+              url = `/dashboard/${menuItem.path}`;
+            }
+          } else if (index > 0 && relevantSegments[index - 1] === 'subscriptions') {
+            label = $localize`:@@subscriptionTitle:Subscription ${segment}`;
+          } else {
+            label = segment; // Fallback
+          }
+          breadcrumbs.push({id: segment, label, url});
+        });
+        return breadcrumbs;
       }),
     ),
   );
