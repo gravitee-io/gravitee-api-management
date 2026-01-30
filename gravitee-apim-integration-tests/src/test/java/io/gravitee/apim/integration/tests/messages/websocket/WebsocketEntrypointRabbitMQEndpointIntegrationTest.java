@@ -27,7 +27,7 @@ import io.gravitee.apim.integration.tests.messages.AbstractRabbitMQEndpointInteg
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,9 +43,9 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-subscriber-none.json" })
-    void should_receive_all_messages_with_none_qos(HttpClient httpClient) {
-        var obs = httpClient
-            .rxWebSocket("/test-none")
+    void should_receive_all_messages_with_none_qos(WebSocketClient webSocketClient) {
+        var obs = webSocketClient
+            .rxConnect("/test-none")
             .flatMapPublisher(websocket ->
                 websocket.toFlowable().mergeWith(publishToRabbitMQ(exchange, routingKey, List.of("message"), 500).toFlowable())
             )
@@ -63,9 +63,9 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-subscriber.json" })
-    void should_receive_all_messages_with_auto_qos(HttpClient httpClient) {
-        var obs = httpClient
-            .rxWebSocket("/test-auto")
+    void should_receive_all_messages_with_auto_qos(WebSocketClient webSocketClient) {
+        var obs = webSocketClient
+            .rxConnect("/test-auto")
             .flatMapPublisher(websocket ->
                 websocket.toFlowable().mergeWith(publishToRabbitMQ(exchange, routingKey, List.of("message"), 1000).toFlowable())
             )
@@ -83,11 +83,11 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-publisher.json" })
-    void should_publish_messages(HttpClient httpClient) {
+    void should_publish_messages(WebSocketClient webSocketClient) {
         TestSubscriber<Delivery> testSubscriber = subscribeToRabbitMQ(exchange, routingKey).test();
 
-        httpClient
-            .rxWebSocket("/test")
+        webSocketClient
+            .rxConnect("/test")
             .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message pub"))
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
@@ -105,9 +105,9 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
 
     @Test
     @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-rabbitmq-endpoint-publisher-subscriber.json" })
-    void should_received_published_messages(HttpClient httpClient) {
-        var obs = httpClient
-            .rxWebSocket("/test")
+    void should_received_published_messages(WebSocketClient webSocketClient) {
+        var obs = webSocketClient
+            .rxConnect("/test")
             .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
             .test();
         await()

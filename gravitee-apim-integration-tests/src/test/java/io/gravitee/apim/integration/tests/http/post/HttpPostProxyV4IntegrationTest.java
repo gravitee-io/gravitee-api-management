@@ -20,6 +20,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,10 +39,11 @@ class HttpPostProxyV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
-            super.configureHttpClient(options, gatewayConfig, parameterContext);
+            super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_2);
             options.setHttp2ClearTextUpgrade(false);
         }
@@ -66,10 +68,11 @@ class HttpPostProxyV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
-            super.configureHttpClient(options, gatewayConfig, parameterContext);
+            super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_2);
             options.setHttp2ClearTextUpgrade(true);
         }
@@ -94,10 +97,11 @@ class HttpPostProxyV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
-            super.configureHttpClient(options, gatewayConfig, parameterContext);
+            super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_1_1);
         }
 

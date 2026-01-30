@@ -40,8 +40,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.WebSocket;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -77,11 +77,11 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     @ParameterizedTest
     @MethodSource("qosParameters")
     @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_single(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
+    void should_receive_messages_single(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient, readyObs);
+        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), webSocketClient, readyObs);
 
         final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
@@ -101,12 +101,12 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
     @Test
     @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json" })
-    void should_close_with_try_again_later_code_when_connection_is_drained(HttpClient httpClient) {
+    void should_close_with_try_again_later_code_when_connection_is_drained(WebSocketClient webSocketClient) {
         final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
         final int messageCountBeforeDrain = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-auto", UUID.random().toString(), httpClient, readyObs);
+        final Single<WebSocket> ws = createWSRequest("/test-qos-auto", UUID.random().toString(), webSocketClient, readyObs);
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicReference<Short> websocketStatus = new AtomicReference<>();
 
@@ -135,14 +135,14 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     @ParameterizedTest
     @MethodSource("qosParameters")
     @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_parallel(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
+    void should_receive_messages_parallel(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 20;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
         // Note: use the same client identifier for both requests.
-        final Single<WebSocket> ws1 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
-        final Single<WebSocket> ws2 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
+        final Single<WebSocket> ws1 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
+        final Single<WebSocket> ws2 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
 
         final TestSubscriber<JsonObject> obs = ws1
             .mergeWith(ws2)
@@ -165,12 +165,12 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     @ParameterizedTest
     @MethodSource("qosParameters")
     @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_sequential(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
+    void should_receive_messages_sequential(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 40;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
+        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
 
         final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
@@ -179,7 +179,7 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
                     .take(10)
                     .concatWith(
                         Single.defer(() ->
-                            createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient).delaySubscription(
+                            createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient).delaySubscription(
                                 500,
                                 TimeUnit.MILLISECONDS
                             )
@@ -201,11 +201,11 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
     @Test
     @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-publish.json" })
-    void should_publish_messages(HttpClient httpClient) {
+    void should_publish_messages(WebSocketClient webSocketClient) {
         final String topic = TEST_TOPIC + "-publish";
         final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(topic).take(1).test();
 
-        createWSRequest("/test-publish", UUID.random().toString(), httpClient)
+        createWSRequest("/test-publish", UUID.random().toString(), webSocketClient)
             .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
             .delaySubscription(100, TimeUnit.MILLISECONDS) // No way to know if mqtt5 subscription is ok, let's apply a small delay.
             .test()
@@ -226,28 +226,37 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     @DeployApi(
         { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
     )
-    void should_reject_websocket_upgrade_with_unsupported_qos(Qos qos, HttpClient httpClient) {
-        final TestObserver<WebSocket> obs = createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient).test();
+    void should_reject_websocket_upgrade_with_unsupported_qos(Qos qos, WebSocketClient webSocketClient) {
+        final TestObserver<WebSocket> obs = createWSRequest(
+            "/test-qos-" + qos.getLabel(),
+            UUID.random().toString(),
+            webSocketClient
+        ).test();
 
         obs.awaitDone(30, TimeUnit.SECONDS).assertError(UpgradeRejectedException.class);
     }
 
     @NonNull
-    private Single<WebSocket> createWSRequest(String path, String clientIdentifier, HttpClient httpClient) {
+    private Single<WebSocket> createWSRequest(String path, String clientIdentifier, WebSocketClient webSocketClient) {
         final String transactionId = UUID.random().toString();
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI(path);
         options.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
         options.putHeader("X-Gravitee-Transaction-Id", transactionId); // Force transaction id as it is not possible to retrieve it in the websocket response.
 
-        return httpClient
-            .rxWebSocket(options)
+        return webSocketClient
+            .rxConnect(options)
             .doOnSuccess(webSocket -> webSocket.headers().add("X-Gravitee-Transaction-Id", transactionId));
     }
 
     @NonNull
-    private Single<WebSocket> createWSRequest(String path, String clientIdentifier, HttpClient httpClient, List<Completable> readyObs) {
-        return createWSRequest(path, clientIdentifier, httpClient).doOnSuccess(webSocket ->
+    private Single<WebSocket> createWSRequest(
+        String path,
+        String clientIdentifier,
+        WebSocketClient webSocketClient,
+        List<Completable> readyObs
+    ) {
+        return createWSRequest(path, clientIdentifier, webSocketClient).doOnSuccess(webSocket ->
             readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(webSocket)))
         );
     }

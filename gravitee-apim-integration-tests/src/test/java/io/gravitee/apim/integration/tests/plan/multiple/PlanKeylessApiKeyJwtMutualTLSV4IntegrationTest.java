@@ -53,6 +53,7 @@ import io.gravitee.policy.keyless.KeylessPolicy;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
@@ -156,6 +157,7 @@ public class PlanKeylessApiKeyJwtMutualTLSV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
@@ -242,6 +244,7 @@ public class PlanKeylessApiKeyJwtMutualTLSV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
@@ -357,6 +360,7 @@ public class PlanKeylessApiKeyJwtMutualTLSV4IntegrationTest {
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {

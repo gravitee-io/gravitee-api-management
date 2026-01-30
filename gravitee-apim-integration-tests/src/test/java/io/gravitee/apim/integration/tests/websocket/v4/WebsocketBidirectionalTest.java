@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -28,7 +28,7 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     @DeployApi({ "/apis/v4/http/api.json" })
-    public void websocket_bidirectional_request(VertxTestContext testContext, HttpClient httpClient) throws Throwable {
+    public void websocket_bidirectional_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -38,7 +38,6 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
         websocketServerHandler = serverWebSocket -> {
             serverConnected.flag();
             serverWebSocket.exceptionHandler(testContext::failNow);
-            serverWebSocket.accept();
             serverWebSocket.frameHandler(frame -> {
                 if (frame.isText()) {
                     testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
@@ -52,8 +51,8 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
             });
         };
 
-        httpClient
-            .webSocket("/test")
+        webSocketClient
+            .connect("/test")
             .doOnSuccess(webSocket -> {
                 webSocket.exceptionHandler(testContext::failNow);
                 webSocket.frameHandler(frame -> {

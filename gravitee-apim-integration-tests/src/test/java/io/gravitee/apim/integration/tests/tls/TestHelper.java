@@ -106,13 +106,13 @@ public class TestHelper {
     }
 
     static HttpClient createTrustedHttpClient(Vertx vertx, String cert, Object clientKeyStore) {
-        var options = new HttpClientOptions().setSsl(true).setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(cert)));
+        var options = new HttpClientOptions().setSsl(true).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(cert)));
         if (clientKeyStore instanceof Path clientKeyStorePath) {
-            options.setPfxKeyCertOptions(
+            options.setKeyCertOptions(
                 new PfxOptions().setPath(clientKeyStorePath.toAbsolutePath().toString()).setPassword(new String(PASSWORD))
             );
         } else if (clientKeyStore instanceof PemGenResult.KeyPairLocation clientKeyPairLocation) {
-            options.setPemKeyCertOptions(
+            options.setKeyCertOptions(
                 new PemKeyCertOptions()
                     .addCertPath(clientKeyPairLocation.certPath().toAbsolutePath().toString())
                     .addKeyPath(clientKeyPairLocation.keyPath().toAbsolutePath().toString())
