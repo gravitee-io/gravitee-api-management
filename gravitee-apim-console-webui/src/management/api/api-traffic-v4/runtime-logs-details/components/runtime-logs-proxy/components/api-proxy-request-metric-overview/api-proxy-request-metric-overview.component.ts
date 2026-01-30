@@ -18,10 +18,7 @@ import { DatePipe } from '@angular/common';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 
-import {
-  ApiMetricsDetailResponse,
-  BaseInstance,
-} from '../../../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+import { ApiMetricsDetailResponse } from '../../../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 
 @Component({
   selector: 'api-proxy-request-metric-overview',
@@ -31,5 +28,4 @@ import {
 })
 export class ApiProxyRequestMetricOverviewComponent {
   metric: InputSignal<ApiMetricsDetailResponse> = input.required<ApiMetricsDetailResponse>();
-  instance: InputSignal<BaseInstance> = input<BaseInstance>();
 }
