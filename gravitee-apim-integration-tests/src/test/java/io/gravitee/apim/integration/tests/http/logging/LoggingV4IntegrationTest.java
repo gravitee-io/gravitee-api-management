@@ -46,6 +46,7 @@ import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
@@ -142,8 +143,9 @@ class LoggingV4IntegrationTest {
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> {
-                    request.setHost("127.0.0.1");
-                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
                     return request.rxSend(requestBody.toString());
                 })
                 .flatMapPublisher(response -> {
@@ -236,8 +238,9 @@ class LoggingV4IntegrationTest {
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> {
-                    request.setHost("127.0.0.1");
-                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
                     return request.rxSend(requestBody.toString());
                 })
                 .flatMapPublisher(response -> {
@@ -324,8 +327,9 @@ class LoggingV4IntegrationTest {
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> {
-                    request.setHost("127.0.0.1");
-                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
                     return request.rxSend(requestBody.toString());
                 })
                 .flatMapPublisher(response -> {
@@ -432,8 +436,9 @@ class LoggingV4IntegrationTest {
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> {
-                    request.setHost("127.0.0.1");
-                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
                     return request.rxSend(requestBody.toString());
                 })
                 .flatMapPublisher(response -> {
@@ -526,8 +531,9 @@ class LoggingV4IntegrationTest {
             httpClient
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> {
-                    request.setHost("127.0.0.1");
-                    requestHostAndPortRef.set(request.getHost() + ":" + request.getPort());
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
                     return request.rxSend(requestBody.toString());
                 })
                 .flatMapPublisher(response -> {

@@ -40,6 +40,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -171,6 +172,7 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
@@ -253,6 +255,7 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         protected void configureHttpClient(
             HttpClientOptions options,
+            PoolOptions poolOptions,
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {

@@ -61,6 +61,7 @@ public class GatewayTestingExtension
 
     private final Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
         new HttpClientParameterResolver(),
+        new WebSocketClientParameterResolver(),
         new ApiParameterResolver(),
         new AllApisParameterResolver(),
         new GatewayDynamicConfigParameterResolver()
