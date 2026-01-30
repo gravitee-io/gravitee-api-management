@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,7 +24,10 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Date;
 import java.util.Set;
@@ -48,16 +52,25 @@ class ApiProductDeployerTest {
     private io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
 
     @Mock
+    private PlanRepository planRepository;
+
+    @Mock
+    private PlanService planService;
+
+    @Mock
     private DistributedSyncService distributedSyncService;
 
     private ApiProductDeployer cut;
 
     @BeforeEach
     void setUp() {
-        cut = new ApiProductDeployer(apiProductManager, distributedSyncService);
+        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
+        lenient()
+            .when(planRepository.findByReferenceIdAndReferenceType(any(), eq(PlanReferenceType.API_PRODUCT)))
+            .thenReturn(Set.of());
     }
 
     @Nested
@@ -139,6 +152,7 @@ class ApiProductDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-123");
+            verify(planService).unregisterForApiProduct("api-product-123");
         }
 
         @Test

@@ -32,6 +32,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import java.util.function.Supplier;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,8 @@ public class DeployerFactory {
     private final DistributedSyncService distributedSyncService;
 
     private final io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
+
+    private final PlanRepository planRepository;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
@@ -118,6 +121,6 @@ public class DeployerFactory {
     }
 
     public ApiProductDeployer createApiProductDeployer() {
-        return new ApiProductDeployer(apiProductManager, distributedSyncService);
+        return new ApiProductDeployer(apiProductManager, planRepository, planCache, distributedSyncService);
     }
 }

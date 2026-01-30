@@ -19,8 +19,14 @@ import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable> {
 
     private final ApiProductManager apiProductManager;
+    private final PlanRepository planRepository;
+    private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
 
     @Override
@@ -44,6 +52,10 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             try {
                 log.debug("Deploying API Product [{}]", apiProductId);
                 apiProductManager.register(reactableApiProduct);
+
+                // Register API Product plans in PlanService for subscription validation
+                registerApiProductPlans(apiProductId);
+
                 log.debug("API Product [{}] deployed successfully", apiProductId);
             } catch (Exception e) {
                 throw new SyncException(
@@ -56,6 +68,18 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
                 );
             }
         });
+    }
+
+    private void registerApiProductPlans(String apiProductId) {
+        try {
+            Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(apiProductId, PlanReferenceType.API_PRODUCT);
+            Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
+            planService.registerForApiProduct(apiProductId, planIds);
+            log.debug("Registered {} plans for API Product [{}]", planIds.size(), apiProductId);
+        } catch (Exception e) {
+            log.warn("Failed to load plans for API Product [{}]: {}", apiProductId, e.getMessage());
+            planService.registerForApiProduct(apiProductId, Set.of());
+        }
     }
 
     @Override
@@ -71,6 +95,7 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             try {
                 log.debug("Undeploying API Product [{}]", apiProductId);
                 apiProductManager.unregister(apiProductId);
+                planService.unregisterForApiProduct(apiProductId);
                 log.debug("API Product [{}] undeployed successfully", apiProductId);
             } catch (Exception e) {
                 throw new SyncException(String.format("An error occurred when trying to undeploy API Product [%s].", apiProductId), e);

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.service;
 
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class PlanService {
 
     private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> plansPerApiProduct = new ConcurrentHashMap<>();
 
     public void register(final ApiReactorDeployable apiReactorDeployable) {
         if (apiReactorDeployable != null && apiReactorDeployable.apiId() != null) {
@@ -43,9 +45,36 @@ public class PlanService {
         }
     }
 
+    public void registerForApiProduct(final String apiProductId, final Set<String> planIds) {
+        if (apiProductId != null && planIds != null) {
+            plansPerApiProduct.put(apiProductId, Set.copyOf(planIds));
+        }
+    }
+
+    public void unregisterForApiProduct(final String apiProductId) {
+        if (apiProductId != null) {
+            plansPerApiProduct.remove(apiProductId);
+        }
+    }
+
     public boolean isDeployed(final String apiId, final String planId) {
-        return Optional.ofNullable(plansPerApi.get(apiId))
-            .map(strings -> strings.contains(planId))
-            .orElse(false);
+        return isDeployed(apiId, planId, PlanReferenceType.API);
+    }
+
+    /**
+     * Check if a plan is deployed for the given reference (API or API Product).
+     */
+    public boolean isDeployed(final String referenceId, final String planId, final PlanReferenceType referenceType) {
+        if (referenceId == null || planId == null || referenceType == null) {
+            return false;
+        }
+        return switch (referenceType) {
+            case API -> Optional.ofNullable(plansPerApi.get(referenceId))
+                .map(plans -> plans.contains(planId))
+                .orElse(false);
+            case API_PRODUCT -> Optional.ofNullable(plansPerApiProduct.get(referenceId))
+                .map(plans -> plans.contains(planId))
+                .orElse(false);
+        };
     }
 }
