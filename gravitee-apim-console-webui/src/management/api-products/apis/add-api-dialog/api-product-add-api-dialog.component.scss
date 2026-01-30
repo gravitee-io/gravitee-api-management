@@ -1,0 +1,255 @@
+@use 'sass:map';
+
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  border: 3px solid var(--Gray-Default, #B2AAA9);
+  border-radius: 4px;
+
+  &__icon {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20');
+    margin-top: 2px;
+  }
+
+  &__content {
+    flex: 1;
+
+    .info-box__title {
+      margin: 0 0 4px 0;
+      font-weight: 600;
+      font-size: 14px;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+    }
+
+    .info-box__text {
+      margin: 0;
+      font-size: 13px;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20');
+    }
+  }
+}
+
+.selected-apis-section {
+  margin-bottom: 24px;
+
+  &__header {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+.api-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  border-radius: 16px;
+  font-size: 14px;
+
+  &__avatar {
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-weight: 500;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
+
+  &__path {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20');
+    font-style: italic;
+  }
+
+  &__badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  &__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 4px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter70');
+    }
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.form-field {
+  width: 100%;
+}
+
+.autocompleteRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__avatar {
+    flex-shrink: 0;
+  }
+}
+
+.form-actions {
+  margin-top: 16px;
+  padding: 16px 0 0 0;
+}
+
+.recommended-apis {
+  margin-top: 24px;
+
+  &__header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__header {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
+
+  &__select-all {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 12px;
+    min-width: auto;
+  }
+
+  &__list {
+    background-color: #ffffff;
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  &__empty {
+    padding: 16px;
+    text-align: center;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20');
+    font-size: 14px;
+  }
+}
+
+.recommended-api-item {
+  padding: 12px 0;
+  cursor: pointer;
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter70');
+    margin: 0 -16px;
+    padding: 12px 16px;
+    border-radius: 4px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
+
+  &__labels {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffb74d;
+  }
+
+  &__path {
+    font-size: 13px;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter20');
+    font-style: italic;
+  }
+
+  &__badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}
+
+.deprecated-badge {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d;
+}
