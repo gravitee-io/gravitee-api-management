@@ -23,7 +23,9 @@ import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -63,7 +65,7 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                 .flatMap(subscriptions ->
                     Flowable.just(subscriptions)
                         .flatMapIterable(s -> s)
-                        .filter(subscription -> planCache.isDeployed(subscription.getApi(), subscription.getPlan()))
+                        .filter(this::isPlanDeployed)
                         .flatMapMaybe(subscription -> Maybe.fromCallable(() -> subscriptionMapper.to(subscription)))
                         .map(subscription ->
                             SingleSubscriptionDeployable.builder()
@@ -128,6 +130,19 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                 log.error(throwable.getMessage(), throwable);
                 return Flowable.empty();
             });
+    }
+
+    private boolean isPlanDeployed(Subscription subscription) {
+        String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+        PlanReferenceType referenceType =
+            subscription.getReferenceType() != null ? toPlanReferenceType(subscription.getReferenceType()) : PlanReferenceType.API;
+        return planCache.isDeployed(referenceId, subscription.getPlan(), referenceType);
+    }
+
+    private static PlanReferenceType toPlanReferenceType(SubscriptionReferenceType subscriptionReferenceType) {
+        return subscriptionReferenceType == SubscriptionReferenceType.API_PRODUCT
+            ? PlanReferenceType.API_PRODUCT
+            : PlanReferenceType.API;
     }
 
     @Override
