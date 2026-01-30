@@ -29,37 +29,46 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import java.time.Instant;
-import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
 public class RepositoryFixtures {
 
+    private RepositoryFixtures() {}
+
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
     public static final String MY_API = "my-api";
     public static final String MY_API_NAME = "My Api";
-    private static final Supplier<Api.ApiBuilder> BASE = () ->
-        Api.builder()
-            .id(MY_API)
-            .name(MY_API_NAME)
-            .environmentId("environment-id")
-            .crossId("my-api-crossId")
-            .description("api-description")
-            .version("1.0.0")
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.000Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.000Z")))
-            .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.000Z")))
-            .visibility(Visibility.PUBLIC)
-            .lifecycleState(LifecycleState.STARTED)
-            .apiLifecycleState(ApiLifecycleState.PUBLISHED)
-            .picture("api-picture")
-            .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
-            .labels(List.of("label-1"))
-            .disableMembershipNotifications(true)
-            .origin(Api.ORIGIN_MANAGEMENT)
-            .background("api-background");
+    private static final Supplier<Api.ApiBuilder> BASE = () -> {
+        try {
+            return Api.builder()
+                .id(MY_API)
+                .name(MY_API_NAME)
+                .environmentId("environment-id")
+                .crossId("my-api-crossId")
+                .description("api-description")
+                .version("1.0.0")
+                .createdAt(new RepositoryFixtures().simpleDateFormat.parse("2020-02-01T20:22:02.00Z"))
+                .updatedAt(new RepositoryFixtures().simpleDateFormat.parse("2020-02-02T20:22:02.00Z"))
+                .deployedAt(new RepositoryFixtures().simpleDateFormat.parse("2020-02-03T20:22:02.00Z"))
+                .visibility(Visibility.PUBLIC)
+                .lifecycleState(LifecycleState.STARTED)
+                .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                .picture("api-picture")
+                .groups(Set.of("group-1"))
+                .categories(Set.of("category-1"))
+                .labels(List.of("label-1"))
+                .disableMembershipNotifications(true)
+                .origin(Api.ORIGIN_MANAGEMENT)
+                .background("api-background");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    };
 
     public static Api aProxyApiV4() {
         String type = "http-proxy";
