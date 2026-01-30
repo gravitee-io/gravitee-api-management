@@ -1135,6 +1135,19 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.discovery</groupId>
+            <artifactId>gravitee-service-discovery-kubernetes</artifactId>
+            <version>${gravitee-service-discovery-kubernetes.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-gateway-services-ratelimit</artifactId>
             <version>${gravitee-policy-ratelimit.version}</version>
