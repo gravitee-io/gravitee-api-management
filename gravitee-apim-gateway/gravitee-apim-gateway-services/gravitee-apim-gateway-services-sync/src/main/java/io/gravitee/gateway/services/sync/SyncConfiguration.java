@@ -190,7 +190,8 @@ public class SyncConfiguration {
         AccessPointManager accessPointManager,
         SharedPolicyGroupManager sharedPolicyGroupManager,
         DistributedSyncService distributedSyncService,
-        ApiProductManager apiProductManager
+        ApiProductManager apiProductManager,
+        PlanRepository planRepository
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -211,7 +212,8 @@ public class SyncConfiguration {
             accessPointManager,
             sharedPolicyGroupManager,
             distributedSyncService,
-            apiProductManager
+            apiProductManager,
+            planRepository
         );
     }
 
