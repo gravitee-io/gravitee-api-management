@@ -69,6 +69,7 @@ public interface PlanAdapter {
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRepository")
     io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
     @Mapping(target = "status", source = "planStatus")
@@ -85,6 +86,7 @@ public interface PlanAdapter {
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "security", source = "planSecurity", conditionQualifiedByName = "mapPlanSecurityTypeV2")
     @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToV2")
     io.gravitee.rest.api.model.PlanEntity toEntityV2(Plan source);
 
     NewPlanEntity entityToNewPlanEntity(PlanEntity entity);
@@ -307,6 +309,30 @@ public interface PlanAdapter {
         };
     }
 
+    @Named("mapPlanTypeCoreToV2")
+    default io.gravitee.rest.api.model.PlanType mapPlanTypeCoreToV2(Plan.PlanType coreType) {
+        if (coreType == null) {
+            return io.gravitee.rest.api.model.PlanType.API;
+        }
+        return switch (coreType) {
+            case API -> io.gravitee.rest.api.model.PlanType.API;
+            case CATALOG -> io.gravitee.rest.api.model.PlanType.CATALOG;
+            case API_PRODUCT -> io.gravitee.rest.api.model.PlanType.API; // Map API_PRODUCT to API for v2 compatibility
+        };
+    }
+
+    @Named("mapPlanTypeV4ToV2")
+    default io.gravitee.rest.api.model.PlanType mapPlanTypeV4ToV2(io.gravitee.rest.api.model.v4.plan.PlanType v4Type) {
+        if (v4Type == null) {
+            return io.gravitee.rest.api.model.PlanType.API;
+        }
+        return switch (v4Type) {
+            case API -> io.gravitee.rest.api.model.PlanType.API;
+            case CATALOG -> io.gravitee.rest.api.model.PlanType.CATALOG;
+            case API_PRODUCT -> io.gravitee.rest.api.model.PlanType.API; // Map API_PRODUCT to API for v2 compatibility
+        };
+    }
+
     default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {
         return switch (entity) {
             case io.gravitee.rest.api.model.PlanEntity p -> p;
@@ -316,6 +342,9 @@ public interface PlanAdapter {
         };
     }
 
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeV4ToV2")
     io.gravitee.rest.api.model.PlanEntity map(io.gravitee.rest.api.model.v4.plan.PlanEntity v4);
+
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeV4ToV2")
     io.gravitee.rest.api.model.PlanEntity map(NativePlanEntity v4);
 }

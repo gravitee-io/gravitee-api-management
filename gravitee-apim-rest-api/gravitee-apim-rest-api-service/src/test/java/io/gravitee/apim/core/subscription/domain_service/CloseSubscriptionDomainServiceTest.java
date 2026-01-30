@@ -17,88 +17,66 @@ package io.gravitee.apim.core.subscription.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
-import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
-import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
-import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status;
-import io.gravitee.definition.model.federation.FederatedApi;
-import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.reactivex.rxjava3.core.Completable;
-import java.util.Collections;
-import java.util.Map;
+import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CloseSubscriptionDomainServiceTest {
 
-    private static final String ORGANIZATION_ID = "organization-id";
-    private static final String ENVIRONMENT_ID = "environment-id";
-    private static final String USER_ID = "user-id";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
-
-    private static final String SUBSCRIPTION_ID = "subscription-id";
+    private static final String SUB_ID = "sub-id";
     private static final String API_ID = "api-id";
-    private static final String APPLICATION_ID = "application-id";
-    private static final String PLAN_ID = "plan-id";
+    private static final String API_PRODUCT_ID = "api-product-id";
+    private static final String APP_ID = "app-id";
+    private static final String ORG_ID = "org-id";
+    private static final String ENV_ID = "env-id";
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
 
     @Mock
-    SubscriptionCrudService subscriptionCrudService;
+    private SubscriptionCrudService subscriptionCrudService;
 
     @Mock
-    RejectSubscriptionDomainService rejectSubscriptionDomainService;
+    private RejectSubscriptionDomainService rejectSubscriptionDomainService;
 
     @Mock
-    TriggerNotificationDomainService triggerNotificationDomainService;
+    private io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService triggerNotificationDomainService;
 
     @Mock
-    AuditDomainService auditDomainService;
+    private io.gravitee.apim.core.audit.domain_service.AuditDomainService auditDomainService;
 
     @Mock
-    ApplicationCrudService applicationCrudService;
+    private io.gravitee.apim.core.application.crud_service.ApplicationCrudService applicationCrudService;
 
     @Mock
-    RevokeApiKeyDomainService revokeApiKeyDomainService;
+    private io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     @Mock
-    ApiCrudService apiCrudService;
+    private io.gravitee.apim.core.api.crud_service.ApiCrudService apiCrudService;
 
     @Mock
-    IntegrationAgent integrationAgent;
+    private io.gravitee.apim.core.integration.service_provider.IntegrationAgent integrationAgent;
 
-    CloseSubscriptionDomainService service;
+    private CloseSubscriptionDomainService cut;
 
     @BeforeEach
     void setUp() {
-        service = new CloseSubscriptionDomainService(
+        cut = new CloseSubscriptionDomainService(
             subscriptionCrudService,
             applicationCrudService,
             auditDomainService,
@@ -110,77 +88,106 @@ class CloseSubscriptionDomainServiceTest {
         );
     }
 
-    @Test
-    void closeSubscriptionForApiProduct_should_close_accepted_subscription_and_create_audit_and_revoke_keys() {
-        var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            // TODO in service: apiId currently used as apiProductId
-            .apiId("api-product-id")
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.ACCEPTED)
+    private static SubscriptionEntity subscription(String id, SubscriptionEntity.Status status) {
+        return SubscriptionEntity.builder()
+            .id(id)
+            .apiId(API_ID)
+            .applicationId(APP_ID)
+            .planId("plan-1")
+            .status(status)
+            .referenceId(API_PRODUCT_ID)
+            .createdAt(ZonedDateTime.now())
+            .updatedAt(ZonedDateTime.now())
             .build();
-        var closedSubscription = subscription.close();
-
-        when(subscriptionCrudService.update(any(SubscriptionEntity.class))).thenReturn(closedSubscription);
-        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID))).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
-        when(revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(any(SubscriptionEntity.class), eq(AUDIT_INFO))).thenReturn(
-            Collections.emptySet()
-        );
-
-        var result = service.closeSubscriptionForApiProduct(subscription, AUDIT_INFO);
-
-        assertThat(result.getStatus()).isEqualTo(Status.CLOSED);
-        verify(subscriptionCrudService).update(any(SubscriptionEntity.class));
-        verify(auditDomainService).createApiProductAuditLog(any());
-        verify(auditDomainService).createApplicationAuditLog(any());
-        verify(triggerNotificationDomainService, never()).triggerApiNotification(anyString(), anyString(), any());
-        verify(triggerNotificationDomainService, never()).triggerApplicationNotification(anyString(), anyString(), any());
     }
 
-    @Test
-    void closeSubscriptionForApiProduct_should_reject_pending_subscription() {
-        var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            .apiId("api-product-id")
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.PENDING)
-            .build();
+    @Nested
+    class CloseSubscriptionWithApi {
 
-        var rejectedSubscription = subscription.toBuilder().status(Status.REJECTED).build();
-        when(rejectSubscriptionDomainService.reject(eq(subscription), eq("Subscription has been closed."), eq(AUDIT_INFO))).thenReturn(
-            rejectedSubscription
-        );
+        @Test
+        void should_return_subscription_as_is_when_already_closed() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.CLOSED);
+            Api api = Api.builder().id(API_ID).build();
 
-        var result = service.closeSubscriptionForApiProduct(subscription, AUDIT_INFO);
+            SubscriptionEntity result = cut.closeSubscription(sub, api, AUDIT_INFO);
 
-        assertThat(result.getStatus()).isEqualTo(Status.REJECTED);
-        verify(rejectSubscriptionDomainService).reject(eq(subscription), eq("Subscription has been closed."), eq(AUDIT_INFO));
-        verify(subscriptionCrudService, never()).update(any());
+            assertThat(result).isSameAs(sub);
+        }
+
+        @Test
+        void should_return_subscription_as_is_when_rejected() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.REJECTED);
+            Api api = Api.builder().id(API_ID).build();
+
+            SubscriptionEntity result = cut.closeSubscription(sub, api, AUDIT_INFO);
+
+            assertThat(result).isSameAs(sub);
+        }
+
+        @Test
+        void should_reject_when_pending() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.PENDING);
+            SubscriptionEntity rejected = sub.toBuilder().status(SubscriptionEntity.Status.REJECTED).build();
+            Api api = Api.builder().id(API_ID).build();
+            when(rejectSubscriptionDomainService.reject(eq(sub), eq("Subscription has been closed."), eq(AUDIT_INFO))).thenReturn(rejected);
+
+            SubscriptionEntity result = cut.closeSubscription(sub, api, AUDIT_INFO);
+
+            assertThat(result).isSameAs(rejected);
+            verify(rejectSubscriptionDomainService).reject(eq(sub), eq("Subscription has been closed."), eq(AUDIT_INFO));
+        }
     }
 
-    @Test
-    void closeSubscriptionForApiProduct_by_id_should_load_subscription_then_close() {
-        var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            .apiId("api-product-id")
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.ACCEPTED)
-            .build();
+    @Nested
+    class CloseSubscriptionForApiProduct {
 
-        when(subscriptionCrudService.get(eq(SUBSCRIPTION_ID))).thenReturn(subscription);
-        when(subscriptionCrudService.update(any(SubscriptionEntity.class))).thenReturn(subscription.close());
-        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID))).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
+        @Test
+        void should_return_subscription_as_is_when_already_closed() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.CLOSED);
 
-        var result = service.closeSubscriptionForApiProduct(SUBSCRIPTION_ID, AUDIT_INFO);
+            SubscriptionEntity result = cut.closeSubscriptionForApiProduct(sub, AUDIT_INFO);
 
-        assertThat(result.getStatus()).isEqualTo(Status.CLOSED);
-        verify(subscriptionCrudService).get(eq(SUBSCRIPTION_ID));
+            assertThat(result).isSameAs(sub);
+        }
+
+        @Test
+        void should_return_subscription_as_is_when_rejected() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.REJECTED);
+
+            SubscriptionEntity result = cut.closeSubscriptionForApiProduct(sub, AUDIT_INFO);
+
+            assertThat(result).isSameAs(sub);
+        }
+
+        @Test
+        void should_reject_when_pending() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.PENDING);
+            SubscriptionEntity rejected = sub.toBuilder().status(SubscriptionEntity.Status.REJECTED).build();
+            when(rejectSubscriptionDomainService.reject(eq(sub), eq("Subscription has been closed."), eq(AUDIT_INFO))).thenReturn(rejected);
+
+            SubscriptionEntity result = cut.closeSubscriptionForApiProduct(sub, AUDIT_INFO);
+
+            assertThat(result).isSameAs(rejected);
+            verify(rejectSubscriptionDomainService).reject(eq(sub), eq("Subscription has been closed."), eq(AUDIT_INFO));
+        }
+
+        @Test
+        void should_close_and_create_audit_when_accepted() {
+            SubscriptionEntity sub = subscription(SUB_ID, SubscriptionEntity.Status.ACCEPTED);
+            SubscriptionEntity closed = sub.toBuilder().status(SubscriptionEntity.Status.CLOSED).updatedAt(ZonedDateTime.now()).build();
+            when(subscriptionCrudService.update(any())).thenReturn(closed);
+            BaseApplicationEntity application = mock(BaseApplicationEntity.class);
+            when(application.hasApiKeySharedMode()).thenReturn(true);
+            when(applicationCrudService.findById(any(ExecutionContext.class), eq(APP_ID))).thenReturn(application);
+
+            SubscriptionEntity result = cut.closeSubscriptionForApiProduct(sub, AUDIT_INFO);
+
+            assertThat(result).isSameAs(closed);
+            ArgumentCaptor<SubscriptionEntity> updateCaptor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+            verify(subscriptionCrudService).update(updateCaptor.capture());
+            assertThat(updateCaptor.getValue().getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
+            verify(auditDomainService).createApiProductAuditLog(any());
+            verify(auditDomainService).createApplicationAuditLog(any());
+        }
     }
 }

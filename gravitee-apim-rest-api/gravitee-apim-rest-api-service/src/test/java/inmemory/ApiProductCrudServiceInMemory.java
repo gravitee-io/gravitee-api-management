@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -27,6 +28,11 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
             .stream()
             .filter(apiProduct -> id.equals(apiProduct.getId()))
             .findFirst();
+    }
+
+    @Override
+    public ApiProduct get(String id) {
+        return findById(id).orElseThrow(() -> new ApiProductNotFoundException(id));
     }
 
     @Override

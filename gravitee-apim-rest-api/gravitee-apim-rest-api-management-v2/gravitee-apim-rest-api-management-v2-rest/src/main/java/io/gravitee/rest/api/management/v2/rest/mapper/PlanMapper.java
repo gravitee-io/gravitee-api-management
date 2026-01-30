@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
@@ -65,10 +66,12 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeV4ToRest")
     PlanV4 map(PlanEntity planEntity);
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeV4ToRest")
     PlanV4 map(NativePlanEntity planEntity);
 
     default PlanV4 mapToPlanV4(GenericPlanEntity planEntity) {
@@ -82,6 +85,7 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeV4ToRest")
     PlanFederated mapFederated(PlanEntity planEntity);
 
     @Mapping(target = "security.type", source = "planDefinitionV4.security.type", qualifiedByName = "mapToPlanSecurityType")
@@ -96,6 +100,7 @@ public interface PlanMapper {
     @Mapping(target = "mode", source = "planDefinitionV4.mode")
     @Mapping(target = "flows", expression = "java(computeFlows(source))")
     @Mapping(target = "definitionVersion", constant = "V4")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanV4 map(PlanWithFlows source);
 
     default <T extends PlanDescriptor> PlanV4 map(T source) {
@@ -109,15 +114,18 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanV4 map(PlanDescriptor.V4 source);
 
     @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanV4 map(PlanDescriptor.Native source);
 
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
     @Mapping(target = "definitionVersion", constant = "FEDERATED")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanFederated mapFederated(io.gravitee.apim.core.plan.model.Plan source);
 
     Set<PlanV4> map(Set<? extends GenericPlanEntity> planEntityList);
@@ -308,5 +316,29 @@ public interface PlanMapper {
         } else {
             return FlowMapper.INSTANCE.mapToHttpV4(plan.getFlows());
         }
+    }
+
+    @Named("mapPlanTypeV4ToRest")
+    default PlanType mapPlanTypeV4ToRest(io.gravitee.rest.api.model.v4.plan.PlanType v4Type) {
+        if (v4Type == null) {
+            return PlanType.API;
+        }
+        return switch (v4Type) {
+            case API -> PlanType.API;
+            case CATALOG -> PlanType.CATALOG;
+            case API_PRODUCT -> PlanType.API; // Map API_PRODUCT to API for REST API compatibility
+        };
+    }
+
+    @Named("mapPlanTypeCoreToRest")
+    default PlanType mapPlanTypeCoreToRest(io.gravitee.apim.core.plan.model.Plan.PlanType coreType) {
+        if (coreType == null) {
+            return PlanType.API;
+        }
+        return switch (coreType) {
+            case API -> PlanType.API;
+            case CATALOG -> PlanType.CATALOG;
+            case API_PRODUCT -> PlanType.API; // Map API_PRODUCT to API for REST API compatibility
+        };
     }
 }

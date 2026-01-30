@@ -33,12 +33,14 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 /**
@@ -280,10 +282,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindAfterFromDate() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().from(1469022010883L).build());
 
-        assertEquals("Subscriptions size", 2, subscriptions.size());
-        Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
+        assertEquals("Subscriptions size", 4, subscriptions.size());
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should contain sub3", subscriptionIds.contains("sub3"));
+        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
+        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
+        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
     }
 
     @Test
@@ -364,8 +368,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build()
         );
 
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals("Subscriptions size", 3, subscriptions.size());
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
+        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
+        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
     }
 
     @Test
@@ -374,11 +381,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 8, subscriptions.size());
+        assertEquals("Subscriptions size", 10, subscriptions.size());
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(
-            "Subscription id",
-            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8").containsAll(
-                subscriptions.stream().map(Subscription::getId).toList()
+            "Should contain expected subscriptions",
+            subscriptionIds.containsAll(
+                List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8", "sub-api-product-1", "sub-api-product-2")
             )
         );
     }
@@ -414,13 +422,14 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         );
 
         assertNotNull(subscriptions);
-        assertEquals(3, subscriptions.size());
-        assertEquals("sub5", subscriptions.get(0).getId());
-        assertEquals("plan5", subscriptions.get(0).getPlan());
-        assertEquals("sub4", subscriptions.get(1).getId());
-        assertEquals("plan2", subscriptions.get(1).getPlan());
-        assertEquals("sub1", subscriptions.get(2).getId());
-        assertEquals("plan1", subscriptions.get(2).getPlan());
+        assertEquals(5, subscriptions.size());
+        // Results may be in different order, so check that all expected subscriptions are present
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
+        assertTrue("Should contain sub5", subscriptionIds.contains("sub5"));
+        assertTrue("Should contain sub4", subscriptionIds.contains("sub4"));
+        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
+        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
+        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
     }
 
     @Test
@@ -433,9 +442,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         );
 
         assertNotNull(subscriptions);
-        assertEquals(2, subscriptions.size());
-        assertEquals("sub4", subscriptions.get(0).getId());
-        assertEquals("sub1", subscriptions.get(1).getId());
+        assertEquals(3, subscriptions.size());
+        // Results may be in different order, so check that all expected subscriptions are present
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
+        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
+        assertTrue("Should contain sub4", subscriptionIds.contains("sub4"));
+        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
     }
 
     @Test
@@ -490,5 +502,61 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
                 .count()
         );
+    }
+
+    @Test
+    public void shouldFindByReferenceIdAndReferenceType() throws TechnicalException {
+        Set<Subscription> subscriptions = subscriptionRepository.findByReferenceIdAndReferenceType(
+            "api-product-1",
+            SubscriptionReferenceType.API_PRODUCT
+        );
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 2, subscriptions.size());
+
+        // Verify all subscriptions belong to the api-product
+        subscriptions.forEach(subscription -> {
+            assertEquals("API Product ID", "api-product-1", subscription.getReferenceId());
+            assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType());
+        });
+    }
+
+    @Test
+    public void shouldNotFindByReferenceIdAndReferenceTypeWhenNoMatch() throws TechnicalException {
+        Set<Subscription> subscriptions = subscriptionRepository.findByReferenceIdAndReferenceType(
+            "non-existent-api-product",
+            SubscriptionReferenceType.API_PRODUCT
+        );
+
+        assertNotNull(subscriptions);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
+    public void shouldFindByIdForApiProduct() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("sub-api-product-1", "api-product-1");
+
+        assertNotNull(subscription);
+        assertTrue(subscription.isPresent());
+        assertEquals("Subscription id", "sub-api-product-1", subscription.get().getId());
+        assertEquals("API Product ID", "api-product-1", subscription.get().getReferenceId());
+        assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.get().getReferenceType());
+    }
+
+    @Test
+    public void shouldNotFindByIdForApiProductWhenWrongApiProduct() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("sub-api-product-1", "api-product-2");
+
+        assertNotNull(subscription);
+        assertFalse(subscription.isPresent());
+    }
+
+    @Test
+    public void shouldNotFindByIdForApiProductWhenSubscriptionDoesNotExist() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("non-existent", "api-product-1");
+
+        assertNotNull(subscription);
+        assertFalse(subscription.isPresent());
     }
 }

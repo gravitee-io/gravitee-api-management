@@ -153,7 +153,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private String selectionRule;
 
     @JsonIgnore
-    private ReferenceType referenceType;
+    private GenericPlanEntity.ReferenceType referenceType;
 
     @JsonIgnore
     private String referenceId;
@@ -203,6 +203,18 @@ public class BasePlanEntity implements GenericPlanEntity {
     @JsonIgnore
     public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
         return io.gravitee.rest.api.model.v4.plan.PlanType.API;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    @Override
+    @JsonIgnore
+    public GenericPlanEntity.ReferenceType getReferenceType() {
+        return referenceType;
     }
 
     @Override

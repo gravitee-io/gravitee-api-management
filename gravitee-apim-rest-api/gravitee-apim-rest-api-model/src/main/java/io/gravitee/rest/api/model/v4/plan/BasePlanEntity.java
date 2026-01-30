@@ -98,7 +98,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private ApiType apiType;
 
     @JsonIgnore
-    private ReferenceType referenceType;
+    private GenericPlanEntity.ReferenceType referenceType;
 
     @JsonIgnore
     private String referenceId;
@@ -128,11 +128,11 @@ public class BasePlanEntity implements GenericPlanEntity {
         return validation;
     }
 
-    public ReferenceType getReferenceType() {
+    public GenericPlanEntity.ReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(ReferenceType referenceType) {
+    public void setReferenceType(GenericPlanEntity.ReferenceType referenceType) {
         this.referenceType = referenceType;
     }
 

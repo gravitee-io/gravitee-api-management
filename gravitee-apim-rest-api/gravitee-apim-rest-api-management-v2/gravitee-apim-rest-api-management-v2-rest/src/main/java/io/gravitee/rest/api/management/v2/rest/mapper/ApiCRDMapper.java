@@ -52,6 +52,7 @@ import org.mapstruct.factory.Mappers;
         EntrypointMapper.class,
         FlowMapper.class,
         ListenerMapper.class,
+        PlanMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
@@ -68,6 +69,7 @@ public interface ApiCRDMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")
     PlanCRD map(io.gravitee.apim.core.api.model.crd.PlanCRD plan);
 
     @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
