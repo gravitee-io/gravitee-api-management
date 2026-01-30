@@ -18,10 +18,7 @@ import { DatePipe } from '@angular/common';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 
-import {
-  ApiMetricsDetailResponse,
-  BaseInstance,
-} from '../../../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+import { ApiMetricsDetailResponse } from '../../../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 import { ApiUtils } from '../../../../../../../../util/api.util';
 import { ApiType } from '../../../../../../../../entities/management-api-v2';
 
@@ -33,7 +30,6 @@ import { ApiType } from '../../../../../../../../entities/management-api-v2';
 })
 export class ApiProxyRequestMetricOverviewComponent {
   metric: InputSignal<ApiMetricsDetailResponse> = input.required<ApiMetricsDetailResponse>();
-  instance: InputSignal<BaseInstance> = input<BaseInstance>();
   apiType: InputSignal<ApiType> = input.required<ApiType>();
 
   getMcpErrorLabel(error: string) {
