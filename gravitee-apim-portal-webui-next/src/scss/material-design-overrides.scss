@@ -22,13 +22,53 @@ mat-chip {
   --mdc-chip-elevated-container-color: #{theme.$chip-background};
 
   &.label-chip {
-    --mdc-chip-elevated-container-color: #e1e5ed;
-    --mdc-chip-outline-width: 0 ;
-    --mdc-chip-outline-color: transparent ;
-    background-color: #e1e5ed;
+    --mdc-chip-elevated-container-color: #e1e5ed !important;
+    --mdc-chip-outline-width: 0;
+    --mdc-chip-outline-color: transparent;
+    background-color: #e1e5ed !important;
+    color: #5f6368 !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
     border: none;
     outline: none;
-    border-radius: 16px;
+    border-radius: 16px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    text-transform: none !important;
+
+    @media (max-width: 1200px) {
+      font-size: 13px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+    }
+
+    @media (max-width: 880px) {
+      font-size: 12px !important;
+      height: 24px !important;
+      min-height: 24px !important;
+    }
+
+    .mdc-evolution-chip__cell {
+      padding: 0 !important;
+    }
+
+    .mdc-evolution-chip__action {
+      padding: 0 12px !important;
+      height: 100% !important;
+
+      @media (max-width: 1200px) {
+        padding: 0 10px !important;
+      }
+
+      @media (max-width: 880px) {
+        padding: 0 8px !important;
+      }
+    }
+
+    .mdc-evolution-chip__action--primary::before {
+      display: none !important;
+    }
   }
 }
 

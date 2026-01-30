@@ -107,20 +107,16 @@
       </div>
     </div>
   } @else if (!loadingPage) {
-    <mat-card id="no-apis" appearance="outlined">
-      <mat-card-content>
-        <div>
-          @if (query() || currentCategory().id) {
-            <p i18n="@@noFilteredApisAvailable">
-              Your search didn't return any APIs. Please try again with different keywords or categories.
-            </p>
-          } @else {
-            <p i18n="@@noApisAvailable">Sorry, there are no APIs listed yet.</p>
-            <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available soon.</p>
-          }
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="api-list__empty-state">
+      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
+      @if (query() || currentCategory().id) {
+        <h2 class="m3-title-large" i18n="@@noFilteredApisAvailable">No APIs found</h2>
+        <p i18n="@@noFilteredApisDescription">Your search didn't return any APIs. Please try again with different keywords or categories.</p>
+      } @else {
+        <h2 class="m3-title-large" i18n="@@noApisAvailable">No APIs available yet</h2>
+        <p i18n="@@noApisDescription">Our API catalog is currently being updated. More APIs will be available soon.</p>
+      }
+    </div>
   }
 }
 

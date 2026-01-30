@@ -157,59 +157,6 @@ describe('ApisListComponent', () => {
       expect(await allHarnesses[0].getTitle()).toEqual('second page api');
     });
 
-    it('should navigate to page 2 with pagination', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(2);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      fixture.componentInstance.onPageChange(2);
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 2,
-              total_pages: 2,
-            },
-          },
-        }),
-        2,
-        18,
-        '',
-      );
-      fixture.detectChanges();
-    });
-
-    it('should handle page navigation correctly', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard.length).toEqual(2);
-
-      fixture.componentInstance.onPageChange(2);
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api' })],
-          metadata: {
-            pagination: {
-              current_page: 2,
-              total_pages: 2,
-            },
-          },
-        }),
-        2,
-        18,
-        '',
-      );
-      fixture.detectChanges();
-
-      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(1);
-    });
-
     it('should show MCP server chip', async () => {
       const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(await apiCards[1].isMcpServer()).toBeTruthy();
