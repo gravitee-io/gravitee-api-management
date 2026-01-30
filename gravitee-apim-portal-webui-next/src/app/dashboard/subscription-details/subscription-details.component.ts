@@ -48,13 +48,9 @@ interface SubscriptionDetailsData {
   failureCause?: string;
   createdAt?: string;
   updatedAt?: string;
-  apiKey?: string;
-  apiKeyConfigUsername?: string;
-  apiName?: string;
   entrypointUrls?: string[];
   clientId?: string;
   clientSecret?: string;
-  apiType?: ApiType;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
@@ -73,17 +69,10 @@ export default class SubscriptionDetailsComponent {
   private readonly apiService = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
 
-  apiId!: string;
   subscriptionId = input.required<string>();
-  subscription = toSignal(toObservable(this.subscriptionId).pipe(
-    tap(id => console.log('id', id)),
-    switchMap(subscriptionId => this.subscriptionService.get(subscriptionId)),
-    tap(id => console.log('sub', id)),
-  ));
-  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscription).pipe(switchMap(this.loadDetails.bind(this))));
-
-  api = toSignal(
-    toObservable(this.subscription).pipe(switchMap(sub => sub ? this.apiService.details(sub.api) : of(null))));
+  subscription = toSignal(toObservable(this.subscriptionId).pipe(switchMap(subscriptionId => this.subscriptionService.get(subscriptionId))));
+  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscription).pipe(switchMap(sub => sub ? this.loadDetails(sub) : of(null))));
+  api = toSignal(toObservable(this.subscription).pipe(switchMap(sub => sub ? this.apiService.details(sub.api) : of(null))));
 
   /**
    * status +
@@ -93,90 +82,72 @@ export default class SubscriptionDetailsComponent {
    * created +
    * id +
    */
-  private loadDetails(_subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
-    if (!_subscription) {
+  private loadDetails(subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
+    // TODO handle subscription null or error
+    if (!subscription) {
       return of(null);
     }
-    console.log('_subscription', _subscription);
-    // this.apiResource.
-    // TODO handle subscription null or error
-    const subscription = _subscription!;
-    return defer(() => {
-      this.apiId = subscription.api;
-      return of(subscription);
+    return forkJoin({
+      permissions: this.permissionsService.getApiPermissions(subscription.api),
+      application: this.applicationService.get(subscription.application),
     }).pipe(
-      switchMap(subscription =>
-        forkJoin({
-          subscription: of(subscription),
-          permissions: this.permissionsService.getApiPermissions(this.apiId),
-        }).pipe(
-          switchMap(({ subscription, permissions }) =>
-            forkJoin({
-              subscription: of(subscription),
-              plan: this.getPlanData$(subscription.plan, permissions),
-              // api: this.apiService.details(this.apiId), // move up?
-              application: this.applicationService.get(subscription.application),
-            }),
-          ),
-          map(({ subscription, plan, application }) => {
-            const subscriptionDetails: SubscriptionDetailsData = {
-              applicationName: application.name ?? '',
-              planName: plan.name,
-              planSecurity: plan.securityType,
-              planUsageConfiguration: plan.usageConfiguration,
-              subscriptionStatus: subscription.status,
-              consumerStatus: subscription.consumerStatus,
-              // apiType: api.type,
-              // apiName: api.name,
-              failureCause: subscription.failureCause,
-              createdAt: subscription.created_at,
-              updatedAt: subscription.updated_at,
-              // entrypointUrls: api?.entrypoints,
+      switchMap(({permissions, application}) =>
+          this.getPlanData$(subscription,  permissions).pipe(map(plan => ({ plan, application }))),
+      ),
+      map(({ plan, application }) => {
+        const subscriptionDetails: SubscriptionDetailsData = {
+          applicationName: application.name ?? '',
+          planName: plan.name,
+          planSecurity: plan.securityType,
+          planUsageConfiguration: plan.usageConfiguration,
+          subscriptionStatus: subscription.status,
+          consumerStatus: subscription.consumerStatus,
+          failureCause: subscription.failureCause,
+          createdAt: subscription.created_at,
+          updatedAt: subscription.updated_at,
+        };
+
+        if (subscription.status === 'ACCEPTED') {
+          if (plan.securityType === 'API_KEY' && subscription.api) {
+            const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
+            const apiKey = apiKeyItem?.key ?? '';
+            const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
+
+            return {
+              ...subscriptionDetails,
+              apiKey,
+              apiKeyConfigUsername,
             };
-
-            if (subscription.status === 'ACCEPTED') {
-              if (plan.securityType === 'API_KEY' && subscription.api) {
-                const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
-                const apiKey = apiKeyItem?.key ?? '';
-                const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
-
-                return {
-                  ...subscriptionDetails,
-                  apiKey,
-                  apiKeyConfigUsername,
-                };
-              } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
-                if (application.settings.oauth) {
-                  return {
-                    ...subscriptionDetails,
-                    clientId: application.settings.oauth.client_id,
-                    clientSecret: application.settings.oauth.client_secret,
-                  };
-                } else if (application.settings.app) {
-                  return {
-                    ...subscriptionDetails,
-                    clientId: application.settings.app.client_id,
-                  };
-                }
-              }
-            }
-
-            if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
+          } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
+            if (application.settings.oauth) {
               return {
                 ...subscriptionDetails,
-                consumerConfiguration: subscription.consumerConfiguration,
+                clientId: application.settings.oauth.client_id,
+                clientSecret: application.settings.oauth.client_secret,
+              };
+            } else if (application.settings.app) {
+              return {
+                ...subscriptionDetails,
+                clientId: application.settings.app.client_id,
               };
             }
-            return subscriptionDetails;
-          }),
-          catchError(_ => of(null)),
-        )
-      ),
-    )
+          }
+        }
+
+        if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
+          return {
+            ...subscriptionDetails,
+            consumerConfiguration: subscription.consumerConfiguration,
+          };
+        }
+        return subscriptionDetails;
+      }),
+      catchError(_ => of(null)),
+    );
   }
 
   private getPlanData$(
-    planId: string,
+    subscription: Subscription,
     permissions: UserApiPermissions,
   ): Observable<{
     name: string;
@@ -184,8 +155,9 @@ export default class SubscriptionDetailsComponent {
     usageConfiguration: PlanUsageConfiguration;
     planMode: PlanMode;
   }> {
+    const { plan: planId, api: apiId } = subscription;
     return of(permissions.PLAN?.includes('R') === true).pipe(
-      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId) : this.getPlanDataFromMetadata$(planId))),
+      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId, apiId) : this.getPlanDataFromMetadata$(planId, apiId))),
       map(plan => ({
         name: plan.name ?? '',
         securityType: plan.securityType ?? 'KEY_LESS',
@@ -195,13 +167,13 @@ export default class SubscriptionDetailsComponent {
     );
   }
 
-  private getPlanDataFromList$(planId: string): Observable<{
+  private getPlanDataFromList$(planId: string, apiId: string): Observable<{
     name?: string;
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
     planMode?: PlanMode;
   }> {
-    return this.planService.list(this.apiId).pipe(
+    return this.planService.list(apiId).pipe(
       map(({ data }) => {
         if (data && data.some(p => p.id === planId)) {
           const foundPlan = data.find(plan => plan.id === planId);
@@ -214,17 +186,17 @@ export default class SubscriptionDetailsComponent {
         }
         return {};
       }),
-      catchError(_ => this.getPlanDataFromMetadata$(planId)),
+      catchError(_ => this.getPlanDataFromMetadata$(planId, apiId)),
     );
   }
 
-  private getPlanDataFromMetadata$(planId: string): Observable<{
+  private getPlanDataFromMetadata$(planId: string, apiId: string): Observable<{
     name?: string;
     securityType?: PlanSecurityEnum;
     usageConfiguration?: PlanUsageConfiguration;
     planMode?: PlanMode;
   }> {
-    return this.subscriptionService.list({ apiId: this.apiId, statuses: [] }).pipe(
+    return this.subscriptionService.list({ apiId, statuses: [] }).pipe(
       catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
       map(({ metadata }) => {
         const planMetadata = metadata[planId];

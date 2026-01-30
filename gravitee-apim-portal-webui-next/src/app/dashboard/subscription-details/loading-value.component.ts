@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 import { Component, input } from '@angular/core';
+import {trigger, transition, style, animate, state} from '@angular/animations';
 
 @Component({
   selector: '[appLoadingValue]',
   standalone: true,
+  animations: [
+    trigger('fadeOut', [
+      transition(':leave', [
+        animate('200ms ease-out', style({ opacity: 0 }))
+      ])
+    ])
+  ],
   template: `
     @if (value()) {
       <ng-content></ng-content>
     } @else {
-      <span class="skeleton-label"></span>
+      <span class="skeleton-label" @fadeOut></span>
     }
   `,
   styles: [
     `
+      :host {
+        position: relative;
+      }
+
       .skeleton-label {
+        position: absolute;
         display: inline-block;
         height: 1em;
         width: 100%;
