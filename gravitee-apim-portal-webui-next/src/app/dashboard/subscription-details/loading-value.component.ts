@@ -16,7 +16,7 @@
 import { Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-loading-value',
+  selector: '[appLoadingValue]',
   standalone: true,
   template: `
     @if (value()) {
@@ -31,7 +31,7 @@ import { Component, input } from '@angular/core';
         display: inline-block;
         height: 1em;
         width: 100%;
-        max-width: 150px;
+        max-width: 300px; // TODO use a relative limit
         border-radius: 4px;
 
         // The Shimmer Effect
@@ -55,5 +55,5 @@ import { Component, input } from '@angular/core';
   ],
 })
 export class LoadingValueComponent {
-  value = input<any>();
+  value = input<unknown>(null, { alias: 'appLoadingValue' });
 }
