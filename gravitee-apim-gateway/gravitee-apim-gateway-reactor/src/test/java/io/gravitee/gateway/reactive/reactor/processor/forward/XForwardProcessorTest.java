@@ -190,6 +190,21 @@ public class XForwardProcessorTest extends AbstractProcessorTest {
         arg16Headers.set(HttpHeaderNames.X_FORWARDED_PREFIX, "/app");
         ForwardedTestData arg16Data = ForwardedTestData.builder().headers(arg16Headers).uri("/test").build();
 
+        HttpHeaders arg17Headers = HttpHeaders.create();
+        arg17Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43;proto=http;host=\"client-proxy-instance.com\"");
+        ForwardedTestData arg17Data = ForwardedTestData.builder().headers(arg17Headers).uri("/test").build();
+
+        HttpHeaders arg18Headers = HttpHeaders.create();
+        arg18Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43;proto=http;host=\"client-proxy-instance.com:8080\"");
+        ForwardedTestData arg18Data = ForwardedTestData.builder().headers(arg18Headers).uri("/test").build();
+
+        HttpHeaders arg19Headers = HttpHeaders.create();
+        arg19Headers.set(
+            HttpHeaderNames.FORWARDED,
+            "for=192.0.2.43;proto=http;host=\"client-proxy-instance1.com,client-proxy-instance2.com\""
+        );
+        ForwardedTestData arg19Data = ForwardedTestData.builder().headers(arg19Headers).uri("/test").build();
+
         return Stream.of(
             Arguments.of(arg1Data, "http://client-instance.com/test"),
             Arguments.of(arg2Data, "http://client-proxy-instance.com/test"),
@@ -206,7 +221,10 @@ public class XForwardProcessorTest extends AbstractProcessorTest {
             Arguments.of(arg13Data, "http://client-proxy-instance.com"),
             Arguments.of(arg14Data, "http://client-proxy-instance.com"),
             Arguments.of(arg15Data, "http://client-proxy-instance1.com:8080/app/test"),
-            Arguments.of(arg16Data, "http://client-proxy-instance1.com:8080/app/test")
+            Arguments.of(arg16Data, "http://client-proxy-instance1.com:8080/app/test"),
+            Arguments.of(arg17Data, "http://client-proxy-instance.com/test"),
+            Arguments.of(arg18Data, "http://client-proxy-instance.com:8080/test"),
+            Arguments.of(arg19Data, "http://client-proxy-instance1.com/test")
         );
     }
 }
