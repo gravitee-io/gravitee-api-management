@@ -16,21 +16,21 @@
 
 -->
 <header class="subscription-details__header">
-  <h1 class="m3-headline-medium">Subscription details</h1>
+  <h1 class="m3-headline-medium" i18n="@@subscriptionDetailsHeader">Subscription details</h1>
 </header>
 <section class="subscription-details__info">
   <dl>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">check_circle</span>
-        <span>Status</span>
+        <span i18n="@@subscriptionDetailsStatus">Status</span>
       </dt>
       <dd>{{ subscription()!.status }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">api</span>
-        <span>Subscribed API</span>
+        <span i18n="@@subscriptionDetailsSubscribedApi">Subscribed API</span>
       </dt>
       <dd>
         <a class="link-primary" [routerLink]="['/catalog/api/' + subscription()?.api]">{{ subscriptionDetails()?.apiName }}</a>
@@ -39,14 +39,14 @@
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">star</span>
-        <span>Plan</span>
+        <span i18n="@@subscriptionDetailsPlan">Plan</span>
       </dt>
       <dd>{{ subscriptionDetails()!.planName }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">web_asset</span>
-        <span>Application</span>
+        <span i18n="@@subscriptionDetailsApplication">Application</span>
       </dt>
       <dd>
         <a class="link-primary" [routerLink]="['/applications/' + subscription()?.application]">{{ subscriptionDetails()?.applicationName }}</a>
@@ -55,19 +55,19 @@
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">access_time_filled</span>
-        <span>Created</span>
+        <span i18n="@@subscriptionDetailsCreationDate">Created</span>
       </dt>
       <dd>{{ subscription()?.created_at }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">tag</span>
-        <span>ID</span>
+        <span i18n="@@subscriptionDetailsId">ID</span>
       </dt>
       <dd class="id-value">
         {{ subscription()?.id }}
         <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">
-          <span class="material-icons copy-icon" aria-label="Copy ID">content_copy</span>
+          <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>
         </button>
       </dd>
     </div>
