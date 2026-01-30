@@ -19,12 +19,14 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.model.ApiMetricsDetail;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
@@ -38,6 +40,7 @@ public class FindApiMetricsDetailUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApplicationCrudService applicationCrudService;
     private final PlanCrudService planCrudService;
+    private final InstanceQueryService instanceQueryService;
 
     public FindApiMetricsDetailUseCase.Output execute(ExecutionContext executionContext, FindApiMetricsDetailUseCase.Input input) {
         return analyticsQueryService
@@ -62,7 +65,7 @@ public class FindApiMetricsDetailUseCase {
         ExecutionContext executionContext,
         io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail apiMetricsDetail
     ) {
-        var result = ApiMetricsDetail.builder()
+        var builder = ApiMetricsDetail.builder()
             .timestamp(apiMetricsDetail.getTimestamp())
             .apiId(apiMetricsDetail.getApiId())
             .requestId(apiMetricsDetail.getRequestId())
@@ -86,10 +89,20 @@ public class FindApiMetricsDetailUseCase {
             .errorComponentName(apiMetricsDetail.getErrorComponentName())
             .errorComponentType(apiMetricsDetail.getErrorComponentType())
             .warnings(apiMetricsDetail.getWarnings())
-            .additionalMetrics(apiMetricsDetail.getAdditionalMetrics())
-            .build();
+            .additionalMetrics(apiMetricsDetail.getAdditionalMetrics());
 
-        return new Output(result);
+        // Fetch gateway instance details if gateway ID is available
+        if (apiMetricsDetail.getGateway() != null) {
+            try {
+                var instance = instanceQueryService.findById(executionContext, apiMetricsDetail.getGateway());
+                builder.gatewayHostname(instance.getHostname());
+                builder.gatewayIp(instance.getIp());
+            } catch (InstanceNotFoundException e) {
+                // If instance not found, leave hostname and ip as null
+            }
+        }
+
+        return new Output(builder.build());
     }
 
     private BaseApplicationEntity getApplication(String environmentId, String applicationId) {
