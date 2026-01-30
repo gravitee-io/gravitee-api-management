@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, DestroyRef, effect, inject, input, resource, signal} from '@angular/core';
+import {Component, DestroyRef, effect, inject, input, resource, Signal, signal} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -49,22 +49,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {UserApiPermissions} from "../../../entities/permission/permission";
 import {rxResource, toObservable, toSignal} from "@angular/core/rxjs-interop";
 
-interface SubscriptionDetailsData {
-  applicationName: string;
-  planName: string;
-  planSecurity: PlanSecurityEnum;
-  planUsageConfiguration: PlanUsageConfiguration;
-  subscriptionStatus: SubscriptionStatusEnum;
-  consumerStatus: SubscriptionConsumerStatusEnum;
-  failureCause?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  entrypointUrls?: string[];
-  clientId?: string;
-  clientSecret?: string;
-  consumerConfiguration?: SubscriptionConsumerConfiguration;
-}
-
 @Component({
   selector: 'app-subscription-details',
   imports: [MatButton, RouterModule, LoadingValueComponent],
@@ -91,137 +75,56 @@ export default class SubscriptionDetailsComponent {
   });
   api = rxResource({
     params: () => this.subscription.value(),
-    stream: ({ params }) => {
-      if (!params) {
-        return of(null);
-      }
-      return this.apiService.details(params.api);
-    }
+    stream: ({ params }) => params ? this.apiService.details(params.api) : of(null)
   });
-
-  subscriptionDetails = rxResource({
+  application = rxResource({
     params: () => this.subscription.value(),
-    stream: ({ params }) => this.loadDetails(params)
+    stream: ({ params }) => params ? this.applicationService.get(params.application) : of(null)
+  });
+  plan = rxResource({
+    params: () => this.subscription.value(),
+    stream: ({ params }) => params ? this.permissionsService.getApiPermissions(params.api).pipe(
+        switchMap((permissions) => this.getPlanData(params, permissions)),
+        catchError(_ => of(null)),
+      ) : of(null)
   });
 
-  private loadDetails(subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
-    if (!subscription) {
-      return of(null);
-    }
-    return forkJoin({
-      permissions: this.permissionsService.getApiPermissions(subscription.api),
-      application: this.applicationService.get(subscription.application),
-    }).pipe(
-      switchMap(({permissions, application}) =>
-          this.getPlanData$(subscription, permissions).pipe(map(plan => ({ plan, application }))),
-      ),
-      map(({ plan, application }) => {
-        const subscriptionDetails: SubscriptionDetailsData = {
-          applicationName: application.name ?? '',
-          planName: plan.name,
-          planSecurity: plan.securityType,
-          planUsageConfiguration: plan.usageConfiguration,
-          subscriptionStatus: subscription.status,
-          consumerStatus: subscription.consumerStatus,
-          failureCause: subscription.failureCause,
-          createdAt: subscription.created_at,
-          updatedAt: subscription.updated_at,
-        };
-
-        if (subscription.status === 'ACCEPTED') {
-          if (plan.securityType === 'API_KEY' && subscription.api) {
-            const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
-            const apiKey = apiKeyItem?.key ?? '';
-            const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
-
-            return {
-              ...subscriptionDetails,
-              apiKey,
-              apiKeyConfigUsername,
-            };
-          } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {
-            if (application.settings.oauth) {
-              return {
-                ...subscriptionDetails,
-                clientId: application.settings.oauth.client_id,
-                clientSecret: application.settings.oauth.client_secret,
-              };
-            } else if (application.settings.app) {
-              return {
-                ...subscriptionDetails,
-                clientId: application.settings.app.client_id,
-              };
-            }
-          }
-        }
-
-        if (plan.planMode === 'PUSH' && !!subscription.consumerConfiguration) {
-          return {
-            ...subscriptionDetails,
-            consumerConfiguration: subscription.consumerConfiguration,
-          };
-        }
-        return subscriptionDetails;
-      }),
-      catchError(_ => of(null)),
-    );
-  }
-
-  private getPlanData$(
+  private getPlanData(
     subscription: Subscription,
     permissions: UserApiPermissions,
   ): Observable<{
     name: string;
-    securityType: PlanSecurityEnum;
-    usageConfiguration: PlanUsageConfiguration;
-    planMode: PlanMode;
   }> {
     const { plan: planId, api: apiId } = subscription;
     return of(permissions.PLAN?.includes('R') === true).pipe(
-      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList$(planId, apiId) : this.getPlanDataFromMetadata$(planId, apiId))),
-      map(plan => ({
-        name: plan.name ?? '',
-        securityType: plan.securityType ?? 'KEY_LESS',
-        usageConfiguration: plan.usageConfiguration ?? {},
-        planMode: plan.planMode ?? 'STANDARD',
-      })),
+      switchMap(hasPermission => (hasPermission ? this.getPlanDataFromList(planId, apiId) : this.getPlanDataFromMetadata(planId, apiId))),
+      map(plan => ({ name: plan.name ?? '' })),
     );
   }
 
-  private getPlanDataFromList$(planId: string, apiId: string): Observable<{
+  private getPlanDataFromList(planId: string, apiId: string): Observable<{
     name?: string;
-    securityType?: PlanSecurityEnum;
-    usageConfiguration?: PlanUsageConfiguration;
-    planMode?: PlanMode;
   }> {
     return this.planService.list(apiId).pipe(
       map(({ data }) => {
         if (data && data.some(p => p.id === planId)) {
           const foundPlan = data.find(plan => plan.id === planId);
-          return {
-            name: foundPlan?.name,
-            securityType: foundPlan?.security,
-            usageConfiguration: foundPlan?.usage_configuration,
-            planMode: foundPlan?.mode,
-          };
+          return { name: foundPlan?.name };
         }
         return {};
       }),
-      catchError(_ => this.getPlanDataFromMetadata$(planId, apiId)),
+      catchError(_ => this.getPlanDataFromMetadata(planId, apiId)),
     );
   }
 
-  private getPlanDataFromMetadata$(planId: string, apiId: string): Observable<{
+  private getPlanDataFromMetadata(planId: string, apiId: string): Observable<{
     name?: string;
-    securityType?: PlanSecurityEnum;
-    usageConfiguration?: PlanUsageConfiguration;
-    planMode?: PlanMode;
   }> {
     return this.subscriptionService.list({ apiId, statuses: [] }).pipe(
       catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
       map(({ metadata }) => {
         const planMetadata = metadata[planId];
-        return { name: planMetadata?.name, securityType: planMetadata?.securityType, planMode: planMetadata?.planMode };
+        return { name: planMetadata?.name };
       }),
     );
   }

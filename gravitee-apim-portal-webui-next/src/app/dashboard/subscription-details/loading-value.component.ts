@@ -27,10 +27,10 @@ import {trigger, transition, style, animate, state} from '@angular/animations';
     ])
   ],
   template: `
-    @if (loading()) {
-      <span class="skeleton-label" @fadeOut></span>
-    } @else {
+    @if (loaded()) {
       <ng-content></ng-content>
+    } @else {
+      <span class="skeleton-label" @fadeOut></span>
     }
   `,
   styles: [
@@ -68,5 +68,5 @@ import {trigger, transition, style, animate, state} from '@angular/animations';
   ],
 })
 export class LoadingValueComponent {
-  loading = input<boolean>(true, { alias: 'appLoadingValue' });
+  loaded = input<boolean>(false, { alias: 'appLoadingValue' });
 }
