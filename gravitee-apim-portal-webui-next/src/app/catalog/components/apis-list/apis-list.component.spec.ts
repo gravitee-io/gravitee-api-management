@@ -155,8 +155,8 @@ describe('ApisListComponent', () => {
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(3);
 
-      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
-      expect(secondPageApi).toBeTruthy();
+      const secondPageApiTitle = await allHarnesses[2].getTitle();
+      expect(secondPageApiTitle).toEqual('second page api');
     });
 
     it('should call API list with search query', async () => {

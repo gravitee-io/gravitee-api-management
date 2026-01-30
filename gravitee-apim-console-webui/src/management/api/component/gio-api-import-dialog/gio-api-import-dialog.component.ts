@@ -70,7 +70,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
     private readonly snackBarService: SnackBarService,
   ) {
     this.policies = dialogData?.policies ?? [];
-    this.isUpdateMode = !!dialogData?.apiId ?? false;
+    this.isUpdateMode = !!dialogData?.apiId;
     this.updateModeApiId = dialogData?.apiId ?? undefined;
 
     this.configsForm = new UntypedFormGroup({

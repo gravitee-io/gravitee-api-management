@@ -58,7 +58,7 @@ public class PermissionsResource extends AbstractResource {
                 throw new ApiNotFoundException(apiId);
             }
             Map<String, char[]> permissions;
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
             permissions = membershipService.getUserMemberPermissions(executionContext, genericApiEntity, userId);
 
             return Response.ok(permissions).build();

@@ -30,6 +30,13 @@ a.internal-link {
   }
 }
 
+span.icon-with-background {
+  padding: 15px;
+  border-radius: 50%;
+  background: #{theme.$primary-highlight-color};
+  line-height: 1;
+}
+
 code {
   padding: 0.2em 0.4em;
   margin: 0;

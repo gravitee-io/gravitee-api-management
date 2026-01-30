@@ -93,7 +93,7 @@ describe('IntegrationOverviewComponent', () => {
     await init();
     expect(await componentHarness.getLoaderPanel()).not.toBeNull();
 
-    discardPeriodicTasks();
+    fixture.destroy();
   }));
 
   describe('permissions', () => {
@@ -162,7 +162,7 @@ describe('IntegrationOverviewComponent', () => {
       expect(await componentHarness.getTable()).toBeNull();
       expect(await componentHarness.getNoIntegrationMessage()).toContain('APIs are being ingested');
 
-      discardPeriodicTasks();
+      fixture.destroy();
     }));
 
     it('should display the current APIs list with a banner when ingestion is pending', fakeAsync(async (): Promise<void> => {
@@ -179,7 +179,7 @@ describe('IntegrationOverviewComponent', () => {
       expect(await componentHarness.rowsNumber()).toEqual(1);
       expect(await componentHarness.getPendingJobBanner()).not.toBeNull();
 
-      discardPeriodicTasks();
+      fixture.destroy();
     }));
 
     it('should display correct number of rows', fakeAsync(async (): Promise<void> => {

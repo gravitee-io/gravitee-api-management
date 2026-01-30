@@ -37,10 +37,12 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -61,6 +63,11 @@ class HttpSecurityChainTest {
 
     @Mock
     private HttpExecutionContext ctx;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+    }
 
     @Test
     void shouldExecuteSecurityPolicyWhenHasRelevantSecurityToken() {

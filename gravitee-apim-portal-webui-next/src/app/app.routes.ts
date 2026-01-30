@@ -59,6 +59,7 @@ import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { RegistrationComponent } from './registration/registration.component';
 
@@ -185,6 +186,18 @@ export const routes: Routes = [
         ],
       },
       ...apiRoutes,
+    ],
+  },
+  {
+    path: 'dashboard',
+    canActivateChild: [redirectGuard, authGuard],
+    component: DashboardComponent,
+    children: [
+      { path: '', redirectTo: 'subscriptions', pathMatch: 'full' },
+      {
+        path: 'subscriptions',
+        loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
+      },
     ],
   },
   {

@@ -84,7 +84,7 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
-      useValue: { dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS' },
+      useValue: { dateFormat: 'yyyy-MM-dd HH:mm:ss.SSS' },
     },
     provideCharts(withDefaultRegisterables()),
   ],

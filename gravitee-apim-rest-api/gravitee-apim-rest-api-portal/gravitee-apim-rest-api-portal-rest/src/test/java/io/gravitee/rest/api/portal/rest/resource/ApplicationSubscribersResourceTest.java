@@ -140,8 +140,12 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         api1.setId("api-1");
         io.gravitee.rest.api.model.v4.api.ApiEntity api2 = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api2.setId("api-2");
-        doReturn(api1).when(apiSearchService).findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-1"));
-        doReturn(api2).when(apiSearchService).findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-2"));
+        doReturn(api1)
+            .when(apiSearchService)
+            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-1"), eq(false), eq(false), eq(true));
+        doReturn(api2)
+            .when(apiSearchService)
+            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-2"), eq(false), eq(false), eq(true));
 
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         Api mapped1 = new Api().id("api-1").name("API 1").updatedAt(now);
@@ -199,8 +203,12 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         apiA.setId("api-A");
         io.gravitee.rest.api.model.v4.api.ApiEntity apiB = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiB.setId("api-B");
-        doReturn(apiA).when(apiSearchService).findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-A"));
-        doReturn(apiB).when(apiSearchService).findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-B"));
+        doReturn(apiA)
+            .when(apiSearchService)
+            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-A"), eq(false), eq(false), eq(true));
+        doReturn(apiB)
+            .when(apiSearchService)
+            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-B"), eq(false), eq(false), eq(true));
 
         Api mappedA = new Api().id("api-A").name("AAA");
         Api mappedB = new Api().id("api-B").name("BBB");

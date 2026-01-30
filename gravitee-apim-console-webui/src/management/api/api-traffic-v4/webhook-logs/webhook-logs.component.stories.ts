@@ -16,7 +16,7 @@
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { of } from 'rxjs';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { MatDialog } from '@angular/material/dialog';
 
 import { WebhookLogsComponent } from './webhook-logs.component';

@@ -15,12 +15,8 @@
     limitations under the License.
 
 -->
-<div
-  class="documentation-folder__sidenav"
-  [class.collapsed]="sidenavCollapsed()"
-  appIsMobile="documentation-folder__sidenav__mobile"
-  (triggerBreakpoint)="onTriggerResponsiveBreakpoint($event)">
-  <div class="documentation-folder__sidenav__content">
+<app-sidenav-layout [breadcrumbs]="breadcrumbs()">
+  <div sidenavContent class="documentation-folder__sidenav__content">
     @if (tree() && tree()!.length > 0) {
       <app-tree-component
         class="documentation-folder__sidenav__tree"
@@ -31,14 +27,7 @@
       <div class="documentation-folder__sidenav__empty-state" i18n="@@emptyItemsLabel">No items to show</div>
     }
   </div>
-  <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
-</div>
-<div class="documentation-folder__container">
-  <div class="documentation-folder__container__breadcrumbs">
-    <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
-    <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
-  </div>
-  <div class="documentation-folder__container__content">
+  <div mainContent>
     <app-navigation-item-content-viewer [pageContent]="folderData()?.selectedPageContent ?? null" />
   </div>
-</div>
+</app-sidenav-layout>

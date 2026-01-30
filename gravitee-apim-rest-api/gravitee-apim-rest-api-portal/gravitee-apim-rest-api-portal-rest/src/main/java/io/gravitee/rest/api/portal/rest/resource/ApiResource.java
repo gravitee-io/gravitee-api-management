@@ -95,8 +95,8 @@ public class ApiResource extends AbstractResource {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
+        if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             Api api = apiMapper.convert(executionContext, genericApiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
@@ -110,7 +110,7 @@ public class ApiResource extends AbstractResource {
             }
             if (include.contains(INCLUDE_PLANS)) {
                 List<Plan> plans = planSearchService
-                    .findByApi(executionContext, apiId, true)
+                    .findByApi(executionContext, genericApiEntity, true)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))

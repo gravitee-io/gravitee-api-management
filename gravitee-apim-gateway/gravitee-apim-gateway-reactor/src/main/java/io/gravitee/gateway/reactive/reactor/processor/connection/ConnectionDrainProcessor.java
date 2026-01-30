@@ -55,11 +55,13 @@ public class ConnectionDrainProcessor implements Processor {
                     if (sdf == null) {
                         sdf = new SimpleDateFormat("HH:mm:ss.SSS");
                     }
-                    log.debug(
-                        "Drain connection started at {} ({})",
-                        sdf.format(new Date(ctx.request().connectionTimestamp())),
-                        ctx.request().version().name()
-                    );
+                    ctx
+                        .withLogger(log)
+                        .debug(
+                            "Drain connection started at {} ({})",
+                            sdf.format(new Date(ctx.request().connectionTimestamp())),
+                            ctx.request().version().name()
+                        );
                 }
                 if (ctx.request().version() == HttpVersion.HTTP_2) {
                     ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY);

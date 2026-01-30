@@ -1611,6 +1611,7 @@ components:
         - PLATFORM
         - INTEGRATION
         - CLUSTER
+        - API_PRODUCT
     Member:
       type: object
       properties:

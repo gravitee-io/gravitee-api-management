@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Arrays;
@@ -62,20 +63,23 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private MembershipService membershipService;
+
     @Test
     public void shouldCreateSystemRole() throws TechnicalException {
         when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
             eq(REFERENCE_TYPE)
         );
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(7)).create(any());
+        verify(mockRoleRepository, times(8)).create(any());
     }
 
     @Test
@@ -120,7 +124,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
@@ -134,7 +138,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
             )
         );
-        verify(mockRoleRepository, times(5)).create(
+        verify(mockRoleRepository, times(6)).create(
             argThat(
                 o ->
                     o.getScope().equals(RoleScope.API) ||
@@ -142,7 +146,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
                     o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION)
+                    o.getScope().equals(RoleScope.INTEGRATION) ||
+                    o.getScope().equals(RoleScope.API_PRODUCT)
             )
         );
     }
@@ -181,14 +186,14 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(7)).findByScopeAndNameAndReferenceIdAndReferenceType(
+        verify(mockRoleRepository, times(8)).findByScopeAndNameAndReferenceIdAndReferenceType(
             any(),
             anyString(),
             eq(REFERENCE_ID),
             eq(REFERENCE_TYPE)
         );
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(5)).create(
+        verify(mockRoleRepository, times(6)).create(
             argThat(
                 o ->
                     o.getScope().equals(RoleScope.API) ||
@@ -196,7 +201,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
                     o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION)
+                    o.getScope().equals(RoleScope.INTEGRATION) ||
+                    o.getScope().equals(RoleScope.API_PRODUCT)
             )
         );
     }

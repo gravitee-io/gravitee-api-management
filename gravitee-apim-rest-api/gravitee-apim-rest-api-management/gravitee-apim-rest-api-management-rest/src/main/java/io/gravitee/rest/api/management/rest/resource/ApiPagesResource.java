@@ -97,7 +97,7 @@ public class ApiPagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
 
         if (
             Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) ||
@@ -114,7 +114,7 @@ public class ApiPagesResource extends AbstractResource {
                 .map(page -> {
                     // check if the page is used as GeneralCondition by an active Plan
                     // and update the PageEntity to transfer the information to the FrontEnd
-                    page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, api));
+                    page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, genericApiEntity));
                     return page;
                 })
                 .collect(Collectors.toList());

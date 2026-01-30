@@ -93,6 +93,7 @@ public class Event implements Serializable {
         ID("id"),
         API_ID("api_id"),
         SHARED_POLICY_GROUP_ID("shared_policy_group_id"),
+        API_PRODUCT_ID("api_product_id"),
         DICTIONARY_ID("dictionary_id"),
         ORIGIN("origin"),
         USER("user"),

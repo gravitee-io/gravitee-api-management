@@ -20,6 +20,8 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_CONTEXT_PATH;
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
@@ -47,6 +49,8 @@ import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
+import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -71,6 +75,8 @@ import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.logging.LogEntry;
+import io.gravitee.node.logging.LogEntryFactory;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
@@ -82,6 +88,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -96,6 +103,11 @@ import lombok.CustomLog;
 @CustomLog
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
+
+    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
+        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
+        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_REQUEST_METHOD))
+    );
 
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
@@ -223,6 +235,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {
@@ -399,14 +412,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
             // In case of any error exception, log original exception, execute api error processor chain and resume the execution
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
     }
 
     private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(() -> {
-            log.error("Unexpected error while handling request", throwable);
+            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             setApiResponseTimeMetric(ctx);
 
             ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());

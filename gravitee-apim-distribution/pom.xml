@@ -2061,6 +2061,46 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-ai-semantic-caching</artifactId>
+                    <version>${gravitee-policy-ai-semantic-caching.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-pii-filtering</artifactId>
+                    <version>${gravitee-policy-pii-filtering.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.resource</groupId>
+                    <artifactId>gravitee-resource-ai-model-token-classification</artifactId>
+                    <version>${gravitee-resource-ai-model-token-classification.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reporters -->
                 <dependency>
@@ -2159,6 +2199,45 @@
                     <groupId>io.gravitee.resource</groupId>
                     <artifactId>gravitee-resource-storage-azure-blob</artifactId>
                     <version>${gravitee-resource-storage-azure-blob.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.resource.ai.vectorstore</groupId>
+                    <artifactId>gravitee-resource-ai-vector-store-redis</artifactId>
+                    <version>${gravitee-resource-ai-vector-store-redis.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.resource.ai.vectorstore</groupId>
+                    <artifactId>gravitee-resource-ai-vector-store-aws-s3</artifactId>
+                    <version>${gravitee-resource-ai-vector-store-aws-s3.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.resource</groupId>
+                    <artifactId>gravitee-resource-ai-model-text-embedding</artifactId>
+                    <version>${gravitee-resource-ai-model-text-embedding.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

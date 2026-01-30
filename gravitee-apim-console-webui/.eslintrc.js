@@ -51,6 +51,7 @@ module.exports = {
     'no-useless-escape': 'error',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
+    '@angular-eslint/prefer-inject': 'off', // TODO: enable this rule when all constructor injections are replaced by Angular injection
     '@typescript-eslint/ban-types': 'error',
     '@typescript-eslint/no-unused-vars': 'off',
     'unused-imports/no-unused-imports': 'error',

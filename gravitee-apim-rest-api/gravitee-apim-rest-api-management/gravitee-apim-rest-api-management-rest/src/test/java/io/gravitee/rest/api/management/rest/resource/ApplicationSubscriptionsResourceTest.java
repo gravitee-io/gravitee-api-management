@@ -84,7 +84,9 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(foundApi);
 
         PlanEntity foundPlan = new PlanEntity();
         foundPlan.setSecurity(PlanSecurityType.OAUTH2);
@@ -128,7 +130,9 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
+        ).thenReturn(foundApi);
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         PlanSecurity planSecurity = new PlanSecurity();

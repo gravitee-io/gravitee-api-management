@@ -427,7 +427,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         if (apiIds.isEmpty()) return;
 
         for (String apiId : apiIds) {
-            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             searchEngineService.index(executionContext, genericApiEntity, false);
         }
@@ -1097,10 +1097,44 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return entity;
     }
 
+    private void verifyUserCanBeDeletedFromGroup(ExecutionContext executionContext, String groupId, String username) {
+        // Check if this group is the primary owner of any API and if the user to remove has the API primary owner role in this group
+        RoleEntity apiPORole = roleService
+            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
+
+        Set<MembershipEntity> groupApiPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.GROUP,
+            groupId,
+            MembershipReferenceType.API,
+            apiPORole.getId()
+        );
+
+        if (!groupApiPrimaryOwnerMemberships.isEmpty()) {
+            // Check if the user has the API primary owner role in this group
+            Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
+                MembershipReferenceType.GROUP,
+                groupId,
+                MembershipMemberType.USER,
+                username
+            );
+
+            boolean userHasApiPrimaryOwnerRole = userRolesInGroup
+                .stream()
+                .anyMatch(role -> role.getScope() == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(role.getName()));
+
+            if (userHasApiPrimaryOwnerRole) {
+                throw new StillPrimaryOwnerException(groupApiPrimaryOwnerMemberships.size(), ApiPrimaryOwnerMode.GROUP);
+            }
+        }
+    }
+
     @Override
     public void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username) {
         //check if user exist
         this.userService.findById(executionContext, username);
+
+        verifyUserCanBeDeletedFromGroup(executionContext, groupId, username);
 
         eventManager.publishEvent(
             ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
@@ -1156,7 +1190,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null, false);
         notifierService.trigger(
             executionContext,
             ApiHook.API_UPDATED,

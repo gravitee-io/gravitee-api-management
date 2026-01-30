@@ -67,7 +67,8 @@ public class Event {
         GATEWAY_ID("gateway_id"),
         ENVIRONMENTS_HRIDS_PROPERTY("environments_hrids"),
         ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids"),
-        SHARED_POLICY_GROUP_ID("shared_policy_group_id");
+        SHARED_POLICY_GROUP_ID("shared_policy_group_id"),
+        API_PRODUCT_ID("api_product_id");
 
         private static final Map<String, EventProperties> LABELS_MAP;
 

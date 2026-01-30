@@ -15,15 +15,25 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static java.util.Map.entry;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -32,10 +42,37 @@ public class DeleteApiProductUseCase {
 
     private final ApiProductCrudService apiProductCrudService;
     private final AuditDomainService auditService;
+    private final ApiProductQueryService apiProductQueryService;
+    private final EventCrudService eventCrudService;
+    private final EventLatestCrudService eventLatestCrudService;
 
     public void execute(Input input) {
+        // Fetch API Product before deletion for undeploy event
+        ApiProduct apiProduct = apiProductQueryService
+            .findById(input.apiProductId())
+            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+
+        // Publish undeploy event before deletion
+        publishUndeployEvent(input.auditInfo(), apiProduct);
+
         apiProductCrudService.delete(input.apiProductId());
         createAuditLog(input.apiProductId, input.auditInfo());
+    }
+
+    private void publishUndeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
+        final Event event = eventCrudService.createEvent(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            Set.of(auditInfo.environmentId()),
+            EventType.UNDEPLOY_API_PRODUCT,
+            apiProduct,
+            Map.ofEntries(
+                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
+            )
+        );
+
+        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
 
     public record Input(String apiProductId, AuditInfo auditInfo) {

@@ -136,7 +136,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
                 }
 
                 securityChainDiagnostic.markPlanHasNoMachingRule(planContext.planName());
-                // Remove any security  token as the selection rule don't match
+                // Remove any security token as the selection rule don't match
                 ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
                 return false;
             });
@@ -180,7 +180,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             }
             return false;
         } catch (Exception t) {
-            log.warn("An error occurred during subscription validation", t);
+            ctx.withLogger(log).warn("An error occurred during subscription validation", t);
             return false;
         }
     }

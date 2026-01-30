@@ -15,10 +15,17 @@
  */
 @use 'sass:map';
 @use '../../../../../scss/theme';
+@use '../../../../../scss/m3-adapter';
 
 $indent-base: 4px;
 $folder-indent-step: 26px;
 $indent-step: 26px;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
 
 .tree {
   &__row {
@@ -26,8 +33,11 @@ $indent-step: 26px;
     display: flex;
     overflow: hidden;
     align-items: center;
+    justify-content: flex-start;
     padding: 12px 4px 12px calc(#{$indent-base} + #{$folder-indent-step} + (var(--level) * #{$indent-step}));
+    border: none;
     border-radius: 5px;
+    background: none;
     cursor: pointer;
 
     &.folder {
@@ -37,26 +47,6 @@ $indent-step: 26px;
         padding-left: calc(#{$indent-base} + (var(--level) * #{$folder-indent-step}));
       }
     }
-
-    &.selected {
-      color: #{theme.$primary-main-color};
-
-      .tree__button.more-actions {
-        opacity: 1;
-        visibility: visible;
-      }
-    }
-
-    &:hover {
-      background-color: #{theme.$primary-highlight-color};
-    }
-  }
-
-  &__button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
   }
 
   &__icon {
@@ -79,7 +69,9 @@ $indent-step: 26px;
 
   &__link {
     display: inline-flex;
+    flex-direction: row-reverse;
     align-items: center;
+    justify-content: flex-end;
     color: unset;
     gap: 6px;
     text-decoration: none;

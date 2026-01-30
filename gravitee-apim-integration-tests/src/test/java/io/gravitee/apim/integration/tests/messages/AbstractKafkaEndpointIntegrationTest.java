@@ -41,7 +41,12 @@ import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducerRecord;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -57,6 +62,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.Arguments;
 import org.testcontainers.containers.KafkaContainer;
@@ -74,7 +80,9 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Container
-    protected static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
+    protected static final KafkaContainer kafka = new KafkaContainer(
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.1")
+    ).withStartupTimeout(java.time.Duration.ofMinutes(2));
 
     protected Vertx vertx = Vertx.vertx();
 
@@ -130,6 +138,7 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
 
     @BeforeEach
     void setUp() {
+        waitForKafkaReady();
         try (
             AdminClient adminClient = AdminClient.create(
                 ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
@@ -140,6 +149,29 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         } catch (Exception e) {
             // Ignore this
         }
+    }
+
+    /**
+     * Wait for Kafka broker to be fully ready to accept connections.
+     * Uses Awaitility with exponential backoff to retry connection attempts.
+     */
+    private void waitForKafkaReady() {
+        Awaitility.await()
+            .atMost(60, TimeUnit.SECONDS)
+            .pollInterval(1, TimeUnit.SECONDS)
+            .pollDelay(java.time.Duration.ZERO)
+            .ignoreExceptions()
+            .until(() -> {
+                try (
+                    AdminClient adminClient = AdminClient.create(
+                        ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
+                    )
+                ) {
+                    adminClient.listTopics().names().get(10, TimeUnit.SECONDS);
+                    return true;
+                }
+            });
+        log.info("Kafka broker is ready to accept connections");
     }
 
     protected void deleteTopic(final AdminClient adminClient, String topic)

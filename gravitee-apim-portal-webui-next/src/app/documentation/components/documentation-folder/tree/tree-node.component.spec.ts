@@ -53,7 +53,7 @@ describe('TreeNodeComponent', () => {
       expect(iconTextContent).toEqual('open_in_new');
 
       const labelBtn = fixture.debugElement.query(By.css('.tree__link'));
-      expect(labelBtn.nativeElement.textContent.trim()).toBe(`${node.label} ${iconTextContent}`);
+      expect(labelBtn.nativeElement.textContent.trim()).toBe(`${iconTextContent} ${node.label}`);
     });
 
     it('should redirect on click', async () => {
@@ -143,7 +143,7 @@ describe('TreeNodeComponent', () => {
 
       const innerLink = children[1].query(By.css('.tree__link'));
       expect(innerLink).toBeTruthy();
-      expect(innerLink.nativeElement.textContent.trim()).toBe(`${node.children![1].label} ${iconTextContent}`);
+      expect(innerLink.nativeElement.textContent.trim()).toBe(`${iconTextContent} ${node.children![1].label}`);
     });
 
     it('should toggle expansion on click', async () => {
@@ -171,11 +171,11 @@ describe('TreeNodeComponent', () => {
     await init({ node });
 
     const row = fixture.debugElement.query(By.css('.tree__row'));
-    expect(row.nativeElement.classList.contains('selected')).toBe(false);
+    expect(row.nativeElement.classList.contains('m3-selected-nav-item')).toBe(false);
 
     fixture.componentRef.setInput('selectedId', 'n1');
     fixture.detectChanges();
 
-    expect(row.nativeElement.classList.contains('selected')).toBe(true);
+    expect(row.nativeElement.classList.contains('m3-selected-nav-item')).toBe(true);
   });
 });

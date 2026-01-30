@@ -22,11 +22,10 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
-import { Breadcrumb, BreadcrumbsComponent } from './breadcrumb/breadcrumbs.component';
-import { SidenavToggleButtonComponent } from './sidenav-toggle-button/sidenav-toggle-button.component';
 import { TreeComponent } from './tree/tree.component';
+import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
-import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
+import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
@@ -44,15 +43,7 @@ enum NavParamsChange {
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [
-    MobileClassDirective,
-    TreeComponent,
-    GraviteeMarkdownViewerModule,
-    NavigationItemContentViewerComponent,
-    BreadcrumbsComponent,
-    SidenavToggleButtonComponent,
-    AsyncPipe,
-  ],
+  imports: [SidenavLayoutComponent, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent, AsyncPipe],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -65,7 +56,6 @@ export class DocumentationFolderComponent {
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
-  sidenavCollapsed = signal(false);
 
   constructor(
     private readonly router: Router,
@@ -76,16 +66,6 @@ export class DocumentationFolderComponent {
 
   onSelect(selectedPageId: string) {
     this.navigateToPage(selectedPageId);
-  }
-
-  onToggleSidenav() {
-    this.sidenavCollapsed.set(!this.sidenavCollapsed());
-  }
-
-  onTriggerResponsiveBreakpoint(breakpoint: 'mobile' | null) {
-    if ((breakpoint === null && this.sidenavCollapsed()) || (breakpoint !== null && !this.sidenavCollapsed())) {
-      this.onToggleSidenav();
-    }
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {

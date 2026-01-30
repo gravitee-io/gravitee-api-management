@@ -7,7 +7,7 @@ const config: StorybookConfig = {
     '../projects/gravitee-markdown/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
     '../projects/gravitee-dashboard/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
   ],
-  addons: ['@storybook/addon-links', '@storybook/addon-essentials', '@chromatic-com/storybook', '@storybook/addon-interactions'],
+  addons: ['@storybook/addon-links', '@storybook/addon-docs'],
   framework: {
     name: '@storybook/angular',
     options: {},

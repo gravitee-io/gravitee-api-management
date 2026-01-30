@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, input, output, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, output, viewChild } from '@angular/core';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +26,7 @@ import { CdkDragDrop, CdkDragStart, DragDropModule } from '@angular/cdk/drag-dro
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 export interface SectionNode {
   id: string;
@@ -83,6 +84,8 @@ type ProcessingNode = SectionNode & {
   styleUrls: ['./flat-tree.component.scss'],
 })
 export class FlatTreeComponent {
+  private permissionService = inject(GioPermissionService);
+
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
 
@@ -104,7 +107,15 @@ export class FlatTreeComponent {
 
   treeBase = viewChild(MatTree);
 
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+
   constructor() {
+    this.canCreate = this.permissionService.hasAnyMatching(['environment-documentation-c']);
+    this.canUpdate = this.permissionService.hasAnyMatching(['environment-documentation-u']);
+    this.canDelete = this.permissionService.hasAnyMatching(['environment-documentation-d']);
+
     effect(() => {
       const nodes = this.tree();
       const tree = this.treeBase();
@@ -159,6 +170,13 @@ export class FlatTreeComponent {
       itemType: node.type,
       node: this.mapFlatTreeNodeToSectionNode(node),
     });
+  }
+
+  canShowMoreActions(node: FlatTreeNode): boolean {
+    if (node.type === 'FOLDER' && this.canCreate) {
+      return true;
+    }
+    return this.canUpdate || this.canDelete;
   }
 
   hasChildren(node: FlatTreeNode): boolean {

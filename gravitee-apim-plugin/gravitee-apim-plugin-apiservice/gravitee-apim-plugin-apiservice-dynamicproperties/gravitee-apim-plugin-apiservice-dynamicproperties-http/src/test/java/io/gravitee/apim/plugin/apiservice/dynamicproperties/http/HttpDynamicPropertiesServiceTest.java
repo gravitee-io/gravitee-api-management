@@ -866,9 +866,11 @@ class HttpDynamicPropertiesServiceTest {
      * @param configuration the configuration needed to build the {@link CronTrigger}
      */
     private void advanceTimeBy(final int delay, HttpDynamicPropertiesService cut, HttpDynamicPropertiesServiceConfiguration configuration) {
-        testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
-        TimeProvider.overrideClock(Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS)), ZoneId.systemDefault()));
+        TimeProvider.overrideClock(
+            Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS) + delay), ZoneId.systemDefault())
+        );
         cut.cronTrigger = new CronTrigger(configuration.getSchedule());
+        testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
     }
 
     private HttpDynamicPropertiesService buildServiceFor(AbstractApi api) {

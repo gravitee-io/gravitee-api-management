@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -33,6 +34,8 @@ public interface PlanSearchService {
     Set<GenericPlanEntity> findByIdIn(final ExecutionContext executionContext, final Set<String> ids);
 
     Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId, boolean withFlow);
+
+    Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final GenericApiEntity api, boolean withFlow);
 
     List<GenericPlanEntity> search(
         final ExecutionContext executionContext,

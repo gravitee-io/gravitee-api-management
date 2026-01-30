@@ -266,7 +266,32 @@ public interface MembershipService {
 
     void deleteMemberForIntegration(ExecutionContext executionContext, String integrationId, String memberId);
 
+    void invalidateRoleCacheAndSendCommand(
+        String referenceType,
+        String referenceId,
+        String memberType,
+        String memberId,
+        ExecutionContext executionContext
+    );
+
+    /**
+     * Invalidates the cached permissions for a specific member.
+     * This should be called when a member's permissions are updated.
+     *
+     * @param referenceType the type of the reference (e.g., "API", "APPLICATION")
+     * @param referenceId the ID of the reference
+     * @param memberType the type of the member (e.g., "USER", "GROUP")
+     * @param memberId the ID of the member
+     */
     void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
+
+    /**
+     * Invalidates the cached permissions for all members with the given role.
+     * This should be called when a role's permissions are updated.
+     *
+     * @param roleId the ID of the role whose cache entries should be invalidated
+     */
+    void invalidateCacheForRole(String roleId);
 
     class MembershipReference {
 

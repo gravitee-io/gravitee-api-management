@@ -22,7 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { MatRadioModule } from '@angular/material/radio';
 
 import { GioSelectionListModule } from './gio-selection-list.module';

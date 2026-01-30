@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
+import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -97,7 +99,13 @@ public class ApiMembersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiMembersPermissions() {
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
+            GraviteeContext.getExecutionContext(),
+            api,
+            false,
+            false,
+            false
+        );
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();
@@ -200,6 +208,7 @@ public class ApiMembersResource extends AbstractResource {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         if (transferOwnership.getPoRole() != null) {
+            assertNoPrimaryOwnerReassignment(transferOwnership.getPoRole());
             roleService
                 .findByScopeAndName(RoleScope.API, transferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
                 .ifPresent(newRoles::add);
@@ -247,6 +256,12 @@ public class ApiMembersResource extends AbstractResource {
     private void isExistingApi() {
         if (!apiSearchService.exists(api)) {
             throw new ApiNotFoundException(api);
+        }
+    }
+
+    private void assertNoPrimaryOwnerReassignment(String poRole) {
+        if (PRIMARY_OWNER.name().equals(poRole)) {
+            throw new TransferOwnershipNotAllowedException(poRole);
         }
     }
 }

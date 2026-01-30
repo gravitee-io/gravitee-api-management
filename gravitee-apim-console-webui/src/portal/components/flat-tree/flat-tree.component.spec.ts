@@ -36,6 +36,7 @@ describe('FlatTreeComponent', () => {
   let fixture: ComponentFixture<FlatTreeComponent>;
   let component: FlatTreeComponent;
   let harness: FlatTreeComponentHarness;
+  let permissionService: GioPermissionService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -53,6 +54,7 @@ describe('FlatTreeComponent', () => {
     fixture = TestBed.createComponent(FlatTreeComponent);
     component = fixture.componentInstance;
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+    permissionService = TestBed.inject(GioPermissionService);
   });
 
   const makeItem = (
@@ -503,6 +505,174 @@ describe('FlatTreeComponent', () => {
       const treeTitles = await harness.getAllItemTitles();
       expect(treeTitles).toEqual(['Page 1', 'Folder 1']);
     }));
+  });
+
+  describe('Permissions', () => {
+    const setupPermissions = (permissions: string[]) => {
+      (permissionService.hasAnyMatching as jest.Mock).mockImplementation((requestedPermissions: string[]) => {
+        return requestedPermissions.some((p) => permissions.includes(p));
+      });
+    };
+
+    it('should show more actions button for folder if user has create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('f1', 'FOLDER', 'Folder 1', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('f1')();
+      expect(moreActionsButton).toBeTruthy();
+    });
+
+    it('should NOT show more actions button for page if user ONLY has create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('p1')();
+      expect(moreActionsButton).toBeNull();
+    });
+
+    it('should show more actions button for page if user has update permission', async () => {
+      setupPermissions(['environment-documentation-u']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('p2', 'PAGE', 'Page 2', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('p2')();
+      expect(moreActionsButton).toBeTruthy();
+    });
+
+    it('should show only "Add" options if user has only create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('f2', 'FOLDER', 'Folder 2', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('f2')();
+      await moreActionsButton.click();
+
+      const addPageButton = await harness.getMenuItemByText('Add Page');
+      const addFolderButton = await harness.getMenuItemByText('Add Folder');
+      const addLinkButton = await harness.getMenuItemByText('Add Link');
+      const editButton = await harness.getMenuItemByTestId('edit-node-button');
+      const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
+
+      expect(addPageButton).toBeTruthy();
+      expect(addFolderButton).toBeTruthy();
+      expect(addLinkButton).toBeTruthy();
+      expect(editButton).toBeNull();
+      expect(deleteButton).toBeNull();
+    });
+
+    const testCases = [
+      {
+        description: 'should NOT show divider if user has only create permission',
+        permissions: ['environment-documentation-c'],
+        expected: false,
+      },
+      {
+        description: 'should show divider if user has create and update permission',
+        permissions: ['environment-documentation-c', 'environment-documentation-u'],
+        expected: true,
+      },
+      {
+        description: 'should show divider if user has create and delete permission',
+        permissions: ['environment-documentation-c', 'environment-documentation-d'],
+        expected: true,
+      },
+    ];
+
+    testCases.forEach(({ description, permissions, expected }) => {
+      it(description, async () => {
+        setupPermissions(permissions);
+        fixture = TestBed.createComponent(FlatTreeComponent);
+        component = fixture.componentInstance;
+        harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+        const links = [makeItem('f2', 'FOLDER', 'Folder 2', 0)];
+        fixture.componentRef.setInput('links', links);
+
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const moreActionsButton = await harness['getMoreActionsButtonById']('f2')();
+        await moreActionsButton.click();
+
+        expect(await harness.hasDivider()).toBe(expected);
+      });
+    });
+
+    it('should show only "Edit" and publishing options if user has only update permission', async () => {
+      setupPermissions(['environment-documentation-u']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('p1')();
+      await moreActionsButton.click();
+
+      const editButton = await harness.getMenuItemByTestId('edit-node-button');
+      const unpublishButton = await harness.getMenuItemByTestId('unpublish-node-button');
+      const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
+
+      expect(editButton).toBeTruthy();
+      expect(unpublishButton).toBeTruthy();
+      expect(deleteButton).toBeNull();
+    });
+
+    it('should show only "Delete" option if user has only delete permission', async () => {
+      setupPermissions(['environment-documentation-d']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('p1')();
+      await moreActionsButton.click();
+
+      const editButton = await harness.getMenuItemByTestId('edit-node-button');
+      const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
+
+      expect(editButton).toBeNull();
+      expect(deleteButton).toBeTruthy();
+    });
   });
 
   function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {

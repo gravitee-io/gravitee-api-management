@@ -18,7 +18,7 @@ import * as yaml from 'js-yaml';
 import { dereference, validate } from '@scalar/openapi-parser';
 import { isEmpty, snakeCase } from 'lodash';
 
-import { MCPTool, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
+import { MCPTool, MCPToolAnnotations, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
 
 type OpenAPIObject = OpenAPIV3.Document | OpenAPIV3_1.Document;
 type OperationObject = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject;
@@ -26,6 +26,9 @@ type ParameterObject = OpenAPIV3.ParameterObject | OpenAPIV3_1.ParameterObject;
 type RequestBodyObject = OpenAPIV3.RequestBodyObject | OpenAPIV3_1.RequestBodyObject;
 type SchemaObject = OpenAPIV3.SchemaObject | OpenAPIV3_1.SchemaObject;
 type ReferenceObject = OpenAPIV3.ReferenceObject | OpenAPIV3_1.ReferenceObject;
+type ResponsesObject = OpenAPIV3.ResponsesObject | OpenAPIV3_1.ResponsesObject;
+type ResponseObject = OpenAPIV3.ResponseObject | OpenAPIV3_1.ResponseObject;
+type HeaderObject = OpenAPIV3.HeaderObject | OpenAPIV3_1.HeaderObject;
 
 type JsonSchema = {
   type: 'object';
@@ -38,6 +41,11 @@ type ParameterSchema = {
   queryParams: Record<string, SchemaObject>;
   headers: Record<string, SchemaObject>;
   required: string[];
+};
+
+type ResponseSchema = {
+  bodySchema: SchemaObject | null;
+  headers: Record<string, SchemaObject>;
 };
 
 type ErrorObject = {
@@ -138,7 +146,7 @@ function extractParameterSchema(parameters: (ParameterObject | ReferenceObject)[
   };
 }
 
-function extractBodySchema(requestBody?: RequestBodyObject | ReferenceObject): SchemaObject | null {
+function extractRequestBodySchema(requestBody?: RequestBodyObject | ReferenceObject): SchemaObject | null {
   if (!requestBody) return null;
 
   const typedRequestBody = requestBody as RequestBodyObject;
@@ -146,6 +154,68 @@ function extractBodySchema(requestBody?: RequestBodyObject | ReferenceObject): S
   if (!jsonSchema) return null;
 
   return jsonSchema;
+}
+
+function extractResponseSchema(responses?: ResponsesObject): ResponseSchema {
+  const result: ResponseSchema = {
+    bodySchema: null,
+    headers: {},
+  };
+
+  if (!responses) return result;
+
+  // Check 2xx status codes in order of preference (most common success codes with body)
+  const successStatusCodes = ['200', '201', '202'];
+
+  for (const statusCode of successStatusCodes) {
+    const response = responses[statusCode] as ResponseObject | undefined;
+    if (!response) continue;
+
+    // Extract body schema
+    const jsonSchema = response.content?.['application/json']?.schema as SchemaObject | undefined;
+    if (jsonSchema && !result.bodySchema) {
+      result.bodySchema = jsonSchema;
+    }
+
+    // Extract response headers
+    if (response.headers) {
+      for (const [headerName, headerDef] of Object.entries(response.headers)) {
+        const header = headerDef as HeaderObject;
+        if (header.schema && !result.headers[headerName]) {
+          result.headers[headerName] = {
+            ...(header.schema as SchemaObject),
+            description: header.description,
+          };
+        }
+      }
+    }
+
+    // If we found a body schema, use this response
+    if (result.bodySchema) break;
+  }
+
+  return result;
+}
+
+function extractAnnotations(operation: OperationObject): MCPToolAnnotations | null {
+  const op = operation as Record<string, unknown>;
+  const annotations: MCPToolAnnotations = {};
+
+  const annotationMapping: Partial<Record<keyof MCPToolAnnotations, { key: string; type: 'string' | 'boolean' }>> = {
+    title: { key: 'x-mcp-title', type: 'string' },
+    readOnlyHint: { key: 'x-mcp-readOnlyHint', type: 'boolean' },
+    destructiveHint: { key: 'x-mcp-destructiveHint', type: 'boolean' },
+    idempotentHint: { key: 'x-mcp-idempotentHint', type: 'boolean' },
+    openWorldHint: { key: 'x-mcp-openWorldHint', type: 'boolean' },
+  };
+
+  for (const [prop, { key, type }] of Object.entries(annotationMapping)) {
+    if (typeof op[key] === type) {
+      (annotations as any)[prop] = op[key];
+    }
+  }
+
+  return Object.keys(annotations).length > 0 ? annotations : null;
 }
 
 async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMcpToolsResult> {
@@ -202,9 +272,11 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
       const description = op.summary || op.description || `API for ${method.toUpperCase()} ${path}`;
       const paramSchema = extractParameterSchema(op.parameters || []);
-      const bodySchema = extractBodySchema(op.requestBody);
+      const bodySchema = extractRequestBodySchema(op.requestBody);
+      const responseSchema = extractResponseSchema(op.responses);
+      const annotations = extractAnnotations(op);
 
-      const mergedParameters: JsonSchema = {
+      const inputSchema: JsonSchema = {
         type: 'object',
         properties: {
           ...paramSchema.pathParams,
@@ -215,10 +287,25 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
         required: paramSchema.required,
       };
 
+      // Build merged outputSchema (similar to inputSchema)
+      let outputSchema: JsonSchema | null = null;
+      if (responseSchema.bodySchema || Object.keys(responseSchema.headers).length > 0) {
+        outputSchema = {
+          type: 'object',
+          properties: {
+            ...responseSchema.headers,
+            ...(responseSchema.bodySchema ? { bodySchema: responseSchema.bodySchema } : {}),
+          },
+          required: [],
+        };
+      }
+
       const toolDefinition: MCPToolDefinition = {
         name: toolName,
         description,
-        inputSchema: mergedParameters,
+        inputSchema: inputSchema,
+        ...(outputSchema ? { outputSchema } : {}),
+        ...(annotations ? { annotations } : {}),
       };
 
       const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);

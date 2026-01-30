@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { of } from 'rxjs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';

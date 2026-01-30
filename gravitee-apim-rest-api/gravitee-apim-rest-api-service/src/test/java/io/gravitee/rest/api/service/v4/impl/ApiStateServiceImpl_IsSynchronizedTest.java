@@ -33,6 +33,7 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -40,6 +41,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -242,8 +244,10 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false, false, false);
+        apiEntity.setPlans(Set.of(PlanEntity.builder().id("This plan should be ignored").build()));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
@@ -303,7 +307,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
@@ -368,7 +372,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -429,7 +433,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
         var apiFlows = List.of(mock(NativeFlow.class), mock(NativeFlow.class));
@@ -501,9 +505,12 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             GraviteeContext.getExecutionContext(),
             api,
             null,
+            false,
+            false,
             false
         );
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        apiEntity.setPlans(Set.of(io.gravitee.rest.api.model.PlanEntity.builder().id("This plan should be ignored").build()));
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
@@ -570,6 +577,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             GraviteeContext.getExecutionContext(),
             api,
             null,
+            false,
+            false,
             false
         );
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
@@ -640,7 +649,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
@@ -653,7 +662,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API but not published -> No redeploy needed
         planStaging.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId()), eq(false))).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
             Set.of(planPublished, planStaging)
         );
 
@@ -678,7 +687,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             1L
         );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any(), eq(false));
+        verify(planSearchService, times(1)).findByApi(any(), any(GenericApiEntity.class), eq(false));
     }
 
     @Test
@@ -721,7 +730,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             )
         ).thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false, false, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
@@ -729,7 +738,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API -> Redeploy needed
         planPublished.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId()), eq(false))).thenReturn(
+        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
             Set.of(planPublished)
         );
 
@@ -754,7 +763,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             1L
         );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any(), eq(false));
+        verify(planSearchService, times(1)).findByApi(any(), any(GenericApiEntity.class), eq(false));
     }
 
     @Test

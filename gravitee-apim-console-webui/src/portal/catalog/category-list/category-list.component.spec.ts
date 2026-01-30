@@ -22,6 +22,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { CategoryListComponent } from './category-list.component';
 import { CategoryListHarness } from './category-list.harness';
@@ -145,8 +146,9 @@ describe('CategoryListComponent', () => {
       expectGetCategoriesList();
     });
     it('should display empty message', async () => {
-      const tableRows = await componentHarness.getTableRows(harnessLoader);
-      expect(await tableRows[0].host().then((host) => host.text())).toContain('There are no categories for this environment.');
+      const table = await harnessLoader.getHarness(MatTableHarness);
+      const tableHost = await table.host();
+      expect(await tableHost.text()).toContain('There are no categories for this environment.');
     });
   });
 

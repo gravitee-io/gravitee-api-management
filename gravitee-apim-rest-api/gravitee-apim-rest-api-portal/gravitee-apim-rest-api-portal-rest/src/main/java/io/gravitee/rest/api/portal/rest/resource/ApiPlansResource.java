@@ -64,7 +64,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String username = getAuthenticatedUserOrNull();
 
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         // Public API can be accessed without permission
         if (!hasPermission(executionContext, API_PLAN, apiId, READ) && !Visibility.PUBLIC.equals(genericApiEntity.getVisibility())) {
@@ -72,7 +72,7 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         List<Plan> plans = planSearchService
-            .findByApi(executionContext, apiId, true)
+            .findByApi(executionContext, genericApiEntity, true)
             .stream()
             .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
             .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))

@@ -68,6 +68,8 @@ public class DeployerFactory {
 
     private final DistributedSyncService distributedSyncService;
 
+    private final io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,
@@ -113,5 +115,9 @@ public class DeployerFactory {
 
     public SharedPolicyGroupDeployer createSharedPolicyGroupDeployer() {
         return new SharedPolicyGroupDeployer(sharedPolicyGroupManager, distributedSyncService);
+    }
+
+    public ApiProductDeployer createApiProductDeployer() {
+        return new ApiProductDeployer(apiProductManager, distributedSyncService);
     }
 }

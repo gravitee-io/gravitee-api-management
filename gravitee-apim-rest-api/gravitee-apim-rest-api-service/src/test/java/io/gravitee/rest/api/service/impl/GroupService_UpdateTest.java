@@ -228,7 +228,7 @@ public class GroupService_UpdateTest {
                 Set.of("po-role-id")
             )
         ).thenReturn(Set.of("api-id-1"));
-        when(apiSearchService.findGenericById(any(), eq("api-id-1"))).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(any(), eq("api-id-1"), eq(false), eq(false), eq(true))).thenReturn(apiEntity);
         when(apiMetadataService.fetchMetadataForApi(any(), eq(apiEntity))).thenReturn(apiEntity);
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updateGroup);

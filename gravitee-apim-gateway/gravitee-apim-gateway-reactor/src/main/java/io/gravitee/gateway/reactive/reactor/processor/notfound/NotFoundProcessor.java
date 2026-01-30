@@ -44,7 +44,7 @@ public class NotFoundProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
-            log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
+            ctx.withLogger(log).warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
 
             // Init not found metrics
             Metrics metrics = ctx.metrics();

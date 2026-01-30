@@ -38,10 +38,10 @@ export class GioFormListenersTcpHostsHarness extends ComponentHarness {
   protected addButton = this.locatorFor(MatButtonHarness.with({ text: 'Add host' }));
 
   protected getListenerRowInputHost = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
-    this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=host]' }));
+    this.locatorFor(MatInputHarness.with({ ancestor: `.row-${rowIndex}`, selector: '[formControlName=host]' }));
 
   protected getListenerRowRemoveButton = (rowIndex: number): AsyncFactoryFn<MatButtonHarness | null> =>
-    this.locatorForOptional(MatButtonHarness.with({ ancestor: `tr[ng-reflect-name="${rowIndex}"]`, selector: '[aria-label="Delete"]' }));
+    this.locatorForOptional(MatButtonHarness.with({ ancestor: `.row-${rowIndex}`, selector: '[aria-label="Delete"]' }));
 
   public async getListenerRows(): Promise<
     {
