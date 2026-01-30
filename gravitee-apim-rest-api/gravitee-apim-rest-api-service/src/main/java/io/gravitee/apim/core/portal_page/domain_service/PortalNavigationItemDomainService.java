@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -38,6 +40,7 @@ public class PortalNavigationItemDomainService {
     private final PortalNavigationItemCrudService crudService;
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
+    private final ApiCrudService apiCrudService;
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
         int sanitizedOrder = this.sanitizeOrderForInsertion(
@@ -54,6 +57,11 @@ public class PortalNavigationItemDomainService {
         ) {
             final var defaultPageContent = pageContentCrudService.createDefault(organizationId, environmentId);
             createPortalNavigationItem.setPortalPageContentId(defaultPageContent.getId());
+        }
+
+        if (createPortalNavigationItem.getType() == PortalNavigationItemType.API && createPortalNavigationItem.getApiId() != null) {
+            Api api = apiCrudService.get(createPortalNavigationItem.getApiId());
+            createPortalNavigationItem.setTitle(api.getName());
         }
 
         final var portalNavigationItem = this.crudService.create(
