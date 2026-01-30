@@ -25,51 +25,65 @@
         <span class="material-icons">check_circle</span>
         <span i18n="@@subscriptionDetailsStatus">Status</span>
       </dt>
-      <dd>{{ subscription()!.status }}</dd>
+      <app-loading-value [value]="subscription()">
+        <dd>{{ subscription()?.status }}</dd>
+      </app-loading-value>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">api</span>
         <span i18n="@@subscriptionDetailsSubscribedApi">Subscribed API</span>
       </dt>
-      <dd>
-        <a class="link-primary" [routerLink]="['/catalog/api/' + subscription()?.api]">{{ subscriptionDetails()?.apiName }}</a>
-      </dd>
+      <app-loading-value [value]="api()">
+        <dd>
+          <a class="link-primary" [routerLink]="['/catalog/api/' + subscription()?.api]">{{ api()?.name }}</a>
+        </dd>
+      </app-loading-value>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">star</span>
         <span i18n="@@subscriptionDetailsPlan">Plan</span>
       </dt>
-      <dd>{{ subscriptionDetails()!.planName }}</dd>
+      <app-loading-value [value]="subscriptionDetails()">
+        <dd>
+          {{ subscriptionDetails()?.planName }}
+        </dd>
+      </app-loading-value>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">web_asset</span>
         <span i18n="@@subscriptionDetailsApplication">Application</span>
       </dt>
-      <dd>
-        <a class="link-primary" [routerLink]="['/applications/' + subscription()?.application]">{{ subscriptionDetails()?.applicationName }}</a>
-      </dd>
+      <app-loading-value [value]="subscriptionDetails()">
+        <dd>
+          <a class="link-primary" [routerLink]="['/applications/' + subscription()?.application]">{{ subscriptionDetails()?.applicationName }}</a>
+        </dd>
+      </app-loading-value>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">access_time_filled</span>
         <span i18n="@@subscriptionDetailsCreationDate">Created</span>
       </dt>
-      <dd>{{ subscription()?.created_at }}</dd>
+      <app-loading-value [value]="subscription()">
+        <dd>{{ subscription()?.created_at }}</dd>
+      </app-loading-value>
     </div>
     <div class="subscription-details__info__row">
       <dt>
         <span class="material-icons">tag</span>
         <span i18n="@@subscriptionDetailsId">ID</span>
       </dt>
-      <dd class="id-value">
-        {{ subscription()?.id }}
-        <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">
-          <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>
-        </button>
-      </dd>
+      <app-loading-value [value]="subscription()">
+        <dd class="id-value">
+          {{ subscription()?.id }}
+          <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">
+            <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>
+          </button>
+        </dd>
+      </app-loading-value>
     </div>
   </dl>
 </section>

@@ -18,6 +18,7 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import {ActivatedRoute, RouterModule} from '@angular/router';
+import { LoadingValueComponent } from './loading-value.component';
 import {PlanMode, PlanSecurityEnum, PlanUsageConfiguration} from "../../../entities/plan/plan";
 import {
   Subscription,
@@ -26,7 +27,7 @@ import {
   SubscriptionStatusEnum
 } from "../../../entities/subscription";
 import {ApiType} from "../../../entities/api/api";
-import {BehaviorSubject, catchError, forkJoin, map, Observable, switchMap, tap} from "rxjs";
+import {BehaviorSubject, catchError, defer, delay, forkJoin, map, Observable, switchMap, tap} from "rxjs";
 import {of} from "rxjs/internal/observable/of";
 import {SubscriptionService} from "../../../services/subscription.service";
 import {ApiService} from "../../../services/api.service";
@@ -35,7 +36,7 @@ import {PermissionsService} from "../../../services/permissions.service";
 import {PlanService} from "../../../services/plan.service";
 import {MatDialog} from "@angular/material/dialog";
 import {UserApiPermissions} from "../../../entities/permission/permission";
-import {toObservable, toSignal} from "@angular/core/rxjs-interop";
+import {rxResource, toObservable, toSignal} from "@angular/core/rxjs-interop";
 
 interface SubscriptionDetailsData {
   applicationName: string;
@@ -59,34 +60,30 @@ interface SubscriptionDetailsData {
 
 @Component({
   selector: 'app-subscription-details',
-  imports: [MatProgressBar, MatIcon, MatButton, RouterModule],
+  imports: [MatProgressBar, MatIcon, MatButton, RouterModule, LoadingValueComponent],
   templateUrl: './subscription-details.component.html',
   styleUrl: './subscription-details.component.scss',
+  standalone: true,
 })
 export default class SubscriptionDetailsComponent {
-  private subscriptionService = inject(SubscriptionService);
-  private applicationService = inject(ApplicationService);
-  private permissionsService = inject(PermissionsService);
-  private planService = inject(PlanService);
-  private apiService = inject(ApiService);
-  private destroyRef = inject(DestroyRef);
-
-  // public dialog: MatDialog;
+  private readonly subscriptionService = inject(SubscriptionService);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly permissionsService = inject(PermissionsService);
+  private readonly planService = inject(PlanService);
+  private readonly apiService = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   apiId!: string;
   subscriptionId = input.required<string>();
+  subscription = toSignal(toObservable(this.subscriptionId).pipe(
+    tap(id => console.log('id', id)),
+    switchMap(subscriptionId => this.subscriptionService.get(subscriptionId)),
+    tap(id => console.log('sub', id)),
+  ));
+  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscription).pipe(switchMap(this.loadDetails.bind(this))));
 
-  private route = inject(ActivatedRoute);
-
-  _subscriptionDetails = new BehaviorSubject<boolean>(true);
-
-  subscription = signal<Subscription | null>(null);
-
-  constructor(dialog: MatDialog) {
-    effect(() => {
-      console.log('subscriptionId', this.subscriptionId());
-    });
-  }
+  api = toSignal(
+    toObservable(this.subscription).pipe(switchMap(sub => sub ? this.apiService.details(sub.api) : of(null))));
 
   /**
    * status +
@@ -96,23 +93,18 @@ export default class SubscriptionDetailsComponent {
    * created +
    * id +
    */
-
-  subscriptionDetails = toSignal<SubscriptionDetailsData | null>(toObservable(this.subscriptionId).pipe(switchMap(this.loadDetails.bind(this))));
-
-
-  // Get the ID from the URL
-  // subscriptionId = this.route.snapshot.paramMap.get('subscriptionId');
-
-  copyToClipboard() {
-    navigator.clipboard.writeText(this.subscriptionId());
-    alert('copied!')
-    // Optional: Show a snackbar "Copied!"
-  }
-
-  private loadDetails(subscriptionId: string): Observable<SubscriptionDetailsData | null> {
-    return this.subscriptionService.get(subscriptionId).pipe(
-      tap(subscription => this.subscription.set(subscription)),
-      tap(subscription => this.apiId = subscription.api),
+  private loadDetails(_subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
+    if (!_subscription) {
+      return of(null);
+    }
+    console.log('_subscription', _subscription);
+    // this.apiResource.
+    // TODO handle subscription null or error
+    const subscription = _subscription!;
+    return defer(() => {
+      this.apiId = subscription.api;
+      return of(subscription);
+    }).pipe(
       switchMap(subscription =>
         forkJoin({
           subscription: of(subscription),
@@ -122,11 +114,11 @@ export default class SubscriptionDetailsComponent {
             forkJoin({
               subscription: of(subscription),
               plan: this.getPlanData$(subscription.plan, permissions),
-              api: this.apiService.details(this.apiId), // move up?
+              // api: this.apiService.details(this.apiId), // move up?
               application: this.applicationService.get(subscription.application),
             }),
           ),
-          map(({ subscription, plan, api, application }) => {
+          map(({ subscription, plan, application }) => {
             const subscriptionDetails: SubscriptionDetailsData = {
               applicationName: application.name ?? '',
               planName: plan.name,
@@ -134,12 +126,12 @@ export default class SubscriptionDetailsComponent {
               planUsageConfiguration: plan.usageConfiguration,
               subscriptionStatus: subscription.status,
               consumerStatus: subscription.consumerStatus,
-              apiType: api.type,
-              apiName: api.name,
+              // apiType: api.type,
+              // apiName: api.name,
               failureCause: subscription.failureCause,
               createdAt: subscription.created_at,
               updatedAt: subscription.updated_at,
-              entrypointUrls: api?.entrypoints,
+              // entrypointUrls: api?.entrypoints,
             };
 
             if (subscription.status === 'ACCEPTED') {
@@ -182,7 +174,6 @@ export default class SubscriptionDetailsComponent {
       ),
     )
   }
-
 
   private getPlanData$(
     planId: string,
@@ -240,5 +231,11 @@ export default class SubscriptionDetailsComponent {
         return { name: planMetadata?.name, securityType: planMetadata?.securityType, planMode: planMetadata?.planMode };
       }),
     );
+  }
+
+  copyToClipboard() {
+    navigator.clipboard.writeText(this.subscriptionId());
+    alert('copied!')
+    // Optional: Show a snackbar "Copied!"
   }
 }
