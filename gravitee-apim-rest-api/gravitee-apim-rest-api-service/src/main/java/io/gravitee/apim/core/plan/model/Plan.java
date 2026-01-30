@@ -101,9 +101,6 @@ public class Plan implements GenericPlanEntity {
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
     private ApiType apiType;
     private String referenceId;
-    private ReferenceType referenceType;
-
-    private String referenceId;
     private GenericPlanEntity.ReferenceType referenceType;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
