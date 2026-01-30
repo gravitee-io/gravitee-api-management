@@ -18,6 +18,9 @@ package io.gravitee.gateway.services.sync.process.common.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionConfiguration;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -25,12 +28,19 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class SubscriptionMapper {
 
+    public static final String METADATA_REFERENCE_ID = "referenceId";
+    public static final String METADATA_REFERENCE_TYPE = "referenceType";
+
     private final ObjectMapper objectMapper;
 
     public Subscription to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         try {
             Subscription subscription = new Subscription();
-            subscription.setApi(subscriptionModel.getApi());
+            // For API subscriptions: api=referenceId or legacy api. For API Product: api may be null
+            String api = subscriptionModel.getReferenceType() == SubscriptionReferenceType.API
+                ? (subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi())
+                : subscriptionModel.getApi();
+            subscription.setApi(api);
             subscription.setApplication(subscriptionModel.getApplication());
             subscription.setApplicationName(subscriptionModel.getApplicationName());
             subscription.setClientId(subscriptionModel.getClientId());
@@ -53,7 +63,14 @@ public class SubscriptionMapper {
                     objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class)
                 );
             }
-            subscription.setMetadata(subscriptionModel.getMetadata());
+            Map<String, String> metadata = subscriptionModel.getMetadata() != null ? new HashMap<>(subscriptionModel.getMetadata()) : new HashMap<>();
+            if (subscriptionModel.getReferenceId() != null) {
+                metadata.put(METADATA_REFERENCE_ID, subscriptionModel.getReferenceId());
+            }
+            if (subscriptionModel.getReferenceType() != null) {
+                metadata.put(METADATA_REFERENCE_TYPE, subscriptionModel.getReferenceType().name());
+            }
+            subscription.setMetadata(metadata);
             subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
             return subscription;
         } catch (Exception e) {

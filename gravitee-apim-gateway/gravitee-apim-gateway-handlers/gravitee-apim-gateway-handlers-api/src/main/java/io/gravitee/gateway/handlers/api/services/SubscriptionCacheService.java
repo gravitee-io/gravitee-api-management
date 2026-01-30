@@ -21,6 +21,8 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -39,9 +41,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SubscriptionCacheService implements SubscriptionService {
 
+    private static final String METADATA_REFERENCE_ID = "referenceId";
+    private static final String METADATA_REFERENCE_TYPE = "referenceType";
+    private static final String REFERENCE_TYPE_API_PRODUCT = "API_PRODUCT";
+
     private final ApiKeyService apiKeyService;
     private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
     private final ApiManager apiManager;
+    private final ApiProductRegistry apiProductRegistry;
 
     // Caches only contains active subscriptions
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
@@ -77,7 +84,9 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void register(final Subscription subscription) {
         if (ACCEPTED.name().equals(subscription.getStatus())) {
-            if (subscription.getClientCertificate() != null) {
+            if (isApiProductSubscription(subscription)) {
+                registerApiProductSubscription(subscription);
+            } else if (subscription.getClientCertificate() != null) {
                 registerFromClientCertificate(subscription);
             } else if (subscription.getClientId() != null) {
                 registerFromClientId(subscription);
@@ -87,6 +96,60 @@ public class SubscriptionCacheService implements SubscriptionService {
         } else {
             unregister(subscription);
         }
+    }
+
+    private boolean isApiProductSubscription(Subscription subscription) {
+        Map<String, String> metadata = subscription.getMetadata();
+        return metadata != null && REFERENCE_TYPE_API_PRODUCT.equals(metadata.get(METADATA_REFERENCE_TYPE));
+    }
+
+    private void registerApiProductSubscription(Subscription subscription) {
+        Map<String, String> metadata = subscription.getMetadata();
+        String apiProductId = metadata != null ? metadata.get(METADATA_REFERENCE_ID) : null;
+        String environmentId = subscription.getEnvironmentId();
+        if (apiProductId == null || environmentId == null) {
+            log.warn("API Product subscription [{}] missing referenceId or environmentId, skipping", subscription.getId());
+            return;
+        }
+        ReactableApiProduct apiProduct = apiProductRegistry.get(apiProductId, environmentId);
+        if (apiProduct == null || apiProduct.getApiIds() == null || apiProduct.getApiIds().isEmpty()) {
+            log.debug(
+                "API Product [{}] not found or has no APIs for subscription [{}], skipping",
+                apiProductId,
+                subscription.getId()
+            );
+            return;
+        }
+        for (String apiId : apiProduct.getApiIds()) {
+            Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
+            if (subscription.getClientCertificate() != null) {
+                registerFromClientCertificate(subscriptionForApi);
+            } else if (subscription.getClientId() != null) {
+                registerFromClientId(subscriptionForApi);
+            } else {
+                registerFromId(subscriptionForApi);
+            }
+        }
+    }
+
+    private Subscription createSubscriptionWithApi(Subscription source, String apiId) {
+        Subscription copy = new Subscription();
+        copy.setId(source.getId());
+        copy.setApi(apiId);
+        copy.setPlan(source.getPlan());
+        copy.setApplication(source.getApplication());
+        copy.setApplicationName(source.getApplicationName());
+        copy.setClientId(source.getClientId());
+        copy.setClientCertificate(source.getClientCertificate());
+        copy.setStatus(source.getStatus());
+        copy.setConsumerStatus(source.getConsumerStatus());
+        copy.setStartingAt(source.getStartingAt());
+        copy.setEndingAt(source.getEndingAt());
+        copy.setConfiguration(source.getConfiguration());
+        copy.setMetadata(source.getMetadata());
+        copy.setType(source.getType());
+        copy.setEnvironmentId(source.getEnvironmentId());
+        return copy;
     }
 
     private void registerFromClientCertificate(final Subscription subscription) {
@@ -206,13 +269,37 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getApi()
         );
         final String idKey = subscription.getId();
-        Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
-        if (removeSubscription != null) {
-            removeKeyForApi(subscription.getApi(), idKey);
-            unregisterFromClientId(removeSubscription);
-            unregisterFromClientCertificate(removeSubscription);
+        if (isApiProductSubscription(subscription)) {
+            unregisterApiProductSubscription(subscription);
+        } else {
+            Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
+            if (removeSubscription != null) {
+                removeKeyForApi(subscription.getApi(), idKey);
+                unregisterFromClientId(removeSubscription);
+                unregisterFromClientCertificate(removeSubscription);
+            }
+            unregisterFromClientId(subscription);
+            unregisterFromClientCertificate(subscription);
         }
-        // In case new one has different client id than the one in cache
+    }
+
+    private void unregisterApiProductSubscription(Subscription subscription) {
+        Map<String, String> metadata = subscription.getMetadata();
+        String apiProductId = metadata != null ? metadata.get(METADATA_REFERENCE_ID) : null;
+        String environmentId = subscription.getEnvironmentId();
+        final String idKey = subscription.getId();
+        cacheBySubscriptionId.remove(idKey);
+        if (apiProductId != null && environmentId != null) {
+            ReactableApiProduct apiProduct = apiProductRegistry.get(apiProductId, environmentId);
+            if (apiProduct != null && apiProduct.getApiIds() != null) {
+                for (String apiId : apiProduct.getApiIds()) {
+                    Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
+                    removeKeyForApi(apiId, idKey);
+                    unregisterFromClientId(subscriptionForApi);
+                    unregisterFromClientCertificate(subscriptionForApi);
+                }
+            }
+        }
         unregisterFromClientId(subscription);
         unregisterFromClientCertificate(subscription);
     }
