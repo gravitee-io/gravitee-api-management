@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import {Component, input, ResourceRef} from '@angular/core';
 import {trigger, transition, style, animate, state} from '@angular/animations';
 
 @Component({
@@ -27,10 +27,10 @@ import {trigger, transition, style, animate, state} from '@angular/animations';
     ])
   ],
   template: `
-    @if (value()) {
-      <ng-content></ng-content>
-    } @else {
+    @if (loading()) {
       <span class="skeleton-label" @fadeOut></span>
+    } @else {
+      <ng-content></ng-content>
     }
   `,
   styles: [
@@ -68,5 +68,5 @@ import {trigger, transition, style, animate, state} from '@angular/animations';
   ],
 })
 export class LoadingValueComponent {
-  value = input<unknown>(null, { alias: 'appLoadingValue' });
+  loading = input<boolean>(true, { alias: 'appLoadingValue' });
 }

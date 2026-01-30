@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, DestroyRef, effect, inject, input, signal} from '@angular/core';
+import {Component, DestroyRef, effect, inject, input, resource, signal} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -27,7 +27,18 @@ import {
   SubscriptionStatusEnum
 } from "../../../entities/subscription";
 import {Api, ApiType} from "../../../entities/api/api";
-import {BehaviorSubject, catchError, defer, delay, forkJoin, map, Observable, switchMap, tap} from "rxjs";
+import {
+  BehaviorSubject,
+  catchError,
+  defer,
+  delay,
+  firstValueFrom,
+  forkJoin,
+  map,
+  Observable,
+  switchMap,
+  tap
+} from "rxjs";
 import {of} from "rxjs/internal/observable/of";
 import {SubscriptionService} from "../../../services/subscription.service";
 import {ApiService} from "../../../services/api.service";
@@ -71,23 +82,27 @@ export default class SubscriptionDetailsComponent {
   private readonly router = inject(Router);
 
   subscriptionId = input.required<string>();
-  subscription = toSignal(toObservable(this.subscriptionId).pipe(switchMap(this.loadSubscriptionOrRedirect.bind(this))));
-  api = toSignal(toObservable(this.subscription).pipe(switchMap(this.loadApi.bind(this))));
-  subscriptionDetails = toSignal(toObservable(this.subscription).pipe(switchMap(this.loadDetails.bind(this))));
-
-  private loadSubscriptionOrRedirect(subscriptionId: string) {
-    return this.subscriptionService.get(subscriptionId).pipe(catchError(_ => {
+  subscription = rxResource({
+    params: () => this.subscriptionId(),
+    stream: ({ params }) => this.subscriptionService.get(params).pipe(catchError(_ => {
       this.router.navigate(['404']);
       return of();
     }))
-  }
-
-  private loadApi(subscription?: Subscription): Observable<Api | null> {
-    if (!subscription) {
-      return of(null);
+  });
+  api = rxResource({
+    params: () => this.subscription.value(),
+    stream: ({ params }) => {
+      if (!params) {
+        return of(null);
+      }
+      return this.apiService.details(params.api);
     }
-    return this.apiService.details(subscription.api);
-  }
+  });
+
+  subscriptionDetails = rxResource({
+    params: () => this.subscription.value(),
+    stream: ({ params }) => this.loadDetails(params)
+  });
 
   private loadDetails(subscription?: Subscription): Observable<SubscriptionDetailsData | null> {
     if (!subscription) {
@@ -98,7 +113,7 @@ export default class SubscriptionDetailsComponent {
       application: this.applicationService.get(subscription.application),
     }).pipe(
       switchMap(({permissions, application}) =>
-          this.getPlanData$(subscription,  permissions).pipe(map(plan => ({ plan, application }))),
+          this.getPlanData$(subscription, permissions).pipe(map(plan => ({ plan, application }))),
       ),
       map(({ plan, application }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
