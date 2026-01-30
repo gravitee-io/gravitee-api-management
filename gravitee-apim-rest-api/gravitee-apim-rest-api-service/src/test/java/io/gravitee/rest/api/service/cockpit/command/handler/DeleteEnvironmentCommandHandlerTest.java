@@ -401,7 +401,8 @@ public class DeleteEnvironmentCommandHandlerTest {
                     13,
                     "{\"pageId\":\"" + PAGE_CONTENT_ID + "\"}",
                     true,
-                    PortalNavigationItem.Visibility.PUBLIC
+                    PortalNavigationItem.Visibility.PUBLIC,
+                    null
                 )
             )
         );
@@ -588,7 +589,8 @@ public class DeleteEnvironmentCommandHandlerTest {
                     13,
                     "{}",
                     true,
-                    PortalNavigationItem.Visibility.PUBLIC
+                    PortalNavigationItem.Visibility.PUBLIC,
+                    null
                 )
             )
         );

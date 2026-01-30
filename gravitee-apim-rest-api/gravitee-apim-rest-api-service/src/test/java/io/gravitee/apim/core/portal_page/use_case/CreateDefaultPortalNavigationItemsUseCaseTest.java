@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -42,6 +43,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -50,7 +52,12 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        portalNavigationItemDomainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
+        portalNavigationItemDomainService = new PortalNavigationItemDomainService(
+            crudService,
+            queryService,
+            pageContentCrudService,
+            apiCrudService
+        );
         useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService);
     }
 

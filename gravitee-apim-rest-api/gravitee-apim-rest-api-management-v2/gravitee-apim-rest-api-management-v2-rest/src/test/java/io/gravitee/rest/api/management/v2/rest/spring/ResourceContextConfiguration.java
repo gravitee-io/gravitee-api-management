@@ -48,6 +48,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -968,12 +969,14 @@ public class ResourceContextConfiguration {
     public PortalNavigationItemDomainService portalNavigationItemDomainService(
         PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentCrudService portalPageContentCrudService
+        PortalPageContentCrudService portalPageContentCrudService,
+        ApiCrudService apiCrudService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
             portalNavigationItemsQueryService,
-            portalPageContentCrudService
+            portalPageContentCrudService,
+            apiCrudService
         );
     }
 

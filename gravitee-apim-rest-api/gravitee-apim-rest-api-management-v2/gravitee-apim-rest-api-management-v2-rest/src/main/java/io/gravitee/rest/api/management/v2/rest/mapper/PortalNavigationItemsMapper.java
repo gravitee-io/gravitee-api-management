@@ -19,10 +19,12 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
@@ -52,6 +54,9 @@ public interface PortalNavigationItemsMapper {
         io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
     );
 
+    @Mapping(target = "type", constant = "API")
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi map(io.gravitee.apim.core.portal_page.model.PortalNavigationApi api);
+
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
         return items.stream().map(this::map).toList();
     }
@@ -61,6 +66,7 @@ public interface PortalNavigationItemsMapper {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder -> new PortalNavigationItem(map(folder));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationItem(map(page));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
         };
     }
 
@@ -79,6 +85,9 @@ public interface PortalNavigationItemsMapper {
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
     );
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
+    );
 
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         BaseCreatePortalNavigationItem createPortalNavigationItem
@@ -87,6 +96,7 @@ public interface PortalNavigationItemsMapper {
             case CreatePortalNavigationFolder folder -> map(folder);
             case CreatePortalNavigationPage page -> map(page);
             case CreatePortalNavigationLink link -> map(link);
+            case CreatePortalNavigationApi api -> map(api);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
             );
@@ -108,6 +118,7 @@ public interface PortalNavigationItemsMapper {
             case UpdatePortalNavigationFolder folder -> map(folder);
             case UpdatePortalNavigationPage page -> map(page);
             case UpdatePortalNavigationLink link -> map(link);
+            case UpdatePortalNavigationApi api -> map(api);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
             );
@@ -124,5 +135,9 @@ public interface PortalNavigationItemsMapper {
 
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link
+    );
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api
     );
 }

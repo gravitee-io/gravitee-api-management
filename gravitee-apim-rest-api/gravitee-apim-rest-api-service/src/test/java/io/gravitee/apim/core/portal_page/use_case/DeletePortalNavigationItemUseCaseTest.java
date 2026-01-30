@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -45,6 +46,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     private final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService =
         new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     @BeforeEach
@@ -52,7 +54,8 @@ public class DeletePortalNavigationItemUseCaseTest {
         var domainService = new PortalNavigationItemDomainService(
             portalNavigationItemsCrudService,
             portalNavigationItemsQueryService,
-            portalPageContentCrudService
+            portalPageContentCrudService,
+            apiCrudService
         );
 
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(domainService, portalNavigationItemsQueryService);

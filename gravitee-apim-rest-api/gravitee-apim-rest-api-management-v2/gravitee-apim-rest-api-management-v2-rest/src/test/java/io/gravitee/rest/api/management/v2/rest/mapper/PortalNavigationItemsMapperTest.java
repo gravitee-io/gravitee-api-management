@@ -21,15 +21,14 @@ import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
-import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
-import java.net.URI;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -118,7 +117,36 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId()).isNull();
-            assertThat(result.getUrl().toString()).isEqualTo("https://example.com");
+            assertThat(result.getUrl()).isEqualTo("https://example.com");
+        }
+
+        @Test
+        void should_map_portal_navigation_api() {
+            UUID linkId = UUID.fromString("abcd1234-5678-9012-3456-789012345678");
+            var link = new PortalNavigationApi(
+                PortalNavigationItemId.of(linkId.toString()),
+                "org-id",
+                "env-id",
+                "My Api",
+                PortalArea.TOP_NAVBAR,
+                3,
+                "apiId",
+                true,
+                PortalVisibility.PUBLIC
+            );
+
+            var result = mapper.map(link);
+
+            assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi.class);
+            assertThat(result.getId()).isEqualTo(linkId);
+            assertThat(result.getOrganizationId()).isEqualTo("org-id");
+            assertThat(result.getEnvironmentId()).isEqualTo("env-id");
+            assertThat(result.getTitle()).isEqualTo("My Api");
+            assertThat(result.getType()).isEqualTo(PortalNavigationItemType.API);
+            assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
+            assertThat(result.getOrder()).isEqualTo(3);
+            assertThat(result.getParentId()).isNull();
+            assertThat(result.getApiId()).isEqualTo("apiId");
         }
 
         @Test
@@ -195,7 +223,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId().id()).isEqualTo(link.getParentId());
-            assertThat(result.getUrl()).isEqualTo(((CreatePortalNavigationLink) link).getUrl().toString());
+            assertThat(result.getUrl()).isEqualTo(((CreatePortalNavigationLink) link).getUrl());
         }
     }
 }
