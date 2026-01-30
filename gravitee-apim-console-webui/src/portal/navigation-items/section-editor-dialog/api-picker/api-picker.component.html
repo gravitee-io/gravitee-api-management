@@ -1,0 +1,107 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="api-search-description-box">
+  <div class="api-search-heading">APIs</div>
+  <div class="api-search-description">Pick the unpublished APIs you want to add to your navigation menu.</div>
+</div>
+
+<div class="filters">
+  <mat-form-field appearance="outline" class="filters__search">
+    <mat-icon matPrefix svgIcon="gio:search"></mat-icon>
+    <mat-label>Search</mat-label>
+    <input matInput type="search" [formControl]="searchControl" />
+    @if (searchControl.value) {
+      <button matSuffix mat-icon-button type="button" aria-label="Clear input" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+</div>
+
+@if (rows$ | async; as rows) {
+  <div class="table-container">
+    <table mat-table [dataSource]="rows">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox
+            [disabled]="row.isDisabled"
+            [checked]="isChecked(row.id)"
+            (change)="toggle(row.id, $event.checked, row.name)"
+            data-testid="api-picker-checkbox"
+          ></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>API name</th>
+        <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="path">
+        <th mat-header-cell *matHeaderCellDef>API path</th>
+        <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.path }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="labels">
+        <th mat-header-cell *matHeaderCellDef>Labels</th>
+        <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">
+          {{ (row.labels ?? []).join(', ') }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.disabled-row]="row.isDisabled"></tr>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPage($event)"
+  ></mat-paginator>
+}
+
+<div class="selected-panel" [class.selected-panel--collapsed]="!selectedPanelExpanded()">
+  <div class="selected-panel__header">
+    <div class="selected-panel__badge" [class.selected-panel__badge--zero]="selectedCount() === 0">{{ selectedCount() }}</div>
+    <div class="selected-panel__title">APIs selected</div>
+    <button mat-icon-button type="button" (click)="toggleSelectedPanel()" aria-label="Toggle selected APIs">
+      <mat-icon>{{ selectedPanelExpanded() ? 'expand_more' : 'chevron_right' }}</mat-icon>
+    </button>
+  </div>
+
+  @if (selectedPanelExpanded()) {
+    <div class="selected-panel__content">
+      @if (selectedCount() === 0) {
+        <div class="selected-panel__empty">Select an unpublished API to add it to your navigation.</div>
+      } @else {
+        <mat-chip-set class="selected-panel__chips">
+          @for (api of selectedApis(); track trackSelectedById($index, api)) {
+            <mat-chip [removable]="true" (removed)="removeSelected(api.id)">
+              {{ api.name }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip>
+          }
+        </mat-chip-set>
+      }
+    </div>
+  }
+</div>

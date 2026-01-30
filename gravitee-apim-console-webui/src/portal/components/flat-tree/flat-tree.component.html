@@ -139,6 +139,10 @@
             <mat-icon svgIcon="gio:link"></mat-icon>
             Add Link
           </button>
+          <button mat-menu-item (click)="onCreate(node, 'API')">
+            <mat-icon svgIcon="gio:link"></mat-icon>
+            Add API
+          </button>
           @if (canUpdate || canDelete) {
             <mat-divider></mat-divider>
           }
@@ -151,16 +155,18 @@
           Edit
         </button>
 
-        @if (isUnpublished(node)) {
-          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-            Publish
-          </button>
-        } @else {
-          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-            <mat-icon svgIcon="gio:eye-off"></mat-icon>
-            Unpublish
-          </button>
+        @if (node.type !== 'API') {
+          @if (isUnpublished(node)) {
+            <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+              Publish
+            </button>
+          } @else {
+            <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+              <mat-icon svgIcon="gio:eye-off"></mat-icon>
+              Unpublish
+            </button>
+          }
         }
       }
 

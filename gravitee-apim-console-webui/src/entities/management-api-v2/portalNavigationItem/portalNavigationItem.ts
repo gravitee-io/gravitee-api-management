@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
@@ -40,7 +40,11 @@ export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
   url: string;
 }
 
-export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink;
+export interface PortalNavigationApi extends BasePortalNavigationItem<'API'> {
+  apiId: string;
+}
+
+export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink | PortalNavigationApi;
 
 interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -61,7 +65,15 @@ export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem
   url: string;
 }
 
-export type NewPortalNavigationItem = NewPagePortalNavigationItem | NewFolderPortalNavigationItem | NewLinkPortalNavigationItem;
+export interface NewApiPortalNavigationItem extends BaseNewPortalNavigationItem<'API'> {
+  apiId: string;
+}
+
+export type NewPortalNavigationItem =
+  | NewPagePortalNavigationItem
+  | NewFolderPortalNavigationItem
+  | NewLinkPortalNavigationItem
+  | NewApiPortalNavigationItem;
 
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -80,4 +92,12 @@ export interface UpdateLinkPortalNavigationItem extends BaseUpdatePortalNavigati
   url: string;
 }
 
-export type UpdatePortalNavigationItem = UpdatePagePortalNavigationItem | UpdateFolderPortalNavigationItem | UpdateLinkPortalNavigationItem;
+export interface UpdateApiPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API'> {
+  apiId: string;
+}
+
+export type UpdatePortalNavigationItem =
+  | UpdatePagePortalNavigationItem
+  | UpdateFolderPortalNavigationItem
+  | UpdateLinkPortalNavigationItem
+  | UpdateApiPortalNavigationItem;

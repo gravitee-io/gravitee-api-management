@@ -71,18 +71,22 @@
           </div>
 
           <div class="panel-header__title__badges">
-            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
-              {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-            </span>
+            @if (!isSelectedApiItem()) {
+              <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
+                {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+              </span>
+            }
             <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
           </div>
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
         <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
-        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
-          {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
-        </button>
+        @if (!isSelectedApiItem()) {
+          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
+            {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+          </button>
+        }
         <button mat-flat-button color="primary" [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
       </div>
     </header>

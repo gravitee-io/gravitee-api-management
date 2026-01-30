@@ -19,6 +19,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { of } from 'rxjs';
 
 import { SectionEditorDialogHarness } from './section-editor-dialog.harness';
 import {
@@ -28,6 +30,7 @@ import {
   SectionEditorDialogResult,
 } from './section-editor-dialog.component';
 
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { GioTestingModule } from '../../../shared/testing';
 import { PortalNavigationItemType, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
 
@@ -70,6 +73,19 @@ describe('SectionEditorDialogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, GioTestingModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: ApiV2Service,
+          useValue: {
+            search: jest.fn().mockReturnValue(
+              of({
+                data: [{ id: 'api-1', name: 'API 1', listeners: [{ paths: [{ path: '/api-1' }] }] }],
+                pagination: { totalCount: 1 },
+              }),
+            ),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -217,6 +233,46 @@ describe('SectionEditorDialogComponent', () => {
         fixture.detectChanges();
 
         expect(component.dialogValue).toBeUndefined();
+      });
+    });
+    describe('when adding an api', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput('type', 'API');
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should not allow submit when no api is selected', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should save selected api ids', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        let checkboxes: MatCheckboxHarness[] = [];
+        for (let attempt = 0; attempt < 10 && checkboxes.length === 0; attempt++) {
+          checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid="api-picker-checkbox"]' }));
+          if (checkboxes.length === 0) {
+            await new Promise((r) => setTimeout(r, 0));
+            fixture.detectChanges();
+          }
+        }
+
+        expect(checkboxes.length).toBeGreaterThan(0);
+
+        await checkboxes[0].check();
+        fixture.detectChanges();
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue?.visibility).toEqual('PUBLIC');
+        expect(component.dialogValue?.title).toEqual('');
+        expect(Array.isArray(component.dialogValue?.apiIds)).toEqual(true);
+        expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(0);
+        expect(component.dialogValue?.apiId).toEqual(component.dialogValue?.apiIds?.[0]);
       });
     });
   });

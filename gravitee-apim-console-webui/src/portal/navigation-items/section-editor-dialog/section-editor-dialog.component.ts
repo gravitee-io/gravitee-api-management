@@ -24,7 +24,9 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
+import { ApiPickerComponent } from './api-picker/api-picker.component';
+
+import { PortalNavigationApi, PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
@@ -46,18 +48,22 @@ export interface SectionEditorDialogResult {
   title: string;
   visibility: PortalVisibility;
   url?: string;
+  apiId?: string;
+  apiIds?: string[];
 }
 
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
   url?: FormControl<string>; // Optional for 'LINK' type
+  apiIds?: FormControl<string[]>; // Optional for 'API' type
 }
 
 interface SectionFormValues {
   title: string;
   isPrivate: boolean;
   url?: string;
+  apiIds?: string[];
 }
 
 type SectionForm = FormGroup<SectionFormControls>;
@@ -74,15 +80,13 @@ type SectionForm = FormGroup<SectionFormControls>;
     TitleCasePipe,
     GioBannerModule,
     LowerCasePipe,
+    ApiPickerComponent,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
 })
 export class SectionEditorDialogComponent implements OnInit {
-  form: SectionForm = new FormGroup<SectionFormControls>({
-    title: new FormControl<string>('', { validators: [Validators.required], nonNullable: true }),
-    isPrivate: new FormControl(false),
-  });
+  form!: SectionForm;
   public initialFormValues: SectionFormValues;
 
   public type: PortalNavigationItemType;
@@ -96,11 +100,15 @@ export class SectionEditorDialogComponent implements OnInit {
   constructor() {
     this.type = this.data.type;
     this.mode = this.data.mode;
+
+    const typeLabel = this.type === 'API' ? 'API' : this.type.toLowerCase();
+
     if (this.data.mode === 'create') {
-      this.title = `Add ${this.type.toLowerCase()}`;
+      const createLabel = this.type === 'API' ? 'APIs' : typeLabel;
+      this.title = `Add ${createLabel}`;
       this.buttonTitle = 'Add';
     } else {
-      this.title = `Edit "${this.data.existingItem.title}" ${this.type.toLowerCase()}`;
+      this.title = `Edit "${this.data.existingItem.title}" ${typeLabel}`;
       this.buttonTitle = 'Save';
     }
   }
@@ -115,7 +123,18 @@ export class SectionEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.form = new FormGroup<SectionFormControls>({
+      title: new FormControl<string>('', { nonNullable: true }),
+      isPrivate: new FormControl(false),
+    });
+
     this.addTypeSpecificControls();
+
+    if (this.type !== 'API') {
+      this.form.controls.title.addValidators([Validators.required]);
+      this.form.controls.title.updateValueAndValidity({ emitEvent: false });
+    }
+
     this.prefillExistingItem();
 
     this.initialFormValues = this.form.getRawValue();
@@ -131,12 +150,23 @@ export class SectionEditorDialogComponent implements OnInit {
         }),
       );
     }
+
+    if (this.type === 'API') {
+      this.form.addControl(
+        'apiIds',
+        new FormControl<string[]>([], {
+          validators: [Validators.required],
+          nonNullable: true,
+        }),
+      );
+    }
   }
 
   private prefillExistingItem(): void {
     if (this.data.mode === 'edit') {
       this.form.patchValue({
         ...(this.data.existingItem.type === 'LINK' ? { url: this.data.existingItem.url } : {}),
+        ...(this.data.existingItem.type === 'API' ? { apiIds: [(this.data.existingItem as PortalNavigationApi).apiId] } : {}),
 
         title: this.data.existingItem.title,
         isPrivate: this.data.existingItem.visibility === 'PRIVATE',
@@ -147,10 +177,15 @@ export class SectionEditorDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.form.valid) {
       const formValues = this.form.getRawValue();
+
+      const apiIds = this.type === 'API' ? (formValues.apiIds ?? []) : [];
+      const apiId = this.type === 'API' ? apiIds[0] : undefined;
+
       this.dialogRef.close({
-        title: formValues.title,
+        title: this.type === 'API' ? '' : formValues.title,
         visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
+        ...(this.type === 'API' ? { apiIds, apiId } : {}),
       });
     }
   }

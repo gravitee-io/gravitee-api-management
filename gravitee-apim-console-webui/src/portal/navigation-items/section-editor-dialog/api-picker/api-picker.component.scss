@@ -1,0 +1,111 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.api-search-description-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 8px;
+}
+
+.api-search-heading,
+.selected-panel__title {
+  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
+  font-weight: 700;
+}
+
+.api-search-description,
+.selected-panel__empty {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  &__search {
+    flex: 1;
+  }
+}
+
+.table-container {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-mdc-header-cell {
+  background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter10');
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+}
+
+td.mat-mdc-cell,
+th.mat-mdc-header-cell {
+  padding: 10px 16px;
+}
+
+.disabled {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+}
+
+.disabled-row {
+  opacity: 0.7;
+}
+
+.selected-panel {
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+  border-radius: 8px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__badge {
+    min-width: 26px;
+    padding: 4px 8px;
+    border-radius: 16px;
+    background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+
+    &--zero {
+      background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+    }
+  }
+
+  &__title {
+    flex: 1;
+    font-weight: 700;
+  }
+
+  &__content {
+    padding: 8px 0;
+  }
+
+  &__chips {
+    display: block;
+  }
+
+  &__empty {
+    font-weight: 500;
+  }
+
+  &--collapsed {
+    .selected-panel__content {
+      display: none;
+    }
+  }
+}
