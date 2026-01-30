@@ -134,4 +134,22 @@ export default class SubscriptionDetailsComponent {
     alert('copied!')
     // Optional: Show a snackbar "Copied!"
   }
+
+  /**
+   * TODO
+   * mutualize with the table
+   * create a pipe
+   * use i18n
+   */
+  getStatusLabel(status?: string): string {
+    const statusMap: Record<string, string> = {
+      ACCEPTED: 'Active',
+      PENDING_ACTIVATION: 'Pending activation',
+      PAUSED: 'Suspended',
+      CLOSED: 'Closed',
+      PENDING: 'Pending',
+      REJECTED: 'Rejected',
+    };
+    return status ? (statusMap[status] ?? status) : '';
+  }
 }

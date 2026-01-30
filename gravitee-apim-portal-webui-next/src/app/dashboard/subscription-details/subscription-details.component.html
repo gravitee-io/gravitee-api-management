@@ -25,7 +25,7 @@
         <span class="material-icons">check_circle</span>
         <span i18n="@@subscriptionDetailsStatus">Status</span>
       </dt>
-      <dd [appLoadingValue]="subscription.hasValue()">{{ subscription.value()?.status }}</dd>
+      <dd [appLoadingValue]="subscription.hasValue()">{{ getStatusLabel(subscription.value()?.status) }}</dd>
     </div>
     <div class="subscription-details__info__row">
       <dt>

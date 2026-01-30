@@ -70,3 +70,4 @@ import {trigger, transition, style, animate, state} from '@angular/animations';
 export class LoadingValueComponent {
   loaded = input<boolean>(false, { alias: 'appLoadingValue' });
 }
+// TODO move this component to a more appropriate place
