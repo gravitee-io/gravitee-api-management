@@ -92,4 +92,9 @@ public class NoOpManagementRepositoryConfiguration {
     public SharedPolicyGroupRepository sharedPolicyGroupRepository() {
         return new NoOpSharedPolicyGroupRepository();
     }
+
+    @Bean
+    public ApiProductsRepository apiProductsRepository() {
+        return new NoOpApiProductsRepository();
+    }
 }

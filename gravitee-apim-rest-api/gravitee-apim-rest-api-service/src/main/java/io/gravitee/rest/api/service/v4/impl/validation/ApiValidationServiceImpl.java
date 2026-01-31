@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -78,6 +79,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final PlanValidationService planValidationService;
     private final ApiServicePluginService apiServicePluginService;
     private final FlowValidationDomainService flowValidationDomainService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -90,7 +92,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
         ApiServicePluginService apiServicePluginService,
-        FlowValidationDomainService flowValidationDomainService
+        FlowValidationDomainService flowValidationDomainService,
+        ApiProductQueryService apiProductQueryService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -103,6 +106,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.planValidationService = planValidationService;
         this.apiServicePluginService = apiServicePluginService;
         this.flowValidationDomainService = flowValidationDomainService;
+        this.apiProductQueryService = apiProductQueryService;
     }
 
     @Override
@@ -273,6 +277,12 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
+        Set<io.gravitee.apim.core.api_product.model.ApiProduct> apiProducts = apiProductQueryService.findByApiId(apiId);
+        boolean isPartOfApiProduct = apiProducts != null && !apiProducts.isEmpty();
+        if (isPartOfApiProduct) {
+            return true;
+        }
+
         return planSearchService
             .findByApi(executionContext, apiId, false)
             .stream()

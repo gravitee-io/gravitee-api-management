@@ -38,6 +38,7 @@ import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.vertx.core.Vertx;
 import java.util.List;
 import org.mockito.Mockito;
@@ -117,6 +118,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public EnvironmentRepository environmentRepository() {
             return Mockito.mock(EnvironmentRepository.class);
+        }
+
+        @Bean
+        public ApiProductsRepository apiProductsRepository() {
+            return Mockito.mock(ApiProductsRepository.class);
         }
 
         @Bean

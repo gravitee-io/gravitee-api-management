@@ -109,6 +109,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private FlowValidationDomainService flowValidationDomainService;
 
+    @Mock
+    private io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService;
+
     @Before
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -122,7 +125,8 @@ public class ApiValidationServiceImplTest {
             planSearchService,
             planValidationService,
             apiServicePluginService,
-            flowValidationDomainService
+            flowValidationDomainService,
+            apiProductQueryService
         );
     }
 
@@ -382,7 +386,36 @@ public class ApiValidationServiceImplTest {
         when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
             Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
         );
+        when(apiProductQueryService.findByApiId(apiId)).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void canDeployWithNoPlanButPartOfApiProduct() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(apiProductQueryService.findByApiId(apiId)).thenReturn(Set.of(mock(io.gravitee.apim.core.api_product.model.ApiProduct.class)));
+        assertTrue(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void cannotDeployWithNoPlanAndNotPartOfApiProduct() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(Set.of());
+        when(apiProductQueryService.findByApiId(apiId)).thenReturn(Set.of());
+        assertFalse(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void canDeployWithPlanAndPartOfApiProduct() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(apiProductQueryService.findByApiId(apiId)).thenReturn(Set.of(mock(io.gravitee.apim.core.api_product.model.ApiProduct.class)));
+        assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
     @Test

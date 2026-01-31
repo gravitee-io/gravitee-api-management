@@ -33,6 +33,8 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
@@ -41,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +68,7 @@ public class ApiManagerImpl implements ApiManager {
     private final EventManager eventManager;
     private final GatewayConfiguration gatewayConfiguration;
     private final LicenseManager licenseManager;
+    private final ApiProductsRepository apiProductsRepository;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
 
@@ -72,11 +76,13 @@ public class ApiManagerImpl implements ApiManager {
         final EventManager eventManager,
         final GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
-        final DataEncryptor dataEncryptor
+        final DataEncryptor dataEncryptor,
+        final ApiProductsRepository apiProductsRepository
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
+        this.apiProductsRepository = apiProductsRepository;
         deployers = Map.of(
             Api.class,
             new ApiDeployer(gatewayConfiguration, dataEncryptor),
@@ -264,21 +270,38 @@ public class ApiManagerImpl implements ApiManager {
                 for (String plan : plans) {
                     log.debug("\t- {}", plan);
                 }
-                eventManager.publishEvent(
-                    SecretDiscoveryEventType.DISCOVER,
-                    new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
-                );
-                apis.put(api.getId(), api);
-                eventManager.publishEvent(ReactorEvent.DEPLOY, api);
-                log.info("{} has been deployed", api);
+                deployApi(api);
             } else {
-                log.warn("There is no published plan associated to this API, skipping deployment...");
+                // If no plans, check if API is part of any API Product
+                try {
+                    Set<io.gravitee.repository.management.model.ApiProduct> apiProducts = apiProductsRepository.findByApiId(api.getId());
+                    if (apiProducts != null && !apiProducts.isEmpty()) {
+                        log.info("API {} is part of API Product(s) and has no plans, allowing deployment", api.getId());
+                        deployApi(api);
+                    } else {
+                        log.warn(
+                            "There is no published plan associated to this API and it is not part of any API Product, skipping deployment..."
+                        );
+                    }
+                } catch (TechnicalException e) {
+                    log.warn("There is no published plan associated to this API, skipping deployment...", e);
+                }
             }
         } else {
             log.debug("{} is not enabled. Skip deployment.", api);
         }
 
         MDC.remove("api");
+    }
+
+    private void deployApi(ReactableApi api) {
+        eventManager.publishEvent(
+            SecretDiscoveryEventType.DISCOVER,
+            new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
+        );
+        apis.put(api.getId(), api);
+        eventManager.publishEvent(ReactorEvent.DEPLOY, api);
+        log.info("{} has been deployed", api);
     }
 
     private ExecutorService createExecutor(int threadCount) {

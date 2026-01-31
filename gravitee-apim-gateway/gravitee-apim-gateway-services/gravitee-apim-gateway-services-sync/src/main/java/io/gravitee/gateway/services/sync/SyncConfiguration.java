@@ -52,6 +52,7 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;

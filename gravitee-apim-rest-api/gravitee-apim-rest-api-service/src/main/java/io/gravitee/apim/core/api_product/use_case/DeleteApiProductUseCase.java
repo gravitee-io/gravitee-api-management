@@ -19,6 +19,7 @@ import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -43,6 +44,7 @@ public class DeleteApiProductUseCase {
     private final ApiProductCrudService apiProductCrudService;
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
+    private final ValidateApiProductService validateApiProductService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
 
@@ -51,6 +53,11 @@ public class DeleteApiProductUseCase {
         ApiProduct apiProduct = apiProductQueryService
             .findById(input.apiProductId())
             .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+
+        // Validate removal for all APIs in the product before deletion
+        if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
+            validateApiProductService.validateApiRemovals(apiProduct.getApiIds(), input.apiProductId());
+        }
 
         // Publish undeploy event before deletion
         publishUndeployEvent(input.auditInfo(), apiProduct);

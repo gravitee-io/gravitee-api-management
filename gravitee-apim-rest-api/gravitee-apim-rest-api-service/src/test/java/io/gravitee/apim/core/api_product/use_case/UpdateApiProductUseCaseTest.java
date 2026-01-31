@@ -56,6 +56,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);

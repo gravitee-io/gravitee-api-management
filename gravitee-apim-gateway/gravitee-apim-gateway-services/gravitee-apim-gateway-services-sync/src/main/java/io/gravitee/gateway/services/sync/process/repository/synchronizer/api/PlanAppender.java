@@ -29,6 +29,7 @@ import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.Plan;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ public class PlanAppender {
 
     private final ObjectMapper objectMapper;
     private final PlanRepository planRepository;
+    private final ApiProductsRepository apiProductsRepository;
     private final GatewayConfiguration gatewayConfiguration;
     private final ApiProductRegistry apiProductRegistry;
 
@@ -76,14 +78,17 @@ public class PlanAppender {
                 return deployable;
             })
             .filter(deployable -> {
-                ReactableApi<?> reactableApi = deployable.reactableApi();
-                boolean hasPlan = false;
-                if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api v4Api) {
-                    hasPlan = v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof NativeApi nativeApi) {
-                    hasPlan = nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api api) {
-                    hasPlan = api.getPlans() != null && !api.getPlans().isEmpty();
+                if (hasPlans(deployable.reactableApi())) return true;
+                try {
+                    Set<io.gravitee.repository.management.model.ApiProduct> apiProducts = apiProductsRepository.findByApiId(
+                        deployable.apiId()
+                    );
+                    if (apiProducts != null && !apiProducts.isEmpty()) {
+                        log.info("API {} is part of API Product(s), allowing deployment without plans", deployable.apiId());
+                        return true;
+                    }
+                } catch (TechnicalException e) {
+                    log.error("Error checking API Products for API {}: {}", deployable.apiId(), e.getMessage());
                 }
 
                 if (!hasPlan && apiProductRegistry != null && reactableApi.getEnvironmentId() != null) {
@@ -219,5 +224,16 @@ public class PlanAppender {
             return hasMatchingTags;
         }
         return true;
+    }
+
+    private boolean hasPlans(ReactableApi<?> reactableApi) {
+        if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api v4Api) {
+            return v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
+        } else if (reactableApi.getDefinition() instanceof NativeApi nativeApi) {
+            return nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
+        } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api api) {
+            return api.getPlans() != null && !api.getPlans().isEmpty();
+        }
+        return false;
     }
 }

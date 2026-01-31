@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_product.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -24,6 +25,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
@@ -40,6 +42,9 @@ import lombok.RequiredArgsConstructor;
 public class ValidateApiProductService {
 
     private final ApiQueryService apiQueryService;
+    private final ApiCrudService apiCrudService;
+    private final PlanQueryService planQueryService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public void validate(ApiProduct apiProduct) {
         if (StringUtils.isEmpty(apiProduct.getName())) {
@@ -104,5 +109,54 @@ public class ValidateApiProductService {
             messages.add(String.format(messageFormat, joined));
             parameters.put(parameterKey, joined);
         }
+    }
+
+    public void validateApiRemovals(Set<String> apiIds, String currentApiProductId) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return;
+        }
+
+        log.debug("Validating removal of {} API(s) from API Product {}", apiIds.size(), currentApiProductId);
+
+        Map<String, Api> apiMap = apiCrudService
+            .findByIds(apiIds.stream().toList())
+            .stream()
+            .collect(Collectors.toMap(Api::getId, api -> api));
+
+        for (String apiId : apiIds) {
+            Api api = apiMap.get(apiId);
+            if (api == null) {
+                log.debug("API {} does not exist, skipping removal validation", apiId);
+                continue;
+            }
+
+            // Not deployed or has plans → always allowed
+            if (api.getDeployedAt() == null || hasPublishedOrDeprecatedPlans(apiId)) {
+                continue;
+            }
+
+            // Deployed without plans → check other products
+            boolean isInOtherProducts = apiProductQueryService
+                .findByApiId(apiId)
+                .stream()
+                .anyMatch(product -> !product.getId().equals(currentApiProductId));
+
+            if (!isInOtherProducts) {
+                throw new ValidationDomainException(
+                    String.format(
+                        "Cannot remove API '%s' from API Product. The API is deployed without plans and would not be part of any API Product after removal. Please undeploy the API first or add at least one published plan.",
+                        apiId
+                    ),
+                    Map.of("apiId", apiId, "apiProductId", currentApiProductId)
+                );
+            }
+        }
+    }
+
+    private boolean hasPublishedOrDeprecatedPlans(String apiId) {
+        return planQueryService
+            .findAllByApiId(apiId)
+            .stream()
+            .anyMatch(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED);
     }
 }

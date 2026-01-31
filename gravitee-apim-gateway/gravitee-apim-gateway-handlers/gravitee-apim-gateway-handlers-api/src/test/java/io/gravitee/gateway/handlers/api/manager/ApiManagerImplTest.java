@@ -61,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,11 +93,14 @@ public class ApiManagerImplTest {
         @Mock
         protected LicenseManager licenseManager;
 
+        @Mock
+        protected io.gravitee.repository.management.apiproducts.ApiProductsRepository apiProductsRepository;
+
         protected ApiManagerImpl apiManager;
 
         @BeforeEach
         public void setUp() throws Exception {
-            apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor));
+            apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductsRepository));
             lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
             lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
         }
@@ -122,13 +126,28 @@ public class ApiManagerImplTest {
                 }
 
                 @Test
-                public void should_not_deploy_api_without_plan() {
+                public void should_not_deploy_api_without_plan() throws Exception {
                     var api = buildTestApi();
 
+                    when(apiProductsRepository.findByApiId(api.getId())).thenReturn(Set.of());
                     apiManager.register(api);
 
                     verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
                     assertThat(apiManager.apis()).isEmpty();
+                }
+
+                @Test
+                public void should_deploy_api_without_plan_when_part_of_api_product() throws Exception {
+                    var api = buildTestApi();
+
+                    io.gravitee.repository.management.model.ApiProduct apiProduct =
+                        new io.gravitee.repository.management.model.ApiProduct();
+                    apiProduct.setId("apiProductId");
+                    when(apiProductsRepository.findByApiId(api.getId())).thenReturn(Set.of(apiProduct));
+                    apiManager.register(api);
+
+                    verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+                    assertThat(apiManager.apis()).hasSize(1);
                 }
 
                 @Test

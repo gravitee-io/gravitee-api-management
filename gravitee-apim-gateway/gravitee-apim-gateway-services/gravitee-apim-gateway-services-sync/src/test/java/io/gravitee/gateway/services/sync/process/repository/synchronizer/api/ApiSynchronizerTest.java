@@ -102,6 +102,9 @@ class ApiSynchronizerTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
+    private io.gravitee.repository.management.apiproducts.ApiProductsRepository apiProductsRepository;
+
+    @Mock
     private DeployerFactory deployerFactory;
 
     @Mock

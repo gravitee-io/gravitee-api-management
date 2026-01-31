@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Plan;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,9 @@ class PlanAppenderTest {
 
     @Mock
     private PlanRepository planRepository;
+
+    @Mock
+    private io.gravitee.repository.management.apiproducts.ApiProductsRepository apiProductsRepository;
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
@@ -177,15 +181,32 @@ class PlanAppenderTest {
         }
 
         @Test
-        void should_filter_v4_apis_without_plans() {
+        void should_filter_v4_apis_without_plans() throws TechnicalException {
             io.gravitee.definition.model.v4.Api apiV4 = new io.gravitee.definition.model.v4.Api();
             apiV4.setId("apiId");
             apiV4.setDefinitionVersion(DefinitionVersion.V4);
             Api reactableApi = new Api(apiV4);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            when(apiProductsRepository.findByApiId("apiId")).thenReturn(Set.of());
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
+        }
+
+        @Test
+        void should_allow_v4_apis_without_plans_when_part_of_api_product() throws TechnicalException {
+            io.gravitee.definition.model.v4.Api apiV4 = new io.gravitee.definition.model.v4.Api();
+            apiV4.setId("apiId");
+            apiV4.setDefinitionVersion(DefinitionVersion.V4);
+            Api reactableApi = new Api(apiV4);
+
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiProduct apiProduct = new ApiProduct();
+            apiProduct.setId("apiProductId");
+            when(apiProductsRepository.findByApiId("apiId")).thenReturn(Set.of(apiProduct));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
+            assertThat(appends).hasSize(1);
+            assertThat(appends.get(0).subscribablePlans()).isEmpty();
         }
     }
 

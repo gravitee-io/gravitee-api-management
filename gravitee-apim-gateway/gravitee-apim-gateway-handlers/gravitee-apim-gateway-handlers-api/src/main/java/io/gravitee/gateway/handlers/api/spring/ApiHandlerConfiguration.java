@@ -67,12 +67,14 @@ import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -96,9 +98,10 @@ public class ApiHandlerConfiguration {
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
-        DataEncryptor dataEncryptor
+        DataEncryptor dataEncryptor,
+        @Lazy ApiProductsRepository apiProductsRepository
     ) {
-        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor);
+        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductsRepository);
     }
 
     @Bean

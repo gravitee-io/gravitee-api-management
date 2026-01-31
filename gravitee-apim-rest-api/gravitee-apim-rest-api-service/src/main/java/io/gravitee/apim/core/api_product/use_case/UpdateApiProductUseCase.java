@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -65,7 +66,7 @@ public class UpdateApiProductUseCase {
 
         ApiProduct beforeUpdate = existingApiProduct
             .toBuilder()
-            .apiIds(existingApiProduct.getApiIds() != null ? new java.util.HashSet<>(existingApiProduct.getApiIds()) : null)
+            .apiIds(existingApiProduct.getApiIds() != null ? new HashSet<>(existingApiProduct.getApiIds()) : null)
             .build();
 
         UpdateApiProduct updateApiProduct = input.updateApiProduct();

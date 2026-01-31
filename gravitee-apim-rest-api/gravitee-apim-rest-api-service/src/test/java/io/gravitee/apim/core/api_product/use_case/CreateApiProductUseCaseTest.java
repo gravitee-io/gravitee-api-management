@@ -34,6 +34,7 @@ import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -65,7 +66,13 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
-    private final ValidateApiProductService validateApiProductService = new ValidateApiProductService(apiQueryService);
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final ValidateApiProductService validateApiProductService = new ValidateApiProductService(
+        apiQueryService,
+        apiCrudService,
+        planQueryService,
+        apiProductQueryService
+    );
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();

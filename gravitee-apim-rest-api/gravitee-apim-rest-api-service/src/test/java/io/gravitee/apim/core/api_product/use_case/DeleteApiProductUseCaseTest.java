@@ -23,8 +23,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import inmemory.AbstractUseCaseTest;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
@@ -37,6 +41,9 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
 
     private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private DeleteApiProductUseCase deleteApiProductUseCase;
@@ -44,10 +51,17 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var validateApiProductService = new ValidateApiProductService(
+            apiQueryService,
+            apiCrudService,
+            planQueryService,
+            apiProductQueryService
+        );
         deleteApiProductUseCase = new DeleteApiProductUseCase(
             apiProductCrudService,
             auditService,
             apiProductQueryService,
+            validateApiProductService,
             eventCrudService,
             eventLatestCrudService
         );
