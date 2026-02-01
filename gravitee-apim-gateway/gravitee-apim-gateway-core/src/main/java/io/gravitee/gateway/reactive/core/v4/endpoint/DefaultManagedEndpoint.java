@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.core.v4.endpoint;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Manage endpoint represents the endpoint definition and its associated instance of connector.
@@ -29,6 +30,7 @@ public class DefaultManagedEndpoint implements ManagedEndpoint {
     private final Endpoint definition;
     private final ManagedEndpointGroup group;
     private final BaseEndpointConnector connector;
+    private final AtomicInteger inFlight = new AtomicInteger(0);
     private Status status;
 
     public DefaultManagedEndpoint(Endpoint definition, ManagedEndpointGroup group, BaseEndpointConnector connector) {
@@ -61,5 +63,23 @@ public class DefaultManagedEndpoint implements ManagedEndpoint {
     @Override
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    @Override
+    public void incrementInFlight() {
+        inFlight.incrementAndGet();
+    }
+
+    @Override
+    public void decrementInFlight() {
+        int next = inFlight.decrementAndGet();
+        if (next < 0) {
+            inFlight.set(0);
+        }
+    }
+
+    @Override
+    public int inFlight() {
+        return inFlight.get();
     }
 }

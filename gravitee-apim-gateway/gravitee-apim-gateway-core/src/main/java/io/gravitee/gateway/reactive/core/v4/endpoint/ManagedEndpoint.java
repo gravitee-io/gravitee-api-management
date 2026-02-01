@@ -33,6 +33,14 @@ public interface ManagedEndpoint {
 
     void setStatus(Status status);
 
+    default void incrementInFlight() {}
+
+    default void decrementInFlight() {}
+
+    default int inFlight() {
+        return 0;
+    }
+
     enum Status {
         UP(3),
         DOWN(0),

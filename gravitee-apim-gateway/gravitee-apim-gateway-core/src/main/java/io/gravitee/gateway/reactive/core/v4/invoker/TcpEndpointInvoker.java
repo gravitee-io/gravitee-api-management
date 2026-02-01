@@ -45,22 +45,24 @@ public class TcpEndpointInvoker implements TcpInvoker {
 
     @Override
     public Completable invoke(final TcpExecutionContext ctx) {
-        final TcpEndpointConnector endpointConnector = resolveConnector(ctx);
+        final ManagedEndpoint managedEndpoint = resolveEndpoint(ctx);
 
-        if (endpointConnector == null) {
+        if (managedEndpoint == null) {
             return Completable.error(new IllegalStateException(NO_ENDPOINT_FOUND_KEY));
         }
 
-        return connect(endpointConnector, ctx);
+        final TcpEndpointConnector endpointConnector = managedEndpoint.getConnector();
+        managedEndpoint.incrementInFlight();
+        return connect(endpointConnector, ctx).doFinally(managedEndpoint::decrementInFlight);
     }
 
-    private <T extends TcpEndpointConnector> T resolveConnector(final TcpExecutionContext ctx) {
+    private ManagedEndpoint resolveEndpoint(final TcpExecutionContext ctx) {
         final ManagedEndpoint managedEndpoint = endpointManager.next();
 
         if (managedEndpoint != null) {
             TcpEndpointConnector endpointConnector = managedEndpoint.getConnector();
             ctx.setInternalAttribute(ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, endpointConnector.id());
-            return (T) endpointConnector;
+            return managedEndpoint;
         }
 
         return null;

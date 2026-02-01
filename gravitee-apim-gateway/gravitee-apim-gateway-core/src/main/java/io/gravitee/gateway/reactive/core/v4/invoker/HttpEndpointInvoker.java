@@ -71,9 +71,9 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
 
     @Override
     public Completable invoke(final HttpExecutionContext ctx) {
-        final HttpEndpointConnector endpointConnector = resolveConnector(ctx);
+        final ManagedEndpoint managedEndpoint = resolveEndpoint(ctx);
 
-        if (endpointConnector == null) {
+        if (managedEndpoint == null) {
             final String endpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
 
             final StringBuilder errorMessage = new StringBuilder("Endpoint resolution failed - check endpoint configuration");
@@ -88,13 +88,18 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
             );
         }
 
+        final HttpEndpointConnector endpointConnector = managedEndpoint.getConnector();
+        managedEndpoint.incrementInFlight();
+        Completable execution;
         if (endpointConnector instanceof EndpointConnector legacyEndpointConnector) {
-            return connect((legacyEndpointConnector), ((ExecutionContext) ctx));
+            execution = connect((legacyEndpointConnector), ((ExecutionContext) ctx));
+        } else {
+            execution = connect(endpointConnector, ctx);
         }
-        return connect(endpointConnector, ctx);
+        return execution.doFinally(managedEndpoint::decrementInFlight);
     }
 
-    private <T extends HttpEndpointConnector> T resolveConnector(final HttpExecutionContext ctx) {
+    private ManagedEndpoint resolveEndpoint(final HttpExecutionContext ctx) {
         final HttpEntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
         final EndpointCriteria endpointCriteria = new EndpointCriteria(
@@ -126,7 +131,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         if (managedEndpoint != null) {
             HttpEndpointConnector endpointConnector = managedEndpoint.getConnector();
             ctx.setInternalAttribute(ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, endpointConnector.id());
-            return (T) endpointConnector;
+            return managedEndpoint;
         }
 
         return null;

@@ -34,6 +34,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.concurrent.TimeUnit;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +48,8 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
     private static final Logger log = LoggerFactory.getLogger(DefaultEndpointManager.class);
     public static final String TEMPLATE_VARIABLE_ENDPOINTS = "endpoints";
+    private static final long DRAIN_RECHECK_DELAY_MS = 100L;
+    private static final long DRAIN_MAX_WAIT_MS = 10_000L;
 
     private final Api api;
     private final EndpointConnectorPluginManager endpointConnectorPluginManager;
@@ -212,9 +217,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
             if (managedEndpoint != null) {
                 managedEndpoint.getGroup().removeManagedEndpoint(managedEndpoint);
-                managedEndpoint.getConnector().stop();
-
-                listeners.values().forEach(l -> l.accept(Event.REMOVE, managedEndpoint));
+                stopWhenDrained(managedEndpoint, System.currentTimeMillis() + DRAIN_MAX_WAIT_MS);
             }
         } catch (Exception e) {
             log.warn("Unable to properly stop the endpoint connector {}: {}.", name, e.getMessage());
@@ -274,6 +277,27 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         } catch (Exception e) {
             log.warn("Unable to properly start the endpoint connector {}: {}. Skipped.", endpoint.getName(), e.getMessage());
         }
+    }
+
+    private void stopWhenDrained(final ManagedEndpoint managedEndpoint, final long deadlineMs) {
+        if (managedEndpoint.inFlight() <= 0 || System.currentTimeMillis() >= deadlineMs) {
+            stopEndpoint(managedEndpoint);
+            return;
+        }
+        Completable.timer(DRAIN_RECHECK_DELAY_MS, TimeUnit.MILLISECONDS, Schedulers.io())
+            .subscribe(
+                () -> stopWhenDrained(managedEndpoint, deadlineMs),
+                __ -> stopEndpoint(managedEndpoint)
+            );
+    }
+
+    private void stopEndpoint(final ManagedEndpoint managedEndpoint) {
+        try {
+            managedEndpoint.getConnector().stop();
+        } catch (Exception e) {
+            log.warn("Unable to properly stop the endpoint connector {}: {}.", managedEndpoint.getDefinition().getName(), e.getMessage());
+        }
+        listeners.values().forEach(l -> l.accept(Event.REMOVE, managedEndpoint));
     }
 
     private String getEndpointConfiguration(Endpoint endpoint) {

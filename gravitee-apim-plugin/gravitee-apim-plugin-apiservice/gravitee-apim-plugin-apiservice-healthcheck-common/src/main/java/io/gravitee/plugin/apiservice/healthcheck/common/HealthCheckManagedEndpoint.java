@@ -182,4 +182,19 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
     public void setStatus(ManagedEndpoint.Status status) {
         healthCheckStatus.setCurrentStatus(status);
     }
+
+    @Override
+    public void incrementInFlight() {
+        endpoint.incrementInFlight();
+    }
+
+    @Override
+    public void decrementInFlight() {
+        endpoint.decrementInFlight();
+    }
+
+    @Override
+    public int inFlight() {
+        return endpoint.inFlight();
+    }
 }
