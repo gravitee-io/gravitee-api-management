@@ -33,15 +33,14 @@
     <dependencyManagement>
         <dependencies>
             <!--
-            This commit introduced a bug in Vertx when processing large request payload or SSE events so we are switching back to a previous one
-            which is not facing the issue
-            https://github.com/vert-x3/vertx-rx/commit/6955e5bbbd4513d3ffc19ea84cb4bf9bed60dadb#diff-e4c8367fd97da5a3b5dd6e6925554cbcb51a3f44be29bb36060d66c3bc83825c
-            https://github.com/vert-x3/vertx-web/issues/2725
+            Vertx RxJava3 bindings must match the vertx-core version.
+            Previous note: There was a bug in 4.5.x related to SSE events (https://github.com/vert-x3/vertx-web/issues/2725)
+            but that is resolved in Vert.x 5.x. Use ${vertx.version} from gravitee-bom.
             -->
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-rx-java3</artifactId>
-                <version>4.5.1</version>
+                <version>${vertx.version}</version>
             </dependency>
 
             <!-- Gravitee dependencies -->

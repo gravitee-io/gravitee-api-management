@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.ws.WebSocketFrame;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.internal.buffer.BufferInternal;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -76,7 +77,7 @@ class VertxWebSocket implements WebSocket {
         if (upgraded) {
             if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
                 websocket.writeFrame(
-                    io.vertx.core.http.WebSocketFrame.binaryFrame(Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal())
+                    io.vertx.core.http.WebSocketFrame.binaryFrame(BufferInternal.buffer(frame.data().getNativeBuffer()), frame.isFinal())
                 );
             } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
                 websocket.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));

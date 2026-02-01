@@ -15,15 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
-import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
-import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_MESSAGE;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +41,7 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailur
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
@@ -56,6 +54,7 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,7 +67,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -279,9 +277,13 @@ class HttpProxyEndpointConnectorTest {
 
         private HttpClientFactory spyHttpClientFactory;
         private GrpcHttpClientFactory spyGrpcHttpClientFactory;
+        private WebSocketClientFactory spyWebSocketClientFactory;
 
         @Mock
         private HttpClient mockHttpClient;
+
+        @Mock
+        private WebSocketClient mockWebSocketClient;
 
         @BeforeEach
         public void init() {
@@ -296,6 +298,9 @@ class HttpProxyEndpointConnectorTest {
             spyGrpcHttpClientFactory = spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "grpcHttpClientFactory", spyGrpcHttpClientFactory);
+            spyWebSocketClientFactory = spy((WebSocketClientFactory) ReflectionTestUtils.getField(cut, "webSocketClientFactory"));
+            lenient().doReturn(mockWebSocketClient).when(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
+            ReflectionTestUtils.setField(cut, "webSocketClientFactory", spyWebSocketClientFactory);
         }
 
         @Test
@@ -358,9 +363,9 @@ class HttpProxyEndpointConnectorTest {
         }
 
         @Test
-        void should_use_http_client_factory_with_ws() {
+        void should_use_websocket_client_factory_with_ws() {
             // We don't want to test the request itself just that the correct factory is used
-            when(mockHttpClient.rxWebSocket(any(WebSocketConnectOptions.class))).thenThrow(new IllegalStateException());
+            when(mockWebSocketClient.rxConnect(any(WebSocketConnectOptions.class))).thenThrow(new IllegalStateException());
             when(request.isWebSocket()).thenReturn(true);
 
             // connect will throw an exception
@@ -369,7 +374,8 @@ class HttpProxyEndpointConnectorTest {
                 .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
                 .test()
                 .assertComplete();
-            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            verify(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
+            verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(request).isWebSocket();
         }
@@ -385,6 +391,7 @@ class HttpProxyEndpointConnectorTest {
                 .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+            verify(spyWebSocketClientFactory, never()).getOrBuildWebSocketClient(any(), any(), any());
         }
     }
 }

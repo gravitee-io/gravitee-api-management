@@ -331,7 +331,7 @@ public class HttpHealthCheckService implements ApiService {
         // Override any request headers that are configured at endpoint level.
         final HttpHeaders configHeaders = ctx.request().headers();
         if (configHeaders != null && !configHeaders.isEmpty()) {
-            final MultiMap headers = new HeadersMultiMap();
+            final MultiMap headers = HeadersMultiMap.httpHeaders();
             configHeaders.forEach(header -> {
                 headers.add(header.getKey(), header.getValue());
             });

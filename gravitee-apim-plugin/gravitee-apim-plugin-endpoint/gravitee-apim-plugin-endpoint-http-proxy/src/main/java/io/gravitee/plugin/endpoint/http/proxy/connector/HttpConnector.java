@@ -52,13 +52,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
-import io.vertx.core.buffer.impl.BufferImpl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.StreamResetException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.internal.buffer.BufferInternal;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.net.URL;
@@ -148,7 +148,8 @@ public class HttpConnector implements ProxyConnector {
                         );
                     }
 
-                    // Assign the response chunks from the endpoint's response to the gateway response.
+                    // Assign the response chunks from the endpoint's response to the gateway
+                    // response.
                     response.chunks(getEndpointResponseChunks(ctx, endpointResponse, response, absoluteUri));
 
                     ObservableHttpClientResponse observableHttpClientResponse = new ObservableHttpClientResponse(
@@ -165,11 +166,12 @@ public class HttpConnector implements ProxyConnector {
 
     private Single<HttpClientResponse> sendEndpointRequestChunks(HttpClientRequest httpClientRequest, HttpRequest request) {
         if (hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2) {
-            // For HTTP1.1, the presence of a message body in a request is signaled by a Content-Length or Transfer-Encoding header (https://www.rfc-editor.org/rfc/rfc9112#section-6-4).
-            // For HTTP2, Data frames are used (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
-            return httpClientRequest.rxSend(
-                request.chunks().map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
-            );
+            // For HTTP1.1, the presence of a message body in a request is signaled by a
+            // Content-Length or Transfer-Encoding header
+            // (https://www.rfc-editor.org/rfc/rfc9112#section-6-4).
+            // For HTTP2, Data frames are used
+            // (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
+            return httpClientRequest.rxSend(request.chunks().map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer())));
         } else {
             // Always consume the request body, even when empty, to ensure resources are released and metrics are updated correctly.
             return request.chunks().ignoreElements().andThen(httpClientRequest.rxSend());
@@ -216,11 +218,11 @@ public class HttpConnector implements ProxyConnector {
         return httpClientRequest;
     }
 
-    protected void copyHeaders(io.vertx.rxjava3.core.MultiMap sourceHeaders, io.gravitee.gateway.api.http.HttpHeaders targetHeaders) {
+    protected void copyHeaders(io.vertx.core.MultiMap sourceHeaders, io.gravitee.gateway.api.http.HttpHeaders targetHeaders) {
         if (sourceHeaders != null && !sourceHeaders.isEmpty()) {
             if (targetHeaders instanceof VertxHttpHeaders) {
                 // Optimize header copy by relying on delegate.
-                ((VertxHttpHeaders) targetHeaders).getDelegate().addAll(sourceHeaders.getDelegate());
+                ((VertxHttpHeaders) targetHeaders).getDelegate().addAll(sourceHeaders);
             } else {
                 // Use regular copy by iterating on headers.
                 sourceHeaders.forEach(entry -> targetHeaders.add(entry.getKey(), entry.getValue()));
@@ -268,7 +270,7 @@ public class HttpConnector implements ProxyConnector {
             // Avoid copying headers by reusing the original ones.
             requestOptions.setHeaders(((VertxHttpHeaders) requestHeaders).getDelegate());
         } else {
-            final MultiMap headers = new HeadersMultiMap();
+            final MultiMap headers = HeadersMultiMap.httpHeaders();
             requestHeaders.names().forEach(name -> headers.add(name, requestHeaders.getAll(name)));
             requestOptions.setHeaders(headers);
         }

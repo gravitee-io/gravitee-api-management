@@ -71,17 +71,19 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final var options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
-        vertx.deployVerticle(verticleName, options, event -> {
-            if (event.failed()) {
-                log.error("Unable to start HTTP server", event.cause());
+        vertx
+            .deployVerticle(verticleName, options)
+            .onComplete(event -> {
+                if (event.failed()) {
+                    log.error("Unable to start HTTP server", event.cause());
 
-                // HTTP Server is a required component. Shutdown if not available
-                Runtime.getRuntime().exit(1);
-            }
+                    // HTTP Server is a required component. Shutdown if not available
+                    Runtime.getRuntime().exit(1);
+                }
 
-            httpDeploymentId = event.result();
-            moveToStarted();
-        });
+                httpDeploymentId = event.result();
+                moveToStarted();
+            });
     }
 
     private void moveToStarted() {
@@ -96,20 +98,22 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
 
-        vertx.deployVerticle(verticleName, options, event -> {
-            if (event.failed()) {
-                log.error("Unable to start TCP server", event.cause());
-            }
+        vertx
+            .deployVerticle(verticleName, options)
+            .onComplete(event -> {
+                if (event.failed()) {
+                    log.error("Unable to start TCP server", event.cause());
+                }
 
-            tcpDeploymentId = event.result();
-            moveToStarted();
-        });
+                tcpDeploymentId = event.result();
+                moveToStarted();
+            });
     }
 
     @Override
     protected void doStop() {
         if (httpDeploymentId != null) {
-            vertx.undeploy(httpDeploymentId, event -> lifecycle.moveToStopped());
+            vertx.undeploy(httpDeploymentId).onComplete(event -> lifecycle.moveToStopped());
         }
         if (tcpDeploymentId != null) {
             vertx.undeploy(tcpDeploymentId);

@@ -23,7 +23,6 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -33,6 +32,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
@@ -68,10 +68,11 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             .setSsl(ssl)
             .setTrustAll(true)
             .setVerifyHost(false)
-            .setMaxPoolSize(1)
             .setKeepAlive(false)
             .setTcpKeepAlive(false)
             .setConnectTimeout(httpClientTimeout());
+
+        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
 
         if ((useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured())) {
             ProxyOptions proxyOptions = new ProxyOptions();
@@ -90,7 +91,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             options.setProxyOptions(proxyOptions);
         }
 
-        return vertx.createHttpClient(options);
+        return vertx.createHttpClient(options, poolOptions);
     }
 
     @Override
@@ -143,70 +144,50 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                     }
                 }
             )
-            .onSuccess(
-                new Handler<HttpClientRequest>() {
-                    @Override
-                    public void handle(HttpClientRequest request) {
-                        request
-                            .response(
-                                new Handler<AsyncResult<HttpClientResponse>>() {
-                                    @Override
-                                    public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
-                                        if (asyncResponse.failed()) {
-                                            promise.fail(asyncResponse.cause());
+            .onSuccess(request -> {
+                request
+                    .response()
+                    .onComplete(asyncResponse -> {
+                        if (asyncResponse.failed()) {
+                            promise.fail(asyncResponse.cause());
 
-                                            // Close client
-                                            httpClient.close();
-                                        } else {
-                                            HttpClientResponse response = asyncResponse.result();
-                                            log.debug("Web response status code : {}", response.statusCode());
-
-                                            if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
-                                                response.bodyHandler(buffer -> {
-                                                    promise.complete(buffer);
-
-                                                    // Close client
-                                                    httpClient.close();
-                                                });
-                                            } else {
-                                                response.bodyHandler(buffer ->
-                                                    promise.fail(
-                                                        new TechnicalManagementException(
-                                                            " Error on url '" +
-                                                                uri +
-                                                                "'. Status code: " +
-                                                                response.statusCode() +
-                                                                ". Message: " +
-                                                                buffer.toString(),
-                                                            null
-                                                        )
-                                                    )
-                                                );
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                            .exceptionHandler(
-                                new Handler<Throwable>() {
-                                    @Override
-                                    public void handle(Throwable throwable) {
-                                        promise.fail(throwable);
-
-                                        // Close client
-                                        httpClient.close();
-                                    }
-                                }
-                            );
-
-                        if (body != null) {
-                            request.end(body);
+                            // Close client
+                            httpClient.close();
                         } else {
-                            request.end();
+                            HttpClientResponse response = asyncResponse.result();
+                            log.debug("Web response status code : {}", response.statusCode());
+
+                            if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
+                                response.bodyHandler(buffer -> {
+                                    promise.complete(buffer);
+
+                                    // Close client
+                                    httpClient.close();
+                                });
+                            } else {
+                                response.bodyHandler(buffer ->
+                                    promise.fail(
+                                        new TechnicalManagementException(
+                                            " Error on url '" +
+                                                uri +
+                                                "'. Status code: " +
+                                                response.statusCode() +
+                                                ". Message: " +
+                                                buffer.toString(),
+                                            null
+                                        )
+                                    )
+                                );
+                            }
                         }
-                    }
+                    });
+
+                if (body != null) {
+                    request.end(body);
+                } else {
+                    request.end();
                 }
-            );
+            });
 
         try {
             return promise.future().toCompletionStage().toCompletableFuture().get();

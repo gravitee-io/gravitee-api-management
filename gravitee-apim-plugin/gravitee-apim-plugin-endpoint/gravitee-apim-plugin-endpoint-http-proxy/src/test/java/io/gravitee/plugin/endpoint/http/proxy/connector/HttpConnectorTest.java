@@ -541,7 +541,7 @@ class HttpConnectorTest {
 
     @Test
     void should_propagate_request_vertx_http_header_without_temporary_copy() throws InterruptedException {
-        requestHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        requestHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         when(request.headers()).thenReturn(requestHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
 
@@ -587,7 +587,7 @@ class HttpConnectorTest {
 
     @Test
     void should_propagate_response_headers_when_vertx_response_header() throws InterruptedException {
-        responseHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        responseHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
 
         when(response.headers()).thenReturn(responseHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);

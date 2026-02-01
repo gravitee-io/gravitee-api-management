@@ -16,14 +16,15 @@
 package io.gravitee.apim.reporter.common.bulk.transformer;
 
 import io.gravitee.reporter.api.Reportable;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.util.Locale;
 
 /**
- * Represents a report (log, metrics, request, ...) that has been transformed into its final format ('json', 'csv', 'elasticsearch', ...).
+ * Represents a report (log, metrics, request, ...) that has been transformed
+ * into its final format ('json', 'csv', 'elasticsearch', ...).
  *
  * @param transformed the report that has been transformed.
- * @param clazz the initial type of the report.
+ * @param clazz       the initial type of the report.
  */
 public record TransformedReport(Buffer transformed, Class<? extends Reportable> clazz) {
     public String type() {

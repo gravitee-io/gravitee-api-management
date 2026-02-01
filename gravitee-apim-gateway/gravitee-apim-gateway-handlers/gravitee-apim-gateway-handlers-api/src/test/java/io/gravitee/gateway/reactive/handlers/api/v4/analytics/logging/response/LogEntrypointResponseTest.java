@@ -81,7 +81,7 @@ class LogEntrypointResponseTest {
 
     @Test
     void should_log_headers() {
-        final HttpHeaders headers = new VertxHttpHeaders(new HeadersMultiMap());
+        final HttpHeaders headers = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
 
         headers.set("X-Test1", "Value1");
         headers.set("X-Test2", "Value2");

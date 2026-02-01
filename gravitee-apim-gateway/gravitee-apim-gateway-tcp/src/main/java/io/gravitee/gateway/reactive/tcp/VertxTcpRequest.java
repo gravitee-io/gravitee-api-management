@@ -23,8 +23,8 @@ import io.gravitee.gateway.reactive.core.DefaultTlsSession;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.net.NetSocket;
-import io.vertx.rxjava3.core.net.SocketAddress;
 import io.vertx.rxjava3.core.streams.WriteStream;
 import java.time.Instant;
 import java.util.Objects;
@@ -78,7 +78,7 @@ public class VertxTcpRequest extends AbstractRequest {
         return true;
     }
 
-    WriteStream<io.vertx.rxjava3.core.buffer.Buffer> getWriteStream() {
+    WriteStream<io.vertx.core.buffer.Buffer> getWriteStream() {
         return proxySocket;
     }
 

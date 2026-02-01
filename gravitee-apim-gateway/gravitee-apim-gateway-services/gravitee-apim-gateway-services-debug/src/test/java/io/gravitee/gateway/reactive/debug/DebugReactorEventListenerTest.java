@@ -64,10 +64,12 @@ import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
 import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientAgent;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.security.GeneralSecurityException;
@@ -198,7 +200,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful Buffer body in HttpClientResponse
@@ -253,7 +255,7 @@ class DebugReactorEventListenerTest {
             final ReactableEvent<Event> reactableWrapper = new ReactableEvent<>(anEvent.getId(), anEvent);
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful Buffer body in HttpClientResponse
@@ -291,7 +293,7 @@ class DebugReactorEventListenerTest {
             final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock failing Buffer body in HttpClientResponse future
@@ -336,7 +338,7 @@ class DebugReactorEventListenerTest {
             final ReactableEvent<Event> reactableWrapper = new ReactableEvent<>(anEvent.getId(), anEvent);
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock failed HttpClientRequest
@@ -384,7 +386,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock failed HttpClientRequest
@@ -491,7 +493,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful Buffer body in HttpClientResponse
@@ -545,7 +547,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(ReactableDebugApi.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful Buffer body in HttpClientResponse
@@ -601,7 +603,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(ReactableDebugApi.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock failing Buffer body in HttpClientResponse future
@@ -692,7 +694,7 @@ class DebugReactorEventListenerTest {
 
             when(reactorHandlerRegistry.contains(any(ReactableDebugApi.class))).thenReturn(false);
 
-            final HttpClient mockHttpClient = mock(HttpClient.class);
+            final HttpClientAgent mockHttpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful HttpClientRequest

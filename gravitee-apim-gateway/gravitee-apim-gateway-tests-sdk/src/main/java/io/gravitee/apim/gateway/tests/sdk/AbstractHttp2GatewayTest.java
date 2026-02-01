@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.PoolOptions;
 import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
@@ -29,6 +30,7 @@ public abstract class AbstractHttp2GatewayTest extends AbstractGatewayTest {
     @Override
     protected void configureHttpClient(
         HttpClientOptions options,
+        PoolOptions poolOptions,
         GatewayDynamicConfig.Config gatewayConfig,
         ParameterContext parameterContext
     ) {

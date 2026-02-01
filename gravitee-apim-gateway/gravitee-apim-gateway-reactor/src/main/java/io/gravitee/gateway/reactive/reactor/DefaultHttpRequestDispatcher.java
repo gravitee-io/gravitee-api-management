@@ -55,11 +55,11 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerRequest;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerResponse;
+import io.gravitee.node.opentelemetry.tracer.vertx.VertxContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.smallrye.common.vertx.VertxContext;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
@@ -141,9 +141,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
-        log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
+        log.debug("Dispatching request on host {} and path {}", httpServerRequest.authority().host(), httpServerRequest.path());
 
-        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(
+            httpServerRequest.authority().host(),
+            httpServerRequest.path(),
+            serverId
+        );
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);

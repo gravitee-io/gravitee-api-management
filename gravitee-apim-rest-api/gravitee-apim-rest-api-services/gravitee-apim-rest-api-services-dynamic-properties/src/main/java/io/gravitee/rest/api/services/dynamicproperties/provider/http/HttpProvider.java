@@ -31,6 +31,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -73,7 +74,7 @@ public class HttpProvider implements Provider {
                 return Maybe.empty();
             }
 
-            final io.vertx.rxjava3.core.http.HttpClient httpClient = new io.vertx.rxjava3.core.http.HttpClient(
+            final io.vertx.rxjava3.core.http.HttpClient httpClient = HttpClient.newInstance(
                 httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
             );
 

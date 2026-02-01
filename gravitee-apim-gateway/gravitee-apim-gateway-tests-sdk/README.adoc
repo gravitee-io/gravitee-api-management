@@ -27,7 +27,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.policy.mock.MockPolicy;
 import io.gravitee.policy.mock.configuration.MockPolicyConfiguration;
 import io.reactivex.rxjava3.observers.TestObserver;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.client.HttpResponse;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import org.junit.jupiter.api.DisplayName;

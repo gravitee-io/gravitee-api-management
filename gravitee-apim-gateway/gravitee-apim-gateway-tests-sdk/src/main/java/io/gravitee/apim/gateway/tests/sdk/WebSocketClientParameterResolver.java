@@ -19,25 +19,20 @@ import static io.gravitee.apim.gateway.tests.sdk.GatewayTestingExtension.GATEWAY
 
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.PoolOptions;
+import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.junit5.ScopedObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.WebSocketClient;
 import java.util.Objects;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class HttpClientParameterResolver implements GatewayTestParameterResolver {
+public class WebSocketClientParameterResolver implements GatewayTestParameterResolver {
 
     @Override
     public boolean supports(ParameterContext parameterContext) {
-        return parameterContext.getParameter().getType() == HttpClient.class;
+        return parameterContext.getParameter().getType() == WebSocketClient.class;
     }
 
     @Override
@@ -45,16 +40,14 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
         Vertx vertx = getStoredVertx(extensionContext);
         var gatewayConfig = getStoredGatewayConfig(extensionContext);
 
-        final HttpClientOptions httpClientOptions = new HttpClientOptions().setDefaultHost("localhost");
-        // configure a default port only if the port is obvious
+        final WebSocketClientOptions options = new WebSocketClientOptions().setDefaultHost("localhost");
         if (gatewayConfig.httpPorts().size() == 1) {
-            httpClientOptions.setDefaultPort(gatewayConfig.httpPort());
+            options.setDefaultPort(gatewayConfig.httpPort());
         }
-        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1).setHttp2MaxSize(1);
-        gatewayTest.configureHttpClient(httpClientOptions, poolOptions, gatewayConfig, parameterContext);
-        HttpClient httpClient = vertx.createHttpClient(httpClientOptions, poolOptions);
-        gatewayTest.registerATearDownHandler("HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
-        return httpClient;
+        gatewayTest.configureWebSocketClient(options, gatewayConfig, parameterContext);
+        WebSocketClient webSocketClient = vertx.createWebSocketClient(options);
+        gatewayTest.registerATearDownHandler("WebSocket client", () -> webSocketClient.close().onErrorComplete().subscribe());
+        return webSocketClient;
     }
 
     private Vertx getStoredVertx(ExtensionContext extensionContext) {

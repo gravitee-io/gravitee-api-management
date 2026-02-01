@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
@@ -62,6 +63,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
+    private final WebSocketClientFactory webSocketClientFactory;
 
     private final Map<String, ProxyConnector> connectors = new ConcurrentHashMap<>(3);
     private final boolean targetStartWithGrpc;
@@ -77,6 +79,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
         }
         this.httpClientFactory = new HttpClientFactory();
         this.grpcHttpClientFactory = new GrpcHttpClientFactory();
+        this.webSocketClientFactory = new WebSocketClientFactory();
         this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
     }
 
@@ -122,12 +125,15 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
         if (grpcHttpClientFactory != null) {
             grpcHttpClientFactory.close();
         }
+        if (webSocketClientFactory != null) {
+            webSocketClientFactory.close();
+        }
     }
 
     private ProxyConnector getConnector(HttpRequest request) {
         if (request.isWebSocket()) {
             return this.connectors.computeIfAbsent("ws", type ->
-                new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory)
+                new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory, webSocketClientFactory)
             );
         } else if (isGrpc(request)) {
             return this.connectors.computeIfAbsent("grpc", type ->

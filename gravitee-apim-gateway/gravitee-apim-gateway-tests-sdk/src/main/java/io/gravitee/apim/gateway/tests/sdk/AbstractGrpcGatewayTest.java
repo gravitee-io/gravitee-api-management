@@ -48,7 +48,7 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     @AfterEach
     public void tearDown() {
         if (vertxServer != null) {
-            vertxServer.close(event -> {});
+            vertxServer.close();
         }
         if (client != null) {
             client.close();

@@ -44,11 +44,13 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.PromiseImpl;
 import java.util.*;
+import java.util.concurrent.Callable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,11 +96,11 @@ class DebugEventCompletionProcessorTest {
         lenient().when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
         lenient()
             .doAnswer(i -> {
-                ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
-                return null;
+                ((Callable) i.getArgument(0)).call();
+                return Future.succeededFuture();
             })
             .when(vertx)
-            .executeBlocking(any(Handler.class), any());
+            .executeBlocking(any(Callable.class));
 
         io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
         definition.setPlans(

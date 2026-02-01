@@ -57,13 +57,14 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
 
         Runnable calls = () -> {
             for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
-                client.request(
-                    new RequestOptions().setAbsoluteURI("http://localhost:8082/test/my_team").setMethod(HttpMethod.GET),
-                    httpClientRequestEvt -> {
+                client
+                    .request(new RequestOptions().setAbsoluteURI("http://localhost:8082/test/my_team").setMethod(HttpMethod.GET))
+                    .onComplete(httpClientRequestEvt -> {
                         if (httpClientRequestEvt.succeeded()) {
                             httpClientRequestEvt
                                 .result()
-                                .send(httpClientResponseEvt -> {
+                                .send()
+                                .onComplete(httpClientResponseEvt -> {
                                     if (httpClientResponseEvt.succeeded()) {
                                         assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
                                         latch.countDown(); // We count down only when we are sure the response has been received.
@@ -74,8 +75,7 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
                         } else {
                             logger.error("An error occurred during client request", httpClientRequestEvt.cause());
                         }
-                    }
-                );
+                    });
             }
         };
 

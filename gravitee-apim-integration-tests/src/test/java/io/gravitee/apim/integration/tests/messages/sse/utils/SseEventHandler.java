@@ -16,7 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.sse.utils;
 
 import io.reactivex.rxjava3.core.Maybe;
-import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.core.buffer.Buffer;
 import java.util.Map;
 
 /**

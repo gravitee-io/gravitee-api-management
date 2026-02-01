@@ -24,9 +24,9 @@ import io.gravitee.gateway.api.ws.WebSocketFrame;
  */
 class VertxWebSocketFrame implements WebSocketFrame {
 
-    private final io.vertx.rxjava3.core.http.WebSocketFrame frame;
+    private final io.vertx.core.http.WebSocketFrame frame;
 
-    VertxWebSocketFrame(io.vertx.rxjava3.core.http.WebSocketFrame frame) {
+    VertxWebSocketFrame(io.vertx.core.http.WebSocketFrame frame) {
         this.frame = frame;
     }
 
@@ -50,7 +50,7 @@ class VertxWebSocketFrame implements WebSocketFrame {
 
     @Override
     public Buffer data() {
-        return Buffer.buffer(frame.binaryData().getByteBuf());
+        return Buffer.buffer(frame.binaryData());
     }
 
     @Override
