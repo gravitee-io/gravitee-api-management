@@ -24,4 +24,11 @@ public class ApiFieldFilter {
 
     private final boolean definitionExcluded;
     private final boolean pictureExcluded;
+
+    /**
+     * Create filter excluding picture and definition. Convenience for analytics use cases.look again akm
+     */
+    public static ApiFieldFilter excludePictureAndDefinition() {
+        return new ApiFieldFilter(true, true);
+    }
 }

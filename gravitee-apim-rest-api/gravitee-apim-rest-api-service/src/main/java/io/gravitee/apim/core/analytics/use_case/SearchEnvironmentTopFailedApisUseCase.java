@@ -31,13 +31,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@CustomLog
 @UseCase
 @RequiredArgsConstructor
 public class SearchEnvironmentTopFailedApisUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchEnvironmentTopFailedApisUseCase.class);
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiQueryService apiQueryService;
@@ -59,18 +61,15 @@ public class SearchEnvironmentTopFailedApisUseCase {
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
+                ApiSearchCriteria.forEnvironment(envId, List.of(DefinitionVersion.V4, DefinitionVersion.V2)),
                 null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                ApiFieldFilter.excludePictureAndDefinition()
             )
             .collect(Collectors.toMap(Api::getId, value -> value));
     }
 
     private TopFailedApis sortByCountAndUpdateTopHitsWithApiNames(Map<String, Api> apis, TopFailedApis topFailedApis) {
-        var failedApis = topFailedApis
+        List<TopFailedApis.TopFailedApi> failedApis = topFailedApis
             .getData()
             .stream()
             .sorted(Comparator.comparingLong(TopFailedApis.TopFailedApi::failedCalls).reversed())

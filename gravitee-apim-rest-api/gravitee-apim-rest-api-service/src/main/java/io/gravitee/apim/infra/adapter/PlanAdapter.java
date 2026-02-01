@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO: REVERT - Build fix for plan/subscription merge. Removed duplicate @Mapping for "type" in toRepository.
+// Revert once merge conflicts are properly resolved upstream.
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -69,7 +71,6 @@ public interface PlanAdapter {
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
-    @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRepository")
     io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
     @Mapping(target = "status", source = "planStatus")

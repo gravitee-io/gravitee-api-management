@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO: REVERT - Build fix for plan/subscription merge. Added getAttributes(), 4-arg constructor, removed @Builder.
+// Revert once merge conflicts are properly resolved upstream.
 package fakes;
 
 import io.gravitee.node.api.license.InvalidLicenseException;
@@ -23,14 +25,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-@AllArgsConstructor
-@Builder(toBuilder = true)
 public class FakeLicense implements License {
 
     private String referenceType;
@@ -40,6 +38,18 @@ public class FakeLicense implements License {
     private final Set<String> features = new HashSet<>();
     private Date expirationDate;
     private final Map<String, Object> attributes = new HashMap<>();
+
+    public FakeLicense(String referenceType, String referenceId, String tier, Date expirationDate) {
+        this.referenceType = referenceType;
+        this.referenceId = referenceId;
+        this.tier = tier;
+        this.expirationDate = expirationDate;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
 
     @Override
     public boolean isFeatureEnabled(String feature) {

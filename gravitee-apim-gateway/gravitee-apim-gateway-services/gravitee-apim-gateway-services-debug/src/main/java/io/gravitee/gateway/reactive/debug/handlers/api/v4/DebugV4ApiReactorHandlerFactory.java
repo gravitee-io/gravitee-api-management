@@ -143,7 +143,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             accessPointManager,
             eventManager,
             httpAcceptorFactory,
-            TracingContext.noop()
+            TracingContext.noop(),
+            logGuardService
         );
     }
 }

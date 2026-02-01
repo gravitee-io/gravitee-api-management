@@ -62,12 +62,9 @@ public class SearchEnvironmentResponseTimeOverTimeUseCase {
     private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
+                ApiSearchCriteria.forEnvironment(envId, EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)),
                 null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                ApiFieldFilter.excludePictureAndDefinition()
             )
             .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
     }

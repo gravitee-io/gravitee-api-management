@@ -33,12 +33,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.CustomLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@CustomLog
 @UseCase
 @AllArgsConstructor
 public class SearchEnvironmentTopHitsApisCountUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchEnvironmentTopHitsApisCountUseCase.class);
 
     AnalyticsQueryService analyticsQueryService;
     ApiQueryService apiQueryService;
@@ -60,12 +62,9 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
+                ApiSearchCriteria.forEnvironment(envId, List.of(DefinitionVersion.V4, DefinitionVersion.V2)),
                 null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                ApiFieldFilter.excludePictureAndDefinition()
             )
             .collect(Collectors.toMap(Api::getId, value -> value));
     }

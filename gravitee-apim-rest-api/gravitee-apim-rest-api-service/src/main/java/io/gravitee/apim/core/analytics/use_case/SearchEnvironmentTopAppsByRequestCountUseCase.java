@@ -33,13 +33,15 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@CustomLog
 @RequiredArgsConstructor
 @UseCase
 public class SearchEnvironmentTopAppsByRequestCountUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchEnvironmentTopAppsByRequestCountUseCase.class);
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiQueryService apiQueryService;
@@ -62,12 +64,9 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2, DefinitionVersion.V1))
-                    .build(),
+                ApiSearchCriteria.forEnvironment(envId, List.of(DefinitionVersion.V4, DefinitionVersion.V2, DefinitionVersion.V1)),
                 null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                ApiFieldFilter.excludePictureAndDefinition()
             )
             .collect(Collectors.toMap(Api::getId, value -> value));
     }

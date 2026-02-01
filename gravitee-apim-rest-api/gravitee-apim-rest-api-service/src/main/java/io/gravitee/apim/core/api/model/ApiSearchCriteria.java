@@ -13,17 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO: REVERT - Build fix for plan/subscription merge. Added @NoArgsConstructor and @AllArgsConstructor for
+// forEnvironment() to work. Revert once merge conflicts are properly resolved upstream.
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.Collection;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiSearchCriteria {
+
+    /**
+     * Create criteria for environment with given definition versions.
+     */
+    public static ApiSearchCriteria forEnvironment(String environmentId, java.util.Collection<DefinitionVersion> definitionVersions) {
+        ApiSearchCriteria criteria = new ApiSearchCriteria();
+        criteria.setEnvironmentId(environmentId);
+        criteria.setDefinitionVersion(definitionVersions);
+        return criteria;
+    }
 
     private List<String> ids;
     private List<String> groups;

@@ -34,4 +34,28 @@ public class AnalyticsQueryParameters {
 
     @With
     Collection<DefinitionVersion> definitionVersions;
+
+    /**
+     * Create a copy with the given apiIds. Explicit method for compatibility when Lombok @With is not processed. Look again akm
+     */
+    public AnalyticsQueryParameters withApiIds(List<String> apiIds) {
+        return AnalyticsQueryParameters.builder()
+            .from(this.from)
+            .to(this.to)
+            .apiIds(apiIds)
+            .definitionVersions(this.definitionVersions)
+            .build();
+    }
+
+    /**
+     * Create a copy with the given definitionVersions. Explicit method for compatibility when Lombok @With is not processed.
+     */
+    public AnalyticsQueryParameters withDefinitionVersions(Collection<DefinitionVersion> definitionVersions) {
+        return AnalyticsQueryParameters.builder()
+            .from(this.from)
+            .to(this.to)
+            .apiIds(this.apiIds)
+            .definitionVersions(definitionVersions)
+            .build();
+    }
 }

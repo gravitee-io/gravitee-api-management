@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO: REVERT - Build fix for plan/subscription merge. Removed duplicate get(String) method. Revert once merge
+// conflicts are properly resolved upstream.
 package inmemory;
 
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
@@ -48,14 +50,5 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
     @Override
     public void delete(String id) {
         storage.removeIf(apiProduct -> id.equals(apiProduct.getId()));
-    }
-
-    @Override
-    public ApiProduct get(String id) {
-        return storage
-            .stream()
-            .filter(apiProduct -> id.equals(apiProduct.getId()))
-            .findFirst()
-            .get();
     }
 }

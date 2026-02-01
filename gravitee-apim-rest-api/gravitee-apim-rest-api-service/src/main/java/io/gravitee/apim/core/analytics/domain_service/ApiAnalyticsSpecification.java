@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO: REVERT - Build fix for plan/subscription merge. Added explicit And(List) constructor (Lombok @RequiredArgsConstructor
+// issue). Revert to use @RequiredArgsConstructor once upstream is fixed.
 package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
@@ -22,17 +24,19 @@ import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 
 public interface ApiAnalyticsSpecification {
     boolean satisfies(Api api, ExecutionContext executionContext, long from, long to);
 
     void throwIfNotSatisfied(Api api, ExecutionContext executionContext, long from, long to);
 
-    @RequiredArgsConstructor
     class And implements ApiAnalyticsSpecification {
 
         private final List<ApiAnalyticsSpecification> specifications;
+
+        public And(List<ApiAnalyticsSpecification> specifications) {
+            this.specifications = specifications;
+        }
 
         @Override
         public boolean satisfies(Api api, ExecutionContext executionContext, long from, long to) {

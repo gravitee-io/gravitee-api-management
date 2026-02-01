@@ -16,6 +16,10 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.security;
 
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
@@ -25,10 +29,11 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -43,16 +48,73 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         @Nonnull final PolicyManager policyManager,
         @Nonnull final ExecutionPhase executionPhase
     ) {
+        this(api, policyManager, executionPhase, null, null, null);
+    }
+
+    /**
+     * Constructor with API Product support. When apiProductRegistry and productPlanDefinitionCache
+     * are provided, product plans are iterated first (product-first validation per PRD).
+     */
+    public HttpSecurityChain(
+        @Nonnull final Api api,
+        @Nonnull final PolicyManager policyManager,
+        @Nonnull final ExecutionPhase executionPhase,
+        @Nullable final String environmentId,
+        @Nullable final ApiProductRegistry apiProductRegistry,
+        @Nullable final ProductPlanDefinitionCache productPlanDefinitionCache
+    ) {
         super(
             Flowable.fromIterable(
-                stream(api.getPlans())
-                    .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
-                    .filter(Objects::nonNull)
-                    .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-                    .collect(Collectors.toList())
+                buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry, productPlanDefinitionCache)
             ),
             executionPhase
         );
+    }
+
+    private static List<HttpSecurityPlan> buildSecurityPlans(
+        Api api,
+        PolicyManager policyManager,
+        ExecutionPhase executionPhase,
+        String environmentId,
+        ApiProductRegistry apiProductRegistry,
+        ProductPlanDefinitionCache productPlanDefinitionCache
+    ) {
+        List<HttpSecurityPlan> securityPlans = new ArrayList<>();
+
+        if (environmentId != null && apiProductRegistry != null && productPlanDefinitionCache != null) {
+            Collection<ReactableApiProduct> allProducts = apiProductRegistry.getAll();
+            if (allProducts != null) {
+                for (ReactableApiProduct product : allProducts) {
+                    if (
+                        product.getEnvironmentId() != null &&
+                        product.getEnvironmentId().equals(environmentId) &&
+                        product.getApiIds() != null &&
+                        product.getApiIds().contains(api.getId())
+                    ) {
+                        List<? extends AbstractPlan> productPlans = productPlanDefinitionCache.getByApiProductId(product.getId());
+                        for (AbstractPlan plan : productPlans) {
+                            HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(
+                                api.getId(),
+                                plan,
+                                policyManager,
+                                executionPhase
+                            );
+                            if (httpSecurityPlan != null) {
+                                securityPlans.add(httpSecurityPlan);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stream(api.getPlans())
+            .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
+            .filter(Objects::nonNull)
+            .forEach(securityPlans::add);
+
+        securityPlans.sort(Comparator.comparingInt(HttpSecurityPlan::order));
+        return securityPlans;
     }
 
     @Nonnull
