@@ -37,6 +37,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.Nonnull;
+import java.util.Map;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -163,10 +164,14 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
 
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
-
-                if (planContext.planId().equals(subscription.getPlan()) && subscription.isTimeValid(ctx.timestamp())) {
+                boolean planMatches = planContext.planId().equals(subscription.getPlan());
+                boolean isApiProductSubscription = isApiProductSubscription(subscription);
+                if ((planMatches || isApiProductSubscription) && subscription.isTimeValid(ctx.timestamp())) {
                     ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                     ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
+                    if (isApiProductSubscription) {
+                        ctx.setAttribute(ATTR_PLAN, subscription.getPlan());
+                    }
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     return true;
                 }
@@ -183,5 +188,10 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             ctx.withLogger(log).warn("An error occurred during subscription validation", t);
             return false;
         }
+    }
+
+    private static boolean isApiProductSubscription(Subscription subscription) {
+        Map<String, String> metadata = subscription.getMetadata();
+        return metadata != null && "API_PRODUCT".equals(metadata.get("referenceType"));
     }
 }

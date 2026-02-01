@@ -54,6 +54,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheByApiClientCertificate = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> cacheByApiAndSubscriptionId = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheByApiId = new ConcurrentHashMap<>();
 
     @Override
@@ -61,19 +62,34 @@ public class SubscriptionCacheService implements SubscriptionService {
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
             case API_KEY -> apiKeyService
                 .getByApiAndKey(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+                .flatMap(apiKey ->
+                    getByApiAndSubscriptionId(api, apiKey.getSubscription()).or(() ->
+                        getById(apiKey.getSubscription()).filter(sub -> sub.getApi().equals(api))
+                    )
+                );
             case MD5_API_KEY -> apiKeyService
                 .getByApiAndMd5Key(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+                .flatMap(apiKey ->
+                    getByApiAndSubscriptionId(api, apiKey.getSubscription()).or(() ->
+                        getById(apiKey.getSubscription()).filter(sub -> sub.getApi().equals(api))
+                    )
+                );
             case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
-            case CERTIFICATE -> subscriptionTrustStoreLoaderManager.getByCertificate(api, securityToken.getTokenValue(), plan);
+            case CERTIFICATE -> getByCertificateProductFirst(api, securityToken.getTokenValue(), plan);
             default -> Optional.empty();
         };
     }
 
     @Override
     public Optional<Subscription> getByApiAndClientIdAndPlan(String api, String clientId, String plan) {
-        return Optional.ofNullable(cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, plan)));
+        Optional<Subscription> byPlan = Optional.ofNullable(cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, plan)));
+        if (byPlan.isPresent()) {
+            return byPlan;
+        }
+        Optional<Subscription> byApiProduct = Optional.ofNullable(
+            cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, null))
+        ).filter(this::isApiProductSubscription);
+        return byApiProduct;
     }
 
     @Override
@@ -98,6 +114,24 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
+    private Optional<Subscription> getByCertificateProductFirst(String api, String certificateDigest, String plan) {
+        Optional<Subscription> byPlan = subscriptionTrustStoreLoaderManager.getByCertificate(api, certificateDigest, plan);
+        if (byPlan.isPresent()) {
+            return byPlan;
+        }
+        return Optional.ofNullable(cacheByApiClientCertificate.get(buildCacheKeyFromClientInfo(api, certificateDigest, null))).filter(
+            this::isApiProductSubscription
+        );
+    }
+
+    private Optional<Subscription> getByApiAndSubscriptionId(String api, String subscriptionId) {
+        return Optional.ofNullable(cacheByApiAndSubscriptionId.get(buildApiSubscriptionKey(api, subscriptionId)));
+    }
+
+    private static String buildApiSubscriptionKey(String api, String subscriptionId) {
+        return api + "." + subscriptionId;
+    }
+
     private boolean isApiProductSubscription(Subscription subscription) {
         Map<String, String> metadata = subscription.getMetadata();
         return metadata != null && REFERENCE_TYPE_API_PRODUCT.equals(metadata.get(METADATA_REFERENCE_TYPE));
@@ -118,6 +152,9 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
         for (String apiId : apiProduct.getApiIds()) {
             Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
+            final String apiSubscriptionKey = buildApiSubscriptionKey(apiId, subscription.getId());
+            cacheByApiAndSubscriptionId.put(apiSubscriptionKey, subscriptionForApi);
+            addKeyForApi(apiId, apiSubscriptionKey);
             if (subscription.getClientCertificate() != null) {
                 registerFromClientCertificate(subscriptionForApi);
             } else if (subscription.getClientId() != null) {
@@ -290,6 +327,9 @@ public class SubscriptionCacheService implements SubscriptionService {
             if (apiProduct != null && apiProduct.getApiIds() != null) {
                 for (String apiId : apiProduct.getApiIds()) {
                     Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
+                    final String apiSubscriptionKey = buildApiSubscriptionKey(apiId, idKey);
+                    cacheByApiAndSubscriptionId.remove(apiSubscriptionKey);
+                    removeKeyForApi(apiId, apiSubscriptionKey);
                     removeKeyForApi(apiId, idKey);
                     unregisterFromClientId(subscriptionForApi);
                     unregisterFromClientCertificate(subscriptionForApi);
@@ -348,6 +388,7 @@ public class SubscriptionCacheService implements SubscriptionService {
                     );
                 }
                 cacheByApiClientId.remove(cacheKey);
+                cacheByApiAndSubscriptionId.remove(cacheKey);
             });
         }
     }
