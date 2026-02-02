@@ -69,6 +69,9 @@ export class GmdCheckboxComponent {
     return msgs;
   });
 
+  protected errorId = computed(() => `${this.name()}-error`);
+  protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
+
   constructor() {
     // init/sync from provided value
     effect(() => {

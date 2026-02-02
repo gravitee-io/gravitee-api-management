@@ -97,6 +97,9 @@ export class GmdSelectComponent {
       .filter(opt => opt.length > 0);
   });
 
+  protected errorId = computed(() => `${this.name()}-error`);
+  protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
+
   private readonly el = inject(ElementRef<HTMLElement>);
 
   protected readonly internalValue = signal<string>('');

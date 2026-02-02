@@ -298,4 +298,40 @@ describe('GmdSelectComponent', () => {
       expect(await harness.getValue()).toBe('option2');
     });
   });
+
+  describe('ARIA attributes', () => {
+    it('should set aria-required when required', async () => {
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      const ariaRequired = await harness.getAriaRequired();
+      expect(ariaRequired).toBe('true');
+    });
+
+    it('should set aria-invalid and aria-describedby when has errors', async () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      await harness.blur();
+      fixture.detectChanges();
+
+      const ariaInvalid = await harness.getAriaInvalid();
+      const ariaDescribedby = await harness.getAriaDescribedby();
+      expect(ariaInvalid).toBe('true');
+      expect(ariaDescribedby).toBeTruthy();
+    });
+
+    it('should not set aria-invalid when valid', async () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('required', false);
+      fixture.detectChanges();
+
+      await harness.blur();
+      fixture.detectChanges();
+
+      const ariaInvalid = await harness.getAriaInvalid();
+      expect(ariaInvalid).toBeNull();
+    });
+  });
 });

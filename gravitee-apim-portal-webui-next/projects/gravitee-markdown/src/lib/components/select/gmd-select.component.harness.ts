@@ -127,6 +127,21 @@ export class GmdSelectComponentHarness extends ComponentHarness {
     await select.focus();
   }
 
+  async getAriaRequired(): Promise<string | null> {
+    const select = await this.getSelect();
+    return await select.getAttribute('aria-required');
+  }
+
+  async getAriaInvalid(): Promise<string | null> {
+    const select = await this.getSelect();
+    return await select.getAttribute('aria-invalid');
+  }
+
+  async getAriaDescribedby(): Promise<string | null> {
+    const select = await this.getSelect();
+    return await select.getAttribute('aria-describedby');
+  }
+
   private async getSelect(): Promise<TestElement> {
     return this.locatorFor('select')();
   }

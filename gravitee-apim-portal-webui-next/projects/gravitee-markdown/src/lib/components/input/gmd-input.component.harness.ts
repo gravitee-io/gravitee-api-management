@@ -105,6 +105,21 @@ export class GmdInputComponentHarness extends ComponentHarness {
     return (await input.getProperty('readOnly')) as boolean;
   }
 
+  async getAriaRequired(): Promise<string | null> {
+    const input = await this.getInput();
+    return await input.getAttribute('aria-required');
+  }
+
+  async getAriaInvalid(): Promise<string | null> {
+    const input = await this.getInput();
+    return await input.getAttribute('aria-invalid');
+  }
+
+  async getAriaDescribedby(): Promise<string | null> {
+    const input = await this.getInput();
+    return await input.getAttribute('aria-describedby');
+  }
+
   private async getInput(): Promise<TestElement> {
     return this.locatorFor('input')();
   }

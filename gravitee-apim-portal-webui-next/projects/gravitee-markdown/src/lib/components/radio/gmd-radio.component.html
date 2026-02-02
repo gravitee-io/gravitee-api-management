@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2026 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,14 +15,19 @@
     limitations under the License.
 
 -->
-<div class="gmd-radio">
+<fieldset
+  class="gmd-radio"
+  [attr.aria-labelledby]="label() ? groupLabelId() : null"
+  [attr.aria-required]="required() ? 'true' : null"
+  [attr.aria-invalid]="hasErrors() ? 'true' : null"
+  [attr.aria-describedby]="hasErrors() ? errorId() : null">
   @if (label()) {
-    <div class="gmd-radio__group-label">
+    <legend [id]="groupLabelId()" class="gmd-radio__group-label">
       {{ label() }}
       @if (required()) {
         <span class="gmd-radio__required">*</span>
       }
-    </div>
+    </legend>
   }
   <div class="gmd-radio__options">
     @for (option of optionsVM(); track option) {
@@ -43,10 +48,10 @@
   </div>
 
   @if (touched() && errorMessages().length) {
-    <div class="gmd-radio__errors" role="alert">
+    <div [id]="errorId()" class="gmd-radio__errors" role="alert">
       @for (msg of errorMessages(); track msg) {
         <div class="gmd-radio__error">{{ msg }}</div>
       }
     </div>
   }
-</div>
+</fieldset>
