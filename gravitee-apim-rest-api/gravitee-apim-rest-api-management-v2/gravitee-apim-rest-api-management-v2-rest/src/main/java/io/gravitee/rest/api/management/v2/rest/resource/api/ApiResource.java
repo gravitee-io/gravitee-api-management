@@ -21,6 +21,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
+import io.gravitee.apim.core.api.use_case.DetachAutomatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -89,7 +90,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -223,6 +223,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     UpdateNativeApiUseCase updateNativeApiUseCase;
+
+    @Inject
+    private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -851,6 +854,16 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/_detach")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response detachAutomatedApi(@PathParam("apiId") String apiId) {
+        var input = new DetachAutomatedApiUseCase.Input(apiId, getAuditInfo());
+        detachAutomatedApiUseCase.execute(input);
+        return Response.ok().build();
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
