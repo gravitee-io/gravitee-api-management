@@ -97,6 +97,11 @@ public interface GraviteeMapper {
 
     CategoryMongo map(Category toMap);
 
+    // ClientCertificate mapping
+    ClientCertificate map(ClientCertificateMongo toMap);
+
+    ClientCertificateMongo map(ClientCertificate toMap);
+
     // ClientRegistrationProvider mapping
     ClientRegistrationProvider map(ClientRegistrationProviderMongo toMap);
 

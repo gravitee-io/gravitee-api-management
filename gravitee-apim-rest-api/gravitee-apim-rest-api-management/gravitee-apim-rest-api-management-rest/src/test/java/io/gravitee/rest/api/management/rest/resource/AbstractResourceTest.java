@@ -22,6 +22,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.common.event.EventManager;
@@ -162,6 +168,24 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected CategoryService categoryService;
+
+    @Autowired
+    protected ClientCertificateCrudService clientCertificateService;
+
+    @Autowired
+    protected GetClientCertificateUseCase getClientCertificateUseCase;
+
+    @Autowired
+    protected GetClientCertificatesUseCase getClientCertificatesUseCase;
+
+    @Autowired
+    protected CreateClientCertificateUseCase createClientCertificateUseCase;
+
+    @Autowired
+    protected UpdateClientCertificateUseCase updateClientCertificateUseCase;
+
+    @Autowired
+    protected DeleteClientCertificateUseCase deleteClientCertificateUseCase;
 
     @Autowired
     protected PolicyOperationVisitorManager policyOperationVisitorManager;

@@ -527,4 +527,9 @@ public class InMemoryConfiguration {
     public ApiProductQueryServiceInMemory apiProductQueryService(ApiProductCrudServiceInMemory apiProductCrudServiceInMemory) {
         return new ApiProductQueryServiceInMemory();
     }
+
+    @Bean
+    public ClientCertificateCrudServiceInMemory clientCertificateCrudService() {
+        return new ClientCertificateCrudServiceInMemory();
+    }
 }

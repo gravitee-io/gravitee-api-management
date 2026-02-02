@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -179,8 +178,8 @@ public class ApplicationResource extends AbstractResource {
     }
 
     private Response getImageResponse(final Request request, PictureEntity picture) {
-        if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+        if (picture instanceof UrlPictureEntity pictureEntity) {
+            return Response.temporaryRedirect(URI.create(pictureEntity.getUrl())).build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
@@ -317,5 +316,10 @@ public class ApplicationResource extends AbstractResource {
     @Path("apikeys")
     public ApplicationApiKeysResource getApplicationApiKeysResource() {
         return resourceContext.getResource(ApplicationApiKeysResource.class);
+    }
+
+    @Path("certificates")
+    public ApplicationClientCertificatesResource getApplicationClientCertificatesResource() {
+        return resourceContext.getResource(ApplicationClientCertificatesResource.class);
     }
 }

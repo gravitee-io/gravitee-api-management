@@ -38,6 +38,7 @@ import org.junit.runners.Suite;
         ApplicationRepositoryTest.class,
         AuditRepositoryTest.class,
         CategoryRepositoryTest.class,
+        ClientCertificateRepositoryTest.class,
         ClientRegistrationProviderRepositoryTest.class,
         CommandRepositoryTest.class,
         CustomUserFieldsRepositoryTest.class,

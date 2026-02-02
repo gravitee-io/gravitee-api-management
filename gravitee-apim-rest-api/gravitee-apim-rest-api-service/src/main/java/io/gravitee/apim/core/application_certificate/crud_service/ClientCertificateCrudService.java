@@ -1,0 +1,83 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.application_certificate.crud_service;
+
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
+import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
+import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Collection;
+import java.util.Set;
+
+/**
+ * Service for managing client certificates.
+ *
+ * @author GraviteeSource Team
+ */
+public interface ClientCertificateCrudService {
+    /**
+     * Find a client certificate by its ID.
+     *
+     * @param clientCertificateId the client certificate ID
+     * @return the client certificate
+     */
+    ClientCertificate findById(String clientCertificateId);
+
+    /**
+     * Create a new client certificate.
+     *
+     * @param applicationId the application ID
+     * @param createClientCertificate the client certificate to create
+     * @return the created client certificate
+     */
+    ClientCertificate create(String applicationId, CreateClientCertificate createClientCertificate);
+
+    /**
+     * Update an existing client certificate.
+     *
+     * @param clientCertificateId the client certificate ID
+     * @param updateClientCertificate the client certificate data to update
+     * @return the updated client certificate
+     */
+    ClientCertificate update(String clientCertificateId, UpdateClientCertificate updateClientCertificate);
+
+    /**
+     * Delete a client certificate by its ID.
+     *
+     * @param clientCertificateId the client certificate ID
+     */
+    void delete(String clientCertificateId);
+
+    /**
+     * Find all client certificates for a given application with pagination.
+     *
+     * @param applicationId the application ID
+     * @param pageable pagination information
+     * @return a page of client certificates
+     */
+    Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable);
+
+    /**
+     * Find all client certificates for a given application filtered by statuses.
+     *
+     * @param applicationId the application ID
+     * @param statuses the statuses to filter by
+     * @return a set of client certificates matching the criteria
+     */
+    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses);
+}
