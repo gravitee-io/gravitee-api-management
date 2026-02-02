@@ -24,6 +24,7 @@ import static java.util.Collections.singletonList;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.use_case.DetachAutomatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -242,6 +243,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     CreatePromotionUseCase promotionUseCase;
+
+    @Inject
+    private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -917,6 +921,16 @@ public class ApiResource extends AbstractResource {
         var input = new CreatePromotionUseCase.Input(apiId, PromotionMapper.INSTANCE.map(promotionRequest), getAuditInfo());
         var output = promotionUseCase.execute(input);
         return Response.ok(PromotionMapper.INSTANCE.map(output.promotion())).build();
+    }
+
+    @POST
+    @Path("/_detach")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response detachAutomatedApi(@PathParam("apiId") String apiId) {
+        var input = new DetachAutomatedApiUseCase.Input(apiId, getAuditInfo());
+        detachAutomatedApiUseCase.execute(input);
+        return Response.ok().build();
     }
 
     private static MigrationStateType mapState(MigrationResult.State state) {
