@@ -239,15 +239,12 @@ public class ApiResource extends AbstractResource {
     @Inject
     MigrateApiUseCase migrateApiUseCase;
 
-<<<<<<< HEAD
-=======
     @Inject
     CreatePromotionUseCase promotionUseCase;
 
     @Inject
     private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
->>>>>>> 0d2a0c2020 (feat: add a break glass mode for automated APIs)
     @Context
     protected UriInfo uriInfo;
 
@@ -926,8 +923,6 @@ public class ApiResource extends AbstractResource {
             );
     }
 
-<<<<<<< HEAD
-=======
     @POST
     @Path("_promote")
     @Produces(MediaType.APPLICATION_JSON)
@@ -948,7 +943,6 @@ public class ApiResource extends AbstractResource {
         return Response.ok().build();
     }
 
->>>>>>> 0d2a0c2020 (feat: add a break glass mode for automated APIs)
     private static MigrationStateType mapState(MigrationResult.State state) {
         return switch (state) {
             case MIGRATED -> MigrationStateType.MIGRATED;
