@@ -68,6 +68,27 @@ export class GmdRadioComponent {
     return msgs;
   });
 
+  optionsVM = computed(() => {
+    const opts = this.options();
+    if (!opts) return [];
+
+    // Try to parse as JSON array first
+    try {
+      const parsed = JSON.parse(opts);
+      if (Array.isArray(parsed)) {
+        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
+      }
+    } catch {
+      // Not JSON, try comma-separated
+    }
+
+    // Parse as comma-separated values
+    return opts
+      .split(',')
+      .map(opt => opt.trim())
+      .filter(opt => opt.length > 0);
+  });
+
   private readonly el = inject(ElementRef<HTMLElement>);
 
   protected readonly internalValue = signal<string>('');
@@ -101,28 +122,6 @@ export class GmdRadioComponent {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
     this.internalValue.set(value);
   }
-
-  optionsVM = () => {
-    const opts = this.options();
-    if (!opts) return [];
-
-    // Try to parse as JSON array first
-    try {
-      const parsed = JSON.parse(opts);
-      if (Array.isArray(parsed)) {
-        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
-      }
-    } catch {
-      // Not JSON, try comma-separated
-    }
-
-    // Parse as comma-separated values
-    return opts
-      .split(',')
-      .map(opt => opt.trim())
-      .filter(opt => opt.length > 0);
-  };
-
   onBlur() {
     this.touched.set(true);
     this.emitState();

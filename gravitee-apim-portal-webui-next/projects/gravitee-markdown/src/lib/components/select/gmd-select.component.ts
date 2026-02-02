@@ -67,6 +67,36 @@ export class GmdSelectComponent {
     return msgs;
   });
 
+  optionsVM = computed(() => {
+    const opts = this.options();
+    if (!opts) return [];
+
+    // Decode HTML entities (Angular should do this automatically, but be safe)
+    // The renderer service encodes quotes in options attribute to prevent DOMParser truncation
+    const decodedOpts = opts
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
+
+    // Try to parse as JSON array first
+    try {
+      const parsed = JSON.parse(decodedOpts);
+      if (Array.isArray(parsed)) {
+        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
+      }
+    } catch {
+      // Not JSON, try comma-separated
+    }
+
+    // Parse as comma-separated values
+    return decodedOpts
+      .split(',')
+      .map(opt => opt.trim())
+      .filter(opt => opt.length > 0);
+  });
+
   private readonly el = inject(ElementRef<HTMLElement>);
 
   protected readonly internalValue = signal<string>('');
@@ -100,37 +130,6 @@ export class GmdSelectComponent {
     const value = (event.target as HTMLSelectElement | null)?.value ?? '';
     this.internalValue.set(value);
   }
-
-  optionsVM = () => {
-    const opts = this.options();
-    if (!opts) return [];
-
-    // Decode HTML entities (Angular should do this automatically, but be safe)
-    // The renderer service encodes quotes in options attribute to prevent DOMParser truncation
-    const decodedOpts = opts
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
-
-    // Try to parse as JSON array first
-    try {
-      const parsed = JSON.parse(decodedOpts);
-      if (Array.isArray(parsed)) {
-        return parsed.map(opt => (typeof opt === 'string' ? opt : String(opt)));
-      }
-    } catch {
-      // Not JSON, try comma-separated
-    }
-
-    // Parse as comma-separated values
-    return decodedOpts
-      .split(',')
-      .map(opt => opt.trim())
-      .filter(opt => opt.length > 0);
-  };
-
   onBlur() {
     this.touched.set(true);
     this.emitState();
