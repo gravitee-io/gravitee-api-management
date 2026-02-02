@@ -31,6 +31,7 @@ import io.vertx.core.http.HttpClosedException;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
 import io.vertx.rxjava3.core.http.WebSocketFrame;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -72,6 +73,15 @@ public class VertxWebSocket implements WebSocket {
     public Completable write(Buffer buffer) {
         if (isValid()) {
             return webSocket.rxWrite(io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+        }
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable writeTextFrame(Buffer buffer) {
+        if (isValid()) {
+            return webSocket.rxWriteTextMessage(buffer.toString(StandardCharsets.UTF_8));
         }
 
         return Completable.complete();
