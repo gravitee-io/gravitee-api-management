@@ -57,6 +57,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected CategoryRepository categoryRepository;
 
     @Inject
+    protected ClientCertificateRepository clientCertificateRepository;
+
+    @Inject
     protected GroupRepository groupRepository;
 
     @Inject
@@ -247,6 +250,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Event event -> eventRepository.create(event);
             case ApiKey apiKey -> apiKeyRepository.create(apiKey);
             case Category category -> categoryRepository.create(category);
+            case ClientCertificate clientCertificate -> clientCertificateRepository.create(clientCertificate);
             case Group group -> groupRepository.create(group);
             case Membership membership -> membershipRepository.create(membership);
             case Plan plan -> planRepository.create(plan);

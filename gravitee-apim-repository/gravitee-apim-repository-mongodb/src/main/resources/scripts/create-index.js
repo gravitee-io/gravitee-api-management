@@ -84,11 +84,11 @@ db.getCollection(`${prefix}memberships`).createIndex({ memberId: 1, memberType: 
 db.getCollection(`${prefix}memberships`).createIndex({ memberId: 1, memberType: 1, referenceType: 1, roleId: 1 }, { name: "mi1mt1rt1ro1" });
 db.getCollection(`${prefix}memberships`).createIndex(
     { memberId: 1, memberType: 1, referenceType: 1, referenceId: 1 },
-    { name: "mi1mt1rt1ri1" }
+    { name: "mi1mt1rt1ri1" },
 );
 db.getCollection(`${prefix}memberships`).createIndex(
     { memberId: 1, memberType: 1, referenceType: 1, referenceId: 1, roleId: 1 },
-    { name: "mi1mt1rt1ri1ro1" }
+    { name: "mi1mt1rt1ri1ro1" },
 );
 db.getCollection(`${prefix}memberships`).createIndex({ memberId: 1, memberType: 1 }, { name: "mt1" });
 db.getCollection(`${prefix}memberships`).reIndex();
@@ -124,11 +124,11 @@ db.getCollection(`${prefix}portalnotifications`).reIndex();
 db.getCollection(`${prefix}portalnotificationconfigs`).dropIndexes();
 db.getCollection(`${prefix}portalnotificationconfigs`).createIndex(
     { "_id.user": 1, "_id.referenceId": 1, "_id.referenceType": 1 },
-    { unique: true, name: "iu1iri1irt1" }
+    { unique: true, name: "iu1iri1irt1" },
 );
 db.getCollection(`${prefix}portalnotificationconfigs`).createIndex(
     { "_id.referenceId": 1, "_id.referenceType": 1, hooks: 1 },
-    { name: "iri1irt1" }
+    { name: "iri1irt1" },
 );
 db.getCollection(`${prefix}portalnotificationconfigs`).reIndex();
 
@@ -147,14 +147,14 @@ db.getCollection(`${prefix}alert_triggers`).reIndex();
 db.getCollection(`${prefix}alert_events`).dropIndexes();
 db.getCollection(`${prefix}alert_events`).createIndex({ alert: 1 }, { name: "a1" });
 db.getCollection(`${prefix}alert_events`).createIndex({ createdAt: 1 }, { name: "c1" });
-db.getCollection(`${prefix}alert_events`).createIndex({"alert": 1, "createdAt": 1}, {"name": "a1c1"});
+db.getCollection(`${prefix}alert_events`).createIndex({ alert: 1, createdAt: 1 }, { name: "a1c1" });
 db.getCollection(`${prefix}alert_events`).reIndex();
 
 // "customUserFields" collection
 db.getCollection(`${prefix}custom_user_fields`).dropIndexes();
 db.getCollection(`${prefix}custom_user_fields`).createIndex(
     { "_id.referenceId": 1, "_id.referenceType": 1 },
-    { unique: false, name: "iri1irt1" }
+    { unique: false, name: "iri1irt1" },
 );
 db.getCollection(`${prefix}custom_user_fields`).reIndex();
 

@@ -1,0 +1,46 @@
+[
+    {
+        "id": "app-1",
+        "name": "Application 1",
+        "description": "Test application 1",
+        "environmentId": "env-1",
+        "type": "SIMPLE",
+        "status": "ACTIVE",
+        "createdAt": "1704067200000",
+        "updatedAt": "1704067200000",
+        "apiKeyMode": "UNSPECIFIED"
+    },
+    {
+        "id": "app-2",
+        "name": "Application 2",
+        "description": "Test application 2",
+        "environmentId": "env-2",
+        "type": "SIMPLE",
+        "status": "ARCHIVED",
+        "createdAt": "1704067200000",
+        "updatedAt": "1704067200000",
+        "apiKeyMode": "UNSPECIFIED"
+    },
+    {
+        "id": "app-3",
+        "name": "Application 3",
+        "description": "Test application 3",
+        "environmentId": "env-1",
+        "type": "SIMPLE",
+        "status": "ACTIVE",
+        "createdAt": "1704067200000",
+        "updatedAt": "1704067200000",
+        "apiKeyMode": "UNSPECIFIED"
+    },
+    {
+        "id": "app-4",
+        "name": "Application 4",
+        "description": "Test application 4",
+        "environmentId": "env-1",
+        "type": "SIMPLE",
+        "status": "ACTIVE",
+        "createdAt": "1704067200000",
+        "updatedAt": "1704067200000",
+        "apiKeyMode": "UNSPECIFIED"
+    }
+]

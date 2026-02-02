@@ -62,6 +62,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "commands",
         "command_acknowledgments",
         "command_tags",
+        "client_certificates",
         "client_registration_providers",
         "client_registration_provider_scopes",
         "custom_user_fields",
