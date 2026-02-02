@@ -17,22 +17,27 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-import { EnvRuntimeLogsV4Component } from './env-runtime-logs-v4.component';
+import { EnvLogsV4Component } from './env-logs-v4.component';
+import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 
-describe('EnvRuntimeLogsV4Component', () => {
-  let component: EnvRuntimeLogsV4Component;
-  let fixture: ComponentFixture<EnvRuntimeLogsV4Component>;
+describe('EnvLogsV4Component', () => {
+  let component: EnvLogsV4Component;
+  let fixture: ComponentFixture<EnvLogsV4Component>;
+  let loader: HarnessLoader;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EnvRuntimeLogsV4Component],
-      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsV4Component],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EnvRuntimeLogsV4Component);
+    fixture = TestBed.createComponent(EnvLogsV4Component);
+    loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -59,9 +64,8 @@ describe('EnvRuntimeLogsV4Component', () => {
     expect(filtersSection).toBeTruthy();
   });
 
-  it('should display table section', () => {
-    const compiled = fixture.nativeElement;
-    const tableSection = compiled.querySelector('.table-section');
+  it('should display table section', async () => {
+    const tableSection = await loader.getHarness(EnvLogsTableHarness);
     expect(tableSection).toBeTruthy();
   });
 });

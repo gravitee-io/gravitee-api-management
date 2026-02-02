@@ -311,6 +311,20 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>model-logs</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-logs.yaml</inputSpec>
+                            <modelPackage>${openapi.modelPackage}.logs.engine</modelPackage>
+                            <configOptions>
+                                <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
+                                <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>model-api-products</id>
                         <goals>
                             <goal>generate</goal>
