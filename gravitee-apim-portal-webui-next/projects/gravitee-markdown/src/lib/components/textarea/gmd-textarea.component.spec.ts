@@ -150,7 +150,7 @@ describe('GmdTextareaComponent', () => {
       fixture.detectChanges();
 
       expect(textareaComponent.valid()).toBe(true);
-      expect(textareaComponent.errors().length).toBe(0);
+      expect(textareaComponent.validationErrors().length).toBe(0);
     });
 
     it('should be invalid when required and empty', () => {
@@ -158,7 +158,7 @@ describe('GmdTextareaComponent', () => {
       fixture.detectChanges();
 
       expect(textareaComponent.valid()).toBe(false);
-      expect(textareaComponent.errors()).toContain('required');
+      expect(textareaComponent.validationErrors()).toContain('required');
     });
 
     it('should be valid when required and has value', () => {
@@ -169,7 +169,7 @@ describe('GmdTextareaComponent', () => {
       fixture.detectChanges();
 
       expect(textareaComponent.valid()).toBe(true);
-      expect(textareaComponent.errors().length).toBe(0);
+      expect(textareaComponent.validationErrors().length).toBe(0);
     });
 
     it('should validate minLength', () => {
@@ -182,7 +182,7 @@ describe('GmdTextareaComponent', () => {
       fixture.detectChanges();
 
       expect(textareaComponent.valid()).toBe(false);
-      expect(textareaComponent.errors()).toContain('minLength');
+      expect(textareaComponent.validationErrors()).toContain('minLength');
     });
 
     it('should validate maxLength', () => {
@@ -195,7 +195,7 @@ describe('GmdTextareaComponent', () => {
       fixture.detectChanges();
 
       expect(textareaComponent.valid()).toBe(false);
-      expect(textareaComponent.errors()).toContain('maxLength');
+      expect(textareaComponent.validationErrors()).toContain('maxLength');
     });
 
     it('should show error messages when touched and invalid', async () => {
@@ -236,28 +236,9 @@ describe('GmdTextareaComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.value).toBe('test value');
       expect(customEvent.detail.valid).toBe(true);
-    });
-
-    it('should not emit event when fieldKey is not set', async () => {
-      fixture.componentRef.setInput('fieldKey', undefined);
-      fixture.detectChanges();
-
-      let eventEmitted = false;
-      const textareaElement = fixture.nativeElement.querySelector('gmd-textarea');
-      textareaElement.addEventListener('gmdFieldStateChange', () => {
-        eventEmitted = true;
-      });
-
-      await harness.setValue('test');
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      // Wait to ensure no event is emitted
-      await new Promise(resolve => setTimeout(resolve, 50));
-      expect(eventEmitted).toBe(false);
     });
 
     it('should emit event with validation errors when invalid', async () => {
@@ -278,9 +259,9 @@ describe('GmdTextareaComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.errors).toContain('required');
+      expect(customEvent.detail.validationErrors).toContain('required');
     });
   });
 

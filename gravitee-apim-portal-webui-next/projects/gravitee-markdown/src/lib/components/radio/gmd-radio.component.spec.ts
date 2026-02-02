@@ -176,7 +176,7 @@ describe('GmdRadioComponent', () => {
       fixture.detectChanges();
 
       expect(radioComponent.valid()).toBe(true);
-      expect(radioComponent.errors().length).toBe(0);
+      expect(radioComponent.validationErrors().length).toBe(0);
     });
 
     it('should be invalid when required and no option selected', () => {
@@ -185,7 +185,7 @@ describe('GmdRadioComponent', () => {
       fixture.detectChanges();
 
       expect(radioComponent.valid()).toBe(false);
-      expect(radioComponent.errors()).toContain('required');
+      expect(radioComponent.validationErrors()).toContain('required');
     });
 
     it('should be valid when required and option selected', () => {
@@ -195,7 +195,7 @@ describe('GmdRadioComponent', () => {
       fixture.detectChanges();
 
       expect(radioComponent.valid()).toBe(true);
-      expect(radioComponent.errors().length).toBe(0);
+      expect(radioComponent.validationErrors().length).toBe(0);
     });
 
     it('should show error messages when touched and invalid', async () => {
@@ -238,29 +238,9 @@ describe('GmdRadioComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.value).toBe('option1');
       expect(customEvent.detail.valid).toBe(true);
-    });
-
-    it('should not emit event when fieldKey is not set', async () => {
-      fixture.componentRef.setInput('fieldKey', undefined);
-      fixture.componentRef.setInput('options', 'option1,option2');
-      fixture.detectChanges();
-
-      let eventEmitted = false;
-      const radioElement = fixture.nativeElement.querySelector('gmd-radio');
-      radioElement.addEventListener('gmdFieldStateChange', () => {
-        eventEmitted = true;
-      });
-
-      await harness.selectOption('option1');
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      // Wait to ensure no event is emitted
-      await new Promise(resolve => setTimeout(resolve, 50));
-      expect(eventEmitted).toBe(false);
     });
 
     it('should emit event with validation errors when invalid', async () => {
@@ -282,9 +262,9 @@ describe('GmdRadioComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.errors).toContain('required');
+      expect(customEvent.detail.validationErrors).toContain('required');
     });
   });
 

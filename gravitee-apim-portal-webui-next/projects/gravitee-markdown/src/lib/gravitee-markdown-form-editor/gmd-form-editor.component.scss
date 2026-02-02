@@ -65,22 +65,44 @@ $outline-color: token-utils.slot(outline-color, $token-mapping);
   }
 }
 
-.form-status {
+.status-panel {
   padding: 12px;
   border: 1px solid $outline-color;
   border-radius: 4px;
-  background-color: $surface-variant;
   font-size: 0.875rem;
+
+  &--validation {
+    margin-bottom: 16px;
+  }
+
+  &--summary {
+    background-color: $surface-variant;
+  }
+
+  &__section + &__section {
+    padding-top: 12px;
+    border-top: 1px solid $outline-color;
+    margin-top: 12px;
+  }
 
   &__header {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
+    font-weight: 500;
     gap: 8px;
   }
 
-  &__label {
-    font-weight: 500;
+  &__section--error &__header {
+    color: $error-color;
+  }
+
+  &__icon {
+    font-size: 1rem;
+  }
+
+  &__title {
+    font-size: 0.875rem;
   }
 
   &__badge {
@@ -100,77 +122,63 @@ $outline-color: token-utils.slot(outline-color, $token-mapping);
     }
   }
 
-  &__count {
+  &__meta {
     margin-bottom: 8px;
     color: $text-secondary;
   }
 
-  &__errors {
-    margin-top: 8px;
-  }
-
-  &__errors-title {
+  &__subtitle {
     margin-bottom: 4px;
     color: $error-color;
     font-weight: 500;
   }
 
-  &__errors-list {
+  &__list {
     padding-left: 20px;
     margin: 0;
+    list-style: disc;
   }
 
-  &__error-item {
+  &__item {
     margin-bottom: 4px;
+    line-height: 1.4;
   }
 
-  &__error-key {
+  &__key {
+    margin-right: 4px;
     font-weight: 500;
   }
 
-  &__error-codes {
+  &__message {
+    font-size: 0.875rem;
+  }
+
+  &__muted {
     color: $text-secondary;
   }
 
-  &__values {
+  &__details {
     padding: 8px 0 0;
     border-top: 1px solid $outline-color;
     margin-top: 12px;
   }
 
-  &__values-summary {
+  &__summary {
     color: $text-primary;
     cursor: pointer;
     font-weight: 500;
     list-style: none;
   }
 
-  &__values-summary::-webkit-details-marker {
+  &__summary::-webkit-details-marker {
     display: none;
   }
 
-  &__values-summary::before {
+  &__summary::before {
     content: '> ';
   }
 
-  &__values[open] > &__values-summary::before {
+  &__details[open] > &__summary::before {
     content: 'v ';
-  }
-
-  &__values-list {
-    padding-left: 20px;
-    margin: 8px 0 0;
-  }
-
-  &__value-item {
-    margin-bottom: 4px;
-  }
-
-  &__value-key {
-    font-weight: 500;
-  }
-
-  &__value-text {
-    color: $text-secondary;
   }
 }

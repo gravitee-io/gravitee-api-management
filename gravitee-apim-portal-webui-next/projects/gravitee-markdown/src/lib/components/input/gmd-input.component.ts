@@ -15,8 +15,10 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { uniqueId } from 'lodash';
 
-import { GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { emptyFieldKeyErrors, parseBoolean, safePattern, useLengthValidation } from '../form-helpers';
 
 @Component({
   selector: 'gmd-input',
@@ -26,58 +28,71 @@ import { GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
   standalone: true,
 })
 export class GmdInputComponent {
-  // metadata key
-  fieldKey = input<string | undefined>();
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly id = uniqueId();
 
-  // UI
+  fieldKey = input<string | undefined>();
   name = input<string>('');
   label = input<string | undefined>();
   placeholder = input<string | undefined>();
-
-  // initial value (optional)
   value = input<string | undefined>();
-
-  // validation
-  required = input<boolean>(false);
-  minLength = input<number | string | null | undefined>();
-  maxLength = input<number | string | null | undefined>();
+  required = input(false, { transform: parseBoolean });
+  minLength = input<number | string | undefined>();
+  maxLength = input<number | string | undefined>();
   pattern = input<string | undefined>();
+  readonly = input(false, { transform: parseBoolean });
+  disabled = input(false, { transform: parseBoolean });
 
-  readonly = input<boolean>(false);
-  disabled = input<boolean>(false);
+  protected readonly internalValue = signal<string>('');
+  protected readonly touched = signal<boolean>(false);
 
-  errors = computed<GmdFieldErrorCode[]>(() => {
+  private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue);
+  private readonly patternResult = computed(() => safePattern(this.pattern()));
+
+  configErrors = computed<GmdConfigError[]>(() => {
+    const errors: GmdConfigError[] = [];
+
+    errors.push(...emptyFieldKeyErrors(this.fieldKey()), ...this.lengthValidation.configErrors());
+
+    // Check pattern validity
+    const patternResult = this.patternResult();
+    if (patternResult.error) {
+      errors.push({
+        code: 'invalidRegex',
+        message: patternResult.error.message,
+        severity: 'error',
+        field: 'pattern',
+        value: patternResult.error.pattern,
+      });
+    }
+
+    return errors;
+  });
+
+  validationErrors = computed<GmdFieldErrorCode[]>(() => {
     const v = this.internalValue();
     const errs: GmdFieldErrorCode[] = [];
 
+    // Use normalized values
     if (this.required() && v.trim().length === 0) errs.push('required');
 
-    const minL = this.parseNumberLike(this.minLength());
-    if (minL !== null && v.length < minL) errs.push('minLength');
+    errs.push(...this.lengthValidation.validationErrors());
 
-    const maxL = this.parseNumberLike(this.maxLength());
-    if (maxL !== null && v.length > maxL) errs.push('maxLength');
-
-    const p = this.pattern();
-    if (p) {
-      try {
-        const re = new RegExp(p);
-        if (v.length > 0 && !re.test(v)) errs.push('pattern');
-      } catch (e) {
-        //TODO We need to figure out how to handle invalid regex patterns
-      }
+    const pattern = this.patternResult().regex;
+    if (pattern && v.length > 0 && !pattern.test(v)) {
+      errs.push('pattern');
     }
 
     return errs;
   });
 
-  valid = computed(() => this.errors().length === 0);
+  valid = computed(() => this.validationErrors().length === 0);
 
   errorMessages = computed<string[]>(() => {
-    const errs = this.errors();
+    const errs = this.validationErrors();
     const msgs: string[] = [];
-    const minL = this.parseNumberLike(this.minLength());
-    const maxL = this.parseNumberLike(this.maxLength());
+    const minL = this.minLengthVM();
+    const maxL = this.maxLengthVM();
 
     for (const e of errs) {
       switch (e) {
@@ -98,13 +113,8 @@ export class GmdInputComponent {
     return msgs;
   });
 
-  protected readonly HTMLInputElement = HTMLInputElement;
-
-  private readonly el = inject(ElementRef<HTMLElement>);
-
-  protected readonly internalValue = signal<string>('');
-  protected readonly touched = signal<boolean>(false);
-
+  protected readonly minLengthVM = this.lengthValidation.minLength;
+  protected readonly maxLengthVM = this.lengthValidation.maxLength;
   protected errorId = computed(() => `${this.name()}-error`);
   protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
 
@@ -117,12 +127,10 @@ export class GmdInputComponent {
       }
     });
 
-    // whenever something relevant changes, notify host (only if fieldKey is set)
+    // whenever something relevant changes, notify host (always emit to show config errors)
     effect(() => {
-      const key = (this.fieldKey() ?? '').trim();
-      if (!key) return; // Early return if no fieldKey
-
       // Read all reactive values to track changes
+      this.fieldKey();
       this.internalValue();
       this.required();
       this.minLength();
@@ -130,7 +138,6 @@ export class GmdInputComponent {
       this.pattern();
       this.disabled();
 
-      // Emit state only if fieldKey is present
       this.emitState();
     });
   }
@@ -145,27 +152,23 @@ export class GmdInputComponent {
     this.emitState();
   }
 
-  private parseNumberLike(v: number | string | null | undefined): number | null {
-    if (v === undefined || v === null) return null;
-    const n = typeof v === 'number' ? v : Number(String(v).trim());
-    return Number.isFinite(n) ? n : null;
-  }
-
   private emitState() {
-    const key = (this.fieldKey() ?? '').trim();
-    if (!key) return;
+    const fieldKey = (this.fieldKey() ?? '').trim();
+    const configErrors = this.configErrors();
 
     // Don't emit state for disabled fields (mimics HTML form behavior where disabled fields are not submitted)
     if (this.disabled()) return;
 
     // Use untracked to avoid tracking computed values during event dispatch
     const detail: GmdFieldState = untracked(() => ({
-      key,
+      id: this.id,
+      fieldKey: fieldKey,
       value: this.internalValue(),
       valid: this.valid(),
-      required: !!this.required(),
+      required: this.required(),
       touched: this.touched(),
-      errors: this.errors(),
+      validationErrors: this.validationErrors(),
+      configErrors,
     }));
 
     // Dispatch event asynchronously to avoid blocking the event loop

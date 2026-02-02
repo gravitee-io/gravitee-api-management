@@ -119,7 +119,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(true);
-      expect(inputComponent.errors().length).toBe(0);
+      expect(inputComponent.validationErrors().length).toBe(0);
     });
 
     it('should be invalid when required and empty', () => {
@@ -127,7 +127,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(false);
-      expect(inputComponent.errors()).toContain('required');
+      expect(inputComponent.validationErrors()).toContain('required');
     });
 
     it('should be valid when required and has value', async () => {
@@ -138,7 +138,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(true);
-      expect(inputComponent.errors().length).toBe(0);
+      expect(inputComponent.validationErrors().length).toBe(0);
     });
 
     it('should validate minLength', async () => {
@@ -149,7 +149,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(false);
-      expect(inputComponent.errors()).toContain('minLength');
+      expect(inputComponent.validationErrors()).toContain('minLength');
     });
 
     it('should validate maxLength', async () => {
@@ -160,7 +160,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(false);
-      expect(inputComponent.errors()).toContain('maxLength');
+      expect(inputComponent.validationErrors()).toContain('maxLength');
     });
 
     it('should validate pattern', async () => {
@@ -171,7 +171,7 @@ describe('GmdInputComponent', () => {
       fixture.detectChanges();
 
       expect(inputComponent.valid()).toBe(false);
-      expect(inputComponent.errors()).toContain('pattern');
+      expect(inputComponent.validationErrors()).toContain('pattern');
     });
 
     it('should show error messages when touched and invalid', async () => {
@@ -214,30 +214,9 @@ describe('GmdInputComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.value).toBe('test value');
       expect(customEvent.detail.valid).toBe(true);
-    });
-
-    it('should not emit event when fieldKey is not set', async () => {
-      fixture.componentRef.setInput('fieldKey', undefined);
-      fixture.detectChanges();
-
-      let eventEmitted = false;
-      const inputElement = fixture.nativeElement.querySelector('gmd-input');
-      inputElement.addEventListener('gmdFieldStateChange', () => {
-        eventEmitted = true;
-      });
-
-      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-      input.value = 'test';
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      // Wait to ensure no event is emitted
-      await new Promise(resolve => setTimeout(resolve, 50));
-      expect(eventEmitted).toBe(false);
     });
 
     it('should emit event with validation errors when invalid', async () => {
@@ -259,9 +238,9 @@ describe('GmdInputComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.errors).toContain('required');
+      expect(customEvent.detail.validationErrors).toContain('required');
     });
   });
 

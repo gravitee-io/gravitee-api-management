@@ -172,7 +172,7 @@ describe('GmdSelectComponent', () => {
       fixture.detectChanges();
 
       expect(selectComponent.valid()).toBe(true);
-      expect(selectComponent.errors().length).toBe(0);
+      expect(selectComponent.validationErrors().length).toBe(0);
     });
 
     it('should be invalid when required and no option selected', () => {
@@ -181,7 +181,7 @@ describe('GmdSelectComponent', () => {
       fixture.detectChanges();
 
       expect(selectComponent.valid()).toBe(false);
-      expect(selectComponent.errors()).toContain('required');
+      expect(selectComponent.validationErrors()).toContain('required');
     });
 
     it('should be valid when required and option selected', () => {
@@ -191,7 +191,7 @@ describe('GmdSelectComponent', () => {
       fixture.detectChanges();
 
       expect(selectComponent.valid()).toBe(true);
-      expect(selectComponent.errors().length).toBe(0);
+      expect(selectComponent.validationErrors().length).toBe(0);
     });
 
     it('should show error messages when touched and invalid', async () => {
@@ -234,29 +234,9 @@ describe('GmdSelectComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.value).toBe('option1');
       expect(customEvent.detail.valid).toBe(true);
-    });
-
-    it('should not emit event when fieldKey is not set', async () => {
-      fixture.componentRef.setInput('fieldKey', undefined);
-      fixture.componentRef.setInput('options', 'option1,option2');
-      fixture.detectChanges();
-
-      let eventEmitted = false;
-      const selectElement = fixture.nativeElement.querySelector('gmd-select');
-      selectElement.addEventListener('gmdFieldStateChange', () => {
-        eventEmitted = true;
-      });
-
-      await harness.selectOptionByValue('option1');
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      // Wait to ensure no event is emitted
-      await new Promise(resolve => setTimeout(resolve, 50));
-      expect(eventEmitted).toBe(false);
     });
 
     it('should emit event with validation errors when invalid', async () => {
@@ -278,9 +258,9 @@ describe('GmdSelectComponent', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const customEvent = await eventPromise;
-      expect(customEvent.detail.key).toBe('test-key');
+      expect(customEvent.detail.fieldKey).toBe('test-key');
       expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.errors).toContain('required');
+      expect(customEvent.detail.validationErrors).toContain('required');
     });
   });
 

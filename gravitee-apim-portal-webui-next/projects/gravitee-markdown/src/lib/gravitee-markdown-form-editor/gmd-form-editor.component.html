@@ -29,39 +29,80 @@
     </div>
   </div>
   <div class="container__form-status">
-    <div class="form-status">
-      <div class="form-status__header">
-        <span class="form-status__label">Form status:</span>
+    @if (criticalConfigErrors().length > 0 || configWarnings().length > 0) {
+      <div class="status-panel status-panel--validation">
+        @if (criticalConfigErrors().length > 0) {
+          <section class="status-panel__section status-panel__section--error">
+            <div class="status-panel__header">
+              <span class="status-panel__icon">❌</span>
+              <span class="status-panel__title">Configuration Errors</span>
+            </div>
+            <ul class="status-panel__list">
+              @for (error of criticalConfigErrors(); track $index) {
+                <li class="status-panel__item">
+                  @if (error.fieldKey && !error.fieldKey.startsWith('gmd-')) {
+                    <span class="status-panel__key">{{ error.fieldKey }}:</span>
+                  }
+                  <span class="status-panel__message">{{ error.message }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+        @if (configWarnings().length > 0) {
+          <section class="status-panel__section status-panel__section--warning">
+            <div class="status-panel__header">
+              <span class="status-panel__icon">⚠️</span>
+              <span class="status-panel__title">Warnings (Auto-Corrected)</span>
+            </div>
+            <ul class="status-panel__list">
+              @for (warning of configWarnings(); track $index) {
+                <li class="status-panel__item">
+                  @if (warning.fieldKey && !warning.fieldKey.startsWith('gmd-')) {
+                    <span class="status-panel__key">{{ warning.fieldKey }}:</span>
+                  }
+                  <span class="status-panel__message">{{ warning.message }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    }
+
+    <div class="status-panel status-panel--summary">
+      <div class="status-panel__header">
+        <span class="status-panel__title">Form status:</span>
         @if (formValid()) {
-          <span class="form-status__badge form-status__badge--valid">Valid</span>
+          <span class="status-panel__badge status-panel__badge--valid">Valid</span>
         } @else {
-          <span class="form-status__badge form-status__badge--invalid">Invalid</span>
+          <span class="status-panel__badge status-panel__badge--invalid">Invalid</span>
         }
       </div>
       @if (requiredFieldsCount() > 0) {
-        <div class="form-status__count">Valid ({{ validRequiredFieldsCount() }}/{{ requiredFieldsCount() }} required fields filled)</div>
+        <div class="status-panel__meta">Valid ({{ validRequiredFieldsCount() }}/{{ requiredFieldsCount() }} required fields filled)</div>
       }
       @if (invalidFields().length > 0) {
-        <div class="form-status__errors">
-          <div class="form-status__errors-title">Invalid fields:</div>
-          <ul class="form-status__errors-list">
-            @for (field of invalidFields(); track field.key) {
-              <li class="form-status__error-item">
-                <span class="form-status__error-key">{{ field.key }}:</span>
-                <span class="form-status__error-codes">{{ field.errors.join(', ') }}</span>
+        <div class="status-panel__section">
+          <div class="status-panel__subtitle">Invalid fields:</div>
+          <ul class="status-panel__list">
+            @for (field of invalidFields(); track field.id) {
+              <li class="status-panel__item">
+                <span class="status-panel__key">{{ field.fieldKey }}:</span>
+                <span class="status-panel__muted">{{ field.errors.join(', ') }}</span>
               </li>
             }
           </ul>
         </div>
       }
       @if (fieldValues().length > 0) {
-        <details class="form-status__values">
-          <summary class="form-status__values-summary">Field values ({{ fieldValues().length }})</summary>
-          <ul class="form-status__values-list">
-            @for (field of fieldValues(); track field.key) {
-              <li class="form-status__value-item">
-                <span class="form-status__value-key">{{ field.key }}:</span>
-                <span class="form-status__value-text">{{ formatValue(field.value) }}</span>
+        <details class="status-panel__details">
+          <summary class="status-panel__summary">Field values ({{ fieldValues().length }})</summary>
+          <ul class="status-panel__list">
+            @for (field of fieldValues(); track field.id) {
+              <li class="status-panel__item">
+                <span class="status-panel__key">{{ field.fieldKey }}:</span>
+                <span class="status-panel__muted">{{ formatValue(field.value) }}</span>
               </li>
             }
           </ul>

@@ -15,16 +15,45 @@
  */
 
 /**
- * Error codes for form field validation
+ * Error codes for form field validation (user-facing validation)
  */
 export type GmdFieldErrorCode = 'required' | 'minLength' | 'maxLength' | 'pattern';
+
+/**
+ * Configuration error codes (admin-facing validation)
+ */
+export type GmdConfigErrorCode =
+  | 'invalidRegex' // Pattern string is not a valid RegExp
+  | 'emptyFieldKey' // fieldKey is empty or whitespace
+  | 'duplicateKey' // Multiple fields share the same fieldKey (detected in the editor)
+  | 'normalizedValue'; // Value was auto-adjusted (warning)
+
+/**
+ * Configuration error with context and severity
+ */
+export interface GmdConfigError {
+  /** Error/warning code */
+  code: GmdConfigErrorCode;
+  /** Human-readable message */
+  message: string;
+  /** Severity level */
+  severity: 'error' | 'warning';
+  /** Which property caused the error (e.g., 'pattern', 'fieldKey') */
+  field?: string;
+  /** The invalid/original value */
+  value?: string;
+  /** For warnings: what the value was normalized to */
+  normalizedTo?: string;
+}
 
 /**
  * State of a form field, including its value, validation status, and errors
  */
 export interface GmdFieldState {
+  /** Unique component instance ID (always unique) */
+  id: string;
   /** Field key used to identify the field in the form */
-  key: string;
+  fieldKey: string;
   /** Current value of the field (always string for metadata) */
   value: string;
   /** Whether the field passes all validation rules */
@@ -33,6 +62,8 @@ export interface GmdFieldState {
   required: boolean;
   /** Whether the field has been touched/focused by the user */
   touched: boolean;
-  /** Array of validation error codes */
-  errors: GmdFieldErrorCode[];
+  /** Array of user validation error codes */
+  validationErrors: GmdFieldErrorCode[];
+  /** Array of configuration errors/warnings (admin-facing) */
+  configErrors?: GmdConfigError[];
 }

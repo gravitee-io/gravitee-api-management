@@ -15,8 +15,10 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { uniqueId } from 'lodash';
 
-import { GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { emptyFieldKeyErrors, parseBoolean } from '../form-helpers';
 
 @Component({
   selector: 'gmd-radio',
@@ -26,24 +28,30 @@ import { GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
   standalone: true,
 })
 export class GmdRadioComponent {
-  // metadata key
-  fieldKey = input<string | undefined>();
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly id = uniqueId();
 
-  // UI
+  fieldKey = input<string | undefined>();
   name = input<string>('');
   label = input<string | undefined>();
-
-  // initial value (optional)
   value = input<string | undefined>();
+  required = input(false, { transform: parseBoolean });
+  options = input<string>('');
+  readonly = input(false, { transform: parseBoolean });
+  disabled = input(false, { transform: parseBoolean });
 
-  // validation
-  required = input<boolean>(false);
+  protected readonly internalValue = signal<string>('');
+  protected readonly touched = signal<boolean>(false);
 
-  options = input<string>(''); // Comma-separated or JSON array string
-  readonly = input<boolean>(false);
-  disabled = input<boolean>(false);
+  configErrors = computed<GmdConfigError[]>(() => {
+    const errors: GmdConfigError[] = [];
 
-  errors = computed<GmdFieldErrorCode[]>(() => {
+    errors.push(...emptyFieldKeyErrors(this.fieldKey()));
+
+    return errors;
+  });
+
+  validationErrors = computed<GmdFieldErrorCode[]>(() => {
     const v = this.internalValue();
     const errs: GmdFieldErrorCode[] = [];
 
@@ -52,10 +60,10 @@ export class GmdRadioComponent {
     return errs;
   });
 
-  valid = computed(() => this.errors().length === 0);
+  valid = computed(() => this.validationErrors().length === 0);
 
   errorMessages = computed<string[]>(() => {
-    const errs = this.errors();
+    const errs = this.validationErrors();
     const msgs: string[] = [];
 
     for (const e of errs) {
@@ -93,11 +101,6 @@ export class GmdRadioComponent {
   protected groupLabelId = computed(() => `${this.name()}-label`);
   protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
 
-  private readonly el = inject(ElementRef<HTMLElement>);
-
-  protected readonly internalValue = signal<string>('');
-  protected readonly touched = signal<boolean>(false);
-
   constructor() {
     // init/sync from provided value
     effect(() => {
@@ -107,17 +110,14 @@ export class GmdRadioComponent {
       }
     });
 
-    // whenever something relevant changes, notify host (only if fieldKey is set)
+    // whenever something relevant changes, notify host
     effect(() => {
-      const key = (this.fieldKey() ?? '').trim();
-      if (!key) return; // Early return if no fieldKey
-
       // Read all reactive values to track changes
+      this.fieldKey();
       this.internalValue();
       this.required();
       this.disabled();
 
-      // Emit state only if fieldKey is present
       this.emitState();
     });
   }
@@ -132,20 +132,22 @@ export class GmdRadioComponent {
   }
 
   private emitState() {
-    const key = (this.fieldKey() ?? '').trim();
-    if (!key) return;
+    const fieldKey = (this.fieldKey() ?? '').trim();
+    const configErrors = this.configErrors();
 
-    // Don't emit state for disabled fields (mimics HTML form behavior where disabled fields are not submitted)
+    // Don't emit state for disabled fields
     if (this.disabled()) return;
 
     // Use untracked to avoid tracking computed values during event dispatch
     const detail: GmdFieldState = untracked(() => ({
-      key,
+      id: this.id,
+      fieldKey: fieldKey,
       value: this.internalValue(),
       valid: this.valid(),
-      required: !!this.required(),
+      required: this.required(),
       touched: this.touched(),
-      errors: this.errors(),
+      validationErrors: this.validationErrors(),
+      configErrors,
     }));
 
     // Dispatch event asynchronously to avoid blocking the event loop
