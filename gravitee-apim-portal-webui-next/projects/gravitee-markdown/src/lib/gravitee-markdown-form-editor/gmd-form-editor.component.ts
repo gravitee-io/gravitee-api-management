@@ -20,7 +20,7 @@ import { isString } from 'lodash';
 
 import { GraviteeMarkdownEditorModule } from '../gravitee-markdown-editor/gravitee-markdown-editor.module';
 import { GraviteeMarkdownViewerModule } from '../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
-import { GmdFieldErrorCode, GmdFieldState } from '../models/formField';
+import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../models/formField';
 
 @Component({
   selector: 'gmd-form-editor',
@@ -76,10 +76,10 @@ export class GmdFormEditorComponent implements ControlValueAccessor, AfterViewIn
   // List of invalid fields with their errors
   invalidFields = computed(() => {
     const fields = this.fieldsMap();
-    const invalid: Array<{ key: string; errors: string[] }> = [];
-    for (const [key, state] of fields.entries()) {
-      if (!state.valid && state.errors.length > 0) {
-        invalid.push({ key, errors: state.errors });
+    const invalid: Array<{ id: string; fieldKey: string; errors: string[] }> = [];
+    for (const state of fields.values()) {
+      if (!state.valid && state.validationErrors.length > 0) {
+        invalid.push({ id: state.id, fieldKey: state.fieldKey, errors: state.validationErrors });
       }
     }
     return invalid;
@@ -88,17 +88,71 @@ export class GmdFormEditorComponent implements ControlValueAccessor, AfterViewIn
   // List of field values for preview
   fieldValues = computed(() => {
     const fields = this.fieldsMap();
-    const values: Array<{ key: string; value: string }> = [];
-    for (const [key, state] of fields.entries()) {
-      values.push({ key, value: state.value });
+    const values: Array<{ id: string; fieldKey: string; value: string }> = [];
+    for (const state of fields.values()) {
+      values.push({ id: state.id, fieldKey: state.fieldKey, value: state.value });
     }
     return values;
   });
 
+  // Detect duplicate fieldKeys
+  duplicateFieldKeys = computed(() => {
+    const fields = this.fieldsMap();
+    const fieldKeyCount = new Map<string, number>();
+
+    // Count occurrences of each actual fieldKey (ignore empty fieldKeys)
+    for (const state of fields.values()) {
+      if (state.fieldKey && state.fieldKey.trim().length > 0) {
+        fieldKeyCount.set(state.fieldKey, (fieldKeyCount.get(state.fieldKey) || 0) + 1);
+      }
+    }
+
+    return Array.from(fieldKeyCount.entries())
+      .filter(([_, count]) => count > 1)
+      .map(([key, count]) => ({ key, count }));
+  });
+
+  // Aggregate all config errors from fields
+  allConfigErrors = computed(() => {
+    const fields = this.fieldsMap();
+    const errors: Array<GmdConfigError & { fieldKey?: string }> = [];
+
+    // Add duplicate key errors
+    const duplicates = this.duplicateFieldKeys();
+    for (const { key, count } of duplicates) {
+      errors.push({
+        code: 'duplicateKey',
+        message: `fieldKey "${key}" is used ${count} times (must be unique)`,
+        severity: 'error',
+        field: 'fieldKey',
+        value: key,
+      });
+    }
+
+    // Add errors from individual fields
+    for (const state of fields.values()) {
+      if (state.configErrors && state.configErrors.length > 0) {
+        for (const error of state.configErrors) {
+          errors.push({
+            ...error,
+            fieldKey: state.fieldKey || undefined, // Use actual fieldKey from state
+          });
+        }
+      }
+    }
+
+    return errors;
+  });
+
+  // Separate critical errors from warnings
+  criticalConfigErrors = computed(() => this.allConfigErrors().filter(e => e.severity === 'error'));
+
+  configWarnings = computed(() => this.allConfigErrors().filter(e => e.severity === 'warning'));
+
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
 
-  // Map of field states keyed by fieldKey
+  // Map of field states keyed by id (unique for each component instance)
   private readonly fieldsMap = signal<Map<string, GmdFieldState>>(new Map());
 
   private eventHandler?: (event: Event) => void;
@@ -111,17 +165,19 @@ export class GmdFormEditorComponent implements ControlValueAccessor, AfterViewIn
         const state = customEvent.detail;
         const currentMap = this.fieldsMap();
 
-        const existingState = currentMap.get(state.key);
+        const existingState = currentMap.get(state.id);
         if (
           !existingState ||
+          existingState.fieldKey !== state.fieldKey ||
           existingState.value !== state.value ||
           existingState.valid !== state.valid ||
           existingState.required !== state.required ||
           existingState.touched !== state.touched ||
-          !this.sameErrors(existingState.errors, state.errors)
+          !this.sameValidationErrors(existingState.validationErrors, state.validationErrors) ||
+          !this.sameConfigErrors(existingState.configErrors, state.configErrors)
         ) {
           const newMap = new Map(currentMap);
-          newMap.set(state.key, state);
+          newMap.set(state.id, state);
           this.fieldsMap.set(newMap);
         }
       }
@@ -175,10 +231,28 @@ export class GmdFormEditorComponent implements ControlValueAccessor, AfterViewIn
   protected _onChange: (_value: string | null) => void = () => ({});
   protected _onTouched: () => void = () => ({});
 
-  private sameErrors(a: GmdFieldErrorCode[], b: GmdFieldErrorCode[]): boolean {
+  private sameValidationErrors(a: GmdFieldErrorCode[], b: GmdFieldErrorCode[]): boolean {
     if (a.length !== b.length) {
       return false;
     }
     return a.every((error, index) => error === b[index]);
+  }
+
+  private sameConfigErrors(a?: GmdConfigError[], b?: GmdConfigError[]): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+
+    return a.every((errorA, index) => {
+      const errorB = b[index];
+      return (
+        errorA.code === errorB.code &&
+        errorA.message === errorB.message &&
+        errorA.severity === errorB.severity &&
+        errorA.field === errorB.field &&
+        errorA.value === errorB.value &&
+        errorA.normalizedTo === errorB.normalizedTo
+      );
+    });
   }
 }
