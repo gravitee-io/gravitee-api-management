@@ -31,9 +31,6 @@ public enum ApiAuditEvent implements AuditEvent {
     METADATA_CREATED,
     METADATA_UPDATED,
     PUBLISH_API,
-<<<<<<< HEAD
-=======
     PROMOTION_CREATED,
     AUTOMATION_DETACHED,
->>>>>>> 0d2a0c2020 (feat: add a break glass mode for automated APIs)
 }
