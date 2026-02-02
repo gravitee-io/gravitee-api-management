@@ -22,20 +22,19 @@ $theme-tokens: theme.tokens();
   @return (
     namespace: select,
     tokens: (
-      label-text-size: 0.875rem,
-      label-text-weight: 500,
-      label-text-color: inherit,
-      required-text-color: token-utils.slot(error-color, $theme-tokens),
-      field-text-size: 1rem,
-      field-text-color: inherit,
-      field-outline-width: 1px,
-      field-outline-color: token-utils.slot(outline-color, $theme-tokens),
-      field-outline-radius: token-utils.slot(container-shape, $theme-tokens),
-      field-background-color: #ffffff,
-      field-focus-outline-color: token-utils.slot(primary-color, $theme-tokens),
-      field-disabled-background-color: #f5f5f5,
+      outlined-label-text-size: 0.875rem,
+      outlined-label-text-weight: 500,
+      outlined-label-text-color: inherit,
+      container-text-size: 1rem,
+      outlined-input-text-color: inherit,
+      outlined-outline-width: 1px,
+      outlined-outline-color: token-utils.slot(outline-color, $theme-tokens),
+      outlined-container-shape: token-utils.slot(container-shape, $theme-tokens),
+      outlined-container-color: token-utils.slot(surface-color, $theme-tokens),
+      outlined-focus-outline-color: token-utils.slot(primary-color, $theme-tokens),
+      outlined-disabled-container-color: #f5f5f5,
       error-text-color: token-utils.slot(error-color, $theme-tokens),
-      error-text-size: 0.8125rem,
+      subscript-text-size: 0.8125rem,
     )
   );
 }

@@ -56,55 +56,49 @@
 
   @include gmd.input-overrides(
     (
-      label-text-color: theme.$default-text-color,
-      field-text-color: theme.$default-text-color,
-      field-outline-color: theme.$border-color,
-      field-outline-radius: theme.$container-shape,
-      field-focus-outline-color: theme.$primary-main-color,
+      outlined-label-text-color: theme.$default-text-color,
+      outlined-input-text-color: theme.$default-text-color,
+      outlined-outline-color: theme.$border-color,
+      outlined-container-shape: theme.$container-shape,
+      outlined-focus-outline-color: theme.$primary-main-color,
       error-text-color: theme.$error-main-color,
-      required-text-color: theme.$error-main-color,
     )
   );
 
   @include gmd.textarea-overrides(
     (
-      label-text-color: theme.$default-text-color,
-      field-text-color: theme.$default-text-color,
-      field-outline-color: theme.$border-color,
-      field-outline-radius: theme.$container-shape,
-      field-focus-outline-color: theme.$primary-main-color,
-      field-disabled-background-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
+      outlined-label-text-color: theme.$default-text-color,
+      outlined-input-text-color: theme.$default-text-color,
+      outlined-outline-color: theme.$border-color,
+      outlined-container-shape: theme.$container-shape,
+      outlined-focus-outline-color: theme.$primary-main-color,
+      outlined-disabled-container-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
       error-text-color: theme.$error-main-color,
-      required-text-color: theme.$error-main-color,
     )
   );
 
   @include gmd.select-overrides(
     (
-      label-text-color: theme.$default-text-color,
-      field-text-color: theme.$default-text-color,
-      field-outline-color: theme.$border-color,
-      field-outline-radius: theme.$container-shape,
-      field-focus-outline-color: theme.$primary-main-color,
-      field-disabled-background-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
+      outlined-label-text-color: theme.$default-text-color,
+      outlined-input-text-color: theme.$default-text-color,
+      outlined-outline-color: theme.$border-color,
+      outlined-container-shape: theme.$container-shape,
+      outlined-focus-outline-color: theme.$primary-main-color,
+      outlined-disabled-container-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
       error-text-color: theme.$error-main-color,
-      required-text-color: theme.$error-main-color,
     )
   );
 
   @include gmd.checkbox-overrides(
     (
-      label-text-color: theme.$default-text-color,
-      required-text-color: theme.$error-main-color,
+      outlined-label-text-color: theme.$default-text-color,
       error-text-color: theme.$error-main-color,
     )
   );
 
   @include gmd.radio-overrides(
     (
-      label-text-color: theme.$default-text-color,
-      option-text-color: theme.$default-text-color,
-      required-text-color: theme.$error-main-color,
+      outlined-label-text-color: theme.$default-text-color,
       error-text-color: theme.$error-main-color,
     )
   );

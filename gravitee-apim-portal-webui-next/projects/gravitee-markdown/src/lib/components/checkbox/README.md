@@ -50,16 +50,13 @@ The checkbox component can be customized using SCSS overrides. Use the mixin to 
 .my-scope {
   @include gmd.checkbox-overrides((
     // Label styling
-    label-text-color: #111827,
-    label-text-size: 0.875rem,
-    label-text-weight: 500,
+    outlined-label-text-color: #111827,
+    outlined-label-text-size: 0.875rem,
+    outlined-label-text-weight: 500,
 
-    // Required indicator
-    required-text-color: #dc2626,
-
-    // Error messages
+    // Error messages (also used for required indicator)
     error-text-color: #dc2626,
-    error-text-size: 0.8125rem,
+    subscript-text-size: 0.8125rem,
   ));
 }
 ```

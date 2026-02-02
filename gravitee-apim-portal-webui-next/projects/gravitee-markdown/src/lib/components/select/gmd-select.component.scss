@@ -25,30 +25,30 @@ $token-mapping: overrides.tokens();
   gap: 0.5rem;
 
   &__label {
-    color: token-utils.slot(label-text-color, $token-mapping);
-    font-size: token-utils.slot(label-text-size, $token-mapping);
-    font-weight: token-utils.slot(label-text-weight, $token-mapping);
+    color: token-utils.slot(outlined-label-text-color, $token-mapping);
+    font-size: token-utils.slot(outlined-label-text-size, $token-mapping);
+    font-weight: token-utils.slot(outlined-label-text-weight, $token-mapping);
   }
 
   &__required {
-    color: token-utils.slot(required-text-color, $token-mapping);
+    color: token-utils.slot(error-text-color, $token-mapping);
   }
 
   &__field {
     padding: 0.5rem;
-    border: token-utils.slot(field-outline-width, $token-mapping) solid token-utils.slot(field-outline-color, $token-mapping);
-    border-radius: token-utils.slot(field-outline-radius, $token-mapping);
-    background-color: token-utils.slot(field-background-color, $token-mapping);
-    color: token-utils.slot(field-text-color, $token-mapping);
-    font-size: token-utils.slot(field-text-size, $token-mapping);
+    border: token-utils.slot(outlined-outline-width, $token-mapping) solid token-utils.slot(outlined-outline-color, $token-mapping);
+    border-radius: token-utils.slot(outlined-container-shape, $token-mapping);
+    background-color: token-utils.slot(outlined-container-color, $token-mapping);
+    color: token-utils.slot(outlined-input-text-color, $token-mapping);
+    font-size: token-utils.slot(container-text-size, $token-mapping);
 
     &:focus {
-      border-color: token-utils.slot(field-focus-outline-color, $token-mapping);
+      border-color: token-utils.slot(outlined-focus-outline-color, $token-mapping);
       outline: none;
     }
 
     &:disabled {
-      background-color: token-utils.slot(field-disabled-background-color, $token-mapping);
+      background-color: token-utils.slot(outlined-disabled-container-color, $token-mapping);
       cursor: not-allowed;
     }
   }
@@ -61,6 +61,6 @@ $token-mapping: overrides.tokens();
 
   &__error {
     color: token-utils.slot(error-text-color, $token-mapping);
-    font-size: token-utils.slot(error-text-size, $token-mapping);
+    font-size: token-utils.slot(subscript-text-size, $token-mapping);
   }
 }

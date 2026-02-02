@@ -25,13 +25,13 @@ $token-mapping: overrides.tokens();
   gap: 0.5rem;
 
   &__group-label {
-    color: token-utils.slot(label-text-color, $token-mapping);
-    font-size: token-utils.slot(label-text-size, $token-mapping);
-    font-weight: token-utils.slot(label-text-weight, $token-mapping);
+    color: token-utils.slot(outlined-label-text-color, $token-mapping);
+    font-size: token-utils.slot(outlined-label-text-size, $token-mapping);
+    font-weight: token-utils.slot(outlined-label-text-weight, $token-mapping);
   }
 
   &__required {
-    color: token-utils.slot(required-text-color, $token-mapping);
+    color: token-utils.slot(error-text-color, $token-mapping);
   }
 
   &__options {
@@ -48,8 +48,8 @@ $token-mapping: overrides.tokens();
   }
 
   &__option-label {
-    color: token-utils.slot(option-text-color, $token-mapping);
-    font-size: token-utils.slot(option-text-size, $token-mapping);
+    color: token-utils.slot(outlined-label-text-color, $token-mapping);
+    font-size: token-utils.slot(outlined-label-text-size, $token-mapping);
   }
 
   &__errors {
@@ -60,6 +60,6 @@ $token-mapping: overrides.tokens();
 
   &__error {
     color: token-utils.slot(error-text-color, $token-mapping);
-    font-size: token-utils.slot(error-text-size, $token-mapping);
+    font-size: token-utils.slot(subscript-text-size, $token-mapping);
   }
 }
