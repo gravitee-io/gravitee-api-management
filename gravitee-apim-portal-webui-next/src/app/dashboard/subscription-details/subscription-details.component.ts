@@ -48,13 +48,12 @@ import {PlanService} from "../../../services/plan.service";
 import {MatDialog} from "@angular/material/dialog";
 import {UserApiPermissions} from "../../../entities/permission/permission";
 import {rxResource, toObservable, toSignal} from "@angular/core/rxjs-interop";
-import {
-  CopyCodeIconComponent
-} from "../../../components/copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component";
+import {CopyButtonComponent} from "../../../components/copy-button/copy-button.component";
+import {$localize} from "@angular/localize/init";
 
 @Component({
   selector: 'app-subscription-details',
-  imports: [MatButton, RouterModule, LoadingValueComponent, CopyCodeIconComponent],
+  imports: [RouterModule, LoadingValueComponent, CopyButtonComponent],
   templateUrl: './subscription-details.component.html',
   styleUrl: './subscription-details.component.scss',
   standalone: true,
@@ -67,6 +66,7 @@ export default class SubscriptionDetailsComponent {
   private readonly apiService = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  protected readonly $localize = $localize;
 
   subscriptionId = input.required<string>();
   subscription = rxResource({

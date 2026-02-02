@@ -68,15 +68,7 @@
       </dt>
       <dd class="m3-code-text" [appLoadingValue]="subscription.hasValue()">
         {{ subscription.value()?.id }}
-<!--        TODO create a new component based on signals -->
-        <app-copy-code-icon
-          matSuffix
-          (click)="$event.stopPropagation()"
-          [contentToCopy]="subscriptionId()"
-          [label]="subscriptionId()" />
-<!--        <button mat-stroked-button class="nav-button" (click)="copyToClipboard()">-->
-<!--          <span class="material-icons copy-icon" i18n-aria-label="@@subscriptionDetailsCopyId" aria-label="Copy ID">content_copy</span>-->
-<!--        </button>-->
+        <app-copy-button [content]="subscriptionId()" [label]="$localize`:@@subscriptionDetailsId:ID`"/>
       </dd>
     </div>
   </dl>

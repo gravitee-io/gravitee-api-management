@@ -21,15 +21,16 @@ import { MatButton } from '@angular/material/button';
   template: `
     <button class="documentation-folder__sidenav__collapse-button" mat-button (click)="toggleState.emit()">
       @if (collapsed()) {
-        <span class="material-icons">keyboard_double_arrow_right</span>
+        <span class="material-icons m3-icon-large-new">keyboard_double_arrow_right</span>
       } @else {
-        <span class="material-icons">keyboard_double_arrow_left</span>
+        <span class="material-icons m3-icon-large-new">keyboard_double_arrow_left</span>
       }
     </button>
   `,
   styles: [
     `
       @use '../../scss/theme' as app-theme;
+      @use '../../scss/m3-adapter';
       @use '@angular/material' as mat;
 
       button {

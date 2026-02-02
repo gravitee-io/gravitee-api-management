@@ -39,6 +39,7 @@
     dl {
       display: grid;
       grid-template-columns: min-content 1fr;
+      grid-auto-rows: 22px;
       row-gap: 18px;
       column-gap: 40px;
       margin: 0;
