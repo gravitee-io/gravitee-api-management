@@ -80,6 +80,10 @@ export class ApiV2Service {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlans ? '?closePlans=true' : ''}`);
   }
 
+  detach(apiId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_detach`, {});
+  }
+
   start(apiId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_start`, {});
   }

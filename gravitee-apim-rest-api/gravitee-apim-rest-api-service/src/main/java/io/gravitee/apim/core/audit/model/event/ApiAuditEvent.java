@@ -32,4 +32,5 @@ public enum ApiAuditEvent implements AuditEvent {
     METADATA_UPDATED,
     PUBLISH_API,
     PROMOTION_CREATED,
+    AUTOMATION_DETACHED,
 }
