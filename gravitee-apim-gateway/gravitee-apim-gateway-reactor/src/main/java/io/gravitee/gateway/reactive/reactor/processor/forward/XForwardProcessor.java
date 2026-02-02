@@ -94,7 +94,7 @@ public class XForwardProcessor implements Processor {
                 if (normalizedElement.startsWith("host=")) {
                     String host = element.trim().substring(5);
                     if (host.indexOf('"') != -1) {
-                        host = host.replace("\"", "");
+                        host = host.substring(1, host.length()-1);
                     }
                     int commaIndex = host.indexOf(',');
                     originalHost = commaIndex == -1 ? host : host.substring(0, commaIndex).trim();
