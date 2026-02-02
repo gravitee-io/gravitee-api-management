@@ -17,13 +17,15 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
@@ -49,14 +51,16 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        reset(clientCertificateService);
+        reset(getClientCertificateUseCase, updateClientCertificateUseCase, deleteClientCertificateUseCase);
     }
 
     @Test
     public void should_get_client_certificate() {
         ClientCertificate certificate = createClientCertificate(CERT_ID, "My Certificate");
 
-        when(clientCertificateService.findById(CERT_ID)).thenReturn(certificate);
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenReturn(
+            new GetClientCertificateUseCase.Output(certificate)
+        );
 
         final Response response = envTarget().request().get();
 
@@ -66,12 +70,14 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
             soft.assertThat(result.id()).isEqualTo(CERT_ID);
             soft.assertThat(result.name()).isEqualTo("My Certificate");
         });
-        verify(clientCertificateService).findById(CERT_ID);
+        verify(getClientCertificateUseCase).execute(any(GetClientCertificateUseCase.Input.class));
     }
 
     @Test
     public void should_return_404_when_certificate_not_found() {
-        when(clientCertificateService.findById(CERT_ID)).thenThrow(new ClientCertificateNotFoundException(CERT_ID));
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenThrow(
+            new ClientCertificateNotFoundException(CERT_ID)
+        );
 
         final Response response = envTarget().request().get();
 
@@ -88,7 +94,9 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
         ClientCertificate updated = createClientCertificate(CERT_ID, "Updated Certificate Name");
 
-        when(clientCertificateService.update(eq(CERT_ID), any(UpdateClientCertificate.class))).thenReturn(updated);
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenReturn(
+            new UpdateClientCertificateUseCase.Output(updated)
+        );
 
         final Response response = envTarget().request().put(Entity.json(updateRequest));
 
@@ -97,7 +105,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
             ClientCertificate result = response.readEntity(ClientCertificate.class);
             soft.assertThat(result.name()).isEqualTo("Updated Certificate Name");
         });
-        verify(clientCertificateService).update(eq(CERT_ID), any(UpdateClientCertificate.class));
+        verify(updateClientCertificateUseCase).execute(any(UpdateClientCertificateUseCase.Input.class));
     }
 
     @Test
@@ -113,7 +121,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     public void should_return_404_when_updating_non_existent_certificate() {
         UpdateClientCertificate updateRequest = new UpdateClientCertificate("Updated Certificate Name", null, null);
 
-        when(clientCertificateService.update(eq(CERT_ID), any(UpdateClientCertificate.class))).thenThrow(
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenThrow(
             new ClientCertificateNotFoundException(CERT_ID)
         );
 
@@ -124,17 +132,19 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
     @Test
     public void should_delete_client_certificate() {
-        doNothing().when(clientCertificateService).delete(CERT_ID);
+        doNothing().when(deleteClientCertificateUseCase).execute(any(DeleteClientCertificateUseCase.Input.class));
 
         final Response response = envTarget().request().delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
-        verify(clientCertificateService).delete(CERT_ID);
+        verify(deleteClientCertificateUseCase).execute(any(DeleteClientCertificateUseCase.Input.class));
     }
 
     @Test
     public void should_return_404_when_deleting_non_existent_certificate() {
-        doThrow(new ClientCertificateNotFoundException(CERT_ID)).when(clientCertificateService).delete(CERT_ID);
+        doThrow(new ClientCertificateNotFoundException(CERT_ID))
+            .when(deleteClientCertificateUseCase)
+            .execute(any(DeleteClientCertificateUseCase.Input.class));
 
         final Response response = envTarget().request().delete();
 

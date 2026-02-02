@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
@@ -25,7 +27,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ClientCertificateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,7 +57,10 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private ClientCertificateService clientCertificateService;
+    private GetClientCertificatesUseCase getClientCertificatesUseCase;
+
+    @Inject
+    private CreateClientCertificateUseCase createClientCertificateUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -77,7 +81,9 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public PagedResult<ClientCertificate> getApplicationClientCertificates(@Valid @BeanParam Pageable pageable) {
-        Page<ClientCertificate> page = clientCertificateService.findByApplicationId(application, pageable.toPageable());
+        Page<ClientCertificate> page = getClientCertificatesUseCase
+            .execute(new GetClientCertificatesUseCase.Input(application, pageable.toPageable()))
+            .clientCertificates();
         return new PagedResult<>(page, pageable.getSize());
     }
 
@@ -96,7 +102,9 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.CREATE) })
     public Response createApplicationClientCertificate(@Valid @NotNull final CreateClientCertificate createClientCertificate) {
-        ClientCertificate created = clientCertificateService.create(application, createClientCertificate);
+        ClientCertificate created = createClientCertificateUseCase
+            .execute(new CreateClientCertificateUseCase.Input(application, createClientCertificate))
+            .clientCertificate();
         return Response.created(this.getLocationHeader(created.id())).entity(created).build();
     }
 

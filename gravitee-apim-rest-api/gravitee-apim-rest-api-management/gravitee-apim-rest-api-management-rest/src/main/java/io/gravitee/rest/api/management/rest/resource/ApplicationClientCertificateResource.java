@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
@@ -22,7 +25,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ClientCertificateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,7 +49,13 @@ import jakarta.ws.rs.core.Response;
 public class ApplicationClientCertificateResource extends AbstractResource {
 
     @Inject
-    private ClientCertificateService clientCertificateService;
+    private GetClientCertificateUseCase getClientCertificateUseCase;
+
+    @Inject
+    private UpdateClientCertificateUseCase updateClientCertificateUseCase;
+
+    @Inject
+    private DeleteClientCertificateUseCase deleteClientCertificateUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -73,7 +81,7 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public ClientCertificate getApplicationClientCertificate() {
-        return clientCertificateService.findById(certId);
+        return getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId)).clientCertificate();
     }
 
     @PUT
@@ -92,7 +100,9 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApplicationClientCertificate(@Valid @NotNull final UpdateClientCertificate updateClientCertificate) {
-        ClientCertificate updated = clientCertificateService.update(certId, updateClientCertificate);
+        ClientCertificate updated = updateClientCertificateUseCase
+            .execute(new UpdateClientCertificateUseCase.Input(certId, updateClientCertificate))
+            .clientCertificate();
         return Response.ok(updated).build();
     }
 
@@ -106,7 +116,7 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationClientCertificate() {
-        clientCertificateService.delete(certId);
+        deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));
         return Response.noContent().build();
     }
 }

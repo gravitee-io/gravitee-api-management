@@ -58,6 +58,12 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -160,7 +166,6 @@ import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.ClientCertificateService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -398,8 +403,33 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ClientCertificateService clientCertificateService() {
-        return mock(ClientCertificateService.class);
+    public ClientCertificateCrudService clientCertificateService() {
+        return mock(ClientCertificateCrudService.class);
+    }
+
+    @Bean
+    public GetClientCertificateUseCase getClientCertificateUseCase() {
+        return mock(GetClientCertificateUseCase.class);
+    }
+
+    @Bean
+    public GetClientCertificatesUseCase getClientCertificatesUseCase() {
+        return mock(GetClientCertificatesUseCase.class);
+    }
+
+    @Bean
+    public CreateClientCertificateUseCase createClientCertificateUseCase() {
+        return mock(CreateClientCertificateUseCase.class);
+    }
+
+    @Bean
+    public UpdateClientCertificateUseCase updateClientCertificateUseCase() {
+        return mock(UpdateClientCertificateUseCase.class);
+    }
+
+    @Bean
+    public DeleteClientCertificateUseCase deleteClientCertificateUseCase() {
+        return mock(DeleteClientCertificateUseCase.class);
     }
 
     @Bean

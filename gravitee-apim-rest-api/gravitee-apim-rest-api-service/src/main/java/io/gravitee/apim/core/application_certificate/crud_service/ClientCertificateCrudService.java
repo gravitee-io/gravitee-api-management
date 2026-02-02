@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.apim.core.application_certificate.crud_service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * @author GraviteeSource Team
  */
-public interface ClientCertificateService {
+public interface ClientCertificateCrudService {
     /**
      * Find a client certificate by its ID.
      *

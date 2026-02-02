@@ -17,15 +17,15 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
+import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.common.Pageable;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
@@ -48,12 +48,14 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
         ClientCertificate cert2 = createClientCertificate("cert-2", "Certificate 2");
         Page<ClientCertificate> page = new Page<>(List.of(cert1, cert2), 1, 2, 2);
 
-        when(clientCertificateService.findByApplicationId(eq(APPLICATION_ID), any(Pageable.class))).thenReturn(page);
+        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class))).thenReturn(
+            new GetClientCertificatesUseCase.Output(page)
+        );
 
         final Response response = envTarget().request().get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        verify(clientCertificateService).findByApplicationId(eq(APPLICATION_ID), any(Pageable.class));
+        verify(getClientCertificatesUseCase).execute(any(GetClientCertificatesUseCase.Input.class));
     }
 
     @Test
@@ -67,7 +69,9 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
 
         ClientCertificate created = createClientCertificate("new-cert-id", "My Certificate");
 
-        when(clientCertificateService.create(eq(APPLICATION_ID), any(CreateClientCertificate.class))).thenReturn(created);
+        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class))).thenReturn(
+            new CreateClientCertificateUseCase.Output(created)
+        );
 
         final Response response = envTarget().request().post(Entity.json(createRequest));
 
@@ -75,7 +79,7 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
             soft.assertThat(response.getHeaderString("Location")).contains("new-cert-id");
         });
-        verify(clientCertificateService).create(eq(APPLICATION_ID), any(CreateClientCertificate.class));
+        verify(createClientCertificateUseCase).execute(any(CreateClientCertificateUseCase.Input.class));
     }
 
     @Test

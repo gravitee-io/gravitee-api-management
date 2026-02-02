@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl;
+package io.gravitee.apim.infra.crud_service.application_certificates;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -24,12 +25,12 @@ import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
-import io.gravitee.rest.api.service.ClientCertificateService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.TransactionalService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -45,13 +46,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of the ClientCertificateService.
+ * Implementation of the ClientCertificateCrudService.
  *
  * @author GraviteeSource Team
  */
 @Slf4j
 @Component
-public class ClientCertificateServiceImpl extends TransactionalService implements ClientCertificateService {
+public class ClientCertificateCrudServiceImpl extends TransactionalService implements ClientCertificateCrudService {
 
     @Lazy
     @Autowired
