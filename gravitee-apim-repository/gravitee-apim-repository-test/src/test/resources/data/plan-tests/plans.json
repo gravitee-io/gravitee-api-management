@@ -87,7 +87,7 @@
       "description": "Description of oauth2",
       "validation": "MANUAL",
       "security": "OAUTH2",
-     "referenceId": "oauth2",
+     "referenceId": "4e0db366-f772-4489-8db3-66f772b48989",
      "referenceType": "API",
       "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
       "definition": "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",

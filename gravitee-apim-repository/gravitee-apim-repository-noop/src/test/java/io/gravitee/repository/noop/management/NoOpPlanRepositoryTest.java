@@ -69,8 +69,8 @@ public class NoOpPlanRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void findByIdForApiProduct() throws TechnicalException {
-        var plan = cut.findByIdForApiProduct("plan-id", "api-product-id");
+    public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
+        var plan = cut.findByIdAndReferenceIdAndReferenceType("plan-id", "api-product-id", PlanReferenceType.API_PRODUCT);
 
         assertThat(plan).isEmpty();
     }

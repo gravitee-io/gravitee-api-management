@@ -17,13 +17,11 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -316,7 +314,9 @@ public class PlanSearchServiceImpl_SearchTest {
         apiProduct.setId(API_PRODUCT_ID);
         apiProduct.setDescription("description");
 
-        when(planRepository.findByIdForApiProduct("plan-1", API_PRODUCT_ID)).thenReturn(Optional.of(plan1));
+        when(planRepository.findByIdAndReferenceIdAndReferenceType("plan-1", API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Optional.of(plan1)
+        );
 
         var plan = planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), "plan-1", API_PRODUCT_ID);
 

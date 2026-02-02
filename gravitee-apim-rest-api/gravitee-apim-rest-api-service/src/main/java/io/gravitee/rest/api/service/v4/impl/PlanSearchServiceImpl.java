@@ -28,7 +28,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -258,7 +257,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         try {
             log.debug("Find plan by id : {}", plan);
             return planRepository
-                .findByIdForApiProduct(plan, apiProductId)
+                .findByIdAndReferenceIdAndReferenceType(plan, apiProductId, PlanReferenceType.API_PRODUCT)
                 .map(this::mapToGenericForApiProduct)
                 .orElseThrow(() -> new PlanNotFoundException(plan));
         } catch (TechnicalException ex) {

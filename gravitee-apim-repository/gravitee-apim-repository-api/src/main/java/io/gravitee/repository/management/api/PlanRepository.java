@@ -84,7 +84,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      */
     void updateCrossIds(List<Plan> plans) throws TechnicalException;
 
-    Set<Plan> findByReferenceIdAndReferenceType(String apiProductId, PlanReferenceType planReferenceType) throws TechnicalException;
+    Set<Plan> findByReferenceIdAndReferenceType(String referenceId, PlanReferenceType planReferenceType) throws TechnicalException;
 
-    Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException;
+    Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, PlanReferenceType planReferenceType)
+        throws TechnicalException;
 }

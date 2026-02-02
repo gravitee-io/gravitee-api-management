@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,7 +29,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -50,7 +47,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
@@ -255,7 +251,9 @@ public class PlanSearchServiceImplTest {
 
     @Test
     public void shouldFindByPlanIdForApiProduct() throws TechnicalException {
-        when(planRepository.findByIdForApiProduct(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Optional.of(plan)
+        );
 
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
@@ -272,13 +270,17 @@ public class PlanSearchServiceImplTest {
 
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotFindByPlanIdForApiProductBecauseNotExists() throws TechnicalException {
-        when(planRepository.findByIdForApiProduct(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.empty());
+        when(planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenReturn(
+            Optional.empty()
+        );
         planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByPlanIdForApiProductBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findByIdForApiProduct(PLAN_ID, API_PRODUCT_ID)).thenThrow(TechnicalException.class);
+        when(planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, PlanReferenceType.API_PRODUCT)).thenThrow(
+            TechnicalException.class
+        );
         planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
     }
 

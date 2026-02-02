@@ -101,7 +101,13 @@ class UpdateApiProductPlanUseCaseTest {
             ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(existingPlan);
-            when(planCrudService.findByPlanIdAndReferenceId(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.of(existingPlan));
+            when(
+                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                    PLAN_ID,
+                    API_PRODUCT_ID,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+                )
+            ).thenReturn(Optional.of(existingPlan));
             when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
             when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any())).thenReturn(updatedPlan);
 
@@ -143,7 +149,13 @@ class UpdateApiProductPlanUseCaseTest {
             ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(existingPlan);
-            when(planCrudService.findByPlanIdAndReferenceId(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.of(existingPlan));
+            when(
+                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                    PLAN_ID,
+                    API_PRODUCT_ID,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+                )
+            ).thenReturn(Optional.of(existingPlan));
             when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
             when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any())).thenAnswer(invocation ->
                 invocation.getArgument(0)
@@ -209,7 +221,13 @@ class UpdateApiProductPlanUseCaseTest {
                 .build();
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(existingPlan);
-            when(planCrudService.findByPlanIdAndReferenceId(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.empty());
+            when(
+                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                    PLAN_ID,
+                    API_PRODUCT_ID,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+                )
+            ).thenReturn(Optional.empty());
 
             PlanUpdates planUpdates = PlanUpdates.builder().id(PLAN_ID).referenceId(API_PRODUCT_ID).build();
             var input = new UpdateApiProductPlanUseCase.Input(
@@ -240,7 +258,13 @@ class UpdateApiProductPlanUseCaseTest {
                 .build();
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(existingPlan);
-            when(planCrudService.findByPlanIdAndReferenceId(PLAN_ID, API_PRODUCT_ID)).thenReturn(Optional.of(planFromCrud));
+            when(
+                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                    PLAN_ID,
+                    API_PRODUCT_ID,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+                )
+            ).thenReturn(Optional.of(planFromCrud));
 
             PlanUpdates planUpdates = PlanUpdates.builder().id(PLAN_ID).referenceId(API_PRODUCT_ID).build();
             var input = new UpdateApiProductPlanUseCase.Input(

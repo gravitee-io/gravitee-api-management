@@ -24,15 +24,10 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.PlanReferenceType;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
-import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -90,7 +85,7 @@ public class ApiProductPlanSearchQueryServiceImpl implements ApiProductPlanSearc
         try {
             log.debug("Find plan by id : {}", planId);
             return planRepository
-                .findByIdForApiProduct(planId, apiProductId)
+                .findByIdAndReferenceIdAndReferenceType(planId, apiProductId, PlanReferenceType.API_PRODUCT)
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .orElseThrow(() -> new PlanNotFoundException(planId));
         } catch (TechnicalException ex) {

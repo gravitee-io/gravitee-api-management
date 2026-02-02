@@ -161,18 +161,19 @@ public class MongoPlanRepository implements PlanRepository {
     }
 
     @Override
-    public Set<Plan> findByReferenceIdAndReferenceType(String apiProductId, PlanReferenceType planReferenceType) throws TechnicalException {
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, PlanReferenceType planReferenceType) throws TechnicalException {
         return internalPlanRepository
-            .findByReferenceIdAndReferenceType(apiProductId, planReferenceType.name())
+            .findByReferenceIdAndReferenceType(referenceId, planReferenceType.name())
             .stream()
             .map(this::map)
             .collect(Collectors.toSet());
     }
 
     @Override
-    public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId, PlanReferenceType planReferenceType)
+        throws TechnicalException {
         return internalPlanRepository
-            .findByPlanIdAndReferenceIdAndReferenceType(plan, apiProductId, PlanReferenceType.API_PRODUCT.name())
+            .findByPlanIdAndReferenceIdAndReferenceType(planId, referenceId, planReferenceType.name())
             .map(this::map);
     }
 }

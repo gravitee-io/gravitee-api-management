@@ -278,11 +278,15 @@ public class PlanCrudServiceImplTest {
         void should_return_plan_when_found() throws TechnicalException {
             var planId = "plan-id";
             var referenceId = "api-product-id";
-            when(planRepository.findByIdForApiProduct(planId, referenceId)).thenReturn(
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, PlanReferenceType.API_PRODUCT)).thenReturn(
                 Optional.of(planV4().id(planId).api("api-id").referenceId(referenceId).referenceType(PlanReferenceType.API_PRODUCT).build())
             );
 
-            var foundPlan = service.findByPlanIdAndReferenceId(planId, referenceId);
+            var foundPlan = service.findByPlanIdAndReferenceIdAndReferenceType(
+                planId,
+                referenceId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+            );
 
             Assertions.assertThat(foundPlan).isPresent();
             Assertions.assertThat(foundPlan.get().getId()).isEqualTo(planId);
@@ -294,9 +298,15 @@ public class PlanCrudServiceImplTest {
         void should_return_empty_when_plan_not_found() throws TechnicalException {
             var planId = "plan-id";
             var referenceId = "api-product-id";
-            when(planRepository.findByIdForApiProduct(planId, referenceId)).thenReturn(Optional.empty());
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, PlanReferenceType.API_PRODUCT)).thenReturn(
+                Optional.empty()
+            );
 
-            var foundPlan = service.findByPlanIdAndReferenceId(planId, referenceId);
+            var foundPlan = service.findByPlanIdAndReferenceIdAndReferenceType(
+                planId,
+                referenceId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+            );
 
             Assertions.assertThat(foundPlan).isEmpty();
         }
@@ -305,9 +315,13 @@ public class PlanCrudServiceImplTest {
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             var planId = "plan-id";
             var referenceId = "api-product-id";
-            when(planRepository.findByIdForApiProduct(planId, referenceId)).thenThrow(TechnicalException.class);
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, PlanReferenceType.API_PRODUCT)).thenThrow(
+                TechnicalException.class
+            );
 
-            Throwable throwable = catchThrowable(() -> service.findByPlanIdAndReferenceId(planId, referenceId));
+            Throwable throwable = catchThrowable(() ->
+                service.findByPlanIdAndReferenceIdAndReferenceType(planId, referenceId, GenericPlanEntity.ReferenceType.API_PRODUCT.name())
+            );
 
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)

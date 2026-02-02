@@ -487,7 +487,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     @Override
-    public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, PlanReferenceType planReferenceType)
+        throws TechnicalException {
         log.debug("JdbcPlanRepository.findById({})", plan);
         try {
             String query =
@@ -495,14 +496,16 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 " p left join " +
                 API_PRODUCTS +
                 " api_product on api_product.id = p.reference_id" +
-                " where p.id = ? and p.reference_id = ? and p.reference_type = 'API_PRODUCT'";
+                " where p.id = ? and p.reference_id = ? and p.reference_type = '" +
+                planReferenceType.name() +
+                "'";
             JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
                 CHILD_ADDER_API_PROD,
                 "id"
             );
 
-            jdbcTemplate.query(query, rowMapper, plan, apiProductId);
+            jdbcTemplate.query(query, rowMapper, plan, referenceId);
 
             Optional<Plan> result = rowMapper.getRows().stream().findFirst();
 

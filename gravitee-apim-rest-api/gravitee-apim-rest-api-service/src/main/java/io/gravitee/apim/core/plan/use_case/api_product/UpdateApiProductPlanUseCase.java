@@ -59,7 +59,11 @@ public class UpdateApiProductPlanUseCase {
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
         final Plan planEntity = planCrudService
-            .findByPlanIdAndReferenceId(input.planToUpdate.getId(), input.apiProductId)
+            .findByPlanIdAndReferenceIdAndReferenceType(
+                input.planToUpdate.getId(),
+                input.apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+            )
             .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
 
         if (

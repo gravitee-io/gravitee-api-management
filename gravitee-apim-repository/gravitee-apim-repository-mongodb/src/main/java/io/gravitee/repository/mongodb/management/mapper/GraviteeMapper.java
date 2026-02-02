@@ -245,8 +245,6 @@ public interface GraviteeMapper {
     PageRevisionMongo map(PageRevision toMap);
 
     // Plan mapping
-    @Mapping(target = "referenceId", source = "referenceId")
-    @Mapping(target = "referenceType", source = "referenceType")
     Plan map(PlanMongo toMap);
 
     PlanMongo map(Plan toMap);

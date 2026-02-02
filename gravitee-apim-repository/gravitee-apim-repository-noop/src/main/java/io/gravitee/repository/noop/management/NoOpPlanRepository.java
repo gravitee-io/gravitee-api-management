@@ -66,12 +66,13 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     }
 
     @Override
-    public Set<Plan> findByReferenceIdAndReferenceType(String apiProductId, PlanReferenceType planReferenceType) throws TechnicalException {
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, PlanReferenceType planReferenceType) throws TechnicalException {
         return Set.of();
     }
 
     @Override
-    public Optional<Plan> findByIdForApiProduct(String plan, String apiProductId) throws TechnicalException {
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String planId, String referenceId, PlanReferenceType planReferenceType)
+        throws TechnicalException {
         return Optional.empty();
     }
 }

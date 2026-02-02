@@ -569,8 +569,12 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByIdForApiProduct() throws Exception {
-        Optional<Plan> plan = planRepository.findByIdForApiProduct("api-product-plan-1", "api-product-1");
+    public void shouldFindByIdAndReferenceIdAndReferenceType() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
+            "api-product-plan-1",
+            "api-product-1",
+            PlanReferenceType.API_PRODUCT
+        );
 
         assertThat(plan)
             .isPresent()
@@ -580,8 +584,12 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldNotFindByIdForApiProduct_whenApiProductDoesNotMatch() throws Exception {
-        Optional<Plan> plan = planRepository.findByIdForApiProduct("api-product-plan-1", "another-api-product");
+    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeDoesNotMatch() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
+            "api-product-plan-1",
+            "another-api-product",
+            PlanReferenceType.API_PRODUCT
+        );
 
         assertThat(plan).isEmpty();
     }
