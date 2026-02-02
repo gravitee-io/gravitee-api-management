@@ -50,6 +50,12 @@ public class NativeFlow extends AbstractFlow {
     private List<Step> connect;
 
     @Valid
+    private List<Step> entrypointConnect;
+
+    @Valid
+    private List<Step> endpointConnect;
+
+    @Valid
     private List<Step> interact;
 
     @Valid
@@ -63,6 +69,7 @@ public class NativeFlow extends AbstractFlow {
     public List<Plugin> getPlugins() {
         return Stream.of(
             computePlugins(this.connect),
+            computePlugins(this.entrypointConnect),
             computePlugins(this.interact),
             computePlugins(this.publish),
             computePlugins(this.subscribe)

@@ -218,7 +218,16 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
 
         var apiProtocolTypeProperty = plugin.manifest().properties().get(apiProtocolType.name().toLowerCase());
         if (apiProtocolTypeProperty != null) {
-            return Arrays.stream(apiProtocolTypeProperty.split(",")).map(String::trim).map(FlowPhase::valueOf).collect(Collectors.toSet());
+            return Arrays.stream(apiProtocolTypeProperty.split(","))
+                .map(String::trim)
+                .map(phase -> {
+                    // Backward compatibility: map old CLIENT_CONNECT to ENTRYPOINT_CONNECT
+                    if ("CLIENT_CONNECT".equals(phase)) {
+                        return FlowPhase.ENTRYPOINT_CONNECT;
+                    }
+                    return FlowPhase.valueOf(phase);
+                })
+                .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
         }

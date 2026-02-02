@@ -172,6 +172,7 @@ public class SharedPolicyGroup {
         RESPONSE,
         INTERACT,
         CONNECT,
+        ENTRYPOINT_CONNECT,
         PUBLISH,
         SUBSCRIBE,
     }

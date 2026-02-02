@@ -945,6 +945,7 @@ components:
         - RESPONSE
         - INTERACT
         - CONNECT
+        - ENTRYPOINT_CONNECT
         - PUBLISH
         - SUBSCRIBE
     PlanV4:
