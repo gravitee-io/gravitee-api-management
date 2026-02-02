@@ -20,17 +20,24 @@ import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
 import io.gravitee.apim.core.logs_engine.model.Filter;
 import io.gravitee.apim.core.logs_engine.model.FilterName;
 import io.gravitee.apim.core.logs_engine.model.Operator;
+import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
-import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface LogsEngineMapper {
     LogsEngineMapper INSTANCE = Mappers.getMapper(LogsEngineMapper.class);
 
-    io.gravitee.apim.core.logs_engine.model.SearchLogsRequest fromRequestEntity(SearchLogsRequest requestEntity);
+    @Mapping(target = "page", source = "page")
+    @Mapping(target = "perPage", source = "perPage")
+    SearchLogsRequest fromRequestEntity(
+        io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest requestEntity,
+        Integer page,
+        Integer perPage
+    );
 
     SearchLogsResponse fromResponseModel(io.gravitee.apim.core.logs_engine.model.SearchLogsResponse responseModel);
 

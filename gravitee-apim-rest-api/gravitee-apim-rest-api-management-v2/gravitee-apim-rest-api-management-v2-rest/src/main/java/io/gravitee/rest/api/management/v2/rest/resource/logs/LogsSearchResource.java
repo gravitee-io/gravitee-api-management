@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRespo
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -40,8 +41,11 @@ public class LogsSearchResource extends AbstractResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchLogsResponse searchLogs(@Valid SearchLogsRequest request) {
-        var input = new SearchEnvironmentLogsUseCase.Input(getAuditInfo(), LogsEngineMapper.INSTANCE.fromRequestEntity(request));
+    public SearchLogsResponse searchLogs(@BeanParam @Valid PaginationParam paginationParam, @Valid SearchLogsRequest request) {
+        var input = new SearchEnvironmentLogsUseCase.Input(
+            getAuditInfo(),
+            LogsEngineMapper.INSTANCE.fromRequestEntity(request, paginationParam.getPage(), paginationParam.getPerPage())
+        );
         var output = searchEnvironmentLogsUseCase.execute(input);
         return LogsEngineMapper.INSTANCE.fromResponseModel(output.response());
     }
