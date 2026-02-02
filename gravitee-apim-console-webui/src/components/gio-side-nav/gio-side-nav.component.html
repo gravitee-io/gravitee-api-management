@@ -31,19 +31,31 @@
     </gio-menu-header>
     <gio-menu-list>
       <ng-container *ngFor="let item of mainMenuItems">
-        <a [routerLink]="item.routerLink">
-          <gio-menu-item
-            tabIndex="1"
-            routerLinkActive
-            #rla="routerLinkActive"
-            [title]="item.displayName"
-            [icon]="item.icon"
-            [active]="rla.isActive"
-            [gioLicense]="item?.licenseOptions"
-            [iconRight]="item?.iconRight$ | async"
-            >{{ item.displayName }}</gio-menu-item
-          >
-        </a>
+        <ng-container *ngIf="!item.items; else menuItemsGroup">
+          <a [routerLink]="item.routerLink">
+            <gio-menu-item
+              tabIndex="1"
+              routerLinkActive
+              #rla="routerLinkActive"
+              [title]="item.displayName"
+              [icon]="item.icon"
+              [active]="rla.isActive"
+              [gioLicense]="item?.licenseOptions"
+              [iconRight]="item?.iconRight$ | async"
+              >{{ item.displayName }}</gio-menu-item
+            >
+          </a>
+        </ng-container>
+
+        <ng-template #menuItemsGroup>
+          <gio-menu-items [title]="item.displayName" [icon]="item.icon" [routerBasePath]="item.routerBasePath">
+            <ng-container *ngFor="let child of item.items">
+              <a [routerLink]="child.routerLink" [tabindex]="1">
+                <gio-menu-item routerLinkActive>{{ child.displayName }}</gio-menu-item>
+              </a>
+            </ng-container>
+          </gio-menu-items>
+        </ng-template>
       </ng-container>
     </gio-menu-list>
 

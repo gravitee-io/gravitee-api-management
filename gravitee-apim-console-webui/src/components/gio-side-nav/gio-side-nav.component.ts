@@ -27,7 +27,7 @@ import { cleanRouterLink } from '../../util/router-link.util';
 import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
 
 interface MenuItem {
-  icon: string;
+  icon?: string;
   routerLink?: string;
   displayName: string;
   permissions?: string[];
@@ -35,6 +35,8 @@ interface MenuItem {
   iconRight$?: Observable<any>;
   subMenuPermissions?: string[];
   category: string;
+  items?: MenuItem[];
+  routerBasePath?: string;
 }
 
 export const SIDE_NAV_GROUP_ID = 'side-nav-items';
@@ -181,24 +183,50 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       });
     }
 
-    mainMenuItems.push(
-      {
-        icon: 'gio:verified',
-        displayName: 'Audit',
-        routerLink: './audit',
-        permissions: ['environment-audit-r'],
-        licenseOptions: auditLicenseOptions,
-        iconRight$: auditIconRight$,
-        category: 'Audit',
-      },
-      {
-        icon: 'gio:bar-chart-2',
-        displayName: 'Analytics',
-        routerLink: './analytics/dashboard',
-        permissions: ['environment-platform-r'],
-        category: 'Analytics',
-      },
-    );
+    mainMenuItems.push({
+      icon: 'gio:verified',
+      displayName: 'Audit',
+      routerLink: './audit',
+      permissions: ['environment-audit-r'],
+      licenseOptions: auditLicenseOptions,
+      iconRight$: auditIconRight$,
+      category: 'Audit',
+    });
+
+    mainMenuItems.push({
+      icon: 'gio:bar-chart-2',
+      displayName: 'Analytics',
+      category: 'Analytics',
+      permissions: ['environment-platform-r'],
+      routerBasePath: `/${this.currentEnv.hrids}/analytics`,
+      items: [
+        {
+          displayName: 'Overview',
+          routerLink: './analytics/overview',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Dashboards (WIP)',
+          routerLink: './analytics/dashboards',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Logs (WIP)',
+          routerLink: './analytics/logs-explorer',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Legacy > Dashboard',
+          routerLink: './analytics/dashboard',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Legacy > Logs',
+          routerLink: './analytics/logs',
+          category: 'Analytics',
+        },
+      ],
+    });
 
     if (!this.constants.isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
       mainMenuItems.push({
@@ -271,7 +299,19 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    return menuItems
+      .filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions))
+      .map((item) => {
+        if (item.items) {
+          const subItems = this.filterMenuByPermission(item.items);
+          if (subItems.length > 0 || item.routerLink) {
+            return { ...item, items: subItems };
+          }
+          return null;
+        }
+        return item;
+      })
+      .filter((item): item is MenuItem => item !== null);
   }
 
   private getSideNaveMenuSearchItems(): MenuSearchItem[] {
