@@ -173,8 +173,8 @@ public class XForwardProcessorTest extends AbstractProcessorTest {
         ForwardedTestData arg13Data = ForwardedTestData.builder().headers(arg13Headers).uri("").build();
 
         HttpHeaders arg14Headers = HttpHeaders.create();
-        arg14Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43 , Proto=http , HOST=client-proxy-instance.com");
-        ForwardedTestData arg14Data = ForwardedTestData.builder().headers(arg13Headers).uri("").build();
+        arg14Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43 , Proto=http , HOST=\"client-proxy-instance.com\"");
+        ForwardedTestData arg14Data = ForwardedTestData.builder().headers(arg14Headers).uri("").build();
 
         HttpHeaders arg15Headers = HttpHeaders.create();
         arg15Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
