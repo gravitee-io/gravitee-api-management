@@ -5558,11 +5558,12 @@ components:
                     items:
                         type: string
                         enum:
+                            - entrypoint_connect
+                            - connect
+                            - interact
                             - subscribe
                             - publish
                             - request_response
-                            - connect
-                            - interact
                             - socket
                 supportedQos:
                     type: array

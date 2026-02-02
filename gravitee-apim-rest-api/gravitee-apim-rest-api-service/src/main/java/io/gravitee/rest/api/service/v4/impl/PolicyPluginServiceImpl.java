@@ -42,6 +42,7 @@ import org.springframework.stereotype.Component;
 public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyPluginEntity> implements PolicyPluginService {
 
     private enum POLICY_FLOW_PHASE {
+        ENTRYPOINT_CONNECT,
         INTERACT,
         CONNECT,
         PUBLISH,
@@ -197,6 +198,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
                 .map(POLICY_FLOW_PHASE::valueOf)
                 .map(p ->
                     switch (p) {
+                        case ENTRYPOINT_CONNECT -> FlowPhase.ENTRYPOINT_CONNECT;
                         case INTERACT -> FlowPhase.INTERACT;
                         case CONNECT -> FlowPhase.CONNECT;
                         case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;

@@ -4441,6 +4441,11 @@ components:
                     description: Flow step used for NATIVE APIs
                     items:
                         $ref: "#/components/schemas/StepV4"
+                entrypointConnect:
+                    type: array
+                    description: Flow step used for NATIVE APIs entrypoint connect phase
+                    items:
+                        $ref: "#/components/schemas/StepV4"
                 interact:
                     type: array
                     description: Flow step used for NATIVE APIs

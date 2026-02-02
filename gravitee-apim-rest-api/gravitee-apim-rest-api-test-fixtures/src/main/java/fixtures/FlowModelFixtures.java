@@ -53,6 +53,7 @@ public class FlowModelFixtures {
     private static final NativeFlow.NativeFlowBuilder BASE_MODEL_FLOW_NATIVE_V4 = NativeFlow.builder()
         .name("Flow")
         .enabled(true)
+        .entrypointConnect(List.of(BASE_MODEL_STEP_V4.name("step_entrypoint_connect").build()))
         .connect(List.of(BASE_MODEL_STEP_V4.name("step_connect").build()))
         .publish(List.of(BASE_MODEL_STEP_V4.name("step_publish").build()))
         .interact(List.of(BASE_MODEL_STEP_V4.name("step_interact").build()))

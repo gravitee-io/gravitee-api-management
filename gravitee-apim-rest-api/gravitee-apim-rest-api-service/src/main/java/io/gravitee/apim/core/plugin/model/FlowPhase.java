@@ -21,6 +21,7 @@ import lombok.Getter;
 
 @Getter
 public enum FlowPhase {
+    ENTRYPOINT_CONNECT(ApiProtocolType.NATIVE_KAFKA),
     INTERACT(ApiProtocolType.NATIVE_KAFKA),
     CONNECT(ApiProtocolType.NATIVE_KAFKA),
     PUBLISH(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),

@@ -617,6 +617,7 @@ components:
             description: A mode used by a connector
             example: SUBSCRIBE
             enum:
+                - ENTRYPOINT_CONNECT
                 - CONNECT
                 - INTERACT
                 - SUBSCRIBE
@@ -631,6 +632,7 @@ components:
             enum:
                 - REQUEST
                 - RESPONSE
+                - ENTRYPOINT_CONNECT
                 - INTERACT
                 - CONNECT
                 - PUBLISH

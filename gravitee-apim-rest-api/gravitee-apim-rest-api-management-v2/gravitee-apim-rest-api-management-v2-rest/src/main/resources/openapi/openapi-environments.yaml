@@ -1553,6 +1553,7 @@ components:
       description: The execution phase of a policy.
       example: REQUEST
       enum:
+        - ENTRYPOINT_CONNECT
         - REQUEST
         - RESPONSE
         - INTERACT
