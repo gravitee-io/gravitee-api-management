@@ -134,6 +134,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     public void disable(ManagedEndpoint endpoint) {
         disabledEndpoints.add(endpoint);
         endpoint.getGroup().removeManagedEndpoint(endpoint);
+        endpoint.retireConnectionPool();
     }
 
     @Override
@@ -217,6 +218,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
             if (managedEndpoint != null) {
                 managedEndpoint.getGroup().removeManagedEndpoint(managedEndpoint);
+                managedEndpoint.retireConnectionPool();
                 stopWhenDrained(managedEndpoint, System.currentTimeMillis() + DRAIN_MAX_WAIT_MS);
             }
         } catch (Exception e) {

@@ -197,4 +197,9 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
     public int inFlight() {
         return endpoint.inFlight();
     }
+
+    @Override
+    public void retireConnectionPool() {
+        endpoint.retireConnectionPool();
+    }
 }

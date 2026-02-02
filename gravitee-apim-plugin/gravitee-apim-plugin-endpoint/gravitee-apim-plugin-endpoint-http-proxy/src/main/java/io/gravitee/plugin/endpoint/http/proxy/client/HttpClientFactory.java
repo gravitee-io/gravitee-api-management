@@ -35,6 +35,7 @@ public class HttpClientFactory {
 
     private HttpClient httpClient;
     private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
+    private Vertx vertx;
 
     public HttpClient getOrBuildHttpClient(
         final HttpExecutionContext ctx,
@@ -57,8 +58,9 @@ public class HttpClientFactory {
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
+        this.vertx = ctx.getComponent(Vertx.class);
         return VertxHttpClientFactory.builder()
-            .vertx(ctx.getComponent(Vertx.class))
+            .vertx(this.vertx)
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())
             .httpOptions(HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions()))
@@ -72,6 +74,23 @@ public class HttpClientFactory {
         if (httpClient != null) {
             httpClient.close();
             httpClient = null;
+        }
+    }
+
+    public void retire(final long delayMs) {
+        final HttpClient toClose;
+        synchronized (this) {
+            toClose = httpClient;
+            httpClient = null;
+            httpClientCreated.set(false);
+        }
+        if (toClose == null) {
+            return;
+        }
+        if (vertx != null && delayMs > 0) {
+            vertx.setTimer(delayMs, id -> toClose.close());
+        } else {
+            toClose.close();
         }
     }
 }

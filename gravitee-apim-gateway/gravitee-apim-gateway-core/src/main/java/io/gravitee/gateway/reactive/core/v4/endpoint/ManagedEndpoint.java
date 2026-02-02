@@ -41,6 +41,8 @@ public interface ManagedEndpoint {
         return 0;
     }
 
+    default void retireConnectionPool() {}
+
     enum Status {
         UP(3),
         DOWN(0),

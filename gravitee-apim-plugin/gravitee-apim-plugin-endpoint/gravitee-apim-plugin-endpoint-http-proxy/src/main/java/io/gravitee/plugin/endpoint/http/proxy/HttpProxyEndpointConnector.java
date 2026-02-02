@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     private static final String ENDPOINT_ID = "http-proxy";
+    private static final long DEFAULT_POOL_RETIRE_DELAY_MS = 30_000L;
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
     static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
@@ -118,6 +119,15 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
             return this.connectors.computeIfAbsent("http", type ->
                 new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
             );
+        }
+    }
+
+    public void retireConnectionPool() {
+        if (httpClientFactory != null) {
+            httpClientFactory.retire(DEFAULT_POOL_RETIRE_DELAY_MS);
+        }
+        if (grpcHttpClientFactory != null) {
+            grpcHttpClientFactory.retire(DEFAULT_POOL_RETIRE_DELAY_MS);
         }
     }
 

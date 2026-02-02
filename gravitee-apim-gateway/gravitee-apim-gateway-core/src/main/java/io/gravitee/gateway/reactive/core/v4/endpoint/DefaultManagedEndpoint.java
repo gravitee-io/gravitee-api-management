@@ -17,7 +17,10 @@ package io.gravitee.gateway.reactive.core.v4.endpoint;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.gateway.reactive.api.connector.endpoint.BaseEndpointConnector;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manage endpoint represents the endpoint definition and its associated instance of connector.
@@ -27,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DefaultManagedEndpoint implements ManagedEndpoint {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultManagedEndpoint.class);
     private final Endpoint definition;
     private final ManagedEndpointGroup group;
     private final BaseEndpointConnector connector;
@@ -81,5 +85,20 @@ public class DefaultManagedEndpoint implements ManagedEndpoint {
     @Override
     public int inFlight() {
         return inFlight.get();
+    }
+
+    @Override
+    public void retireConnectionPool() {
+        if (connector == null) {
+            return;
+        }
+        try {
+            Method retireMethod = connector.getClass().getMethod("retireConnectionPool");
+            retireMethod.invoke(connector);
+        } catch (NoSuchMethodException ignored) {
+            // Connector does not support pool retirement.
+        } catch (Exception exception) {
+            log.debug("Failed to retire connection pool for endpoint [{}].", definition.getName(), exception);
+        }
     }
 }
