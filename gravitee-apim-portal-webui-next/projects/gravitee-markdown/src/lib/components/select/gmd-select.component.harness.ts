@@ -24,8 +24,7 @@ export class GmdSelectComponentHarness extends ComponentHarness {
   }
 
   async setValue(value: string): Promise<void> {
-    const select = await this.getSelect();
-    await select.sendKeys(value);
+    await this.selectOptionByValue(value);
   }
 
   async getOptionValues(): Promise<string[]> {
@@ -51,7 +50,20 @@ export class GmdSelectComponentHarness extends ComponentHarness {
 
   async selectOptionByValue(value: string): Promise<void> {
     const select = await this.getSelect();
-    await select.sendKeys(value);
+    const options = await this.getOptions();
+    let optionIndex = -1;
+    for (let i = 0; i < options.length; i++) {
+      const optionValue = await options[i].getAttribute('value');
+      if (optionValue === value) {
+        optionIndex = i;
+        break;
+      }
+    }
+    if (optionIndex === -1) {
+      throw new Error(`Select option with value "${value}" not found`);
+    }
+    await select.selectOptions(optionIndex);
+    await select.dispatchEvent('change');
   }
 
   async getOptionCount(): Promise<number> {

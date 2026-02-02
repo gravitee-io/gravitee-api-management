@@ -20,7 +20,6 @@ export * from './gravitee-markdown-editor.module';
 // Components
 export * from './gravitee-markdown-editor.component';
 export * from './components/monaco-editor/monaco-editor.component';
-export * from '../gravitee-markdown-form-editor/gmd-form-editor.component';
 
 // Models and Types
 export * from './models/monaco-editor-config';

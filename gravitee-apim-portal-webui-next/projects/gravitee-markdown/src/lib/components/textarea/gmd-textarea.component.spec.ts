@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdTextareaComponent } from './gmd-textarea.component';
+import { GmdTextareaComponentHarness } from './gmd-textarea.component.harness';
 import { GmdFieldState } from '../../models/formField';
 
 @Component({
@@ -55,6 +58,8 @@ describe('GmdTextareaComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let component: TestHostComponent;
   let textareaComponent: GmdTextareaComponent;
+  let loader: HarnessLoader;
+  let harness: GmdTextareaComponentHarness;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -64,6 +69,8 @@ describe('GmdTextareaComponent', () => {
     fixture = TestBed.createComponent(TestHostComponent);
     component = fixture.componentInstance;
     textareaComponent = fixture.debugElement.query(p => p.name === 'gmd-textarea')?.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    harness = await loader.getHarness(GmdTextareaComponentHarness);
     fixture.detectChanges();
   });
 
@@ -80,64 +87,61 @@ describe('GmdTextareaComponent', () => {
     expect(textareaComponent.rows()).toBe(4);
   });
 
-  it('should display label when provided', () => {
+  it('should display label when provided', async () => {
     fixture.componentRef.setInput('label', 'Test Textarea');
     fixture.detectChanges();
 
-    const labelElement = fixture.nativeElement.querySelector('.gmd-textarea__label');
-    expect(labelElement).toBeTruthy();
-    expect(labelElement.textContent.trim()).toContain('Test Textarea');
+    const label = await harness.getLabel();
+    expect(label).toContain('Test Textarea');
   });
 
-  it('should show placeholder when provided', () => {
+  it('should show placeholder when provided', async () => {
     fixture.componentRef.setInput('placeholder', 'Enter text here');
     fixture.detectChanges();
 
-    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-    expect(textarea.placeholder).toBe('Enter text here');
+    const placeholder = await harness.getPlaceholder();
+    expect(placeholder).toBe('Enter text here');
   });
 
-  it('should show required indicator when required is true', () => {
+  it('should show required indicator when required is true', async () => {
     fixture.componentRef.setInput('label', 'Test Textarea');
     fixture.componentRef.setInput('required', true);
     fixture.detectChanges();
 
-    const requiredIndicator = fixture.nativeElement.querySelector('.gmd-textarea__required');
-    expect(requiredIndicator).toBeTruthy();
-    expect(requiredIndicator.textContent.trim()).toBe('*');
+    const hasIndicator = await harness.hasRequiredIndicator();
+    expect(hasIndicator).toBe(true);
   });
 
-  it('should update value when textarea input changes', () => {
-    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-    textarea.value = 'test value';
-    textarea.dispatchEvent(new Event('input'));
+  it('should update value when textarea input changes', async () => {
+    await harness.setValue('test value');
     fixture.detectChanges();
 
-    expect(textarea.value).toBe('test value');
+    const value = await harness.getValue();
+    expect(value).toBe('test value');
   });
 
-  it('should set rows attribute', () => {
+  it('should set rows attribute', async () => {
     fixture.componentRef.setInput('rows', 10);
     fixture.detectChanges();
 
-    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-    expect(textarea.rows).toBe(10);
+    const rows = await harness.getRows();
+    expect(rows).toBe(10);
   });
 
-  it('should be readonly when readonly input is true', () => {
+  it('should be readonly when readonly input is true', async () => {
     fixture.componentRef.setInput('readonly', true);
     fixture.detectChanges();
 
-    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-    expect(textarea.readOnly).toBe(true);
+    const isReadonly = await harness.isReadonly();
+    expect(isReadonly).toBe(true);
   });
 
-  it('should be disabled when disabled input is true', () => {
+  it('should be disabled when disabled input is true', async () => {
     fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
 
-    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-    expect(textarea.disabled).toBe(true);
+    const isDisabled = await harness.isDisabled();
+    expect(isDisabled).toBe(true);
   });
 
   describe('Validation', () => {
@@ -194,17 +198,16 @@ describe('GmdTextareaComponent', () => {
       expect(textareaComponent.errors()).toContain('maxLength');
     });
 
-    it('should show error messages when touched and invalid', () => {
+    it('should show error messages when touched and invalid', async () => {
       fixture.componentRef.setInput('required', true);
       fixture.detectChanges();
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      textarea.dispatchEvent(new Event('blur'));
+      await harness.blur();
       fixture.detectChanges();
 
-      const errorElement = fixture.nativeElement.querySelector('.gmd-textarea__error');
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.textContent.trim()).toBe('This field is required.');
+      const errorMessages = await harness.getErrorMessages();
+      expect(errorMessages.length).toBeGreaterThan(0);
+      expect(errorMessages[0]).toBe('This field is required.');
     });
   });
 
@@ -225,9 +228,7 @@ describe('GmdTextareaComponent', () => {
         );
       });
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      textarea.value = 'test value';
-      textarea.dispatchEvent(new Event('input'));
+      await harness.setValue('test value');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -250,9 +251,7 @@ describe('GmdTextareaComponent', () => {
         eventEmitted = true;
       });
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      textarea.value = 'test';
-      textarea.dispatchEvent(new Event('input'));
+      await harness.setValue('test');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -273,8 +272,7 @@ describe('GmdTextareaComponent', () => {
         });
       });
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      textarea.dispatchEvent(new Event('blur'));
+      await harness.blur();
       fixture.detectChanges();
 
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -287,26 +285,23 @@ describe('GmdTextareaComponent', () => {
   });
 
   describe('Initial value synchronization', () => {
-    it('should sync and update value from input', () => {
+    it('should sync and update value from input', async () => {
       fixture.componentRef.setInput('value', 'first value');
       fixture.detectChanges();
 
-      let textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      expect(textarea.value).toBe('first value');
+      expect(await harness.getValue()).toBe('first value');
 
       fixture.componentRef.setInput('value', 'second value');
       fixture.detectChanges();
 
-      textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      expect(textarea.value).toBe('second value');
+      expect(await harness.getValue()).toBe('second value');
     });
 
-    it('should handle undefined value', () => {
+    it('should handle undefined value', async () => {
       fixture.componentRef.setInput('value', undefined);
       fixture.detectChanges();
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      expect(textarea.value).toBe('');
+      expect(await harness.getValue()).toBe('');
     });
   });
 
@@ -314,23 +309,23 @@ describe('GmdTextareaComponent', () => {
     it.each([
       { input: 5, expected: '5', type: 'numeric' },
       { input: '10', expected: '10', type: 'string' },
-    ])('should accept $type minLength', ({ input, expected }) => {
+    ])('should accept $type minLength', async ({ input, expected }) => {
       fixture.componentRef.setInput('minLength', input);
       fixture.detectChanges();
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      expect(textarea.getAttribute('minlength')).toBe(expected);
+      const minLength = await harness.getMinLength();
+      expect(minLength).toBe(expected);
     });
 
     it.each([
       { input: 20, expected: '20', type: 'numeric' },
       { input: '30', expected: '30', type: 'string' },
-    ])('should accept $type maxLength', ({ input, expected }) => {
+    ])('should accept $type maxLength', async ({ input, expected }) => {
       fixture.componentRef.setInput('maxLength', input);
       fixture.detectChanges();
 
-      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
-      expect(textarea.getAttribute('maxlength')).toBe(expected);
+      const maxLength = await harness.getMaxLength();
+      expect(maxLength).toBe(expected);
     });
   });
 });
