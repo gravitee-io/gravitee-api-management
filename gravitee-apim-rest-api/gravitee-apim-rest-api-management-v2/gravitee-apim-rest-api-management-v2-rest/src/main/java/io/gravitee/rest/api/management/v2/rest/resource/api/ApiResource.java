@@ -67,7 +67,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -169,6 +168,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
+
+    @Inject
+    private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -830,6 +832,16 @@ public class ApiResource extends AbstractResource {
         var output = getExposedEntrypointsUseCase.execute(input);
 
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
+    }
+
+    @POST
+    @Path("/_detach")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response detachAutomatedApi(@PathParam("apiId") String apiId) {
+        var input = new DetachAutomatedApiUseCase.Input(apiId, getAuditInfo());
+        detachAutomatedApiUseCase.execute(input);
+        return Response.ok().build();
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
