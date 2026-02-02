@@ -140,6 +140,13 @@
             Delete
           </button>
         </div>
+
+        <div *ngIf="canDetach" class="danger-card__actions__action">
+          <span>Detach from automation source. This will make the {{ subject }} editable again in the console.</span>
+          <button mat-button color="warn" data-testid="api_info_dangerzone_make_editable" (click)="detach()">
+            Detach the {{ subject }}
+          </button>
+        </div>
       </ng-container>
     </div>
   </mat-card-content>
