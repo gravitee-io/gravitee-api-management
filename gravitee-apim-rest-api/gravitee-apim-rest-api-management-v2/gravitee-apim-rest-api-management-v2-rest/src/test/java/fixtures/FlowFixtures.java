@@ -78,6 +78,7 @@ public class FlowFixtures {
         new FlowV4()
             .name("Flow")
             .enabled(true)
+            .entrypointConnect(List.of(BASE_STEP_V4.get().name("step_entrypoint_connect")))
             .connect(List.of(BASE_STEP_V4.get().name("step_connect")))
             .publish(List.of(BASE_STEP_V4.get().name("step_publish")))
             .interact(List.of(BASE_STEP_V4.get().name("step_interact")))

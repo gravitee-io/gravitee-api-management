@@ -974,5 +974,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         PUBLISH,
         INTERACT,
         CONNECT,
+        ENTRYPOINT_CONNECT,
     }
 }

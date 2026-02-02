@@ -943,6 +943,7 @@ components:
       enum:
         - REQUEST
         - RESPONSE
+        - ENTRYPOINT_CONNECT
         - INTERACT
         - CONNECT
         - PUBLISH
