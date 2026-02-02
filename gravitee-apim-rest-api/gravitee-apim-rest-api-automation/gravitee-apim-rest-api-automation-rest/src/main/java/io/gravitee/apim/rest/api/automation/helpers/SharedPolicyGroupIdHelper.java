@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.rest.api.automation.helpers;
 
+import static io.gravitee.apim.rest.api.automation.helpers.HRIDHelper.nameToHRID;
 import static io.gravitee.apim.rest.api.automation.resource.ApisResource.HRID_FIELD;
-import static io.gravitee.apim.rest.api.automation.resource.ApisResource.SHARED_POLICY_GROUP_ID_FIELD;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -38,25 +39,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SharedPolicyGroupIdHelper {
 
-    public static void addSPGIDFromHrid(ApiV4Spec spec, AuditInfo audit) {
-        CollectionUtils.stream(spec.getFlows()).forEach(f -> addSPGIDFromHrid(f, audit));
+    public static final String SHARED_POLICY_GROUP_ID_FIELD = "sharedPolicyGroupId";
+
+    public static void addSharedPolicyGroupIdFromHrid(ApiV4Spec spec, AuditInfo audit) {
+        CollectionUtils.stream(spec.getFlows()).forEach(f -> addSharedPolicyGroupIdFromHrid(f, audit));
         if (spec.getPlans() != null) {
             CollectionUtils.stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(f -> addSPGIDFromHrid(f, audit));
+                .forEach(f -> addSharedPolicyGroupIdFromHrid(f, audit));
         }
     }
 
-    private static void addSPGIDFromHrid(@Valid FlowV4 flowV4, AuditInfo audit) {
-        CollectionUtils.stream(flowV4.getRequest()).forEach(s -> addSPGIDFromHrid(s, audit));
-        CollectionUtils.stream(flowV4.getResponse()).forEach(s -> addSPGIDFromHrid(s, audit));
-        CollectionUtils.stream(flowV4.getSubscribe()).forEach(s -> addSPGIDFromHrid(s, audit));
-        CollectionUtils.stream(flowV4.getPublish()).forEach(s -> addSPGIDFromHrid(s, audit));
-        CollectionUtils.stream(flowV4.getInteract()).forEach(s -> addSPGIDFromHrid(s, audit));
-        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(s -> addSPGIDFromHrid(s, audit));
+    private static void addSharedPolicyGroupIdFromHrid(@Valid FlowV4 flowV4, AuditInfo audit) {
+        CollectionUtils.stream(flowV4.getRequest()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
+        CollectionUtils.stream(flowV4.getResponse()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
+        CollectionUtils.stream(flowV4.getSubscribe()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
+        CollectionUtils.stream(flowV4.getPublish()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
+        CollectionUtils.stream(flowV4.getInteract()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
+        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(s -> addSharedPolicyGroupIdFromHrid(s, audit));
     }
 
-    private static void addSPGIDFromHrid(StepV4 stepV4, AuditInfo auditInfo) {
+    private static void addSharedPolicyGroupIdFromHrid(StepV4 stepV4, AuditInfo auditInfo) {
         if (Objects.equals(stepV4.getPolicy(), SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)) {
             Object configuration = stepV4.getConfiguration();
             if (configuration instanceof Map<?, ?> rawMap) {
@@ -70,30 +73,59 @@ public class SharedPolicyGroupIdHelper {
         }
     }
 
-    public static void removeSPGID(ApiV4Spec spec) {
-        CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
+    public static void removeSharedPolicyGroupId(ApiV4Spec spec) {
+        CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         if (spec.getPlans() != null) {
             CollectionUtils.stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(SharedPolicyGroupIdHelper::removeSPGID);
+                .forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         }
     }
 
-    private static void removeSPGID(@Valid FlowV4 flowV4) {
-        CollectionUtils.stream(flowV4.getRequest()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
-        CollectionUtils.stream(flowV4.getResponse()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
-        CollectionUtils.stream(flowV4.getSubscribe()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
-        CollectionUtils.stream(flowV4.getPublish()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
-        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
-        CollectionUtils.stream(flowV4.getInteract()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
+    public static void addHRID(ApiV4Spec spec) {
+        CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        if (spec.getPlans() != null) {
+            CollectionUtils.stream(spec.getPlans())
+                .flatMap(p -> CollectionUtils.stream(p.getFlows()))
+                .forEach(SharedPolicyGroupIdHelper::addHRID);
+        }
     }
 
-    private static void removeSPGID(StepV4 stepV4) {
-        if (
-            Objects.equals(stepV4.getPolicy(), SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID) &&
-            stepV4.getConfiguration() instanceof Map<?, ?> rawMap
-        ) {
-            rawMap.remove(SHARED_POLICY_GROUP_ID_FIELD);
+    private static void removeSharedPolicyGroupId(@Valid FlowV4 flowV4) {
+        CollectionUtils.stream(flowV4.getRequest()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getResponse()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getSubscribe()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getPublish()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getInteract()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+    }
+
+    private static void addHRID(@Valid FlowV4 flowV4) {
+        CollectionUtils.stream(flowV4.getRequest()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        CollectionUtils.stream(flowV4.getResponse()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        CollectionUtils.stream(flowV4.getSubscribe()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        CollectionUtils.stream(flowV4.getPublish()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(SharedPolicyGroupIdHelper::addHRID);
+        CollectionUtils.stream(flowV4.getInteract()).forEach(SharedPolicyGroupIdHelper::addHRID);
+    }
+
+    private static void removeSharedPolicyGroupId(StepV4 stepV4) {
+        getConfiguration(stepV4).ifPresent(configuration -> configuration.remove(SHARED_POLICY_GROUP_ID_FIELD));
+    }
+
+    private static void addHRID(StepV4 stepV4) {
+        getConfiguration(stepV4).ifPresent(configuration -> configuration.computeIfAbsent(HRID_FIELD, k -> nameToHRID(stepV4.getName())));
+    }
+
+    private static Optional<Map<Object, Object>> getConfiguration(StepV4 stepV4) {
+        if (!Objects.equals(stepV4.getPolicy(), SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)) {
+            return Optional.empty();
         }
+        if (!(stepV4.getConfiguration() instanceof Map<?, ?> configuration)) {
+            return Optional.empty();
+        }
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> typed = (Map<Object, Object>) configuration;
+        return Optional.of(typed);
     }
 }

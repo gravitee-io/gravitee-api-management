@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -180,7 +181,7 @@ class ApisResourceTest extends AbstractResourceTest {
         @Nonnull
         private static Predicate<String> assertion() {
             return s ->
-                s.contains(ApisResource.SHARED_POLICY_GROUP_ID_FIELD) &&
+                s.contains(SharedPolicyGroupIdHelper.SHARED_POLICY_GROUP_ID_FIELD) &&
                 !s.contains(ApisResource.HRID_FIELD) &&
                 !s.contains("test-spg-hrid");
         }
