@@ -25,6 +25,9 @@
     [required]="required()"
     [readonly]="readonly()"
     [disabled]="disabled()"
+    [attr.aria-required]="required() ? 'true' : null"
+    [attr.aria-invalid]="hasErrors() ? 'true' : null"
+    [attr.aria-describedby]="hasErrors() ? errorId() : null"
     (change)="onChange($event)"
     (blur)="onBlur()" />
   @if (label()) {
@@ -38,7 +41,7 @@
 </label>
 
 @if (touched() && errorMessages().length) {
-  <div class="gmd-checkbox__errors" role="alert">
+  <div [id]="errorId()" class="gmd-checkbox__errors" role="alert">
     @for (msg of errorMessages(); track msg) {
       <div class="gmd-checkbox__error">{{ msg }}</div>
     }

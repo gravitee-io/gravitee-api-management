@@ -106,6 +106,21 @@ export class GmdTextareaComponentHarness extends ComponentHarness {
     await textarea.focus();
   }
 
+  async getAriaRequired(): Promise<string | null> {
+    const textarea = await this.getTextarea();
+    return await textarea.getAttribute('aria-required');
+  }
+
+  async getAriaInvalid(): Promise<string | null> {
+    const textarea = await this.getTextarea();
+    return await textarea.getAttribute('aria-invalid');
+  }
+
+  async getAriaDescribedby(): Promise<string | null> {
+    const textarea = await this.getTextarea();
+    return await textarea.getAttribute('aria-describedby');
+  }
+
   private async getTextarea(): Promise<TestElement> {
     return this.locatorFor('textarea')();
   }

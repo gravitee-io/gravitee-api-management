@@ -92,6 +92,21 @@ export class GmdCheckboxComponentHarness extends ComponentHarness {
     await checkbox.blur();
   }
 
+  async getAriaRequired(): Promise<string | null> {
+    const checkbox = await this.getCheckbox();
+    return await checkbox.getAttribute('aria-required');
+  }
+
+  async getAriaInvalid(): Promise<string | null> {
+    const checkbox = await this.getCheckbox();
+    return await checkbox.getAttribute('aria-invalid');
+  }
+
+  async getAriaDescribedby(): Promise<string | null> {
+    const checkbox = await this.getCheckbox();
+    return await checkbox.getAttribute('aria-describedby');
+  }
+
   private async getCheckbox(): Promise<TestElement> {
     return this.locatorFor('input[type="checkbox"]')();
   }

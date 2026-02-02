@@ -89,6 +89,10 @@ export class GmdRadioComponent {
       .filter(opt => opt.length > 0);
   });
 
+  protected errorId = computed(() => `${this.name()}-error`);
+  protected groupLabelId = computed(() => `${this.name()}-label`);
+  protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
+
   private readonly el = inject(ElementRef<HTMLElement>);
 
   protected readonly internalValue = signal<string>('');

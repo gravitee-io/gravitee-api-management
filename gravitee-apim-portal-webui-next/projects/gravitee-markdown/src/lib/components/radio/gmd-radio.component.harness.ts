@@ -111,6 +111,33 @@ export class GmdRadioComponentHarness extends ComponentHarness {
     }
   }
 
+  async getAriaRequired(): Promise<string | null> {
+    try {
+      const fieldset = await this.locatorFor('fieldset')();
+      return await fieldset.getAttribute('aria-required');
+    } catch {
+      return null;
+    }
+  }
+
+  async getAriaInvalid(): Promise<string | null> {
+    try {
+      const fieldset = await this.locatorFor('fieldset')();
+      return await fieldset.getAttribute('aria-invalid');
+    } catch {
+      return null;
+    }
+  }
+
+  async getAriaDescribedby(): Promise<string | null> {
+    try {
+      const fieldset = await this.locatorFor('fieldset')();
+      return await fieldset.getAttribute('aria-describedby');
+    } catch {
+      return null;
+    }
+  }
+
   private async getRadioInputs(): Promise<TestElement[]> {
     return this.locatorForAll('input[type="radio"]')();
   }

@@ -302,4 +302,49 @@ describe('GmdRadioComponent', () => {
       expect(await harness.getSelectedValue()).toBe('option2');
     });
   });
+
+  describe('ARIA attributes', () => {
+    it('should use fieldset/legend for semantic HTML', () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('label', 'Choose option');
+      fixture.detectChanges();
+
+      const fieldset = fixture.nativeElement.querySelector('fieldset.gmd-radio');
+      const legend = fixture.nativeElement.querySelector('legend.gmd-radio__group-label');
+      expect(fieldset).toBeTruthy();
+      expect(legend).toBeTruthy();
+    });
+
+    it('should set aria-labelledby on fieldset when label is provided', () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('label', 'Choose option');
+      fixture.detectChanges();
+
+      const fieldset = fixture.nativeElement.querySelector('fieldset.gmd-radio');
+      expect(fieldset.getAttribute('aria-labelledby')).toBeTruthy();
+    });
+
+    it('should set aria-required on fieldset when required', async () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      const ariaRequired = await harness.getAriaRequired();
+      expect(ariaRequired).toBe('true');
+    });
+
+    it('should set aria-invalid and aria-describedby on fieldset when has errors', async () => {
+      fixture.componentRef.setInput('options', 'option1,option2');
+      fixture.componentRef.setInput('required', true);
+      fixture.detectChanges();
+
+      await harness.blur();
+      fixture.detectChanges();
+
+      const ariaInvalid = await harness.getAriaInvalid();
+      const ariaDescribedby = await harness.getAriaDescribedby();
+      expect(ariaInvalid).toBe('true');
+      expect(ariaDescribedby).toBeTruthy();
+    });
+  });
 });
