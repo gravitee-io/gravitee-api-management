@@ -33,6 +33,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
 import io.vertx.rxjava3.core.http.WebSocketFrame;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -279,6 +280,33 @@ class VertxWebSocketTest {
             ReflectionTestUtils.setField(cut, "upgraded", false);
 
             final TestObserver<Void> obs = cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
+            obs.assertComplete();
+            verifyNoInteractions(webSocket);
+        }
+    }
+
+    @Nested
+    class WriteTextFrame {
+
+        @Test
+        void should_write_text_frame() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+
+            final io.gravitee.gateway.api.buffer.Buffer buffer = io.gravitee.gateway.api.buffer.Buffer.buffer("Test");
+            when(webSocket.rxWriteTextMessage(buffer.toString(StandardCharsets.UTF_8))).thenReturn(Completable.complete());
+
+            final TestObserver<Void> obs = cut.writeTextFrame(buffer).test();
+
+            obs.assertComplete();
+            verify(webSocket).rxWriteTextMessage(eq(buffer.toString(StandardCharsets.UTF_8)));
+        }
+
+        @Test
+        void should_not_write_text_frame_if_not_upgraded() {
+            ReflectionTestUtils.setField(cut, "upgraded", false);
+
+            final TestObserver<Void> obs = cut.writeTextFrame(io.gravitee.gateway.api.buffer.Buffer.buffer("test")).test();
             obs.assertComplete();
             verifyNoInteractions(webSocket);
         }
