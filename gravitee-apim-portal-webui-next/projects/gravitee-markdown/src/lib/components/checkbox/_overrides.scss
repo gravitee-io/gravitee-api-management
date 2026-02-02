@@ -22,12 +22,11 @@ $theme-tokens: theme.tokens();
   @return (
     namespace: checkbox,
     tokens: (
-      label-text-size: 0.875rem,
-      label-text-weight: 500,
-      label-text-color: inherit,
-      required-text-color: token-utils.slot(error-color, $theme-tokens),
+      outlined-label-text-size: 0.875rem,
+      outlined-label-text-weight: 500,
+      outlined-label-text-color: inherit,
       error-text-color: token-utils.slot(error-color, $theme-tokens),
-      error-text-size: 0.8125rem,
+      subscript-text-size: 0.8125rem,
     )
   );
 }

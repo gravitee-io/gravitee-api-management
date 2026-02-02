@@ -152,25 +152,24 @@ Here's a minimal form variant for faster onboarding:
     --gmd-card-container-shape: 10px;
     --gmd-card-text-color: #0f172a;
 
-    --gmd-input-label-text-color: #0f172a;
-    --gmd-input-field-text-color: #0f172a;
-    --gmd-input-field-outline-color: #94a3b8;
-    --gmd-input-field-outline-radius: 8px;
+    --gmd-input-outlined-label-text-color: #0f172a;
+    --gmd-input-outlined-input-text-color: #0f172a;
+    --gmd-input-outlined-outline-color: #94a3b8;
+    --gmd-input-outlined-container-shape: 8px;
 
-    --gmd-textarea-label-text-color: #0f172a;
-    --gmd-textarea-field-text-color: #0f172a;
-    --gmd-textarea-field-outline-color: #94a3b8;
-    --gmd-textarea-field-outline-radius: 8px;
+    --gmd-textarea-outlined-label-text-color: #0f172a;
+    --gmd-textarea-outlined-input-text-color: #0f172a;
+    --gmd-textarea-outlined-outline-color: #94a3b8;
+    --gmd-textarea-outlined-container-shape: 8px;
 
-    --gmd-select-label-text-color: #0f172a;
-    --gmd-select-field-text-color: #0f172a;
-    --gmd-select-field-outline-color: #94a3b8;
-    --gmd-select-field-outline-radius: 8px;
+    --gmd-select-outlined-label-text-color: #0f172a;
+    --gmd-select-outlined-input-text-color: #0f172a;
+    --gmd-select-outlined-outline-color: #94a3b8;
+    --gmd-select-outlined-container-shape: 8px;
 
-    --gmd-checkbox-label-text-color: #0f172a;
+    --gmd-checkbox-outlined-label-text-color: #0f172a;
 
-    --gmd-radio-label-text-color: #0f172a;
-    --gmd-radio-option-text-color: #0f172a;
+    --gmd-radio-outlined-label-text-color: #0f172a;
   }
 
   .form-demo--compact {

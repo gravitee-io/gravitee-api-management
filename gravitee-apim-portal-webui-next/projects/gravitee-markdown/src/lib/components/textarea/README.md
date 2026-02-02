@@ -56,26 +56,23 @@ The textarea component can be customized using SCSS overrides. Use the mixin to 
 .my-scope {
   @include gmd.textarea-overrides((
     // Label styling
-    label-text-color: #111827,
-    label-text-size: 0.875rem,
-    label-text-weight: 500,
-
-    // Required indicator
-    required-text-color: #dc2626,
+    outlined-label-text-color: #111827,
+    outlined-label-text-size: 0.875rem,
+    outlined-label-text-weight: 500,
 
     // Field styling
-    field-text-size: 1rem,
-    field-text-color: #111827,
-    field-outline-width: 1px,
-    field-outline-color: #94a3b8,
-    field-outline-radius: 4px,
-    field-background-color: #ffffff,
-    field-focus-outline-color: #2563eb,
-    field-disabled-background-color: #f5f5f5,
+    container-text-size: 1rem,
+    outlined-input-text-color: #111827,
+    outlined-outline-width: 1px,
+    outlined-outline-color: #94a3b8,
+    outlined-container-shape: 4px,
+    outlined-container-color: #ffffff,
+    outlined-focus-outline-color: #2563eb,
+    outlined-disabled-container-color: #f5f5f5,
 
-    // Error messages
+    // Error messages (also used for required indicator)
     error-text-color: #dc2626,
-    error-text-size: 0.8125rem,
+    subscript-text-size: 0.8125rem,
   ));
 }
 ```

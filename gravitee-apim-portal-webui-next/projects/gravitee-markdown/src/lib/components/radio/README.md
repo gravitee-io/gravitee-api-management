@@ -54,20 +54,13 @@ Radio group input with label, options, validation, and error display. It is desi
 .my-scope {
   @include gmd.radio-overrides((
     // Label styling
-    label-text-color: #111827,
-    label-text-size: 0.875rem,
-    label-text-weight: 500,
+    outlined-label-text-color: #111827,
+    outlined-label-text-size: 0.875rem,
+    outlined-label-text-weight: 500,
 
-    // Radio option styling
-    option-text-color: #111827,
-    option-text-size: 0.875rem,
-
-    // Required indicator
-    required-text-color: #dc2626,
-
-    // Error messages
+    // Error messages (also used for required indicator)
     error-text-color: #dc2626,
-    error-text-size: 0.8125rem,
+    subscript-text-size: 0.8125rem,
   ));
 }
 ```
