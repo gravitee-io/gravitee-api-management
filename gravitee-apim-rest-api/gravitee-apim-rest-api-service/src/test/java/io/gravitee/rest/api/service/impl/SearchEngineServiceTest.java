@@ -732,7 +732,7 @@ public class SearchEngineServiceTest {
 
         @Bean
         public Collection<DocumentTransformer> transformers() {
-            return Arrays.asList(new ApiDocumentTransformer(new ApiServiceImpl()), new PageDocumentTransformer());
+            return Arrays.asList(new ApiDocumentTransformer(new ApiServiceImpl(), null), new PageDocumentTransformer());
         }
 
         @Bean

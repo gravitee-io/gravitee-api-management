@@ -49,6 +49,7 @@ import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -91,6 +92,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final SearchEngineService searchEngineService;
     private final ApiAuthorizationService apiAuthorizationService;
     private final IntegrationRepository integrationRepository;
+    private final ApiDocumentSearcher apiDocumentSearcher;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -100,7 +102,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         @Lazy final CategoryService categoryService,
         final SearchEngineService searchEngineService,
         @Lazy final ApiAuthorizationService apiAuthorizationService,
-        @Lazy final IntegrationRepository integrationRepository
+        @Lazy final IntegrationRepository integrationRepository,
+        final ApiDocumentSearcher apiDocumentSearcher
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -110,6 +113,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         this.searchEngineService = searchEngineService;
         this.apiAuthorizationService = apiAuthorizationService;
         this.integrationRepository = integrationRepository;
+        this.apiDocumentSearcher = apiDocumentSearcher;
     }
 
     @Override
@@ -507,5 +511,148 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             log.error("Impossible to find integrations", e);
         }
         return genericApi;
+    }
+
+    @Override
+    public Page<GenericApiEntity> searchByVector(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final float[] queryVector,
+        final int k,
+        final Pageable pageable
+    ) {
+        try {
+            // Step 1: Perform semantic vector search
+            SearchResult vectorSearchResult = apiDocumentSearcher.searchByVector(executionContext, queryVector, k);
+
+            if (!vectorSearchResult.hasResults()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+
+            List<String> apiIds = new LinkedList<>(vectorSearchResult.getDocuments());
+
+            // Step 2: Filter by user permissions if not admin
+            if (!isAdmin) {
+                Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
+
+                if (userApiIds.isEmpty()) {
+                    return new Page<>(List.of(), 0, 0, 0);
+                }
+
+                apiIds.retainAll(userApiIds);
+                if (apiIds.isEmpty()) {
+                    return new Page<>(List.of(), 0, 0, 0);
+                }
+            }
+
+            // Step 3: Get page subset
+            List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
+
+            // Step 4: Fetch APIs from repository
+            ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .ids(apiIdPageSubset);
+
+            List<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.allFields());
+
+            if (apis.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+
+            // Step 5: Add primary owners
+            Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
+                executionContext,
+                apis.stream().map(Api::getId).toList()
+            );
+
+            // Step 6: Preserve order from vector search (sorted by similarity)
+            Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
+
+            return apis
+                .stream()
+                .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))))
+                .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+                .collect(
+                    Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
+                        new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
+                    )
+                );
+        } catch (io.gravitee.repository.exceptions.TechnicalException e) {
+            log.error("Error performing semantic vector search", e);
+            throw new TechnicalManagementException("Error performing semantic vector search", e);
+        }
+    }
+
+    @Override
+    public Page<GenericApiEntity> searchHybrid(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final String queryText,
+        final float[] queryVector,
+        final int k,
+        final Pageable pageable
+    ) {
+        try {
+            // Step 1: Perform hybrid search (combines vector + keyword)
+            SearchResult hybridSearchResult = apiDocumentSearcher.searchHybrid(executionContext, queryText, queryVector, k);
+
+            if (!hybridSearchResult.hasResults()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+
+            List<String> apiIds = new LinkedList<>(hybridSearchResult.getDocuments());
+
+            // Step 2: Filter by user permissions if not admin
+            if (!isAdmin) {
+                Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
+
+                if (userApiIds.isEmpty()) {
+                    return new Page<>(List.of(), 0, 0, 0);
+                }
+
+                apiIds.retainAll(userApiIds);
+                if (apiIds.isEmpty()) {
+                    return new Page<>(List.of(), 0, 0, 0);
+                }
+            }
+
+            // Step 3: Get page subset
+            List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
+
+            // Step 4: Fetch APIs from repository
+            ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .ids(apiIdPageSubset);
+
+            List<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.allFields());
+
+            if (apis.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+
+            // Step 5: Add primary owners
+            Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
+                executionContext,
+                apis.stream().map(Api::getId).toList()
+            );
+
+            // Step 6: Preserve order from hybrid search (sorted by combined score)
+            Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
+
+            return apis
+                .stream()
+                .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))))
+                .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+                .collect(
+                    Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
+                        new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
+                    )
+                );
+        } catch (io.gravitee.repository.exceptions.TechnicalException e) {
+            log.error("Error performing hybrid search", e);
+            throw new TechnicalManagementException("Error performing hybrid search", e);
+        }
     }
 }

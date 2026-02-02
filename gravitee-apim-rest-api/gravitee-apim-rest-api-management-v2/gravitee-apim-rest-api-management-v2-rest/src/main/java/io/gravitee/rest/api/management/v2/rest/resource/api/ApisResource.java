@@ -73,6 +73,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.search.EmbeddingService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
@@ -149,6 +150,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
+
+    @Inject
+    private EmbeddingService embeddingService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -365,6 +369,90 @@ public class ApisResource extends AbstractResource {
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    @POST
+    @Path("_semantic-search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public ApisResponse semanticSearchApis(
+        @BeanParam @Valid PaginationParam paginationParam,
+        final @Valid @NotNull SemanticSearchRequest searchRequest
+    ) {
+        // Check if embedding service is available
+        if (!embeddingService.isAvailable()) {
+            throw new BadRequestException("Semantic search is not available. The embedding service is not configured.");
+        }
+
+        // Log diagnostic info about the embedding model
+        boolean usingRealModel = embeddingService.isUsingRealModel();
+        log.info("Semantic search using real model: {}", usingRealModel);
+        if (!usingRealModel) {
+            log.warn("Semantic search is using fallback mode (hash-based embeddings). Results may not be semantically accurate. " +
+                "Please ensure the ONNX model and tokenizer are properly configured.");
+        }
+
+        // Generate embedding for the query
+        float[] queryVector = embeddingService.embed(searchRequest.query());
+
+        // Determine the number of results to fetch (use limit from request or default)
+        int k = searchRequest.limit() != null ? searchRequest.limit() : 100;
+
+        // Perform hybrid search (combines vector similarity + keyword matching) by default
+        // Use pure vector search only if explicitly requested
+        Page<GenericApiEntity> apis;
+        if (Boolean.TRUE.equals(searchRequest.vectorOnly())) {
+            apis = apiSearchService.searchByVector(
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                queryVector,
+                k,
+                paginationParam.toPageable()
+            );
+        } else {
+            apis = apiSearchService.searchHybrid(
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                searchRequest.query(),
+                queryVector,
+                k,
+                paginationParam.toPageable()
+            );
+        }
+
+        long totalCount = apis.getTotalElements();
+        Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
+
+        return new ApisResponse()
+            .data(ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api -> null))
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+            .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    /**
+     * Request body for semantic search.
+     * @param query The search query text
+     * @param limit Maximum number of results to return (1-100, default 10)
+     * @param vectorOnly If true, use pure vector search. If false (default), use hybrid search combining vector + keyword.
+     */
+    public record SemanticSearchRequest(@NotNull String query, Integer limit, Boolean vectorOnly) {
+        public SemanticSearchRequest {
+            if (limit == null) {
+                limit = 10;
+            }
+            if (limit < 1) {
+                limit = 1;
+            }
+            if (limit > 100) {
+                limit = 100;
+            }
+            if (vectorOnly == null) {
+                vectorOnly = false;
+            }
+        }
     }
 
     @POST

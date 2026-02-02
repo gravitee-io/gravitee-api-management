@@ -157,7 +157,7 @@ public class ApiSearchService_SearchTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository, null
         );
     }
 

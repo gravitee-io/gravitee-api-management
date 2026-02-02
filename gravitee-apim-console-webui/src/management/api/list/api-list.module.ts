@@ -25,6 +25,7 @@ import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
 
 import { ApiListComponent } from './api-list.component';
@@ -52,6 +53,7 @@ import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.
     MatSelectModule,
     MatMenuModule,
     MatCheckboxModule,
+    MatSlideToggleModule,
     FormsModule,
   ],
 })

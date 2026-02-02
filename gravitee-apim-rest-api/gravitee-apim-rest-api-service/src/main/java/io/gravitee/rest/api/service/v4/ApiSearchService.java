@@ -83,4 +83,40 @@ public interface ApiSearchService {
         Sortable sortable,
         Collection<DefinitionVersion> excludeDefinitionVersions
     );
+
+    /**
+     * Performs a semantic search using vector embeddings.
+     *
+     * @param executionContext The execution context
+     * @param queryVector The embedding vector of the search query
+     * @param k The number of results to return
+     * @return Page of APIs sorted by semantic similarity
+     */
+    Page<GenericApiEntity> searchByVector(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        float[] queryVector,
+        int k,
+        Pageable pageable
+    );
+
+    /**
+     * Performs a hybrid search combining vector similarity with keyword matching.
+     *
+     * @param executionContext The execution context
+     * @param queryText The original query text (for keyword matching)
+     * @param queryVector The embedding vector of the search query
+     * @param k The number of results to return
+     * @return Page of APIs sorted by combined score
+     */
+    Page<GenericApiEntity> searchHybrid(
+        ExecutionContext executionContext,
+        String userId,
+        boolean isAdmin,
+        String queryText,
+        float[] queryVector,
+        int k,
+        Pageable pageable
+    );
 }

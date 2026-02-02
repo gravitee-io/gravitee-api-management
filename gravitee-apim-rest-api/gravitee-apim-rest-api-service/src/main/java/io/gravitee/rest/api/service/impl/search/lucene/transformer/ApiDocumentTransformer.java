@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.utils.LuceneTransformerUtils;
+import io.gravitee.rest.api.service.search.EmbeddingService;
 import jakarta.annotation.Nullable;
 import java.text.CollationKey;
 import java.text.Collator;
@@ -47,11 +48,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.KnnFloatVectorField;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.VectorSimilarityFunction;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -110,12 +114,16 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_PORTAL_STATUS_SORTED = "portal_status_sorted";
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
+    public static final String FIELD_EMBEDDING = "embedding";
 
     private final ApiService apiService;
+    private final EmbeddingService embeddingService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
 
-    public ApiDocumentTransformer(@Lazy ApiService apiService) {
+    @Autowired
+    public ApiDocumentTransformer(@Lazy ApiService apiService, @Lazy EmbeddingService embeddingService) {
         this.apiService = apiService;
+        this.embeddingService = embeddingService;
     }
 
     @Override
@@ -251,7 +259,44 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), NO));
         }
 
+        // Generate embedding for semantic search
+        if (embeddingService != null && embeddingService.isAvailable()) {
+            String searchableContent = buildSearchableContent(api);
+            float[] embedding = embeddingService.embed(searchableContent);
+            doc.add(new KnnFloatVectorField(FIELD_EMBEDDING, embedding, VectorSimilarityFunction.COSINE));
+        }
+
         return doc;
+    }
+
+    /**
+     * Builds a searchable content string from API fields for embedding generation.
+     * Combines name, description, categories, tags, labels, and owner info.
+     */
+    private String buildSearchableContent(GenericApiEntity api) {
+        StringBuilder sb = new StringBuilder();
+
+        if (api.getName() != null) {
+            sb.append(api.getName()).append(" ");
+        }
+        if (api.getDescription() != null) {
+            sb.append(api.getDescription()).append(" ");
+        }
+        if (api.getCategories() != null) {
+            sb.append(String.join(" ", api.getCategories())).append(" ");
+        }
+        if (api.getTags() != null) {
+            sb.append(String.join(" ", api.getTags())).append(" ");
+        }
+        if (api.getLabels() != null) {
+            sb.append(String.join(" ", api.getLabels())).append(" ");
+        }
+        PrimaryOwnerEntity owner = api.getPrimaryOwner();
+        if (owner != null && owner.getDisplayName() != null) {
+            sb.append("owner:").append(owner.getDisplayName()).append(" ");
+        }
+
+        return sb.toString().trim();
     }
 
     private boolean hasHealthCheckEnabled(GenericApiEntity api) {

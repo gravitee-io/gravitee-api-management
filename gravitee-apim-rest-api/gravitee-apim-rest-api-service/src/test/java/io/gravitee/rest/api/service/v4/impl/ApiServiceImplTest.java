@@ -378,7 +378,7 @@ public class ApiServiceImplTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository, null
         );
         apiStateService = new ApiStateServiceImpl(
             apiSearchService,

@@ -146,6 +146,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
     visibility: true,
   };
 
+  // Semantic search toggle
+  semanticSearchEnabled = false;
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
@@ -244,6 +247,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
           });
         }),
         switchMap(({ filters, order }) => {
+          // Use semantic search when enabled and there's a search term
+          if (this.semanticSearchEnabled && filters.searchTerm && filters.searchTerm.trim().length > 0) {
+            return this.apiServiceV2
+              .semanticSearch(filters.searchTerm, filters.pagination.index, filters.pagination.size)
+              .pipe(catchError(() => of(new PagedResult<Api>())));
+          }
+
+          // Use regular search
           const body: ApiSearchQuery = {
             query: filters.searchTerm,
             apiTypes: this.filters.apiTypes,
@@ -305,6 +316,13 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   onFiltersChanged(filters: ApiListTableWrapperFilters) {
     this.filters = { ...this.filters, ...filters };
+    this.filters$.next(this.filters);
+  }
+
+  onSemanticSearchToggle() {
+    // Update search label based on mode
+    this.searchLabel = this.semanticSearchEnabled ? 'Semantic Search (AI)' : 'Search';
+    // Trigger a new search with current filters
     this.filters$.next(this.filters);
   }
 

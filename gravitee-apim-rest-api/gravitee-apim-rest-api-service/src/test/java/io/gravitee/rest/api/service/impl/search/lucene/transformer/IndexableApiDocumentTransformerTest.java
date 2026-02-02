@@ -93,7 +93,7 @@ public class IndexableApiDocumentTransformerTest {
         PrimaryOwnerEntity.Type.USER
     );
 
-    IndexableApiDocumentTransformer cut = new IndexableApiDocumentTransformer();
+    IndexableApiDocumentTransformer cut = new IndexableApiDocumentTransformer(null);
 
     @Test
     void should_transform_id_and_type_only_when_definition_version_and_name_are_null() {
@@ -422,12 +422,12 @@ public class IndexableApiDocumentTransformerTest {
         @Mock
         ApiService apiService;
 
-        private final IndexableApiDocumentTransformer indexableApiDocumentTransformer = new IndexableApiDocumentTransformer();
+        private final IndexableApiDocumentTransformer indexableApiDocumentTransformer = new IndexableApiDocumentTransformer(null);
         private ApiDocumentTransformer apiDocumentTransformer;
 
         @BeforeEach
         void setUp() {
-            this.apiDocumentTransformer = new ApiDocumentTransformer(apiService);
+            this.apiDocumentTransformer = new ApiDocumentTransformer(apiService, null);
         }
 
         @Test

@@ -39,6 +39,15 @@
   [paginationPageSizeOptions]="[25, 50, 100, 200]"
 >
   <div gio-additional-filters>
+    <mat-slide-toggle
+      class="semantic-search-toggle"
+      [(ngModel)]="semanticSearchEnabled"
+      (change)="onSemanticSearchToggle()"
+      matTooltip="Enable AI-powered semantic search to find APIs by meaning, not just keywords"
+    >
+      AI Search
+    </mat-slide-toggle>
+
     <mat-form-field class="api-type-filter">
       <mat-label>API Type</mat-label>
       <mat-select

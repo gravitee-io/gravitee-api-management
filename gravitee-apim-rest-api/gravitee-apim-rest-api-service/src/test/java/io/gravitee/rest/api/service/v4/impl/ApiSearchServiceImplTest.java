@@ -172,7 +172,7 @@ public class ApiSearchServiceImplTest {
             categoryService,
             searchEngineService,
             apiAuthorizationService,
-            integrationRepository
+            integrationRepository, null
         );
 
         reset(searchEngineService);

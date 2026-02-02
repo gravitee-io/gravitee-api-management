@@ -245,6 +245,13 @@
 			<artifactId>lucene-analysis-common</artifactId>
 		</dependency>
 
+		<!-- ONNX Runtime for embedding models -->
+		<dependency>
+			<groupId>com.microsoft.onnxruntime</groupId>
+			<artifactId>onnxruntime</artifactId>
+			<version>1.17.0</version>
+		</dependency>
+
 		<!-- ClassGraph -->
 		<dependency>
 			<groupId>io.github.classgraph</groupId>

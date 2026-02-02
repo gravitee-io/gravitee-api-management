@@ -164,6 +164,28 @@ export class ApiV2Service {
     });
   }
 
+  /**
+   * Performs a semantic search using natural language.
+   * Uses AI embeddings to find APIs based on meaning, not just keywords.
+   *
+   * @param query Natural language search query (e.g., "APIs for managing payments")
+   * @param page Page number (1-indexed)
+   * @param perPage Number of results per page
+   * @param limit Maximum number of semantic matches to consider
+   */
+  semanticSearch(query: string, page = 1, perPage = 10, limit = 100): Observable<ApisResponse> {
+    return this.http.post<ApisResponse>(
+      `${this.constants.env.v2BaseURL}/apis/_semantic-search`,
+      { query, limit },
+      {
+        params: {
+          page,
+          perPage,
+        },
+      },
+    );
+  }
+
   updatePicture(apiId: string, newImage: string): Observable<void> {
     return this.http.put<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/picture`, newImage);
   }

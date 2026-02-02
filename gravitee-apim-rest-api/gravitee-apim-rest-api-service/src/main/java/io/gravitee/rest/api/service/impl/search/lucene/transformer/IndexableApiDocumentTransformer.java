@@ -22,11 +22,11 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.utils.LuceneTransformerUtils;
@@ -35,19 +35,31 @@ import java.text.Collator;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import io.gravitee.rest.api.service.search.EmbeddingService;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.KnnFloatVectorField;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.VectorSimilarityFunction;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class IndexableApiDocumentTransformer implements DocumentTransformer<IndexableApi> {
 
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
+    private final EmbeddingService embeddingService;
+
+    @Autowired
+    public IndexableApiDocumentTransformer(@Lazy EmbeddingService embeddingService) {
+        this.embeddingService = embeddingService;
+    }
 
     @Override
     public Document transform(IndexableApi indexableApi) {
@@ -164,7 +176,50 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             transformV2Api(doc, indexableApi);
         }
 
+
+
+        // Generate embedding for semantic search
+        if (embeddingService != null && embeddingService.isAvailable()) {
+            String searchableContent = buildSearchableContent(indexableApi);
+            float[] embedding = embeddingService.embed(searchableContent);
+            doc.add(new KnnFloatVectorField(FIELD_EMBEDDING, embedding, VectorSimilarityFunction.COSINE));
+        }
+
         return doc;
+    }
+
+
+    /**
+     * Builds a searchable content string from API fields for embedding generation.
+     * Combines name, description, categories, tags, labels, and owner info.
+     */
+    private String buildSearchableContent(IndexableApi indexableApi) {
+        var api = indexableApi.getApi();
+        var primaryOwner = indexableApi.getPrimaryOwner();
+        var metadata = indexableApi.getDecodedMetadata();
+        var categories = indexableApi.getCategoryKeys();
+        StringBuilder sb = new StringBuilder();
+
+        if (api.getName() != null) {
+            sb.append(api.getName()).append(" ");
+        }
+        if (api.getDescription() != null) {
+            sb.append(api.getDescription()).append(" ");
+        }
+        if (categories != null) {
+            sb.append(String.join(" ", categories)).append(" ");
+        }
+        if (api.getTags() != null) {
+            sb.append(String.join(" ", api.getTags())).append(" ");
+        }
+        if (api.getLabels() != null) {
+            sb.append(String.join(" ", api.getLabels())).append(" ");
+        }
+        if (primaryOwner != null && primaryOwner.displayName() != null) {
+            sb.append("owner:").append(primaryOwner.displayName()).append(" ");
+        }
+
+        return sb.toString().trim();
     }
 
     private boolean accept(IndexableApi indexableApi) {

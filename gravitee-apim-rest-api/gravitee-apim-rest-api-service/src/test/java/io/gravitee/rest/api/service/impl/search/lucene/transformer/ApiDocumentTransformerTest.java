@@ -72,7 +72,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ApiDocumentTransformerTest {
 
     @InjectMocks
-    ApiDocumentTransformer cut = new ApiDocumentTransformer(new ApiServiceImpl());
+    ApiDocumentTransformer cut = new ApiDocumentTransformer(new ApiServiceImpl(), null);
 
     @Test
     void shouldTransform() {

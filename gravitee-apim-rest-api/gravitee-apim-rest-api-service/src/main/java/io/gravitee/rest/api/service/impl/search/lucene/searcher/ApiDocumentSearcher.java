@@ -27,10 +27,14 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import jakarta.annotation.Nullable;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,9 +50,12 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.KnnFloatVectorQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -474,5 +481,213 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public boolean handle(Class<? extends Indexable> source) {
         return source.isAssignableFrom(ApiEntity.class) || source.isAssignableFrom(io.gravitee.rest.api.model.v4.api.ApiEntity.class);
+    }
+
+    /**
+     * Minimum similarity score threshold for vector search results.
+     * Results with scores below this threshold will be filtered out.
+     * Cosine similarity for semantically related texts should be > 0.5.
+     * A threshold of 0.5 ensures only relevant results are returned.
+     */
+    private static final float MIN_SIMILARITY_THRESHOLD = 0.5f;
+
+    /**
+     * Weight for vector similarity score in hybrid search.
+     */
+    private static final float VECTOR_WEIGHT = 0.6f;
+
+    /**
+     * Weight for keyword search score in hybrid search.
+     */
+    private static final float KEYWORD_WEIGHT = 0.4f;
+
+    /**
+     * Performs a semantic search using KNN (K-Nearest Neighbors) on vector embeddings.
+     *
+     * @param executionContext The execution context containing environment info
+     * @param queryVector The embedding vector of the search query
+     * @param k The number of nearest neighbors to return
+     * @return SearchResult containing API IDs sorted by similarity score
+     */
+    public SearchResult searchByVector(ExecutionContext executionContext, float[] queryVector, int k) throws TechnicalException {
+        log.debug("Performing semantic vector search with k={}", k);
+
+        try {
+            IndexSearcher searcher = getIndexSearcher();
+
+            // Build the KNN query with more candidates for filtering
+            int numCandidates = Math.min(k * 3, 100); // Get more candidates to filter
+            KnnFloatVectorQuery knnQuery = new KnnFloatVectorQuery(ApiDocumentTransformer.FIELD_EMBEDDING, queryVector, numCandidates);
+
+            // Create a filter for the current environment
+            BooleanQuery.Builder filteredQuery = new BooleanQuery.Builder();
+            filteredQuery.add(knnQuery, BooleanClause.Occur.MUST);
+            filteredQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
+
+            if (executionContext.hasEnvironmentId()) {
+                filteredQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
+            }
+
+            // Execute the search
+            TopDocs topDocs = searcher.search(filteredQuery.build(), numCandidates);
+
+            // Collect results, filtering by minimum similarity threshold on RAW scores
+            Set<String> results = new LinkedHashSet<>();
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                // Filter by minimum similarity threshold BEFORE any normalization
+                // This ensures we reject low-quality matches even if they are "best" among bad options
+                if (scoreDoc.score < MIN_SIMILARITY_THRESHOLD) {
+                    log.debug("Filtering out result with low raw score: {} (threshold: {})", scoreDoc.score, MIN_SIMILARITY_THRESHOLD);
+                    continue;
+                }
+
+                String apiId = searcher.storedFields().document(scoreDoc.doc).get(FIELD_ID);
+                if (apiId != null) {
+                    results.add(apiId);
+                }
+                log.trace("Found API {} with score {}", apiId, scoreDoc.score);
+
+                // Stop if we have enough results
+                if (results.size() >= k) {
+                    break;
+                }
+            }
+
+            // If no results pass the threshold, return empty result
+            if (results.isEmpty()) {
+                log.debug("No results above similarity threshold {}", MIN_SIMILARITY_THRESHOLD);
+                return new SearchResult(Collections.emptySet(), 0);
+            }
+
+            log.debug("Semantic search found {} results (after filtering)", results.size());
+            return new SearchResult(results, results.size());
+        } catch (IOException e) {
+            log.error("Error performing semantic vector search", e);
+            throw new TechnicalException("Semantic vector search failed", e);
+        }
+    }
+
+    /**
+     * Performs a hybrid search combining vector similarity with keyword matching.
+     * This provides better results by leveraging both semantic understanding and exact matching.
+     *
+     * @param executionContext The execution context containing environment info
+     * @param queryText The original query text (for keyword matching)
+     * @param queryVector The embedding vector of the search query
+     * @param k The number of nearest neighbors to return
+     * @return SearchResult containing API IDs sorted by combined score
+     */
+    public SearchResult searchHybrid(ExecutionContext executionContext, String queryText, float[] queryVector, int k) throws TechnicalException {
+        log.debug("Performing hybrid search with k={}", k);
+
+        try {
+            IndexSearcher searcher = getIndexSearcher();
+
+            // Get more candidates for re-ranking
+            int numCandidates = Math.min(k * 5, 200);
+
+            // 1. Vector search
+            KnnFloatVectorQuery knnQuery = new KnnFloatVectorQuery(ApiDocumentTransformer.FIELD_EMBEDDING, queryVector, numCandidates);
+
+            BooleanQuery.Builder vectorQueryBuilder = new BooleanQuery.Builder();
+            vectorQueryBuilder.add(knnQuery, BooleanClause.Occur.MUST);
+            vectorQueryBuilder.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
+            if (executionContext.hasEnvironmentId()) {
+                vectorQueryBuilder.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
+            }
+
+            TopDocs vectorDocs = searcher.search(vectorQueryBuilder.build(), numCandidates);
+
+            // 2. Keyword search
+            BooleanQuery.Builder keywordQueryBuilder = buildApiQuery(executionContext, Optional.empty());
+            keywordQueryBuilder.add(buildApiFields(queryText), BooleanClause.Occur.MUST);
+            TopDocs keywordDocs = searcher.search(keywordQueryBuilder.build(), numCandidates);
+
+            // 3. Combine scores
+            Map<String, Float> combinedScores = new HashMap<>();
+            Map<String, Float> vectorScores = new HashMap<>();
+            Map<String, Float> keywordScores = new HashMap<>();
+
+            // Collect vector scores, filtering by minimum threshold on RAW scores BEFORE normalization
+            // This prevents low-quality matches from being artificially boosted by normalization
+            float maxVectorScore = 0f;
+            for (ScoreDoc scoreDoc : vectorDocs.scoreDocs) {
+                // Only consider scores above threshold for max calculation
+                if (scoreDoc.score >= MIN_SIMILARITY_THRESHOLD && scoreDoc.score > maxVectorScore) {
+                    maxVectorScore = scoreDoc.score;
+                }
+            }
+
+            for (ScoreDoc scoreDoc : vectorDocs.scoreDocs) {
+                // Filter out results below threshold BEFORE normalization
+                if (scoreDoc.score < MIN_SIMILARITY_THRESHOLD) {
+                    log.debug("Hybrid search: filtering out vector result with low raw score: {} (threshold: {})",
+                        scoreDoc.score, MIN_SIMILARITY_THRESHOLD);
+                    continue;
+                }
+                String apiId = searcher.storedFields().document(scoreDoc.doc).get(FIELD_ID);
+                if (apiId != null) {
+                    float normalizedScore = maxVectorScore > 0 ? scoreDoc.score / maxVectorScore : 0;
+                    vectorScores.put(apiId, normalizedScore);
+                }
+            }
+
+            // Normalize and collect keyword scores
+            float maxKeywordScore = 0f;
+            for (ScoreDoc scoreDoc : keywordDocs.scoreDocs) {
+                if (scoreDoc.score > maxKeywordScore) maxKeywordScore = scoreDoc.score;
+            }
+
+            for (ScoreDoc scoreDoc : keywordDocs.scoreDocs) {
+                String apiId = searcher.storedFields().document(scoreDoc.doc).get(FIELD_ID);
+                if (apiId != null) {
+                    float normalizedScore = maxKeywordScore > 0 ? scoreDoc.score / maxKeywordScore : 0;
+                    keywordScores.put(apiId, normalizedScore);
+                }
+            }
+
+            // Combine all API IDs (only those that passed the vector threshold or have keyword matches)
+            Set<String> allApiIds = new HashSet<>();
+            allApiIds.addAll(vectorScores.keySet());
+            allApiIds.addAll(keywordScores.keySet());
+
+            // Calculate combined scores
+            for (String apiId : allApiIds) {
+                float vectorScore = vectorScores.getOrDefault(apiId, 0f);
+                float keywordScore = keywordScores.getOrDefault(apiId, 0f);
+
+                // For hybrid search, require either a good vector score OR a good keyword score
+                // Vector scores have already been filtered by MIN_SIMILARITY_THRESHOLD above
+                // For keyword-only matches, require a reasonable score
+                if (vectorScore == 0f && keywordScore < 0.1f) {
+                    continue;
+                }
+
+                float combinedScore = (vectorScore * VECTOR_WEIGHT) + (keywordScore * KEYWORD_WEIGHT);
+                combinedScores.put(apiId, combinedScore);
+            }
+
+            // If no results pass the filters, return empty
+            if (combinedScores.isEmpty()) {
+                log.debug("Hybrid search: no results above similarity threshold {}", MIN_SIMILARITY_THRESHOLD);
+                return new SearchResult(Collections.emptySet(), 0);
+            }
+
+            // Sort by combined score and return top k
+            List<Map.Entry<String, Float>> sortedResults = new ArrayList<>(combinedScores.entrySet());
+            sortedResults.sort((a, b) -> Float.compare(b.getValue(), a.getValue()));
+
+            Set<String> results = new LinkedHashSet<>();
+            for (int i = 0; i < Math.min(k, sortedResults.size()); i++) {
+                results.add(sortedResults.get(i).getKey());
+                log.trace("Hybrid result: {} with score {}", sortedResults.get(i).getKey(), sortedResults.get(i).getValue());
+            }
+
+            log.debug("Hybrid search found {} results", results.size());
+            return new SearchResult(results, results.size());
+        } catch (IOException e) {
+            log.error("Error performing hybrid search", e);
+            throw new TechnicalException("Hybrid search failed", e);
+        }
     }
 }
