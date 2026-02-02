@@ -17,4 +17,4 @@ package io.gravitee.apim.core.logs_engine.model;
 
 import java.util.List;
 
-public record SearchLogsResponse(List<ApiLog> data, Pagination pagination, Links links) {}
+public record SearchLogsResponse(List<ApiLog> data, Pagination pagination) {}

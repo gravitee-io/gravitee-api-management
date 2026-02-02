@@ -76,7 +76,7 @@ public class SearchEnvironmentLogsUseCase {
         var searchFilters = buildFilters(userContext, input.request);
 
         if (searchFilters.apiIds().isEmpty()) {
-            return new Output(new SearchLogsResponse(List.of(), new Pagination(0, 0, 0, 0, 0L), null));
+            return new Output(new SearchLogsResponse(List.of(), new Pagination(0, 0, 0, 0, 0L)));
         }
 
         var result = connectionLogsCrudService.searchApiConnectionLogs(
@@ -193,8 +193,7 @@ public class SearchEnvironmentLogsUseCase {
                 pageable.getPageSize() == 0 ? 0 : (int) Math.ceil((double) source.total() / pageable.getPageSize()),
                 apiLogs.size(),
                 source.total()
-            ),
-            null
+            )
         );
     }
 
