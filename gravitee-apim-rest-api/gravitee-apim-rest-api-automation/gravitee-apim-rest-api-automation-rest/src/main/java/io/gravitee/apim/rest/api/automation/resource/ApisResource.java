@@ -54,7 +54,6 @@ import jakarta.ws.rs.core.Response;
  */
 public class ApisResource extends AbstractResource {
 
-    public static final String SHARED_POLICY_GROUP_ID_FIELD = "sharedPolicyGroupId";
     public static final String HRID_FIELD = "hrid";
 
     @Inject
@@ -96,7 +95,7 @@ public class ApisResource extends AbstractResource {
             .build();
 
         checkPlanAndPagesUnicity(spec);
-        SharedPolicyGroupIdHelper.addSPGIDFromHrid(spec, audit);
+        SharedPolicyGroupIdHelper.addSharedPolicyGroupIdFromHrid(spec, audit);
 
         ApiCRDSpec apiCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
             ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
@@ -125,7 +124,7 @@ public class ApisResource extends AbstractResource {
 
         ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(audit, apiCRDSpec)).status();
 
-        SharedPolicyGroupIdHelper.removeSPGID(spec);
+        SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(spec);
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
     }
 
