@@ -94,8 +94,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             );
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
-            String joinedApiIds = apiIds.stream().collect(Collectors.joining(","));
-            log.error("An error occurs while trying to search connection logs of api [apiId={}]", joinedApiIds, e);
+            String joinedApiIds = String.join(",", apiIds);
             throw new TechnicalManagementException("Error while searching connection logs of api " + joinedApiIds, e);
         }
     }
