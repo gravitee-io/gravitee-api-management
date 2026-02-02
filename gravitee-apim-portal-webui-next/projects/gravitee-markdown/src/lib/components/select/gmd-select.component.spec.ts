@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdSelectComponent } from './gmd-select.component';
+import { GmdSelectComponentHarness } from './gmd-select.component.harness';
 import { GmdFieldState } from '../../models/formField';
 
 @Component({
@@ -47,6 +50,8 @@ describe('GmdSelectComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let component: TestHostComponent;
   let selectComponent: GmdSelectComponent;
+  let loader: HarnessLoader;
+  let harness: GmdSelectComponentHarness;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -56,6 +61,8 @@ describe('GmdSelectComponent', () => {
     fixture = TestBed.createComponent(TestHostComponent);
     component = fixture.componentInstance;
     selectComponent = fixture.debugElement.query(p => p.name === 'gmd-select')?.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    harness = await loader.getHarness(GmdSelectComponentHarness);
     fixture.detectChanges();
   });
 
@@ -70,23 +77,21 @@ describe('GmdSelectComponent', () => {
     expect(selectComponent.disabled()).toBe(false);
   });
 
-  it('should display label when provided', () => {
+  it('should display label when provided', async () => {
     fixture.componentRef.setInput('label', 'Test Select');
     fixture.detectChanges();
 
-    const labelElement = fixture.nativeElement.querySelector('.gmd-select__label');
-    expect(labelElement).toBeTruthy();
-    expect(labelElement.textContent.trim()).toContain('Test Select');
+    const label = await harness.getLabel();
+    expect(label).toContain('Test Select');
   });
 
-  it('should show required indicator when required is true', () => {
+  it('should show required indicator when required is true', async () => {
     fixture.componentRef.setInput('label', 'Test Select');
     fixture.componentRef.setInput('required', true);
     fixture.detectChanges();
 
-    const requiredIndicator = fixture.nativeElement.querySelector('.gmd-select__required');
-    expect(requiredIndicator).toBeTruthy();
-    expect(requiredIndicator.textContent.trim()).toBe('*');
+    const hasIndicator = await harness.hasRequiredIndicator();
+    expect(hasIndicator).toBe(true);
   });
 
   describe('Options parsing', () => {
@@ -131,36 +136,34 @@ describe('GmdSelectComponent', () => {
       expect(options).toEqual(['option1', 'option2', 'option3']);
     });
 
-    it('should render options in template', () => {
+    it('should render options in template', async () => {
       fixture.componentRef.setInput('options', 'option1,option2');
       fixture.detectChanges();
 
-      const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      const optionElements = select.querySelectorAll('option');
+      const count = await harness.getOptionCount();
       // +1 for the default "-- Select --" option
-      expect(optionElements.length).toBe(3);
+      expect(count).toBe(3);
     });
   });
 
-  it('should update value when option is selected', () => {
+  it('should update value when option is selected', async () => {
     fixture.componentRef.setInput('options', 'option1,option2');
     fixture.detectChanges();
 
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    select.value = 'option1';
-    select.dispatchEvent(new Event('change'));
+    await harness.selectOptionByValue('option1');
     fixture.detectChanges();
 
-    expect(select.value).toBe('option1');
+    const value = await harness.getValue();
+    expect(value).toBe('option1');
   });
 
-  it('should be disabled when disabled input is true', () => {
+  it('should be disabled when disabled input is true', async () => {
     fixture.componentRef.setInput('options', 'option1,option2');
     fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
 
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-    expect(select.disabled).toBe(true);
+    const isDisabled = await harness.isDisabled();
+    expect(isDisabled).toBe(true);
   });
 
   describe('Validation', () => {
@@ -191,18 +194,17 @@ describe('GmdSelectComponent', () => {
       expect(selectComponent.errors().length).toBe(0);
     });
 
-    it('should show error messages when touched and invalid', () => {
+    it('should show error messages when touched and invalid', async () => {
       fixture.componentRef.setInput('required', true);
       fixture.componentRef.setInput('options', 'option1,option2');
       fixture.detectChanges();
 
-      const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      select.dispatchEvent(new Event('blur'));
+      await harness.blur();
       fixture.detectChanges();
 
-      const errorElement = fixture.nativeElement.querySelector('.gmd-select__error');
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.textContent.trim()).toBe('This field is required.');
+      const errorMessages = await harness.getErrorMessages();
+      expect(errorMessages.length).toBeGreaterThan(0);
+      expect(errorMessages[0]).toBe('This field is required.');
     });
   });
 
@@ -224,9 +226,7 @@ describe('GmdSelectComponent', () => {
         );
       });
 
-      const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      select.value = 'option1';
-      select.dispatchEvent(new Event('change'));
+      await harness.selectOptionByValue('option1');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -250,9 +250,7 @@ describe('GmdSelectComponent', () => {
         eventEmitted = true;
       });
 
-      const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      select.value = 'option1';
-      select.dispatchEvent(new Event('change'));
+      await harness.selectOptionByValue('option1');
       fixture.detectChanges();
       await fixture.whenStable();
 
@@ -274,8 +272,7 @@ describe('GmdSelectComponent', () => {
         });
       });
 
-      const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      select.dispatchEvent(new Event('blur'));
+      await harness.blur();
       fixture.detectChanges();
 
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -288,19 +285,17 @@ describe('GmdSelectComponent', () => {
   });
 
   describe('Initial value synchronization', () => {
-    it('should sync and update value from input', () => {
+    it('should sync and update value from input', async () => {
       fixture.componentRef.setInput('options', 'option1,option2');
       fixture.componentRef.setInput('value', 'option1');
       fixture.detectChanges();
 
-      let select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      expect(select.value).toBe('option1');
+      expect(await harness.getValue()).toBe('option1');
 
       fixture.componentRef.setInput('value', 'option2');
       fixture.detectChanges();
 
-      select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-      expect(select.value).toBe('option2');
+      expect(await harness.getValue()).toBe('option2');
     });
   });
 });

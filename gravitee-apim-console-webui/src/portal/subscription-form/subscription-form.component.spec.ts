@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { ConfigureTestingGmdFormEditor, ConfigureTestingGraviteeMarkdownEditor, GmdFormEditorHarness } from '@gravitee/gravitee-markdown';
+
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -24,8 +29,11 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 describe('SubscriptionFormComponent', () => {
   let fixture: ComponentFixture<SubscriptionFormComponent>;
   let component: SubscriptionFormComponent;
+  let loader: HarnessLoader;
+  let editorHarness: GmdFormEditorHarness;
 
   const init = async (canUpdate: boolean) => {
+    ConfigureTestingGmdFormEditor();
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
@@ -38,10 +46,14 @@ describe('SubscriptionFormComponent', () => {
       ],
     }).compileComponents();
 
+    ConfigureTestingGraviteeMarkdownEditor();
+
     fixture = TestBed.createComponent(SubscriptionFormComponent);
     component = fixture.componentInstance;
 
     fixture.detectChanges();
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    editorHarness = await loader.getHarness(GmdFormEditorHarness);
   };
 
   it('should create component', async () => {
@@ -52,7 +64,7 @@ describe('SubscriptionFormComponent', () => {
   it('should load default boilerplate content', async () => {
     await init(true);
 
-    const contentValue = component.contentControl.value;
+    const contentValue = await editorHarness.getEditorValue();
 
     expect(contentValue).toContain('Subscription Form Builder');
     expect(contentValue).toContain('Example: Complete Subscription Request Form');
@@ -64,13 +76,13 @@ describe('SubscriptionFormComponent', () => {
   it('should disable editor when user has no update permission', async () => {
     await init(false);
 
-    expect(component.contentControl.disabled).toBe(true);
+    expect(await editorHarness.isEditorReadOnly()).toBe(true);
   });
 
   it('should enable editor when user has update permission', async () => {
     await init(true);
 
-    expect(component.contentControl.disabled).toBe(false);
+    expect(await editorHarness.isEditorReadOnly()).toBe(false);
   });
 
   it('should allow updating content control value', async () => {
