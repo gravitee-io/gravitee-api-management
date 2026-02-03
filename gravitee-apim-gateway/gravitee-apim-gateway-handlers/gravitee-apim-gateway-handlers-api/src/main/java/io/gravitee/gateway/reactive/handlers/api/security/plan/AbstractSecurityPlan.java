@@ -26,6 +26,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionUtils;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -37,7 +38,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.Nonnull;
-import java.util.Map;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -165,7 +165,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
                 boolean planMatches = planContext.planId().equals(subscription.getPlan());
-                boolean isApiProductSubscription = isApiProductSubscription(subscription);
+                boolean isApiProductSubscription = SubscriptionUtils.isApiProductSubscription(subscription);
                 if ((planMatches || isApiProductSubscription) && subscription.isTimeValid(ctx.timestamp())) {
                     ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                     ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
@@ -188,10 +188,5 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             ctx.withLogger(log).warn("An error occurred during subscription validation", t);
             return false;
         }
-    }
-
-    private static boolean isApiProductSubscription(Subscription subscription) {
-        Map<String, String> metadata = subscription.getMetadata();
-        return metadata != null && "API_PRODUCT".equals(metadata.get("referenceType"));
     }
 }
