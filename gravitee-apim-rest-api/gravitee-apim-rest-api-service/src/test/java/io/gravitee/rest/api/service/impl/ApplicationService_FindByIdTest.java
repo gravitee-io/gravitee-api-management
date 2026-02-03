@@ -30,7 +30,6 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
@@ -65,6 +64,9 @@ public class ApplicationService_FindByIdTest {
 
     @Mock
     private Application application;
+
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
 
     @Before
     public void setUp() {

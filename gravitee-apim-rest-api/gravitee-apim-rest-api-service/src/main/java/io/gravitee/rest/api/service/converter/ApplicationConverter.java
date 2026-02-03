@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.converter;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -32,21 +31,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ApplicationConverter {
-
-    public UpdateApplicationEntity toUpdateApplicationEntity(ApplicationEntity application) {
-        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
-        updateApplicationEntity.setSettings(application.getSettings());
-        updateApplicationEntity.setBackground(application.getBackground());
-        updateApplicationEntity.setDescription(application.getDescription());
-        updateApplicationEntity.setDomain(application.getDomain());
-        updateApplicationEntity.setGroups(application.getGroups());
-        updateApplicationEntity.setPicture(application.getPicture());
-        updateApplicationEntity.setName(application.getName());
-        updateApplicationEntity.setApiKeyMode(application.getApiKeyMode());
-        updateApplicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-        updateApplicationEntity.setType(application.getType());
-        return updateApplicationEntity;
-    }
 
     public Application toApplication(NewApplicationEntity newApplicationEntity) {
         Application application = new Application();
@@ -98,11 +82,6 @@ public class ApplicationConverter {
             }
             if (applicationSettings.getApp().getType() != null) {
                 metadata.put("type", applicationSettings.getApp().getType());
-            }
-        }
-        if (applicationSettings != null && applicationSettings.getTls() != null) {
-            if (applicationSettings.getTls().getClientCertificate() != null) {
-                metadata.put(Application.METADATA_CLIENT_CERTIFICATE, applicationSettings.getTls().getClientCertificate());
             }
         }
         return metadata;

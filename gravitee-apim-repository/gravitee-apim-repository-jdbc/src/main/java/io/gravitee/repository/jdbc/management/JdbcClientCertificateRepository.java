@@ -24,6 +24,8 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ClientCertificate;
 import io.gravitee.repository.management.model.ClientCertificateStatus;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -92,16 +94,16 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses)
+    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
         LOGGER.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, statuses);
 
-        if (statuses == null || statuses.isEmpty()) {
+        if (statuses == null || statuses.length == 0) {
             return new HashSet<>();
         }
 
         try {
-            List<String> statusStrings = statuses.stream().map(ClientCertificateStatus::name).toList();
+            List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
             String statusPlaceholders = statusStrings
                 .stream()
                 .map(s -> "?")
@@ -115,6 +117,51 @@ public class JdbcClientCertificateRepository
             return new HashSet<>(clientCertificates);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find client certificates by application id and statuses", ex);
+        }
+    }
+
+    @Override
+    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
+        throws TechnicalException {
+        LOGGER.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, statuses);
+
+        if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
+            return new HashSet<>();
+        }
+
+        try {
+            List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            List<String> applicationIdList = new ArrayList<>(applicationIds);
+
+            Set<ClientCertificate> result = new HashSet<>();
+
+            // Process application IDs in batches to avoid SQL IN clause limitations
+            int batchSize = 500;
+            for (int i = 0; i < applicationIdList.size(); i += batchSize) {
+                List<String> batch = applicationIdList.subList(i, Math.min(i + batchSize, applicationIdList.size()));
+
+                String sql =
+                    getOrm().getSelectAllSql() +
+                    " WHERE application_id IN (" +
+                    getOrm().buildInClause(batch) +
+                    ") AND status IN (" +
+                    getOrm().buildInClause(statusStrings) +
+                    ")";
+
+                List<ClientCertificate> clientCertificates = jdbcTemplate.query(
+                    sql,
+                    ps -> {
+                        int index = getOrm().setArguments(ps, batch, 1);
+                        getOrm().setArguments(ps, statusStrings, index);
+                    },
+                    getOrm().getRowMapper()
+                );
+                result.addAll(clientCertificates);
+            }
+
+            return result;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find client certificates by application ids and statuses", ex);
         }
     }
 

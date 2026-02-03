@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -79,5 +80,29 @@ public interface ClientCertificateCrudService {
      * @param statuses the statuses to filter by
      * @return a set of client certificates matching the criteria
      */
-    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses);
+    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses);
+
+    /**
+     * Find all client certificates for a given set of applications filtered by statuses.
+     *
+     * @param applicationIds application IDs
+     * @param statuses the statuses to filter by
+     * @return a set of client certificates matching the criteria
+     */
+    Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
+
+    /**
+     * Delete all client certificates for a given application.
+     *
+     * @param applicationId the application ID
+     */
+    void deleteByApplicationId(String applicationId);
+
+    /**
+     * Find the most recently created client certificate for a given application with ACTIVE or ACTIVE_WITH_END status.
+     *
+     * @param applicationId the application ID
+     * @return the most recent active client certificate, or empty if none found
+     */
+    Optional<ClientCertificate> findMostRecentActiveByApplicationId(String applicationId);
 }

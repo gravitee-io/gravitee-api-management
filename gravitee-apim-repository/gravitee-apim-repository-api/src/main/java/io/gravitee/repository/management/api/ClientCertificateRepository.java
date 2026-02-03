@@ -47,7 +47,19 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @return a set of client certificates matching the criteria
      * @throws TechnicalException if an error occurs
      */
-    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses)
+    Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
+        throws TechnicalException;
+
+    /**
+     * Find all client certificates for given application IDs filtered by statuses.
+     * This method handles large amounts of application IDs efficiently by processing them in batches.
+     *
+     * @param applicationIds the collection of application IDs
+     * @param statuses the statuses to filter by
+     * @return a set of client certificates matching the criteria
+     * @throws TechnicalException if an error occurs
+     */
+    Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException;
 
     /**

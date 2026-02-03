@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ApplicationCertificateAuthorityException extends AbstractManagementException {
+public class ClientCertificateAuthorityException extends AbstractManagementException {
 
     @Override
     public String getMessage() {

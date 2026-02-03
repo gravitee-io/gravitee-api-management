@@ -28,6 +28,9 @@ import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -35,12 +38,16 @@ import jakarta.xml.bind.DatatypeConverter;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.provider.digest.SHA256;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -180,17 +187,11 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses) {
+    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
         try {
             log.debug("Find client certificates by application ID {} and statuses {}", applicationId, statuses);
-
-            Collection<io.gravitee.repository.management.model.ClientCertificateStatus> repoStatuses = statuses
-                .stream()
-                .map(status -> io.gravitee.repository.management.model.ClientCertificateStatus.valueOf(status.name()))
-                .toList();
-
             return clientCertificateRepository
-                .findByApplicationIdAndStatuses(applicationId, repoStatuses)
+                .findByApplicationIdAndStatuses(applicationId, mapStatuses(statuses))
                 .stream()
                 .map(this::toModel)
                 .collect(Collectors.toSet());
@@ -202,16 +203,52 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         }
     }
 
-    private X509Certificate parseCertificate(String pemCertificate) {
+    @Override
+    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         try {
-            Certificate[] certificates = KeyStoreUtils.loadPemCertificates(pemCertificate);
-            if (certificates.length == 0) {
-                throw new TechnicalManagementException("Invalid PEM certificate: no certificate found");
-            }
-            return (X509Certificate) certificates[0];
-        } catch (Exception e) {
-            throw new TechnicalManagementException("Failed to parse PEM certificate", e);
+            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds.size(), statuses);
+            return clientCertificateRepository
+                .findByApplicationIdsAndStatuses(applicationIds, mapStatuses(statuses))
+                .stream()
+                .map(this::toModel)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find client certificates by application IDs and statuses",
+                e
+            );
         }
+    }
+
+    private static io.gravitee.repository.management.model.ClientCertificateStatus@NotNull [] mapStatuses(
+        ClientCertificateStatus[] statuses
+    ) {
+        return Arrays.stream(statuses)
+            .map(status -> io.gravitee.repository.management.model.ClientCertificateStatus.valueOf(status.name()))
+            .toArray(io.gravitee.repository.management.model.ClientCertificateStatus[]::new);
+    }
+
+    private X509Certificate parseCertificate(String pemCertificate) {
+        Certificate[] certificates = null;
+        try {
+            certificates = KeyStoreUtils.loadPemCertificates(pemCertificate);
+        } catch (Exception e) {
+            throw new ClientCertificateInvalidException();
+        }
+
+        if (certificates.length == 0) {
+            throw new ClientCertificateEmptyException();
+        }
+        if (certificates.length > 1) {
+            log.debug("Certificate chain contains multiple certificates, using the first one");
+        }
+        X509Certificate certificate = (X509Certificate) certificates[0];
+        // Accept only client certificates.
+        final boolean isCertificateAuthority = certificate.getBasicConstraints() != -1;
+        if (isCertificateAuthority) {
+            throw new ClientCertificateAuthorityException();
+        }
+        return certificate;
     }
 
     private String computeFingerprint(X509Certificate certificate) {
@@ -238,6 +275,43 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         }
 
         return io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE;
+    }
+
+    @Override
+    public void deleteByApplicationId(String applicationId) {
+        try {
+            log.debug("Delete all client certificates for application: {}", applicationId);
+            clientCertificateRepository.deleteByApplicationId(applicationId);
+        } catch (Exception e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete client certificates for application " + applicationId,
+                e
+            );
+        }
+    }
+
+    @Override
+    public Optional<ClientCertificate> findMostRecentActiveByApplicationId(String applicationId) {
+        try {
+            log.debug("Find most recent active client certificate for application: {}", applicationId);
+
+            Set<io.gravitee.repository.management.model.ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdAndStatuses(
+                    applicationId,
+                    io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                    io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
+                );
+
+            return certificates
+                .stream()
+                .max(Comparator.comparing(io.gravitee.repository.management.model.ClientCertificate::getCreatedAt))
+                .map(this::toModel);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find most recent active client certificate for application " + applicationId,
+                e
+            );
+        }
     }
 
     private ClientCertificate toModel(io.gravitee.repository.management.model.ClientCertificate entity) {

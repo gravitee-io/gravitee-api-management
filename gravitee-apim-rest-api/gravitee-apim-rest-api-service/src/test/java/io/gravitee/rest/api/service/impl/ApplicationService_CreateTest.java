@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.infra.crud_service.application_certificates.ClientCertificateCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -108,6 +108,9 @@ public class ApplicationService_CreateTest {
     @Mock
     private ClientRegistrationService clientRegistrationService;
 
+    @Mock
+    private ClientCertificateCrudServiceImpl clientCertificateCrudService;
+
     @Before
     public void setup() {
         GraviteeContext.cleanContext();
@@ -178,7 +181,7 @@ public class ApplicationService_CreateTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldNotCreateBecauseClientRegistrationDisable() throws TechnicalException {
+    public void shouldNotCreateBecauseClientRegistrationDisable() {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setClientId(CLIENT_ID);
@@ -340,6 +343,7 @@ public class ApplicationService_CreateTest {
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
 
+    @SneakyThrows
     @Test
     public void shouldNotCreateBecauseOfInvalidClientCertificate() {
         ApplicationSettings settings = new ApplicationSettings();
@@ -358,12 +362,17 @@ public class ApplicationService_CreateTest {
                 .build()
         );
         when(newApplication.getSettings()).thenReturn(settings);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
 
-        Assertions.assertThatThrownBy(() -> applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME))
-            .isInstanceOf(ApplicationInvalidCertificateException.class)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
+            .isInstanceOf(ClientCertificateInvalidException.class)
             .hasMessage("An error has occurred while parsing client certificate");
     }
 
+    @SneakyThrows
     @Test
     public void shouldNotCreateBecauseOfNotRecognizedClientCertificate() {
         ApplicationSettings settings = new ApplicationSettings();
@@ -380,9 +389,13 @@ public class ApplicationService_CreateTest {
                 .build()
         );
         when(newApplication.getSettings()).thenReturn(settings);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
 
-        Assertions.assertThatThrownBy(() -> applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME))
-            .isInstanceOf(ApplicationEmptyCertificateException.class)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
+            .isInstanceOf(ClientCertificateEmptyException.class)
             .hasMessage("No certificate can be extracted");
     }
 
@@ -395,17 +408,13 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
         when(newApplication.getSettings()).thenReturn(settings);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(clientCertificateCrudService.create(any(), any())).thenThrow(ClientCertificateAlreadyUsedException.class);
 
-        when(
-            applicationRepository.existsMetadataEntryForEnv(
-                METADATA_CLIENT_CERTIFICATE,
-                Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().trim().getBytes()),
-                "DEFAULT"
-            )
-        ).thenReturn(true);
-
-        Assertions.assertThatThrownBy(() -> applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME))
-            .isInstanceOf(ApplicationCertificateAlreadyUsedException.class)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
+            .isInstanceOf(ClientCertificateAlreadyUsedException.class)
             .hasMessage("Certificate is currently in use by another application");
     }
 
@@ -418,9 +427,13 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_CA_PEM).build());
         when(newApplication.getSettings()).thenReturn(settings);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(clientCertificateCrudService.create(any(), any())).thenCallRealMethod();
 
-        Assertions.assertThatThrownBy(() -> applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME))
-            .isInstanceOf(ApplicationCertificateAuthorityException.class)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
+            .isInstanceOf(ClientCertificateAuthorityException.class)
             .hasMessage("Certificate Authorities are not supported, requires a client certificate");
     }
 
@@ -470,11 +483,11 @@ public class ApplicationService_CreateTest {
 
         // ensure app has been created with client_id from DCR in metadata
         verify(applicationRepository).create(
-            argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
+            argThat(app -> app.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
         );
     }
 
-    private final String VALID_PEM = """
+    private static final String VALID_PEM = """
         -----BEGIN CERTIFICATE-----
         MIIFxjCCA64CCQD9kAnHVVL02TANBgkqhkiG9w0BAQsFADCBozEsMCoGCSqGSIb3
         DQEJARYddW5pdC50ZXN0c0BncmF2aXRlZXNvdXJjZS5jb20xEzARBgNVBAMMCnVu
@@ -510,7 +523,7 @@ public class ApplicationService_CreateTest {
         -----END CERTIFICATE-----
         """;
 
-    private final String VALID_CA_PEM = """
+    private static final String VALID_CA_PEM = """
         -----BEGIN CERTIFICATE-----
         MIIGAzCCA+ugAwIBAgIUcso7he1LovzeKw5od1lZD3vlNOAwDQYJKoZIhvcNAQEL
         BQAwgZAxKTAnBgkqhkiG9w0BCQEWGmNvbnRhY3RAZ3Jhdml0ZWVzb3VyY2UuY29t

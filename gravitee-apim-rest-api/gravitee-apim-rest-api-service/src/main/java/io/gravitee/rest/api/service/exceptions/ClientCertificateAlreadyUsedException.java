@@ -33,7 +33,7 @@ public class ClientCertificateAlreadyUsedException extends AbstractValidationExc
 
     @Override
     public String getMessage() {
-        return "Validation error";
+        return "Certificate is currently in use by another application";
     }
 
     @Override
