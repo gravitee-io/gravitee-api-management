@@ -477,8 +477,17 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
-    public Optional<Subscription> findByIdForApiProduct(String subscriptionId, String apiProductId) throws TechnicalException {
-        log.debug("JdbcSubscriptionRepository.findByIdForApiProduct({}, {})", subscriptionId, apiProductId);
+    public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException {
+        log.debug(
+            "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})",
+            subscriptionId,
+            referenceId,
+            referenceType
+        );
         try {
             JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -493,14 +502,20 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                     " sm on s.id = sm.subscription_id where s.id = ? and s.reference_id = ? and s.reference_type = ?",
                 rowMapper,
                 subscriptionId,
-                apiProductId,
-                SubscriptionReferenceType.API_PRODUCT.name()
+                referenceId,
+                referenceType.name()
             );
             Optional<Subscription> result = rowMapper.getRows().stream().findFirst();
-            log.debug("JdbcSubscriptionRepository.findByIdForApiProduct({}, {}) = {}", subscriptionId, apiProductId, result);
+            log.debug(
+                "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {}) = {}",
+                subscriptionId,
+                referenceId,
+                referenceType,
+                result
+            );
             return result;
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find subscription by id for api product", ex);
+            throw new TechnicalException("Failed to find subscription by id and reference", ex);
         }
     }
 }

@@ -58,6 +58,12 @@ public class CreateApiProductSubscriptionUseCase {
             throw new PlanNotFoundException(input.planId);
         }
 
+        // TODO: For Deprecated API Products we need to throw exception (this is only if we have deprecate feature in API Product?)
+        // Currently API Products don't have a deprecated field, so we check if the plan is deprecated instead
+        if (plan.getPlanStatus() == io.gravitee.definition.model.v4.plan.PlanStatus.DEPRECATED) {
+            throw new PlanNotFoundException(input.planId);
+        }
+
         // Create subscription using domain service
         io.gravitee.rest.api.model.SubscriptionEntity createdSubscriptionEntity = createSubscriptionDomainService.create(
             input.auditInfo,

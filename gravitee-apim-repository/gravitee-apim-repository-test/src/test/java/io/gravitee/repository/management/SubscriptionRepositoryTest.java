@@ -534,8 +534,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
-    public void shouldFindByIdForApiProduct() throws TechnicalException {
-        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("sub-api-product-1", "api-product-1");
+    public void shouldFindByIdAndReferenceIdAndReferenceType() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+            "sub-api-product-1",
+            "api-product-1",
+            SubscriptionReferenceType.API_PRODUCT
+        );
 
         assertNotNull(subscription);
         assertTrue(subscription.isPresent());
@@ -545,16 +549,24 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
-    public void shouldNotFindByIdForApiProductWhenWrongApiProduct() throws TechnicalException {
-        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("sub-api-product-1", "api-product-2");
+    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeWhenWrongReferenceId() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+            "sub-api-product-1",
+            "api-product-2",
+            SubscriptionReferenceType.API_PRODUCT
+        );
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());
     }
 
     @Test
-    public void shouldNotFindByIdForApiProductWhenSubscriptionDoesNotExist() throws TechnicalException {
-        Optional<Subscription> subscription = subscriptionRepository.findByIdForApiProduct("non-existent", "api-product-1");
+    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeWhenSubscriptionDoesNotExist() throws TechnicalException {
+        Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+            "non-existent",
+            "api-product-1",
+            SubscriptionReferenceType.API_PRODUCT
+        );
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());

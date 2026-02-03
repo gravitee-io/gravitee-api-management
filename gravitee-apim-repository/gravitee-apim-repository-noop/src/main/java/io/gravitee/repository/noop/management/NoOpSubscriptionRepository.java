@@ -74,7 +74,11 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     }
 
     @Override
-    public Optional<Subscription> findByIdForApiProduct(String subscriptionId, String apiProductId) throws TechnicalException {
+    public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException {
         return Optional.empty();
     }
 }

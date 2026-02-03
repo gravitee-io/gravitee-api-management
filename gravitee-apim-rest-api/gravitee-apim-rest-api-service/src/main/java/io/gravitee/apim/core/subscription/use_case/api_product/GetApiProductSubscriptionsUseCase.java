@@ -17,11 +17,18 @@ package io.gravitee.apim.core.subscription.use_case.api_product;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +39,7 @@ public class GetApiProductSubscriptionsUseCase {
 
     private final SubscriptionQueryService subscriptionQueryService;
     private final ApiProductCrudService apiProductCrudService;
+    private final PlanCrudService planCrudService;
 
     public Output execute(Input input) {
         log.debug("Getting subscriptions for API Product {} (subscriptionId: {})", input.apiProductId, input.subscriptionId);
@@ -43,6 +51,25 @@ public class GetApiProductSubscriptionsUseCase {
                 input.apiProductId,
                 SubscriptionReferenceType.API_PRODUCT
             );
+
+            // Filter out subscriptions where the plan is closed or deprecated (similar to filtering plans without subscriptions)
+            Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlanId).collect(Collectors.toSet());
+            if (!planIds.isEmpty()) {
+                Map<String, Plan> plansById = planCrudService
+                    .findByIds(new ArrayList<>(planIds))
+                    .stream()
+                    .collect(Collectors.toMap(Plan::getId, plan -> plan));
+
+                subscriptions = subscriptions
+                    .stream()
+                    .filter(sub -> {
+                        Plan plan = plansById.get(sub.getPlanId());
+                        // Filter out subscriptions where plan is closed or deprecated
+                        return plan != null && plan.getPlanStatus() != PlanStatus.CLOSED && plan.getPlanStatus() != PlanStatus.DEPRECATED;
+                    })
+                    .toList();
+            }
+
             log.debug("Found {} subscriptions for API Product {}", subscriptions.size(), input.apiProductId);
             return Output.multiple(subscriptions);
         } else {

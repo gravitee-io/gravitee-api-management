@@ -60,6 +60,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
@@ -159,7 +160,12 @@ class RollbackApiUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        var closePlanDomainService = new ClosePlanDomainService(planCrudService, subscriptionCrudService, auditDomainService);
+        var closePlanDomainService = new ClosePlanDomainService(
+            planCrudService,
+            subscriptionCrudService,
+            auditDomainService,
+            mock(CloseSubscriptionDomainService.class)
+        );
         this.apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
             auditDomainService,
             groupQueryService,

@@ -57,5 +57,9 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
     Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
         throws TechnicalException;
 
-    Optional<Subscription> findByIdForApiProduct(String subscriptionId, String apiProductId) throws TechnicalException;
+    Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException;
 }

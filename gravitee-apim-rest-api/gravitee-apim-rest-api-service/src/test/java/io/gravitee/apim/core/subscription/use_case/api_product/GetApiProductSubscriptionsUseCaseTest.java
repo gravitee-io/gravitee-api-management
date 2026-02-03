@@ -19,14 +19,16 @@ import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
-import fixtures.core.model.SubscriptionFixtures;
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -41,16 +43,17 @@ class GetApiProductSubscriptionsUseCaseTest {
 
     private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+    private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private GetApiProductSubscriptionsUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetApiProductSubscriptionsUseCase(subscriptionQueryService, apiProductCrudService);
+        useCase = new GetApiProductSubscriptionsUseCase(subscriptionQueryService, apiProductCrudService, planCrudService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiProductCrudService, subscriptionQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiProductCrudService, subscriptionQueryService, planCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -59,6 +62,7 @@ class GetApiProductSubscriptionsUseCaseTest {
         var apiProduct = givenExistingApiProduct(
             ApiProduct.builder().id(API_PRODUCT_ID).name("Test API Product").environmentId("env-id").build()
         );
+        givenExistingPlanWithStatus("plan-id", PlanStatus.PUBLISHED);
         var subscription1 = aSubscription()
             .toBuilder()
             .id(SUBSCRIPTION_ID_1)
@@ -150,6 +154,7 @@ class GetApiProductSubscriptionsUseCaseTest {
         var apiProduct1 = ApiProduct.builder().id(API_PRODUCT_ID).name("Test API Product 1").environmentId("env-id").build();
         var apiProduct2 = ApiProduct.builder().id("other-api-product-id").name("Test API Product 2").environmentId("env-id").build();
         givenExistingApiProducts(List.of(apiProduct1, apiProduct2));
+        givenExistingPlanWithStatus("plan-id", PlanStatus.PUBLISHED);
         var subscription1 = aSubscription()
             .toBuilder()
             .id(SUBSCRIPTION_ID_1)
@@ -187,5 +192,41 @@ class GetApiProductSubscriptionsUseCaseTest {
 
     private void givenExistingSubscriptions(List<SubscriptionEntity> subscriptions) {
         subscriptionQueryService.initWith(subscriptions);
+    }
+
+    private void givenExistingPlanWithStatus(String planId, PlanStatus status) {
+        var plan = PlanFixtures.aPlanHttpV4().toBuilder().id(planId).build();
+        plan.setPlanStatus(status);
+        planCrudService.initWith(List.of(plan));
+    }
+
+    @Test
+    void should_exclude_subscriptions_with_closed_or_deprecated_plan() {
+        // Given: one subscription with published plan, one with closed plan
+        givenExistingApiProduct(ApiProduct.builder().id(API_PRODUCT_ID).name("Test API Product").environmentId("env-id").build());
+        givenExistingPlanWithStatus("plan-published", PlanStatus.PUBLISHED);
+        givenExistingPlanWithStatus("plan-closed", PlanStatus.CLOSED);
+        var subscriptionPublished = aSubscription()
+            .toBuilder()
+            .id(SUBSCRIPTION_ID_1)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .planId("plan-published")
+            .build();
+        var subscriptionClosed = aSubscription()
+            .toBuilder()
+            .id(SUBSCRIPTION_ID_2)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .planId("plan-closed")
+            .build();
+        givenExistingSubscriptions(List.of(subscriptionPublished, subscriptionClosed));
+
+        // When
+        var result = useCase.execute(GetApiProductSubscriptionsUseCase.Input.of(API_PRODUCT_ID));
+
+        // Then: only subscription with published plan is returned
+        assertThat(result.subscriptions()).hasSize(1).extracting(SubscriptionEntity::getId).containsExactly(SUBSCRIPTION_ID_1);
+        assertThat(result.subscription()).isEmpty();
     }
 }

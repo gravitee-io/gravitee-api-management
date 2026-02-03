@@ -202,6 +202,36 @@ class CreateApiProductSubscriptionUseCaseTest {
         assertThat(throwable).isInstanceOf(PlanNotFoundException.class);
     }
 
+    @Test
+    void should_throw_when_plan_is_deprecated() {
+        // Given: plan exists for API Product but is DEPRECATED
+        givenExistingApiProduct(ApiProduct.builder().id(API_PRODUCT_ID).name("Test API Product").environmentId(ENVIRONMENT_ID).build());
+        var plan = givenExistingPlan(
+            PlanFixtures.aPlanHttpV4()
+                .toBuilder()
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build()
+        );
+        plan.setPlanStatus(PlanStatus.DEPRECATED);
+
+        // When
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                CreateApiProductSubscriptionUseCase.Input.builder()
+                    .apiProductId(API_PRODUCT_ID)
+                    .planId(PLAN_ID)
+                    .applicationId(APPLICATION_ID)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            )
+        );
+
+        // Then
+        assertThat(throwable).isInstanceOf(PlanNotFoundException.class);
+    }
+
     private ApiProduct givenExistingApiProduct(ApiProduct apiProduct) {
         apiProductCrudService.initWith(List.of(apiProduct));
         return apiProduct;

@@ -100,8 +100,12 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void findByIdForApiProduct() throws TechnicalException {
-        Optional<Subscription> subscription = cut.findByIdForApiProduct("test-subscription-id", "test-api-product-id");
+    public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
+        Optional<Subscription> subscription = cut.findByIdAndReferenceIdAndReferenceType(
+            "test-subscription-id",
+            "test-api-product-id",
+            SubscriptionReferenceType.API_PRODUCT
+        );
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());

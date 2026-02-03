@@ -159,13 +159,17 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
-    public Optional<Subscription> findByIdForApiProduct(String subscriptionId, String apiProductId) throws TechnicalException {
+    public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) throws TechnicalException {
         try {
             return internalSubscriptionRepository
-                .findByIdAndReferenceIdAndReferenceType(subscriptionId, apiProductId, SubscriptionReferenceType.API_PRODUCT.name())
+                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, referenceType.name())
                 .map(this::map);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred trying to find subscription by id for api product", e);
+            throw new TechnicalException("An error occurred trying to find subscription by id and reference", e);
         }
     }
 }

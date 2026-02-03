@@ -25,9 +25,12 @@ import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 import java.util.Map;
 
 @DomainService
@@ -36,23 +39,40 @@ public class ClosePlanDomainService {
     private final PlanCrudService planCrudService;
     private final SubscriptionQueryService subscriptionQueryService;
     private final AuditDomainService auditService;
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     public ClosePlanDomainService(
         PlanCrudService planCrudService,
         SubscriptionQueryService subscriptionQueryService,
-        AuditDomainService auditService
+        AuditDomainService auditService,
+        CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {
         this.planCrudService = planCrudService;
         this.subscriptionQueryService = subscriptionQueryService;
         this.auditService = auditService;
+        this.closeSubscriptionDomainService = closeSubscriptionDomainService;
     }
 
     public void close(String planId, AuditInfo auditInfo) {
-        if (!subscriptionQueryService.findActiveSubscriptionsByPlan(planId).isEmpty()) {
-            throw new ValidationDomainException("Impossible to close a plan with active subscriptions");
-        }
-
         var planToClose = planCrudService.getById(planId);
+
+        // For API Product plans, close all active subscriptions when closing the plan
+        if (planToClose.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT) {
+            List<SubscriptionEntity> activeSubscriptions = subscriptionQueryService.findActiveSubscriptionsByPlan(planId);
+            for (SubscriptionEntity subscription : activeSubscriptions) {
+                try {
+                    closeSubscriptionDomainService.closeSubscriptionForApiProduct(subscription.getId(), auditInfo);
+                } catch (Exception e) {
+                    // Log but continue closing other subscriptions
+                    // Subscription status could not be closed (already closed or rejected)
+                }
+            }
+        } else {
+            // For API plans, throw exception if there are active subscriptions
+            if (!subscriptionQueryService.findActiveSubscriptionsByPlan(planId).isEmpty()) {
+                throw new ValidationDomainException("Impossible to close a plan with active subscriptions");
+            }
+        }
 
         final Plan closedPlan = planToClose.close();
 

@@ -90,7 +90,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
             subscriptions = List.of();
         }
 
-        List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::map).toList();
+        List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::map).map(this::filterSensitiveData).toList();
 
         // TODO: Pagination is currently in-memory; consider DB-level pagination in GetApiProductSubscriptionsUseCase for scalability
         int totalCount = subscriptionList.size();
@@ -164,6 +164,47 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     @Path("/{subscriptionId}")
     public ApiProductSubscriptionResource getApiProductSubscriptionResource() {
         return resourceContext.getResource(ApiProductSubscriptionResource.class);
+    }
+
+    private Subscription filterSensitiveData(Subscription subscription) {
+        // Similar to plan filtering: check if user has both API_PRODUCT_DEFINITION and API_PRODUCT_SUBSCRIPTION permissions
+        if (
+            hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_PRODUCT_DEFINITION,
+                apiProductId,
+                RolePermissionAction.READ
+            ) &&
+            hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_PRODUCT_SUBSCRIPTION,
+                apiProductId,
+                RolePermissionAction.READ
+            )
+        ) {
+            // Return complete information if user has permission.
+            return subscription;
+        }
+
+        // Return filtered subscription with limited information (similar to plan filtering)
+        // Subscriptions don't have sensitive data like flows/security definitions, so we return basic fields
+        Subscription filtered = new Subscription();
+        filtered.setId(subscription.getId());
+        filtered.setStatus(subscription.getStatus());
+        if (subscription.getPlan() != null) {
+            filtered.setPlan(subscription.getPlan());
+        }
+        if (subscription.getApplication() != null) {
+            filtered.setApplication(subscription.getApplication());
+        }
+        filtered.setCreatedAt(subscription.getCreatedAt());
+        filtered.setUpdatedAt(subscription.getUpdatedAt());
+        filtered.setStartingAt(subscription.getStartingAt());
+        filtered.setEndingAt(subscription.getEndingAt());
+        filtered.setConsumerStatus(subscription.getConsumerStatus());
+        filtered.setConsumerPausedAt(subscription.getConsumerPausedAt());
+
+        return filtered;
     }
 
     private Error subscriptionInvalid(String message) {
