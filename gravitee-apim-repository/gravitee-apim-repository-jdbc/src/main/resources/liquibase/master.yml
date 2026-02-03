@@ -299,3 +299,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/02_add_client_certificates_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/03_add_environment_id_and_definition_version_on_plans.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/04_add_reference_fields_to_plans_table.yml

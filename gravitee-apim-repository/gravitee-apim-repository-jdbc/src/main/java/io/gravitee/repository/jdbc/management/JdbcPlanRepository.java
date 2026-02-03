@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.text.html.Option;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -95,6 +94,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
             .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, Plan.PlanReferenceType.class)
             .build();
     }
 
@@ -117,13 +118,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Optional<Plan> findById(String id) throws TechnicalException {
         log.debug("JdbcPlanRepository.findById({})", id);
         try {
-            Optional<Plan> result = jdbcTemplate.query(getOrm().getSelectByIdSql(), getOrm().getRowMapper(), id).stream().findFirst();
-            if (result.isPresent()) {
-                addCharacteristics(result.get());
-                addExcludedGroups(result.get());
-                addTags(result.get());
-            }
-            return result;
+            return jdbcTemplate
+                .query(getOrm().getSelectByIdSql(), getOrm().getRowMapper(), id)
+                .stream()
+                .findFirst()
+                .map(plan -> {
+                    addDataToPlans(List.of(plan));
+                    return plan;
+                });
         } catch (final Exception ex) {
             log.error("Failed to find plan by id:", ex);
             throw new TechnicalException("Failed to find plan by id", ex);
@@ -260,51 +262,6 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     @Override
-    public List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) throws TechnicalException {
-        log.debug("JdbcPlanRepository.findByApisAndEnvironments({})", apiIds);
-        if (isEmpty(apiIds)) {
-            return Collections.emptyList();
-        }
-        try {
-            var query = getOrm().getSelectAllSql() + " where api in (" + getOrm().buildInClause(apiIds) + ")";
-            List<String> args = new ArrayList<>(apiIds);
-            if (environments != null && !environments.isEmpty()) {
-                query = query + " AND environment_id in (" + getOrm().buildInClause(environments) + ")";
-                args.addAll(environments);
-            }
-
-            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), args.toArray());
-            for (Plan plan : plans) {
-                addCharacteristics(plan);
-                addExcludedGroups(plan);
-                addTags(plan);
-            }
-            return plans;
-        } catch (final Exception ex) {
-            log.error("Failed to find plans by api:", ex);
-            throw new TechnicalException("Failed to find plans by api", ex);
-        }
-    }
-
-    @Override
-    public Set<Plan> findByApi(String apiId) throws TechnicalException {
-        log.debug("JdbcPlanRepository.findByApi({})", apiId);
-        try {
-            var query = getOrm().getSelectAllSql() + " where api = ?";
-            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), apiId);
-            for (Plan plan : plans) {
-                addCharacteristics(plan);
-                addExcludedGroups(plan);
-                addTags(plan);
-            }
-            return new HashSet<>(plans);
-        } catch (final Exception ex) {
-            log.error("Failed to find plans by api:", ex);
-            throw new TechnicalException("Failed to find plans by api", ex);
-        }
-    }
-
-    @Override
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
         log.debug("JdbcPlanRepository.findByIdIn({})", ids);
         if (isEmpty(ids)) {
@@ -314,11 +271,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             var query = getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")";
 
             List<Plan> plans = jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), getOrm().getRowMapper());
-            for (Plan plan : plans) {
-                addCharacteristics(plan);
-                addExcludedGroups(plan);
-                addTags(plan);
-            }
+            addDataToPlans(plans);
             return new HashSet<>(plans);
         } catch (final Exception ex) {
             log.error("Failed to find plans by id list", ex);
@@ -404,6 +357,83 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             );
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update plans cross IDs", ex);
+        }
+    }
+
+    @Override
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        log.debug("JdbcPlanRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, planReferenceType);
+        try {
+            var query = getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?";
+
+            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), referenceId, planReferenceType.name());
+            addDataToPlans(plans);
+            return new HashSet<>(plans);
+        } catch (final Exception ex) {
+            log.error("Failed to find plans by api:", ex);
+            throw new TechnicalException("Failed to find plans by api", ex);
+        }
+    }
+
+    @Override
+    public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
+        List<String> referenceIds,
+        Plan.PlanReferenceType planReferenceType,
+        Set<String> environments
+    ) throws TechnicalException {
+        log.debug(
+            "JdbcPlanRepository.findByReferenceIdsAndReferenceTypeAndEnvironments({}, {}, {})",
+            referenceIds,
+            planReferenceType,
+            environments
+        );
+        if (isEmpty(referenceIds)) {
+            return Collections.emptyList();
+        }
+        try {
+            List<String> args = new ArrayList<>();
+            var query =
+                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in (" + getOrm().buildInClause(referenceIds) + ")";
+            args.add(planReferenceType.name());
+            args.addAll(referenceIds);
+            if (environments != null && !environments.isEmpty()) {
+                query = query + " AND environment_id in (" + getOrm().buildInClause(environments) + ")";
+                args.addAll(environments);
+            }
+
+            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), args.toArray());
+            addDataToPlans(plans);
+            return plans;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plans by referenceIds, referenceType and environments", ex);
+        }
+    }
+
+    private void addDataToPlans(List<Plan> plans) {
+        for (Plan plan : plans) {
+            addCharacteristics(plan);
+            addExcludedGroups(plan);
+            addTags(plan);
+        }
+    }
+
+    @Override
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        log.debug("JdbcPlanRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})", plan, referenceId, planReferenceType.name());
+        try {
+            String query = getOrm().getSelectByIdSql() + " and reference_id = ? and reference_type = ?";
+            return jdbcTemplate
+                .query(query, getOrm().getRowMapper(), plan, referenceId, planReferenceType.name())
+                .stream()
+                .findFirst()
+                .map(optPlan -> {
+                    addDataToPlans(List.of(optPlan));
+                    return optPlan;
+                });
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plan by id, referenceId and referenceType", ex);
         }
     }
 

@@ -30,6 +30,7 @@ import java.util.Set;
  */
 public interface PlanRepository extends CrudRepository<Plan, String> {
     /**
+     * WARNING: this method should only be called by the gatway.
      * Find plans by api ids and environments
      * @param apiIds the list of id of the apis to which to retrieve plans. Cannot NOT be null or empty
      * @param environments the list of environments to which to retrieve plans. Could be null or empty
@@ -100,6 +101,7 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
     Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException;
 
     /**
+     * WARNING: this method should only be called by the gatway.
      * Finds a list of plans by their reference IDs, reference type, and associated environments.
      *
      * @param referenceIds The list of reference IDs to filter the plans. Cannot be null or empty.
