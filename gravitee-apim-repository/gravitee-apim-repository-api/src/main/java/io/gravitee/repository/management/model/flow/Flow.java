@@ -106,10 +106,6 @@ public class Flow {
      */
     private List<FlowStep> interact = new ArrayList<>();
     /**
-     * Flow connect steps
-     */
-    private List<FlowStep> connect = new ArrayList<>();
-    /**
      * Flow entrypoint connect steps (Native APIs)
      */
     private List<FlowStep> entrypointConnect = new ArrayList<>();

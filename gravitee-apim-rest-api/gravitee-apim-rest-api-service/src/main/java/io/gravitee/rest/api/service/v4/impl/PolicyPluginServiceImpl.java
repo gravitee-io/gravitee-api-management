@@ -44,7 +44,6 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
     private enum POLICY_FLOW_PHASE {
         ENTRYPOINT_CONNECT,
         INTERACT,
-        CONNECT,
         PUBLISH,
         SUBSCRIBE,
         REQUEST,
@@ -200,7 +199,6 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
                     switch (p) {
                         case ENTRYPOINT_CONNECT -> FlowPhase.ENTRYPOINT_CONNECT;
                         case INTERACT -> FlowPhase.INTERACT;
-                        case CONNECT -> FlowPhase.CONNECT;
                         case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;
                         case SUBSCRIBE, MESSAGE_RESPONSE -> FlowPhase.SUBSCRIBE;
                         case REQUEST -> FlowPhase.REQUEST;

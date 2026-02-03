@@ -117,13 +117,7 @@ public class FlowValidationDomainService {
             }
             flows.forEach(flow -> {
                 // Validate policy configuration
-                var steps = Stream.of(
-                    flow.getEntrypointConnect(),
-                    flow.getInteract(),
-                    flow.getConnect(),
-                    flow.getPublish(),
-                    flow.getSubscribe()
-                )
+                var steps = Stream.of(flow.getEntrypointConnect(), flow.getInteract(), flow.getPublish(), flow.getSubscribe())
                     .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
                     .toList();
