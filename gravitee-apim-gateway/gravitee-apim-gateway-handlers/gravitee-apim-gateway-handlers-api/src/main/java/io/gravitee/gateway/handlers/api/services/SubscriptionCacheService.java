@@ -86,9 +86,12 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (byPlan.isPresent()) {
             return byPlan;
         }
+        // Fallback: lookup with null plan. This entry exists for ALL subscriptions (not API Product-specific).
+        // registerFromClientId() creates both (api, clientId, plan) and (api, clientId, null) entries
+        // to allow plan-agnostic search. API Product lookup leverages this existing behavior.
         Optional<Subscription> byApiProduct = Optional.ofNullable(
             cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, null))
-        ).filter(this::isApiProductSubscription);
+        ).filter(SubscriptionUtils::isApiProductSubscription);
         return byApiProduct;
     }
 
@@ -100,7 +103,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void register(final Subscription subscription) {
         if (ACCEPTED.name().equals(subscription.getStatus())) {
-            if (isApiProductSubscription(subscription)) {
+            if (SubscriptionUtils.isApiProductSubscription(subscription)) {
                 registerApiProductSubscription(subscription);
             } else if (subscription.getClientCertificate() != null) {
                 registerFromClientCertificate(subscription);
@@ -120,7 +123,7 @@ public class SubscriptionCacheService implements SubscriptionService {
             return byPlan;
         }
         return Optional.ofNullable(cacheByApiClientCertificate.get(buildCacheKeyFromClientInfo(api, certificateDigest, null))).filter(
-            this::isApiProductSubscription
+            SubscriptionUtils::isApiProductSubscription
         );
     }
 
@@ -130,11 +133,6 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     private static String buildApiSubscriptionKey(String api, String subscriptionId) {
         return api + "." + subscriptionId;
-    }
-
-    private boolean isApiProductSubscription(Subscription subscription) {
-        Map<String, String> metadata = subscription.getMetadata();
-        return metadata != null && REFERENCE_TYPE_API_PRODUCT.equals(metadata.get(METADATA_REFERENCE_TYPE));
     }
 
     private void registerApiProductSubscription(Subscription subscription) {
@@ -165,6 +163,18 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
+    /**
+     * Creates a copy of a subscription with a different API ID.
+     *
+     * <p>Note: Manual field-by-field copy is used. If Subscription class
+     * (io.gravitee.gateway.api.service.Subscription) supports builder pattern (toBuilder()),
+     * consider refactoring to: source.toBuilder().api(apiId).build()
+     *
+     * <p>Fields copied (must be kept in sync if Subscription class changes):
+     * - id, api (set to apiId), plan, application, applicationName
+     * - clientId, clientCertificate, status, consumerStatus
+     * - startingAt, endingAt, configuration, metadata, type, environmentId
+     */
     private Subscription createSubscriptionWithApi(Subscription source, String apiId) {
         Subscription copy = new Subscription();
         copy.setId(source.getId());
@@ -302,7 +312,7 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getApi()
         );
         final String idKey = subscription.getId();
-        if (isApiProductSubscription(subscription)) {
+        if (SubscriptionUtils.isApiProductSubscription(subscription)) {
             unregisterApiProductSubscription(subscription);
         } else {
             Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
@@ -336,8 +346,7 @@ public class SubscriptionCacheService implements SubscriptionService {
                 }
             }
         }
-        unregisterFromClientId(subscription);
-        unregisterFromClientCertificate(subscription);
+        // Removed redundant calls - loop already handles cleanup for each API
     }
 
     private void unregisterFromClientId(final Subscription subscription) {
