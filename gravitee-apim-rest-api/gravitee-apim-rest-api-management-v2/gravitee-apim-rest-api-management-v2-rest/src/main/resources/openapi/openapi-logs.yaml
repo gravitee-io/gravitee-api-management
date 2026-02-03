@@ -193,7 +193,7 @@ components:
           items:
             type: string
           description: Filter value (array for IN operator)
-      example: { name: "HTTP_STATUS_CODE_GROUP", operator: "IN", value: ["2xx", "3xx"] }
+      example: { name: "HTTP_STATUS", operator: "IN", value: ["200", "301"] }
 
     FilterName:
       type: string
