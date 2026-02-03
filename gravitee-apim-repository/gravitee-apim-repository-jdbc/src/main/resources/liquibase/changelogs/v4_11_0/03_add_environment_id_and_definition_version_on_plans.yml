@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_03_add_environment_id_and_definition_version_on_plans
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column: { name: definition_version, type: nvarchar(64), constraints: { nullable: true }}
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
+        - sql:
+            dbms: 'mysql,mariadb'
+            sql: UPDATE `${gravitee_prefix}plans` s LEFT OUTER JOIN `${gravitee_prefix}apis` a ON s.api = a.id SET s.environment_id = a.environment_id, s.definition_version = a.definition_version;
+        - sql:
+            dbms: 'postgresql,mssql'
+            sql: UPDATE ${gravitee_prefix}plans SET environment_id = a.environment_id, definition_version = a.definition_version FROM ${gravitee_prefix}apis a WHERE api = a.id;
+        - addNotNullConstraint:
+            columnName: environment_id
+            columnDataType: VARCHAR(64)
+            tableName: ${gravitee_prefix}plans
+            validate: true

@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -53,25 +54,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
-    private final String APIS;
     private final String PLAN_TAGS;
     private final String PLAN_CHARACTERISTICS;
     private final String PLAN_EXCLUDED_GROUPS;
 
-    private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER = (Plan parent, ResultSet rs) -> {
-        var definitionVersion = rs.getString("definition_version");
-        if (definitionVersion != null) {
-            parent.setDefinitionVersion(DefinitionVersion.valueOf(definitionVersion));
-        }
-        var environmentId = rs.getString("environment_id");
-        if (environmentId != null) {
-            parent.setEnvironmentId(environmentId);
-        }
-    };
-
     JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "plans");
-        APIS = getTableNameFor("apis");
         PLAN_TAGS = getTableNameFor("plan_tags");
         PLAN_CHARACTERISTICS = getTableNameFor("plan_characteristics");
         PLAN_EXCLUDED_GROUPS = getTableNameFor("plan_excluded_groups");
@@ -105,6 +93,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("general_conditions", Types.NVARCHAR, String.class)
             .addColumn("general_conditions_hrid", Types.NVARCHAR, String.class)
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+            .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -127,12 +117,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Optional<Plan> findById(String id) throws TechnicalException {
         log.debug("JdbcPlanRepository.findById({})", id);
         try {
-            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.id = ?";
-            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-
-            jdbcTemplate.query(query, rowMapper, id);
-
-            Optional<Plan> result = rowMapper.getRows().stream().findFirst();
+            Optional<Plan> result = jdbcTemplate.query(getOrm().getSelectByIdSql(), getOrm().getRowMapper(), id).stream().findFirst();
             if (result.isPresent()) {
                 addCharacteristics(result.get());
                 addExcludedGroups(result.get());
@@ -281,25 +266,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             return Collections.emptyList();
         }
         try {
-            List<String> args = new ArrayList<>();
-            var query =
-                getOrm().getSelectAllSql() +
-                " p left join " +
-                APIS +
-                " api on api.id = p.api" +
-                " where p.api in (" +
-                getOrm().buildInClause(apiIds) +
-                ")";
-            args.addAll(apiIds);
+            var query = getOrm().getSelectAllSql() + " where api in (" + getOrm().buildInClause(apiIds) + ")";
+            List<String> args = new ArrayList<>(apiIds);
             if (environments != null && !environments.isEmpty()) {
-                query = query + " AND api.environment_id in (" + getOrm().buildInClause(environments) + ")";
+                query = query + " AND environment_id in (" + getOrm().buildInClause(environments) + ")";
                 args.addAll(environments);
             }
-            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
-            jdbcTemplate.query(query, rowMapper, args.toArray());
-
-            List<Plan> plans = rowMapper.getRows();
+            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), args.toArray());
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
@@ -316,11 +290,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         log.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            var query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.api = ?";
-            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-
-            jdbcTemplate.query(query, rowMapper, apiId);
-            List<Plan> plans = rowMapper.getRows();
+            var query = getOrm().getSelectAllSql() + " where api = ?";
+            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), apiId);
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
@@ -340,19 +311,9 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             return Collections.emptySet();
         }
         try {
-            var query =
-                getOrm().getSelectAllSql() +
-                " p left join " +
-                APIS +
-                " api on api.id = p.api" +
-                " where p.id in (" +
-                getOrm().buildInClause(ids) +
-                ")";
-            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            var query = getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")";
 
-            jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), rowMapper);
-
-            List<Plan> plans = rowMapper.getRows();
+            List<Plan> plans = jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), getOrm().getRowMapper());
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
@@ -370,7 +331,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         log.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> planIds = jdbcTemplate.queryForList(
-                "select p.id from " + tableName + " p left join " + APIS + " api on api.id = p.api where api.environment_id = ?",
+                "select id from " + tableName + " where environment_id = ?",
                 String.class,
                 environmentId
             );
@@ -450,10 +411,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Set<Plan> findAll() throws TechnicalException {
         log.info("JdbcPlanRepository.findAll()");
         try {
-            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api";
-            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(query, rowMapper);
-            List<Plan> planList = rowMapper.getRows();
+            List<Plan> planList = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
             if (planList.isEmpty()) {
                 return Collections.emptySet();
             }
