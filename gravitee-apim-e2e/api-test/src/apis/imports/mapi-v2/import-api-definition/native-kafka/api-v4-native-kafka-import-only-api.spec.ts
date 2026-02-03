@@ -68,7 +68,6 @@ describe('API - V4 - Native Kafka - Import - Gravitee Definition - Only API -', 
             {
               enabled: true,
               name: 'Cool cat',
-              connect: [],
               entrypointConnect: [],
               interact: [],
               publish: [],

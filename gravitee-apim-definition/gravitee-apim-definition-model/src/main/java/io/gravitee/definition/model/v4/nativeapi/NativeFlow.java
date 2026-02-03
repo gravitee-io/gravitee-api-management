@@ -47,9 +47,6 @@ import lombok.experimental.SuperBuilder;
 public class NativeFlow extends AbstractFlow {
 
     @Valid
-    private List<Step> connect;
-
-    @Valid
     private List<Step> entrypointConnect;
 
     @Valid
@@ -65,7 +62,6 @@ public class NativeFlow extends AbstractFlow {
     @Override
     public List<Plugin> getPlugins() {
         return Stream.of(
-            computePlugins(this.connect),
             computePlugins(this.entrypointConnect),
             computePlugins(this.interact),
             computePlugins(this.publish),

@@ -101,13 +101,6 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         subscribeStep.setOrder(1);
         flow.setSubscribe(List.of(subscribeStep));
 
-        FlowStep connectStep = new FlowStep();
-        connectStep.setName("connect-step");
-        connectStep.setPolicy("policy");
-        connectStep.setCondition("connect-condition");
-        connectStep.setOrder(1);
-        flow.setConnect(List.of(connectStep));
-
         FlowStep interactStep = new FlowStep();
         interactStep.setName("interact-step");
         interactStep.setPolicy("policy");
@@ -138,7 +131,6 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
         assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
         assertEquals(flow.getInteract().get(0).getCondition(), flowCreated.getInteract().get(0).getCondition());
-        assertEquals(flow.getConnect().get(0).getCondition(), flowCreated.getConnect().get(0).getCondition());
     }
 
     @Test

@@ -618,7 +618,6 @@ components:
             example: SUBSCRIBE
             enum:
                 - ENTRYPOINT_CONNECT
-                - CONNECT
                 - INTERACT
                 - SUBSCRIBE
                 - PUBLISH
@@ -634,7 +633,6 @@ components:
                 - RESPONSE
                 - ENTRYPOINT_CONNECT
                 - INTERACT
-                - CONNECT
                 - PUBLISH
                 - SUBSCRIBE
         Qos:
