@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.services.SubscriptionUtils;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -43,9 +44,6 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 class ApiPlanFlowResolver extends AbstractFlowResolver {
-
-    private static final String METADATA_REFERENCE_TYPE = "referenceType";
-    private static final String REFERENCE_TYPE_API_PRODUCT = "API_PRODUCT";
 
     private final Api api;
 
@@ -73,19 +71,12 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
             return getFlows(plans, planId);
         }
 
-        if (isApiProductSubscription(ctx)) {
+        Subscription subscription = ctx.getInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION);
+        if (SubscriptionUtils.isApiProductSubscription(subscription)) {
             return getFlowsFromAllPlans(plans);
         }
 
         return Flowable.empty();
-    }
-
-    private boolean isApiProductSubscription(BaseExecutionContext ctx) {
-        Subscription subscription = ctx.getInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION);
-        if (subscription == null || subscription.getMetadata() == null) {
-            return false;
-        }
-        return REFERENCE_TYPE_API_PRODUCT.equals(subscription.getMetadata().get(METADATA_REFERENCE_TYPE));
     }
 
     private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
