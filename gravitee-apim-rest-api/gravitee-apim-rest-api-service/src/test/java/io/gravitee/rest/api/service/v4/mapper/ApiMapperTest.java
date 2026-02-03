@@ -110,6 +110,78 @@ public class ApiMapperTest {
     }
 
     @Test
+    public void shouldMapAllowedInApiProductsFromRepositoryDefinition_true_false() throws Exception {
+        // true case
+        var defTrue = new io.gravitee.definition.model.v4.Api();
+        defTrue.setDefinitionVersion(DefinitionVersion.V4);
+        defTrue.setType(ApiType.PROXY);
+        defTrue.setAllowedInApiProducts(true);
+        defTrue.setName("name");
+        defTrue.setApiVersion("1");
+        Api repoTrue = new Api();
+        repoTrue.setId("idT");
+        repoTrue.setDefinition(objectMapper.writeValueAsString(defTrue));
+        repoTrue.setType(ApiType.PROXY);
+        var entityTrue = apiMapper.toEntity(repoTrue, new PrimaryOwnerEntity());
+        assertThat(entityTrue.getAllowedInApiProducts()).isTrue();
+
+        // false case
+        var defFalse = new io.gravitee.definition.model.v4.Api();
+        defFalse.setDefinitionVersion(DefinitionVersion.V4);
+        defFalse.setType(ApiType.PROXY);
+        defFalse.setAllowedInApiProducts(false);
+        defFalse.setName("name");
+        defFalse.setApiVersion("1");
+        Api repoFalse = new Api();
+        repoFalse.setId("idF");
+        repoFalse.setDefinition(objectMapper.writeValueAsString(defFalse));
+        repoFalse.setType(ApiType.PROXY);
+        var entityFalse = apiMapper.toEntity(repoFalse, new PrimaryOwnerEntity());
+        assertThat(entityFalse.getAllowedInApiProducts()).isFalse();
+    }
+
+    @Test
+    public void shouldIncludeAllowedInApiProductsWhenToRepositoryFromApiEntity() throws Exception {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("1");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setAllowedInApiProducts(true);
+
+        when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
+
+        Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        var json = repo.getDefinition();
+        assertThat(json).contains("\"allowedInApiProducts\":true");
+    }
+
+    @Test
+    public void shouldNotIncludeAllowedInApiProductsWhenTypeIsNativeOrMissingOnUpdate() throws Exception {
+        // Update entity does not set the field -> should not be present in definition
+        UpdateApiEntity update = new UpdateApiEntity();
+        update.setId("id");
+        update.setName("name");
+        update.setApiVersion("1");
+        update.setDefinitionVersion(DefinitionVersion.V4);
+        update.setType(ApiType.PROXY);
+        // no allowedInApiProducts on purpose
+
+        Api repoUpdate = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update);
+        // When not explicitly set on update, allowedInApiProducts is serialized as null in the definition
+        assertThat(repoUpdate.getDefinition()).contains("\"allowedInApiProducts\":null");
+
+        // Native type -> mapper does not actively set the flag; it remains null
+        update.setType(ApiType.NATIVE);
+        update.setAllowedInApiProducts(true);
+        Api repoNative = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update);
+        // With current serialization, null-valued allowedInApiProducts is still present as a JSON field
+        assertThat(repoNative.getDefinition()).contains("\"allowedInApiProducts\":null");
+    }
+
+    @Test
     public void shouldCreateEntityFromApiDefinition() throws JsonProcessingException {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);

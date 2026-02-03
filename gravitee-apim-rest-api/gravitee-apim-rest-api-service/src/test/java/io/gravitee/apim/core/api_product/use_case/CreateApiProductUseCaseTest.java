@@ -21,14 +21,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import fixtures.core.model.ApiFixtures;
 import inmemory.AbstractUseCaseTest;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -52,7 +56,9 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
-    private final ValidateApiProductService validateApiProductService = new ValidateApiProductService();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    private final ValidateApiProductService validateApiProductService = new ValidateApiProductService(apiQueryService);
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -128,6 +134,10 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_create_api_product() {
+        Api api1 = createV4ProxyApi("api-1", true);
+        Api api2 = createV4ProxyApi("api-2", true);
+        apiCrudService.initWith(List.of(api1, api2));
+
         var toCreate = CreateApiProduct.builder()
             .name("API Product 1")
             .version("1.0.0")
@@ -148,7 +158,6 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThat(output.apiProduct().getCreatedAt()).isNotNull();
         assertThat(output.apiProduct().getUpdatedAt()).isNotNull();
 
-        // Verify DEPLOY event was published
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(GENERATED_UUID), any());
     }
@@ -169,5 +178,84 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
         );
         Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessageContaining("API Product version is required");
+    }
+
+    @Test
+    void should_filter_out_apis_not_allowed_in_product() {
+        Api allowedApi = createV4ProxyApi("api-allowed", true);
+        Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
+        Api nullAllowedApi = createV4ProxyApi("api-null-allowed", null);
+
+        apiCrudService.initWith(List.of(allowedApi, notAllowedApi, nullAllowedApi));
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-allowed", "api-not-allowed", "api-null-allowed"))
+            .build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+        assertThat(output.apiProduct().getApiIds()).containsExactly("api-allowed");
+    }
+
+    @Test
+    void should_filter_out_non_existent_apis() {
+        Api allowedApi = createV4ProxyApi("api-allowed", true);
+        apiCrudService.initWith(List.of(allowedApi));
+
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-allowed", "non-existent-1", "non-existent-2"))
+            .build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+        assertThat(output.apiProduct().getApiIds()).containsExactly("api-allowed");
+    }
+
+    @Test
+    void should_include_all_allowed_apis() {
+        Api api1 = createV4ProxyApi("api-1", true);
+        Api api2 = createV4ProxyApi("api-2", true);
+        Api api3 = createV4ProxyApi("api-3", true);
+
+        apiCrudService.initWith(List.of(api1, api2, api3));
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-1", "api-2", "api-3"))
+            .build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+        assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+    }
+
+    @Test
+    void should_create_product_with_empty_api_ids_when_no_apis_are_allowed() {
+        Api api1 = createV4ProxyApi("api-1", false);
+        Api api2 = createV4ProxyApi("api-2", null);
+
+        apiCrudService.initWith(List.of(api1, api2));
+
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-1", "api-2"))
+            .build();
+
+        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
+        assertThat(output.apiProduct().getApiIds()).isEmpty();
+    }
+
+    private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {
+        var apiDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionValue();
+        if (apiDefinition instanceof io.gravitee.definition.model.v4.Api v4Api) {
+            var updatedApiDefinition = v4Api.toBuilder().id(id).allowedInApiProducts(allowedInApiProducts).build();
+            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updatedApiDefinition).build();
+        }
+        throw new IllegalStateException("Expected V4 API definition");
     }
 }

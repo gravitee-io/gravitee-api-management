@@ -24,6 +24,7 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
@@ -54,6 +55,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -85,6 +87,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     @Inject
     private PlanCrudServiceInMemory planCrudServiceInMemory;
+
+    @Inject
+    private InstanceQueryServiceInMemory instanceQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -982,6 +987,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             );
 
             var instanceId = "instance-id";
+            var gatewayHostname = "gateway.example.com";
+            var gatewayIp = "192.168.1.100";
+            instanceQueryServiceInMemory.initWith(
+                List.of(
+                    io.gravitee.apim.core.gateway.model.Instance.builder()
+                        .id(instanceId)
+                        .hostname(gatewayHostname)
+                        .ip(gatewayIp)
+                        .environments(Set.of(ENVIRONMENT))
+                        .build()
+                )
+            );
+
             var timestamp = "2025-08-01T17:29:20.385+02:00";
             var transactionId = "transaction-id";
             var host = "request.host.example.com";
@@ -1037,6 +1055,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
                     assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
                     assertThat(apiMetricsDetail.getGateway()).isEqualTo(instanceId);
+                    assertThat(apiMetricsDetail.getGatewayHostname()).isEqualTo(gatewayHostname);
+                    assertThat(apiMetricsDetail.getGatewayIp()).isEqualTo(gatewayIp);
 
                     assertThat(apiMetricsDetail.getApplication())
                         .extracting(BaseApplication::getId, BaseApplication::getName)

@@ -111,7 +111,8 @@ public sealed interface ApiDescriptor {
         List<Property> properties,
         List<Resource> resources,
         ApiServices services,
-        Failover failover
+        Failover failover,
+        Boolean allowedInApiProducts
     ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override

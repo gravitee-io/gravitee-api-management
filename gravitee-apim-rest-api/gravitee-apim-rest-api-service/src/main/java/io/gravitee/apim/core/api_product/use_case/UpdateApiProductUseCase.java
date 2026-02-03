@@ -19,6 +19,7 @@ import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
@@ -45,6 +46,7 @@ public class UpdateApiProductUseCase {
     private final ApiProductCrudService apiProductCrudService;
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
+    private final ValidateApiProductService validateApiProductService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
 
@@ -60,7 +62,16 @@ public class UpdateApiProductUseCase {
             .apiIds(existingApiProduct.getApiIds() != null ? new java.util.HashSet<>(existingApiProduct.getApiIds()) : null)
             .build();
 
-        existingApiProduct.update(input.updateApiProduct());
+        UpdateApiProduct updateApiProduct = input.updateApiProduct();
+        if (updateApiProduct.getApiIds() != null) {
+            Set<String> allowedApiIds = validateApiProductService.filterApiIdsAllowedInProduct(
+                input.auditInfo().environmentId(),
+                updateApiProduct.getApiIds().stream().toList()
+            );
+            updateApiProduct.setApiIds(allowedApiIds);
+        }
+
+        existingApiProduct.update(updateApiProduct);
 
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
         publishDeployEvent(input.auditInfo(), updated);

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -176,6 +177,9 @@ public class IndexableApiDocumentTransformerTest {
 
             // origin
             softly.assertThat(result.getField(FIELD_ORIGIN).stringValue()).isEqualTo("management");
+
+            // allow_in_api_products should not be indexed when missing in definition
+            softly.assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS)).isNull();
         });
     }
 
@@ -329,6 +333,7 @@ public class IndexableApiDocumentTransformerTest {
                 .extracting(IndexableField::stringValue)
                 .contains("Category1", "Category2");
             softly.assertThat(result.getFields(FIELD_HOSTS)).extracting(IndexableField::stringValue).contains("native.kafka");
+            softly.assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS)).isNull();
         });
     }
 
@@ -339,6 +344,7 @@ public class IndexableApiDocumentTransformerTest {
             .id(API_ID)
             .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api.builder()
+                    .allowedInApiProducts(true)
                     .listeners(
                         List.of(
                             io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
@@ -360,6 +366,7 @@ public class IndexableApiDocumentTransformerTest {
         var result = cut.transform(indexable);
         assertThat(result.getFields("paths_lowercase")[0].stringValue()).isEqualTo("/testpath");
         assertThat(result.getFields("hosts_lowercase")[0].stringValue()).isEqualTo("api.testhost.com");
+        assertThat(result.getField(FIELD_ALLOW_IN_API_PRODUCTS).stringValue()).isEqualTo("true");
     }
 
     @Test
@@ -734,6 +741,11 @@ public class IndexableApiDocumentTransformerTest {
             SoftAssertions.assertSoftly(softly -> {
                 var newFieldNames = newDoc.getFields().stream().map(IndexableField::name).collect(Collectors.toSet());
                 var oldFieldNames = oldDoc.getFields().stream().map(IndexableField::name).collect(Collectors.toSet());
+
+                // allow_in_api_products is only indexed for V4 HTTP APIs in IndexableApiDocumentTransformer,
+                // while ApiDocumentTransformer may index it with a default value. Ignore that field for V2 equivalence.
+                newFieldNames.remove(FIELD_ALLOW_IN_API_PRODUCTS);
+                oldFieldNames.remove(FIELD_ALLOW_IN_API_PRODUCTS);
 
                 softly.assertThat(newFieldNames).isEqualTo(oldFieldNames);
 

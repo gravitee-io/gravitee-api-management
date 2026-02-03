@@ -107,6 +107,10 @@ export interface GenericApi extends BaseApi {
   resources?: Resource[];
   properties?: Property[];
   primaryOwner?: PrimaryOwner;
+  /**
+   * Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+   */
+  allowedInApiProducts?: boolean;
   _links?: { [key: string]: string };
 }
 

@@ -3354,6 +3354,11 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: false
+                          example: false
 
         ApiFederated:
             type: object
@@ -3613,6 +3618,11 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: true
+                          example: true
                   required: [listeners, endpointGroups, type]
 
         DuplicateApiOptions:
@@ -3859,6 +3869,11 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      allowedInApiProducts:
+                          type: boolean
+                          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+                          default: false
+                          example: false
                   required: [listeners, endpointGroups, type]
 
         UpdateApiFederated:
@@ -9224,6 +9239,14 @@ components:
                     type: string
                     description: The id of the gateway.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  gatewayHostname:
+                    type: string
+                    description: The hostname of the gateway instance.
+                    example: gateway-1.example.com
+                  gatewayIp:
+                    type: string
+                    description: The IP address of the gateway instance.
+                    example: 192.168.1.100
                   uri:
                     type: string
                     description: URI of the request.

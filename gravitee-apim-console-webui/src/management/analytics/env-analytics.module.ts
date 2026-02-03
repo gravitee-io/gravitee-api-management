@@ -30,6 +30,15 @@ import { EnvLogsTableComponent } from './env-logs-v4/components/env-logs-table/e
 
 const routes: Routes = [
   {
+    path: 'overview',
+    component: AnalyticsViewerComponent,
+  },
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'overview',
+  },
+  {
     path: '',
     component: EnvAnalyticsLayoutComponent,
     children: [
@@ -68,17 +77,6 @@ const routes: Routes = [
             page: 'management-environment-logs-v4',
           },
         },
-      },
-
-      {
-        path: 'dashboard-v4',
-        component: AnalyticsViewerComponent,
-      },
-
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'dashboard',
       },
     ],
   },

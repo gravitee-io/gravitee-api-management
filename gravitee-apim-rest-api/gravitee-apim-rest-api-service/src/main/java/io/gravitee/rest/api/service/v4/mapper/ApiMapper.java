@@ -24,6 +24,7 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -129,6 +130,16 @@ public class ApiMapper {
                 apiEntity.setFlows(apiDefinition.getFlows());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
+
+                if (apiDefinition.getType() == ApiType.PROXY) {
+                    var jsonNode = objectMapper.readTree(api.getDefinition());
+                    boolean hasAllowedInApiProducts = jsonNode.has("allowedInApiProducts");
+                    if (hasAllowedInApiProducts) {
+                        apiEntity.setAllowedInApiProducts(apiDefinition.getAllowedInApiProducts());
+                    } else {
+                        apiEntity.setAllowedInApiProducts(false);
+                    }
+                }
             } catch (IOException ioe) {
                 log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }
@@ -402,6 +413,9 @@ public class ApiMapper {
             apiDefinition.setFailover(newApiEntity.getFailover());
             apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
+            if (newApiEntity.getType() == ApiType.PROXY) {
+                apiDefinition.setAllowedInApiProducts(true);
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -483,6 +497,11 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
+            if (updateApiEntity.getType() == ApiType.PROXY) {
+                if (updateApiEntity.getAllowedInApiProducts() != null) {
+                    apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
+                }
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -562,6 +581,11 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
+            if (apiEntity.getType() == ApiType.PROXY) {
+                apiDefinition.setAllowedInApiProducts(
+                    apiEntity.getAllowedInApiProducts() != null ? apiEntity.getAllowedInApiProducts() : false
+                );
+            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {

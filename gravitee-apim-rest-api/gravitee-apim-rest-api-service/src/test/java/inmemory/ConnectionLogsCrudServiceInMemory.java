@@ -25,7 +25,12 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.util.CollectionUtils;
@@ -38,12 +43,33 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
         ExecutionContext executionContext,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    ) {
+        return searchApiConnectionLogs(executionContext, logsFilters.apiIds(), logsFilters, pageable, definitionVersions);
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
         String apiId,
         SearchLogsFilters logsFilters,
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
     ) {
-        var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().apiIds(Set.of(apiId)).build());
+        return searchApiConnectionLogs(executionContext, Set.of(apiId), logsFilters, pageable, definitionVersions);
+    }
+
+    @Override
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        Set<String> apiIds,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions
+    ) {
+        var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().apiIds(apiIds).build());
 
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
