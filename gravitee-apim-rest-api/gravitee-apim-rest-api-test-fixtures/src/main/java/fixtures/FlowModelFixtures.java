@@ -54,7 +54,6 @@ public class FlowModelFixtures {
         .name("Flow")
         .enabled(true)
         .entrypointConnect(List.of(BASE_MODEL_STEP_V4.name("step_entrypoint_connect").build()))
-        .connect(List.of(BASE_MODEL_STEP_V4.name("step_connect").build()))
         .publish(List.of(BASE_MODEL_STEP_V4.name("step_publish").build()))
         .interact(List.of(BASE_MODEL_STEP_V4.name("step_interact").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));

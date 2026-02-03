@@ -1557,7 +1557,6 @@ components:
         - REQUEST
         - RESPONSE
         - INTERACT
-        - CONNECT
         - PUBLISH
         - SUBSCRIBE
     BaseStep:

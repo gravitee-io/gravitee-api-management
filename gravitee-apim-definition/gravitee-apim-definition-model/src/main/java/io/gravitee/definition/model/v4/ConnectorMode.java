@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum ConnectorMode {
     ENTRYPOINT_CONNECT("entrypoint_connect"),
-    CONNECT("connect"),
     INTERACT("interact"),
     SUBSCRIBE("subscribe"),
     PUBLISH("publish"),
@@ -38,8 +37,6 @@ public enum ConnectorMode {
     private static final Map<String, ConnectorMode> LABELS_MAP = Map.of(
         ENTRYPOINT_CONNECT.label,
         ENTRYPOINT_CONNECT,
-        CONNECT.label,
-        CONNECT,
         INTERACT.label,
         INTERACT,
         SUBSCRIBE.label,

@@ -312,7 +312,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 newFlow.setPublish(new ArrayList<>());
                 newFlow.setSubscribe(new ArrayList<>());
                 newFlow.setInteract(new ArrayList<>());
-                newFlow.setConnect(new ArrayList<>());
                 newFlow.setEntrypointConnect(new ArrayList<>());
                 newFlow.setMethods(new HashSet<>());
                 newFlow.setTags(new HashSet<>());
@@ -358,9 +357,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                             break;
                         case INTERACT:
                             steps = flow.getInteract();
-                            break;
-                        case CONNECT:
-                            steps = flow.getConnect();
                             break;
                         case ENTRYPOINT_CONNECT:
                             steps = flow.getEntrypointConnect();
@@ -628,8 +624,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         flow.setPublish(publishSteps);
         List<FlowStep> interactSteps = getPhaseSteps(flow.getId(), FlowStepPhase.INTERACT);
         flow.setInteract(interactSteps);
-        List<FlowStep> connectSteps = getPhaseSteps(flow.getId(), FlowStepPhase.CONNECT);
-        flow.setConnect(connectSteps);
         List<FlowStep> entrypointConnectSteps = getPhaseSteps(flow.getId(), FlowStepPhase.ENTRYPOINT_CONNECT);
         flow.setEntrypointConnect(entrypointConnectSteps);
 
@@ -758,7 +752,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         storePhaseSteps(flow, flow.getSubscribe(), FlowStepPhase.SUBSCRIBE);
         storePhaseSteps(flow, flow.getPublish(), FlowStepPhase.PUBLISH);
         storePhaseSteps(flow, flow.getInteract(), FlowStepPhase.INTERACT);
-        storePhaseSteps(flow, flow.getConnect(), FlowStepPhase.CONNECT);
         storePhaseSteps(flow, flow.getEntrypointConnect(), FlowStepPhase.ENTRYPOINT_CONNECT);
     }
 
@@ -980,7 +973,6 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         SUBSCRIBE,
         PUBLISH,
         INTERACT,
-        CONNECT,
         ENTRYPOINT_CONNECT,
     }
 }

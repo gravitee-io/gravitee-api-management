@@ -107,7 +107,6 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - Only API -', () => {
               ],
               response: [],
               publish: [],
-              connect: [],
               entrypointConnect: [],
               interact: [],
               subscribe: [],
