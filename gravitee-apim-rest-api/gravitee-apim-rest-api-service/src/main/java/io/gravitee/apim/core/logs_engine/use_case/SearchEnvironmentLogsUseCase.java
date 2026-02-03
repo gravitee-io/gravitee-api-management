@@ -126,6 +126,10 @@ public class SearchEnvironmentLogsUseCase {
         );
         builder.statuses(filterContext.statuses().orElseGet(Collections::emptySet));
         builder.entrypointIds(filterContext.entrypointIds().orElseGet(Collections::emptySet));
+        builder.mcpMethods(filterContext.mcpMethods().orElseGet(Collections::emptySet));
+        builder.requestIds(filterContext.requestIds().orElseGet(Collections::emptySet));
+        builder.transactionIds(filterContext.transactionIds().orElseGet(Collections::emptySet));
+        builder.uri(filterContext.uri().orElse(null));
 
         if (request.timeRange() != null) {
             builder.from(toEpochMilli(request.timeRange().from()));
@@ -148,6 +152,12 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private void applyArrayFilter(ArrayFilter filter, FilterContext filterContext) {
+        // URI only supports EQ operator from StringFilter, ignore all ArrayFilters for
+        // URI
+        if (filter.name() == FilterName.URI) {
+            return;
+        }
+
         if (filter.operator() == Operator.IN) {
             updateFilterIds(filter.name(), filterContext, filter.value().stream().map(String::valueOf).collect(Collectors.toSet()));
             return;
@@ -164,6 +174,15 @@ public class SearchEnvironmentLogsUseCase {
             case HTTP_METHOD -> filterContext.limitByHttpMethods(ids.stream().map(this::httpMethod).collect(Collectors.toSet()));
             case HTTP_STATUS -> filterContext.limitByHttpStatuses(ids.stream().map(Integer::valueOf).collect(Collectors.toSet()));
             case ENTRYPOINT -> filterContext.limitByEntrypointIds(ids);
+            case MCP_METHOD -> filterContext.limitByMcpMethods(ids);
+            case TRANSACTION_ID -> filterContext.limitByTransactionIds(ids);
+            case REQUEST_ID -> filterContext.limitByRequestIds(ids);
+            case URI -> {
+                // For URI, only EQ filters are supported, so we take the first (and presumably only) value
+                if (!ids.isEmpty()) {
+                    filterContext.limitByUri(ids.iterator().next());
+                }
+            }
             default -> throw new IllegalStateException("Unexpected value: " + name);
         }
     }

@@ -30,6 +30,10 @@ public final class FilterContext {
     private Set<HttpMethod> methods;
     private Set<Integer> statuses;
     private Set<String> entrypointIds;
+    private Set<String> mcpMethods;
+    private Set<String> transactionIds;
+    private Set<String> requestIds;
+    private String uri;
 
     public void limitByApiIds(Set<String> apiIds) {
         if (apiIds == null) {
@@ -97,6 +101,46 @@ public final class FilterContext {
         }
     }
 
+    public void limitByMcpMethods(Set<String> mcpMethods) {
+        if (mcpMethods == null) {
+            return;
+        }
+        if (this.mcpMethods == null) {
+            this.mcpMethods = new HashSet<>(mcpMethods);
+        } else {
+            this.mcpMethods.retainAll(mcpMethods);
+        }
+    }
+
+    public void limitByTransactionIds(Set<String> transactionIds) {
+        if (transactionIds == null) {
+            return;
+        }
+        if (this.transactionIds == null) {
+            this.transactionIds = new HashSet<>(transactionIds);
+        } else {
+            this.transactionIds.retainAll(transactionIds);
+        }
+    }
+
+    public void limitByRequestIds(Set<String> requestIds) {
+        if (requestIds == null) {
+            return;
+        }
+        if (this.requestIds == null) {
+            this.requestIds = new HashSet<>(requestIds);
+        } else {
+            this.requestIds.retainAll(requestIds);
+        }
+    }
+
+    public void limitByUri(String uri) {
+        if (uri == null) {
+            return;
+        }
+        this.uri = uri;
+    }
+
     public Optional<Set<String>> apiIds() {
         return Optional.ofNullable(apiIds);
     }
@@ -119,5 +163,21 @@ public final class FilterContext {
 
     public Optional<Set<String>> entrypointIds() {
         return Optional.ofNullable(entrypointIds);
+    }
+
+    public Optional<Set<String>> mcpMethods() {
+        return Optional.ofNullable(mcpMethods);
+    }
+
+    public Optional<Set<String>> transactionIds() {
+        return Optional.ofNullable(transactionIds);
+    }
+
+    public Optional<Set<String>> requestIds() {
+        return Optional.ofNullable(requestIds);
+    }
+
+    public Optional<String> uri() {
+        return Optional.ofNullable(uri);
     }
 }
