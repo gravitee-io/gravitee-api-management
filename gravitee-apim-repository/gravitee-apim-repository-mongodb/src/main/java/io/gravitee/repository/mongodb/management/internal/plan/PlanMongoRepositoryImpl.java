@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.plan;
 
 import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 
 import com.mongodb.bulk.BulkWriteResult;
@@ -50,12 +51,17 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public List<PlanMongo> findByApiInAndEnvironments(final List<String> apis, final Set<String> environments) {
-        if (CollectionUtils.isEmpty(apis)) {
+    public List<PlanMongo> findByReferenceIdsAndReferenceTypeAndEnvironments(
+        List<String> ids,
+        Plan.PlanReferenceType planReferenceType,
+        Set<String> environments
+    ) {
+        if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
         List<Bson> pipeline = new ArrayList<>();
-        pipeline.add(match(in("api", apis)));
+        pipeline.add(match(in("referenceId", ids)));
+        pipeline.add(match(eq("referenceType", planReferenceType)));
         if (!CollectionUtils.isEmpty(environments)) {
             pipeline.add(match(in("environmentId", environments)));
         }

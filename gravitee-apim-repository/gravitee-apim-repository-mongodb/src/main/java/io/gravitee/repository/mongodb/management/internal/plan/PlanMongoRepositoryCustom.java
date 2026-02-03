@@ -27,7 +27,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PlanMongoRepositoryCustom {
-    List<PlanMongo> findByApiInAndEnvironments(List<String> apis, Set<String> environments);
+    List<PlanMongo> findByReferenceIdsAndReferenceTypeAndEnvironments(
+        List<String> ids,
+        Plan.PlanReferenceType planReferenceType,
+        Set<String> environments
+    );
 
     void updateOrder(String planId, int order);
 

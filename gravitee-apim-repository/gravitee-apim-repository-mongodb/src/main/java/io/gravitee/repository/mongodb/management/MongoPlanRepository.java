@@ -46,16 +46,6 @@ public class MongoPlanRepository implements PlanRepository {
     private PlanMongoRepository internalPlanRepository;
 
     @Override
-    public List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) {
-        return internalPlanRepository.findByApiInAndEnvironments(apiIds, environments).stream().map(this::map).collect(Collectors.toList());
-    }
-
-    @Override
-    public Set<Plan> findByApi(String apiId) {
-        return internalPlanRepository.findByApi(apiId).stream().map(this::map).collect(Collectors.toSet());
-    }
-
-    @Override
     public Optional<Plan> findById(String plan) throws TechnicalException {
         PlanMongo planMongo = internalPlanRepository.findById(plan).orElse(null);
         return Optional.ofNullable(map(planMongo));
@@ -157,5 +147,34 @@ public class MongoPlanRepository implements PlanRepository {
         } catch (Exception e) {
             throw new TechnicalException("Failed to update plans cross IDs", e);
         }
+    }
+
+    @Override
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        return internalPlanRepository
+            .findByReferenceIdAndReferenceType(referenceId, planReferenceType.name())
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
+        List<String> referenceIds,
+        Plan.PlanReferenceType planReferenceType,
+        Set<String> environments
+    ) {
+        return internalPlanRepository
+            .findByReferenceIdsAndReferenceTypeAndEnvironments(referenceIds, planReferenceType, environments)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String id, String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        return internalPlanRepository.findByIdAndReferenceIdAndReferenceType(id, referenceId, planReferenceType.name()).map(this::map);
     }
 }
