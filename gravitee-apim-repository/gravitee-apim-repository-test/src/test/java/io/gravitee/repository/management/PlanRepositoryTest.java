@@ -94,6 +94,8 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                     .type(Plan.PlanType.API)
                     .mode(Plan.PlanMode.STANDARD)
                     .apiType(ApiType.PROXY)
+                    .referenceId("api2")
+                    .referenceType(Plan.PlanReferenceType.API)
                     .status(Plan.Status.PUBLISHED)
                     .order(0)
                     .createdAt(new Date(1506964899000L))
@@ -554,5 +556,40 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Plan> updatedPlanV4 = planRepository.findById("plan-v4");
         assertTrue(updatedPlanV4.isPresent());
         assertEquals("plan-v4-cross-id-updated", updatedPlanV4.get().getCrossId());
+    }
+
+    @Test
+    public void shouldFindByReferenceIdAndReferenceType_forApiProduct() throws Exception {
+        Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType("api-product-1", Plan.PlanReferenceType.API_PRODUCT);
+
+        assertThat(plans)
+            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+            .containsExactly(tuple("api-product-plan-1", "api-product-1", Plan.PlanReferenceType.API_PRODUCT));
+    }
+
+    @Test
+    public void shouldFindByIdAndReferenceIdAndReferenceType() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
+            "api-product-plan-1",
+            "api-product-1",
+            Plan.PlanReferenceType.API_PRODUCT
+        );
+
+        assertThat(plan)
+            .isPresent()
+            .get()
+            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+            .containsExactly("api-product-plan-1", "api-product-1", Plan.PlanReferenceType.API_PRODUCT);
+    }
+
+    @Test
+    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeDoesNotMatch() throws Exception {
+        Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
+            "api-product-plan-1",
+            "another-api-product",
+            Plan.PlanReferenceType.API_PRODUCT
+        );
+
+        assertThat(plan).isEmpty();
     }
 }

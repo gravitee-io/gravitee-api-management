@@ -11,6 +11,8 @@
       "apiType": "native",
       "mode": "STANDARD",
       "status": "PUBLISHED",
+      "referenceId": "api1",
+      "referenceType": "API",
       "order": 2,
       "createdAt": 1506964899000,
       "updatedAt": 1507032062000,
@@ -40,6 +42,8 @@
       "apiType": "proxy",
       "mode": "STANDARD",
       "status": "PUBLISHED",
+      "referenceId": "api2",
+      "referenceType": "API",
       "order": 0,
       "createdAt": 1506964899000,
       "characteristics": ["charac_v4"],
@@ -53,7 +57,9 @@
       "api": "api3",
       "environmentId" : "DEFAULT",
       "commentRequired": true,
-      "apiType": "message"
+      "apiType": "message",
+      "referenceId": "api3",
+      "referenceType": "API"
    },
    {
       "id":"products",
@@ -64,6 +70,8 @@
       "characteristics": [],
       "excludedGroups": [],
       "commentRequired": false,
+      "referenceId": "api1",
+      "referenceType": "API",
       "apiType": "message"
    },
    {
@@ -71,7 +79,9 @@
       "name":"Stores",
       "description": "Description for stores view",
       "api": "api3",
-      "environmentId" : "DEFAULT"
+      "environmentId" : "DEFAULT",
+      "referenceId": "api3",
+      "referenceType": "API"
    },
    {
       "id": "plan-oauth2",
@@ -86,6 +96,8 @@
       "mode": "PUSH",
       "apiType": "proxy",
       "status": "STAGING",
+      "referenceId": "4e0db366-f772-4489-8db3-66f772b48989",
+      "referenceType": "API",
       "api": "4e0db366-f772-4489-8db3-66f772b48989",
       "environmentId" : "DEFAULT",
       "order": 0,
@@ -102,6 +114,8 @@
      "name":"Stores",
      "description": "Description for stores view",
      "api": "api4",
+     "referenceId": "api4",
+     "referenceType": "API",
      "environmentId" : "ToBeDeleted"
    },
    {
@@ -109,6 +123,28 @@
      "name":"Stores",
      "description": "Description for stores view",
      "api": "api4",
-     "environmentId" : "ToBeDeleted"
+     "environmentId" : "ToBeDeleted",
+     "referenceId": "api4",
+     "referenceType": "API"
+   },
+   {
+     "id":"api-product-plan-1",
+     "name":"API Product plan 1",
+     "description":"Plan attached to an API product",
+     "definitionVersion":"4.0.0",
+     "environmentId":"DEFAULT",
+     "referenceId":"api-product-1",
+     "referenceType":"API_PRODUCT",
+     "security":"API_KEY",
+     "validation":"AUTO",
+     "mode":"STANDARD",
+     "status":"PUBLISHED",
+     "order":1,
+     "apiType":"proxy",
+     "createdAt":1506964899000,
+     "characteristics": [],
+     "excludedGroups": [],
+     "commentRequired": false,
+     "tags": []
    }
 ]
