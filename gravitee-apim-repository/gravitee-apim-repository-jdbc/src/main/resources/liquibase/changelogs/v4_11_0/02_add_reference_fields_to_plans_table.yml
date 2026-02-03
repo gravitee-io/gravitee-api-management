@@ -26,4 +26,7 @@ databaseChangeLog:
                   name: reference_id
         - sql:
             sql: UPDATE ${gravitee_prefix}plans SET reference_type = 'API', reference_id = api WHERE api IS NOT NULL AND reference_type IS NULL
-
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}plans
+            columnName: api
+            columnDataType: nvarchar(64)

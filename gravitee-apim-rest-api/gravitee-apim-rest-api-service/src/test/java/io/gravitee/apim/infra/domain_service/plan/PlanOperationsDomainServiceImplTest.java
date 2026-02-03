@@ -102,7 +102,6 @@ class PlanOperationsDomainServiceImplTest {
     void closePlanForApiProduct_should_close_a_plan_and_reorder() throws Exception {
         var toClose = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
             .referenceId(API_PRODUCT_ID)
             .referenceType(PlanReferenceType.API_PRODUCT)
             .definitionVersion(DefinitionVersion.V4)
@@ -114,7 +113,8 @@ class PlanOperationsDomainServiceImplTest {
 
         var publishedAfter = io.gravitee.repository.management.model.Plan.builder()
             .id("plan-2")
-            .api(API_ID)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(PlanReferenceType.API_PRODUCT)
             .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .order(2)
@@ -122,7 +122,9 @@ class PlanOperationsDomainServiceImplTest {
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(toClose));
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(toClose, publishedAfter));
+        when(planRepository.findByReferenceIdAndReferenceType(eq(API_PRODUCT_ID), eq(PlanReferenceType.API_PRODUCT))).thenReturn(
+            Set.of(toClose, publishedAfter)
+        );
 
         var result = service.closePlanForApiProduct(executionContext, PLAN_ID);
 
@@ -136,7 +138,6 @@ class PlanOperationsDomainServiceImplTest {
     void closePlanForApiProduct_should_wrap_technical_exception() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
             .referenceId(API_PRODUCT_ID)
             .referenceType(PlanReferenceType.API_PRODUCT)
             .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
@@ -166,20 +167,22 @@ class PlanOperationsDomainServiceImplTest {
     void publish_should_throw_when_keyless_already_published() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceType(PlanReferenceType.API)
+            .referenceId(API_ID)
             .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
             .build();
         var existingKeyless = io.gravitee.repository.management.model.Plan.builder()
             .id("existing-keyless")
-            .api(API_ID)
+            .referenceType(PlanReferenceType.API)
+            .referenceId(API_ID)
             .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
             .order(1)
             .build();
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(existingKeyless));
+        when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(PlanReferenceType.API))).thenReturn(Set.of(existingKeyless));
 
         assertThatThrownBy(() -> service.publish(executionContext, PLAN_ID)).isInstanceOf(KeylessPlanAlreadyPublishedException.class);
     }
@@ -188,7 +191,8 @@ class PlanOperationsDomainServiceImplTest {
     void publish_should_publish_and_set_next_order() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .order(0)
@@ -197,14 +201,15 @@ class PlanOperationsDomainServiceImplTest {
             .build();
         var alreadyPublished = io.gravitee.repository.management.model.Plan.builder()
             .id("published-1")
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .order(3)
             .build();
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(alreadyPublished));
+        when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(PlanReferenceType.API))).thenReturn(Set.of(alreadyPublished));
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = service.publish(executionContext, PLAN_ID);
@@ -219,7 +224,8 @@ class PlanOperationsDomainServiceImplTest {
     void deprecate_should_throw_when_staging() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .build();
@@ -232,7 +238,8 @@ class PlanOperationsDomainServiceImplTest {
     void deprecate_should_deprecate_and_audit() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .definitionVersion(DefinitionVersion.V4)
@@ -251,7 +258,8 @@ class PlanOperationsDomainServiceImplTest {
     void deprecate_should_throw_when_already_deprecated() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .status(io.gravitee.repository.management.model.Plan.Status.DEPRECATED)
             .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
             .build();

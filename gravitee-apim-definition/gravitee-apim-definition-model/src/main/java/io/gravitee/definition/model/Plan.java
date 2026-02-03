@@ -55,8 +55,28 @@ public class Plan implements Serializable {
     @JsonProperty("paths")
     private Map<String, List<Rule>> paths = new HashMap<>();
 
+    /**
+     * Legacy API identifier. Replaced by {@link #referenceId} and {@link #referenceType} for plan association.
+     *
+     * @deprecated since 4.11.0. Use {@link #getReferenceId()} and {@link #getReferenceType()} instead.
+     *             Retained for backward compatibility with existing definitions and storage. Scheduled for removal
+     *             in a future major version once all consumers use referenceId/referenceType.
+     */
     @JsonProperty("api")
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String api;
+
+    /**
+     * Identifier of the entity this plan belongs to (e.g. API id or API Product id).
+     */
+    @JsonProperty("referenceId")
+    private String referenceId;
+
+    /**
+     * Type of the reference entity: "API" or "API_PRODUCT".
+     */
+    @JsonProperty("referenceType")
+    private String referenceType;
 
     @JsonProperty("selectionRule")
     private String selectionRule;

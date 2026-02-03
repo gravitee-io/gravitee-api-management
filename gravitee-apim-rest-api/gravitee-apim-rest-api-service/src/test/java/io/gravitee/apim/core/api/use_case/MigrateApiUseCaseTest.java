@@ -93,6 +93,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
@@ -465,7 +466,13 @@ class MigrateApiUseCaseTest {
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         // When
@@ -495,7 +502,13 @@ class MigrateApiUseCaseTest {
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         // When
@@ -534,8 +547,20 @@ class MigrateApiUseCaseTest {
 
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan1 = PlanFixtures.aPlanV2().toBuilder().id("plan-1").apiId(API_ID).build();
-        var plan2 = PlanFixtures.aPlanV2().toBuilder().id("plan-2").apiId(API_ID).build();
+        var plan1 = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-1")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
+        var plan2 = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-2")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan1, plan2));
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
@@ -570,7 +595,13 @@ class MigrateApiUseCaseTest {
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan1 = PlanFixtures.aPlanV2().toBuilder().id("plan-1").apiId(API_ID).build();
+        var plan1 = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-1")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         plan1.setPlanStatus(PlanStatus.CLOSED);
         planCrudService.initWith(List.of(plan1));
 
@@ -635,7 +666,13 @@ class MigrateApiUseCaseTest {
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         var apiFlow = new io.gravitee.definition.model.flow.Flow();
@@ -737,7 +774,13 @@ class MigrateApiUseCaseTest {
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         // When
@@ -1640,7 +1683,13 @@ class MigrateApiUseCaseTest {
             });
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         // When
@@ -1707,7 +1756,13 @@ class MigrateApiUseCaseTest {
             });
         apiCrudService.initWith(List.of(v2Api));
 
-        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        var plan = PlanFixtures.aPlanV2()
+            .toBuilder()
+            .id("plan-id")
+            .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
+            .build();
         planCrudService.initWith(List.of(plan));
 
         // When
@@ -1771,7 +1826,13 @@ class MigrateApiUseCaseTest {
                     .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
                 apiCrudService.initWith(List.of(v2Api));
 
-                var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+                var plan = PlanFixtures.aPlanV2()
+                    .toBuilder()
+                    .id("plan-id")
+                    .apiId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .build();
                 planCrudService.initWith(List.of(plan));
 
                 var planFlow = new io.gravitee.definition.model.flow.Flow();

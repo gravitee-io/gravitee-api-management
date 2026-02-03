@@ -19,7 +19,9 @@ import static org.junit.Assert.*;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,9 +44,9 @@ public class PlanConverterTest {
         plan.setName("Plan name");
         plan.setDescription("Description for the new plan");
         plan.setValidation(Plan.PlanValidationType.AUTO);
-        plan.setType(Plan.PlanType.API);
+        plan.setReferenceType(PlanReferenceType.API);
         plan.setStatus(Plan.Status.STAGING);
-        plan.setApi("api1");
+        plan.setReferenceId("api1");
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
@@ -111,15 +113,14 @@ public class PlanConverterTest {
         final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
 
         assertEquals(result.getId(), actual.getId());
-        assertEquals(result.getApi(), actual.getApi());
         assertEquals(result.getName(), actual.getName());
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), actual.getValidation());
         assertEquals(result.getSecurity(), actual.getSecurity());
         assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        assertEquals(result.getType(), actual.getType());
+        assertEquals(result.getReferenceType(), actual.getReferenceType());
         assertEquals(result.getStatus(), actual.getStatus());
-        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getPaths(), actual.getPaths());
         assertEquals(result.getFlows(), actual.getFlows());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
@@ -186,13 +187,13 @@ public class PlanConverterTest {
     private PlanEntity buildTestPlanEntity() {
         final PlanEntity planEntity = new PlanEntity();
         planEntity.setId("plan-id");
-        planEntity.setApi("api-id");
+        planEntity.setReferenceId("api-id");
         planEntity.setName("plan-name");
         planEntity.setDescription("description");
         planEntity.setValidation(PlanValidationType.AUTO);
         planEntity.setSecurity(PlanSecurityType.JWT);
         planEntity.setSecurityDefinition("definition");
-        planEntity.setType(PlanType.API);
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         planEntity.setStatus(PlanStatus.STAGING);
         planEntity.setPaths(new HashMap<>());
         planEntity.setFlows(new ArrayList<>());

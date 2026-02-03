@@ -66,17 +66,23 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         plan1 = new PlanEntity();
         plan1.setId("A");
         plan1.setSecurity(PlanSecurityType.API_KEY);
+        plan1.setReferenceId(API);
+        plan1.setReferenceType(GenericPlanEntity.ReferenceType.API);
         plan1.setValidation(PlanValidationType.AUTO);
         plan1.setStatus(PlanStatus.PUBLISHED);
 
         plan2 = new PlanEntity();
         plan2.setId("B");
+        plan2.setReferenceId(API);
+        plan2.setReferenceType(GenericPlanEntity.ReferenceType.API);
         plan2.setSecurity(PlanSecurityType.KEY_LESS);
         plan2.setValidation(PlanValidationType.MANUAL);
         plan2.setStatus(PlanStatus.PUBLISHED);
 
         planWrongStatus = new PlanEntity();
         planWrongStatus.setId("C");
+        planWrongStatus.setReferenceId(API);
+        planWrongStatus.setReferenceType(GenericPlanEntity.ReferenceType.API);
         planWrongStatus.setSecurity(PlanSecurityType.KEY_LESS);
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);

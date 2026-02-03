@@ -82,7 +82,7 @@ class ApiProductPlanSearchQueryServiceImplTest {
             .build();
 
         when(
-            planRepository.findByIdAndReferenceIdAndReferenceType(eq("plan-1"), eq(API_PRODUCT_ID), PlanReferenceType.API_PRODUCT)
+            planRepository.findByIdAndReferenceIdAndReferenceType(eq("plan-1"), eq(API_PRODUCT_ID), eq(PlanReferenceType.API_PRODUCT))
         ).thenReturn(Optional.of(repositoryPlan));
 
         Plan result = service.findByPlanIdIdForApiProduct("plan-1", API_PRODUCT_ID);
@@ -94,7 +94,7 @@ class ApiProductPlanSearchQueryServiceImplTest {
     @Test
     void findByPlanIdIdForApiProduct_should_throw_when_missing() throws Exception {
         when(
-            planRepository.findByIdAndReferenceIdAndReferenceType(eq("plan-404"), eq(API_PRODUCT_ID), PlanReferenceType.API_PRODUCT)
+            planRepository.findByIdAndReferenceIdAndReferenceType(eq("plan-404"), eq(API_PRODUCT_ID), eq(PlanReferenceType.API_PRODUCT))
         ).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findByPlanIdIdForApiProduct("plan-404", API_PRODUCT_ID)).isInstanceOf(PlanNotFoundException.class);

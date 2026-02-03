@@ -89,11 +89,20 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
-    public Collection<Plan> findByApiId(String apiId) {
+    public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         return storage
             .stream()
-            .filter(plan -> plan.getApiId().equals(apiId))
+            .filter(
+                plan ->
+                    plan.getReferenceId().equals(referenceId) &&
+                    plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.valueOf(referenceType))
+            )
             .toList();
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        return findByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API.name());
     }
 
     @Override

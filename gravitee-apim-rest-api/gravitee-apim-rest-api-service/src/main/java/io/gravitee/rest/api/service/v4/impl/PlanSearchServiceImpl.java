@@ -118,7 +118,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             Optional<Api> apiOptional = apiRepository.findById(apiId);
             if (apiOptional.isPresent()) {
                 final Api api = apiOptional.get();
-                final var plans = planRepository.findByApi(apiId);
+                final var plans = planRepository.findByReferenceIdAndReferenceType(apiId, PlanReferenceType.API);
                 if (plans == null || plans.isEmpty()) {
                     return Set.of();
                 }
@@ -139,7 +139,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         try {
             log.debug("Find plan by api : {}", genericApi.getId());
             return planRepository
-                .findByApi(genericApi.getId())
+                .findByReferenceIdAndReferenceType(genericApi.getId(), PlanReferenceType.API)
                 .stream()
                 .map(plan ->
                     withFlow
@@ -163,17 +163,25 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         boolean isAdmin,
         boolean withFlow
     ) {
-        if (query.getApiId() == null) {
+        final String actualApiId = query.getReferenceType() == GenericPlanEntity.ReferenceType.API ? query.getReferenceId() : null;
+
+        if (actualApiId == null) {
             return emptyList();
         }
 
+        final var actualReferenceType = query.getReferenceType() != null ? query.getReferenceType() : GenericPlanEntity.ReferenceType.API;
+        if (actualReferenceType != GenericPlanEntity.ReferenceType.API) {
+            return emptyList();
+        }
+        final var actualReferenceId = query.getReferenceId() != null ? query.getReferenceId() : actualApiId;
+
         try {
-            Optional<Api> apiOptional = apiRepository.findById(query.getApiId());
-            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(query.getApiId()));
+            Optional<Api> apiOptional = apiRepository.findById(actualApiId);
+            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(actualApiId));
             final GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false, false);
 
             return planRepository
-                .findByApi(query.getApiId())
+                .findByReferenceIdAndReferenceType(actualReferenceId, PlanReferenceType.valueOf(actualReferenceType.name()))
                 .stream()
                 .map(plan ->
                     withFlow ? genericPlanMapper.toGenericPlanWithFlow(api, plan) : genericPlanMapper.toGenericPlanWithoutFlow(api, plan)
@@ -202,10 +210,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
                 .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying search plans by api: %s", query.getApiId()),
-                ex
-            );
+            throw new TechnicalManagementException(String.format("An error occurs while trying search plans by api: %s", actualApiId), ex);
         }
     }
 
@@ -215,7 +220,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
             return planRepository
                 .findByIdIn(planIds)
                 .stream()
-                .map(Plan::getApi)
+                .filter(plan -> plan.getReferenceType() == PlanReferenceType.API)
+                .map(Plan::getReferenceId)
                 .filter(Objects::nonNull)
                 .anyMatch(id -> !id.equals(apiId));
         } catch (TechnicalException e) {
@@ -239,12 +245,16 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     private GenericPlanEntity mapToGeneric(final Plan plan) {
+        if (plan.getReferenceType() == PlanReferenceType.API_PRODUCT) {
+            return mapToGenericForApiProduct(plan);
+        }
+        String apiId = plan.getReferenceType() == PlanReferenceType.API && plan.getReferenceId() != null ? plan.getReferenceId() : null;
         try {
-            Optional<Api> apiOptional = apiRepository.findById(plan.getApi());
-            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(plan.getApi()));
+            Optional<Api> apiOptional = apiRepository.findById(apiId);
+            final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(apiId));
             return genericPlanMapper.toGenericPlanWithFlow(api, plan);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + plan.getApi(), e);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, e);
         }
     }
 

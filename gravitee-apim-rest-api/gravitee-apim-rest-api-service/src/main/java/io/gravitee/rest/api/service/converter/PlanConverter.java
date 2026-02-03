@@ -22,6 +22,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,7 +62,9 @@ public class PlanConverter {
         entity.setHrid(plan.getHrid());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
-        entity.setApi(plan.getApi());
+        entity.setReferenceId(plan.getApi());
+        entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
+
         entity.setEnvironmentId(plan.getEnvironmentId());
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
@@ -76,8 +80,6 @@ public class PlanConverter {
                 log.error("Unexpected error while generating policy definition", ioe);
             }
         }
-
-        entity.setType(PlanType.valueOf(plan.getType().name()));
 
         // Backward compatibility
         if (plan.getStatus() != null) {
@@ -138,7 +140,7 @@ public class PlanConverter {
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
         newPlanEntity.setHrid(planEntity.getHrid());
-        newPlanEntity.setApi(planEntity.getApi());
+        newPlanEntity.setReferenceId(planEntity.getReferenceId());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
         newPlanEntity.setOrder(planEntity.getOrder());
@@ -150,8 +152,8 @@ public class PlanConverter {
             newPlanEntity.setSecurity(planEntity.getSecurity());
         }
         newPlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
+        if (planEntity.getReferenceType() != null) {
+            newPlanEntity.setReferenceType(planEntity.getReferenceType());
         }
         if (planEntity.getStatus() != null) {
             newPlanEntity.setStatus(planEntity.getStatus());
@@ -162,9 +164,7 @@ public class PlanConverter {
         if (planEntity.getFlows() != null) {
             newPlanEntity.setFlows(planEntity.getFlows());
         }
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
-        }
+
         newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
         newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
         newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
@@ -180,13 +180,14 @@ public class PlanConverter {
         plan.setId(newPlan.getId());
         plan.setCrossId(newPlan.getCrossId());
         plan.setHrid(newPlan.getHrid());
-        plan.setApi(newPlan.getApi());
+        plan.setReferenceId(newPlan.getReferenceId());
+        plan.setReferenceType(PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
         plan.setName(newPlan.getName());
         plan.setDescription(newPlan.getDescription());
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
         plan.setNeedRedeployAt(plan.getCreatedAt());
-        plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
+        plan.setReferenceType(PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
         plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
         plan.setSecurityDefinition(newPlan.getSecurityDefinition());
         plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
@@ -225,7 +226,8 @@ public class PlanConverter {
 
     public io.gravitee.definition.model.Plan toPlanDefinition(PlanEntity plan) {
         io.gravitee.definition.model.Plan planDefinition = new io.gravitee.definition.model.Plan();
-        planDefinition.setApi(plan.getApi());
+        planDefinition.setReferenceId(plan.getReferenceId());
+        planDefinition.setReferenceType(plan.getReferenceType().name());
         planDefinition.setSecurityDefinition(plan.getSecurityDefinition());
         planDefinition.setSecurity(plan.getSecurity().name());
         planDefinition.setFlows(plan.getFlows());

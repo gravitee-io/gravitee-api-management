@@ -71,6 +71,7 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
@@ -420,7 +421,8 @@ class ImportApiDefinitionUseCaseTest {
             // Given
             var plan = PlanWithFlowsFixtures.aPlanWithFlows()
                 .toBuilder()
-                .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
                 .planDefinitionHttpV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionHttpV4().toBuilder().tags(TAGS).build())
                 .build();
             var importDefinition = anApiProxyImportDefinition().toBuilder().plans(Set.of(plan)).build();
@@ -760,7 +762,8 @@ class ImportApiDefinitionUseCaseTest {
             // Given
             var plan = PlanWithFlowsFixtures.aNativePlanWithFlows()
                 .toBuilder()
-                .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
                 .planDefinitionNativeV4(
                     PlanWithFlowsFixtures.aNativePlanWithFlows().getPlanDefinitionNativeV4().toBuilder().tags(TAGS).build()
                 )

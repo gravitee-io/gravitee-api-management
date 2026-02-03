@@ -122,7 +122,10 @@ public class PlanOperationsDomainServiceImpl implements PlanOperationsDomainServ
                 throw new PlanAlreadyDeprecatedException(planId);
             }
 
-            Set<io.gravitee.repository.management.model.Plan> plans = planRepository.findByApi(plan.getApi());
+            Set<io.gravitee.repository.management.model.Plan> plans = planRepository.findByReferenceIdAndReferenceType(
+                plan.getReferenceId(),
+                plan.getReferenceType()
+            );
             if (plan.getSecurity() == io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
@@ -169,7 +172,7 @@ public class PlanOperationsDomainServiceImpl implements PlanOperationsDomainServ
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return PlanAdapter.INSTANCE.fromRepository(plan);
@@ -213,7 +216,7 @@ public class PlanOperationsDomainServiceImpl implements PlanOperationsDomainServ
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return PlanAdapter.INSTANCE.fromRepository(plan);
@@ -225,7 +228,10 @@ public class PlanOperationsDomainServiceImpl implements PlanOperationsDomainServ
 
     private void reorderedAndSavePlansAfterRemove(final io.gravitee.repository.management.model.Plan planRemoved)
         throws TechnicalException {
-        final Collection<io.gravitee.repository.management.model.Plan> plans = planRepository.findByApi(planRemoved.getApi());
+        final Collection<io.gravitee.repository.management.model.Plan> plans = planRepository.findByReferenceIdAndReferenceType(
+            planRemoved.getReferenceId(),
+            planRemoved.getReferenceType()
+        );
         plans
             .stream()
             .filter(p -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(p.getStatus()))

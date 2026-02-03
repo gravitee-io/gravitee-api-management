@@ -57,7 +57,9 @@
       "api": "api3",
       "environmentId" : "DEFAULT",
       "commentRequired": true,
-      "apiType": "message"
+      "apiType": "message",
+      "referenceId": "api3",
+      "referenceType": "API"
    },
    {
       "id":"products",
@@ -121,14 +123,15 @@
      "name":"Stores",
      "description": "Description for stores view",
      "api": "api4",
-     "environmentId" : "ToBeDeleted"
+     "environmentId" : "ToBeDeleted",
+     "referenceId": "api4",
+     "referenceType": "API"
    },
    {
       "id":"api-product-plan-1",
       "name":"API Product plan 1",
       "description":"Plan attached to an API product",
       "definitionVersion":"4.0.0",
-      "api":"api-product-1",
       "environmentId":"DEFAULT",
       "referenceId":"api-product-1",
       "referenceType":"API_PRODUCT",

@@ -93,6 +93,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     protected JdbcObjectMapper<Plan> buildOrm() {
         return JdbcObjectMapper.builder(Plan.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
@@ -141,7 +142,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Optional<Plan> findById(String id) throws TechnicalException {
         log.debug("JdbcPlanRepository.findById({})", id);
         try {
-            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.id = ?";
+            String query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                APIS +
+                " api on api.id = p.reference_id" +
+                " where p.id = ? and p.reference_type = '" +
+                PlanReferenceType.API +
+                "'";
             JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
             jdbcTemplate.query(query, rowMapper, id);
@@ -300,8 +308,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 getOrm().getSelectAllSql() +
                 " p left join " +
                 APIS +
-                " api on api.id = p.api" +
-                " where p.api in (" +
+                " api on api.id = p.reference_id" +
+                " where p.reference_id in (" +
                 getOrm().buildInClause(apiIds) +
                 ")";
             args.addAll(apiIds);
@@ -330,7 +338,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         log.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            var query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.api = ?";
+            var query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                APIS +
+                " api on api.id = p.reference_id" +
+                " where p.reference_id = ? and p.reference_type = '" +
+                PlanReferenceType.API +
+                "'";
             var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
             jdbcTemplate.query(query, rowMapper, apiId);
@@ -358,7 +373,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 getOrm().getSelectAllSql() +
                 " p left join " +
                 APIS +
-                " api on api.id = p.api" +
+                " api on api.id = p.reference_id" +
                 " where p.id in (" +
                 getOrm().buildInClause(ids) +
                 ")";
@@ -384,7 +399,13 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         log.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> planIds = jdbcTemplate.queryForList(
-                "select p.id from " + tableName + " p left join " + APIS + " api on api.id = p.api where api.environment_id = ?",
+                "select p.id from " +
+                    tableName +
+                    " p left join " +
+                    APIS +
+                    " api on api.id = p.reference_id where api.environment_id = ? and p.reference_type = '" +
+                    PlanReferenceType.API +
+                    "'",
                 String.class,
                 environmentId
             );
@@ -519,7 +540,13 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Set<Plan> findAll() throws TechnicalException {
         log.info("JdbcPlanRepository.findAll()");
         try {
-            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api";
+            String query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                APIS +
+                " api on api.id = p.reference_id and p.reference_type = '" +
+                PlanReferenceType.API +
+                "'";
             JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(query, rowMapper);
             List<Plan> planList = rowMapper.getRows();

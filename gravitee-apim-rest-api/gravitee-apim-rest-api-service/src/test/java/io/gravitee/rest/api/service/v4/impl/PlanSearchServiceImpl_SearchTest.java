@@ -155,11 +155,17 @@ public class PlanSearchServiceImpl_SearchTest {
         var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
         plan3.setReferenceId(API_ID);
         plan3.setReferenceType(PlanReferenceType.API);
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(Set.of(plan1, plan2, plan3));
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
-            PlanQuery.builder().apiId(API_ID).securityType(List.of(PlanSecurityType.API_KEY)).build(),
+            PlanQuery.builder()
+                .apiId(API_ID)
+                .securityType(List.of(PlanSecurityType.API_KEY))
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .build(),
             USER,
             true,
             true
@@ -184,16 +190,30 @@ public class PlanSearchServiceImpl_SearchTest {
         ).thenReturn(apiEntity);
 
         var plan1 = fakePlanRepository("plan-1", 1, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        plan1.setReferenceId(API_ID);
+        plan1.setReferenceType(PlanReferenceType.API);
         var plan2 = fakePlanRepository("plan-2", 2, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        plan2.setReferenceId(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API);
         var plan3 = fakePlanRepository("plan-3", 3, Plan.PlanSecurityType.JWT, "{\"nice\": \"config\"}", Plan.Status.STAGING);
+        plan3.setReferenceId(API_ID);
+        plan3.setReferenceType(PlanReferenceType.API);
         var plan4 = fakePlanRepository("plan-4", 4, Plan.PlanSecurityType.OAUTH2, "{\"nice\": \"config\"}", Plan.Status.DEPRECATED);
+        plan4.setReferenceId(API_ID);
+        plan4.setReferenceType(PlanReferenceType.API);
         var plan5 = fakePlanRepository("plan-5", 5, Plan.PlanSecurityType.OAUTH2, "{\"nice\": \"config\"}", Plan.Status.STAGING);
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3, plan4, plan5));
+        plan5.setReferenceId(API_ID);
+        plan5.setReferenceType(PlanReferenceType.API);
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Set.of(plan1, plan2, plan3, plan4, plan5)
+        );
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
             PlanQuery.builder()
                 .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
                 .securityType(List.of(PlanSecurityType.JWT))
                 .status(List.of(PlanStatus.DEPRECATED))
                 .mode(PlanMode.STANDARD)
@@ -231,13 +251,13 @@ public class PlanSearchServiceImpl_SearchTest {
         var plan3 = fakePlanRepository("plan-3", 1, Plan.PlanSecurityType.KEY_LESS, "{\"nice\": \"config\"}", Plan.Status.PUBLISHED);
         plan3.setReferenceId(API_ID);
         plan3.setReferenceType(PlanReferenceType.API);
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(Set.of(plan1, plan2, plan3));
 
         when(groupService.isUserAuthorizedToAccessApiData(eq(apiEntity), any(), eq(USER))).thenReturn(false);
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
-            PlanQuery.builder().apiId(API_ID).build(),
+            PlanQuery.builder().apiId(API_ID).referenceId(API_ID).referenceType(GenericPlanEntity.ReferenceType.API).build(),
             USER,
             false,
             true

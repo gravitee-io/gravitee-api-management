@@ -62,6 +62,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -244,15 +245,12 @@ class CreatePlanDomainServiceTest {
         @ParameterizedTest
         @MethodSource("plans")
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
-            // Given
-            if (api.isNative()) {
-                api.getApiDefinitionNativeV4().setTags(Set.of());
-            } else {
-                api.getApiDefinitionHttpV4().setTags(Set.of());
-            }
+            // Given: use a copy so we do not mutate the static api
+            var apiWithNoTags = api.toBuilder().build();
+            apiWithNoTags.setTags(Set.of());
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, api, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, apiWithNoTags, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
@@ -314,6 +312,8 @@ class CreatePlanDomainServiceTest {
             assertThat(planCrudService.storage()).hasSize(1);
 
             SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
+                soft.assertThat(result.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
                 soft.assertThat(result.getFlows()).hasSize(1).extracting(AbstractFlow::getName).containsExactly("flow");
                 soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
@@ -394,12 +394,11 @@ class CreatePlanDomainServiceTest {
         @ParameterizedTest
         @MethodSource("plans")
         void should_create_an_audit(Api api, Plan plan, List<Flow> flows) {
-            // Given
-
             // When
-            service.create(plan, flows, api, AUDIT_INFO);
+            var result = service.create(plan, flows, api, AUDIT_INFO);
 
-            // Then
+            // Then: use created plan id for audit properties (id may be generated when plan.id was null)
+            var createdPlanId = result.getId();
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .containsExactly(
@@ -410,7 +409,7 @@ class CreatePlanDomainServiceTest {
                         .referenceType(AuditEntity.AuditReferenceType.API)
                         .referenceId(API_ID)
                         .user(USER_ID)
-                        .properties(Map.of("PLAN", plan.getId()))
+                        .properties(Map.of("PLAN", createdPlanId))
                         .event(PlanAuditEvent.PLAN_CREATED.name())
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                         .build()
@@ -433,6 +432,8 @@ class CreatePlanDomainServiceTest {
             // Given
             var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
                 .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
                 .apiId(API_ID)
                 .build()
                 .setPlanStatus(PlanStatus.PUBLISHED)
@@ -447,6 +448,7 @@ class CreatePlanDomainServiceTest {
             assertThat(planCrudService.storage()).hasSize(1);
 
             SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
                 soft.assertThat(result.getType()).isEqualTo(Plan.PlanType.API);
                 soft
@@ -462,7 +464,8 @@ class CreatePlanDomainServiceTest {
                     HTTP_PROXY_API_V4,
                     fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
                         .toBuilder()
-                        .apiId(API_ID)
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
                         .setPlanTags(Set.of(TAG)),
@@ -472,6 +475,8 @@ class CreatePlanDomainServiceTest {
                     API_MESSAGE_V4,
                     fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                         .toBuilder()
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -482,6 +487,8 @@ class CreatePlanDomainServiceTest {
                     API_NATIVE_V4,
                     fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
                         .toBuilder()
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -497,6 +504,8 @@ class CreatePlanDomainServiceTest {
                     BASE().build(),
                     fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
                         .toBuilder()
+                        .referenceId(API_PRODUCT_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -507,6 +516,8 @@ class CreatePlanDomainServiceTest {
                     BASE().build(),
                     fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                         .toBuilder()
+                        .referenceId(API_PRODUCT_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -517,6 +528,8 @@ class CreatePlanDomainServiceTest {
                     BASE().build(),
                     fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
                         .toBuilder()
+                        .referenceId(API_PRODUCT_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -543,6 +556,8 @@ class CreatePlanDomainServiceTest {
                     HTTP_PROXY_API_V4,
                     fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
                         .toBuilder()
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
@@ -552,6 +567,8 @@ class CreatePlanDomainServiceTest {
                     API_MESSAGE_V4,
                     fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                         .toBuilder()
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .apiId(API_ID)
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)

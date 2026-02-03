@@ -35,6 +35,7 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
 
     String getName();
 
+    @Deprecated
     String getApiId();
 
     String getHrid();
@@ -49,6 +50,7 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
 
     //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
     @JsonIgnore
+    @Deprecated
     PlanType getPlanType();
 
     @JsonIgnore

@@ -133,30 +133,37 @@ class CreateApiProductPlanUseCaseTest {
 
         // When
         var result = createPlanUseCase.execute(
-            new Input(api.getId(), _api -> PlanFixtures.HttpV4.aKeyless().toBuilder().id(null).build(), AUDIT_INFO)
+            new Input(
+                api.getId(),
+                _api ->
+                    PlanFixtures.HttpV4.aKeyless()
+                        .toBuilder()
+                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                        .referenceId(api.getId())
+                        .apiType(null)
+                        .build(),
+                AUDIT_INFO
+            )
         );
-
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(GENERATED_ID);
+        assertThat(result.id()).isEqualTo("keyless");
         assertThat(result.plan())
             .extracting(
-                createdPlan -> createdPlan.getPlanType().name(),
                 createdPlan -> createdPlan.getPlanMode().name(),
                 createdPlan -> createdPlan.getReferenceId(),
                 createdPlan -> createdPlan.getReferenceType(),
                 Plan::getEnvironmentId,
-                Plan::getApiId,
+                Plan::getReferenceId,
                 Plan::getPlanStatus,
                 Plan::getDefinitionVersion
             )
             .containsExactly(
-                Plan.PlanType.API_PRODUCT.name(),
                 PlanMode.STANDARD.name(),
                 api.getId(),
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 api.getEnvironmentId(),
-                "api-product-id",
+                api.getId(),
                 PlanStatus.STAGING,
                 DefinitionVersion.V4
             );
@@ -180,6 +187,8 @@ class CreateApiProductPlanUseCaseTest {
         // Given
         var api = givenExistingApiProduct(API_PRODUCT);
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
+        mtlsPlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        mtlsPlan.setReferenceId(api.getId());
         var input = new Input(api.getId(), _api -> mtlsPlan, AUDIT_INFO);
 
         // When
@@ -194,17 +203,9 @@ class CreateApiProductPlanUseCaseTest {
                 createdPlan -> createdPlan.getPlanSecurity().getType(),
                 Plan::getReferenceType,
                 Plan::getPlanStatus,
-                Plan::getDefinitionVersion,
-                createdPlan -> createdPlan.getPlanType().name()
+                Plan::getDefinitionVersion
             )
-            .containsExactly(
-                api.getId(),
-                "mtls",
-                GenericPlanEntity.ReferenceType.API_PRODUCT,
-                PlanStatus.STAGING,
-                DefinitionVersion.V4,
-                Plan.PlanType.API_PRODUCT.name()
-            );
+            .containsExactly(api.getId(), "mtls", GenericPlanEntity.ReferenceType.API_PRODUCT, PlanStatus.STAGING, DefinitionVersion.V4);
     }
 
     @Test
@@ -212,6 +213,8 @@ class CreateApiProductPlanUseCaseTest {
         // Given
         var api = givenExistingApiProduct(API_PRODUCT);
         var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
+        pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        pushPlan.setReferenceId(api.getId());
         var input = new Input(api.getId(), _api -> pushPlan, AUDIT_INFO);
 
         // When
@@ -226,17 +229,9 @@ class CreateApiProductPlanUseCaseTest {
                 Plan::getPlanSecurity,
                 Plan::getReferenceType,
                 Plan::getPlanStatus,
-                Plan::getDefinitionVersion,
-                createdPlan -> createdPlan.getPlanType().name()
+                Plan::getDefinitionVersion
             )
-            .containsExactly(
-                api.getId(),
-                null,
-                GenericPlanEntity.ReferenceType.API_PRODUCT,
-                PlanStatus.STAGING,
-                DefinitionVersion.V4,
-                Plan.PlanType.API_PRODUCT.name()
-            );
+            .containsExactly(api.getId(), null, GenericPlanEntity.ReferenceType.API_PRODUCT, PlanStatus.STAGING, DefinitionVersion.V4);
     }
 
     private ApiProduct givenExistingApiProduct(ApiProduct api) {

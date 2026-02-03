@@ -99,13 +99,23 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
-    public Collection<Plan> findByApiId(String apiId) {
+    public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         try {
-            log.debug("Find a plan by API id : {}", apiId);
-            return stream(planRepository.findByApi(apiId)).map(PlanAdapter.INSTANCE::fromRepository).toList();
+            log.debug("Find a plan by reference id : {}", referenceId);
+            return stream(planRepository.findByReferenceIdAndReferenceType(referenceId, PlanReferenceType.valueOf(referenceType)))
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .toList();
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find a plan by id: %s", apiId), ex);
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to find a plan by reference id: %s", referenceId),
+                ex
+            );
         }
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        return findByReferenceIdAndReferenceType(apiId, PlanReferenceType.API.name());
     }
 
     @Override

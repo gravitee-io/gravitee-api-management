@@ -54,6 +54,7 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -732,6 +733,8 @@ public class EventServiceTest {
         PlanEntity plan = new PlanEntity();
         plan.setId(id);
         plan.setStatus(status);
+        plan.setReferenceId(API_ID);
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
         plan.setSecurity(PlanSecurityType.KEY_LESS);
         return plan;
     }

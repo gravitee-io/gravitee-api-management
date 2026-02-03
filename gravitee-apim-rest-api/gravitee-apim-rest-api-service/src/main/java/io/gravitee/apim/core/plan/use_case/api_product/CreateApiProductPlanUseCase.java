@@ -46,8 +46,7 @@ public class CreateApiProductPlanUseCase {
 
         plan.setEnvironmentId(apiProduct.getEnvironmentId());
         //setting this to not null because jdbc looks for a not null value in this column
-        plan.setApiId(API_PRODUCT_ID);
-        plan.setType(Plan.PlanType.API_PRODUCT);
+
         plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         plan.setReferenceId(input.apiProductId);
         plan.setPlanStatus(PlanStatus.STAGING);

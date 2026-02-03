@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -89,7 +90,7 @@ public class PlanMapperTest {
         assertEquals(plan.getDescription(), planEntity.getDescription());
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
-        assertEquals(plan.getApi(), planEntity.getApiId());
+        assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
         assertSame(flows, planEntity.getFlows());
@@ -135,7 +136,7 @@ public class PlanMapperTest {
         assertEquals(plan.getDescription(), planEntity.getDescription());
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
-        assertEquals(plan.getApi(), planEntity.getApiId());
+        assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
         assertEquals(plan.getApiType(), planEntity.getApiType());
@@ -166,7 +167,7 @@ public class PlanMapperTest {
         assertEquals(plan.getDescription(), planEntity.getDescription());
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
-        assertEquals(plan.getApi(), planEntity.getApiId());
+        assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(PlanMode.PUSH, planEntity.getMode());
         assertNull(planEntity.getSecurity());
@@ -220,13 +221,13 @@ public class PlanMapperTest {
         final NewPlanEntity result = planMapper.toNewPlanEntity(actual);
 
         assertEquals(result.getId(), actual.getId());
-        assertEquals(result.getApiId(), actual.getApiId());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getName(), actual.getName());
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), actual.getValidation());
         assertEquals(result.getSecurity(), actual.getSecurity());
         assertEquals(result.getSecurity(), actual.getSecurity());
-        assertEquals(result.getType(), actual.getType());
+        assertEquals(result.getReferenceType(), actual.getReferenceType());
         assertEquals(result.getStatus(), actual.getStatus());
         assertEquals(result.getFlows(), actual.getFlows());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
@@ -249,14 +250,14 @@ public class PlanMapperTest {
         final NewPlanEntity result = planMapper.toNewPlanEntity(actual);
 
         assertEquals(result.getId(), actual.getId());
-        assertEquals(result.getApiId(), actual.getApiId());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getName(), actual.getName());
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), PlanValidationType.MANUAL);
         assertEquals(result.getSecurity(), actual.getSecurity());
-        assertEquals(result.getType(), PlanType.API);
+        assertEquals(result.getReferenceType(), GenericPlanEntity.ReferenceType.API.API);
         assertEquals(result.getStatus(), PlanStatus.STAGING);
-        assertEquals(result.getApiId(), actual.getApiId());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getFlows(), new ArrayList<>());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
         assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
@@ -290,7 +291,7 @@ public class PlanMapperTest {
     private PlanEntity buildTestPlanEntity() {
         final PlanEntity planEntity = new PlanEntity();
         planEntity.setId("plan-id");
-        planEntity.setApiId("api-id");
+        planEntity.setReferenceId("api-id");
         planEntity.setName("plan-name");
         planEntity.setDescription("description");
         planEntity.setValidation(PlanValidationType.AUTO);
@@ -299,7 +300,7 @@ public class PlanMapperTest {
         security.setConfiguration("definition");
         planEntity.setMode(PlanMode.STANDARD);
         planEntity.setSecurity(security);
-        planEntity.setType(PlanType.API);
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API.API);
         planEntity.setStatus(PlanStatus.STAGING);
         planEntity.setFlows(new ArrayList<>());
         planEntity.setCharacteristics(new ArrayList<>());

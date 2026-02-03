@@ -61,8 +61,8 @@ public class PlanUpdates {
             .characteristics(characteristics)
             .order(order)
             .validation(validation != null ? validation : oldPlan.getValidation())
-            .referenceId(referenceId)
-            .referenceType(referenceType)
+            .referenceId(oldPlan.getReferenceId())
+            .referenceType(oldPlan.getReferenceType())
             .build();
 
         result.setPlanTags(tags);

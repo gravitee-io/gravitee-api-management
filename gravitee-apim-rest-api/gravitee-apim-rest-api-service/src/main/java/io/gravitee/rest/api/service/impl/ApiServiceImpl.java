@@ -136,6 +136,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiHeaderService;
@@ -1406,7 +1407,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updateApiEntity
                     .getPlans()
                     .forEach(plan -> {
-                        plan.setApi(api.getId());
+                        plan.setReferenceId(api.getId());
+                        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
                         planService.createOrUpdatePlan(executionContext, plan);
                     });
             }

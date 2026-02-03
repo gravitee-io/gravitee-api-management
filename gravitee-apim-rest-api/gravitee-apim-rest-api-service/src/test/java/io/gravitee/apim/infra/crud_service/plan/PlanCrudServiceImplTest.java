@@ -335,7 +335,7 @@ public class PlanCrudServiceImplTest {
         @Test
         void should_return_plans_for_api_id() throws TechnicalException {
             var apiId = "api-id";
-            when(planRepository.findByApi(apiId)).thenReturn(
+            when(planRepository.findByReferenceIdAndReferenceType(apiId, PlanReferenceType.API)).thenReturn(
                 Set.of(planV4().id("plan-1").api(apiId).build(), planV4().id("plan-2").api(apiId).build())
             );
 
@@ -359,13 +359,13 @@ public class PlanCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             var apiId = "api-id";
-            when(planRepository.findByApi(apiId)).thenThrow(TechnicalException.class);
+            when(planRepository.findByReferenceIdAndReferenceType(apiId, PlanReferenceType.API)).thenThrow(TechnicalException.class);
 
             Throwable throwable = catchThrowable(() -> service.findByApiId(apiId));
 
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find a plan by id: " + apiId);
+                .hasMessage("An error occurred while trying to find a plan by reference id: " + apiId);
         }
     }
 

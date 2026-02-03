@@ -307,7 +307,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 .findByApi(executionContext, apiId)
                 .forEach(plan -> {
                     plan.setId(plansIdsMap.get(plan.getId()));
-                    plan.setApi(duplicatedApi.getId());
+                    plan.setReferenceId(duplicatedApi.getId());
                     if (plan.getGeneralConditions() != null) {
                         plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
                     }

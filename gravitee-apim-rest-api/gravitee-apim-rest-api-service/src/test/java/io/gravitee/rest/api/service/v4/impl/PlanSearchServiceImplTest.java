@@ -120,6 +120,8 @@ public class PlanSearchServiceImplTest {
         plan = new Plan();
         plan.setId(PLAN_ID);
         plan.setApi(API_ID);
+        plan.setReferenceType(PlanReferenceType.API);
+        plan.setReferenceId(API_ID);
     }
 
     @Test
@@ -182,7 +184,7 @@ public class PlanSearchServiceImplTest {
         PlanEntity planEntity2 = new PlanEntity();
         planEntity2.setId(plan2.getId());
         when(genericPlanMapper.toGenericPlansWithFlow(eq(api), eq(Set.of(plan1, plan2)))).thenReturn(Set.of(planEntity1, planEntity2));
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(Set.of(plan1, plan2));
         Set<GenericPlanEntity> plans = planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
 
         assertNotNull(plans);
@@ -194,13 +196,15 @@ public class PlanSearchServiceImplTest {
         plan.setId(id);
         plan.setApi(API_ID);
         plan.setType(Plan.PlanType.API);
+        plan.setReferenceType(PlanReferenceType.API);
+        plan.setReferenceId(API_ID);
         plan.setValidation(Plan.PlanValidationType.AUTO);
         return plan;
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenThrow(TechnicalException.class);
 
         planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
     }
@@ -242,9 +246,13 @@ public class PlanSearchServiceImplTest {
         Plan plan = new Plan();
         plan.setId("plan-id");
         plan.setApi("api-id");
+        plan.setReferenceId("api-id");
+        plan.setReferenceType(PlanReferenceType.API);
         Plan plan2 = new Plan();
         plan2.setId("plan2-id");
         plan2.setApi("api2-id");
+        plan2.setReferenceId("api2-id");
+        plan2.setReferenceType(PlanReferenceType.API);
         when(planRepository.findByIdIn(List.of("plan-id", "plan2-id"))).thenReturn(Set.of(plan, plan2));
         assertTrue(planSearchService.anyPlanMismatchWithApi(List.of("plan-id", "plan2-id"), "api-id"));
     }
