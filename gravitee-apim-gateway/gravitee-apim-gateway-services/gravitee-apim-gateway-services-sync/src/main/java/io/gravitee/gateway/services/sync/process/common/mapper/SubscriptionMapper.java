@@ -63,7 +63,9 @@ public class SubscriptionMapper {
                     objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class)
                 );
             }
-            Map<String, String> metadata = subscriptionModel.getMetadata() != null ? new HashMap<>(subscriptionModel.getMetadata()) : new HashMap<>();
+            Map<String, String> metadata = subscriptionModel.getMetadata() != null
+                ? new HashMap<>(subscriptionModel.getMetadata())
+                : new HashMap<>();
             if (subscriptionModel.getReferenceId() != null) {
                 metadata.put(METADATA_REFERENCE_ID, subscriptionModel.getReferenceId());
             }
