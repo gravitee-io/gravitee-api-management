@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiProductManagerImpl implements ApiProductManager {
 
     private final ApiProductRegistry apiProductRegistry;
+    private final LicenseManager licenseManager;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
 
     @Override
@@ -82,7 +84,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private void deploy(ReactableApiProduct apiProduct) {
-        // TODO Phase 2 End: Add license validation (licenseManager.validateFeature)
+        // TODO: When LicenseManager.validateFeature(orgId, "API_PRODUCTS") is available,
+        // add validation here to block deployment when the feature is not allowed by the license.
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         apiProducts.put(apiProduct.getId(), apiProduct);

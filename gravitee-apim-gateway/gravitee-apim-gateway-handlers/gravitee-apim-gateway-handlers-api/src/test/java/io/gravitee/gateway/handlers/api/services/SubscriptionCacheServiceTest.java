@@ -78,8 +78,12 @@ class SubscriptionCacheServiceTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        subscriptionService =
-            new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
+        subscriptionService = new SubscriptionCacheService(
+            apiKeyService,
+            subscriptionTrustStoreLoaderManager,
+            apiManager,
+            apiProductRegistry
+        );
         cacheByApiClientId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
         cacheByApiClientCertificate = (Map<String, Subscription>) ReflectionTestUtils.getField(
             subscriptionService,

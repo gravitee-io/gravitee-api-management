@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -58,6 +59,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -191,7 +193,8 @@ public class SyncConfiguration {
         SharedPolicyGroupManager sharedPolicyGroupManager,
         DistributedSyncService distributedSyncService,
         ApiProductManager apiProductManager,
-        PlanRepository planRepository
+        PlanRepository planRepository,
+        @Autowired(required = false) ProductPlanDefinitionCache productPlanDefinitionCache
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -213,7 +216,8 @@ public class SyncConfiguration {
             sharedPolicyGroupManager,
             distributedSyncService,
             apiProductManager,
-            planRepository
+            planRepository,
+            productPlanDefinitionCache
         );
     }
 
