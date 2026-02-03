@@ -42,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRespo
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.TimeRange;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParamWithMaxValidation;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -173,6 +174,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         @Test
         void should_compute_pagination() {
             var total = 20L;
+            var page = 2;
             var pageSize = 5;
             connectionLogsCrudService.initWithConnectionLogs(
                 LongStream.range(0, total)
@@ -180,23 +182,22 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     .toList()
             );
 
-            var request = new SearchLogsRequest()
-                .timeRange(
-                    new TimeRange()
-                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
-                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
-                )
-                .page(2)
-                .perPage(pageSize);
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, page)
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(SearchLogsResponse.class)
                 .extracting(SearchLogsResponse::getPagination)
                 .satisfies(p -> {
-                    assertThat(p.getPage()).isEqualTo(2);
+                    assertThat(p.getPage()).isEqualTo(page);
                     assertThat(p.getPerPage()).isEqualTo(pageSize);
                     assertThat(p.getPageCount()).isEqualTo(4);
                     assertThat(p.getPageItemsCount()).isEqualTo(pageSize);
@@ -219,7 +220,12 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(r.getData()).isEmpty();
                     assertThat(r.getPagination()).isNotNull();
                     assertThat(r.getPagination().getTotalCount()).isEqualTo(0L);
-                    assertThat(r.getLinks()).isNull();
+                    assertThat(r.getLinks()).isNotNull();
+                    assertThat(r.getLinks().getSelf()).isNotNull();
+                    assertThat(r.getLinks().getFirst()).isNull();
+                    assertThat(r.getLinks().getLast()).isNull();
+                    assertThat(r.getLinks().getNext()).isNull();
+                    assertThat(r.getLinks().getPrevious()).isNull();
                 });
         }
     }
@@ -237,48 +243,87 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_400_if_negative_page() {
-            var request = new SearchLogsRequest()
-                .timeRange(
-                    new TimeRange()
-                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
-                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
-                )
-                .page(0);
+        void should_return_400_if_page_is_zero() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
-
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
-        }
-
-        @Test
-        void should_return_400_if_per_page_exceeds_maximum() {
-            var request = new SearchLogsRequest()
-                .timeRange(
-                    new TimeRange()
-                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
-                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
-                )
-                .perPage(101);
-
-            final Response response = searchTarget.request().post(Entity.json(request));
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 0)
+                .request()
+                .post(Entity.json(request));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
 
         @Test
-        void should_accept_maximum_per_page() {
-            var request = new SearchLogsRequest()
-                .timeRange(
-                    new TimeRange()
-                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
-                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
-                )
-                .perPage(100);
+        void should_return_200_if_page_is_one() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 1)
+                .request()
+                .post(Entity.json(request));
 
             assertThat(response).hasStatus(OK_200);
+        }
+
+        @Test
+        void should_return_400_if_page_size_is_zero() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 0)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_200_if_page_size_is_one() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 1)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response).hasStatus(OK_200);
+        }
+
+        @Test
+        void should_return_200_if_page_size_is_100() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 100)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response).hasStatus(OK_200);
+        }
+
+        @Test
+        void should_return_200_if_page_size_is_too_large() {
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 101)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
     }
 
@@ -590,6 +635,114 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(r.getData().getFirst().getRequestId()).isEqualTo("req1");
                     assertThat(Objects.requireNonNull(r.getData().getFirst().getApplication()).getId()).isEqualTo(APPLICATION_1.getId());
                     assertThat(Objects.requireNonNull(r.getData().getFirst().getPlan()).getId()).isEqualTo(PLAN_1.getId());
+                });
+        }
+    }
+
+    @Nested
+    class Links {
+
+        @Test
+        void should_return_links() {
+            var total = 20L;
+            var pageSize = 5;
+            connectionLogsCrudService.initWithConnectionLogs(
+                LongStream.range(0, total)
+                    .mapToObj(i -> connectionLogFixtures.aConnectionLog())
+                    .toList()
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .filters(List.of(new Filter(new StringFilter().name(FilterName.API).operator(Operator.EQ).value("api1"))));
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .extracting(SearchLogsResponse::getLinks)
+                .satisfies(links -> {
+                    assertThat(links.getSelf()).isNotNull();
+                    assertThat(links.getSelf()).contains("page=2").contains("perPage=5");
+
+                    assertThat(links.getFirst()).isNotNull();
+                    assertThat(links.getFirst()).contains("page=1").contains("perPage=5");
+
+                    assertThat(links.getLast()).isNotNull();
+                    assertThat(links.getLast()).contains("page=4").contains("perPage=5");
+
+                    assertThat(links.getNext()).isNotNull();
+                    assertThat(links.getNext()).contains("page=3").contains("perPage=5");
+
+                    assertThat(links.getPrevious()).isNotNull();
+                    assertThat(links.getPrevious()).contains("page=1").contains("perPage=5");
+                });
+        }
+
+        @Test
+        void should_not_return_previous_link_on_first_page() {
+            var total = 10L;
+            connectionLogsCrudService.initWithConnectionLogs(
+                LongStream.range(0, total)
+                    .mapToObj(i -> connectionLogFixtures.aConnectionLog())
+                    .toList()
+            );
+
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 1)
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 5)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .extracting(SearchLogsResponse::getLinks)
+                .satisfies(links -> {
+                    assertThat(links.getPrevious()).isNull();
+                    assertThat(links.getNext()).isNotNull();
+                });
+        }
+
+        @Test
+        void should_not_return_next_link_on_last_page() {
+            var total = 10L;
+            connectionLogsCrudService.initWithConnectionLogs(
+                LongStream.range(0, total)
+                    .mapToObj(i -> connectionLogFixtures.aConnectionLog())
+                    .toList()
+            );
+
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            final Response response = searchTarget
+                .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 5)
+                .request()
+                .post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .extracting(SearchLogsResponse::getLinks)
+                .satisfies(links -> {
+                    assertThat(links.getNext()).isNull();
+                    assertThat(links.getPrevious()).isNotNull();
                 });
         }
     }
