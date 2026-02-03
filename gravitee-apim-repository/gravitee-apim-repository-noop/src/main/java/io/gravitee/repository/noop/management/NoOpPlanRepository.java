@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -61,5 +62,26 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     @Override
     public void updateCrossIds(List<Plan> plans) {
         // no-op
+    }
+
+    @Override
+    public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        return Set.of();
+    }
+
+    @Override
+    public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
+        List<String> referenceIds,
+        Plan.PlanReferenceType planReferenceType,
+        Set<String> environments
+    ) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
+        throws TechnicalException {
+        return Optional.empty();
     }
 }
