@@ -204,17 +204,16 @@ class CreateApiProductSubscriptionUseCaseTest {
 
     @Test
     void should_throw_when_plan_is_deprecated() {
-        // Given: plan exists for API Product but is DEPRECATED
+        // Given: plan exists for API Product but is DEPRECATED (set status before init so the copy in storage is deprecated)
         givenExistingApiProduct(ApiProduct.builder().id(API_PRODUCT_ID).name("Test API Product").environmentId(ENVIRONMENT_ID).build());
-        var plan = givenExistingPlan(
-            PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .build()
-        );
+        var plan = PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id(PLAN_ID)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .build();
         plan.setPlanStatus(PlanStatus.DEPRECATED);
+        givenExistingPlan(plan);
 
         // When
         var throwable = catchThrowable(() ->
