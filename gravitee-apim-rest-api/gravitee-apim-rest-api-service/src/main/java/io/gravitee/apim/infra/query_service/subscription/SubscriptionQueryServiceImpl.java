@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
@@ -91,6 +92,24 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
+        String applicationId,
+        Collection<String> planSecurityTypes
+    ) {
+        var criteria = SubscriptionCriteria.builder()
+            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+            .applications(List.of(applicationId))
+            .planSecurityTypes(planSecurityTypes)
+            .build();
+
+        try {
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions by plan security types", e);
         }
     }
 }

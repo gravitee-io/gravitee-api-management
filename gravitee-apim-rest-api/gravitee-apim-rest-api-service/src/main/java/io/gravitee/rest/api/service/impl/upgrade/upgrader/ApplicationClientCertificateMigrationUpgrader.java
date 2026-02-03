@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
-
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -29,8 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -44,6 +40,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
+
+    private static final String METADATA_CLIENT_CERTIFICATE = "client_certificate";
 
     @Lazy
     @Autowired

@@ -41,6 +41,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.plan.PlanHelper;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
+import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -60,9 +61,11 @@ import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +73,7 @@ import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -86,7 +90,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @GatewayTest
 @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
-public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest {
+class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest {
 
     private SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
 
@@ -254,15 +258,67 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("provideApis")
+    void should_be_able_to_call_api_with_mtls_plan_and_several_cert(
+        final String apiId,
+        final boolean requireWiremock,
+        @WithCert HttpClient client
+    ) {
+        if (requireWiremock) {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
+        }
+
+        final Subscription subscription = aSubscriptionWithTwoCertificate(apiId);
+
+        // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register the certificate
+        subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
+        client
+            .rxRequest(GET, PlanHelper.getApiPath(apiId))
+            .flatMap(HttpClientRequest::rxSend)
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(OK_200);
+                return response.rxBody();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(body -> {
+                assertThat(body.toString()).contains("endpoint response");
+                return true;
+            });
+
+        subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);
+        if (requireWiremock) {
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+    }
+
     @SneakyThrows
     Subscription aSubscription(String api) {
+        return getSubscription(api, false);
+    }
+
+    @SneakyThrows
+    Subscription aSubscriptionWithTwoCertificate(String api) {
+        return getSubscription(api, true);
+    }
+
+    private static @NotNull Subscription getSubscription(String api, boolean pkcs7) throws IOException {
         final Subscription subscription = new Subscription();
         subscription.setApi(api);
         subscription.setApplication("application-id");
         subscription.setId("subscription-id");
         subscription.setPlan(PlanHelper.PLAN_MTLS_ID);
         final String clientCertificate = Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
-        subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
+        if (pkcs7) {
+            final String clientCertificate2 = Files.readString(Paths.get(getUrl("plans/mtls/client2.cer").getPath()));
+            subscription.setClientCertificate(
+                Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(clientCertificate, clientCertificate2)))
+            );
+        } else {
+            subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
+        }
         return subscription;
     }
 }

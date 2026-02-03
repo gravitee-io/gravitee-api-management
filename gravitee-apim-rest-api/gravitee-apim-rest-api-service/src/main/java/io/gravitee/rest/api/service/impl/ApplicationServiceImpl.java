@@ -695,7 +695,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             // Create new certificate if certificate was changed
-            final String clientCertificate = createNewCertificateIfNecessary(
+            final Optional<String> clientCertificate = createNewCertificateIfNecessary(
                 applicationId,
                 updateApplicationEntity,
                 newCertificateToCreate
@@ -757,7 +757,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ExecutionContext executionContext,
         String applicationId,
         Application application,
-        String clientCertificate
+        Optional<String> clientCertificate
     ) {
         // Set correct client_id for all active subscriptions
         SubscriptionQuery subQuery = new SubscriptionQuery();
@@ -766,9 +766,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
 
+        final String subscriptionClientCertificate = clientCertificate
+            .map(cert -> Base64.getEncoder().encodeToString(cert.getBytes()))
+            .orElse(null);
+
         Consumer<Subscription> clientIdSubscriptionModifier = s -> s.setClientId(clientId);
-        Consumer<Subscription> clientCertificateSubscriptionModifier = s ->
-            s.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
+        Consumer<Subscription> clientCertificateSubscriptionModifier = s -> s.setClientCertificate(subscriptionClientCertificate);
         Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
         subscriptionService
@@ -778,7 +781,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
                     subscriptionModifier = clientIdSubscriptionModifier;
                 }
-                if (areNotEmptyAndDifferent(clientCertificate, subscriptionEntity.getClientCertificate())) {
+                if (areNotEmptyAndDifferent(subscriptionClientCertificate, subscriptionEntity.getClientCertificate())) {
                     subscriptionModifier = subscriptionModifier == null
                         ? clientCertificateSubscriptionModifier
                         : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
@@ -799,22 +802,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             });
     }
 
-    private @Nullable String createNewCertificateIfNecessary(
+    private Optional<String> createNewCertificateIfNecessary(
         String applicationId,
         UpdateApplicationEntity updateApplicationEntity,
         String newCertificateToCreate
     ) {
-        final String clientCertificate;
         if (newCertificateToCreate != null) {
             clientCertificateCrudService.create(
                 applicationId,
                 new CreateClientCertificate(updateApplicationEntity.getName(), null, null, newCertificateToCreate)
             );
-            clientCertificate = newCertificateToCreate;
-        } else {
-            clientCertificate = null;
+            return Optional.of(newCertificateToCreate);
         }
-        return clientCertificate;
+        return Optional.empty();
     }
 
     private void checkClientIdUniqueness(
@@ -1302,8 +1302,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
     }
 
-    private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Collection<Application> applications)
-        throws TechnicalException {
+    private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Collection<Application> applications) {
         Set<ApplicationEntity> entities = convertApplication(executionContext, applications);
 
         Set<ApplicationListItem> apps = entities

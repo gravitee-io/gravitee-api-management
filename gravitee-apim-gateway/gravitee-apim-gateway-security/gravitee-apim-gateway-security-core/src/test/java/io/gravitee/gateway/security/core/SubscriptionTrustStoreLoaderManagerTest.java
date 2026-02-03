@@ -17,7 +17,6 @@ package io.gravitee.gateway.security.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,12 +25,14 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.certificates.TrustStoreLoaderManager;
 import io.gravitee.node.vertx.server.VertxServer;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -100,7 +101,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_register_subscription_on_all_servers() {
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(), Set.of());
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -121,7 +122,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
     @Test
     void should_register_subscription_on_selected_servers() {
         cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(),
+            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
             Set.of("server1", "server3")
         );
 
@@ -146,7 +147,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_not_register_already_registered_subscription() {
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(), Set.of());
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -155,7 +156,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
             .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
             .containsExactly("Registering TrustStoreLoader for subscription subscriptionId", Level.DEBUG);
 
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(), Set.of());
         assertThat(logList)
             .hasSize(2)
             .element(1)
@@ -165,7 +166,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_unregister_subscription() {
-        final Subscription subscription = Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build();
+        final Subscription subscription = Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build();
         cut.registerSubscription(subscription, Set.of());
 
         ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
@@ -197,7 +198,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
         cut.unregisterSubscription(subscription);
 
         final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList).hasSize(0);
+        assertThat(logList).isEmpty();
     }
 
     @Test
@@ -206,15 +207,86 @@ class SubscriptionTrustStoreLoaderManagerTest {
             .id("subscriptionId")
             .api("api")
             .plan("plan")
-            .clientCertificate(BASE_64_CERTIFICATE)
+            .clientCertificate(BASE_64_CERTIFICATE_1)
             .build();
         cut.registerSubscription(subscription, Set.of("server1", "server3"));
         final Optional<Subscription> result = cut.getByCertificate("api", CERTIFICATE_DIGEST, "plan");
         assertThat(result).contains(subscription);
     }
 
-    private static final String BASE_64_CERTIFICATE =
-        "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUYzekNDQThlZ0F3SUJBZ0lCWlRBTkJna3Foa2lHOXcwQkFRc0ZBRENCa0RFcE1DY0dDU3FHU0liM0RRRUoKQVJZYVkyOXVkR0ZqZEVCbmNtRjJhWFJsWlhOdmRYSmpaUzVqYjIweEVEQU9CZ05WQkFNTUIwRlFTVTFmUTA0eApEVEFMQmdOVkJBc01CRUZRU1UweEZEQVNCZ05WQkFvTUMwRlFTVTFmVkdWemRHVnlNUTR3REFZRFZRUUhEQVZNCmFXeHNaVEVQTUEwR0ExVUVDQXdHUm5KaGJtTmxNUXN3Q1FZRFZRUUdFd0pHVWpBZUZ3MHlOREE0TWpnd05qVTAKTkRWYUZ3MHlOVEE0TWpnd05qVTBORFZhTUlHUU1Ta3dKd1lKS29aSWh2Y05BUWtCRmhwamIyNTBZV04wUUdkeQpZWFpwZEdWbGMyOTFjbU5sTG1OdmJURVFNQTRHQTFVRUF3d0hRVkJKVFY5RFRqRU5NQXNHQTFVRUN3d0VRVkJKClRURVVNQklHQTFVRUNnd0xRVkJKVFY5VVpYTjBaWEl4RGpBTUJnTlZCQWNNQlV4cGJHeGxNUTh3RFFZRFZRUUkKREFaR2NtRnVZMlV4Q3pBSkJnTlZCQVlUQWtaU01JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQwpDZ0tDQWdFQStncWxkMnkvRlhiUHRDY1pnREl6cGlsQVpJc3FIcEJwREZBeCthYkRNUTVlV1ozUTNBYXhSeGh5ClFCeE1maFhsMkZvZEJmNzZtQVQ4UVpvVHUwdHdTSnIrTGx2eVQ3NTE1RnZiYUxYNGg2bEZSbWs2dXExeE5DdHgKU0FzMC93dkttNVc1QmtHeHJFQ3JYcUV1dWtPSkw2dW5VK3RqRXFBdUtuRFhrQ2QxVXA0WlVWalJJV0RnR0lYVwozQXViazVLeDBPdUZTWlhNWmkvOGFDcTBJc3FyZnk5amVLWjllZjRkMkJ1aENjcVFQQXo2dDFpTTVWVGtvUGNmCnVOQzJYQlVCOEI4YUNpd1FRWm0yTVVsWFo0aGE1V2xnYzZzb3VGVVFyM2kzN2hlaVhiQVJUb2xnVmhPMU9oQ3AKN1VtMDBEbEdtQmFsaXNkODhCdjU4MFplbFNGNldSamkvb2RpVUwrcnZyOElOY1Z5MDVQb04rb1ljckQ1TWZtdQpUZUdUUFdFNmpIMXVXb1llZDAyV0t6LzV4VC9Xc3psMEZ2QVc5MExLUklhWnZveWpvdVdnWGExSFFFM1hrdnlIClZXeXc4eEZHTEIxN09aRGs4LzRMN2NqeDZMVTErZnpvak56WlBhcnJ6UTRSaFNFWE1KYUdZQitZOEVuYUhDWUoKbHVBeVVWMkNVOVdpc0tvaTZaWW9IR3lvUnJVa3JXT3U0MFlkNkJzUmhlQWI3anNqalV6Rjc0UWQ3UVY1enlNagpZZHF4M1dtTzVKdzFyZXNoei9LY1RGYS9SM2VhK1BPTTZ3bEtHWTVNdFlpWThJbWlodms1VVBPamJyR2RpU3BvCmZoSng5RHNWYmY3eTI0OFFROGZZd052TFlUMVVLVmRQaXR0eEhKTml4SEhYS0RIWEdhc0NBd0VBQWFOQ01FQXcKSFFZRFZSME9CQllFRkF3SjNWWlBzYXlsSUMrUkxUeXhqaWd6TWsxa01COEdBMVVkSXdRWU1CYUFGRGNnaUVNMwo3WVdLRk9Wc09NTWc5MWVNZ1RNWU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQkNLczRSUklPZmhhTWt5QmdBCmlmUmZKdU04NFVXSFJqQ0ZzSTVFRElqY3BJaVE1LzVGcm9CNjRPUDBnNUhFNDc0UEtqTVdSQzVMZDhTUDVWY20KK1l6VllUVDJJOGEycDVvbG1iWnhPeElZU0Q0NWF6NDhXRUtLRXNxR091TUw2M29CcUVYeWhCN2hCQjZTaUphcApuOXFLWTZNWXB0RFNER3h1dGxrZC94YnU1VGxXSzBMTEhNZTBCKzdOR2U1UDdaN1AvblpraURiVlg3VG05MVBICi9PUDgwUGluVTJJZHJmUWVCUDZKdVpYem5XU3dVd3NKWlJrNDNTNVBBYkkrQW81M0lCbVR4aGhvbkNSWFF2WGsKbW1kcmsrK2doODVEWTFUazdVQ2xGbEsyNDZvTFNjeEF6aHoxWWxuZktxRm1CK2pLZVVRdXNsNytZc01VMVRBSgoxakxGNUtNU2xBaHRXdG8rMTN0cHBWbFBaYlFYaGZTV0I3bEZBWFpDTkMycjlzNWs0S1RnQU1OQ3E1VEpUUFNyCngvRnQ3UTJSV3F5RnZ3WHErR3VxOEpLYjQyUXpJTkFTVmhsQkJzYVgvNmYyU1h6OWZja2F0cW16ZVh0MHpwMUoKWWFRUmxSUTI2ZWgyUWdyRjN2ejVOaVFNV3pmRzlleWdZY2xEUE1rMlhqWDZVSkhWY2ZUMjcrMElhY251QzhlYQp5Rjl0bCtjRnMyRmpJVENVaFlTWTJRdjNjVDFRUnA0Q3JNUTVYMHdlcFFGVnp1QmZyYW1xMVZKdkRDemFuMlNmClZpMVl1MmdqOGJHVGYzamhzK3k5RW5yYWRxbzZSWHh1T2NzMTNHVWVYMFVHZG41aFREOE03aEtNUzN2V0hOUjkKY0toeGFxY3B5ZTh6S0o4K0lEc0pDMitsTVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t";
+    @Test
+    void should_get_a_subscription_with_two_certs() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2))))
+            .build();
+        cut.registerSubscription(subscription, Set.of("server1", "server3"));
+        final Optional<Subscription> result = cut.getByCertificate("api", CERTIFICATE_DIGEST, "plan");
+        assertThat(result).contains(subscription);
+    }
+
+    public static final String PEM_CERTIFICATE_1 = """
+        -----BEGIN CERTIFICATE-----
+        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
+        cKhxaqcpye8zKJ8+IDsJC2+lMQ==
+        -----END CERTIFICATE-----
+        """;
+
+    private static final String PEM_CERTIFICATE_2 = """
+        -----BEGIN CERTIFICATE-----
+        MIIDCTCCAfGgAwIBAgIUYh2NFpteTomLlWoO7O5HKI7fg10wDQYJKoZIhvcNAQEL
+        BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTI2MDEyOTE0MTYyMVoXDTI3MDEy
+        OTE0MTYyMVowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF
+        AAOCAQ8AMIIBCgKCAQEAwquFLM7wi+EBt5JL1Q6c/qzqickBKhlymOf1a18jYsWO
+        UrRRqANMvEub5zks44qdYbdm7Kj9EruDD3hfrS6YemQhIMeT+SgY3MU5cY12yB1e
+        fn+0bkEg6CJdIfgvcuccqY9pu0hgFdlgK9YXEXYZzb+ai7b4qPHN2BR6toBdjf56
+        ReNygcrT0igPQC9P/MsmpFuJzD69i5Z8fJcLU2V7RwXW9MKyej8CN/zrcqftG+ck
+        egt5cpB2OyIt6ajQBeXarGYvOlm975RKWOD5mHpt87GgcEvMEnhFTSs47iA7X91o
+        01+rhFDfPxgvhur2AG6oiB7/zS4lqHWQHRTBwurVJQIDAQABo1MwUTAdBgNVHQ4E
+        FgQUHP3c1CNhl6RZHn3g/HkbSssfPhMwHwYDVR0jBBgwFoAUHP3c1CNhl6RZHn3g
+        /HkbSssfPhMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAgTa/
+        lgY6fEbt88yQcLxQDseam2lox0sK6sYOwpIQV7/RiXbeM6KrXmCy59HBrJMjSpZY
+        LEp9RPDf8Awg50iv6oFXXn+ZJ5Cmq2WXMpCvKxAjQWnmNs99SGfXyQsiLMxe3HlL
+        CKqM8O7LZrVdOxWbNW/0ZMJl4d4vCf0LhVrbfMGLeQfqtKVmygjJM1rycKiFazM4
+        cTHphvWA9/5XRFC+yD3V3ZTFE9LDeMoSF0soigR0NnCqFc5E7S9OQvuB5h5eBu9s
+        T1dLBVOY8zcIYu6LDjeMr6MpiZyk+/O7ewue2kQURmDBuVrwiSSQF4AhsmbMDUuB
+        iyr26LfMYtituDZy7w==
+        -----END CERTIFICATE-----
+        """;
+
+    private static final String BASE_64_CERTIFICATE_1 = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes());
 
     private static final String CERTIFICATE_DIGEST = "29906ca0dc39bc99ee0f3f11f7e78517";
 }
