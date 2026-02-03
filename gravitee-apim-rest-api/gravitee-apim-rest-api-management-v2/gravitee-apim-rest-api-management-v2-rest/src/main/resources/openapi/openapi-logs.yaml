@@ -204,6 +204,10 @@ components:
         - PLAN
         - HTTP_METHOD
         - HTTP_STATUS
+        - MCP_METHOD
+        - TRANSACTION_ID
+        - REQUEST_ID
+        - URI
       description: Available filter names for filtering analytics data
 
     Operator:
