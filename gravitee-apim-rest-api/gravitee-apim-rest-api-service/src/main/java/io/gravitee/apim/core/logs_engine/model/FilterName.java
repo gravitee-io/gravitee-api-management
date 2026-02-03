@@ -22,4 +22,8 @@ public enum FilterName {
     PLAN,
     HTTP_METHOD,
     HTTP_STATUS,
+    MCP_METHOD,
+    TRANSACTION_ID,
+    REQUEST_ID,
+    URI,
 }
