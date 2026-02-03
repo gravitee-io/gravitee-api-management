@@ -33,7 +33,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.NonNull;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudService, InMemoryAlternative<Object> {
 
@@ -191,11 +193,11 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     private static Predicate<BaseConnectionLog> getBaseConnectionLogPredicate(SearchLogsFilters logsFilters) {
         Predicate<BaseConnectionLog> predicate = _ignored -> true;
 
-        if (logsFilters.apiIds() != null && !logsFilters.apiIds().isEmpty()) {
+        if (!CollectionUtils.isEmpty(logsFilters.apiIds())) {
             predicate = predicate.and(connectionLog -> logsFilters.apiIds().contains(connectionLog.getApiId()));
         }
 
-        if (logsFilters.requestIds() != null && !logsFilters.requestIds().isEmpty()) {
+        if (!CollectionUtils.isEmpty(logsFilters.requestIds())) {
             predicate = predicate.and(connectionLog -> logsFilters.requestIds().contains(connectionLog.getRequestId()));
         }
 
@@ -205,6 +207,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
         if (null != logsFilters.to()) {
             predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= logsFilters.to());
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.transactionIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.transactionIds().contains(connectionLog.getTransactionId()));
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.applicationIds())) {
@@ -240,7 +246,18 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
             );
         }
 
+        var uri = logsFilters.uri();
+        if (StringUtils.hasLength(uri)) {
+            var normalizedUri = getNormalizedUri(uri);
+            predicate = predicate.and(connectionLog -> connectionLog.getUri().startsWith(normalizedUri));
+        }
+
         return predicate;
+    }
+
+    private static @NonNull String getNormalizedUri(String uri) {
+        var beginningSlash = uri.startsWith("/") ? "" : "/";
+        return beginningSlash + (uri.endsWith("*") ? uri.substring(0, uri.length() - 1) : uri);
     }
 
     private static Predicate<ConnectionLogDetail> getConnectionLogDetailsPredicate(SearchLogsFilters logsFilters) {
