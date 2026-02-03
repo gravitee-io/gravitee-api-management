@@ -200,7 +200,7 @@ export const routes: Routes = [
       },
       {
         path: 'subscriptions/:subscriptionId',
-        loadComponent: () => import('./dashboard/subscription-details/subscription-details.component'),
+        loadComponent: () => import('./dashboard/subscription-details-legacy/subscription-details-legacy.component'),
       },
     ],
   },
