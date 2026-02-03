@@ -293,14 +293,23 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'registration',
-    component: RegistrationComponent,
-    canActivate: [anonymousGuard],
-  },
-  {
-    path: 'registration/confirm/:token',
-    component: RegistrationConfirmationComponent,
-    canActivate: [anonymousGuard],
+    path: 'user',
+    children: [
+      /**
+       * DO NOT CHANGE THESE PATHS!
+       * Registration routes must match Classic Portal paths: /user/registration/...
+       */
+      {
+        path: 'registration',
+        component: RegistrationComponent,
+        canActivate: [anonymousGuard],
+      },
+      {
+        path: 'registration/confirm/:token',
+        component: RegistrationConfirmationComponent,
+        canActivate: [anonymousGuard],
+      },
+    ],
   },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard] },
   { path: '404', component: NotFoundComponent },
