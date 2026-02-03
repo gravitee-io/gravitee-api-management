@@ -141,10 +141,12 @@ public class PlanSearchServiceImplTest {
         Plan plan2 = new Plan();
         plan2.setId("plan2");
         plan2.setApi(API_ID);
+        plan2.setReferenceType(PlanReferenceType.API);
+        plan2.setReferenceId(API_ID);
         Set<String> ids = Set.of(PLAN_ID, "plan2");
         when(planRepository.findByIdIn(argThat(ids::containsAll))).thenReturn(Set.of(plan, plan2));
 
-        apiRepository.findById(plan.getApi());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(plan.getId());
         when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);

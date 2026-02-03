@@ -93,7 +93,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+        when(planRepository.findByReferenceIdAndReferenceType(any(), any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -114,7 +114,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+        when(planRepository.findByReferenceIdAndReferenceType(any(), any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -128,7 +128,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+        when(planRepository.findByReferenceIdAndReferenceType(any(), any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -141,7 +141,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+        when(planRepository.findByReferenceIdAndReferenceType(any(), any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -155,7 +155,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+        when(planRepository.findByReferenceIdAndReferenceType(any(), any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 

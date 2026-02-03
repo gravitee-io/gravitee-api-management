@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -128,13 +129,16 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .build();
 
         var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Collections.singleton(keylessPlan)
+        );
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -149,13 +153,16 @@ public class PlanService_PublishTest {
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .security(Plan.PlanSecurityType.KEY_LESS)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .build();
 
         var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Collections.singleton(keylessPlan)
+        );
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
@@ -166,7 +173,8 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .build();
 
         plan.setId(PLAN_ID);
@@ -184,7 +192,8 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .build();
 
         plan.setId(PLAN_ID);
@@ -200,10 +209,10 @@ public class PlanService_PublishTest {
     public void shouldPublishAndUpdateNativePlan() throws TechnicalException {
         var plan = Plan.builder()
             .status(Plan.Status.STAGING)
-            .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .build();
 
         plan.setId(PLAN_ID);
@@ -221,23 +230,26 @@ public class PlanService_PublishTest {
     public void shouldPublishAndUpdateApiKeyPlanWithOtherAuthPlansPublished() throws TechnicalException {
         var apiKeyPlanToPublish = Plan.builder()
             .status(Plan.Status.STAGING)
-            .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .security(Plan.PlanSecurityType.API_KEY)
             .build();
 
         var publishedOAuthPlan = Plan.builder()
             .id("oauth-plan")
-            .api(API_ID)
+            .referenceType(PlanReferenceType.API)
+            .referenceId(API_ID)
             .status(Plan.Status.PUBLISHED)
             .security(Plan.PlanSecurityType.OAUTH2)
             .build();
 
         apiKeyPlanToPublish.setId(PLAN_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(apiKeyPlanToPublish));
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(apiKeyPlanToPublish, publishedOAuthPlan));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Set.of(apiKeyPlanToPublish, publishedOAuthPlan)
+        );
         when(planRepository.update(apiKeyPlanToPublish)).thenAnswer(returnsFirstArg());
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -254,20 +266,24 @@ public class PlanService_PublishTest {
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceType(PlanReferenceType.API)
+            .referenceId(API_ID)
             .security(Plan.PlanSecurityType.KEY_LESS)
             .apiType(ApiType.NATIVE)
             .build();
 
         var publishedApiKeyPlan = Plan.builder()
             .id("published-api-key")
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .security(Plan.PlanSecurityType.API_KEY)
             .status(Plan.Status.PUBLISHED)
             .build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedKeylessPlan));
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedKeylessPlan, publishedApiKeyPlan));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Set.of(stagedKeylessPlan, publishedApiKeyPlan)
+        );
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
@@ -279,7 +295,8 @@ public class PlanService_PublishTest {
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .security(Plan.PlanSecurityType.API_KEY)
             .apiType(ApiType.NATIVE)
             .build();
@@ -292,7 +309,9 @@ public class PlanService_PublishTest {
             .build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedApiKeyPlan));
-        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(stagedApiKeyPlan, publishedKeylessPlan));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, PlanReferenceType.API)).thenReturn(
+            Set.of(stagedApiKeyPlan, publishedKeylessPlan)
+        );
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
@@ -304,7 +323,8 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
+            .referenceType(PlanReferenceType.API)
             .generalConditions(GC_PAGE_ID)
             .build();
 

@@ -38,6 +38,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.PlanReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanSecurityEntity;
@@ -261,7 +262,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void validatePathParameters(Api api, List<Flow> newPlanFlows) throws TechnicalException {
-        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(api.getId(), PlanReferenceType.API);
         final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
         Stream<Flow> planFlows = plans
@@ -428,7 +429,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
-        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(api.getId(), PlanReferenceType.API);
         final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
         Stream<Flow> planFlows = plans
@@ -588,7 +589,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             checkStatusOfGeneralConditions(plan);
 
-            Set<Plan> plans = planRepository.findByApi(plan.getReferenceId());
+            Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(plan.getReferenceId(), plan.getReferenceType());
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
@@ -700,7 +701,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getReferenceId());
+        final Collection<Plan> plans = planRepository.findByReferenceIdAndReferenceType(
+            planToReorder.getReferenceId(),
+            planToReorder.getReferenceType()
+        );
         Plan[] plansToReorder = plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()) && !Objects.equals(p.getId(), planToReorder.getId()))
@@ -734,7 +738,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void reorderedAndSavePlansAfterRemove(final Plan planRemoved) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getReferenceId());
+        final Collection<Plan> plans = planRepository.findByReferenceIdAndReferenceType(
+            planRemoved.getReferenceId(),
+            planRemoved.getReferenceType()
+        );
         plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))

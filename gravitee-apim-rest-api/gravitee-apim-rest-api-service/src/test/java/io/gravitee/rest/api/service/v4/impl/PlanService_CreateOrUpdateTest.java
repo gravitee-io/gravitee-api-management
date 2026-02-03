@@ -165,7 +165,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(null);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
@@ -181,7 +182,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -200,7 +202,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(null);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
@@ -214,7 +217,6 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getApi()).thenReturn(API_ID);
         when(plan.getId()).thenReturn(expected.getId());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(plan.getReferenceType()).thenReturn(PlanReferenceType.API);
@@ -232,9 +234,7 @@ public class PlanService_CreateOrUpdateTest {
     private void mockPrivateCreate(PlanEntity expected) throws TechnicalException {
         Plan plan = mock(Plan.class);
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getApi()).thenReturn(API_ID);
         when(plan.getId()).thenReturn(expected.getId() == null ? "created" : expected.getId());
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
