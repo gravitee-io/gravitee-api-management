@@ -24,9 +24,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.ACCESS_TOKEN_KEY;
-import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.EXPIRES_IN_KEY;
-import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.TOKEN_TYPE_KEY;
+import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.ACCESS_TOKEN_KEY;
+import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.EXPIRES_IN_KEY;
+import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.TOKEN_TYPE_KEY;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -403,9 +403,15 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyOauth2Auth(subscription, "my-client-id", "my-client-secret");
 
-        // Override the mock response to return an 401 error.
+        // Override the mock response to return a 401 error.
         wiremock.resetAll();
-        wiremock.stubFor(post("/oauth2endpoint").willReturn(unauthorized()));
+        wiremock.stubFor(
+            post("/oauth2endpoint").willReturn(
+                unauthorized()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}")
+            )
+        );
 
         webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
 
@@ -425,10 +431,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         configureWebhookConcurrency(api, 1);
-        configureMockEndpoint(api, 10, messageCount);
+        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between messages.
+        configureMockEndpoint(api, 2000, messageCount);
         deploy(api);
 
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
@@ -439,7 +445,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
-        // First token expires immediately.
+        // First token expires in 1 second.
         wiremock.stubFor(
             post("/oauth2endpoint")
                 .inScenario("Oauth Scenario")
@@ -452,7 +458,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                             ACCESS_TOKEN_KEY +
                             "\":\"token-from-oauth2-server-first\", \"" +
                             EXPIRES_IN_KEY +
-                            "\": 0}"
+                            "\": 1}"
                     )
                 )
                 .willSetStateTo("Second call")
@@ -466,9 +472,9 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 .willReturn(ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY + "\":\"token-from-oauth2-server-second\"}"))
         );
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertComplete();
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(30, SECONDS).assertComplete();
 
-        // Make sure the oauth server has been called twice (first token expiring immediately, second never expires).
+        // Make sure the oauth server has been called twice (first token expiring after 1s, second never expires).
         wiremock.verify(2, postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
 
         // Make sure webhook has been call once with the first token which then expires.
@@ -486,6 +492,152 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
                 "Authorization",
                 equalToIgnoreCase("Bearer token-from-oauth2-server-second")
+            )
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            "test-issuer",
+            "test-subject",
+            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
+        );
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the token endpoint has been called with the JWT bearer grant type.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // And the messages received with the access token from the JWT profile token endpoint.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_failure() throws JsonProcessingException {
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            "test-issuer",
+            "test-subject",
+            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
+        );
+
+        // Override the mock response to return a 401 error.
+        wiremock.resetAll();
+        wiremock.stubFor(
+            post("/jwt-token-endpoint").willReturn(
+                unauthorized()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"error\":\"invalid_grant\",\"error_description\":\"JWT assertion is invalid\"}")
+            )
+        );
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+
+        // Make sure the token endpoint has been called.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // Make sure webhook has not been called because no token has been generated.
+        wiremock.verify(0, postRequestedFor(urlPathEqualTo(callbackPath)));
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_when_token_expired_and_is_renewed(
+        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
+    ) throws JsonProcessingException {
+        final int messageCount = 3;
+
+        // Force concurrency to 1 because of wiremock scenario not supporting concurrency.
+        configureWebhookConcurrency(api, 1);
+        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between messages.
+        configureMockEndpoint(api, 2000, messageCount);
+        deploy(api);
+
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            "test-issuer",
+            "test-subject",
+            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
+        );
+
+        // Override the mock response to override token endpoint response.
+        wiremock.resetAll();
+
+        wiremock.stubFor(post(callbackPath).willReturn(ok()));
+
+        // First token expires in 1 second.
+        wiremock.stubFor(
+            post("/jwt-token-endpoint")
+                .inScenario("JwtProfile Scenario")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(
+                    ok(
+                        "{\"" +
+                            TOKEN_TYPE_KEY +
+                            "\":\"Bearer\",\"" +
+                            ACCESS_TOKEN_KEY +
+                            "\":\"token-from-jwt-profile-server-first\", \"" +
+                            EXPIRES_IN_KEY +
+                            "\": 1}"
+                    )
+                )
+                .willSetStateTo("Second call")
+        );
+
+        // Second token never expires.
+        wiremock.stubFor(
+            post("/jwt-token-endpoint")
+                .inScenario("JwtProfile Scenario")
+                .whenScenarioStateIs("Second call")
+                .willReturn(
+                    ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY + "\":\"token-from-jwt-profile-server-second\"}")
+                )
+        );
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(30, SECONDS).assertComplete();
+
+        // Make sure the token endpoint has been called twice (first token expiring after 1s, second never expires).
+        wiremock.verify(2, postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // Make sure webhook has been called once with the first token which then expires.
+        wiremock.verify(
+            1,
+            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
+                "Authorization",
+                equalToIgnoreCase("Bearer token-from-jwt-profile-server-first")
+            )
+        );
+
+        // Then other calls with the new second token.
+        wiremock.verify(
+            2,
+            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
+                "Authorization",
+                equalToIgnoreCase("Bearer token-from-jwt-profile-server-second")
             )
         );
     }
