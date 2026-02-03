@@ -16,22 +16,35 @@
 package io.gravitee.apim.core.application_certificate.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CreateClientCertificateUseCaseTest {
 
     private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+
+    @Mock
+    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+
     private CreateClientCertificateUseCase createClientCertificateUseCase;
 
     @BeforeEach
     void setUp() {
         clientCertificateCrudService.reset();
-        createClientCertificateUseCase = new CreateClientCertificateUseCase(clientCertificateCrudService);
+        createClientCertificateUseCase = new CreateClientCertificateUseCase(
+            clientCertificateCrudService,
+            applicationCertificatesUpdateDomainService
+        );
     }
 
     @Test
@@ -46,5 +59,6 @@ class CreateClientCertificateUseCaseTest {
         assertThat(result.clientCertificate().applicationId()).isEqualTo(appId);
         assertThat(result.clientCertificate().name()).isEqualTo("Test Certificate");
         assertThat(clientCertificateCrudService.storage()).hasSize(1);
+        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
     }
 }

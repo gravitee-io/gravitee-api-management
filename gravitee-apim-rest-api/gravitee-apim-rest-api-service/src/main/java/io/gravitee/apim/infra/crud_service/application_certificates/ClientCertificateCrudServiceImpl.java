@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.application_certificates;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.security.CertificateUtils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientCertificateRepository;
@@ -46,7 +47,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.jcajce.provider.digest.SHA256;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -87,7 +87,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             log.debug("Create client certificate for application: {}", applicationId);
 
             X509Certificate x509Certificate = parseCertificate(createClientCertificate.certificate());
-            String fingerprint = computeFingerprint(x509Certificate);
+            String fingerprint = CertificateUtils.generateThumbprint(x509Certificate, "SHA-256");
             String environmentId = GraviteeContext.getCurrentEnvironment();
 
             if (clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId)) {
@@ -249,14 +249,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             throw new ClientCertificateAuthorityException();
         }
         return certificate;
-    }
-
-    private String computeFingerprint(X509Certificate certificate) {
-        try {
-            return DatatypeConverter.printHexBinary(new SHA256.Digest().digest(certificate.getEncoded())).toLowerCase();
-        } catch (CertificateEncodingException e) {
-            throw new TechnicalManagementException("Failed to compute certificate fingerprint", e);
-        }
     }
 
     private io.gravitee.repository.management.model.ClientCertificateStatus computeStatus(Date startsAt, Date endsAt) {

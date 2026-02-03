@@ -17,8 +17,11 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
@@ -26,25 +29,37 @@ import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class DeleteClientCertificateUseCaseTest {
 
     private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+
+    @Mock
+    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+
     private DeleteClientCertificateUseCase deleteClientCertificateUseCase;
 
     @BeforeEach
     void setUp() {
         clientCertificateCrudService.reset();
-        deleteClientCertificateUseCase = new DeleteClientCertificateUseCase(clientCertificateCrudService);
+        deleteClientCertificateUseCase = new DeleteClientCertificateUseCase(
+            clientCertificateCrudService,
+            applicationCertificatesUpdateDomainService
+        );
     }
 
     @Test
     void should_delete_client_certificate() {
         var certId = "cert-id";
+        var appId = "app-id";
         var certificate = new ClientCertificate(
             certId,
             "cross-id",
-            "app-id",
+            appId,
             "Test Certificate",
             new Date(),
             new Date(),
@@ -64,6 +79,8 @@ class DeleteClientCertificateUseCaseTest {
         deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));
 
         assertThat(clientCertificateCrudService.storage()).isEmpty();
+
+        verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
     }
 
     @Test

@@ -61,18 +61,24 @@ public class SubscriptionTrustStoreLoaderManager {
             .map(s -> (VertxServer<?, ?>) s)
             .forEach(server -> server.trustStoreLoaderManager().registerLoader(loader));
         subscriptionTrustStoreLoaders.put(subscription.getId(), loader);
-        subscriptionsByApi.put(
-            buildCacheKeyFromCertificateDigest(subscription.getApi(), loader.certificateDigest(), subscription.getPlan()),
-            subscription
-        );
+        loader
+            .certificateDigests()
+            .forEach(digest ->
+                subscriptionsByApi.put(
+                    buildCacheKeyFromCertificateDigest(subscription.getApi(), digest, subscription.getPlan()),
+                    subscription
+                )
+            );
     }
 
     public void unregisterSubscription(Subscription subscription) {
         final SubscriptionTrustStoreLoader loader = subscriptionTrustStoreLoaders.remove(subscription.getId());
         if (loader != null) {
-            subscriptionsByApi.remove(
-                buildCacheKeyFromCertificateDigest(subscription.getApi(), loader.certificateDigest(), subscription.getPlan())
-            );
+            loader
+                .certificateDigests()
+                .forEach(digest ->
+                    subscriptionsByApi.remove(buildCacheKeyFromCertificateDigest(subscription.getApi(), digest, subscription.getPlan()))
+                );
             log.debug("Stopping TrustStoreLoader for subscription {}", subscription.getId());
             loader.stop();
             loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));

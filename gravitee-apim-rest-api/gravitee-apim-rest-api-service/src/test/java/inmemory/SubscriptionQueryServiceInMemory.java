@@ -15,16 +15,21 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
     private final ArrayList<SubscriptionEntity> storage;
+    private PlanCrudService planCrudService;
 
     public SubscriptionQueryServiceInMemory() {
         storage = new ArrayList<>();
@@ -32,6 +37,18 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
 
     public SubscriptionQueryServiceInMemory(SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory) {
         storage = subscriptionCrudServiceInMemory.storage;
+    }
+
+    public SubscriptionQueryServiceInMemory(
+        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory,
+        PlanCrudService planCrudService
+    ) {
+        storage = subscriptionCrudServiceInMemory.storage;
+        this.planCrudService = planCrudService;
+    }
+
+    public void setPlanCrudService(PlanCrudService planCrudService) {
+        this.planCrudService = planCrudService;
     }
 
     @Override
@@ -84,6 +101,40 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                     apiId.equals(subscription.getApiId()) &&
                     applicationId.equals(subscription.getApplicationId())
             )
+            .toList();
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
+        String applicationId,
+        Collection<String> planSecurityTypes
+    ) {
+        if (planCrudService == null) {
+            throw new IllegalStateException("PlanCrudService must be set to use findActiveByApplicationIdAndPlanSecurityTypes");
+        }
+
+        Set<String> securityTypesSet = Set.copyOf(planSecurityTypes);
+
+        return storage
+            .stream()
+            .filter(
+                subscription ->
+                    List.of(
+                        SubscriptionEntity.Status.ACCEPTED,
+                        SubscriptionEntity.Status.PENDING,
+                        SubscriptionEntity.Status.PAUSED
+                    ).contains(subscription.getStatus()) &&
+                    applicationId.equals(subscription.getApplicationId())
+            )
+            .filter(subscription -> {
+                try {
+                    Plan plan = planCrudService.getById(subscription.getPlanId());
+                    var planSecurity = plan.getPlanSecurity();
+                    return planSecurity != null && securityTypesSet.contains(planSecurity.getType());
+                } catch (Exception e) {
+                    return false;
+                }
+            })
             .toList();
     }
 
