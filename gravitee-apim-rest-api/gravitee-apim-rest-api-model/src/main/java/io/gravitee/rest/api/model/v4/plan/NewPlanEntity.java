@@ -51,7 +51,12 @@ public class NewPlanEntity {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+
+    @Deprecated
     private String apiId;
+
+    private String referenceId;
+    private GenericPlanEntity.ReferenceType referenceType;
 
     @NotNull
     private String name;
@@ -66,6 +71,7 @@ public class NewPlanEntity {
     private PlanSecurity security;
 
     @NotNull
+    @Deprecated
     private PlanType type = PlanType.API;
 
     @NotNull

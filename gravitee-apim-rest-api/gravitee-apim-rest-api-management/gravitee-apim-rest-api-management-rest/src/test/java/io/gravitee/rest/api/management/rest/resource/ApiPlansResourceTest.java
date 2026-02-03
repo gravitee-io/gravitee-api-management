@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -87,7 +88,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);
-        existingPlan.setApi(API);
+        existingPlan.setReferenceId(API);
+        existingPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closed-plan-id");
@@ -108,7 +110,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);
-        existingPlan.setApi(API);
+        existingPlan.setReferenceId(API);
+        existingPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
         when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);

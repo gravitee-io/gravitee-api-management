@@ -65,6 +65,30 @@ public class ReorderPlanDomainService {
         return planCrudService.update(toUpdate);
     }
 
+    public Plan reorderAfterUpdateForApiProduct(Plan toUpdate) {
+        var toReorder = planQueryService
+            .findAllForApiProduct(toUpdate.getReferenceId())
+            .stream()
+            .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
+            .sorted(Comparator.comparingInt(Plan::getOrder))
+            .toList();
+        if (toUpdate.getOrder() < 1) {
+            toUpdate.setOrder(1);
+        } else if (toUpdate.getOrder() > toReorder.size() + 1) {
+            toUpdate.setOrder(toReorder.size() + 1);
+        }
+
+        for (int i = 0; i < toReorder.size(); i++) {
+            int newOrder = (i + 1) < toUpdate.getOrder() ? (i + 1) : (i + 2);
+            var planToReorder = toReorder.get(i);
+            if (planToReorder.getOrder() != newOrder) {
+                planCrudService.update(planToReorder.toBuilder().order(newOrder).build());
+            }
+        }
+
+        return planCrudService.update(toUpdate);
+    }
+
     /**
      * Refresh the order of existing plans when plans have been deleted.
      *

@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
@@ -75,11 +76,33 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
-    public Collection<Plan> findByApiId(String apiId) {
+    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType) {
         return storage
             .stream()
-            .filter(plan -> plan.getApiId().equals(apiId))
+            .filter(
+                plan ->
+                    planId.equals(plan.getId()) &&
+                    plan.getReferenceId().equals(referenceId) &&
+                    plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.valueOf(referenceType))
+            )
+            .findFirst();
+    }
+
+    @Override
+    public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
+        return storage
+            .stream()
+            .filter(
+                plan ->
+                    plan.getReferenceId().equals(referenceId) &&
+                    plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.valueOf(referenceType))
+            )
             .toList();
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        return findByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API.name());
     }
 
     @Override

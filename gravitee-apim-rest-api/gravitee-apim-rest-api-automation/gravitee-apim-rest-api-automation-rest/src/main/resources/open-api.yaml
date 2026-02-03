@@ -1766,7 +1766,7 @@ components:
         - API
         - CATALOG
       default: API
-    PlanValidation: 
+    PlanValidation:
       type: string
       description: |
         Specifies if subscriptions must be manually validated by a human actor.

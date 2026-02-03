@@ -1138,7 +1138,7 @@ class RollbackApiUseCaseTest {
                     ORGANIZATION_ID,
                     ENVIRONMENT_ID,
                     AuditEntity.AuditReferenceType.API,
-                    plan.getApiId(),
+                    plan.getReferenceId(),
                     USER_ID,
                     Map.of("PLAN", plan.getId()),
                     PlanAuditEvent.PLAN_CLOSED.name(),

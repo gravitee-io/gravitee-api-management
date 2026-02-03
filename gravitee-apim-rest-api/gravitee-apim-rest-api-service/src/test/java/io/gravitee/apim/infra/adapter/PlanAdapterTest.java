@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -508,6 +509,67 @@ class PlanAdapterTest {
             assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getPlanMode()).isEqualTo(PlanMode.PUSH);
             assertThat(planEntity.getPlanSecurity()).isNull();
+        }
+    }
+
+    @Nested
+    class DefaultMethods {
+
+        @Test
+        void computeBasePlanEntityMode_should_default_to_standard_when_null() {
+            var plan = Plan.builder().mode(null).build();
+
+            assertThat(PlanAdapter.INSTANCE.computeBasePlanEntityMode(plan)).isEqualTo(PlanMode.STANDARD);
+        }
+
+        @Test
+        void computeBasePlanEntityStatusV4_should_default_to_published_when_null() {
+            var plan = Plan.builder().status(null).build();
+
+            assertThat(PlanAdapter.INSTANCE.computeBasePlanEntityStatusV4(plan)).isEqualTo(PlanStatus.PUBLISHED);
+        }
+
+        @Test
+        void computeBasePlanEntityStatusV2_should_default_to_published_when_null() {
+            var plan = Plan.builder().status(null).build();
+
+            assertThat(PlanAdapter.INSTANCE.computeBasePlanEntityStatusV2(plan)).isEqualTo(io.gravitee.rest.api.model.PlanStatus.PUBLISHED);
+        }
+
+        @Test
+        void computeBasePlanEntitySecurityV4_should_return_null_for_push_mode() {
+            var plan = Plan.builder().mode(Plan.PlanMode.PUSH).build();
+
+            assertThat(PlanAdapter.INSTANCE.computeBasePlanEntitySecurityV4(plan)).isNull();
+        }
+
+        @Test
+        void computeBasePlanEntitySecurityV4_should_build_security_for_standard_mode() {
+            var plan = Plan.builder()
+                .mode(Plan.PlanMode.STANDARD)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("{\"nice\":\"config\"}")
+                .build();
+
+            assertThat(PlanAdapter.INSTANCE.computeBasePlanEntitySecurityV4(plan)).isEqualTo(
+                PlanSecurity.builder().type("api-key").configuration("{\"nice\":\"config\"}").build()
+            );
+        }
+
+        @Test
+        void computeBasePlanEntityPaths_should_return_null_when_definition_is_invalid_json() {
+            var plan = Plan.builder().definition("{not-json").build();
+
+            Map<String, List<Rule>> paths = PlanAdapter.INSTANCE.computeBasePlanEntityPaths(plan);
+
+            assertThat(paths).isNull();
+        }
+
+        @Test
+        void serializeV2PlanPaths_should_return_null_when_paths_empty() {
+            var v2 = io.gravitee.definition.model.Plan.builder().paths(Map.of()).build();
+
+            assertThat(PlanAdapter.INSTANCE.serializeV2PlanPaths(v2)).isNull();
         }
     }
 

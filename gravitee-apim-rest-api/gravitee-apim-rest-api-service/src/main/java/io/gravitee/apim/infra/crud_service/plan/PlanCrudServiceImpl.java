@@ -86,13 +86,44 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
-    public Collection<Plan> findByApiId(String apiId) {
+    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType) {
         try {
-            log.debug("Find a plan by API id : {}", apiId);
-            return stream(planRepository.findByApi(apiId)).map(PlanAdapter.INSTANCE::fromRepository).toList();
+            log.debug("Get plan by id : {}", planId);
+            return planRepository
+                .findByIdAndReferenceIdAndReferenceType(
+                    planId,
+                    referenceId,
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType)
+                )
+                .map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find a plan by id: %s", apiId), ex);
+            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
         }
+    }
+
+    @Override
+    public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
+        try {
+            log.debug("Find a plan by reference id : {}", referenceId);
+            return stream(
+                planRepository.findByReferenceIdAndReferenceType(
+                    referenceId,
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType)
+                )
+            )
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .toList();
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to find a plan by reference id: %s", referenceId),
+                ex
+            );
+        }
+    }
+
+    @Override
+    public Collection<Plan> findByApiId(String apiId) {
+        return findByReferenceIdAndReferenceType(apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API.name());
     }
 
     @Override

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiService;
@@ -136,8 +137,8 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = CREATE) })
     public Response createApiPlan(@Parameter(name = "plan", required = true) @Valid @NotNull NewPlanEntity newPlanEntity) {
-        newPlanEntity.setApi(api);
-        newPlanEntity.setType(PlanType.API);
+        newPlanEntity.setReferenceId(api);
+        newPlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         PlanEntity planEntity = planService.create(GraviteeContext.getExecutionContext(), newPlanEntity);
 
@@ -172,7 +173,7 @@ public class ApiPlansResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (!planEntity.getApi().contains(api)) {
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
@@ -197,7 +198,7 @@ public class ApiPlansResource extends AbstractResource {
             hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)
         ) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
-            if (!planEntity.getApi().equals(api)) {
+            if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
                     .build();
@@ -218,7 +219,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response deleteApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (!planEntity.getApi().equals(api)) {
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
@@ -241,7 +242,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response closeApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (!planEntity.getApi().equals(api)) {
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
@@ -264,7 +265,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response publishApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (!planEntity.getApi().equals(api)) {
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
@@ -305,7 +306,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (!planEntity.getApi().equals(api)) {
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
@@ -314,8 +315,13 @@ public class ApiPlansResource extends AbstractResource {
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {
         if (
-            hasPermission(GraviteeContext.getExecutionContext(), API_GATEWAY_DEFINITION, entity.getApi(), RolePermissionAction.READ) &&
-            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, entity.getApi(), RolePermissionAction.READ)
+            hasPermission(
+                GraviteeContext.getExecutionContext(),
+                API_GATEWAY_DEFINITION,
+                entity.getReferenceId(),
+                RolePermissionAction.READ
+            ) &&
+            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, entity.getReferenceId(), RolePermissionAction.READ)
         ) {
             // Return complete information if user has permission.
             return entity;

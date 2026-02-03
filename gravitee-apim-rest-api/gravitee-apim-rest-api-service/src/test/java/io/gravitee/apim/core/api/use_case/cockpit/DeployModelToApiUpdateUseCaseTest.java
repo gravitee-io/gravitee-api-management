@@ -53,6 +53,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -208,6 +209,8 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
                 .planDefinitionHttpV4(
                     io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.PUBLISHED)
@@ -273,6 +276,8 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
                 .planDefinitionHttpV4(
                     io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.CLOSED)
@@ -341,6 +346,8 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
                 .planDefinitionHttpV4(
                     io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.CLOSED)

@@ -244,7 +244,7 @@ public class PlansDataFixUpgraderTest {
         assertTrue(apiPlansMap.containsKey("plan47"));
         assertTrue(apiPlansMap.containsKey("plan22"));
         assertTrue(apiPlansMap.containsKey("plan88"));
-        verify(planRepository, times(2)).create(argThat(plan -> plan.getApi().equals("my-api-id")));
+        verify(planRepository, times(2)).create(argThat(plan -> plan.getReferenceId().equals("my-api-id")));
     }
 
     @Test

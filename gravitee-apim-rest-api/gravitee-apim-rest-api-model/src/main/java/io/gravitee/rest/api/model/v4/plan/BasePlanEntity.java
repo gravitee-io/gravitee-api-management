@@ -67,6 +67,7 @@ public class BasePlanEntity implements GenericPlanEntity {
      */
     private PlanValidationType validation;
 
+    @Deprecated
     private PlanType type;
 
     private PlanMode mode;
@@ -84,6 +85,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private PlanStatus status;
 
     @DeploymentRequired
+    @Deprecated
     private String apiId;
 
     private String environmentId;
@@ -97,7 +99,14 @@ public class BasePlanEntity implements GenericPlanEntity {
     private String generalConditionsHrid;
     private ApiType apiType;
 
+    @JsonIgnore
+    private ReferenceType referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
     @Override
+    @Deprecated
     public PlanType getPlanType() {
         return type;
     }
@@ -120,5 +129,21 @@ public class BasePlanEntity implements GenericPlanEntity {
     @Override
     public PlanValidationType getPlanValidation() {
         return validation;
+    }
+
+    public ReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(ReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 }

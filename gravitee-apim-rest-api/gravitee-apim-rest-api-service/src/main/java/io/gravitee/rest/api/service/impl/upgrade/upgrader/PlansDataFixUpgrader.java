@@ -218,12 +218,12 @@ public class PlansDataFixUpgrader implements Upgrader {
     private Plan planFromDefinitionPlan(io.gravitee.definition.model.Plan definitionPlan, String apiId) {
         Plan plan = new Plan();
         plan.setId(UuidString.generateRandom());
-        plan.setType(Plan.PlanType.API);
         plan.setValidation(Plan.PlanValidationType.MANUAL);
         plan.setStatus(Plan.Status.DEPRECATED);
         plan.setName(definitionPlan.getName().concat(PLAN_NAME_SUFFIX));
         plan.setDescription(PLAN_DESCRIPTION);
-        plan.setApi(apiId);
+        plan.setReferenceId(apiId);
+        plan.setReferenceType(Plan.PlanReferenceType.API);
         plan.setSecurityDefinition(definitionPlan.getSecurityDefinition());
         plan.setSelectionRule(definitionPlan.getSelectionRule());
         plan.setTags(definitionPlan.getTags());

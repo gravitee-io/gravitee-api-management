@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
@@ -270,6 +271,133 @@ public class PlanCrudServiceImplTest {
     }
 
     @Nested
+    class FindByPlanIdAndReferenceId {
+
+        @Test
+        void should_return_plan_when_found() throws TechnicalException {
+            var planId = "plan-id";
+            var referenceId = "api-product-id";
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, Plan.PlanReferenceType.API_PRODUCT)).thenReturn(
+                Optional.of(
+                    planV4().id(planId).api("api-id").referenceId(referenceId).referenceType(Plan.PlanReferenceType.API_PRODUCT).build()
+                )
+            );
+
+            var foundPlan = service.findByPlanIdAndReferenceIdAndReferenceType(
+                planId,
+                referenceId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+            );
+
+            Assertions.assertThat(foundPlan).isPresent();
+            Assertions.assertThat(foundPlan.get().getId()).isEqualTo(planId);
+            Assertions.assertThat(foundPlan.get().getReferenceId()).isEqualTo(referenceId);
+            Assertions.assertThat(foundPlan.get().getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        }
+
+        @Test
+        void should_return_empty_when_plan_not_found() throws TechnicalException {
+            var planId = "plan-id";
+            var referenceId = "api-product-id";
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, Plan.PlanReferenceType.API_PRODUCT)).thenReturn(
+                Optional.empty()
+            );
+
+            var foundPlan = service.findByPlanIdAndReferenceIdAndReferenceType(
+                planId,
+                referenceId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+            );
+
+            Assertions.assertThat(foundPlan).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            var planId = "plan-id";
+            var referenceId = "api-product-id";
+            when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, Plan.PlanReferenceType.API_PRODUCT)).thenThrow(
+                TechnicalException.class
+            );
+
+            Throwable throwable = catchThrowable(() ->
+                service.findByPlanIdAndReferenceIdAndReferenceType(planId, referenceId, GenericPlanEntity.ReferenceType.API_PRODUCT.name())
+            );
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to get a plan by id: " + planId);
+        }
+    }
+
+    @Nested
+    class FindByApiId {
+
+        @Test
+        void should_return_plans_for_api_id() throws TechnicalException {
+            var apiId = "api-id";
+            when(planRepository.findByReferenceIdAndReferenceType(apiId, Plan.PlanReferenceType.API)).thenReturn(
+                Set.of(planV4().id("plan-1").api(apiId).build(), planV4().id("plan-2").api(apiId).build())
+            );
+
+            var plans = service.findByApiId(apiId);
+
+            Assertions.assertThat(plans)
+                .extracting(io.gravitee.apim.core.plan.model.Plan::getId)
+                .containsExactlyInAnyOrder("plan-1", "plan-2");
+        }
+
+        @Test
+        void should_return_empty_list_when_repository_returns_null() throws TechnicalException {
+            var apiId = "api-id";
+            when(planRepository.findByApi(apiId)).thenReturn(null);
+
+            var plans = service.findByApiId(apiId);
+
+            Assertions.assertThat(plans).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            var apiId = "api-id";
+            when(planRepository.findByReferenceIdAndReferenceType(apiId, Plan.PlanReferenceType.API)).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByApiId(apiId));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to find a plan by reference id: " + apiId);
+        }
+    }
+
+    @Nested
+    class FindByIds {
+
+        @Test
+        void should_return_plans_for_ids() throws TechnicalException {
+            var apiId = "api-id";
+            when(planRepository.findByIdIn(List.of("plan-1", "plan-2"))).thenReturn(
+                Set.of(planV4().id("plan-1").api(apiId).build(), planV4().id("plan-2").api(apiId).build())
+            );
+
+            var plans = service.findByIds(List.of("plan-1", "plan-2"));
+
+            Assertions.assertThat(plans)
+                .extracting(io.gravitee.apim.core.plan.model.Plan::getId)
+                .containsExactlyInAnyOrder("plan-1", "plan-2");
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(planRepository.findByIdIn(any())).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByIds(List.of("plan-1")));
+
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
+    @Nested
     class Create {
 
         @Test
@@ -282,6 +410,8 @@ public class PlanCrudServiceImplTest {
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .referenceId("my-api")
+                .referenceType(GenericPlanEntity.ReferenceType.API)
                 .commentRequired(true)
                 .build();
             when(planRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -443,6 +573,8 @@ public class PlanCrudServiceImplTest {
             when(planRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             var toUpdate = PlanFixtures.HttpV4.aKeyless();
+            toUpdate.setReferenceId("my-api");
+            toUpdate.setReferenceType(GenericPlanEntity.ReferenceType.API);
             var result = service.update(toUpdate);
 
             assertThat(result).isEqualTo(toUpdate);

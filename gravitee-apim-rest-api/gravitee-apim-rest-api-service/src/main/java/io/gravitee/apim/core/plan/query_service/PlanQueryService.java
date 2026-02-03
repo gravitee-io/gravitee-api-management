@@ -23,4 +23,5 @@ public interface PlanQueryService {
     List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId);
 
     List<Plan> findAllByApiId(String apiId);
+    List<Plan> findAllForApiProduct(String referenceId);
 }

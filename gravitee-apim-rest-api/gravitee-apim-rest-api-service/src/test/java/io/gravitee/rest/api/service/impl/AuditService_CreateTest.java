@@ -123,6 +123,42 @@ public class AuditService_CreateTest {
     }
 
     @Test
+    public void should_createApiProductAuditLog() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String apiProductId = "apiProductId";
+        Date createdAt = new Date(1486771200000L);
+
+        when(auditRepository.create(any())).thenReturn(new Audit());
+
+        auditService.createApiProductAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, "123"))
+                .event(PLAN_CREATED)
+                .createdAt(createdAt)
+                .oldValue(singletonMap("name", "Joe"))
+                .newValue(singletonMap("name", "Bar"))
+                .build(),
+            apiProductId
+        );
+
+        verify(auditRepository, times(1)).create(
+            argThat(
+                arg ->
+                    arg != null &&
+                    !arg.getId().isEmpty() &&
+                    arg.getOrganizationId().equals("DEFAULT") &&
+                    arg.getEnvironmentId().equals("DEFAULT") &&
+                    arg.getReferenceType().equals(Audit.AuditReferenceType.API_PRODUCT) &&
+                    arg.getReferenceId().equals(apiProductId) &&
+                    arg.getCreatedAt().equals(createdAt) &&
+                    arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
+                    arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
+            )
+        );
+    }
+
+    @Test
     public void should_createAuditLog_with_AuditReferenceType_ENVIRONMENT() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Date createdAt = new Date(1486771200000L);

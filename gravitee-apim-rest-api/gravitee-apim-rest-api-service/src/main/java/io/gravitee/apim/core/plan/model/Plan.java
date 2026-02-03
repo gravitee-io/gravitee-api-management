@@ -77,8 +77,10 @@ public class Plan implements GenericPlanEntity {
     private PlanValidationType validation;
 
     @Builder.Default
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private PlanType type = PlanType.API;
 
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String apiId;
 
     private String environmentId;
@@ -101,6 +103,8 @@ public class Plan implements GenericPlanEntity {
     private io.gravitee.definition.model.Plan planDefinitionV2;
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
     private ApiType apiType;
+    private String referenceId;
+    private ReferenceType referenceType;
 
     public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
         this.setPlanDefinitionHttpV4(planDefinitionV4);
@@ -111,8 +115,8 @@ public class Plan implements GenericPlanEntity {
         this.setPlanMode(planDefinitionV4.getMode());
         this.setPlanStatus(planDefinitionV4.getStatus());
         this.setPlanTags(planDefinitionV4.getTags());
-        this.setType(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
-        this.setApiId(apiId);
+        this.setReferenceId(apiId);
+        this.setReferenceType(ReferenceType.API);
     }
 
     public AbstractPlan getPlanDefinitionV4() {
@@ -197,6 +201,7 @@ public class Plan implements GenericPlanEntity {
         return this;
     }
 
+    @Deprecated
     public Plan setApiId(String apiId) {
         this.apiId = apiId;
         return this;
@@ -307,6 +312,8 @@ public class Plan implements GenericPlanEntity {
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
             .validation(updated.validation)
+            .referenceId(updated.referenceId)
+            .referenceType(updated.referenceType)
             .build();
     }
 

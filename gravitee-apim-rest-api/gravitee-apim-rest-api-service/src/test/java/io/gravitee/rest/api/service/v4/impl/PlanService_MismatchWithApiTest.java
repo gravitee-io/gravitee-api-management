@@ -51,7 +51,7 @@ public class PlanService_MismatchWithApiTest {
     @Test
     public void shouldNotMismatchWithApi() throws TechnicalException {
         Plan plan = mock(Plan.class);
-        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByIdIn(List.of(PLAN_ID))).thenReturn(Set.of(plan));
 
         assertFalse(planService.anyPlanMismatchWithApi(List.of(PLAN_ID), API_ID));
@@ -60,7 +60,7 @@ public class PlanService_MismatchWithApiTest {
     @Test
     public void shouldMismatchWithApi() throws TechnicalException {
         Plan plan = mock(Plan.class);
-        when(plan.getApi()).thenReturn("OTHER_API");
+        when(plan.getReferenceId()).thenReturn("OTHER_API");
         when(planRepository.findByIdIn(List.of(PLAN_ID))).thenReturn(Set.of(plan));
 
         assertTrue(planService.anyPlanMismatchWithApi(List.of(PLAN_ID), API_ID));

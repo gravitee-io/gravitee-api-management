@@ -128,6 +128,7 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
@@ -1041,6 +1042,8 @@ class IngestFederatedApisUseCaseTest {
                     )
                     .validation(Plan.PlanValidationType.MANUAL)
                     .apiId("environment-idintegration-idasset-uid")
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .referenceId("environment-idintegration-idasset-uid")
                     .build()
             );
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
@@ -1162,6 +1165,8 @@ class IngestFederatedApisUseCaseTest {
                     .description("Description 1")
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .definitionVersion(DefinitionVersion.FEDERATED)
+                    .referenceId("environment-idintegration-idasset-uid")
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
                     .federatedPlanDefinition(
                         FederatedPlan.builder()
                             .id("generated-id")

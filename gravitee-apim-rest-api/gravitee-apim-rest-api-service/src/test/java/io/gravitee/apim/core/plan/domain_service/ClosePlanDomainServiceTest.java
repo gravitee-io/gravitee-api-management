@@ -138,7 +138,7 @@ class ClosePlanDomainServiceTest {
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(plan.getApiId())
+                    .referenceId(plan.getReferenceId())
                     .user(USER_ID)
                     .properties(Map.of("PLAN", plan.getId()))
                     .event(PlanAuditEvent.PLAN_CLOSED.name())
