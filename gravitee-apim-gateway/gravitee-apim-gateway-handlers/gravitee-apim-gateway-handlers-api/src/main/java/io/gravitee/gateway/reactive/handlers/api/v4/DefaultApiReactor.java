@@ -36,6 +36,8 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -155,6 +157,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private final boolean validateSubscriptionEnabled;
     protected List<Acceptor<?>> acceptors;
     protected final LogGuardService logGuardService;
+    private final ApiProductRegistry apiProductRegistry;
+    private final ProductPlanDefinitionCache productPlanDefinitionCache;
 
     public DefaultApiReactor(
         final Api api,
@@ -177,8 +181,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext,
-        final LogGuardService logGuardService
+        final LogGuardService logGuardService,
+        final ApiProductRegistry apiProductRegistry,
+        final ProductPlanDefinitionCache productPlanDefinitionCache
     ) {
+        // apiProductRegistry and productPlanDefinitionCache may be null when API Product support is not loaded
         super(
             configuration,
             api,
@@ -197,6 +204,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.eventManager = eventManager;
         this.httpAcceptorFactory = httpAcceptorFactory;
         this.logGuardService = logGuardService;
+        this.apiProductRegistry = apiProductRegistry;
+        this.productPlanDefinitionCache = productPlanDefinitionCache;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
 
@@ -546,7 +555,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
         policyManager.start();
 
         // Create httpSecurityChain once policy manager has been started.
-        httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
+        httpSecurityChain = new HttpSecurityChain(
+            api.getDefinition(),
+            policyManager,
+            ExecutionPhase.REQUEST,
+            api.getEnvironmentId(),
+            apiProductRegistry,
+            productPlanDefinitionCache
+        );
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();

@@ -234,12 +234,7 @@ public class ApiHandlerConfiguration {
         ApiManager apiManager,
         io.gravitee.gateway.handlers.api.registry.ApiProductRegistry apiProductRegistry
     ) {
-        return new SubscriptionCacheService(
-            apiKeyService,
-            subscriptionTrustStoreLoaderManager,
-            apiManager,
-            apiProductRegistry
-        );
+        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
     }
 
     @Bean

@@ -23,6 +23,7 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -73,6 +74,8 @@ public class DeployerFactory {
 
     private final PlanRepository planRepository;
 
+    private final ProductPlanDefinitionCache productPlanDefinitionCache;
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,
@@ -121,6 +124,6 @@ public class DeployerFactory {
     }
 
     public ApiProductDeployer createApiProductDeployer() {
-        return new ApiProductDeployer(apiProductManager, planRepository, planCache, distributedSyncService);
+        return new ApiProductDeployer(apiProductManager, planRepository, planCache, distributedSyncService, productPlanDefinitionCache);
     }
 }

@@ -28,6 +28,8 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
@@ -68,6 +70,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -347,6 +350,15 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         LogGuardService logGuardService,
         ConnectionDrainManager connectionDrainManager
     ) {
+        ApiProductRegistry apiProductRegistry = null;
+        ProductPlanDefinitionCache productPlanDefinitionCache = null;
+        try {
+            apiProductRegistry = applicationContext.getBean(ApiProductRegistry.class);
+            productPlanDefinitionCache = applicationContext.getBean(ProductPlanDefinitionCache.class);
+        } catch (BeansException e) {
+            // API Product support may not be loaded
+        }
+
         return new DefaultApiReactor(
             api,
             deploymentContext,
@@ -368,7 +380,9 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             eventManager,
             httpAcceptorFactory,
             createTracingContext(api, "API_V4"),
-            logGuardService
+            logGuardService,
+            apiProductRegistry,
+            productPlanDefinitionCache
         );
     }
 
