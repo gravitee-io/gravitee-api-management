@@ -73,7 +73,11 @@ public class Plan {
      */
     private PlanValidationType validation;
 
+    /**
+     * @Deprecated since 4.11.0. Use referenceId and referenceType instead
+     */
     private PlanType type;
+
     private PlanMode mode;
 
     private Status status;
@@ -85,6 +89,7 @@ public class Plan {
 
     /**
      * The API used by this plan.
+     * @Deprecated since 4.11.0. Use referenceId and referenceType instead
      */
     private String api;
 
@@ -147,6 +152,10 @@ public class Plan {
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 
+    private String referenceId;
+
+    private PlanReferenceType referenceType;
+
     /**
      * The type of V4 API of this plan.
      */
@@ -182,6 +191,8 @@ public class Plan {
         this.commentRequired = cloned.commentRequired;
         this.securityDefinition = cloned.securityDefinition;
         this.apiType = cloned.apiType;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
     }
 
     @Override
@@ -233,6 +244,10 @@ public class Plan {
             excludedGroups +
             ", type=" +
             type +
+            ", referenceId=" +
+            referenceId +
+            ", referenceType=" +
+            referenceType +
             '}'
         );
     }
@@ -320,5 +335,10 @@ public class Plan {
          * Plan is deprecated
          */
         DEPRECATED,
+    }
+
+    public enum PlanReferenceType {
+        API,
+        API_PRODUCT,
     }
 }
