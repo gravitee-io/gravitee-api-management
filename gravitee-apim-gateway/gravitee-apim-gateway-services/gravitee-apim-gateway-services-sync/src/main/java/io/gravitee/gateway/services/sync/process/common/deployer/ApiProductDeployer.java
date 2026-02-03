@@ -17,6 +17,8 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import io.gravitee.gateway.services.sync.process.common.mapper.RepositoryPlanToDefinitionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -25,6 +27,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.PlanReferenceType;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -42,6 +45,7 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private final PlanRepository planRepository;
     private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
+    private final ProductPlanDefinitionCache productPlanDefinitionCache;
 
     @Override
     public Completable deploy(ApiProductReactorDeployable deployable) {
@@ -75,10 +79,24 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(apiProductId, PlanReferenceType.API_PRODUCT);
             Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
             planService.registerForApiProduct(apiProductId, planIds);
+
+            List<io.gravitee.definition.model.v4.plan.Plan> definitionPlans = plans
+                .stream()
+                .filter(p -> p.getStatus() == Plan.Status.PUBLISHED || p.getStatus() == Plan.Status.DEPRECATED)
+                .map(RepositoryPlanToDefinitionMapper::toDefinition)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
+            if (productPlanDefinitionCache != null) {
+                productPlanDefinitionCache.register(apiProductId, definitionPlans);
+            }
+
             log.debug("Registered {} plans for API Product [{}]", planIds.size(), apiProductId);
         } catch (Exception e) {
             log.warn("Failed to load plans for API Product [{}]: {}", apiProductId, e.getMessage());
             planService.registerForApiProduct(apiProductId, Set.of());
+            if (productPlanDefinitionCache != null) {
+                productPlanDefinitionCache.register(apiProductId, List.of());
+            }
         }
     }
 
@@ -96,6 +114,9 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
                 log.debug("Undeploying API Product [{}]", apiProductId);
                 apiProductManager.unregister(apiProductId);
                 planService.unregisterForApiProduct(apiProductId);
+                if (productPlanDefinitionCache != null) {
+                    productPlanDefinitionCache.unregister(apiProductId);
+                }
                 log.debug("API Product [{}] undeployed successfully", apiProductId);
             } catch (Exception e) {
                 throw new SyncException(String.format("An error occurred when trying to undeploy API Product [%s].", apiProductId), e);
