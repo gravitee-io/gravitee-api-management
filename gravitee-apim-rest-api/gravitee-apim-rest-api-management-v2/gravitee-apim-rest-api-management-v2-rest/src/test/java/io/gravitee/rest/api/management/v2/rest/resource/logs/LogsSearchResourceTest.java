@@ -617,6 +617,102 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(Objects.requireNonNull(r.getData().getFirst().getPlan()).getId()).isEqualTo(PLAN_1.getId());
                 });
         }
+
+        @Test
+        void should_filter_logs_by_transaction_id() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().transactionId("transaction1").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().transactionId("transaction2").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().transactionId("transaction3").build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(
+                    new Filter(
+                        new ArrayFilter()
+                            .name(FilterName.TRANSACTION_ID)
+                            .operator(Operator.IN)
+                            .value(List.of("transaction1", "transaction2"))
+                    )
+                );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                });
+        }
+
+        @Test
+        void should_filter_logs_by_Request_Id() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(
+                    new Filter(new ArrayFilter().name(FilterName.REQUEST_ID).operator(Operator.IN).value(List.of("req1", "req3")))
+                );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
+                });
+        }
+
+        @Test
+        void should_filter_logs_by_uri() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().uri("/foo").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().uri("/bar").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().uri("/foo/bar").build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new StringFilter().name(FilterName.URI).operator(Operator.EQ).value("/foo*")));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
+                });
+        }
     }
 
     @Nested
