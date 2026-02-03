@@ -201,7 +201,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
         try {
-            log.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
+            if (newPlan.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT)) {
+                return null;
+            }
+            log.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getReferenceId());
 
             if (Optional.ofNullable(newPlan.getMode()).orElse(PlanMode.STANDARD) == PlanMode.STANDARD) {
                 if (newPlan.getSecurity() == null) {
@@ -213,7 +216,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 throw new PlanInvalidException("Security type is forbidden for plan with 'Push' mode");
             }
 
-            Api api = apiRepository.findById(newPlan.getApiId()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApiId()));
+            Api api = apiRepository
+                .findById(newPlan.getReferenceId())
+                .orElseThrow(() -> new ApiNotFoundException(newPlan.getReferenceId()));
 
             newPlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), newPlan.getFlows()));
 
@@ -244,14 +249,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(null)
                     .newValue(plan)
                     .build(),
-                newPlan.getApiId()
+                newPlan.getReferenceId()
             );
             return mapToEntity(plan);
         } catch (TechnicalException ex) {
             String errorMsg = String.format(
                 "An error occurs while trying to create a plan %s for API %s",
                 newPlan.getName(),
-                newPlan.getApiId()
+                newPlan.getReferenceId()
             );
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
@@ -320,16 +325,13 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setType(oldPlan.getType());
             newPlan.setStatus(oldPlan.getStatus());
             newPlan.setOrder(oldPlan.getOrder());
-            newPlan.setApi(oldPlan.getApi());
             newPlan.setReferenceId(oldPlan.getReferenceId());
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
             newPlan.setMode(oldPlan.getMode());
-            newPlan.setApiType(oldPlan.getApiType());
-            newPlan.setReferenceType(
-                oldPlan.getType() == null ? Plan.PlanReferenceType.API : Plan.PlanReferenceType.valueOf(oldPlan.getType().name())
-            );
+            newPlan.setReferenceType(oldPlan.getReferenceType());
+            newPlan.setReferenceId(oldPlan.getReferenceId());
             // for existing plans, needRedeployAt doesn't exist. We have to initialize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
@@ -369,7 +371,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
 
-            final var apiId = newPlan.getApi();
+            final var apiId = newPlan.getReferenceId();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             validateTags(newPlan.getTags(), api);
             updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
@@ -512,13 +514,13 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
 
-            String apiId = plan.getApi();
+            String apiId = plan.getReferenceId();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
             return genericPlanMapper.toGenericPlanWithFlow(api, plan);
@@ -560,7 +562,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(plan)
                     .newValue(null)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             //reorder plan
@@ -588,7 +590,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             checkStatusOfGeneralConditions(plan);
 
-            Set<Plan> plans = planRepository.findByApi(plan.getApi());
+            Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(plan.getReferenceId(), Plan.PlanReferenceType.API);
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
@@ -635,7 +637,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return mapToGenericEntity(plan);
@@ -682,7 +684,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return mapToGenericEntity(plan);
@@ -700,7 +702,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApi());
+        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getReferenceId());
         Plan[] plansToReorder = plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()) && !Objects.equals(p.getId(), planToReorder.getId()))
@@ -734,7 +736,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void reorderedAndSavePlansAfterRemove(final Plan planRemoved) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getApi());
+        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getReferenceId());
         plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))
@@ -817,7 +819,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             return planRepository
                 .findByIdIn(planIds)
                 .stream()
-                .map(Plan::getApi)
+                .map(Plan::getReferenceId)
                 .filter(Objects::nonNull)
                 .anyMatch(id -> !id.equals(apiId));
         } catch (TechnicalException e) {

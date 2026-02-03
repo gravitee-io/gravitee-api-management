@@ -18,6 +18,7 @@ package io.gravitee.apim.core.plan.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Map;
 
 @DomainService
@@ -58,12 +60,36 @@ public class ClosePlanDomainService {
         createAuditLog(closedPlan, planUpdated, auditInfo);
     }
 
-    private void createAuditLog(Plan planToClose, Plan planUpdated, AuditInfo auditInfo) {
+    private void createAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
+        if (GenericPlanEntity.ReferenceType.API_PRODUCT.equals(originalPlan.getReferenceType())) {
+            createApiProductAuditLog(originalPlan, planUpdated, auditInfo);
+        } else {
+            createApiAuditLog(originalPlan, planUpdated, auditInfo);
+        }
+    }
+
+    private void createApiProductAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
+        auditService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiProductId(originalPlan.getReferenceId())
+                .event(PlanAuditEvent.PLAN_CLOSED)
+                .actor(auditInfo.actor())
+                .oldValue(originalPlan)
+                .newValue(planUpdated)
+                .createdAt(TimeProvider.now())
+                .properties(Map.of(AuditProperties.PLAN, originalPlan.getId()))
+                .build()
+        );
+    }
+
+    private void createApiAuditLog(Plan planToClose, Plan planUpdated, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiId(planToClose.getApiId())
+                .apiId(planToClose.getReferenceId())
                 .event(PlanAuditEvent.PLAN_CLOSED)
                 .actor(auditInfo.actor())
                 .oldValue(planToClose)

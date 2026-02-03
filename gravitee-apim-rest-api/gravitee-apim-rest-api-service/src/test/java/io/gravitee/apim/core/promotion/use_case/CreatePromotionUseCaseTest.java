@@ -60,6 +60,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiExportDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Clock;
@@ -82,7 +83,12 @@ class CreatePromotionUseCaseTest {
 
     private static final String API_ID = "api-id";
     private static final Api API = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-    private static final Plan PLAN = PlanFixtures.aPlanHttpV4().toBuilder().apiId(API_ID).build();
+    private static final Plan PLAN = PlanFixtures.aPlanHttpV4()
+        .toBuilder()
+        .apiId(API_ID)
+        .referenceId(API_ID)
+        .referenceType(GenericPlanEntity.ReferenceType.API)
+        .build();
     private static final Page PAGE = PageFixture.aPage().toBuilder().referenceId(API_ID).referenceType(Page.ReferenceType.API).build();
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";

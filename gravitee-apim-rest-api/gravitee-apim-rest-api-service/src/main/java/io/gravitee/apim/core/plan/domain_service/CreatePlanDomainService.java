@@ -18,8 +18,10 @@ package io.gravitee.apim.core.plan.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
@@ -33,6 +35,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -75,7 +78,7 @@ public class CreatePlanDomainService {
 
     private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
-            throw new ApiDeprecatedException(plan.getApiId());
+            throw new ApiDeprecatedException(plan.getReferenceId());
         }
 
         var listeners = api.getApiListeners();
@@ -104,7 +107,8 @@ public class CreatePlanDomainService {
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
-                .apiId(api.getId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -132,8 +136,9 @@ public class CreatePlanDomainService {
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
-                .apiId(api.getId())
                 .apiType(api.getType())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
@@ -156,7 +161,7 @@ public class CreatePlanDomainService {
 
     private PlanWithFlows createV2ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
-            throw new ApiDeprecatedException(plan.getApiId());
+            throw new ApiDeprecatedException(plan.getReferenceId());
         }
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
@@ -169,7 +174,6 @@ public class CreatePlanDomainService {
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
-                .apiId(api.getId())
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -183,12 +187,52 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, flows);
     }
 
+    public Plan createApiProductPlan(Plan plan, ApiProduct apiProduct, AuditInfo auditInfo) {
+        //TODO handle deprecated api product
+        /*if (apiProduct.isDeprecated()) {
+            throw new ApiDeprecatedException(plan.getApiId());
+        }*/
+
+        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
+        var createdPlan = planCrudService.create(
+            plan
+                .toBuilder()
+                .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .referenceId(apiProduct.getId())
+                .type(null)
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
+                .build()
+        );
+        createApiProductAuditLog(createdPlan, auditInfo);
+        return createdPlan;
+    }
+
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiId(createdPlan.getApiId())
+                .apiId(createdPlan.getReferenceId())
+                .event(PlanAuditEvent.PLAN_CREATED)
+                .actor(auditInfo.actor())
+                .newValue(createdPlan)
+                .createdAt(createdPlan.getCreatedAt())
+                .properties(Map.of(AuditProperties.PLAN, createdPlan.getId()))
+                .build()
+        );
+    }
+
+    private void createApiProductAuditLog(Plan createdPlan, AuditInfo auditInfo) {
+        auditService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiProductId(createdPlan.getReferenceId())
                 .event(PlanAuditEvent.PLAN_CREATED)
                 .actor(auditInfo.actor())
                 .newValue(createdPlan)

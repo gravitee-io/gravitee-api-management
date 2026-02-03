@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -63,7 +64,6 @@ public class PlanMapper {
         entity.setCrossId(plan.getCrossId());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
-        entity.setApiId(plan.getApi());
         entity.setEnvironmentId(plan.getEnvironmentId());
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
@@ -72,7 +72,6 @@ public class PlanMapper {
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
-        entity.setType(PlanType.valueOf(plan.getType().name()));
         entity.setApiType(plan.getApiType());
         if (plan.getMode() != null) {
             entity.setMode(PlanMode.valueOf(plan.getMode().name()));
@@ -102,6 +101,8 @@ public class PlanMapper {
         entity.setSelectionRule(plan.getSelectionRule());
         entity.setGeneralConditions(plan.getGeneralConditions());
         entity.setGeneralConditionsHrid(plan.getGeneralConditionsHrid());
+        entity.setReferenceId(plan.getReferenceId());
+        entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
         return entity;
     }
 
@@ -111,13 +112,13 @@ public class PlanMapper {
         plan.setId(newPlanEntity.getId());
         plan.setCrossId(newPlanEntity.getCrossId());
         plan.setDefinitionVersion(DefinitionVersion.V4);
-        plan.setApi(newPlanEntity.getApiId());
+        plan.setReferenceId(newPlanEntity.getReferenceId());
+        plan.setReferenceType(Plan.PlanReferenceType.valueOf(newPlanEntity.getReferenceType().name()));
         plan.setName(newPlanEntity.getName());
         plan.setDescription(newPlanEntity.getDescription());
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
         plan.setNeedRedeployAt(plan.getCreatedAt());
-        plan.setType(Plan.PlanType.valueOf(newPlanEntity.getType().name()));
         plan.setMode(Plan.PlanMode.valueOf(newPlanEntity.getMode().name()));
         if (newPlanEntity.getMode() == PlanMode.STANDARD && newPlanEntity.getSecurity() != null) {
             PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
@@ -211,7 +212,7 @@ public class PlanMapper {
         NewPlanEntity newPlanEntity = new NewPlanEntity();
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
-        newPlanEntity.setApiId(planEntity.getApiId());
+        newPlanEntity.setReferenceId(planEntity.getReferenceId());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
         newPlanEntity.setOrder(planEntity.getOrder());
@@ -223,17 +224,14 @@ public class PlanMapper {
             newPlanEntity.setSecurity(planEntity.getSecurity());
         }
         newPlanEntity.setSecurity(planEntity.getSecurity());
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
+        if (planEntity.getReferenceType() != null) {
+            newPlanEntity.setReferenceType(planEntity.getReferenceType());
         }
         if (planEntity.getStatus() != null) {
             newPlanEntity.setStatus(planEntity.getStatus());
         }
         if (planEntity.getFlows() != null) {
             newPlanEntity.setFlows(planEntity.getFlows());
-        }
-        if (planEntity.getType() != null) {
-            newPlanEntity.setType(planEntity.getType());
         }
         if (planEntity.getMode() != null) {
             newPlanEntity.setMode(planEntity.getMode());

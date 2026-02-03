@@ -69,6 +69,7 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PluginEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Arrays;
 import java.util.Date;
@@ -223,8 +224,11 @@ class DebugApiUseCaseTest {
         @MethodSource("io.gravitee.apim.core.debug.use_case.DebugApiUseCaseTest#provideNonEligibleGateways")
         @SneakyThrows
         void should_throw_when_no_gateway_available(List<Instance> instances) {
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(instances);
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
@@ -240,8 +244,11 @@ class DebugApiUseCaseTest {
         )
         @SneakyThrows
         void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(List.of(validInstance()));
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID).setPlanStatus(planStatus));
+            givenExistingPlan(plan.setPlanStatus(planStatus));
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
@@ -253,7 +260,9 @@ class DebugApiUseCaseTest {
         @SneakyThrows
         void should_throw_plan_flows_invalid() {
             instanceQueryService.initWith(List.of(validInstance()));
-            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2());
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             givenExistingPlanV2Flows(
                 plan.getId(),
                 FlowFixtures.aFlowV2()
@@ -279,8 +288,11 @@ class DebugApiUseCaseTest {
         @Test
         @SneakyThrows
         void should_create_debug_event() {
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(List.of(validInstance()));
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            givenExistingPlan(plan);
             io.gravitee.apim.core.api.model.Api api1 = ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag"));
             var api = givenExistingApiDefinition(api1, Api.class);
             api.setPlans(List.of(PlanFixtures.aKeylessV2()));
@@ -337,8 +349,11 @@ class DebugApiUseCaseTest {
         @MethodSource("io.gravitee.apim.core.debug.use_case.DebugApiUseCaseTest#provideNonEligibleGateways")
         @SneakyThrows
         void should_throw_when_no_gateway_available(List<Instance> instances) {
+            var plan = fixtures.core.model.PlanFixtures.aPlanHttpV4();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(instances);
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
@@ -354,8 +369,11 @@ class DebugApiUseCaseTest {
         )
         @SneakyThrows
         void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
+            var plan = fixtures.core.model.PlanFixtures.aPlanHttpV4();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(List.of(validInstance()));
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID).setPlanStatus(planStatus));
+            givenExistingPlan(plan.setPlanStatus(planStatus));
             givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
@@ -367,7 +385,9 @@ class DebugApiUseCaseTest {
         @SneakyThrows
         void should_throw_plan_flows_invalid() {
             instanceQueryService.initWith(List.of(validInstance()));
-            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4());
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             givenExistingPlanV4Flows(
                 plan.getId(),
                 FlowFixtures.aProxyFlowV4()
@@ -393,8 +413,11 @@ class DebugApiUseCaseTest {
         @Test
         @SneakyThrows
         void should_throw_api_flows_invalid() {
+            var plan = fixtures.core.model.PlanFixtures.aPlanHttpV4();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(List.of(validInstance()));
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            givenExistingPlan(plan);
             var api = givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
             givenExistingApiV4Flows(
                 api.getId(),
@@ -420,8 +443,11 @@ class DebugApiUseCaseTest {
         @Test
         @SneakyThrows
         void should_create_debug_event() {
+            var plan = fixtures.core.model.PlanFixtures.aPlanHttpV4();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
             instanceQueryService.initWith(List.of(validInstance()));
-            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            givenExistingPlan(plan);
             io.gravitee.apim.core.api.model.Api api1 = ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag"));
             var api = givenExistingApiDefinition(api1, io.gravitee.definition.model.v4.Api.class);
             api

@@ -96,6 +96,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -103,6 +104,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
+import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -283,6 +285,23 @@ public class ResourceContextConfiguration {
     @Bean
     public PlanSearchService planSearchService() {
         return mock(PlanSearchService.class);
+    }
+
+    /**
+     * Required by API Product plans core use cases (created by UsecaseSpringConfiguration).
+     * Automation resource tests don't need real implementation, so a mock is enough.
+     */
+    @Bean
+    public ApiProductPlanSearchQueryService apiProductPlanSearchQueryService() {
+        return mock(ApiProductPlanSearchQueryService.class);
+    }
+
+    /**
+     * Required by ApiProductPlanOperationsUseCase.
+     */
+    @Bean
+    public PublishPlanDomainService planOperationsDomainService() {
+        return mock(PublishPlanDomainService.class);
     }
 
     @Bean

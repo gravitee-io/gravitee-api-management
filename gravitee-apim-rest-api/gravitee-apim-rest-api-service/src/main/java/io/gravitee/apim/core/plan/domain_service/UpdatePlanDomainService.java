@@ -19,8 +19,10 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
@@ -255,6 +257,14 @@ public class UpdatePlanDomainService {
         }
     }
 
+    private Plan orderAwareUpdateForApiProduct(Plan existingPlan, Plan planToUpdate) {
+        if (planToUpdate.getOrder() != existingPlan.getOrder()) {
+            return reorderPlanDomainService.reorderAfterUpdateForApiProduct(planToUpdate);
+        } else {
+            return planCrudService.update(planToUpdate);
+        }
+    }
+
     private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
         if (
             existingPlanStatuses.containsKey(planToUpdate.getId()) &&
@@ -269,12 +279,66 @@ public class UpdatePlanDomainService {
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
+    public Plan updatePlanForApiProduct(
+        Plan planToUpdate,
+        Map<String, PlanStatus> existingPlanStatuses,
+        ApiProduct apiProduct,
+        AuditInfo auditInfo
+    ) {
+        if (existingPlanStatuses == null) {
+            existingPlanStatuses = getPlanStatusMapForApiProduct(apiProduct);
+        }
+        updatePreFlightChecksForApiProduct(planToUpdate, existingPlanStatuses, auditInfo);
+
+        Plan existingPlan = planCrudService.getById(planToUpdate.getId());
+        Plan updatePlan = existingPlan.update(planToUpdate);
+
+        Plan updated = orderAwareUpdateForApiProduct(existingPlan, updatePlan);
+
+        createApiProductAuditLog(existingPlan, updated, auditInfo);
+        return updated;
+    }
+
+    private void updatePreFlightChecksForApiProduct(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, AuditInfo auditInfo) {
+        if (
+            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
+            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
+        ) {
+            throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
+        }
+
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+    }
+
+    private Map<String, PlanStatus> getPlanStatusMapForApiProduct(ApiProduct apiProduct) {
+        List<Plan> existingPlans = planQueryService.findAllForApiProduct(apiProduct.getId());
+        return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+    }
+
     private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(newPlan.getApiId())
+                .event(PlanAuditEvent.PLAN_UPDATED)
+                .actor(auditInfo.actor())
+                .oldValue(oldPlan)
+                .newValue(newPlan)
+                .createdAt(newPlan.getUpdatedAt())
+                .properties(Map.of(AuditProperties.PLAN, newPlan.getId()))
+                .build()
+        );
+    }
+
+    private void createApiProductAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
+        auditService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiProductId(newPlan.getReferenceId())
                 .event(PlanAuditEvent.PLAN_UPDATED)
                 .actor(auditInfo.actor())
                 .oldValue(oldPlan)

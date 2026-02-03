@@ -18,6 +18,7 @@ package io.gravitee.apim.core.plan.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.plan.exception.InvalidPlanStatusForDeprecationExcep
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 
@@ -57,11 +59,35 @@ public class DeprecatePlanDomainService {
     }
 
     private void createAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
+        if (GenericPlanEntity.ReferenceType.API_PRODUCT.equals(originalPlan.getReferenceType())) {
+            createApiProductAuditLog(originalPlan, planUpdated, auditInfo);
+        } else {
+            createApiAuditLog(originalPlan, planUpdated, auditInfo);
+        }
+    }
+
+    private void createApiAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiId(originalPlan.getApiId())
+                .apiId(originalPlan.getReferenceId())
+                .event(PlanAuditEvent.PLAN_DEPRECATED)
+                .actor(auditInfo.actor())
+                .oldValue(originalPlan)
+                .newValue(planUpdated)
+                .createdAt(TimeProvider.now())
+                .properties(Map.of(AuditProperties.PLAN, originalPlan.getId()))
+                .build()
+        );
+    }
+
+    private void createApiProductAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
+        auditService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiProductId(originalPlan.getReferenceId())
                 .event(PlanAuditEvent.PLAN_DEPRECATED)
                 .actor(auditInfo.actor())
                 .oldValue(originalPlan)

@@ -286,6 +286,7 @@ components:
       schema:
         type: string
         example: DEFAULT
+
     apiProductIdParam:
       name: apiProductId
       in: path
@@ -293,6 +294,33 @@ components:
       required: true
       schema:
         type: string
+
+    apiProductPlanIdParam:
+      name: planId
+      in: path
+      required: true
+      description: Id of a plan.
+      schema:
+        type: string
+
+    pageParam:
+      name: page
+      in: query
+      required: false
+      description: The page number for pagination.
+      schema:
+        type: integer
+        default: 1
+
+    perPageParam:
+      name: perPage
+      in: query
+      required: false
+      description: |
+        The number of items per page for pagination.
+      schema:
+        type: integer
+        default: 10
 
   schemas:
     VerifyApiProduct:
@@ -503,6 +531,336 @@ components:
               invalidValue:
                 description: The invalid value.
 
+    BaseApiProductPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Plan's uuid.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        name:
+          type: string
+          description: Plan's name. Duplicate names can exists.
+          example: My Api Product plan
+        description:
+          type: string
+          description: Plan's description. A short description of your plan.
+          example: I can use a hundred characters to describe this plan.
+        apiId:
+          type: string
+          description: Id of the API Product owning the plan.
+          example: 6c530064-0b2c-4004-9300-640b2ce0047b
+        security:
+          $ref: "#/components/schemas/PlanSecurity"
+        mode:
+          $ref: "#/components/schemas/PlanMode"
+    PlanMode:
+      type: string
+      description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
+      example: STANDARD
+      enum:
+        - STANDARD
+        - PUSH
+
+    GenericApiProductPlan:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/BaseApiProductPlan"
+        - properties:
+            characteristics:
+              type: array
+              items:
+                type: string
+            closedAt:
+              type: string
+              format: date-time
+              description: The datetime when the plan was closed.
+              example: 2023-05-25T12:40:46.184Z
+            commentMessage:
+              type: string
+              description: A message from the API Product Publisher that is displayed to the consumer at subscription time.
+              example: Explain why you want to subscribe.
+            commentRequired:
+              type: boolean
+              description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
+            createdAt:
+              type: string
+              format: date-time
+              description: The last datetime when the plan was created.
+              example: 2023-05-25T12:40:46.184Z
+            crossId:
+              type: string
+              description: Plan's crossId. Identifies plan across environments.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+
+            description:
+              type: string
+              description: Plan's description. A short description of your plan.
+              example: I can use a hundred characters to describe this plan.
+            excludedGroups:
+              type: array
+              description: Groups of users which are not allowed to subscribe to this plan.
+              example:
+                - MY_GROUP1
+                - MY_GROUP2
+              items:
+                type: string
+            generalConditions:
+              type: string
+            order:
+              type: integer
+            publishedAt:
+              type: string
+              format: date-time
+              description: The last datetime when the plan was published.
+              example: 2023-05-25T12:40:46.184Z
+            selectionRule:
+              type: string
+            status:
+              $ref: "#/components/schemas/PlanStatus"
+            tags:
+              type: array
+              description: The list of sharding tags associated with this plan.
+              example:
+                - public
+                - private
+              items:
+                type: string
+
+            updatedAt:
+              type: string
+              format: date-time
+              description: The last datetime when the plan was updated.
+              example: 2023-05-25T12:40:46.184Z
+            validation:
+              $ref: "#/components/schemas/ProductPlanValidation"
+
+
+    ApiProductPlan:
+      type: object
+      title: "ProductPlan"
+      allOf:
+        - $ref: "#/components/schemas/GenericApiProductPlan"
+    PlanSecurity:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/PlanSecurityType"
+        configuration:
+          type: object
+      required:
+        - type
+
+    PlanSecurityType:
+      type: string
+      description: Plan security type.
+      example: KEY_LESS
+      enum:
+        - KEY_LESS
+        - API_KEY
+        - OAUTH2
+        - JWT
+        - MTLS
+
+    PlanStatus:
+      type: string
+      description: Plan status.
+      example: STAGING
+      enum:
+        - STAGING
+        - PUBLISHED
+        - DEPRECATED
+        - CLOSED
+
+    ProductPlanValidation:
+      type: string
+      description: Plan validation type.
+      example: AUTO
+      enum:
+        - AUTO
+        - MANUAL
+
+    Pagination:
+      description: Generic object to handle pagination data.
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page.
+        perPage:
+          type: integer
+          description: The number of items requested per page.
+        pageCount:
+          type: integer
+          description: The total number of pages.
+        pageItemsCount:
+          type: integer
+          description: The number of items for the current page.
+        totalCount:
+          type: integer
+          format: int64
+          description: The total number of items.
+
+    CreateApiProductPlan:
+      type: object
+      title: "CreateApiProductPlan"
+      allOf:
+        - $ref: "#/components/schemas/CreateGenericApiProductPlan"
+        - properties:
+
+            mode:
+              $ref: "#/components/schemas/PlanMode"
+
+    CreateGenericApiProductPlan:
+      type: object
+      properties:
+        crossId:
+          type: string
+          description: Plan's crossId. Identifies plan across environments.
+          example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+        characteristics:
+          type: array
+          items:
+            type: string
+        commentMessage:
+          type: string
+          description: A message from the API Product Publisher that is displayed to the consumer at subscription time.
+          example: Explain why you want to subscribe.
+        commentRequired:
+          type: boolean
+          description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
+
+        description:
+          type: string
+          description: Plan's description. A short description of your Plan.
+          example: I can use a hundred characters to describe this plan.
+        excludedGroups:
+          type: array
+          description: Groups of users which are not allowed to subscribe to this plan.
+          example:
+            - MY_GROUP1
+            - MY_GROUP2
+          items:
+            type: string
+        generalConditions:
+          type: string
+          description: This field contains the UUID of the documentation page that is used as General Conditions.
+          example: 4e3de652-2301-48ba-bde6-522301e8ba3a
+        name:
+          type: string
+          description: Plan's name. Duplicate names can exists.
+          example: My Api Product plan
+        order:
+          type: integer
+          description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
+          example: 0
+        security:
+          $ref: "#/components/schemas/PlanSecurity"
+        selectionRule:
+          type: string
+          description: An optional EL expression that will be evaluated at request time to select this plan.
+        tags:
+          type: array
+          description: The list of sharding tags associated with this plan.
+          example:
+            - public
+            - private
+          items:
+            type: string
+        validation:
+          $ref: "#/components/schemas/ProductPlanValidation"
+
+
+    UpdateGenericApiProductPlan:
+      type: object
+      properties:
+        crossId:
+          type: string
+          description: Plan's crossId. Identifies plan across environments.
+          example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+        characteristics:
+          type: array
+          items:
+            type: string
+        commentMessage:
+          type: string
+          description: A message from the API Product Publisher that is displayed to the consumer at subscription time.
+          example: Explain why you want to subscribe.
+        commentRequired:
+          type: boolean
+          description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
+
+        description:
+          type: string
+          description: Plan's description. A short description of your Plan.
+          example: I can use a hundred characters to describe this plan.
+        excludedGroups:
+          type: array
+          description: Groups of users which are not allowed to subscribe to this plan.
+          example:
+            - MY_GROUP1
+            - MY_GROUP2
+          items:
+            type: string
+        generalConditions:
+          type: string
+          description: This field contains the UUID of the documentation page that is used as General Conditions.
+          example: 4e3de652-2301-48ba-bde6-522301e8ba3a
+        name:
+          type: string
+          description: Plan's name. Duplicate names can exists.
+          example: My Api Product plan
+        order:
+          type: integer
+          description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
+          example: 0
+        security:
+          type: object
+          properties:
+            configuration:
+              type: object
+        validation:
+          $ref: "#/components/schemas/ProductPlanValidation"
+
+
+
+    UpdateApiProductPlan:
+      type: object
+      title: "UpdateProductPlan"
+      allOf:
+        - $ref: "#/components/schemas/UpdateGenericApiProductPlan"
+        - properties:
+            selectionRule:
+              type: string
+              description: An optional EL expression that will be evaluated at request time to select this plan.
+            tags:
+              type: array
+              description: The list of sharding tags associated with this plan.
+              example:
+                - public
+                - private
+              items:
+                type: string
+
+    Links:
+      description: List of links for pagination
+      properties:
+        self:
+          type: string
+          description: Link to current resource
+        first:
+          type: string
+          description: In a paginated response, link to the first page
+        last:
+          type: string
+          description: In a paginated response, link to the last page
+        previous:
+          type: string
+          description: In a paginated response, link to the previous page. Maybe null if current is the first page
+        next:
+          type: string
+          description: In a paginated response, link to the next page. Maybe null if current is the last page
+
   responses:
     VerifyApiProductResponse:
       description: Result of the API Product name verification
@@ -568,6 +926,30 @@ components:
             message: "Internal server error"
             technicalCode: "internal.error"
             details: []
+
+    ApiProductPlansResponse:
+      description: Page of API Product plans
+      content:
+        application/json:
+          schema:
+            title: "ApiProductPlansResponse"
+            properties:
+              data:
+                description: List of API Product plans.
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiProductPlan"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+
+    Error:
+      description: Generic error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
 
   securitySchemes:
     BasicAuth:

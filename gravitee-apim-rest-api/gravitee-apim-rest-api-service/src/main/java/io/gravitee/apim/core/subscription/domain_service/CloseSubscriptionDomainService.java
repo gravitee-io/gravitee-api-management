@@ -19,9 +19,11 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
@@ -94,6 +96,36 @@ public class CloseSubscriptionDomainService {
         };
     }
 
+    public SubscriptionEntity closeSubscriptionForApiProduct(String subscriptionId, AuditInfo auditInfo) {
+        var subscription = subscriptionCrudService.get(subscriptionId);
+
+        return closeSubscriptionForApiProduct(subscription, auditInfo);
+    }
+
+    public SubscriptionEntity closeSubscriptionForApiProduct(SubscriptionEntity subscription, AuditInfo auditInfo) {
+        log.debug("Close subscription {}", subscription.getId());
+
+        return switch (subscription.getStatus()) {
+            case ACCEPTED, PAUSED -> closeAcceptedOrPausedSubscriptionForApiProduct(subscription, auditInfo);
+            //TODO chanfge this for API Product
+            case PENDING -> rejectSubscriptionDomainService.reject(subscription, "Subscription has been closed.", auditInfo);
+            case CLOSED, REJECTED -> subscription;
+        };
+    }
+
+    private SubscriptionEntity closeAcceptedOrPausedSubscriptionForApiProduct(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
+        var closedSubscriptionEntity = subscriptionCrudService.update(subscriptionEntity.close());
+
+        //TODO trigger notifications for APi Product
+
+        createApiProductAuditLog(subscriptionEntity, closedSubscriptionEntity, auditInfo);
+
+        //TODO for api product keys
+        revokeApiKeys(subscriptionEntity, auditInfo);
+
+        return closedSubscriptionEntity;
+    }
+
     private SubscriptionEntity closeAcceptedOrPausedSubscription(SubscriptionEntity subscriptionEntity, Api api, AuditInfo auditInfo) {
         var definition = api.getApiDefinitionValue();
         if (
@@ -142,6 +174,40 @@ public class CloseSubscriptionDomainService {
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(originalSubscription.getApiId())
+                .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
+                .oldValue(originalSubscription)
+                .newValue(closedSubscription)
+                .actor(auditInfo.actor())
+                .createdAt(closedSubscription.getUpdatedAt())
+                .properties(Collections.singletonMap(AuditProperties.APPLICATION, originalSubscription.getApplicationId()))
+                .build()
+        );
+        auditDomainService.createApplicationAuditLog(
+            ApplicationAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .applicationId(originalSubscription.getApplicationId())
+                .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
+                .oldValue(originalSubscription)
+                .newValue(closedSubscription)
+                .actor(auditInfo.actor())
+                .createdAt(closedSubscription.getUpdatedAt())
+                .properties(Collections.singletonMap(AuditProperties.API, originalSubscription.getApiId()))
+                .build()
+        );
+    }
+
+    private void createApiProductAuditLog(
+        SubscriptionEntity originalSubscription,
+        SubscriptionEntity closedSubscription,
+        AuditInfo auditInfo
+    ) {
+        auditDomainService.createApiProductAuditLog(
+            ApiProductAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                //TODO change this to subscription reference id
+                .apiProductId(originalSubscription.getApiId())
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
                 .oldValue(originalSubscription)
                 .newValue(closedSubscription)

@@ -23,6 +23,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -37,6 +38,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class ReorderPlanDomainServiceTest {
 
     private static final String API_ID = "my-api";
+    private static final String API_PRODUCT_ID = "my-api-product";
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -79,6 +81,44 @@ class ReorderPlanDomainServiceTest {
                 .map(p -> p.toBuilder().order(toUpdate.getValue()).build())
                 .orElseThrow()
         );
+        // Then
+        Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
+    }
+
+    @ParameterizedTest
+    @MethodSource("reorderAfterUpdateTestData")
+    void should_reorder_all_api_product_plans_when_order_is_updated(
+        Map<String, Integer> existingOrder,
+        Map.Entry<String, Integer> toUpdate,
+        List<Tuple> expectedOrder
+    ) {
+        // Given
+        var plans = givenExistingPlans(
+            existingOrder
+                .entrySet()
+                .stream()
+                .map(entry ->
+                    (Plan) PlanFixtures.HttpV4.aKeyless()
+                        .toBuilder()
+                        .id(entry.getKey())
+                        .order(entry.getValue())
+                        .referenceId(API_PRODUCT_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                        .build()
+                )
+                .toList()
+        );
+
+        // When
+        service.reorderAfterUpdateForApiProduct(
+            plans
+                .stream()
+                .filter(p -> p.getId().equals(toUpdate.getKey()))
+                .findFirst()
+                .map(p -> p.toBuilder().order(toUpdate.getValue()).build())
+                .orElseThrow()
+        );
+
         // Then
         Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
     }

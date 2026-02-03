@@ -25,14 +25,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -177,6 +187,37 @@ public class ApiProductCrudServiceImplTest {
 
             assertThat(exception.getMessage()).contains("ApiProduct");
             assertThat(exception.getMessage()).contains("api-product-id");
+        }
+    }
+
+    @Nested
+    class Get {
+
+        @Test
+        void should_get_an_api() throws TechnicalException {
+            var apiProduct = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("api-product-id")
+                .environmentId("env-id")
+                .name("Updated API Product")
+                .description("Updated description")
+                .version("2.0.0")
+                .apiIds(List.of("api-1", "api-3"))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(apiProductsRepository.findById("api-product-id")).thenReturn(Optional.of(apiProduct));
+
+            var result = apiProductCrudService.get("api-product-id");
+            Assertions.assertThat(result).extracting(ApiProduct::getId, ApiProduct::getVersion).containsExactly("api-product-id", "2.0.0");
+        }
+
+        @Test
+        void should_throw_exception_if_api_not_found() throws TechnicalException {
+            when(apiProductsRepository.findById("api-product-id")).thenReturn(Optional.empty());
+
+            Assertions.assertThatThrownBy(() -> apiProductCrudService.get("api-product-id")).isInstanceOf(
+                ApiProductNotFoundException.class
+            );
         }
     }
 }

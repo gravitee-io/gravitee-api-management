@@ -25,6 +25,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +45,10 @@ public class UpdatePlanUseCase {
         final Plan planEntity = planCrudService
             .findById(input.planToUpdate.getId())
             .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
-
-        if (!planEntity.getApiId().equals(input.apiId)) {
+        if (
+            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
+            !java.util.Objects.equals(input.apiId, planEntity.getReferenceId())
+        ) {
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
         if (input.planToUpdate.getValidation() == null) {

@@ -40,6 +40,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.AuditService;
@@ -145,6 +146,7 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
+
         doReturn(new PlanEntity()).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         mockPrivateUpdate(expected);
 
@@ -162,7 +164,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(null);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
@@ -178,7 +181,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -197,7 +201,8 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(null);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        when(planEntity.getApiId()).thenReturn(API_ID);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
@@ -209,12 +214,14 @@ public class PlanService_CreateOrUpdateTest {
     private void mockPrivateUpdate(PlanEntity expected) throws TechnicalException {
         Plan plan = mock(Plan.class);
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getReferenceId()).thenReturn(API_ID);
         when(plan.getId()).thenReturn(expected.getId());
+        when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getReferenceType()).thenReturn(Plan.PlanReferenceType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(
             parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
@@ -226,12 +233,12 @@ public class PlanService_CreateOrUpdateTest {
     private void mockPrivateCreate(PlanEntity expected) throws TechnicalException {
         Plan plan = mock(Plan.class);
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getApi()).thenReturn(API_ID);
         when(plan.getId()).thenReturn(expected.getId() == null ? "created" : expected.getId());
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
+        when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getReferenceType()).thenReturn(Plan.PlanReferenceType.API);
         lenient().when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.create(any())).thenReturn(plan);
         when(
@@ -246,6 +253,8 @@ public class PlanService_CreateOrUpdateTest {
         plan.setValidation(PlanValidationType.AUTO);
         plan.setName("NameUpdated");
         plan.setTags(Set.of("tag1"));
+        plan.setReferenceId(API_ID);
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
         plan.setFlows(List.of(new Flow()));
         plan.setMode(PlanMode.STANDARD);
         return plan;

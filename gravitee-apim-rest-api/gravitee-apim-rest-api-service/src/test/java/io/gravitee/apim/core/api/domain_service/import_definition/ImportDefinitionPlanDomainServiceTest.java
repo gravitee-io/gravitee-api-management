@@ -29,6 +29,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -80,6 +81,8 @@ class ImportDefinitionPlanDomainServiceTest {
             .toBuilder()
             .crossId("plan-to-update")
             .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
             .environmentId(ENVIRONMENT_ID)
             .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
@@ -89,6 +92,8 @@ class ImportDefinitionPlanDomainServiceTest {
                 .id(planToUpdate.getId())
                 .crossId(planToUpdate.getCrossId())
                 .apiId(planToUpdate.getApiId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
                 .environmentId(planToUpdate.getEnvironmentId())
                 .definitionVersion(planToUpdate.getDefinitionVersion())
                 .type(planToUpdate.getType())
@@ -128,6 +133,8 @@ class ImportDefinitionPlanDomainServiceTest {
             .name("plan to create")
             .apiId(API_ID)
             .type(Plan.PlanType.API)
+            .referenceType(Plan.ReferenceType.API)
+            .referenceId(API_ID)
             .environmentId(ENVIRONMENT_ID)
             .definitionVersion(DefinitionVersion.V4)
             .planDefinitionHttpV4(
@@ -167,12 +174,16 @@ class ImportDefinitionPlanDomainServiceTest {
             .toBuilder()
             .crossId("plan-to-update")
             .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
             .environmentId(ENVIRONMENT_ID)
             .build();
         var planToRemove = PlanFixtures.HttpV4.aKeyless()
             .toBuilder()
             .crossId("plan-to-remove")
             .apiId(API_ID)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
+            .referenceId(API_ID)
             .environmentId(ENVIRONMENT_ID)
             .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate, planToRemove));
@@ -182,6 +193,8 @@ class ImportDefinitionPlanDomainServiceTest {
                 .id(planToUpdate.getId())
                 .crossId(planToUpdate.getCrossId())
                 .apiId(planToUpdate.getApiId())
+                .referenceType(Plan.ReferenceType.API)
+                .referenceId(API_ID)
                 .environmentId(planToUpdate.getEnvironmentId())
                 .definitionVersion(planToUpdate.getDefinitionVersion())
                 .type(planToUpdate.getType())
