@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -57,5 +58,30 @@ public class NoOpPlanRepositoryTest extends AbstractNoOpRepositoryTest {
 
         assertNotNull(plans);
         assertTrue(plans.isEmpty());
+    }
+
+    @Test
+    public void findByReferenceIdAndReferenceType() throws TechnicalException {
+        Set<Plan> plans = cut.findByReferenceIdAndReferenceType("test_id", Plan.PlanReferenceType.API_PRODUCT);
+
+        assertThat(plans).isEmpty();
+    }
+
+    @Test
+    public void findByReferenceIdsAndReferenceTypeAndEnvironment() throws TechnicalException {
+        var plan = cut.findByReferenceIdsAndReferenceTypeAndEnvironment(
+            List.of("api-product-id"),
+            Plan.PlanReferenceType.API_PRODUCT,
+            Set.of("DEFAULT")
+        );
+
+        assertThat(plan).isEmpty();
+    }
+
+    @Test
+    public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
+        var plan = cut.findByIdAndReferenceIdAndReferenceType("plan-id", "api-product-id", Plan.PlanReferenceType.API_PRODUCT);
+
+        assertThat(plan).isEmpty();
     }
 }
