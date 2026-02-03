@@ -20,8 +20,8 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
@@ -113,11 +113,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
         ReactableApiProduct apiProduct = apiProductRegistry.get(apiProductId, environmentId);
         if (apiProduct == null || apiProduct.getApiIds() == null || apiProduct.getApiIds().isEmpty()) {
-            log.debug(
-                "API Product [{}] not found or has no APIs for subscription [{}], skipping",
-                apiProductId,
-                subscription.getId()
-            );
+            log.debug("API Product [{}] not found or has no APIs for subscription [{}], skipping", apiProductId, subscription.getId());
             return;
         }
         for (String apiId : apiProduct.getApiIds()) {
