@@ -92,6 +92,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
         List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::map).toList();
 
+        // TODO: Pagination is currently in-memory; consider DB-level pagination in GetApiProductSubscriptionsUseCase for scalability
         int totalCount = subscriptionList.size();
         int fromIndex = Math.min((paginationParam.getPage() - 1) * paginationParam.getPerPage(), totalCount);
         int toIndex = Math.min(fromIndex + paginationParam.getPerPage(), totalCount);

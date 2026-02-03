@@ -115,12 +115,15 @@ class CreateApiProductSubscriptionUseCaseTest {
                 .build()
         );
         plan.setPlanStatus(PlanStatus.PUBLISHED);
+        // SubscriptionServiceImpl.create sets referenceId/referenceType from plan; seed storage to reflect that
         var createdSubscriptionCore = aSubscription()
             .toBuilder()
             .id(SUBSCRIPTION_ID)
             .planId(PLAN_ID)
             .applicationId(APPLICATION_ID)
             .apiId(null)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .build();
         var createdSubscriptionLegacy = io.gravitee.rest.api.model.SubscriptionEntity.builder()
             .id(SUBSCRIPTION_ID)
@@ -130,7 +133,6 @@ class CreateApiProductSubscriptionUseCaseTest {
         when(createSubscriptionDomainService.create(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(
             createdSubscriptionLegacy
         );
-        // Seed in-memory CRUD so subscriptionCrudService.get(id) can find the created subscription
         subscriptionCrudService.initWith(List.of(createdSubscriptionCore));
 
         // When

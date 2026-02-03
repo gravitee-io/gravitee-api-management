@@ -101,7 +101,7 @@ public class ApiProductSubscriptionResource extends AbstractResource {
         log.debug("Updating subscription {} for API Product {}", subscriptionId, apiProductId);
         SubscriptionConfigurationEntity configuration = null;
         if (updateSubscription.getConsumerConfiguration() != null) {
-            configuration = subscriptionMapper.map((SubscriptionConsumerConfiguration) updateSubscription.getConsumerConfiguration());
+            configuration = subscriptionMapper.mapConsumerConfigurationToEntity(updateSubscription.getConsumerConfiguration());
         }
 
         var input = UpdateApiProductSubscriptionUseCase.Input.builder()

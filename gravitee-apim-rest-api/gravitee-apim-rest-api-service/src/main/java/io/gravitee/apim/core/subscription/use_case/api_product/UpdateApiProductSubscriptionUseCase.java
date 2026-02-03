@@ -22,7 +22,6 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.UpdateSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
-import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
 import lombok.CustomLog;
@@ -61,22 +60,7 @@ public class UpdateApiProductSubscriptionUseCase {
             input.endingAt
         );
 
-        // Get core model from CRUD service
         SubscriptionEntity updatedSubscription = subscriptionCrudService.get(input.subscriptionId);
-
-        // Ensure referenceId and referenceType are preserved
-        if (
-            !input.apiProductId.equals(updatedSubscription.getReferenceId()) ||
-            !SubscriptionReferenceType.API_PRODUCT.equals(updatedSubscription.getReferenceType())
-        ) {
-            var correctedSubscription = updatedSubscription
-                .toBuilder()
-                .referenceId(input.apiProductId)
-                .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .updatedAt(TimeProvider.now())
-                .build();
-            updatedSubscription = subscriptionCrudService.update(correctedSubscription);
-        }
 
         log.debug("Updated subscription {} for API Product {}", input.subscriptionId, input.apiProductId);
         return new Output(updatedSubscription);

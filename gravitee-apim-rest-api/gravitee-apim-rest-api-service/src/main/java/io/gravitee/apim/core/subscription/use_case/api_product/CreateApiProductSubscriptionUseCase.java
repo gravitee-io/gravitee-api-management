@@ -22,8 +22,6 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CreateSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
-import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import lombok.Builder;
@@ -73,21 +71,11 @@ public class CreateApiProductSubscriptionUseCase {
             input.generalConditionsContentRevision
         );
 
-        // Get core model from CRUD service
+        // SubscriptionServiceImpl.create already sets referenceId and referenceType from the plan
         SubscriptionEntity createdSubscription = subscriptionCrudService.get(createdSubscriptionEntity.getId());
 
-        // Update subscription to set referenceId and referenceType
-        var updatedSubscription = createdSubscription
-            .toBuilder()
-            .referenceId(input.apiProductId)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .updatedAt(TimeProvider.now())
-            .build();
-
-        var finalSubscription = subscriptionCrudService.update(updatedSubscription);
-
-        log.debug("Created subscription {} for API Product {}", finalSubscription.getId(), input.apiProductId);
-        return new Output(finalSubscription);
+        log.debug("Created subscription {} for API Product {}", createdSubscription.getId(), input.apiProductId);
+        return new Output(createdSubscription);
     }
 
     @Builder

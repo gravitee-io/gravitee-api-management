@@ -43,10 +43,7 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
             storage.set(index.getAsInt(), subscriptionEntity);
             return subscriptionEntity;
         }
-
-        // If subscription doesn't exist, create it (for test scenarios where subscriptionService.create() is mocked)
-        storage.add(subscriptionEntity);
-        return subscriptionEntity;
+        throw new IllegalStateException("Subscription not found.");
     }
 
     @Override
