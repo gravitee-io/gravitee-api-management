@@ -163,7 +163,7 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     public void should_find_by_application_id_and_statuses() throws Exception {
         Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
             "app-1",
-            List.of(ClientCertificateStatus.ACTIVE)
+            ClientCertificateStatus.ACTIVE
         );
 
         assertThat(certificates).isNotNull().hasSize(1);
@@ -174,7 +174,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     public void should_find_by_application_id_and_multiple_statuses() throws Exception {
         Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
             "app-1",
-            List.of(ClientCertificateStatus.ACTIVE, ClientCertificateStatus.SCHEDULED)
+            ClientCertificateStatus.ACTIVE,
+            ClientCertificateStatus.SCHEDULED
         );
 
         assertThat(certificates).isNotNull().hasSize(2);
@@ -185,7 +186,7 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     public void should_return_empty_when_no_matching_statuses() throws Exception {
         Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
             "app-1",
-            List.of(ClientCertificateStatus.REVOKED)
+            ClientCertificateStatus.REVOKED
         );
 
         assertThat(certificates).isNotNull().isEmpty();
@@ -193,7 +194,77 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_return_empty_when_statuses_is_empty() throws Exception {
-        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses("app-1", List.of());
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses("app-1");
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_find_by_application_ids_and_statuses() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            List.of("app-1", "app-3"),
+            ClientCertificateStatus.ACTIVE
+        );
+
+        assertThat(certificates).isNotNull().hasSize(2);
+        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-to-update");
+    }
+
+    @Test
+    public void should_find_by_application_ids_and_multiple_statuses() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            List.of("app-1", "app-2"),
+            ClientCertificateStatus.ACTIVE,
+            ClientCertificateStatus.ACTIVE_WITH_END
+        );
+
+        assertThat(certificates).isNotNull().hasSize(2);
+        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-3");
+    }
+
+    @Test
+    public void should_return_empty_when_application_ids_is_empty() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            List.of(),
+            ClientCertificateStatus.ACTIVE
+        );
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_application_ids_is_null() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            null,
+            ClientCertificateStatus.ACTIVE
+        );
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_statuses_is_empty_for_application_ids() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(List.of("app-1", "app-2"));
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_statuses_is_null_for_application_ids() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            List.of("app-1", "app-2"),
+            (ClientCertificateStatus[]) null
+        );
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_no_matching_application_ids() throws Exception {
+        Set<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
+            List.of("unknown-app-1", "unknown-app-2"),
+            ClientCertificateStatus.ACTIVE
+        );
 
         assertThat(certificates).isNotNull().isEmpty();
     }

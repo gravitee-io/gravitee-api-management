@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
@@ -42,7 +47,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +94,9 @@ public class ApplicationService_FindByIdsTest {
     @Mock
     private ClientRegistrationService clientRegistrationService;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @Before
     public void setUp() {
         GraviteeContext.setCurrentOrganization("DEFAULT");
@@ -131,7 +138,7 @@ public class ApplicationService_FindByIdsTest {
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
@@ -151,7 +158,7 @@ public class ApplicationService_FindByIdsTest {
         );
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
@@ -164,7 +171,7 @@ public class ApplicationService_FindByIdsTest {
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
@@ -190,7 +197,7 @@ public class ApplicationService_FindByIdsTest {
         final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test(expected = TechnicalManagementException.class)

@@ -17,8 +17,12 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -48,6 +52,9 @@ public class ApplicationService_FindByGroupTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+
+    @Mock
+    private ClientCertificateCrudService clientCertificateCrudService;
 
     @Test
     public void shouldTryFindByGroup() throws Exception {

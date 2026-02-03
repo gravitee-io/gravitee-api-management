@@ -273,7 +273,7 @@ class ClientCertificateCrudServiceTest {
 
         Set<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdAndStatuses(
             APPLICATION_ID,
-            List.of(ClientCertificateStatus.ACTIVE)
+            ClientCertificateStatus.ACTIVE
         );
 
         assertThat(result).hasSize(1);

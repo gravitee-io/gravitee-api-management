@@ -82,6 +82,9 @@ public class ApplicationService_RestoreTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @BeforeClass
     public static void setup() {
         GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());

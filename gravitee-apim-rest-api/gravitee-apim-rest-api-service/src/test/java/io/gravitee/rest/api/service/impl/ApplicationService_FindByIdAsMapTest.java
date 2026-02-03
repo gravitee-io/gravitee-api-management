@@ -58,6 +58,9 @@ public class ApplicationService_FindByIdAsMapTest {
     @Mock
     private EnvironmentService environmentService;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @Test
     public void shouldFindByIdAsMap() throws TechnicalException {
         Application application = new Application();

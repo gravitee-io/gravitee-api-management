@@ -27,8 +27,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
@@ -136,12 +138,37 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     }
 
     @Override
-    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, Collection<ClientCertificateStatus> statuses) {
+    public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
+        Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
             .stream()
             .filter(cert -> applicationId.equals(cert.applicationId()))
-            .filter(cert -> statuses.contains(cert.status()))
+            .filter(cert -> statusSet.contains(cert.status()))
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
+        Set<ClientCertificateStatus> statusSet = Set.of(statuses);
+        return storage
+            .stream()
+            .filter(cert -> applicationIds.contains(cert.applicationId()))
+            .filter(cert -> statusSet.contains(cert.status()))
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deleteByApplicationId(String applicationId) {
+        storage.removeIf(cert -> applicationId.equals(cert.applicationId()));
+    }
+
+    @Override
+    public Optional<ClientCertificate> findMostRecentActiveByApplicationId(String applicationId) {
+        return storage
+            .stream()
+            .filter(cert -> applicationId.equals(cert.applicationId()))
+            .filter(cert -> cert.status() == ClientCertificateStatus.ACTIVE || cert.status() == ClientCertificateStatus.ACTIVE_WITH_END)
+            .max(Comparator.comparing(ClientCertificate::createdAt));
     }
 
     @Override

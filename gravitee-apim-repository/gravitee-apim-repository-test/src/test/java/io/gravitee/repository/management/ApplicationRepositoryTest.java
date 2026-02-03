@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management;
 
-import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
@@ -40,7 +39,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.Test;
 
 /**
@@ -193,7 +191,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> apps = applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"));
         assertNotNull(apps);
         assertEquals(2, apps.size());
-        assertEquals(Arrays.asList("searched-app1", "searched-app2"), apps.stream().map(Application::getId).collect(Collectors.toList()));
+        assertEquals(Arrays.asList("searched-app1", "searched-app2"), apps.stream().map(Application::getId).toList());
     }
 
     @Test
@@ -204,7 +202,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         );
         assertNotNull(apps);
         assertEquals(2, apps.size());
-        assertEquals(Arrays.asList("searched-app2", "searched-app1"), apps.stream().map(Application::getId).collect(Collectors.toList()));
+        assertEquals(Arrays.asList("searched-app2", "searched-app1"), apps.stream().map(Application::getId).toList());
     }
 
     @Test
@@ -300,13 +298,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(2, apps.size());
-        assertTrue(
-            apps
-                .stream()
-                .map(Application::getId)
-                .collect(Collectors.toList())
-                .containsAll(Arrays.asList("application-sample", "updated-app"))
-        );
+        assertTrue(apps.stream().map(Application::getId).toList().containsAll(Arrays.asList("application-sample", "updated-app")));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -403,7 +395,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(8, apps.size());
-        List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
+        List<String> names = apps.stream().map(Application::getName).toList();
 
         assertEquals(
             List.of(
@@ -488,20 +480,5 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_return_false_on_existing_client_id_in_different_env() {
         assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT"));
-    }
-
-    @Test
-    public void should_return_true_on_existing_certificate_in_env() {
-        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "DEFAULT"));
-    }
-
-    @Test
-    public void should_return_false_on_existing_certificate_with_archived_app_in_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE_OLD", "DEFAULT"));
-    }
-
-    @Test
-    public void should_return_false_on_existing_certificate_in_different_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "PROD"));
     }
 }

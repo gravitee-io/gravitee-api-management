@@ -97,6 +97,9 @@ public class ApplicationService_ArchiveTest {
     @Mock
     private ApplicationAlertService applicationAlertService;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @Test
     public void shouldArchive() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));

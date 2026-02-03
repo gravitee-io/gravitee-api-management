@@ -21,11 +21,11 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ApplicationCertificateAlreadyUsedException extends AbstractManagementException {
+public class ClientCertificateEmptyException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "Certificate is currently in use by another application";
+        return "No certificate can be extracted";
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ApplicationCertificateAlreadyUsedException extends AbstractManageme
 
     @Override
     public String getTechnicalCode() {
-        return "application.certificate.alreadyUsed";
+        return "application.certificate.empty";
     }
 
     @Override

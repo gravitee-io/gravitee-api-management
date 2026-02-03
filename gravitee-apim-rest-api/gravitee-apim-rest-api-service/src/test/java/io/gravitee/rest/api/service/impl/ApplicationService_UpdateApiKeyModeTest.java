@@ -89,6 +89,9 @@ public class ApplicationService_UpdateApiKeyModeTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode

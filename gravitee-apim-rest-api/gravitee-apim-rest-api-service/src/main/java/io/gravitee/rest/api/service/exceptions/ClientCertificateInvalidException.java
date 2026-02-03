@@ -21,11 +21,11 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ApplicationEmptyCertificateException extends AbstractManagementException {
+public class ClientCertificateInvalidException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "No certificate can be extracted";
+        return "An error has occurred while parsing client certificate";
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ApplicationEmptyCertificateException extends AbstractManagementExce
 
     @Override
     public String getTechnicalCode() {
-        return "application.certificate.empty";
+        return "application.certificate.invalid";
     }
 
     @Override

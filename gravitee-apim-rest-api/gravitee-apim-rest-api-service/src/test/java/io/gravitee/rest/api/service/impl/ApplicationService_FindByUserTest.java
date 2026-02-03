@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -42,10 +41,10 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.*;
-import org.assertj.core.util.Lists;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -100,6 +99,9 @@ public class ApplicationService_FindByUserTest {
     @Mock
     private RoleEntity primaryOwnerRole;
 
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
@@ -142,7 +144,7 @@ public class ApplicationService_FindByUserTest {
     }
 
     @Test
-    public void shouldNotFindByUserBecauseOfArchived() throws Exception {
+    public void shouldNotFindByUserBecauseOfArchived() {
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
         Assert.assertNotNull(apps);

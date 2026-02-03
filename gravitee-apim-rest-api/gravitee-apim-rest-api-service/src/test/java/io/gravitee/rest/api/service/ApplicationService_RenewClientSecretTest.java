@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -52,7 +53,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApplicationService_RenewClientSecretTest {
 
     private static final String APP = "my-app";
-    private static final String ORGANIZATION_ID = "DEFAULT";
     private static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
@@ -69,6 +69,9 @@ public class ApplicationService_RenewClientSecretTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private ClientCertificateCrudService clientCertificateCrudService;
 
     @Mock
     private ParameterService parameterService;
