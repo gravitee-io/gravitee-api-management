@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.webhook;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
@@ -271,6 +272,48 @@ public class WebhookTestingActions {
             post("/oauth2endpoint")
                 .withRequestBody(equalTo("grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret))
                 .willReturn(ok("{\"token_type\":\"Bearer\",\"access_token\":\"token-from-oauth2-server\"}"))
+        );
+    }
+
+    void applyJwtProfileOauth2Auth(Subscription subscription, String issuer, String subject, String hmacKey)
+        throws JsonProcessingException {
+        final SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+
+        final WebhookEntrypointConnectorSubscriptionConfiguration conf = MAPPER.readValue(
+            subscriptionConfiguration.getEntrypointConfiguration(),
+            WebhookEntrypointConnectorSubscriptionConfiguration.class
+        );
+
+        String tokenEndpoint = "http://localhost:" + wiremock.port() + "/jwt-token-endpoint";
+
+        conf.setAuth(
+            WebhookSubscriptionAuthConfiguration.builder()
+                .type(SecurityType.JWT_PROFILE_OAUTH2)
+                .jwtProfileOauth2(
+                    WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                        .issuer(issuer)
+                        .subject(subject)
+                        .audience(tokenEndpoint)
+                        .signature(WebhookSubscriptionAuthConfiguration.Signature.HMAC_HS256)
+                        .key(hmacKey)
+                        .build()
+                )
+                .build()
+        );
+
+        subscriptionConfiguration.setEntrypointConfiguration(MAPPER.writeValueAsString(conf));
+
+        wiremock.resetAll();
+        wiremock.stubFor(
+            post(conf.getCallbackUrl().replace("http://localhost:" + wiremock.port(), ""))
+                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-jwt-profile-server"))
+                .willReturn(ok())
+        );
+
+        wiremock.stubFor(
+            post("/jwt-token-endpoint")
+                .withRequestBody(containing("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer"))
+                .willReturn(ok("{\"token_type\":\"Bearer\",\"access_token\":\"token-from-jwt-profile-server\"}"))
         );
     }
 
