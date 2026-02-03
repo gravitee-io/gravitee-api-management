@@ -22,10 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.PlanReferenceType;
 import io.reactivex.rxjava3.core.Completable;
@@ -60,17 +62,18 @@ class ApiProductDeployerTest {
     @Mock
     private DistributedSyncService distributedSyncService;
 
+    @Mock
+    private ProductPlanDefinitionCache productPlanDefinitionCache;
+
     private ApiProductDeployer cut;
 
     @BeforeEach
-    void setUp() {
-        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService);
+    void setUp() throws TechnicalException {
+        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService, productPlanDefinitionCache);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
-        lenient()
-            .when(planRepository.findByReferenceIdAndReferenceType(any(), eq(PlanReferenceType.API_PRODUCT)))
-            .thenReturn(Set.of());
+        lenient().when(planRepository.findByReferenceIdAndReferenceType(any(), eq(PlanReferenceType.API_PRODUCT))).thenReturn(Set.of());
     }
 
     @Nested
@@ -153,6 +156,7 @@ class ApiProductDeployerTest {
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-123");
             verify(planService).unregisterForApiProduct("api-product-123");
+            verify(productPlanDefinitionCache).unregister("api-product-123");
         }
 
         @Test
