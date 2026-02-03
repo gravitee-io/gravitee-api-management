@@ -445,6 +445,165 @@ class SearchEnvironmentLogsUseCaseTest {
                 )
             );
         }
+
+        @ParameterizedTest
+        @MethodSource("mcpMethodFiltersProvider")
+        void should_intersect_mcp_method_filters(List<Filter> filters, String[] expectedMcpMethods) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().mcpMethods()).containsExactlyInAnyOrder(expectedMcpMethods);
+        }
+
+        static Stream<Arguments> mcpMethodFiltersProvider() {
+            return Stream.of(
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
+                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list")))
+                    ),
+                    new String[] { "initialize" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list"))),
+                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("tools/list", "resources/read")))
+                    ),
+                    new String[] { "tools/list" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
+                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "ping"))
+                    ),
+                    new String[] {}
+                ),
+                Arguments.of(
+                    List.of(new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "ping", "tools/list")))),
+                    new String[] { "initialize", "ping", "tools/list" }
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("transactionIdFiltersProvider")
+        void should_intersect_transaction_id_filters(List<Filter> filters, String[] expectedTransactionIds) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().transactionIds()).containsExactlyInAnyOrder(expectedTransactionIds);
+        }
+
+        static Stream<Arguments> transactionIdFiltersProvider() {
+            return Stream.of(
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
+                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456")))
+                    ),
+                    new String[] { "txn-123" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456"))),
+                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-456", "txn-789")))
+                    ),
+                    new String[] { "txn-456" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
+                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-456"))
+                    ),
+                    new String[] {}
+                ),
+                Arguments.of(
+                    List.of(new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456", "txn-789")))),
+                    new String[] { "txn-123", "txn-456", "txn-789" }
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("requestIdFiltersProvider")
+        void should_intersect_request_id_filters(List<Filter> filters, String[] expectedRequestIds) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().requestIds()).containsExactlyInAnyOrder(expectedRequestIds);
+        }
+
+        static Stream<Arguments> requestIdFiltersProvider() {
+            return Stream.of(
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
+                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456")))
+                    ),
+                    new String[] { "req-123" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456"))),
+                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-456", "req-789")))
+                    ),
+                    new String[] { "req-456" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
+                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-456"))
+                    ),
+                    new String[] {}
+                ),
+                Arguments.of(
+                    List.of(new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456", "req-789")))),
+                    new String[] { "req-123", "req-456", "req-789" }
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("uriFiltersProvider")
+        void should_map_uri_filter(List<Filter> filters, String expectedUri) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            if (expectedUri == null) {
+                assertThat(filtersCaptor.getValue().uri()).isNull();
+            } else {
+                assertThat(filtersCaptor.getValue().uri()).isEqualTo(expectedUri);
+            }
+        }
+
+        static Stream<Arguments> uriFiltersProvider() {
+            return Stream.of(
+                Arguments.of(List.of(new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users"))), "/api/users"),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users")),
+                        new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/products"))
+                    ),
+                    "/api/products" // Last EQ wins
+                )
+            );
+        }
     }
 
     @Nested
