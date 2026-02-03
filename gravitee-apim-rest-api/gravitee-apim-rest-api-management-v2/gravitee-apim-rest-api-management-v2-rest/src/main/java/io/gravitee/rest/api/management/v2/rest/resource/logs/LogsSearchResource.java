@@ -17,9 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.logs;
 
 import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.LogsEngineMapper;
+import io.gravitee.rest.api.management.v2.rest.model.logs.engine.Links;
+import io.gravitee.rest.api.management.v2.rest.model.logs.engine.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParamWithMaxValidation;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
@@ -41,12 +46,65 @@ public class LogsSearchResource extends AbstractResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchLogsResponse searchLogs(@BeanParam @Valid PaginationParam paginationParam, @Valid SearchLogsRequest request) {
+    public SearchLogsResponse searchLogs(
+        @BeanParam @Valid PaginationParamWithMaxValidation paginationParam,
+        @Valid SearchLogsRequest request
+    ) {
         var input = new SearchEnvironmentLogsUseCase.Input(
             getAuditInfo(),
             LogsEngineMapper.INSTANCE.fromRequestEntity(request, paginationParam.getPage(), paginationParam.getPerPage())
         );
         var output = searchEnvironmentLogsUseCase.execute(input);
-        return LogsEngineMapper.INSTANCE.fromResponseModel(output.response());
+        SearchLogsResponse searchLogsResponse = LogsEngineMapper.INSTANCE.fromResponseModel(output.response());
+
+        var links = getLinks(searchLogsResponse, input);
+        searchLogsResponse.setLinks(links);
+
+        return searchLogsResponse;
+    }
+
+    /**
+     * Generates HATEOAS pagination links for the search response.
+     * <p>
+     * Utilizes the {@link PaginationLinks} utility to compute self, first, last,
+     * next, and previous links
+     * based on current pagination state and request URI. This follows REST HATEOAS
+     * principles to enable
+     * client-side navigation through paginated results.
+     * </p>
+     * <p>
+     * <strong>Contract:</strong> The {@code searchLogsResponse.getPagination()} is
+     * guaranteed to be non-null
+     * by the {@link SearchEnvironmentLogsUseCase}, as pagination metadata is always
+     * generated even for empty results.
+     * </p>
+     *
+     * @param searchLogsResponse The search response containing pagination metadata
+     *                           (non-null pagination required)
+     * @param input              The original request input containing page/perPage
+     *                           parameters used for link computation
+     * @return Links object populated with HATEOAS links (self, first, last, next,
+     *         previous)
+     */
+    private Links getLinks(SearchLogsResponse searchLogsResponse, SearchEnvironmentLogsUseCase.Input input) {
+        Links responseLinks = new Links();
+
+        Pagination pagination = searchLogsResponse.getPagination();
+
+        var paginationLinks = PaginationLinks.computePaginationLinks(
+            uriInfo.getRequestUri(),
+            uriInfo.getQueryParameters(),
+            pagination.getTotalCount(),
+            new PaginationParam(input.request().page(), input.request().perPage())
+        );
+
+        if (paginationLinks != null) {
+            responseLinks.setFirst(paginationLinks.getFirst());
+            responseLinks.setLast(paginationLinks.getLast());
+            responseLinks.setPrevious(paginationLinks.getPrevious());
+            responseLinks.setNext(paginationLinks.getNext());
+            responseLinks.setSelf(paginationLinks.getSelf());
+        }
+        return responseLinks;
     }
 }
