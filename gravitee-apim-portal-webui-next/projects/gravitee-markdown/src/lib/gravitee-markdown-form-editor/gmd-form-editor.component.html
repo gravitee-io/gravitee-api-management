@@ -16,98 +16,21 @@
 
 -->
 <div class="container">
-  <div class="container__editor-preview">
-    <gmd-monaco-editor
-      class="container__inner-border"
-      [value]="value"
-      [readOnly]="isDisabled"
-      (valueChange)="onValueChange($event)"
-      (touched)="onTouched()" />
-    <hr class="hr" />
-    <div class="container__inner-border">
-      <gmd-viewer [content]="value" />
-    </div>
-  </div>
-  <div class="container__form-status">
-    @if (criticalConfigErrors().length > 0 || configWarnings().length > 0) {
-      <div class="status-panel status-panel--validation">
-        @if (criticalConfigErrors().length > 0) {
-          <section class="status-panel__section status-panel__section--error">
-            <div class="status-panel__header">
-              <span class="status-panel__icon">❌</span>
-              <span class="status-panel__title">Configuration Errors</span>
-            </div>
-            <ul class="status-panel__list">
-              @for (error of criticalConfigErrors(); track $index) {
-                <li class="status-panel__item">
-                  @if (error.fieldKey && !error.fieldKey.startsWith('gmd-')) {
-                    <span class="status-panel__key">{{ error.fieldKey }}:</span>
-                  }
-                  <span class="status-panel__message">{{ error.message }}</span>
-                </li>
-              }
-            </ul>
-          </section>
-        }
-        @if (configWarnings().length > 0) {
-          <section class="status-panel__section status-panel__section--warning">
-            <div class="status-panel__header">
-              <span class="status-panel__icon">⚠️</span>
-              <span class="status-panel__title">Warnings (Auto-Corrected)</span>
-            </div>
-            <ul class="status-panel__list">
-              @for (warning of configWarnings(); track $index) {
-                <li class="status-panel__item">
-                  @if (warning.fieldKey && !warning.fieldKey.startsWith('gmd-')) {
-                    <span class="status-panel__key">{{ warning.fieldKey }}:</span>
-                  }
-                  <span class="status-panel__message">{{ warning.message }}</span>
-                </li>
-              }
-            </ul>
-          </section>
-        }
+  <gmd-form-host [content]="value">
+    <div class="container__editor-preview">
+      <gmd-monaco-editor
+        class="container__inner-border"
+        [value]="value"
+        [readOnly]="isDisabled"
+        (valueChange)="onValueChange($event)"
+        (touched)="onTouched()" />
+      <hr class="hr" />
+      <div class="container__inner-border">
+        <gmd-viewer [content]="value" />
       </div>
-    }
-
-    <div class="status-panel status-panel--summary">
-      <div class="status-panel__header">
-        <span class="status-panel__title">Form status:</span>
-        @if (formValid()) {
-          <span class="status-panel__badge status-panel__badge--valid">Valid</span>
-        } @else {
-          <span class="status-panel__badge status-panel__badge--invalid">Invalid</span>
-        }
-      </div>
-      @if (requiredFieldsCount() > 0) {
-        <div class="status-panel__meta">Valid ({{ validRequiredFieldsCount() }}/{{ requiredFieldsCount() }} required fields filled)</div>
-      }
-      @if (invalidFields().length > 0) {
-        <div class="status-panel__section">
-          <div class="status-panel__subtitle">Invalid fields:</div>
-          <ul class="status-panel__list">
-            @for (field of invalidFields(); track field.id) {
-              <li class="status-panel__item">
-                <span class="status-panel__key">{{ field.fieldKey }}:</span>
-                <span class="status-panel__muted">{{ field.errors.join(', ') }}</span>
-              </li>
-            }
-          </ul>
-        </div>
-      }
-      @if (fieldValues().length > 0) {
-        <details class="status-panel__details">
-          <summary class="status-panel__summary">Field values ({{ fieldValues().length }})</summary>
-          <ul class="status-panel__list">
-            @for (field of fieldValues(); track field.id) {
-              <li class="status-panel__item">
-                <span class="status-panel__key">{{ field.fieldKey }}:</span>
-                <span class="status-panel__muted">{{ formatValue(field.value) }}</span>
-              </li>
-            }
-          </ul>
-        </details>
-      }
     </div>
-  </div>
+    <div class="container__form-status">
+      <gmd-form-validation-panel />
+    </div>
+  </gmd-form-host>
 </div>

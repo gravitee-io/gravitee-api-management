@@ -1,0 +1,99 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (store.criticalConfigErrors().length > 0 || store.configWarnings().length > 0) {
+  <div class="status-panel status-panel--validation">
+    @if (store.criticalConfigErrors().length > 0) {
+      <section class="status-panel__section status-panel__section--error">
+        <div class="status-panel__header">
+          <span class="status-panel__icon">❌</span>
+          <span class="status-panel__title">Configuration Errors</span>
+        </div>
+        <ul class="status-panel__list">
+          @for (error of store.criticalConfigErrors(); track $index) {
+            <li class="status-panel__item">
+              @if (error.fieldKey && !error.fieldKey.startsWith('gmd-')) {
+                <span class="status-panel__key">{{ error.fieldKey }}:</span>
+              }
+              <span class="status-panel__message">{{ error.message }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+    @if (store.configWarnings().length > 0) {
+      <section class="status-panel__section status-panel__section--warning">
+        <div class="status-panel__header">
+          <span class="status-panel__icon">⚠️</span>
+          <span class="status-panel__title">Warnings (Auto-Corrected)</span>
+        </div>
+        <ul class="status-panel__list">
+          @for (warning of store.configWarnings(); track $index) {
+            <li class="status-panel__item">
+              @if (warning.fieldKey && !warning.fieldKey.startsWith('gmd-')) {
+                <span class="status-panel__key">{{ warning.fieldKey }}:</span>
+              }
+              <span class="status-panel__message">{{ warning.message }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<div class="status-panel status-panel--summary">
+  <div class="status-panel__header">
+    <span class="status-panel__title">Form status:</span>
+    @if (store.formValid()) {
+      <span class="status-panel__badge status-panel__badge--valid">Valid</span>
+    } @else {
+      <span class="status-panel__badge status-panel__badge--invalid">Invalid</span>
+    }
+  </div>
+  @if (store.requiredFieldsCount() > 0) {
+    <div class="status-panel__meta">
+      Valid ({{ store.validRequiredFieldsCount() }}/{{ store.requiredFieldsCount() }} required fields filled)
+    </div>
+  }
+  @if (store.invalidFields().length > 0) {
+    <div class="status-panel__section">
+      <div class="status-panel__subtitle">Invalid fields:</div>
+      <ul class="status-panel__list">
+        @for (field of store.invalidFields(); track field.id) {
+          <li class="status-panel__item">
+            <span class="status-panel__key">{{ field.fieldKey }}:</span>
+            <span class="status-panel__muted">{{ field.errors.join(', ') }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+  @if (store.fieldValues().length > 0) {
+    <details class="status-panel__details">
+      <summary class="status-panel__summary">Field values ({{ store.fieldValues().length }})</summary>
+      <ul class="status-panel__list">
+        @for (field of store.fieldValues(); track field.id) {
+          <li class="status-panel__item">
+            <span class="status-panel__key">{{ field.fieldKey }}:</span>
+            <span class="status-panel__muted">{{ formatValue(field.value) }}</span>
+          </li>
+        }
+      </ul>
+    </details>
+  }
+</div>

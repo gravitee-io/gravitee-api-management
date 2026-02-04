@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
-import { uniqueId } from 'lodash';
+import { Component, computed, effect, input, signal } from '@angular/core';
 
 import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { GmdFormFieldBase } from '../form-field-base/gmd-form-field-base.component';
 import { emptyFieldKeyErrors, parseBoolean, safePattern, useLengthValidation } from '../form-helpers';
 
 @Component({
@@ -27,10 +27,8 @@ import { emptyFieldKeyErrors, parseBoolean, safePattern, useLengthValidation } f
   styleUrl: './gmd-input.component.scss',
   standalone: true,
 })
-export class GmdInputComponent {
-  private readonly el = inject(ElementRef<HTMLElement>);
-  private readonly id = uniqueId();
-
+export class GmdInputComponent extends GmdFormFieldBase {
+  // Inputs
   fieldKey = input<string | undefined>();
   name = input<string>('');
   label = input<string | undefined>();
@@ -43,10 +41,14 @@ export class GmdInputComponent {
   readonly = input(false, { transform: parseBoolean });
   disabled = input(false, { transform: parseBoolean });
 
+  // State
   protected readonly internalValue = signal<string>('');
   protected readonly touched = signal<boolean>(false);
 
+  // Computed
   private readonly lengthValidation = useLengthValidation(this.minLength, this.maxLength, this.internalValue);
+  protected readonly minLengthVM = this.lengthValidation.minLength;
+  protected readonly maxLengthVM = this.lengthValidation.maxLength;
   private readonly patternResult = computed(() => safePattern(this.pattern()));
 
   configErrors = computed<GmdConfigError[]>(() => {
@@ -113,34 +115,16 @@ export class GmdInputComponent {
     return msgs;
   });
 
-  protected readonly minLengthVM = this.lengthValidation.minLength;
-  protected readonly maxLengthVM = this.lengthValidation.maxLength;
   protected errorId = computed(() => `${this.name()}-error`);
   protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
 
-  constructor() {
-    // init/sync from provided value
-    effect(() => {
-      const v = this.value();
-      if (v !== undefined) {
-        this.internalValue.set(String(v));
-      }
-    });
-
-    // whenever something relevant changes, notify host (always emit to show config errors)
-    effect(() => {
-      // Read all reactive values to track changes
-      this.fieldKey();
-      this.internalValue();
-      this.required();
-      this.minLength();
-      this.maxLength();
-      this.pattern();
-      this.disabled();
-
-      this.emitState();
-    });
-  }
+  // Init/sync from provided value
+  private readonly valueSync = effect(() => {
+    const v = this.value();
+    if (v !== undefined) {
+      this.internalValue.set(String(v));
+    }
+  });
 
   onInput(event: Event) {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
@@ -149,37 +133,32 @@ export class GmdInputComponent {
 
   onBlur() {
     this.touched.set(true);
-    this.emitState();
   }
 
-  private emitState() {
-    const fieldKey = (this.fieldKey() ?? '').trim();
-    const configErrors = this.configErrors();
+  protected trackProperties(): void {
+    this.fieldKey();
+    this.internalValue();
+    this.required();
+    this.minLength();
+    this.maxLength();
+    this.pattern();
+    this.disabled();
+  }
 
-    // Don't emit state for disabled fields (mimics HTML form behavior where disabled fields are not submitted)
-    if (this.disabled()) return;
-
-    // Use untracked to avoid tracking computed values during event dispatch
-    const detail: GmdFieldState = untracked(() => ({
+  protected buildFieldState(): GmdFieldState {
+    return {
       id: this.id,
-      fieldKey: fieldKey,
+      fieldKey: (this.fieldKey() ?? '').trim(),
       value: this.internalValue(),
       valid: this.valid(),
       required: this.required(),
       touched: this.touched(),
       validationErrors: this.validationErrors(),
-      configErrors,
-    }));
+      configErrors: this.configErrors(),
+    };
+  }
 
-    // Dispatch event asynchronously to avoid blocking the event loop
-    setTimeout(() => {
-      this.el.nativeElement.dispatchEvent(
-        new CustomEvent<GmdFieldState>('gmdFieldStateChange', {
-          detail,
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    }, 0);
+  protected isDisabled(): boolean {
+    return this.disabled();
   }
 }

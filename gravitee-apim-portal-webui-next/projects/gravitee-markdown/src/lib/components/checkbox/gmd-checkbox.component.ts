@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
-import { uniqueId } from 'lodash';
+import { Component, computed, effect, input, signal } from '@angular/core';
 
 import { GmdConfigError, GmdFieldErrorCode, GmdFieldState } from '../../models/formField';
+import { GmdFormFieldBase } from '../form-field-base/gmd-form-field-base.component';
 import { emptyFieldKeyErrors, parseBoolean } from '../form-helpers';
 
 @Component({
@@ -26,10 +26,8 @@ import { emptyFieldKeyErrors, parseBoolean } from '../form-helpers';
   styleUrl: './gmd-checkbox.component.scss',
   standalone: true,
 })
-export class GmdCheckboxComponent {
-  private readonly el = inject(ElementRef<HTMLElement>);
-  private readonly id = uniqueId();
-
+export class GmdCheckboxComponent extends GmdFormFieldBase {
+  // Inputs
   fieldKey = input<string | undefined>();
   name = input<string>('');
   label = input<string | undefined>();
@@ -38,9 +36,11 @@ export class GmdCheckboxComponent {
   readonly = input(false, { transform: parseBoolean });
   disabled = input(false, { transform: parseBoolean });
 
+  // State
   protected readonly internalValue = signal<boolean>(false);
   protected readonly touched = signal<boolean>(false);
 
+  // Computed
   configErrors = computed<GmdConfigError[]>(() => {
     const errors: GmdConfigError[] = [];
 
@@ -76,24 +76,11 @@ export class GmdCheckboxComponent {
   protected errorId = computed(() => `${this.name()}-error`);
   protected hasErrors = computed(() => this.touched() && this.errorMessages().length > 0);
 
-  constructor() {
-    // init/sync from provided value
-    effect(() => {
-      const v = this.value();
-      this.internalValue.set(v);
-    });
-
-    // whenever something relevant changes, notify host
-    effect(() => {
-      // Read all reactive values to track changes
-      this.fieldKey();
-      this.internalValue();
-      this.required();
-      this.disabled();
-
-      this.emitState();
-    });
-  }
+  // Init/sync from provided value
+  private readonly valueSync = effect(() => {
+    const v = this.value();
+    this.internalValue.set(v);
+  });
 
   onChange(event: Event) {
     const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
@@ -102,37 +89,29 @@ export class GmdCheckboxComponent {
 
   onBlur() {
     this.touched.set(true);
-    this.emitState();
   }
 
-  private emitState() {
-    const fieldKey = (this.fieldKey() ?? '').trim();
-    const configErrors = this.configErrors();
+  protected trackProperties(): void {
+    this.fieldKey();
+    this.internalValue();
+    this.required();
+    this.disabled();
+  }
 
-    // Don't emit state for disabled fields
-    if (this.disabled()) return;
-
-    // Use untracked to avoid tracking computed values during event dispatch
-    const detail: GmdFieldState = untracked(() => ({
+  protected buildFieldState(): GmdFieldState {
+    return {
       id: this.id,
-      fieldKey: fieldKey,
+      fieldKey: (this.fieldKey() ?? '').trim(),
       value: this.internalValue() ? 'true' : 'false',
       valid: this.valid(),
       required: this.required(),
       touched: this.touched(),
       validationErrors: this.validationErrors(),
-      configErrors,
-    }));
+      configErrors: this.configErrors(),
+    };
+  }
 
-    // Dispatch event asynchronously to avoid blocking the event loop
-    setTimeout(() => {
-      this.el.nativeElement.dispatchEvent(
-        new CustomEvent<GmdFieldState>('gmdFieldStateChange', {
-          detail,
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    }, 0);
+  protected isDisabled(): boolean {
+    return this.disabled();
   }
 }
