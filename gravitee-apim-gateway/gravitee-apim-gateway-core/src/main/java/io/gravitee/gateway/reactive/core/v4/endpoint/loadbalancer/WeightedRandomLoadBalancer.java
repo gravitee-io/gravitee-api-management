@@ -43,7 +43,7 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
     }
 
     @Override
-    protected ManagedEndpoint getManagedEndpoint() {
+    protected synchronized ManagedEndpoint getManagedEndpoint() {
         if (endpoints.size() != weightDistributions.get().getDistributions().size()) {
             refresh();
         }
