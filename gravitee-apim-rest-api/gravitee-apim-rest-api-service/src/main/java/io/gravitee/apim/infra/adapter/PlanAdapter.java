@@ -60,6 +60,7 @@ public interface PlanAdapter {
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(source = "apiId", target = "api")
+    @Mapping(source = "apiId", target = "referenceId")
     @Mapping(target = "security", source = "planSecurity", qualifiedByName = "computeRepositorySecurityType")
     @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
     @Mapping(target = "definition", expression = "java(serializeDefinition(source))")
@@ -67,6 +68,7 @@ public interface PlanAdapter {
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
+    @Mapping(target = "referenceType", expression = "java(toPlanReferenceType(source))")
     io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
     @Mapping(target = "status", source = "planStatus")
@@ -279,6 +281,14 @@ public interface PlanAdapter {
             return io.gravitee.repository.management.model.Plan.PlanSecurityType.valueOf(planSecurityType.name());
         }
         return null;
+    }
+
+    @Named("toPlanReferenceType")
+    default io.gravitee.repository.management.model.Plan.PlanReferenceType toPlanReferenceType(Plan source) {
+        if (source == null || source.getPlanType() == null) {
+            return io.gravitee.repository.management.model.Plan.PlanReferenceType.API;
+        }
+        return io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(source.getPlanType().name());
     }
 
     default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {

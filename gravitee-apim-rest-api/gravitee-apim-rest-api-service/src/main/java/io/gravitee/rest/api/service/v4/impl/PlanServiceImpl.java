@@ -321,11 +321,15 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setStatus(oldPlan.getStatus());
             newPlan.setOrder(oldPlan.getOrder());
             newPlan.setApi(oldPlan.getApi());
+            newPlan.setReferenceId(oldPlan.getReferenceId());
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
             newPlan.setMode(oldPlan.getMode());
             newPlan.setApiType(oldPlan.getApiType());
+            newPlan.setReferenceType(
+                oldPlan.getType() == null ? Plan.PlanReferenceType.API : Plan.PlanReferenceType.valueOf(oldPlan.getType().name())
+            );
             // for existing plans, needRedeployAt doesn't exist. We have to initialize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
