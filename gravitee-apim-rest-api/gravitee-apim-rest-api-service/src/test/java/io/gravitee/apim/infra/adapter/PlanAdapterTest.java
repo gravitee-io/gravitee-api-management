@@ -200,6 +200,8 @@ class PlanAdapterTest {
         void should_convert_v4_plan_to_repository() {
             var model = PlanFixtures.aPlanHttpV4()
                 .toBuilder()
+                .referenceId("my-api")
+                .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -222,6 +224,8 @@ class PlanAdapterTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(plan.getApi()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceId()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceType()).isEqualTo(Plan.PlanReferenceType.API);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic1", "characteristic2");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("Comment message");

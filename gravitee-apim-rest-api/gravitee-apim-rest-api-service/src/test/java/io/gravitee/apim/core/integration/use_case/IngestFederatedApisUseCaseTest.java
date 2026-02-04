@@ -956,6 +956,8 @@ class IngestFederatedApisUseCaseTest {
                             .description("Description 1")
                             .validation(Plan.PlanValidationType.MANUAL)
                             .apiId("environment-idintegration-idasset-uid")
+                            .referenceId("environment-idintegration-idasset-uid")
+                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
                                 FederatedPlan.builder()
                                     .id("environment-idintegration-idasset-uidplan1")
@@ -977,6 +979,8 @@ class IngestFederatedApisUseCaseTest {
                             .description("Description 2")
                             .validation(Plan.PlanValidationType.MANUAL)
                             .apiId("environment-idintegration-idasset-uid")
+                            .referenceId("environment-idintegration-idasset-uid")
+                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
                                 FederatedPlan.builder()
                                     .id("environment-idintegration-idasset-uidplan2")
@@ -1065,6 +1069,8 @@ class IngestFederatedApisUseCaseTest {
                             .description("Updated description 1")
                             .validation(Plan.PlanValidationType.MANUAL)
                             .apiId("environment-idintegration-idasset-uid")
+                            .referenceId("environment-idintegration-idasset-uid")
+                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
                                 FederatedPlan.builder()
                                     .id("generated-id")

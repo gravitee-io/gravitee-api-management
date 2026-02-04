@@ -123,14 +123,38 @@ class UpdatePlanUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var plan = PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).apiId(API_ID).order(1).build();
-        var anotherPlan = PlanFixtures.aPlanHttpV4().toBuilder().id("another-plan-id").apiId(API_ID).order(2).build();
-        var deprecatedPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(DEPRECATED_PLAN_ID).apiId(DEPRECATED_PLAN_API_ID).order(1).build();
+        var plan = PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).apiId(API_ID).referenceId(API_ID).order(1).build();
+        var anotherPlan = PlanFixtures.aPlanHttpV4().toBuilder().id("another-plan-id").apiId(API_ID).referenceId(API_ID).order(2).build();
+        var deprecatedPlan = PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id(DEPRECATED_PLAN_ID)
+            .apiId(DEPRECATED_PLAN_API_ID)
+            .referenceId(DEPRECATED_PLAN_API_ID)
+            .order(1)
+            .build();
         deprecatedPlan.getPlanDefinitionV4().setStatus(PlanStatus.DEPRECATED);
-        var stagingPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(STAGING_PLAN_ID).apiId(STAGING_PLAN_API_ID).order(1).build();
+        var stagingPlan = PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id(STAGING_PLAN_ID)
+            .apiId(STAGING_PLAN_API_ID)
+            .referenceId(STAGING_PLAN_API_ID)
+            .order(1)
+            .build();
         stagingPlan.getPlanDefinitionV4().setStatus(PlanStatus.STAGING);
-        var nativePlan = PlanFixtures.aPlanNativeV4().toBuilder().id(NATIVE_PLAN_ID).apiId(NATIVE_API_ID).order(3).build();
-        var newTestPlan = PlanFixtures.aPlanHttpV4().toBuilder().id(NEW_TEST_PLAN_ID).apiId(NEW_TEST_PLAN_API_ID).order(2).build();
+        var nativePlan = PlanFixtures.aPlanNativeV4()
+            .toBuilder()
+            .id(NATIVE_PLAN_ID)
+            .apiId(NATIVE_API_ID)
+            .referenceId(NATIVE_API_ID)
+            .order(3)
+            .build();
+        var newTestPlan = PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id(NEW_TEST_PLAN_ID)
+            .apiId(NEW_TEST_PLAN_API_ID)
+            .referenceId(NEW_TEST_PLAN_API_ID)
+            .order(2)
+            .build();
         newTestPlan.getPlanDefinitionV4().setSecurity(null);
         newTestPlan.setPlanMode(PlanMode.PUSH);
         List<Plan> allPlans = List.of(plan, anotherPlan, deprecatedPlan, stagingPlan, nativePlan, newTestPlan);
