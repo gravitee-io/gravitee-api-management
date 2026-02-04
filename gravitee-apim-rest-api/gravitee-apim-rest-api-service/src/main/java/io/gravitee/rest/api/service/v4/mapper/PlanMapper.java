@@ -134,6 +134,7 @@ public class PlanMapper {
         plan.setGeneralConditions(newPlanEntity.getGeneralConditions());
         plan.setGeneralConditionsHrid(newPlanEntity.getGeneralConditionsHrid());
         plan.setOrder(newPlanEntity.getOrder());
+        plan.setApi(api.getId());
         plan.setApiType(api.getType());
 
         if (newPlanEntity.getStatus() == PlanStatus.PUBLISHED) {

@@ -50,6 +50,8 @@ public class PlanModelFactory {
             .validation(planCRD.getValidation())
             .apiType(ApiType.valueOf(api.getType()))
             .apiId(api.getId())
+            .referenceId(api.getId())
+            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
             .build();
 
         if (ApiType.NATIVE.getLabel().equalsIgnoreCase(api.getType())) {
@@ -87,6 +89,8 @@ public class PlanModelFactory {
             .name(plan.name())
             .description(plan.description())
             .apiId(federatedApi.getId())
+            .referenceId(federatedApi.getId())
+            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
             .federatedPlanDefinition(
                 FederatedPlan.builder()
                     .id(id)
