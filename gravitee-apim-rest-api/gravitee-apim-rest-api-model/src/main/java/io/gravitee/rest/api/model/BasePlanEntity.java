@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType;
 import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.HashMap;
@@ -204,18 +203,6 @@ public class BasePlanEntity implements GenericPlanEntity {
     @JsonIgnore
     public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
         return io.gravitee.rest.api.model.v4.plan.PlanType.API;
-    }
-
-    @Override
-    @JsonIgnore
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    @Override
-    @JsonIgnore
-    public GenericPlanEntity.ReferenceType getReferenceType() {
-        return referenceType;
     }
 
     @Override

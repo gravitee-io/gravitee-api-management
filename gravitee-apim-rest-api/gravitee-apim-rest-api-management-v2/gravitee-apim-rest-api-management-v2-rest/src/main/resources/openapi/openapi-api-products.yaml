@@ -862,7 +862,6 @@ components:
               invalidValue:
                 description: The invalid value.
 
-<<<<<<< HEAD
     BaseApiProductPlan:
       type: object
       properties:

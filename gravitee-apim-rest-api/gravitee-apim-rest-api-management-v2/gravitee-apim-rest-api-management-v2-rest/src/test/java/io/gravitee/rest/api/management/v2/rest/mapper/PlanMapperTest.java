@@ -30,7 +30,6 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
-import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
@@ -420,17 +419,5 @@ public class PlanMapperTest {
         }
 
         return (JsonNode) definition;
-    }
-
-    @Test
-    void should_map_PlanTypeV4_API_PRODUCT_to_PlanType_API() {
-        PlanType result = planMapper.mapPlanTypeV4ToRest(io.gravitee.rest.api.model.v4.plan.PlanType.API_PRODUCT);
-        assertEquals(PlanType.API, result);
-    }
-
-    @Test
-    void should_map_PlanTypeCore_API_PRODUCT_to_PlanType_API() {
-        PlanType result = planMapper.mapPlanTypeCoreToRest(Plan.PlanType.API_PRODUCT);
-        assertEquals(PlanType.API, result);
     }
 }
