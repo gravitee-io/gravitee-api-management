@@ -40,6 +40,7 @@
           <button mat-menu-item (click)="onAddSection('PAGE')"><mat-icon svgIcon="gio:page"></mat-icon> Add Page</button>
           <button mat-menu-item (click)="onAddSection('LINK')"><mat-icon svgIcon="gio:link"></mat-icon> Add Link</button>
           <button mat-menu-item (click)="onAddSection('FOLDER')"><mat-icon svgIcon="gio:folder"></mat-icon> Add Folder</button>
+          <button mat-menu-item (click)="onAddSection('API')"><mat-icon svgIcon="gio:api"></mat-icon> Add APIs</button>
         </mat-menu>
       </div>
     </header>
@@ -71,7 +72,7 @@
           </div>
 
           <div class="panel-header__title__badges">
-            @if (!isSelectedApiItem()) {
+            @if (isSelectedNotApiItem()) {
               <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
                 {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
               </span>
@@ -82,7 +83,7 @@
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
         <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
-        @if (!isSelectedApiItem()) {
+        @if (isSelectedNotApiItem()) {
           <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
             {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
           </button>

@@ -41,6 +41,10 @@ import {
   SectionEditorDialogData,
   SectionEditorDialogMode,
 } from './section-editor-dialog/section-editor-dialog.component';
+import {
+  ApiSectionEditorDialogComponent,
+  ApiSectionEditorDialogData,
+} from './api-section-editor-dialog/api-section-editor-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -48,6 +52,7 @@ import { FlatTreeComponent, NodeMenuActionEvent, NodeMovedEvent, SectionNode } f
 import {
   NewPortalNavigationItem,
   PortalArea,
+  PortalNavigationApi,
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationLink,
@@ -135,8 +140,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
-  readonly isSelectedApiItem: Signal<boolean> = computed(() => {
-    return this.selectedNavigationItem()?.type === 'API';
+  readonly isSelectedNotApiItem: Signal<boolean> = computed(() => {
+    return this.selectedNavigationItem()?.type !== 'API';
   });
 
   // --- Resize Configuration ---
@@ -145,6 +150,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly MAX_PANEL_WIDTH = 600;
   panelWidth = signal(350);
   initialContent = signal('');
+
+  private resizing = false;
+  private startX = 0;
+  private startWidth = 0;
 
   readonly contentLoadError = signal(false);
 
@@ -182,7 +191,13 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   onAddSection(sectionType: PortalNavigationItemType) {
-    this.checkUnsavedChangesAndRun(() => this.manageSection(sectionType, 'create', 'TOP_NAVBAR'));
+    this.checkUnsavedChangesAndRun(() => {
+      if (sectionType === 'API') {
+        this.manageApiSection('create', 'TOP_NAVBAR');
+        return;
+      }
+      this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
+    });
   }
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
@@ -198,14 +213,176 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           }
           break;
         default:
+          if (event.itemType === 'API') {
+            this.manageApiSection(event.action, 'TOP_NAVBAR', event.node.data);
+            return;
+          }
           this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
           break;
       }
     });
   }
 
+  private manageApiSection(_mode: SectionEditorDialogMode, _area: PortalArea, existingItem?: PortalNavigationItem): void {
+    const data: ApiSectionEditorDialogData = { mode: 'create' };
+
+    this.matDialog
+      .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data,
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((result) =>
+          this.createApisInOrder(existingItem?.id, result.apiIds ?? []).pipe(
+            map((lastCreatedId) => lastCreatedId ?? existingItem?.id ?? null),
+          ),
+        ),
+        filter((id): id is string => typeof id === 'string' && id.length > 0),
+        tap((id) => {
+          this.refreshMenuList.next(1);
+          this.navigateToItemByNavId(id);
+        }),
+        catchError(() => {
+          this.snackBarService.error('Failed to create API navigation items');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private checkUnsavedChangesAndRun(action: () => void): void {
+    if (!this.hasUnsavedChanges()) {
+      action();
+      return;
+    }
+
+    confirmDiscardChanges(this.matDialog)
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => action());
+  }
+
+  onResizeStart(event: MouseEvent): void {
+    event.preventDefault();
+    this.resizing = true;
+    this.startX = event.clientX;
+    this.startWidth = this.panelWidth();
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!this.resizing) {
+        return;
+      }
+      const delta = moveEvent.clientX - this.startX;
+      const newWidth = Math.min(this.MAX_PANEL_WIDTH, Math.max(this.MIN_PANEL_WIDTH, this.startWidth + delta));
+      this.ngZone.run(() => this.panelWidth.set(newWidth));
+    };
+
+    const onMouseUp = () => {
+      this.resizing = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  private setupPageContentSubscription(): void {
+    toObservable(this.selectedNavigationItem)
+      .pipe(
+        tap(() => {
+          this.contentLoadError.set(false);
+          this.isLoadingPageContent.set(false);
+        }),
+        switchMap((node) => {
+          const navItem = node?.data;
+          if (!navItem || navItem.type !== 'PAGE') {
+            this.contentControl.reset('');
+            this.initialContent.set('');
+            return of(null);
+          }
+
+          this.isLoadingPageContent.set(true);
+          return this.loadPageContent((navItem as PortalNavigationPage).portalPageContentId);
+        }),
+        filter((result) => result !== null),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        this.isLoadingPageContent.set(false);
+
+        if (result.success) {
+          this.contentControl.reset(result.content);
+          this.initialContent.set(result.content);
+        }
+      });
+  }
+
+  private loadPageContent(contentId: string): Observable<{ success: boolean; content: string }> {
+    return this.portalPageContentService.getPageContent(contentId).pipe(
+      map(({ content }) => ({ success: true, content })),
+      catchError(() => {
+        this.contentLoadError.set(true);
+        this.isLoadingPageContent.set(false);
+        this.snackBarService.error('Failed to load page content');
+        return of({ success: false, content: '' });
+      }),
+    );
+  }
+
+  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
+    if (!navId) {
+      return null;
+    }
+
+    const foundItem = menuLinks?.find((item) => item.id === navId);
+
+    return foundItem
+      ? {
+          id: foundItem.id,
+          label: foundItem.title,
+          type: foundItem.type,
+          data: foundItem,
+        }
+      : null;
+  }
+
+  private createApisInOrder(parentId: string | undefined, apiIds: string[]): Observable<string | null> {
+    if (!parentId) {
+      this.snackBarService.error('Select a folder before adding APIs');
+      return of(null);
+    }
+
+    if (!Array.isArray(apiIds) || apiIds.length === 0) {
+      return of(null);
+    }
+
+    return of(...apiIds).pipe(
+      exhaustMap((apiId) =>
+        this.create({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId,
+          visibility: 'PUBLIC',
+          apiId,
+        } as NewPortalNavigationItem).pipe(map((created) => created.id)),
+      ),
+      map((id) => id ?? null),
+      catchError(() => {
+        this.snackBarService.error('Failed to create API navigation items');
+        return of(null);
+      }),
+    );
+  }
+
   private manageSection(
-    type: PortalNavigationItemType,
+    type: Exclude<PortalNavigationItemType, 'API'>,
     mode: SectionEditorDialogMode,
     area: PortalArea,
     existingItem?: PortalNavigationItem,
@@ -213,7 +390,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const data: SectionEditorDialogData = { mode, type, existingItem };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: GIO_DIALOG_WIDTH.SMALL,
         data,
       })
       .afterClosed()
@@ -221,44 +398,27 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         filter((result) => !!result),
         switchMap((result) => {
           if (mode === 'create') {
-            if (type === 'API') {
-              return this.createApisInOrder(existingItem?.id, result.apiIds ?? []).pipe(
-                map((lastCreatedId) => ({ id: lastCreatedId ?? existingItem?.id }) as any),
-                switchMap(() => EMPTY),
-              );
-            }
-
-            const base: NewPortalNavigationItem = {
+            return this.create({
               title: result.title,
               type,
               area,
+              url: result.url,
               parentId: existingItem?.id,
               visibility: result.visibility,
-            } as NewPortalNavigationItem;
-
-            const payload: NewPortalNavigationItem =
-              type === 'LINK'
-                ? ({
-                    ...base,
-                    url: result.url,
-                  } as NewPortalNavigationItem)
-                : base;
-
-            return this.create(payload);
+            });
+          } else {
+            if (!existingItem) {
+              return EMPTY;
+            }
+            return this.update(existingItem.id, {
+              title: existingItem.title,
+              type: existingItem.type,
+              parentId: existingItem.parentId,
+              order: existingItem.order,
+              published: existingItem.published,
+              ...result,
+            });
           }
-
-          if (!existingItem) {
-            return EMPTY;
-          }
-
-          return this.update(existingItem.id, {
-            title: existingItem.title,
-            type: existingItem.type,
-            parentId: existingItem.parentId,
-            order: existingItem.order,
-            published: existingItem.published,
-            ...result,
-          });
         }),
         tap(({ id }) => {
           this.refreshMenuList.next(1);
@@ -321,6 +481,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return;
       }
       const navItem = selectedItem.data;
+      if (navItem.type === 'API') {
+        this.manageApiSection('edit', navItem.area, navItem);
+        return;
+      }
       this.manageSection(navItem.type, 'edit', navItem.area, navItem);
     });
   }
@@ -458,14 +622,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     newOrder: number,
     navItem: PortalNavigationItem,
   ): Observable<PortalNavigationItem> {
-    if (navItem.type === 'API' && newParentId) {
-      const parent = this.menuLinks().find((i) => i.id === newParentId);
-      if (parent?.type === 'API') {
-        this.snackBarService.error('API cannot be moved under an API navigation item');
-        return EMPTY;
-      }
-    }
-
     const updateItem: UpdatePortalNavigationItem = {
       title: navItem.title,
       type: navItem.type,
@@ -474,7 +630,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       url: (navItem as PortalNavigationLink).url,
       parentId: newParentId ?? undefined,
       order: newOrder,
-      apiId: (navItem as any).apiId,
+      apiId: (navItem as PortalNavigationApi).apiId,
     };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
@@ -483,138 +639,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       catchError(() => {
         this.snackBarService.error('Failed to move navigation item');
         return EMPTY;
-      }),
-    );
-  }
-
-  private resizing = false;
-  private startX = 0;
-  private startWidth = 0;
-
-  onResizeStart(event: MouseEvent) {
-    event.preventDefault();
-    this.resizing = true;
-    this.startX = event.clientX;
-    this.startWidth = this.panelWidth();
-
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      if (!this.resizing) {
-        return;
-      }
-      const delta = moveEvent.clientX - this.startX;
-      const newWidth = Math.min(this.MAX_PANEL_WIDTH, Math.max(this.MIN_PANEL_WIDTH, this.startWidth + delta));
-      this.ngZone.run(() => this.panelWidth.set(newWidth));
-    };
-
-    const onMouseUp = () => {
-      this.resizing = false;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }
-
-  private checkUnsavedChangesAndRun(action: () => void): void {
-    if (!this.hasUnsavedChanges()) {
-      action();
-      return;
-    }
-
-    confirmDiscardChanges(this.matDialog)
-      .pipe(
-        filter((confirmed) => !!confirmed),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(() => action());
-  }
-
-  private setupPageContentSubscription(): void {
-    toObservable(this.selectedNavigationItem)
-      .pipe(
-        tap(() => {
-          this.contentLoadError.set(false);
-          this.isLoadingPageContent.set(false);
-        }),
-        switchMap((node) => {
-          const navItem = node?.data;
-          if (!navItem || navItem.type !== 'PAGE') {
-            this.contentControl.reset('');
-            this.initialContent.set('');
-            return of(null);
-          }
-
-          this.isLoadingPageContent.set(true);
-          return this.loadPageContent((navItem as PortalNavigationPage).portalPageContentId);
-        }),
-        filter((result) => result !== null),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((result) => {
-        this.isLoadingPageContent.set(false);
-
-        if (result.success) {
-          this.contentControl.reset(result.content);
-          this.initialContent.set(result.content);
-        }
-      });
-  }
-
-  private loadPageContent(contentId: string): Observable<{ success: boolean; content: string }> {
-    return this.portalPageContentService.getPageContent(contentId).pipe(
-      map(({ content }) => ({ success: true, content })),
-      catchError(() => {
-        this.contentLoadError.set(true);
-        this.isLoadingPageContent.set(false);
-        this.snackBarService.error('Failed to load page content');
-        return of({ success: false, content: '' });
-      }),
-    );
-  }
-
-  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
-    if (!navId) {
-      return null;
-    }
-
-    const foundItem = menuLinks?.find((item) => item.id === navId);
-
-    return foundItem
-      ? {
-          id: foundItem.id,
-          label: foundItem.title,
-          type: foundItem.type,
-          data: foundItem,
-        }
-      : null;
-  }
-
-  private createApisInOrder(parentId: string | undefined, apiIds: string[]): Observable<string | null> {
-    if (!parentId) {
-      this.snackBarService.error('Select a folder before adding APIs');
-      return of(null);
-    }
-
-    if (!Array.isArray(apiIds) || apiIds.length === 0) {
-      return of(null);
-    }
-
-    return of(...apiIds).pipe(
-      exhaustMap((apiId) =>
-        this.create({
-          title: '',
-          type: 'API',
-          area: 'TOP_NAVBAR',
-          parentId,
-          visibility: 'PUBLIC',
-          apiId,
-        } as NewPortalNavigationItem).pipe(map((created) => created.id)),
-      ),
-      map((id) => id ?? null),
-      catchError(() => {
-        this.snackBarService.error('Failed to create API navigation items');
-        return of(null);
       }),
     );
   }

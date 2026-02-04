@@ -24,21 +24,21 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { ApiPickerComponent } from './api-picker/api-picker.component';
-
-import { PortalNavigationApi, PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
+import { PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
+type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API'>;
+
 interface SectionEditorDialogCreateData {
   mode: 'create';
-  type: PortalNavigationItemType;
+  type: SectionEditorDialogItemType;
 }
 
 interface SectionEditorDialogEditData {
   mode: 'edit';
-  type: PortalNavigationItemType;
+  type: SectionEditorDialogItemType;
   existingItem: PortalNavigationItem;
 }
 
@@ -48,22 +48,18 @@ export interface SectionEditorDialogResult {
   title: string;
   visibility: PortalVisibility;
   url?: string;
-  apiId?: string;
-  apiIds?: string[];
 }
 
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
-  url?: FormControl<string>; // Optional for 'LINK' type
-  apiIds?: FormControl<string[]>; // Optional for 'API' type
+  url?: FormControl<string>;
 }
 
 interface SectionFormValues {
   title: string;
   isPrivate: boolean;
   url?: string;
-  apiIds?: string[];
 }
 
 type SectionForm = FormGroup<SectionFormControls>;
@@ -80,7 +76,6 @@ type SectionForm = FormGroup<SectionFormControls>;
     TitleCasePipe,
     GioBannerModule,
     LowerCasePipe,
-    ApiPickerComponent,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
@@ -89,7 +84,7 @@ export class SectionEditorDialogComponent implements OnInit {
   form!: SectionForm;
   public initialFormValues: SectionFormValues;
 
-  public type: PortalNavigationItemType;
+  public type: SectionEditorDialogItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
 
@@ -101,11 +96,10 @@ export class SectionEditorDialogComponent implements OnInit {
     this.type = this.data.type;
     this.mode = this.data.mode;
 
-    const typeLabel = this.type === 'API' ? 'API' : this.type.toLowerCase();
+    const typeLabel = this.type.toLowerCase();
 
     if (this.data.mode === 'create') {
-      const createLabel = this.type === 'API' ? 'APIs' : typeLabel;
-      this.title = `Add ${createLabel}`;
+      this.title = `Add ${typeLabel}`;
       this.buttonTitle = 'Add';
     } else {
       this.title = `Edit "${this.data.existingItem.title}" ${typeLabel}`;
@@ -130,10 +124,8 @@ export class SectionEditorDialogComponent implements OnInit {
 
     this.addTypeSpecificControls();
 
-    if (this.type !== 'API') {
-      this.form.controls.title.addValidators([Validators.required]);
-      this.form.controls.title.updateValueAndValidity({ emitEvent: false });
-    }
+    this.form.controls.title.addValidators([Validators.required]);
+    this.form.controls.title.updateValueAndValidity({ emitEvent: false });
 
     this.prefillExistingItem();
 
@@ -150,24 +142,12 @@ export class SectionEditorDialogComponent implements OnInit {
         }),
       );
     }
-
-    if (this.type === 'API') {
-      this.form.addControl(
-        'apiIds',
-        new FormControl<string[]>([], {
-          validators: [Validators.required],
-          nonNullable: true,
-        }),
-      );
-    }
   }
 
   private prefillExistingItem(): void {
     if (this.data.mode === 'edit') {
       this.form.patchValue({
-        ...(this.data.existingItem.type === 'LINK' ? { url: this.data.existingItem.url } : {}),
-        ...(this.data.existingItem.type === 'API' ? { apiIds: [(this.data.existingItem as PortalNavigationApi).apiId] } : {}),
-
+        ...(this.data.existingItem.type === 'LINK' ? { url: (this.data.existingItem as any).url } : {}),
         title: this.data.existingItem.title,
         isPrivate: this.data.existingItem.visibility === 'PRIVATE',
       });
@@ -178,14 +158,10 @@ export class SectionEditorDialogComponent implements OnInit {
     if (this.form.valid) {
       const formValues = this.form.getRawValue();
 
-      const apiIds = this.type === 'API' ? (formValues.apiIds ?? []) : [];
-      const apiId = this.type === 'API' ? apiIds[0] : undefined;
-
       this.dialogRef.close({
-        title: this.type === 'API' ? '' : formValues.title,
+        title: formValues.title,
         visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
-        ...(this.type === 'API' ? { apiIds, apiId } : {}),
       });
     }
   }

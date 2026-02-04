@@ -1,5 +1,18 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+@use 'sass:map';
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.title {
+  @include mat.m2-typography-level($typography, headline-6);
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
+}
 
 .api-search-description-box {
   display: flex;
@@ -8,15 +21,22 @@
   padding: 0 0 8px;
 }
 
-.api-search-heading,
 .selected-panel__title {
   color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
   font-weight: 700;
+  font-size: 14px;
 }
 
-.api-search-description,
 .selected-panel__empty {
-  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.api-search-description {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .filters {
@@ -41,7 +61,7 @@ table {
 }
 
 th.mat-mdc-header-cell {
-  background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter10');
+  background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
   border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
 }
 

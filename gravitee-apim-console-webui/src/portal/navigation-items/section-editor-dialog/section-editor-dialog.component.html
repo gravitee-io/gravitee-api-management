@@ -21,24 +21,14 @@
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
-    @if (type !== 'API') {
-      <div class="form-field-title">Title</div>
-      <mat-form-field>
-        <mat-label>{{ type | titlecase }} Title</mat-label>
-        <input matInput formControlName="title" required />
-        @if (form.controls.title.hasError('required')) {
-          <mat-error>Title is required</mat-error>
-        }
-      </mat-form-field>
-    }
-
-    @if (type === 'API') {
-      <api-picker
-        [disabledApiIds]="[]"
-        [selectedApiIds]="form.controls.apiIds.value"
-        (selectedApiIdsChange)="form.controls.apiIds.setValue($event)"
-      />
-    }
+    <div class="form-field-title">Title</div>
+    <mat-form-field>
+      <mat-label>{{ type | titlecase }} Title</mat-label>
+      <input matInput formControlName="title" required />
+      @if (form.controls.title.hasError('required')) {
+        <mat-error>Title is required</mat-error>
+      }
+    </mat-form-field>
 
     @if (type === 'LINK') {
       <div class="form-field-title">Link settings</div>
@@ -54,16 +44,14 @@
       </mat-form-field>
     }
 
-    @if (type !== 'API') {
-      <div class="form-field-title">Authentication</div>
-      <mat-slide-toggle formControlName="isPrivate" aria-label="Use system proxy"
-        >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
-      >
+    <div class="form-field-title">Authentication</div>
+    <mat-slide-toggle formControlName="isPrivate" aria-label="Use system proxy"
+      >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
+    >
 
-      <gio-banner-info type="info">
-        This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
-      </gio-banner-info>
-    }
+    <gio-banner-info type="info">
+      This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
+    </gio-banner-info>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

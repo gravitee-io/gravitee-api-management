@@ -19,11 +19,9 @@ import {
   PortalNavigationPage,
   PortalNavigationFolder,
   PortalNavigationLink,
-  PortalNavigationApi,
   NewPagePortalNavigationItem,
   NewFolderPortalNavigationItem,
   NewLinkPortalNavigationItem,
-  NewApiPortalNavigationItem,
   UpdatePagePortalNavigationItem,
   UpdateLinkPortalNavigationItem,
   UpdateFolderPortalNavigationItem,
@@ -100,31 +98,6 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     ...overrides,
   };
 }
-
-export function fakePortalNavigationApi(overrides?: Partial<PortalNavigationApi>): PortalNavigationApi {
-  const base: PortalNavigationApi = {
-    id: 'nav-api-1',
-    organizationId: 'org-1',
-    environmentId: 'env-1',
-    title: 'API',
-    type: 'API',
-    order: 1,
-    area: 'HOMEPAGE',
-    published: true,
-    visibility: 'PUBLIC',
-    apiId: 'api-1',
-  };
-
-  if (isFunction(overrides)) {
-    return overrides(base);
-  }
-
-  return {
-    ...base,
-    ...overrides,
-  };
-}
-
 export function fakePortalNavigationItemsResponse(overrides?: Partial<PortalNavigationItemsResponse>): PortalNavigationItemsResponse {
   const base: PortalNavigationItemsResponse = {
     items: [fakePortalNavigationPage()],
@@ -194,26 +167,6 @@ export function fakeNewLinkPortalNavigationItem(overrides?: Partial<NewLinkPorta
     ...overrides,
   };
 }
-
-export function fakeNewApiPortalNavigationItem(overrides?: Partial<NewApiPortalNavigationItem>): NewApiPortalNavigationItem {
-  const base: NewApiPortalNavigationItem = {
-    title: '',
-    type: 'API',
-    area: 'HOMEPAGE',
-    visibility: 'PUBLIC',
-    apiId: 'api-1',
-  };
-
-  if (isFunction(overrides)) {
-    return overrides(base);
-  }
-
-  return {
-    ...base,
-    ...overrides,
-  };
-}
-
 export function fakeUpdatePagePortalNavigationItem(overrides?: Partial<UpdatePagePortalNavigationItem>): UpdatePagePortalNavigationItem {
   const base: UpdatePagePortalNavigationItem = {
     published: false,
