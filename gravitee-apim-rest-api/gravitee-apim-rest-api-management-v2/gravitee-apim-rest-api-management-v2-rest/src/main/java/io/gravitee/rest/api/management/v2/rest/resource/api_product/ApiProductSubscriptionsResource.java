@@ -49,7 +49,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import lombok.CustomLog;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -59,7 +59,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author GraviteeSource Team
  */
-@CustomLog
+@Slf4j
 public class ApiProductSubscriptionsResource extends AbstractResource {
 
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;
@@ -167,6 +167,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     }
 
     private Subscription filterSensitiveData(Subscription subscription) {
+        // TODO(Vikrant): Confirm if filterSensitiveData is needed for subscriptions; plans removed it with a TODO.
         // Similar to plan filtering: check if user has both API_PRODUCT_DEFINITION and API_PRODUCT_SUBSCRIPTION permissions
         if (
             hasPermission(
@@ -190,6 +191,8 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
         // Subscriptions don't have sensitive data like flows/security definitions, so we return basic fields
         Subscription filtered = new Subscription();
         filtered.setId(subscription.getId());
+        filtered.setReferenceId(subscription.getReferenceId());
+        filtered.setReferenceType(subscription.getReferenceType());
         filtered.setStatus(subscription.getStatus());
         if (subscription.getPlan() != null) {
             filtered.setPlan(subscription.getPlan());

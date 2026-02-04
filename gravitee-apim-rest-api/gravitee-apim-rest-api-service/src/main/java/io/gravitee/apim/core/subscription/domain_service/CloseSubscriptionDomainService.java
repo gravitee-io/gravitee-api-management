@@ -206,75 +206,6 @@ public class CloseSubscriptionDomainService {
             ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                //TODO change this to subscription reference id
-                .apiProductId(originalSubscription.getApiId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
-                .oldValue(originalSubscription)
-                .newValue(closedSubscription)
-                .actor(auditInfo.actor())
-                .createdAt(closedSubscription.getUpdatedAt())
-                .properties(Collections.singletonMap(AuditProperties.APPLICATION, originalSubscription.getApplicationId()))
-                .build()
-        );
-        auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .applicationId(originalSubscription.getApplicationId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
-                .oldValue(originalSubscription)
-                .newValue(closedSubscription)
-                .actor(auditInfo.actor())
-                .createdAt(closedSubscription.getUpdatedAt())
-                .properties(Collections.singletonMap(AuditProperties.API, originalSubscription.getApiId()))
-                .build()
-        );
-    }
-
-    private void revokeApiKeys(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
-        var application = applicationCrudService.findById(
-            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
-            subscriptionEntity.getApplicationId()
-        );
-        if (!application.hasApiKeySharedMode()) {
-            revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(subscriptionEntity, auditInfo);
-        }
-    }
-
-    public SubscriptionEntity closeSubscriptionForApiProduct(String subscriptionId, AuditInfo auditInfo) {
-        var subscription = subscriptionCrudService.get(subscriptionId);
-        return closeSubscriptionForApiProduct(subscription, auditInfo);
-    }
-
-    public SubscriptionEntity closeSubscriptionForApiProduct(SubscriptionEntity subscription, AuditInfo auditInfo) {
-        log.debug("Close subscription {}", subscription.getId());
-
-        return switch (subscription.getStatus()) {
-            case ACCEPTED, PAUSED -> closeAcceptedOrPausedSubscriptionForApiProduct(subscription, auditInfo);
-            case PENDING -> rejectSubscriptionDomainService.reject(subscription, "Subscription has been closed.", auditInfo);
-            case CLOSED, REJECTED -> subscription;
-        };
-    }
-
-    private SubscriptionEntity closeAcceptedOrPausedSubscriptionForApiProduct(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
-        var closedSubscriptionEntity = subscriptionCrudService.update(subscriptionEntity.close());
-
-        createApiProductAuditLog(subscriptionEntity, closedSubscriptionEntity, auditInfo);
-
-        revokeApiKeys(subscriptionEntity, auditInfo);
-
-        return closedSubscriptionEntity;
-    }
-
-    private void createApiProductAuditLog(
-        SubscriptionEntity originalSubscription,
-        SubscriptionEntity closedSubscription,
-        AuditInfo auditInfo
-    ) {
-        auditDomainService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
                 .apiProductId(originalSubscription.getReferenceId())
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_CLOSED)
                 .oldValue(originalSubscription)
@@ -297,5 +228,15 @@ public class CloseSubscriptionDomainService {
                 .properties(Collections.singletonMap(AuditProperties.API_PRODUCT, originalSubscription.getReferenceId()))
                 .build()
         );
+    }
+
+    private void revokeApiKeys(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
+        var application = applicationCrudService.findById(
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+            subscriptionEntity.getApplicationId()
+        );
+        if (!application.hasApiKeySharedMode()) {
+            revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(subscriptionEntity, auditInfo);
+        }
     }
 }

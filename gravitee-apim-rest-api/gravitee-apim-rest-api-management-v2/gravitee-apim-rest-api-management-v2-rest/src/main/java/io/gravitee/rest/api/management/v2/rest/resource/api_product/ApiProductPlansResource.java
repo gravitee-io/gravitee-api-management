@@ -56,9 +56,9 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.CustomLog;
+import lombok.extern.slf4j.Slf4j;
 
-@CustomLog
+@Slf4j
 public class ApiProductPlansResource extends AbstractResource {
 
     private final ApiProductPlanMapper planMapper = ApiProductPlanMapper.INSTANCE;

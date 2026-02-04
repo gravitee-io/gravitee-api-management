@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.api_product.AcceptApiProductSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.api_product.CloseApiProductSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.api_product.GetApiProductSubscriptionsUseCase;
@@ -38,7 +39,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -104,7 +104,8 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
     private static SubscriptionEntity aSubscription() {
         return SubscriptionEntity.builder()
             .id(SUBSCRIPTION_ID)
-            .apiId(API_PRODUCT_ID)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .planId("plan-1")
             .applicationId("app-1")
             .status(SubscriptionEntity.Status.ACCEPTED)

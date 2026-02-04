@@ -49,13 +49,4 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
     public void delete(String id) {
         storage.removeIf(apiProduct -> id.equals(apiProduct.getId()));
     }
-
-    @Override
-    public ApiProduct get(String id) {
-        return storage
-            .stream()
-            .filter(apiProduct -> id.equals(apiProduct.getId()))
-            .findFirst()
-            .get();
-    }
 }

@@ -42,7 +42,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
-import lombok.CustomLog;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * API Product Subscription REST resource (singular).
@@ -50,7 +50,7 @@ import lombok.CustomLog;
  *
  * @author GraviteeSource Team
  */
-@CustomLog
+@Slf4j
 public class ApiProductSubscriptionResource extends AbstractResource {
 
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;

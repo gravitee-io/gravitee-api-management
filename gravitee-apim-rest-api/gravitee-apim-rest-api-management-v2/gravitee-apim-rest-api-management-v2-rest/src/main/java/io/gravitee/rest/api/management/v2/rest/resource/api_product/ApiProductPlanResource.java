@@ -44,9 +44,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import lombok.CustomLog;
+import lombok.extern.slf4j.Slf4j;
 
-@CustomLog
+@Slf4j
 public class ApiProductPlanResource extends AbstractResource {
 
     private final ApiProductPlanMapper planMapper = ApiProductPlanMapper.INSTANCE;

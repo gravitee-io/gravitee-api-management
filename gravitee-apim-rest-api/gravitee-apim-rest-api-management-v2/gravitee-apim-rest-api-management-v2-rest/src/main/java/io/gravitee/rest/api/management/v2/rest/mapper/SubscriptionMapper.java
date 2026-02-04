@@ -36,6 +36,7 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
+    /** Maps the legacy REST model (io.gravitee.rest.api.model.SubscriptionEntity) which has "api" (String) and no referenceId/referenceType. */
     @Mapping(target = "api.id", source = "api")
     @Mapping(target = "plan.id", source = "plan")
     @Mapping(target = "application.id", source = "application")
@@ -46,7 +47,9 @@ public interface SubscriptionMapper {
     @Mapping(target = "consumerConfiguration", source = "configuration")
     Subscription map(SubscriptionEntity subscriptionEntity);
 
-    @Mapping(target = "api.id", source = "apiId")
+    @Mapping(target = "api", ignore = true)
+    @Mapping(target = "referenceId", source = "referenceId")
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "mapSubscriptionReferenceType")
     @Mapping(target = "plan.id", source = "planId")
     @Mapping(target = "application.id", source = "applicationId")
     @Mapping(target = "processedBy.id", source = "processedBy")
@@ -126,5 +129,12 @@ public interface SubscriptionMapper {
             : OriginContext.Origin.KUBERNETES == origin
                 ? Subscription.OriginEnum.KUBERNETES
                 : Subscription.OriginEnum.MANAGEMENT;
+    }
+
+    @Named("mapSubscriptionReferenceType")
+    default Subscription.ReferenceTypeEnum mapSubscriptionReferenceType(
+        io.gravitee.apim.core.subscription.model.SubscriptionReferenceType type
+    ) {
+        return type == null ? null : Subscription.ReferenceTypeEnum.valueOf(type.name());
     }
 }

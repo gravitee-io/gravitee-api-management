@@ -5449,6 +5449,15 @@ components:
                           enum:
                               - KUBERNETES
                               - MANAGEMENT
+                      referenceId:
+                          type: string
+                          description: The reference ID (API ID or API Product ID) this subscription belongs to.
+                      referenceType:
+                          type: string
+                          description: The reference type (API or API_PRODUCT).
+                          enum:
+                              - API
+                              - API_PRODUCT
         SubscriptionStatus:
             type: string
             description: The status of the subscription manageable by the api publisher.

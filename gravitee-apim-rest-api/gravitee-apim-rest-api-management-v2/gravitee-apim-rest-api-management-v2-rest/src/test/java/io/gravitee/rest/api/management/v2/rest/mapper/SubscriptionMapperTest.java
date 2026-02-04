@@ -124,7 +124,8 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         io.gravitee.apim.core.subscription.model.SubscriptionEntity coreEntity =
             io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
                 .id("sub-1")
-                .apiId("api-1")
+                .referenceId("api-1")
+                .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
                 .planId("plan-1")
                 .applicationId("app-1")
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
@@ -140,7 +141,8 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertNotNull(subscription);
         assertEquals("sub-1", subscription.getId());
-        assertEquals("api-1", subscription.getApi().getId());
+        assertEquals("api-1", subscription.getReferenceId());
+        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Subscription.ReferenceTypeEnum.API, subscription.getReferenceType());
         assertEquals("plan-1", subscription.getPlan().getId());
         assertEquals("app-1", subscription.getApplication().getId());
         assertEquals("request", subscription.getConsumerMessage());
