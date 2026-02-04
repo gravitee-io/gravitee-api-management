@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.core.v4.endpoint.loadbalancer;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
     final AtomicInteger counter = new AtomicInteger(0);
@@ -50,29 +52,38 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
     }
 
     @Override
-    protected ManagedEndpoint getManagedEndpoint() {
+    protected synchronized ManagedEndpoint getManagedEndpoint() {
         WeightDistributions currentWeightDistributions = weightDistributions.get();
         if (endpoints.size() != currentWeightDistributions.getDistributions().size()) {
             refresh();
+            currentWeightDistributions = weightDistributions.get();
         }
 
-        WeightDistributions.WeightDistribution foundWeightDistribution = null;
-        while (foundWeightDistribution == null) {
+        List<WeightDistributions.WeightDistribution> distributions = currentWeightDistributions.getDistributions();
+        int maxAttempts = distributions.size() + 1;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
             if (currentWeightDistributions.tryResetRemaining()) {
                 counter.set(0);
             }
-            int position = counter.getAndIncrement();
-            if (position >= currentWeightDistributions.getDistributions().size()) {
-                counter.set(0);
-                position = counter.getAndIncrement();
-            }
-            WeightDistributions.WeightDistribution weightDistribution = currentWeightDistributions.getDistributions().get(position);
+            int position = Math.floorMod(counter.getAndIncrement(), distributions.size());
+            WeightDistributions.WeightDistribution weightDistribution = distributions.get(position);
             if (weightDistribution.getRemaining() > 0) {
                 weightDistribution.setRemaining(weightDistribution.getRemaining() - 1);
                 currentWeightDistributions.decreaseRemaining();
-                foundWeightDistribution = weightDistribution;
+                return endpoints.get(weightDistribution.getPosition());
             }
         }
-        return endpoints.get(foundWeightDistribution.getPosition());
+
+        // Safety fallback: force reset all distributions and return first endpoint
+        log.warn("Weighted round-robin load balancer exceeded max attempts, forcing distribution reset");
+        distributions.forEach(WeightDistributions.WeightDistribution::reset);
+        currentWeightDistributions.setRemainingSum(currentWeightDistributions.getWeightSum());
+        counter.set(0);
+
+        WeightDistributions.WeightDistribution first = distributions.get(0);
+        first.setRemaining(first.getRemaining() - 1);
+        currentWeightDistributions.decreaseRemaining();
+        return endpoints.get(first.getPosition());
     }
 }
