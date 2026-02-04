@@ -20,12 +20,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import fixtures.core.model.ApiFixtures;
-import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.promotion.domain_service.PromotionContextDomainService;
 import io.gravitee.apim.core.promotion.model.Promotion;
@@ -53,12 +51,10 @@ class PromotionContextDomainServiceTest {
     private static final String TARGET_ENV_ID = "TARGET-ENV-ID";
     private static final String TARGET_ENV_COCKPIT_ID = "TARGET-ENV-COCKPIT-ID";
     private final PromotionCrudServiceInMemory promotionCrudService = new PromotionCrudServiceInMemory();
-    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryServiceInMemory = new ApiQueryServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final PromotionContextDomainService service = new PromotionContextDomainService(
         promotionCrudService,
-        apiCrudService,
         apiQueryServiceInMemory,
         environmentCrudService,
         new JsonMapper()
@@ -76,25 +72,28 @@ class PromotionContextDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(promotionCrudService, apiCrudService, apiQueryServiceInMemory, environmentCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(promotionCrudService, apiQueryServiceInMemory, environmentCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
-    @SneakyThrows
     void should_find_promotion_with_api() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
-            .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8))
+            .apiDefinition(
+                """
+                {
+                    "api": {
+                        "crossId": "api-cross-id",
+                        "definitionVersion": "V4",
+                        "name": "My Api"
+                    }
+                }
+                """
+            )
             .build();
         promotionCrudService.initWith(List.of(promotion));
-
-        Api api = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(DEFAULT_ENV_ID).build();
-        apiCrudService.initWith(List.of(api));
-        apiQueryServiceInMemory.initWith(List.of(api));
 
         var result = service.getPromotionContext(promotion.getId(), true);
 
@@ -108,7 +107,6 @@ class PromotionContextDomainServiceTest {
     @Test
     @SneakyThrows
     void should_find_promotion_with_api_v2() {
-        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).environmentId(DEFAULT_ENV_ID).build();
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
@@ -116,8 +114,6 @@ class PromotionContextDomainServiceTest {
             .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/legacy-v2-export.json"), StandardCharsets.UTF_8))
             .build();
         promotionCrudService.initWith(List.of(promotion));
-        apiCrudService.initWith(List.of(v2Api));
-        apiQueryServiceInMemory.initWith(List.of(v2Api));
 
         var result = service.getPromotionContext(promotion.getId(), true);
 
@@ -128,7 +124,6 @@ class PromotionContextDomainServiceTest {
 
     @Test
     void should_throw_exception_definition_version_not_exist() {
-        Api v2Api = ApiFixtures.aFederatedApi().toBuilder().id(API_ID).environmentId(DEFAULT_ENV_ID).build();
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
@@ -137,6 +132,7 @@ class PromotionContextDomainServiceTest {
                 """
                     {
                         "api": {
+                            "crossId": "api-cross-id",
                             "definitionVersion": "yolo"
                         }
                     }
@@ -144,8 +140,6 @@ class PromotionContextDomainServiceTest {
             )
             .build();
         promotionCrudService.initWith(List.of(promotion));
-        apiCrudService.initWith(List.of(v2Api));
-        apiQueryServiceInMemory.initWith(List.of(v2Api));
 
         Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
@@ -153,8 +147,7 @@ class PromotionContextDomainServiceTest {
     }
 
     @Test
-    void should_throw_exception_when_definition_version_not_found() {
-        Api v2Api = ApiFixtures.aFederatedApi().toBuilder().id(API_ID).environmentId(DEFAULT_ENV_ID).build();
+    void should_throw_exception_when_crossId_not_found() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
@@ -162,8 +155,21 @@ class PromotionContextDomainServiceTest {
             .apiDefinition("{}")
             .build();
         promotionCrudService.initWith(List.of(promotion));
-        apiCrudService.initWith(List.of(v2Api));
-        apiQueryServiceInMemory.initWith(List.of(v2Api));
+
+        Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
+        assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        assertThat(throwable).hasMessage("An error occurred while trying to extract crossId from promotion promotion-id");
+    }
+
+    @Test
+    void should_throw_exception_when_definition_version_not_found() {
+        Promotion promotion = Promotion.builder()
+            .id(PROMOTION_ID)
+            .apiId(API_ID)
+            .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
+            .apiDefinition("{\"crossId\": \"api-cross-id\"}")
+            .build();
+        promotionCrudService.initWith(List.of(promotion));
 
         Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
         assertThat(throwable).isInstanceOf(IllegalStateException.class);
@@ -173,7 +179,7 @@ class PromotionContextDomainServiceTest {
     @Test
     @SneakyThrows
     void should_throw_exception_when_target_api_is_migrated() {
-        Api sourceV2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).crossId(CROSS_ID).environmentId(DEFAULT_ENV_ID).build();
+        String v2CrossId = "26133db6-9861-4dd7-933d-b698619dd7e6";
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
@@ -181,9 +187,8 @@ class PromotionContextDomainServiceTest {
             .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
             .build();
         promotionCrudService.initWith(List.of(promotion));
-        apiCrudService.initWith(List.of(sourceV2Api));
         apiQueryServiceInMemory.initWith(
-            List.of(ApiFixtures.aProxyApiV4().toBuilder().id("target-v4-api").crossId(CROSS_ID).environmentId(TARGET_ENV_ID).build())
+            List.of(ApiFixtures.aProxyApiV4().toBuilder().id("target-v4-api").crossId(v2CrossId).environmentId(TARGET_ENV_ID).build())
         );
 
         Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));
@@ -194,17 +199,24 @@ class PromotionContextDomainServiceTest {
     }
 
     @Test
-    @SneakyThrows
     void should_throw_exception_when_source_api_is_migrated() {
-        Api sourceV4Api = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).environmentId("DEFAULT").build();
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
-            .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8))
+            .apiDefinition(
+                """
+                {
+                    "api": {
+                        "crossId": "api-cross-id",
+                        "definitionVersion": "V4",
+                        "name": "My Api"
+                    }
+                }
+                """
+            )
             .targetEnvCockpitId("TARGET-ENV")
             .build();
         promotionCrudService.initWith(List.of(promotion));
-        apiCrudService.initWith(List.of(sourceV4Api));
         apiQueryServiceInMemory.initWith(
             List.of(ApiFixtures.aProxyApiV2().toBuilder().id("target-v2-api").crossId(CROSS_ID).environmentId("TARGET-ENV-ID").build())
         );
@@ -220,21 +232,27 @@ class PromotionContextDomainServiceTest {
     }
 
     @Test
-    @SneakyThrows
     void should_allow_promotion_rejection_when_versions_missmatch() {
         Promotion promotion = Promotion.builder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
-            .apiDefinition(IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8))
+            .apiDefinition(
+                """
+                {
+                    "api": {
+                        "crossId": "api-cross-id",
+                        "definitionVersion": "V4",
+                        "name": "My Api"
+                    }
+                }
+                """
+            )
             .targetEnvCockpitId("TARGET-ENV")
             .build();
 
         promotionCrudService.initWith(List.of(promotion));
         apiQueryServiceInMemory.initWith(
             List.of(ApiFixtures.aProxyApiV2().toBuilder().id("target-v2-api").crossId(CROSS_ID).environmentId("TARGET-ENV-ID").build())
-        );
-        apiCrudService.initWith(
-            List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).environmentId("DEFAULT").build())
         );
         environmentCrudService.initWith(
             List.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("TARGET-ENV-ID").cockpitId("TARGET-ENV").build())
