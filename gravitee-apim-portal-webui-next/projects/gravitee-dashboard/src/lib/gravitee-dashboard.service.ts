@@ -22,7 +22,7 @@ import { GlobalRequest } from './components/widget/model/request/request';
 import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
 import { TimeSeriesResponse } from './components/widget/model/response/time-series-response';
-import { RequestType, Widget } from './components/widget/model/widget/widget';
+import { RequestType, Widget } from './components/widget/model/widget/widget.model';
 
 @Injectable({
   providedIn: 'root',

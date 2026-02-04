@@ -25,7 +25,7 @@ import { GridComponent } from './components/grid/grid.component';
 import { FilterName } from './components/widget/model/request/enum/filter-name';
 import { RequestFilter, TimeRange } from './components/widget/model/request/request';
 import { TimeSeriesRequest } from './components/widget/model/request/time-series-request';
-import { Widget, isTimeSeriesWidget } from './components/widget/model/widget/widget';
+import { Widget, isTimeSeriesWidget } from './components/widget/model/widget/widget.model';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 @Component({

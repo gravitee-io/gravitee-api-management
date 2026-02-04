@@ -19,10 +19,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
-import { AnalyticsViewerComponent } from './analytics-viewer.component';
+import { DashboardViewerComponent } from './dashboard-viewer.component';
 
-import { Constants } from '../../../entities/Constants';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { Constants } from '../../../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 
 // Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
 globalThis.ResizeObserver =
@@ -33,16 +33,16 @@ globalThis.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-describe('AnalyticsViewerComponent', () => {
-  let component: AnalyticsViewerComponent;
-  let fixture: ComponentFixture<AnalyticsViewerComponent>;
+describe('DashboardViewerComponent', () => {
+  let component: DashboardViewerComponent;
+  let fixture: ComponentFixture<DashboardViewerComponent>;
   const mockGraviteeDashboardService = {
     getWidgets: jest.fn().mockReturnValue([]),
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AnalyticsViewerComponent, GioTestingModule],
+      imports: [DashboardViewerComponent, GioTestingModule],
       providers: [
         {
           provide: GraviteeDashboardService,
@@ -69,7 +69,7 @@ describe('AnalyticsViewerComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AnalyticsViewerComponent);
+    fixture = TestBed.createComponent(DashboardViewerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,0 +1,28 @@
+//@use 'index.d.ts' as gio;
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.actions-buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+table {
+  width: 100%;
+}

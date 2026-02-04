@@ -21,7 +21,7 @@ import { FacetsRequest } from './components/widget/model/request/facets-request'
 import { MeasuresRequest } from './components/widget/model/request/measures-request';
 import { FacetsResponse } from './components/widget/model/response/facets-response';
 import { MeasuresResponse } from './components/widget/model/response/measures-response';
-import { RequestType } from './components/widget/model/widget/widget';
+import { RequestType } from './components/widget/model/widget/widget.model';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 describe('GraviteeDashboardService', () => {

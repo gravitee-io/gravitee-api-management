@@ -15,18 +15,18 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { ApplicationFilterService } from './application-filter.service';
+import { ApiFilterService } from './api-filter.service';
 
-import { GioTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../../../shared/testing';
 
-describe('ApplicationFilterService', () => {
-  let service: ApplicationFilterService;
+describe('ApiFilterService', () => {
+  let service: ApiFilterService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioTestingModule],
     });
-    service = TestBed.inject(ApplicationFilterService);
+    service = TestBed.inject(ApiFilterService);
   });
 
   it('should be created', () => {

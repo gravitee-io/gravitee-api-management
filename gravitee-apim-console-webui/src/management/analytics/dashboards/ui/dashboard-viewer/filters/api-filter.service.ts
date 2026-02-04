@@ -19,8 +19,15 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { HttpListener, KafkaListener, Listener, SubscriptionListener, TcpListener, Api } from '../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import {
+  HttpListener,
+  KafkaListener,
+  Listener,
+  SubscriptionListener,
+  TcpListener,
+  Api,
+} from '../../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 
 @Injectable({
   providedIn: 'root',

@@ -19,7 +19,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { GridComponent } from './grid.component';
 import { FacetsResponse } from '../widget/model/response/facets-response';
 import { MeasuresResponse } from '../widget/model/response/measures-response';
-import { Widget } from '../widget/model/widget/widget';
+import { Widget } from '../widget/model/widget/widget.model';
 
 interface GridStoryArgs {
   items: Widget[];

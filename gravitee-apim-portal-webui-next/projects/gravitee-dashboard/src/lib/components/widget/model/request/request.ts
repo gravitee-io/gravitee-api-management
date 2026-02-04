@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RequestType } from '../widget/widget';
+import { RequestType } from '../widget/widget.model';
 import { FilterName } from './enum/filter-name';
 import { MeasureName } from './enum/measure-name';
 import { MetricName } from './enum/metric-name';

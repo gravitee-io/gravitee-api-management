@@ -21,17 +21,31 @@ import { MatIconModule } from '@angular/material/icon';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
-import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
-import { PlatformLogsComponent } from './logs/platform-logs.component';
-import { PlatformLogComponent } from './logs/platform-log.component';
-import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
+import { AnalyticsDashboardComponent } from './legacy/analytics-dashboard/analytics-dashboard.component';
+import { PlatformLogsComponent } from './legacy/logs/platform-logs.component';
+import { PlatformLogComponent } from './legacy/logs/platform-log.component';
 import { EnvLogsV4Component } from './env-logs-v4/env-logs-v4.component';
 import { EnvLogsTableComponent } from './env-logs-v4/components/env-logs-table/env-logs-table.component';
+import { OverviewComponent } from './overview/overview.component';
+import { DashboardsListComponent } from './dashboards/dashboards-list/dashboards-list.component';
 
 const routes: Routes = [
   {
     path: 'overview',
-    component: AnalyticsViewerComponent,
+    component: OverviewComponent,
+  },
+  {
+    path: 'dashboards',
+    component: DashboardsListComponent,
+  },
+  {
+    path: 'logs-explorer',
+    component: EnvLogsV4Component,
+    data: {
+      docs: {
+        page: 'management-environment-logs-v4',
+      },
+    },
   },
   {
     path: '',
@@ -66,15 +80,6 @@ const routes: Routes = [
         data: {
           docs: {
             page: 'management-api-log',
-          },
-        },
-      },
-      {
-        path: 'logs-v4',
-        component: EnvLogsV4Component,
-        data: {
-          docs: {
-            page: 'management-environment-logs-v4',
           },
         },
       },

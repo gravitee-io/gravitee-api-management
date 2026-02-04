@@ -15,11 +15,4 @@
     limitations under the License.
 
 -->
-
-<div class="gv-sub-content">
-  <div class="gv-forms gv-forms-fluid" layout="column">
-    <h1>Overview</h1>
-  </div>
-</div>
-
-<gd-dashboard [widgetConfigs]="widgets" [baseURL]="baseURL" [filters]="filters"></gd-dashboard>
+<gd-dashboard [widgetConfigs]="widgets()" [baseURL]="baseURL" [filters]="filters"></gd-dashboard>

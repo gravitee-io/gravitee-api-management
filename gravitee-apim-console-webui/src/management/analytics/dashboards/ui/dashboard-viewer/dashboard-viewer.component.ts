@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardComponent, Widget, GraviteeDashboardService, Filter } from '@gravitee/gravitee-dashboard';
+import { Filter, GraviteeDashboardComponent, Widget } from '@gravitee/gravitee-dashboard';
 
-import { inject, Component } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 
 import { ApiFilterService } from './filters/api-filter.service';
 import { ApplicationFilterService } from './filters/application-filter.service';
 
-import { Constants } from '../../../entities/Constants';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
-  selector: 'analytics-viewer',
+  selector: 'dashboard-viewer',
   imports: [GraviteeDashboardComponent],
-  templateUrl: './analytics-viewer.component.html',
-  styleUrl: './analytics-viewer.component.scss',
+  templateUrl: './dashboard-viewer.component.html',
+  styleUrl: './dashboard-viewer.component.scss',
 })
-export class AnalyticsViewerComponent {
-  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
+export class DashboardViewerComponent {
+  widgets = input<Widget[]>([]);
   readonly baseURL = inject(Constants).env.v2BaseURL;
 
   private readonly apisResultsLoader = inject(ApiFilterService).resultsLoader;

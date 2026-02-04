@@ -18,10 +18,11 @@
  */
 
 export * from './lib/gravitee-dashboard.service';
+export * from './lib/models/dashboard.model';
 export * from './lib/gravitee-dashboard.component';
 
 export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/model/widget/widget';
+export * from './lib/components/widget/model/widget/widget.model';
 export * from './lib/components/widget/widget.component';
 export * from './lib/components/chart/pie-chart/pie-chart.component';
 export * from './lib/components/chart/line-chart/line-chart.component';

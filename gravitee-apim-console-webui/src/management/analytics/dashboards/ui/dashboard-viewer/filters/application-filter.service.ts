@@ -19,8 +19,8 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { ResultsLoaderInput, ResultsLoaderOutput } from '../../../../shared/components/gio-select-search/gio-select-search.component';
-import { ApplicationService } from '../../../../services-ngx/application.service';
+import { ResultsLoaderInput, ResultsLoaderOutput } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
+import { ApplicationService } from '../../../../../../services-ngx/application.service';
 
 @Injectable({
   providedIn: 'root',
