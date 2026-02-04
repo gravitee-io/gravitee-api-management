@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -108,6 +109,23 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
                 .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions by reference", e);
+        }
+    }
+
+    @Override
+    public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        try {
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            return subscriptionRepository
+                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, repoReferenceType)
+                .map(subscriptionAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscription by id and reference", e);
         }
     }
 }

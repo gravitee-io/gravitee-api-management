@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
@@ -96,6 +97,23 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                 subscription -> referenceId.equals(subscription.getReferenceId()) && referenceType.equals(subscription.getReferenceType())
             )
             .toList();
+    }
+
+    @Override
+    public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
+        String subscriptionId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        return storage
+            .stream()
+            .filter(
+                sub ->
+                    sub.getId().equals(subscriptionId) &&
+                    referenceId.equals(sub.getReferenceId()) &&
+                    referenceType.equals(sub.getReferenceType())
+            )
+            .findFirst();
     }
 
     @Override

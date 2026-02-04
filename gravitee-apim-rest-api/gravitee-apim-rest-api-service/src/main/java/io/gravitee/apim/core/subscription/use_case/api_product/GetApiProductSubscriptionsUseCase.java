@@ -73,15 +73,12 @@ public class GetApiProductSubscriptionsUseCase {
             log.debug("Found {} subscriptions for API Product {}", subscriptions.size(), input.apiProductId);
             return Output.multiple(subscriptions);
         } else {
-            // For single subscription, we need to find it and verify it belongs to the API Product
-            List<SubscriptionEntity> subscriptions = subscriptionQueryService.findAllByReferenceIdAndReferenceType(
+            // Single subscription: use direct fetch by id and reference (efficient, consistent with Plan pattern)
+            Optional<SubscriptionEntity> subscription = subscriptionQueryService.findByIdAndReferenceIdAndReferenceType(
+                input.subscriptionId,
                 input.apiProductId,
                 SubscriptionReferenceType.API_PRODUCT
             );
-            Optional<SubscriptionEntity> subscription = subscriptions
-                .stream()
-                .filter(sub -> sub.getId().equals(input.subscriptionId))
-                .findFirst();
             log.debug(
                 "Subscription {} {} for API Product {}",
                 input.subscriptionId,

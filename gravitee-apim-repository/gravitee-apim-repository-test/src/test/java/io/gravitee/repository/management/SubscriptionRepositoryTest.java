@@ -505,6 +505,42 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void shouldSearchByApisAsBackwardCompatibility() throws TechnicalException {
+        // Criteria with only apis set (no referenceIds/referenceType) is treated as referenceType=API for backward compatibility
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().apis(List.of("api1")).build());
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals("API (reference)", "api1", subscriptions.getFirst().getReferenceId());
+        assertEquals("Reference type", SubscriptionReferenceType.API, subscriptions.getFirst().getReferenceType());
+    }
+
+    @Test
+    public void shouldSearchByReferenceIdsAndReferenceType() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder()
+                .referenceIds(List.of("api-product-1"))
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .build()
+        );
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 2, subscriptions.size());
+
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
+        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+
+        subscriptions.forEach(subscription -> {
+            assertEquals("API Product ID", "api-product-1", subscription.getReferenceId());
+            assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType());
+        });
+    }
+
+    @Test
     public void shouldFindByReferenceIdAndReferenceType() throws TechnicalException {
         Set<Subscription> subscriptions = subscriptionRepository.findByReferenceIdAndReferenceType(
             "api-product-1",

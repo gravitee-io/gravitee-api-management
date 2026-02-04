@@ -5,6 +5,8 @@
     "application": "app1",
     "applicationName": "app1 name",
     "api": "api1",
+    "referenceId": "api1",
+    "referenceType": "API",
     "environmentId" : "DEFAULT",
     "request": "request",
     "reason": "reason",

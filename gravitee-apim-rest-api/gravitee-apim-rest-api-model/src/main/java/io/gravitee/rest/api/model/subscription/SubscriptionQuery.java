@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.subscription;
 
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.*;
@@ -46,6 +47,16 @@ public class SubscriptionQuery {
 
     private String apiKey;
 
+    /**
+     * Reference ID (e.g. API ID or API Product ID) for generic filtering.
+     */
+    private String referenceId;
+
+    /**
+     * Reference type (API or API_PRODUCT) for generic filtering.
+     */
+    private GenericPlanEntity.ReferenceType referenceType;
+
     private long from = -1;
     private long to = -1;
 
@@ -57,6 +68,8 @@ public class SubscriptionQuery {
     public void setApi(String api) {
         if (api != null) {
             this.apis = Collections.singleton(api);
+            this.referenceId = api;
+            this.referenceType = GenericPlanEntity.ReferenceType.API;
         }
     }
 

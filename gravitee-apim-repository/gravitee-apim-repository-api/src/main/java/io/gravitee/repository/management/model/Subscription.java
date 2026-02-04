@@ -52,10 +52,15 @@ public class Subscription implements Serializable {
      * Subscription ID.
      */
     private String id;
+
     /**
      * The subscribed {@link Api}.
+     *
+     * @deprecated since 4.11.0. Use referenceId and referenceType instead.
      */
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String api;
+
     /**
      * The environment related to this subscription
      */

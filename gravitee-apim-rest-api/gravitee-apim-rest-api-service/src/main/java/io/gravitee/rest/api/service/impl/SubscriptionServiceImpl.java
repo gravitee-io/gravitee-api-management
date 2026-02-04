@@ -1501,6 +1501,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .includeWithoutEnd(query.isIncludeWithoutEnd())
             .excludedApis(query.getExcludedApis());
 
+        // Map referenceId/referenceType for generic filtering; backward compat: apis still set above
+        if (query.getReferenceId() != null && query.getReferenceType() != null) {
+            builder.referenceIds(Collections.singleton(query.getReferenceId()));
+            builder.referenceType(SubscriptionReferenceType.valueOf(query.getReferenceType().name()));
+        }
+
         if (query.getStatuses() != null) {
             builder.statuses(query.getStatuses().stream().map(Enum::name).collect(toSet()));
         }

@@ -98,6 +98,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -2377,6 +2378,50 @@ public class SubscriptionServiceTest {
         assertThat(result).hasSize(1);
 
         verify(subscriptionRepository).search(argThat(criteria -> criteria.getExcludedApis().contains(API_ID)));
+    }
+
+    @Test
+    public void should_search_with_referenceId_and_referenceType_in_criteria() throws Exception {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setReferenceId("api-product-1");
+        query.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
+
+        Collection<SubscriptionEntity> result = subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+
+        assertThat(result).hasSize(1);
+        verify(subscriptionRepository).search(
+            argThat(
+                criteria ->
+                    criteria.getReferenceIds() != null &&
+                    criteria.getReferenceIds().contains("api-product-1") &&
+                    criteria.getReferenceType() == SubscriptionReferenceType.API_PRODUCT
+            )
+        );
+    }
+
+    @Test
+    public void should_search_setApi_sets_referenceId_and_referenceType() throws Exception {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApi(API_ID);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
+
+        subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+
+        assertThat(query.getReferenceId()).isEqualTo(API_ID);
+        assertThat(query.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+        verify(subscriptionRepository).search(
+            argThat(
+                criteria ->
+                    criteria.getReferenceIds() != null &&
+                    criteria.getReferenceIds().contains(API_ID) &&
+                    criteria.getReferenceType() == SubscriptionReferenceType.API
+            )
+        );
     }
 
     @Test
