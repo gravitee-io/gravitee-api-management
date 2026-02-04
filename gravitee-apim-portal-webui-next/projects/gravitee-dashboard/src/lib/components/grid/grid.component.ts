@@ -23,7 +23,7 @@ import { LineChartComponent } from '../chart/line-chart/line-chart.component';
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { StatsComponent } from '../text/stats/stats.component';
-import { isFacetsWidget, isMeasuresWidget, isTimeSeriesWidget, Widget } from '../widget/model/widget/widget';
+import { isFacetsWidget, isMeasuresWidget, isTimeSeriesWidget, Widget } from '../widget/model/widget/widget.model';
 import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({

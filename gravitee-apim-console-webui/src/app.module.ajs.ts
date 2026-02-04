@@ -107,9 +107,9 @@ import IdentityPictureDirective from './components/identityPicture/identityPictu
 import ImageDirective from './components/image/image.directive';
 import { EventService } from './services/event.service';
 import AnalyticsService from './services/analytics.service';
-import PlatformLogsController from './management/analytics/logs/platform-logs.controller';
-import PlatformLogsComponentAjs from './management/analytics/logs/platform-logs.component.ajs';
-import PlatformLogComponentAjs from './management/analytics/logs/platform-log.component.ajs';
+import PlatformLogsController from './management/analytics/legacy/logs/platform-logs.controller';
+import PlatformLogsComponentAjs from './management/analytics/legacy/logs/platform-logs.component.ajs';
+import PlatformLogComponentAjs from './management/analytics/legacy/logs/platform-log.component.ajs';
 
 import CategoryService from './services/category.service';
 import SubscriptionService from './services/subscription.service';
@@ -234,7 +234,7 @@ import { GioPermissionService } from './shared/components/gio-permission/gio-per
 import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
 import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
-import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
+import AnalyticsDashboardComponentAjs from './management/analytics/legacy/analytics-dashboard/analytics-dashboard.component.ajs';
 import { GroupV2Service } from './services-ngx/group-v2.service';
 import { ApiPlanV2Service } from './services-ngx/api-plan-v2.service';
 

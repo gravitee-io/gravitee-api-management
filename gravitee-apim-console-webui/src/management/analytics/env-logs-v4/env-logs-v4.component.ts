@@ -16,7 +16,9 @@
 
 import { Component, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 import { EnvLog, fakeEnvLogs } from './models/env-log.fixture';
@@ -27,7 +29,7 @@ import { GioTableWrapperPagination } from '../../../shared/components/gio-table-
   selector: 'env-logs-v4',
   templateUrl: './env-logs-v4.component.html',
   styleUrls: ['./env-logs-v4.component.scss'],
-  imports: [MatCardModule, GioBannerModule, EnvLogsTableComponent],
+  imports: [MatCardModule, GioBannerModule, EnvLogsTableComponent, RouterModule, MatIconModule, GioIconsModule],
 })
 export class EnvLogsV4Component {
   logs = signal<EnvLog[]>(fakeEnvLogs());

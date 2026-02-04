@@ -82,3 +82,16 @@ Object.defineProperty(document.body.style, 'transform', {
     };
   },
 });
+
+// Mock crypto.randomUUID for Jest environment. Used for default id generation in components.
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    ...globalThis.crypto,
+    randomUUID: () =>
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.floor(Math.random() * 16);
+        const v = c === 'x' ? r : (r % 4) + 8;
+        return v.toString(16);
+      }),
+  },
+});

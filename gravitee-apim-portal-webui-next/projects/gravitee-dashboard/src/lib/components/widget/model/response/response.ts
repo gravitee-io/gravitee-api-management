@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { MetricName } from '../request/enum/metric-name';
-import { Measure } from '../widget/widget';
+import { Measure } from '../widget/widget.model';
 
 export interface MetricsResponse<D extends Metric> {
   interval?: string;

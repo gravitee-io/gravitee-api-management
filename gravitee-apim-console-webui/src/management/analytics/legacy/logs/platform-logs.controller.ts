@@ -18,9 +18,9 @@ import { IScope } from 'angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { now } from 'lodash';
 
-import { ApiService } from '../../../services/api.service';
-import ApplicationService from '../../../services/application.service';
-import AnalyticsService, { LogsQuery } from '../../../services/analytics.service';
+import { ApiService } from '../../../../services/api.service';
+import ApplicationService from '../../../../services/application.service';
+import AnalyticsService, { LogsQuery } from '../../../../services/analytics.service';
 
 class PlatformLogsController {
   private logs: { total: string; logs: any[]; metadata: any };

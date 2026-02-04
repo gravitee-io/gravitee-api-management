@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+import { PROXY_DASHBOARD_TEMPLATE } from './proxy-dashboard.template';
 
-import { ApiFilterService } from './api-filter.service';
+/**
+ * List of all available dashboard templates.
+ * Used by the template selection modal.
+ */
+export const ALL_DASHBOARD_TEMPLATES = [PROXY_DASHBOARD_TEMPLATE];
 
-import { GioTestingModule } from '../../../../shared/testing';
-
-describe('ApiFilterService', () => {
-  let service: ApiFilterService;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [GioTestingModule],
-    });
-    service = TestBed.inject(ApiFilterService);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+export * from './proxy-dashboard.template';
+export * from './dashboard-template.model';

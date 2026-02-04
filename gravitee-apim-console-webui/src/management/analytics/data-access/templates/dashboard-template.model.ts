@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Metric, MetricsResponse } from './response';
-import { Measure } from '../widget/widget.model';
+import { Dashboard } from '@gravitee/gravitee-dashboard';
 
-export interface MeasuresResponse extends MetricsResponse<MeasureMetric> {}
-
-export interface MeasureMetric extends Metric {
-  measures: Measure[];
+export interface DashboardTemplate {
+  id: string;
+  name: string;
+  description: string;
+  previewImage: string;
+  initialConfig: Partial<Dashboard>;
 }

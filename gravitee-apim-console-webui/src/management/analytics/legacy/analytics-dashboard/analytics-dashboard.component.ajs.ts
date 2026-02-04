@@ -16,8 +16,8 @@
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, find, forEach, merge } from 'lodash';
 
-import { EventService } from '../../../services/event.service';
-import DashboardService from '../../../services/dashboard.service';
+import { EventService } from '../../../../services/event.service';
+import DashboardService from '../../../../services/dashboard.service';
 
 class AnalyticsDashboardControllerAjs {
   private eventLabels: any;

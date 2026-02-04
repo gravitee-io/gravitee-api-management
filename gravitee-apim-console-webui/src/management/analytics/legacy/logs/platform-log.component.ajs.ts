@@ -15,8 +15,8 @@
  */
 import { Router } from '@angular/router';
 
-import NotificationService from '../../../services/notification.service';
-import AnalyticsService from '../../../services/analytics.service';
+import NotificationService from '../../../../services/notification.service';
+import AnalyticsService from '../../../../services/analytics.service';
 
 const PlatformLogComponentAjs: ng.IComponentOptions = {
   bindings: {
