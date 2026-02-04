@@ -20,7 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdSelectComponent } from './gmd-select.component';
 import { GmdSelectComponentHarness } from './gmd-select.component.harness';
-import { GmdFieldState } from '../../models/formField';
+import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
 
 @Component({
   template: `
@@ -53,9 +53,17 @@ describe('GmdSelectComponent', () => {
   let loader: HarnessLoader;
   let harness: GmdSelectComponentHarness;
 
+  let mockStore: { updateField: jest.Mock; removeField: jest.Mock };
+
   beforeEach(async () => {
+    mockStore = {
+      updateField: jest.fn(),
+      removeField: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
+      providers: [{ provide: GMD_FORM_STATE_STORE, useValue: mockStore }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -208,59 +216,40 @@ describe('GmdSelectComponent', () => {
     });
   });
 
-  describe('Event emission', () => {
-    it('should emit gmdFieldStateChange event when fieldKey is set and value changes', async () => {
+  describe('Store updates', () => {
+    it('should update store when fieldKey is set and value changes', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.componentRef.setInput('options', 'option1,option2');
       fixture.detectChanges();
-      await fixture.whenStable();
-
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const selectElement = fixture.nativeElement.querySelector('gmd-select');
-        selectElement.addEventListener(
-          'gmdFieldStateChange',
-          (event: Event) => {
-            resolve(event as CustomEvent<GmdFieldState>);
-          },
-          { once: true },
-        );
-      });
 
       await harness.selectOptionByValue('option1');
       fixture.detectChanges();
-      await fixture.whenStable();
 
-      // Wait for effect() to trigger and setTimeout in emitState to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.value).toBe('option1');
-      expect(customEvent.detail.valid).toBe(true);
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          value: 'option1',
+          valid: true,
+        }),
+      );
     });
 
-    it('should emit event with validation errors when invalid', async () => {
+    it('should update store with validation errors when invalid', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.componentRef.setInput('required', true);
       fixture.componentRef.setInput('options', 'option1,option2');
       fixture.detectChanges();
 
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const selectElement = fixture.nativeElement.querySelector('gmd-select');
-        selectElement.addEventListener('gmdFieldStateChange', (event: Event) => {
-          resolve(event as CustomEvent<GmdFieldState>);
-        });
-      });
-
       await harness.blur();
       fixture.detectChanges();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.validationErrors).toContain('required');
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          valid: false,
+          validationErrors: expect.arrayContaining(['required']),
+        }),
+      );
     });
   });
 

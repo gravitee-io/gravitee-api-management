@@ -20,7 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdInputComponent } from './gmd-input.component';
 import { GmdInputComponentHarness } from './gmd-input.component.harness';
-import { GmdFieldState } from '../../models/formField';
+import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
 
 @Component({
   template: `
@@ -45,8 +45,8 @@ class TestHostComponent {
   placeholder = input<string | undefined>();
   value = input<string | undefined>();
   required = input<boolean>(false);
-  minLength = input<number | string | null | undefined>();
-  maxLength = input<number | string | null | undefined>();
+  minLength = input<number | string | undefined>();
+  maxLength = input<number | string | undefined>();
   pattern = input<string | undefined>();
 }
 
@@ -57,9 +57,17 @@ describe('GmdInputComponent', () => {
   let loader: HarnessLoader;
   let harness: GmdInputComponentHarness;
 
+  let mockStore: { updateField: jest.Mock; removeField: jest.Mock };
+
   beforeEach(async () => {
+    mockStore = {
+      updateField: jest.fn(),
+      removeField: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
+      providers: [{ provide: GMD_FORM_STATE_STORE, useValue: mockStore }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -187,60 +195,38 @@ describe('GmdInputComponent', () => {
     });
   });
 
-  describe('Event emission', () => {
-    it('should emit gmdFieldStateChange event when fieldKey is set and value changes', async () => {
+  describe('Store updates', () => {
+    it('should update store when fieldKey is set and value changes', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.detectChanges();
-      await fixture.whenStable();
 
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const inputElement = fixture.nativeElement.querySelector('gmd-input');
-        inputElement.addEventListener(
-          'gmdFieldStateChange',
-          (event: Event) => {
-            resolve(event as CustomEvent<GmdFieldState>);
-          },
-          { once: true },
-        );
-      });
-
-      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-      input.value = 'test value';
-      input.dispatchEvent(new Event('input'));
+      await harness.setValue('test value');
       fixture.detectChanges();
-      await fixture.whenStable();
 
-      // Wait for effect() to trigger and setTimeout in emitState to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.value).toBe('test value');
-      expect(customEvent.detail.valid).toBe(true);
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          value: 'test value',
+          valid: true,
+        }),
+      );
     });
 
-    it('should emit event with validation errors when invalid', async () => {
+    it('should update store with validation errors when invalid', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.componentRef.setInput('required', true);
       fixture.detectChanges();
 
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const inputElement = fixture.nativeElement.querySelector('gmd-input');
-        inputElement.addEventListener('gmdFieldStateChange', (event: Event) => {
-          resolve(event as CustomEvent<GmdFieldState>);
-        });
-      });
-
-      const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-      input.dispatchEvent(new Event('blur'));
+      await harness.blur();
       fixture.detectChanges();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.validationErrors).toContain('required');
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          valid: false,
+          validationErrors: expect.arrayContaining(['required']),
+        }),
+      );
     });
   });
 

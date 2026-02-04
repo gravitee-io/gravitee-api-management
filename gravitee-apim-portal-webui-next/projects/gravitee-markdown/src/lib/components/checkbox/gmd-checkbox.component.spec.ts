@@ -19,7 +19,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdCheckboxComponent } from './gmd-checkbox.component';
 import { GmdCheckboxComponentHarness } from './gmd-checkbox.component.harness';
-import { GmdFieldState } from '../../models/formField';
+import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
 
 @Component({
   template: `
@@ -51,9 +51,17 @@ describe('GmdCheckboxComponent', () => {
   let checkboxComponent: GmdCheckboxComponent;
   let harness: GmdCheckboxComponentHarness;
 
+  let mockStore: { updateField: jest.Mock; removeField: jest.Mock };
+
   beforeEach(async () => {
+    mockStore = {
+      updateField: jest.fn(),
+      removeField: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
+      providers: [{ provide: GMD_FORM_STATE_STORE, useValue: mockStore }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -156,60 +164,41 @@ describe('GmdCheckboxComponent', () => {
     });
   });
 
-  describe('Event emission', () => {
-    it('should emit gmdFieldStateChange event when fieldKey is set and value changes', async () => {
+  describe('Store updates', () => {
+    it('should update store when fieldKey is set and value changes', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.detectChanges();
-      await fixture.whenStable();
-
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const checkboxElement = fixture.nativeElement.querySelector('gmd-checkbox');
-        checkboxElement.addEventListener(
-          'gmdFieldStateChange',
-          (event: Event) => {
-            resolve(event as CustomEvent<GmdFieldState>);
-          },
-          { once: true },
-        );
-      });
 
       await harness.click();
       fixture.detectChanges();
-      await fixture.whenStable();
 
-      // Wait for effect() to trigger and setTimeout in emitState to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.value).toBe('true');
-      expect(customEvent.detail.valid).toBe(true);
-      expect(customEvent.detail.required).toBe(false);
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          value: 'true',
+          valid: true,
+          required: false,
+        }),
+      );
     });
 
-    it('should emit event with correct state when required and invalid', async () => {
+    it('should update store with correct state when required and invalid', async () => {
       fixture.componentRef.setInput('fieldKey', 'test-key');
       fixture.componentRef.setInput('required', true);
       fixture.detectChanges();
 
-      const eventPromise = new Promise<CustomEvent<GmdFieldState>>(resolve => {
-        const checkboxElement = fixture.nativeElement.querySelector('gmd-checkbox');
-        checkboxElement.addEventListener('gmdFieldStateChange', (event: Event) => {
-          resolve(event as CustomEvent<GmdFieldState>);
-        });
-      });
-
       await harness.blur();
       fixture.detectChanges();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      const customEvent = await eventPromise;
-      expect(customEvent.detail.fieldKey).toBe('test-key');
-      expect(customEvent.detail.value).toBe('false');
-      expect(customEvent.detail.valid).toBe(false);
-      expect(customEvent.detail.required).toBe(true);
-      expect(customEvent.detail.validationErrors).toContain('required');
+      expect(mockStore.updateField).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldKey: 'test-key',
+          value: 'false',
+          valid: false,
+          required: true,
+          validationErrors: expect.arrayContaining(['required']),
+        }),
+      );
     });
   });
 
