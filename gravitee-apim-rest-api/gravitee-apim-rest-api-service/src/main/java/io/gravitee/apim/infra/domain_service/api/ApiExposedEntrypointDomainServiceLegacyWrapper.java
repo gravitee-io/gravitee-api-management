@@ -19,7 +19,7 @@ import io.gravitee.apim.core.api.domain_service.ApiExposedEntrypointDomainServic
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ExposedEntrypoint;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -35,8 +35,8 @@ public class ApiExposedEntrypointDomainServiceLegacyWrapper implements ApiExpose
 
     @Override
     public List<ExposedEntrypoint> get(String organizationId, String environmentId, Api api) {
-        GenericApiEntity genericApiEntity = api.getType() == ApiType.NATIVE
-            ? ApiAdapter.INSTANCE.toNativeApiEntity(api)
+        GenericApiEntity genericApiEntity = api.getApiDefinitionValue() instanceof NativeApi nativeApi
+            ? ApiAdapter.INSTANCE.toNativeApiEntity(api, nativeApi)
             : ApiAdapter.INSTANCE.toApiEntity(api);
 
         return apiEntrypointService

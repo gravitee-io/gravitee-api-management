@@ -644,7 +644,7 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expected = expectedNativeApi();
             expected.setId(customId);
-            expected.getApiDefinitionNativeV4().setId(customId);
+            expected.getApiDefinitionValue().setId(customId);
 
             SoftAssertions.assertSoftly(soft -> {
                 var createdApi = apiCrudService.get(customId);

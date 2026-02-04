@@ -243,11 +243,7 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
             // Given
-            if (api.isNative()) {
-                api.getApiDefinitionNativeV4().setTags(Set.of());
-            } else {
-                api.getApiDefinitionHttpV4().setTags(Set.of());
-            }
+            api.getApiDefinitionValue().setTags(Set.of());
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, api, AUDIT_INFO));

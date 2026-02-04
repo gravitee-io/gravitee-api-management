@@ -132,7 +132,7 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionNativeV4());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionValue());
         }
 
         @Test
@@ -162,7 +162,7 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionNativeV4());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionValue());
             if (output.apiDefinition() instanceof NativeApi definition) {
                 assertThat(definition.getFlows()).isEqualTo(flows);
                 assertThat(definition.getPlans()).hasSize(2);

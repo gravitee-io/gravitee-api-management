@@ -45,6 +45,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
@@ -389,7 +390,10 @@ public class ApiResource extends AbstractResource {
         }
 
         var result = updateNativeApiUseCase.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, getAuditInfo()));
-        return ApiAdapter.INSTANCE.toNativeApiEntity(result.updatedApi());
+        return switch (result.updatedApi().getApiDefinitionValue()) {
+            case NativeApi nativeApi -> ApiAdapter.INSTANCE.toNativeApiEntity(result.updatedApi(), nativeApi);
+            default -> throw new IllegalStateException("Update native API produce a non-native API");
+        };
     }
 
     private ApiEntity updateHttpApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {

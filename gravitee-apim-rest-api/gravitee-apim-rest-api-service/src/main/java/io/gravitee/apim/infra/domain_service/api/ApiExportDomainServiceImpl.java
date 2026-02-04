@@ -28,7 +28,6 @@ import static java.util.function.Predicate.not;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
@@ -55,6 +54,7 @@ import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
 import io.gravitee.apim.infra.adapter.MemberAdapter;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
@@ -117,8 +117,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .orElse(null);
 
         var groups = !excluded.contains(GROUPS) ? api1.getGroups() : null;
-        return switch (apiType(api1)) {
-            case V2 -> {
+        return switch (api1.getApiDefinitionValue()) {
+            case Api v2 -> {
                 Function<Plan, PlanDescriptor.V2> mapPlanV2 = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanV2(plan, excludeIds);
                     return planWithFlowV2(mapped, plan.getId(), excludeIds);
@@ -128,36 +128,46 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var api = DEFINITION_ADAPTER.mapV2(api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case V4 -> {
+            case io.gravitee.definition.model.v4.Api apiV4 -> {
                 Function<Plan, PlanDescriptor.V4> mapPlanV4 = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanV4(plan, excludeIds);
                     return planWithFlowV4(mapped, plan.getId(), excludeIds);
                 };
                 var plans = mapPlan(apiId, mapPlanV4, excluded);
                 var flows = getApiV4Flows(apiId, excludeIds);
-                var api = DEFINITION_ADAPTER.mapV4(api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                var api = DEFINITION_ADAPTER.mapV4(api1, apiV4, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case V4_NATIVE -> {
+            case NativeApi nativeApi -> {
                 Function<Plan, PlanDescriptor.Native> mapPlanNative = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanNative(plan, excludeIds);
                     return planWithFlowNative(mapped, plan.getId(), excludeIds);
                 };
                 var plans = mapPlan(apiId, mapPlanNative, excluded);
                 var flows = getNativeApiFlows(apiId, excludeIds);
-                var api = DEFINITION_ADAPTER.mapNative(api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                var api = DEFINITION_ADAPTER.mapNative(
+                    api1,
+                    nativeApi,
+                    apiPrimaryOwner,
+                    workflowState,
+                    groups,
+                    metadata,
+                    flows,
+                    excludeIds
+                );
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case FEDERATED -> {
+            case FederatedApi federatedApi -> {
                 Function<Plan, PlanDescriptor.Federated> mapPlanFederated = DEFINITION_ADAPTER::mapPlanFederated;
                 var plans = mapPlan(apiId, mapPlanFederated, excluded);
                 var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
                     ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
                     : null;
-                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
+                var api = DEFINITION_ADAPTER.mapFederated(api1, federatedApi, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case FEDERATED_AGENT -> null; // TODO
+            case FederatedAgent agent -> null; // TODO
+            default -> throw new ApiDefinitionVersionNotSupportedException(api1.getVersion());
         };
     }
 
@@ -210,27 +220,6 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
             ? mediaService.findAllByApiId(apiId)
             : null;
-    }
-
-    private enum ValidatedType {
-        V2,
-        V4,
-        V4_NATIVE,
-        FEDERATED,
-        FEDERATED_AGENT,
-    }
-
-    private ValidatedType apiType(Api api1) {
-        return switch (api1.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api api -> ValidatedType.V4;
-            case NativeApi nativeApi -> ValidatedType.V4_NATIVE;
-            case FederatedApi federatedApi -> ValidatedType.FEDERATED;
-            case FederatedAgent federatedAgent -> ValidatedType.FEDERATED_AGENT;
-            case io.gravitee.definition.model.Api api -> ValidatedType.V2;
-            case null, default -> throw new ApiDefinitionVersionNotSupportedException(
-                api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
-            );
-        };
     }
 
     @Nullable
