@@ -152,7 +152,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -186,7 +186,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, page)
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, pageSize)
                 .request()
@@ -211,7 +211,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -237,7 +237,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         void should_return_400_if_time_range_missing() {
             var request = new SearchLogsRequest();
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
@@ -248,7 +248,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 0)
                 .request()
                 .post(Entity.json(request));
@@ -262,7 +262,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 1)
                 .request()
                 .post(Entity.json(request));
@@ -276,7 +276,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 0)
                 .request()
                 .post(Entity.json(request));
@@ -290,7 +290,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 1)
                 .request()
                 .post(Entity.json(request));
@@ -304,7 +304,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 100)
                 .request()
                 .post(Entity.json(request));
@@ -318,7 +318,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 101)
                 .request()
                 .post(Entity.json(request));
@@ -344,7 +344,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .filters(List.of());
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -362,7 +362,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -384,7 +384,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-02-01T00:01:00.00Z")).to(OffsetDateTime.parse("2020-02-03T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -414,7 +414,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .addFiltersItem(new Filter(new ArrayFilter().name(FilterName.API).operator(Operator.IN).value(List.of(API_1))));
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -445,7 +445,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     new Filter(new ArrayFilter().name(FilterName.APPLICATION).operator(Operator.IN).value(List.of(APPLICATION_1.getId())))
                 );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -474,7 +474,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .addFiltersItem(new Filter(new ArrayFilter().name(FilterName.PLAN).operator(Operator.IN).value(List.of(PLAN_1.getId()))));
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -503,7 +503,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .addFiltersItem(new Filter(new ArrayFilter().name(FilterName.HTTP_METHOD).operator(Operator.IN).value(List.of("GET"))));
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -535,7 +535,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .addFiltersItem(new Filter(new ArrayFilter().name(FilterName.HTTP_STATUS).operator(Operator.IN).value(List.of("202"))));
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -567,7 +567,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     new Filter(new ArrayFilter().name(FilterName.ENTRYPOINT).operator(Operator.IN).value(List.of("entrypoint1")))
                 );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -624,7 +624,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     new Filter(new StringFilter().name(FilterName.APPLICATION).operator(Operator.EQ).value(APPLICATION_1.getId()))
                 );
 
-            final Response response = searchTarget.request().post(Entity.json(request));
+            var response = searchTarget.request().post(Entity.json(request));
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -660,7 +660,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 )
                 .filters(List.of(new Filter(new StringFilter().name(FilterName.API).operator(Operator.EQ).value("api1"))));
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 2)
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, pageSize)
                 .request()
@@ -701,7 +701,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 1)
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 5)
                 .request()
@@ -730,7 +730,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
             );
 
-            final Response response = searchTarget
+            var response = searchTarget
                 .queryParam(PaginationParamWithMaxValidation.PAGE_QUERY_PARAM_NAME, 2)
                 .queryParam(PaginationParamWithMaxValidation.PER_PAGE_QUERY_PARAM_NAME, 5)
                 .request()
