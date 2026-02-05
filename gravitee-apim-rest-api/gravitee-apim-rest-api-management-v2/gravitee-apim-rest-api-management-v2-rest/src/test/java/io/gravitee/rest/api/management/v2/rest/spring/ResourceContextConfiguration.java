@@ -42,8 +42,6 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
-import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
-import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
@@ -162,6 +160,7 @@ import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -1035,15 +1034,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ComputeMeasuresUseCase computeMeasuresUseCase(
-        AnalyticsQueryContextProvider analyticsQueryContextProvider,
-        AnalyticsQueryValidator analyticsQueryValidator,
-        FilterPreProcessor filterPreprocessor
-    ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
-    }
-
-    @Bean
     public ProcessPromotionUseCase processPromotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
     }
@@ -1081,5 +1071,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public UserContextLoader userContextLoader() {
+        return mock(UserContextLoader.class);
     }
 }
